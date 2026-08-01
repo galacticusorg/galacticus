@@ -200,6 +200,83 @@ def Class_Meta_Property_Get_Reference(build, class_dict):
         })
 
 
+def Class_Meta_Property_Is_Created(build, class_dict):
+    """Generate one `<class><Label>Rank<N>MetaPropertyCrtd` per
+    meta-property type, reporting whether any class creates the
+    meta-property with the given ID.
+
+    Registering a meta-property with `isCreator="no"` always yields a valid ID,
+    but the meta-property has no storage unless some class registered it with
+    `isCreator="yes"`. Reading such a meta-property is fatal (the accessors call
+    `metaPropertyNoCreator`), which is the right behavior when the meta-property
+    is genuinely required. This query lets a caller instead treat an uncreated
+    meta-property as simply absent - needed where a quantity is optional, such
+    as a radius expressed as a fraction of a fuzzy-dark-matter soliton radius in
+    a model containing no solitons.
+    """
+    name      = class_dict['name']
+    cap       = _ucfirst(name)
+    type_name = 'nodeComponent' + cap
+    active    = name in (build.get('componentClassListActive') or [])
+
+    for mpt in meta_property_types:
+        rank      = mpt['rank']
+        cap_label = _ucfirst(mpt['label'])
+
+        if active:
+            # `...MetaPropertyCreator` is only allocated once at least one
+            # meta-property of this kind has been registered.
+            content = (
+                f"if (allocated({name}{cap_label}Rank{rank}MetaPropertyCreator)) then\n"
+                f" isCreated_={name}{cap_label}Rank{rank}"
+                f"MetaPropertyCreator(metaPropertyID)\n"
+                "else\n"
+                " isCreated_=.false.\n"
+                "end if\n"
+            )
+        else:
+            content = 'isCreated_=.false.\n'
+
+        function = {
+            'type':        'logical => isCreated_',
+            # Abbreviated to `...MetaPropertyCrtd` to stay within the Fortran
+            # 63-character identifier limit: the longest class+label combination
+            # (`darkMatterProfile`+`longInteger`) reaches 62 characters even with
+            # this short suffix. The caller-facing type-bound name below spells it
+            # out in full.
+            'name':        f"{type_name}{cap_label}Rank{rank}MetaPropertyCrtd",
+            'description': (
+                f"Return true if some class creates the rank-{rank} "
+                f"{mpt['label']} meta-property of a {type_name} component with "
+                f"the given ID, and false if none does (in which case the "
+                f"meta-property has no storage and must not be read)."
+            ),
+            'modules':     ['ISO_Varying_String'],
+            'variables':   [
+                {
+                    'intrinsic':  'class',
+                    'type':       type_name,
+                    'attributes': ['intent(in   )'],
+                    'variables':  ['self'],
+                },
+                {
+                    'intrinsic':  'integer',
+                    'attributes': ['intent(in   )'],
+                    'variables':  ['metaPropertyID'],
+                },
+            ],
+            'content':     '!$GLC attributes unused :: self\n' + content,
+        }
+
+        build.setdefault('types', {}).setdefault(type_name, {}) \
+                                      .setdefault('boundFunctions', []) \
+                                      .append({
+            'type':       'procedure',
+            'descriptor': function,
+            'name':       f"{mpt['label']}Rank{rank}MetaPropertyIsCreated",
+        })
+
+
 def Class_Meta_Property_Set(build, class_dict):
     """Generate one `<class><Label>Rank<N>MetaPropertySet` per
     meta-property type, storing the provided value.
@@ -278,4 +355,5 @@ def _ucfirst(text):
 
 register('classMetaProperties', 'classIteratedFunctions', Class_Meta_Property_Get          )
 register('classMetaProperties', 'classIteratedFunctions', Class_Meta_Property_Get_Reference)
+register('classMetaProperties', 'classIteratedFunctions', Class_Meta_Property_Is_Created   )
 register('classMetaProperties', 'classIteratedFunctions', Class_Meta_Property_Set          )
