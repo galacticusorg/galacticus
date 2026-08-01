@@ -206,9 +206,7 @@ contains
     use :: Galactic_Structure_Options          , only : componentTypeDisk              , componentTypeSpheroid       , componentTypeAll                          , massTypeStellar                   , &
           &                                             massTypeAll
     use :: Galactic_Structure_Radii_Definitions, only : directionLambdaR               , directionLineOfSight        , directionLineOfSightInteriorAverage       , directionRadial                   , &
-          &                                             radiusResolver                 , radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius                      , radiusTypeSpheroidRadius          , &
-          &                                             radiusTypeSpheroidHalfMassRadius, radiusTypeNuclearStarClusterHalfMassRadius                             , radiusTypeNuclearStarClusterRadius, &
-          &                                             radiusTypeHotHaloOuterRadius
+          &                                             radiusResolver
     use :: Galacticus_Nodes                    , only : treeNode
     use :: Coordinates                         , only : coordinateSpherical            , assignment(=)
     use :: Numerical_Integration               , only : integrator
@@ -225,7 +223,7 @@ contains
          &                                                                                    radiusZero                             , numerator               , &
          &                                                                                    denominator                            , massDisk                , &
          &                                                                                    massSpheroid
-    logical                                                                                :: scaleIsZero
+    logical                                                                                :: rangeIsDegenerate
     type            (radiusResolver                         )                              :: resolver
     type            (integrator                             )                              :: integratorVelocitySurfaceDensity       , integratorSurfaceDensity, &
          &                                                                                    integratorLambdaR2                     , integratorLambdaR1
@@ -241,22 +239,12 @@ contains
     do i=1,self%radiiCount
        call resolver%evaluate(i,radius,radiusScale)
        radiusOuter_=max(radius,radiusScale)*outerRadiusMultiplier
-       ! A zero extent for a galactic component means that the component is absent - do not attempt to compute a dispersion in
-       ! such cases.
-       select case (self%radii%specifiers(i)%type%ID)
-       case   (radiusTypeHotHaloOuterRadius              %ID, &
-            &  radiusTypeDiskRadius                      %ID, &
-            &  radiusTypeSpheroidRadius                  %ID, &
-            &  radiusTypeNuclearStarClusterRadius        %ID, &
-            &  radiusTypeDiskHalfMassRadius              %ID, &
-            &  radiusTypeSpheroidHalfMassRadius          %ID, &
-            &  radiusTypeNuclearStarClusterHalfMassRadius%ID)
-          scaleIsZero=(radiusScale <= 0.0d0)
-       case default
-          scaleIsZero=.false.
-       end select
-       if (scaleIsZero) then
-          ! Do not compute dispersions if the component scale is zero.
+       ! The line-of-sight integrals below run out to `radiusOuter_`. If that is not positive the integration range is
+       ! degenerate - which happens whenever the component in whose units the radius is expressed has zero extent, and so is
+       ! absent - and no dispersion can be computed.
+       rangeIsDegenerate=(radiusOuter_ <= 0.0d0)
+       if (rangeIsDegenerate) then
+          ! Do not compute dispersions if the integration range is degenerate.
           velocityDispersionExtract(i,1)=0.0d0
        else
           massDistribution_         => node             %      massDistribution(componentType=self%radii%specifiers(i)%component       ,massType=self%radii%specifiers(i)%mass                                                                                )
