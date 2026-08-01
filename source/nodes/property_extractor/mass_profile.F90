@@ -21,7 +21,7 @@
   Implements a property extractor class for the enclosed mass at a set of radii.
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleClass
-  use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
+  use :: Galactic_Structure_Radii_Definitions, only : radiusDefinitions
   use :: Cosmology_Parameters                , only : cosmologyParametersClass
 
   !![
@@ -41,12 +41,8 @@
      integer                                                      :: radiiCount                             , elementCount_
      logical                                                      :: includeRadii
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
-     type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
+     type   (radiusDefinitions       )                            :: radii
 
-     logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
-          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded, &
-          &                                                          nuclearStarClusterIsNeeded             , satelliteIsNeeded   , &
-          &                                                          hotHaloIsNeeded
      double precision                                             :: fractionDarkMatter
    contains
      final     ::                       massProfileDestructor
@@ -115,7 +111,6 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorMassProfile` property extractor class.
     !!}
-    use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
     type   (nodePropertyExtractorMassProfile)                              :: self
     type   (varying_string                  ), intent(in   ), dimension(:) :: radiusSpecifiers
@@ -132,17 +127,7 @@ contains
        self%elementCount_=1
     end if
     self%radiiCount      =size(radiusSpecifiers)
-    call Galactic_Structure_Radii_Definition_Decode(                                    &
-         &                                          radiusSpecifiers                  , &
-         &                                          self%radii                        , &
-         &                                          self%hotHaloIsNeeded              , &
-         &                                          self%diskIsNeeded                 , &
-         &                                          self%spheroidIsNeeded             , &
-         &                                          self%nuclearStarClusterIsNeeded   , &
-         &                                          self%satelliteIsNeeded            , &
-         &                                          self%virialRadiusIsNeeded         , &
-         &                                          self%darkMatterScaleRadiusIsNeeded  &
-         &                                         )
+    call self%radii%decode(radiusSpecifiers)
     self%fractionDarkMatter=+(                                         &
          &                    +self%cosmologyParameters_%OmegaMatter() &
          &                    -self%cosmologyParameters_%OmegaBaryon() &
@@ -196,118 +181,28 @@ contains
     !!{RST
     Implement a ``massProfile`` property extractor.
     !!}
-
-    use :: Galactic_Structure_Options          , only : componentTypeAll                          , massTypeGalactic            , massTypeStellar                     , massTypeDark
-    use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius           , radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius                , radiusTypeGalacticLightFraction   , &
-         &                                              radiusTypeGalacticMassFraction            , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius    , radiusTypeSpheroidRadius          , &
-         &                                              radiusTypeStellarMassFraction             , radiusTypeVirialRadius      , radiusTypeSatelliteBoundMassFraction, radiusTypeNuclearStarClusterRadius, &
-         &                                              radiusTypeNuclearStarClusterHalfMassRadius, radiusTypeHotHaloOuterRadius
-    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile            , nodeComponentDisk           , nodeComponentSpheroid               , nodeComponentNSC                  , & 
-         &                                              nodeComponentSatellite                    , nodeComponentHotHalo        , treeNode
+    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver
+    use :: Galacticus_Nodes                    , only : treeNode
     use :: Mass_Distributions                  , only : massDistributionClass
-    use :: Error                               , only : Error_Report
     implicit none
     double precision                                  , dimension(:,:), allocatable :: massProfileExtract
     class           (nodePropertyExtractorMassProfile), intent(inout) , target      :: self
     type            (treeNode                        ), intent(inout) , target      :: node
     double precision                                  , intent(in   )               :: time
     type            (multiCounter                    ), intent(inout) , optional    :: instance
-    class           (nodeComponentHotHalo            ), pointer                     :: hotHalo
-    class           (nodeComponentDisk               ), pointer                     :: disk
-    class           (nodeComponentSpheroid           ), pointer                     :: spheroid
-    class           (nodeComponentNSC                ), pointer                     :: nuclearStarCluster
-    class           (nodeComponentDarkMatterProfile  ), pointer                     :: darkMatterProfile
-    class           (nodeComponentSatellite          ), pointer                     :: satellite
     class           (massDistributionClass           ), pointer                     :: massDistribution_
+    type            (radiusResolver                  )                              :: resolver
     integer                                                                         :: i
-    double precision                                                                :: radius             , radiusVirial, &
-         &                                                                             mass
+    double precision                                                                :: radius
     !$GLC attributes unused :: time, instance
 
     allocate(massProfileExtract(self%radiiCount,self%elementCount_))
-    radiusVirial                                               =  0.0d0
-    if (self%         virialRadiusIsNeeded) radiusVirial       =  self%darkMatterHaloScale_%radiusVirial(node                    )
-    if (self%              hotHaloIsNeeded) hotHalo            =>                                        node%hotHalo          ()
-    if (self%                 diskIsNeeded) disk               =>                                        node%disk             ()
-    if (self%             spheroidIsNeeded) spheroid           =>                                        node%spheroid         ()
-    if (self%   nuclearStarClusterIsNeeded) nuclearStarCluster =>                                        node%NSC              ()
-    if (self%            satelliteIsNeeded) satellite          =>                                        node%satellite        ()
-    if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile  =>                                        node%darkMatterProfile()
+    resolver=radiusResolver(self%radii,node,self%darkMatterHaloScale_,fractionDarkMatter=self%fractionDarkMatter)
     do i=1,self%radiiCount
-       radius=self%radii(i)%value
-       select case (self%radii(i)%type%ID)
-       case   (radiusTypeRadius                          %ID)
-          ! Nothing to do.
-       case   (radiusTypeVirialRadius                    %ID)
-          radius=+radius*radiusVirial
-       case   (radiusTypeDarkMatterScaleRadius           %ID)
-          radius=+radius*darkMatterProfile %         scale()
-       case   (radiusTypeHotHaloOuterRadius              %ID)
-          radius=+radius*hotHalo           %   outerRadius()
-       case   (radiusTypeDiskRadius                      %ID)
-          radius=+radius*disk              %        radius()
-       case   (radiusTypeSpheroidRadius                  %ID)
-          radius=+radius*spheroid          %        radius()
-       case  (radiusTypeNuclearStarClusterRadius         %ID)
-          radius=+radius*nuclearStarCluster%        radius()
-       case   (radiusTypeDiskHalfMassRadius              %ID)
-          radius=+radius*disk              %halfMassRadius()
-       case   (radiusTypeSpheroidHalfMassRadius%ID)
-          radius=+radius*spheroid          %halfMassRadius()
-       case   (radiusTypeNuclearStarClusterHalfMassRadius%ID)
-          radius=+radius*nuclearStarCluster%halfMassRadius()
-       case   (radiusTypeSatelliteBoundMassFraction      %ID)
-          mass              =  +satellite        %boundMass          (                                                &
-               &                                                     )                                                &
-               &               *self             %fractionDarkMatter
-          massDistribution_ =>  node             %massDistribution   (                                                &
-               &                                                      massType      =              massTypeDark    ,  &
-               &                                                      componentType =              componentTypeAll,  &
-               &                                                      weightBy      =self%radii(i)%weightBy        ,  &
-               &                                                      weightIndex   =self%radii(i)%weightByIndex      &
-               &                                                     )
-          radius            =  +radius                                                                                &
-               &               *massDistribution_%radiusEnclosingMass(                                                &
-               &                                                      mass          =              mass               &
-               &                                                     )
-          !![
-	  <objectDestructor name="massDistribution_"/>
-	  !!]
-       case   (radiusTypeGalacticMassFraction  %ID,  &
-            &  radiusTypeGalacticLightFraction %ID)
-          massDistribution_ =>  node             %massDistribution   (                                                &
-               &                                                      massType      =              massTypeStellar ,  &
-               &                                                      componentType =              componentTypeAll,  &
-               &                                                      weightBy      =self%radii(i)%weightBy        ,  &
-               &                                                      weightIndex   =self%radii(i)%weightByIndex      &
-               &                                                     )
-          radius            =  +radius                                                                                &
-               &               *massDistribution_%radiusEnclosingMass(                                                &
-               &                                                      massFractional=self%radii(i)%fraction           &
-               &                                                     )
-          !![
-	  <objectDestructor name="massDistribution_"/>
-	  !!]
-       case   (radiusTypeStellarMassFraction  %ID)
-           massDistribution_ =>  node             %massDistribution  (                                                &
-               &                                                      massType      =              massTypeStellar ,  &
-               &                                                      componentType =              componentTypeAll,  &
-               &                                                      weightBy      =self%radii(i)%weightBy        ,  &
-               &                                                      weightIndex   =self%radii(i)%weightByIndex      &
-               &                                                     )
-          radius            =  +radius                                                                                &
-               &               *massDistribution_%radiusEnclosingMass(                                                &
-               &                                                      massFractional=self%radii(i)%fraction           &
-               &                                                     )
-          !![
-	  <objectDestructor name="massDistribution_"/>
-	  !!]
-       case default
-          call Error_Report('unrecognized radius type'//{introspection:location})
-       end select
+       call resolver%evaluate(i,radius)
        massDistribution_              => node             %massDistribution    (                                       &
-            &                                                                   componentType=self%radii(i)%component, &
-            &                                                                   massType     =self%radii(i)%mass       &
+            &                                                                   componentType=self%radii%specifiers(i)%component, &
+            &                                                                   massType     =self%radii%specifiers(i)%mass       &
             &                                                                  )
        massProfileExtract       (i,1) =  massDistribution_%massEnclosedBySphere(                                       &
             &                                                                   radius       =              radius     &
@@ -371,7 +266,7 @@ contains
     allocate(values      (              0))
     valuesDescription=var_str('')
     valuesUnits      =unitType(1.0d0)
-    descriptions     =self%radii%name
+    descriptions     =self%radii%specifiers%name
     return
   end subroutine massProfileColumnDescriptions
 

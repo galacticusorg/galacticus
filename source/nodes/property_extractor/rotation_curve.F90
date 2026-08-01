@@ -21,7 +21,7 @@
   Implements a property extractor class for the rotation curve at a set of radii.
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
-  use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
+  use :: Galactic_Structure_Radii_Definitions, only : radiusDefinitions
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRotationCurve" docformat="rst">
@@ -39,11 +39,7 @@
      integer                                                      :: radiiCount                             , elementCount_
      logical                                                      :: includeRadii
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
-     type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
-     logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
-          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded, & 
-          &                                                          nuclearStarClusterIsNeeded             , satelliteIsNeeded   , &
-          &                                                          hotHaloIsNeeded
+     type   (radiusDefinitions       )                            :: radii
    contains
      final     ::                       rotationCurveDestructor
      procedure :: columnDescriptions => rotationCurveColumnDescriptions
@@ -109,7 +105,6 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorRotationCurve` property extractor class.
     !!}
-    use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
     type   (nodePropertyExtractorRotationCurve)                              :: self
     type   (varying_string                    ), intent(in   ), dimension(:) :: radiusSpecifiers
@@ -125,17 +120,7 @@ contains
        self%elementCount_=1
     end if
     self%radiiCount      =size(radiusSpecifiers)
-    call Galactic_Structure_Radii_Definition_Decode(                                    &
-         &                                          radiusSpecifiers                  , &
-         &                                          self%radii                        , &
-         &                                          self%hotHaloIsNeeded              , &
-         &                                          self%diskIsNeeded                 , &
-         &                                          self%spheroidIsNeeded             , &
-         &                                          self%nuclearStarClusterIsNeeded   , &
-         &                                          self%satelliteIsNeeded            , &
-         &                                          self%virialRadiusIsNeeded         , &
-         &                                          self%darkMatterScaleRadiusIsNeeded  &
-         &                                         )
+    call self%radii%decode(radiusSpecifiers)
     return
   end function rotationCurveConstructorInternal
 
@@ -183,14 +168,8 @@ contains
     !!{RST
     Implement a ``rotationCurve`` property extractor.
     !!}
-    use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic                  , massTypeStellar
-    use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius      , radiusTypeDiskRadius                      , radiusTypeGalacticLightFraction, &
-          &                                             radiusTypeGalacticMassFraction , radiusTypeRadius                  , radiusTypeSpheroidHalfMassRadius          , radiusTypeSpheroidRadius       , &
-          &                                             radiustypestellarmassfraction  , radiusTypeNuclearStarClusterRadius, radiusTypeNuclearStarClusterHalfMassRadius, radiusTypeVirialRadius         , &
-          &                                             radiusTypeHotHaloOuterRadius
-    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk                 , nodeComponentSpheroid                     , nodeComponentNSC               , &
-          &                                             nodeComponentHotHalo           , treeNode
-    use :: Error                               , only : Error_Report
+    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver
+    use :: Galacticus_Nodes                    , only : treeNode
     use :: Mass_Distributions                  , only : massDistributionClass
     implicit none
     double precision                                    , dimension(:,:), allocatable :: rotationCurveExtract
@@ -198,82 +177,19 @@ contains
     type            (treeNode                          ), intent(inout) , target      :: node
     double precision                                    , intent(in   )               :: time
     type            (multiCounter                      ), intent(inout) , optional    :: instance
-    class           (nodeComponentHotHalo              ), pointer                     :: hotHalo
-    class           (nodeComponentDisk                 ), pointer                     :: disk
-    class           (nodeComponentSpheroid             ), pointer                     :: spheroid
-    class           (nodeComponentNSC                  ), pointer                     :: nuclearStarCluster
-    class           (nodeComponentDarkMatterProfile    ), pointer                     :: darkMatterProfile
     class           (massDistributionClass             ), pointer                     :: massDistribution_
+    type            (radiusResolver                    )                              :: resolver
     integer                                                                           :: i
-    double precision                                                                  :: radius                , radiusVirial
+    double precision                                                                  :: radius
     !$GLC attributes unused :: time, instance
 
     allocate(rotationCurveExtract(self%radiiCount,self%elementCount_))
-    radiusVirial                                         =  0.0d0
-    if (self%         virialRadiusIsNeeded) radiusVirial       =  self%darkMatterHaloScale_%radiusVirial(node                    )
-    if (self%              hotHaloIsNeeded) hotHalo            =>                                        node%hotHalo          ()
-    if (self%                 diskIsNeeded) disk               =>                                        node%disk             ()
-    if (self%             spheroidIsNeeded) spheroid           =>                                        node%spheroid         ()
-    if (self%   nuclearStarClusterIsNeeded) nuclearStarCluster =>                                        node%NSC              ()
-    if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile  =>                                        node%darkMatterProfile()
+    resolver=radiusResolver(self%radii,node,self%darkMatterHaloScale_)
     do i=1,self%radiiCount
-       radius=self%radii(i)%value
-       select case (self%radii(i)%type%ID)
-       case   (radiusTypeRadius                          %ID)
-          ! Nothing to do.
-       case   (radiusTypeVirialRadius                    %ID)
-          radius=+radius*radiusVirial
-       case   (radiusTypeDarkMatterScaleRadius           %ID)
-          radius=+radius*darkMatterProfile %         scale()
-       case   (radiusTypeHotHaloOuterRadius              %ID)
-          radius=+radius*hotHalo           %   outerRadius()
-       case   (radiusTypeDiskRadius                      %ID)
-          radius=+radius*disk              %        radius()
-       case   (radiusTypeSpheroidRadius                  %ID)
-          radius=+radius*spheroid          %        radius()
-       case   (radiusTypeNuclearStarClusterRadius        %ID)
-          radius=+radius*nuclearStarCluster%        radius()
-       case   (radiusTypeDiskHalfMassRadius              %ID)
-          radius=+radius*disk              %halfMassRadius()
-       case   (radiusTypeSpheroidHalfMassRadius          %ID)
-          radius=+radius*spheroid          %halfMassRadius()
-       case   (radiusTypeNuclearStarClusterHalfMassRadius%ID)
-          radius=+radius*nuclearStarCluster%halfMassRadius()
-       case   (radiusTypeGalacticMassFraction            %ID,  &
-            &  radiusTypeGalacticLightFraction           %ID)
-          massDistribution_ =>  node             %massDistribution   (                                                &
-               &                                                      massType      =              massTypeStellar ,  &
-               &                                                      componentType =              componentTypeAll,  &
-               &                                                      weightBy      =self%radii(i)%weightBy        ,  &
-               &                                                      weightIndex   =self%radii(i)%weightByIndex      &
-               &                                                     )
-          radius            =  +radius                                                                                &
-               &               *massDistribution_%radiusEnclosingMass(                                                &
-               &                                                      massFractional=self%radii(i)%fraction           &
-               &                                                     )
-          !![
-	  <objectDestructor name="massDistribution_"/>
-	  !!]
-       case   (radiusTypeStellarMassFraction  %ID)
-           massDistribution_ =>  node             %massDistribution  (                                                &
-               &                                                      massType      =              massTypeStellar ,  &
-               &                                                      componentType =              componentTypeAll,  &
-               &                                                      weightBy      =self%radii(i)%weightBy        ,  &
-               &                                                      weightIndex   =self%radii(i)%weightByIndex      &
-               &                                                     )
-          radius            =  +radius                                                                                &
-               &               *massDistribution_%radiusEnclosingMass(                                                &
-               &                                                      massFractional=self%radii(i)%fraction           &
-               &                                                     )
-          !![
-	  <objectDestructor name="massDistribution_"/>
-	  !!]
-       case default
-          call Error_Report('unrecognized radius type'//{introspection:location})
-       end select
+       call resolver%evaluate(i,radius)
        massDistribution_                => node             %massDistribution(                                       &
-               &                                                              componentType=self%radii(i)%component, &
-               &                                                              massType     =self%radii(i)%mass       &
+               &                                                              componentType=self%radii%specifiers(i)%component, &
+               &                                                              massType     =self%radii%specifiers(i)%mass       &
                &                                                             )
        rotationCurveExtract       (i,1) =  massDistribution_%rotationCurve   (                                       &
             &                                                                                             radius     &
@@ -340,7 +256,7 @@ contains
     allocate(values      (              0))
     valuesDescription=var_str('')
     valuesUnits      =unitType(0.0d0)
-    descriptions     =self%radii%name
+    descriptions     =self%radii%specifiers%name
     return
   end subroutine rotationCurveColumnDescriptions
 
