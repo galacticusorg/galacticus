@@ -115,6 +115,11 @@ module Galactic_Structure_Radii_Definitions
           &                                                 nuclearStarClusterRequired=.false., radiusVirialRequired=.false., &
           &                                                 radiusScaleRequired       =.false., solitonRequired     =.false.
    contains
+     !![
+     <methods>
+       <method method="decode" description="Decode a set of radii descriptors and store the corresponding specifiers, along with a record of which node components are required in order to evaluate them."/>
+     </methods>
+     !!]
      procedure :: decode => radiusDefinitionsDecode
   end type radiusDefinitions
 
@@ -136,6 +141,11 @@ module Galactic_Structure_Radii_Definitions
      double precision                                          :: radiusVirial       =  0.0d0 , fractionDarkMatter=1.0d0
      double precision                                          :: radiusCore                  , radiusSoliton
    contains
+     !![
+     <methods>
+       <method method="evaluate" description="Evaluate the radius corresponding to a given radius definition in the node to which this resolver is attached, optionally also returning the scale radius on which that radius is based. Returns ``radiusUndefined`` if the radius is undefined in this node."/>
+     </methods>
+     !!]
      procedure :: evaluate => radiusResolverEvaluate
   end type radiusResolver
 
@@ -426,7 +436,7 @@ contains
     !!{RST
     Register the meta-properties in which the \gls{fdm} soliton radii are stored. These are registered only if some radius
     definition actually refers to them, so that models with no such definitions do not carry the (unused) meta-properties. Note
-    that the meta-properties are registered here with {\normalfont \ttfamily isCreator="no"}---whether any class actually creates
+    that the meta-properties are registered here with ``isCreator="no"``---whether any class actually creates
     them is not known until all classes have been constructed, and so must be tested when the radii are evaluated, not here.
     !!}
     implicit none
@@ -444,9 +454,9 @@ contains
     Constructor for the :galacticus-type:`radiusResolver` type. Gathers, once, all of the node components and halo scales which
     are required in order to evaluate the given set of radius definitions in the given node.
 
-    The optional {\normalfont \ttfamily fractionDarkMatter} argument gives the fraction of the bound mass of a satellite which is
+    The optional ``fractionDarkMatter`` argument gives the fraction of the bound mass of a satellite which is
     dark matter---it is required only if radii are specified in units of the satellite bound mass fraction. The optional
-    {\normalfont \ttfamily radiusVirialRequired} argument forces the virial radius to be computed even if no radius definition
+    ``radiusVirialRequired`` argument forces the virial radius to be computed even if no radius definition
     requires it---it is used by consumers which need the virial radius for their own purposes.
     !!}
     implicit none
@@ -503,14 +513,14 @@ contains
 
   subroutine radiusResolverEvaluate(self,indexRadius,radius,radiusScale)
     !!{RST
-    Evaluate the radius corresponding to the {\normalfont \ttfamily indexRadius}\ :sup:`th` radius definition in the node to which
+    Evaluate the radius corresponding to the ``indexRadius``\ :sup:`th` radius definition in the node to which
     this resolver is attached.
 
-    The optional {\normalfont \ttfamily radiusScale} argument returns the scale radius on which the radius is based---that is, the
+    The optional ``radiusScale`` argument returns the scale radius on which the radius is based---that is, the
     quantity of which the specified radius is a multiple (for radii specified absolutely, in Mpc, the radius itself is
     returned). This is useful for consumers which must choose an outer radius for an integral.
 
-    If the radius is undefined, {\normalfont \ttfamily radiusUndefined} is returned in both arguments. Consumers **must** test for
+    If the radius is undefined, ``radiusUndefined`` is returned in both arguments. Consumers **must** test for
     this sentinel *before* performing any arithmetic on the returned radius, since the sentinel is a large negative number which
     will overflow (and so trap) under multiplication.
     !!}
