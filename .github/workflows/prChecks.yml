@@ -175,6 +175,13 @@ jobs:
       - name: Check embedded docstrings are reStructuredText
         run: |
           python3 scripts/doc/convertDocstringsToRST.py --check source
+      # The check above proves each docstring has *been converted*; because the
+      # conversion is idempotent it skips regions already marked as RST, so it
+      # cannot see LaTeX surviving *inside* them. This is that check, held to a
+      # baseline that may only shrink as the migration finishes.
+      - name: Check no LaTeX remains inside converted docstrings
+        run: |
+          python3 scripts/doc/convertDocstringsToRST.py --check-residual source
   # Fortran static analysis
   Fortran-Static-Analysis:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}

@@ -30,6 +30,16 @@ Usage::
                  figures, …) that need manual review.
     --glossary   Path to Glossary.tex (default: ``docs/Glossary.tex``).
 
+    --check-residual   Do not convert; report LaTeX surviving *inside*
+                       already-converted regions (see below).
+    --update-baseline  Re-record the residual-LaTeX baseline from the tree.
+    --baseline         Path to the baseline file.
+
+``--check`` verifies that every docstring has *been converted*.  It cannot see
+LaTeX surviving *inside* an already-converted region, because the conversion is
+idempotent and skips marked regions.  ``--check-residual`` is the complementary
+guard for that (see :mod:`residualLatex`); CI runs both.
+
 Andrew Benson / Galacticus — RST documentation migration (2026).
 """
 from __future__ import annotations
@@ -44,6 +54,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from latexToRST import (                                       # noqa: E402
     parse_glossary, glossary_display_map, latex_to_rst, find_review_constructs,
 )
+import residualLatex                                           # noqa: E402
 
 
 # ``!!{ … !!}`` LaTeX comment block (skip ones already marked ``!!{RST``).
@@ -270,6 +281,49 @@ def iter_source_files(paths: list[str]):
             yield path
 
 
+def _residual_main(args) -> int:
+    """Implement ``--check-residual`` / ``--update-baseline``."""
+    paths = args.paths or ['source']
+    findings = residualLatex.scan_paths(paths)
+
+    if args.update_baseline:
+        residualLatex.write_baseline(findings, args.baseline)
+        print(f'Wrote {args.baseline}: {len(findings)} finding(s) across '
+              f'{len(residualLatex.counts(findings))} (file, kind) pair(s).',
+              file=sys.stderr)
+        return 0
+
+    baseline = residualLatex.load_baseline(args.baseline)
+    regressions, improvements = residualLatex.compare(findings, baseline)
+
+    if regressions:
+        offenders = {key for key, _allowed, _actual in regressions}
+        print('LaTeX found inside regions that must be reStructuredText:',
+              file=sys.stderr)
+        for finding in findings:
+            if finding.key in offenders:
+                print(f'  {finding.path}:{finding.line}: {finding.kind} '
+                      f'in {finding.context}: {finding.snippet}',
+                      file=sys.stderr)
+        print('\nCounts above the baseline '
+              f'({os.path.relpath(args.baseline)}):', file=sys.stderr)
+        for (path, kind), allowed, actual in regressions:
+            print(f'  {path}: {kind}: {actual} (baseline {allowed})',
+                  file=sys.stderr)
+        print('\nThese regions are already marked as converted, so the '
+              'converter will not touch them; rewrite the markup as RST by '
+              'hand.  Math belongs in a `:math:` role or a `.. math::` block, '
+              'code in ``literals``.', file=sys.stderr)
+        return 1
+
+    print(f'No new residual LaTeX ({len(findings)} known finding(s) remain).',
+          file=sys.stderr)
+    if improvements:
+        print(f'{len(improvements)} baseline entr(y/ies) can now be tightened; '
+              'run --update-baseline to record the progress.', file=sys.stderr)
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -282,9 +336,21 @@ def main() -> int:
                          '(for CI: enforces that all docstrings are already RST)')
     ap.add_argument('--report', action='store_true',
                     help='list files with constructs needing manual review')
+    ap.add_argument('--check-residual', action='store_true',
+                    help='do not convert; report LaTeX surviving *inside* '
+                         'already-converted RST regions, failing on any rise '
+                         'above the recorded baseline (for CI)')
+    ap.add_argument('--update-baseline', action='store_true',
+                    help='rewrite the residual-LaTeX baseline from the current '
+                         'tree (use after fixing a batch)')
+    ap.add_argument('--baseline', default=residualLatex.BASELINE_PATH,
+                    help='path to the residual-LaTeX baseline file')
     ap.add_argument('--glossary', default='docs/Glossary.tex',
                     help='path to Glossary.tex (default: docs/Glossary.tex)')
     args = ap.parse_args()
+
+    if args.check_residual or args.update_baseline:
+        return _residual_main(args)
 
     glsmap = glossary_display_map(parse_glossary(args.glossary))
 
