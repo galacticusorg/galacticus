@@ -202,7 +202,8 @@ contains
             &                              tablePointsPerDecade                 , &
             &                              gridSchemePerDecade                  , &
             &               rangeCurrent  =[timeMinimum,timeMaximum]            , &
-            &               latticeCurrent=sphericalCollapse_%lattice             &
+            &               latticeCurrent=sphericalCollapse_%lattice           , &
+            &               anchorEvery   =tableAnchorEvery                       &
             &              )
        call sphericalCollapse_%extend(lattice,isComputed)
        countTimes         =lattice%count

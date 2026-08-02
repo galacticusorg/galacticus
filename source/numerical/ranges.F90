@@ -150,7 +150,7 @@ contains
     return
   end function Make_Range
 
-  function Range_Pinned_Scalar(valueTarget,pointsPer,scheme,marginFactor,marginOffset,latticeCurrent,rangeCurrent,limitMinimum,limitMaximum,anchorToGrid) result(lattice)
+  function Range_Pinned_Scalar(valueTarget,pointsPer,scheme,marginFactor,marginOffset,latticeCurrent,rangeCurrent,limitMinimum,limitMaximum,anchorEvery) result(lattice)
     !!{RST
     Return the ``rangeLattice`` covering the single value ``valueTarget``---see ``Range_Pinned_Array`` for a description of the arguments.
     !!}
@@ -163,7 +163,7 @@ contains
          &                                                                                limitMinimum  , limitMaximum
     type            (rangeLattice             ), intent(in   ), optional               :: latticeCurrent
     double precision                           , intent(in   ), optional, dimension(2) :: rangeCurrent
-    logical                                    , intent(in   ), optional               :: anchorToGrid
+    integer                                    , intent(in   ), optional               :: anchorEvery
 
     lattice=Range_Pinned_Array(                                &
          &                     [valueTarget]                 , &
@@ -175,12 +175,12 @@ contains
          &                      rangeCurrent  =rangeCurrent  , &
          &                      limitMinimum  =limitMinimum  , &
          &                      limitMaximum  =limitMaximum  , &
-         &                      anchorToGrid  =anchorToGrid    &
+         &                      anchorEvery   =anchorEvery     &
          &                    )
     return
   end function Range_Pinned_Scalar
 
-  function Range_Pinned_Array(valueTarget,pointsPer,scheme,marginFactor,marginOffset,latticeCurrent,rangeCurrent,limitMinimum,limitMaximum,anchorToGrid) result(lattice)
+  function Range_Pinned_Array(valueTarget,pointsPer,scheme,marginFactor,marginOffset,latticeCurrent,rangeCurrent,limitMinimum,limitMaximum,anchorEvery) result(lattice)
     !!{RST
     Return a ``rangeLattice``---a set of points on the absolute lattice specified by ``scheme`` and
     ``pointsPer``---which is guaranteed to cover every value in ``valueTarget``, with a safety margin. The bounds are found
@@ -191,13 +191,23 @@ contains
        (default :math:`1`) for the ``perUnit`` scheme;
     #. taking the union with ``rangeCurrent``, if given (used when the current range of a table is not itself known to lie
        on the lattice);
-    #. *pinning* the bounds outward to the lattice---by default to whole decades, octaves, or unit intervals, or, if
-       ``anchorToGrid`` is true, to the lattice points themselves;
+    #. *pinning* the bounds outward to lattice points whose index is a multiple of ``anchorEvery``;
     #. clamping to the hard limits ``limitMinimum`` and/or ``limitMaximum``, if given, with the clamped edge snapped
        *inward* to the lattice so that all points remain lattice points;
     #. taking the union with ``latticeCurrent``, if given---performed in exact integer arithmetic, and applied *after* the
        clamping so that a lattice which is already in use is never shrunk (and so that
        extension of a table built on it can never fail).
+
+    ``anchorEvery`` is the interval, measured in lattice steps, to which the bounds are pinned; it controls only how far
+    beyond the requested range the table extends, and is independent of the grid density ``pointsPer`` which controls the
+    accuracy of interpolation within it. It defaults to ``pointsPer``---that is, to whole decades, octaves, or unit
+    intervals---which gives the coarsest set of possible ranges and hence the strongest determinism. A value of :math:`1`
+    pins to the lattice points themselves. Intermediate values are useful where a whole decade of extra tabulation is
+    physically or computationally extravagant: on a cosmic time axis, for example, a whole decade spans most of the history
+    of the universe, whereas ``anchorEvery``\ ``=``\ ``pointsPer``\ ``/2`` pins to half decades (a factor of
+    :math:`\sqrt{10}`). Determinism, exact value reuse on extension, and the mergeability of stored tables hold for *any*
+    choice: only the granularity of the discrete set of possible ranges changes. A divisor of ``pointsPer`` gives the most
+    natural anchor points, but is not required.
 
     Because the resulting bounds are lattice indices, the point count is exact, and any two ranges built on the same
     lattice have bit-identical abscissae wherever they overlap.
@@ -212,15 +222,19 @@ contains
          &                                                                                limitMinimum     , limitMaximum
     type            (rangeLattice             ), intent(in   ), optional               :: latticeCurrent
     double precision                           , intent(in   ), optional, dimension(2) :: rangeCurrent
-    logical                                    , intent(in   ), optional               :: anchorToGrid
+    integer                                    , intent(in   ), optional               :: anchorEvery
     double precision                                                                   :: marginFactor_    , marginOffset_    , &
-         &                                                                                coordinateMinimum, coordinateMaximum
-    logical                                                                            :: anchorToGrid_
+         &                                                                                coordinateMinimum, coordinateMaximum, &
+         &                                                                                anchorsPerUnit
+    integer                                                                            :: anchorEvery_
     integer                                                                            :: indexMinimum     , indexMaximum
 
     ! Validate the arguments.
-    if (size(valueTarget) <  1) call Error_Report('no target values were provided'                 //{introspection:location})
-    if (pointsPer         <  1) call Error_Report('number of points per interval must be positive' //{introspection:location})
+    anchorEvery_=pointsPer
+    if (present(anchorEvery)) anchorEvery_=anchorEvery
+    if (size(valueTarget) <  1) call Error_Report('no target values were provided'                    //{introspection:location})
+    if (pointsPer         <  1) call Error_Report('number of points per interval must be positive'    //{introspection:location})
+    if (anchorEvery_      <  1) call Error_Report('anchor interval must be at least one lattice step' //{introspection:location})
     ! Apply the safety margin.
     coordinateMinimum=0.0d0
     coordinateMaximum=0.0d0
@@ -248,16 +262,13 @@ contains
        coordinateMinimum=min(coordinateMinimum,Lattice_Coordinate(minval(rangeCurrent),scheme))
        coordinateMaximum=max(coordinateMaximum,Lattice_Coordinate(maxval(rangeCurrent),scheme))
     end if
-    ! Pin the bounds outward onto the lattice.
-    anchorToGrid_=.false.
-    if (present(anchorToGrid)) anchorToGrid_=anchorToGrid
-    if (anchorToGrid_) then
-       indexMinimum=Lattice_Floor  (coordinateMinimum*dble(pointsPer))
-       indexMaximum=Lattice_Ceiling(coordinateMaximum*dble(pointsPer))
-    else
-       indexMinimum=Lattice_Floor  (coordinateMinimum              )*pointsPer
-       indexMaximum=Lattice_Ceiling(coordinateMaximum              )*pointsPer
-    end if
+    ! Pin the bounds outward onto those lattice points whose index is a multiple of the anchor interval. The number of anchor
+    ! intervals per unit of the lattice coordinate is `pointsPer/anchorEvery` - note that this evaluates exactly to unity when
+    ! anchoring to whole decades/octaves/unit intervals, and exactly to `pointsPer` when anchoring to the lattice points
+    ! themselves, so that those two cases involve no additional round-off.
+    anchorsPerUnit=dble(pointsPer)/dble(anchorEvery_)
+    indexMinimum  =Lattice_Floor  (coordinateMinimum*anchorsPerUnit)*anchorEvery_
+    indexMaximum  =Lattice_Ceiling(coordinateMaximum*anchorsPerUnit)*anchorEvery_
     ! Apply any hard limits, snapping the clamped edge inward to the lattice.
     if (present(limitMinimum)) indexMinimum=max(indexMinimum,Lattice_Ceiling(Lattice_Coordinate(limitMinimum,scheme)*dble(pointsPer)))
     if (present(limitMaximum)) indexMaximum=min(indexMaximum,Lattice_Floor  (Lattice_Coordinate(limitMaximum,scheme)*dble(pointsPer)))
@@ -418,11 +429,19 @@ contains
   double precision function Lattice_Value(coordinate,scheme)
     !!{RST
     Return the value corresponding to the lattice coordinate ``coordinate``---the inverse of ``Lattice_Coordinate``.
+
+    This function is marked ``noinline``, which is essential to the guarantee that all lattice points are bit-identical between
+    ranges built on the same lattice. If it is inlined into an array-filling loop the compiler is free to vectorize the
+    exponentiation, and a vectorized ``pow()`` need not return the same result as the scalar one---so the same lattice point
+    could differ in its final bits between one table and another purely because the two loops had different trip counts. Keeping
+    this an opaque call forces every lattice point, everywhere, through the same scalar evaluation. The cost is negligible:
+    lattices are built once, and contain at most a few thousand points.
     !!}
     use :: Error, only : Error_Report
     implicit none
     double precision                           , intent(in   ) :: coordinate
     type            (enumerationGridSchemeType), intent(in   ) :: scheme
+!GCC$ ATTRIBUTES noinline :: Lattice_Value
 
     Lattice_Value=0.0d0
     select case (scheme%ID)

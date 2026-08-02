@@ -87,6 +87,13 @@
   ! Resolution of tabulated solutions.
   integer         , parameter :: tablePointsPerDecade=1000
 
+  ! Interval, measured in lattice steps, to which the bounds of the tabulated range are pinned. Half decades are used here rather
+  ! than whole decades: a whole decade of cosmic time spans most of the history of the universe, so anchoring to one would
+  ! tabulate far beyond any plausible request, and in a dark energy dominated cosmology would reach epochs at which the spherical
+  ! collapse solution becomes numerically inaccessible. This choice affects only how far beyond the requested range the solution
+  ! is tabulated - the tabulation points themselves, and hence the determinism and reuse properties of the table, are unaffected.
+  integer         , parameter :: tableAnchorEvery    =tablePointsPerDecade/2
+
   ! Variables used in root finding.
   double precision            :: OmegaDarkEnergyEpochal, OmegaMatterEpochal, &
        &                         amplitudePerturbation , hubbleTimeEpochal , &
@@ -392,7 +399,8 @@ contains
             &                              gridSchemePerDecade                      , &
             &               rangeCurrent  =[timeMinimum,timeMaximum]                , &
             &               latticeCurrent=sphericalCollapse_%lattice                , &
-            &               limitMaximum  =timeLimitMaximum                           &
+            &               limitMaximum  =timeLimitMaximum                          , &
+            &               anchorEvery   =tableAnchorEvery                           &
             &              )
        call sphericalCollapse_%extend(lattice,isComputed)
        ! Solve ODE to get corresponding overdensities, skipping any point whose value was preserved by the extension.

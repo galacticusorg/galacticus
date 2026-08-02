@@ -84,9 +84,32 @@ program Test_Make_Ranges
   call Assert("per-decade: exact powers of ten are not shifted by round-off",[lattice%minimum(),lattice%maximum()],[1.0d3,1.0d5])
   call Assert("per-decade: exact point count across two decades"           , lattice%count                       ,21            )
 
-  ! Anchoring to the grid lattice itself, rather than to whole decades.
-  lattice=Range_Pinned(3.0d0,10,gridSchemePerDecade,anchorToGrid=.true.)
-  call Assert("per-decade: anchored to the grid",[lattice%indexMinimum,lattice%indexMaximum(),lattice%count],[1,8,8])
+  ! The anchor interval is independent of the grid density. Anchoring every lattice step pins the bounds to the lattice points
+  ! themselves; a request at x=3 with the default margin spans [1.5,6], so the bounds pin to 10^0.1 and 10^0.8.
+  lattice=Range_Pinned(3.0d0,10,gridSchemePerDecade,anchorEvery=1)
+  call Assert("per-decade: anchored to every lattice point",[lattice%indexMinimum,lattice%indexMaximum(),lattice%count],[1,8,8])
+
+  ! Anchoring every half decade. A request at x=15 with the default margin spans [7.5,30], which pins outward to [10^0.5,10^1.5]
+  ! - whereas anchoring to whole decades gives the far wider [10⁰,10²].
+  lattice    =Range_Pinned(15.0d0,10,gridSchemePerDecade,anchorEvery=5)
+  latticeWide=Range_Pinned(15.0d0,10,gridSchemePerDecade              )
+  call Assert("per-decade: anchored to half decades" ,[lattice    %indexMinimum,lattice    %indexMaximum(),lattice    %count],[5, 15,11])
+  call Assert("per-decade: anchored to whole decades",[latticeWide%indexMinimum,latticeWide%indexMaximum(),latticeWide%count],[0, 20,21])
+  call Assert("per-decade: half-decade bounds"       ,[lattice%minimum(),lattice%maximum()],[10.0d0**0.5d0,10.0d0**1.5d0],relTol=1.0d-12)
+
+  ! Explicitly anchoring every `pointsPer` steps must reproduce the default behavior exactly.
+  latticeUnion=Range_Pinned(15.0d0,10,gridSchemePerDecade,anchorEvery=10)
+  call Assert("per-decade: an anchor of `pointsPer` reproduces the default",[latticeUnion%indexMinimum,latticeUnion%count],[latticeWide%indexMinimum,latticeWide%count])
+
+  ! Whatever the anchor, the points remain those of the same absolute lattice, so ranges built with different anchors are still
+  ! bit-identical wherever they overlap. Here the half-decade range lies within the whole-decade one.
+  values    =lattice    %values()
+  valuesWide=latticeWide%values()
+  offset    =lattice%indexMinimum-latticeWide%indexMinimum
+  call Assert("per-decade: abscissae are independent of the anchor interval" , &
+       &      all(valuesWide(offset+1:offset+lattice%count) == values)       , &
+       &      .true.                                                           &
+       &     )
 
   ! Points per octave. A request at x=3 with the default margin spans [1.5,6], pinning outward to [2⁰,2³].
   lattice=Range_Pinned(3.0d0,4,gridSchemePerOctave)

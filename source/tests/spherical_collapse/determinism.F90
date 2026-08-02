@@ -99,17 +99,19 @@ program Tests_Spherical_Collapse_Determinism
        &                                                                          cosmologyParameters_=cosmologyParameters_                    , &
        &                                                                          cosmologyFunctions_ =cosmologyFunctionsDarkEnergy_             &
        &                                                                         )
-  ! Test each solver in turn.
-  call testSolver(solverCosmologicalConstant,'collisionless matter + Λ' ,gridSchemePerDecade)
-  call testSolver(solverDarkEnergy          ,'collisionless matter + DE',gridSchemePerDecade)
-  call testSolver(solverBaryons             ,'baryons + DM + DE'        ,gridSchemePerOctave)
+  ! Test each solver in turn. The final argument is the anchor interval, in lattice steps, which each solver pins its bounds to -
+  ! the per-decade solvers anchor to half decades (500 of their 1000 points per decade), while the per-octave solver anchors to
+  ! whole octaves.
+  call testSolver(solverCosmologicalConstant,'collisionless matter + Λ' ,gridSchemePerDecade,500            )
+  call testSolver(solverDarkEnergy          ,'collisionless matter + DE',gridSchemePerDecade,500            )
+  call testSolver(solverBaryons             ,'baryons + DM + DE'        ,gridSchemePerOctave,pointsPerOctave)
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
 
 contains
 
-  subroutine testSolver(solver,label,scheme)
+  subroutine testSolver(solver,label,scheme,anchorEvery)
     !!{RST
     Test that the tabulation built by the given solver is pinned to an absolute lattice, and that extending it preserves both
     the abscissae and the values of every previously computed point.
@@ -118,6 +120,7 @@ contains
     integer                                   , intent(in   )               :: solver
     character       (len=*                   ), intent(in   )               :: label
     type            (enumerationGridSchemeType), intent(in   )              :: scheme
+    integer                                   , intent(in   )               :: anchorEvery
     class           (table1D                 ), allocatable                 :: table_       , tableRepeat_
     type            (rangeLattice            )                              :: latticeFirst , latticeSecond
     double precision                          , allocatable, dimension(:  ) :: xValuesFirst , xValuesSecond, &
@@ -133,10 +136,9 @@ contains
     yValuesFirst =table_%ys     ()
     call Assert(label//': table is built on an absolute lattice'    ,latticeFirst%isDefined()     ,.true.)
     call Assert(label//': table uses the expected gridding scheme'  ,latticeFirst%scheme == scheme,.true.)
-    ! Since the bounds are pinned to whole decades (or octaves), the lattice index of each bound must be an exact multiple of
-    ! the number of points per decade (or octave).
-    call Assert(label//': lower bound is pinned to a whole interval',mod(latticeFirst%indexMinimum  ,latticeFirst%pointsPer),0)
-    call Assert(label//': upper bound is pinned to a whole interval',mod(latticeFirst%indexMaximum(),latticeFirst%pointsPer),0)
+    ! Since the bounds are pinned, the lattice index of each must be an exact multiple of the anchor interval.
+    call Assert(label//': lower bound is pinned to the anchor interval',mod(latticeFirst%indexMinimum  ,anchorEvery),0)
+    call Assert(label//': upper bound is pinned to the anchor interval',mod(latticeFirst%indexMaximum(),anchorEvery),0)
     ! Request a time far outside of the tabulated range, forcing the table to be extended.
     call getTable(solver,timeSecond,table_)
     latticeSecond=table_%lattice
