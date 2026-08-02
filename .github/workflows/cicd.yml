@@ -1176,6 +1176,7 @@ jobs:
                       tests.SIDM_Kummer_deceleration.exe,
                       tests.differentiation.exe,
                       tests.tables.exe,
+                      tests.table_caches.exe,
                       tests.interpolation.exe,
                       tests.interpolation.2D.exe,
                       tests.make_ranges.exe,

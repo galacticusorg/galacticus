@@ -23,10 +23,9 @@
 
   use :: Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass
-  use :: File_Utilities            , only : lockDescriptor
   use :: Intergalactic_Medium_State, only : intergalacticMediumState, intergalacticMediumStateClass
   use :: Linear_Growth             , only : linearGrowth            , linearGrowthClass
-  use :: Tables                    , only : table                   , table1DLogarithmicLinear
+  use :: Tables                    , only : table                   , table1D
 
   public :: gnedin2000ODEs
 
@@ -50,7 +49,7 @@
      integer                                                  :: countTimes
      double precision                                         :: timeMaximum                        , timeMinimum
      logical                                                  :: timeTooEarlyIsFatal
-     type            (table1DLogarithmicLinear     )          :: table
+     class           (table1D                      ), allocatable :: table
      type            (varying_string               )          :: fileName
    contains
      !![
@@ -59,9 +58,6 @@
        <method description="Set the initial conditions for the ODE system." method="conditionsInitialODEs" />
        <method description="Return coefficients for the early-epoch fitting function to the filtering mass." method="coefficientsEarlyEpoch" />
        <method description="Return the early-epoch solution for the filtering mass." method="massFilteringEarlyEpoch" />
-       <method description="Store the tabulate filtering mass to file." method="fileWrite" />
-       <method description="Restore the tabulate filtering mass from file." method="fileRead" />
-       <method description="Return true if the table must be remade." method="remakeTable" />
      </methods>
      !!]
      final     ::                                gnedin2000Destructor
@@ -74,9 +70,6 @@
      procedure :: conditionsInitialODEs       => gnedin2000ConditionsInitialODEs
      procedure :: coefficientsEarlyEpoch      => gnedin2000CoefficientsEarlyEpoch
      procedure :: massFilteringEarlyEpoch     => gnedin2000MassFilteringEarlyEpoch
-     procedure :: remakeTable                 => gnedin2000RemakeTable
-     procedure :: fileWrite                   => gnedin2000FileWrite
-     procedure :: fileRead                    => gnedin2000FileRead
   end type intergalacticMediumFilteringMassGnedin2000
 
   interface intergalacticMediumFilteringMassGnedin2000
@@ -90,8 +83,9 @@
   ! Parameter controlling fine-grainedness of filtering mass tabulations.
   integer                , parameter :: tablePointsPerDecade=100
 
-  ! Lock used for file access.
-  type   (lockDescriptor)            :: fileLock
+  ! Interval, measured in lattice steps, to which the bounds of the tabulated range are pinned. Half decades are used rather than
+  ! whole decades since a whole decade of cosmic time spans most of the history of the universe.
+  integer                , parameter :: tableAnchorEvery    =tablePointsPerDecade/2
 
 contains
 
@@ -138,8 +132,9 @@ contains
     !!{RST
     Constructor for the filtering mass class.
     !!}
-    use :: File_Utilities, only : Directory_Make, File_Path
-    use :: Input_Paths   , only : inputPath     , pathTypeDataDynamic
+    use :: File_Utilities    , only : Directory_Make      , File_Path
+    use :: ISO_Varying_String, only : char
+    use :: Table_Caches      , only : Table_Cache_File_Name
     implicit none
     type   (intergalacticMediumFilteringMassGnedin2000)                        :: self
     class  (cosmologyParametersClass                  ), intent(in   ), target :: cosmologyParameters_
@@ -152,12 +147,12 @@ contains
     !!]
 
     self%initialized=.false.
-    self%fileName   =inputPath(pathTypeDataDynamic)                                                       // &
-         &           'intergalacticMedium/'                                                               // &
-         &           self%objectType      (                                                              )// &
-         &           '_'                                                                                  // &
-         &           self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
-         &           '.hdf5'
+    self%fileName   =Table_Cache_File_Name(                                                                                          &
+         &                                 subDirectory    ='intergalacticMedium'                                                  , &
+         &                                 objectType      =char(self%objectType      (                                          )), &
+         &                                 hashedDescriptor=char(self%hashedDescriptor(includeSourceDigest          =.true.        , &
+         &                                                                             includeFileModificationTimes=.true.        ))  &
+         &                                )
     call Directory_Make(File_Path(self%fileName))
     return
   end function gnedin2000ConstructorInternal
@@ -251,10 +246,12 @@ contains
     !!{RST
     Construct a table of filtering mass as a function of cosmological time.
     !!}
-    use :: File_Utilities          , only : File_Lock   , File_Unlock
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_ODE_Solvers   , only : odeSolver
+    use :: Numerical_Ranges        , only : Range_Pinned, rangeLattice       , gridSchemePerDecade
+    use :: Table_Caches            , only : Table_Cache_Restore, Table_Cache_Store
+    use :: Tables                  , only : table1DLogarithmicLinear
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout), target :: self
     double precision                                            , intent(in   )         :: time
@@ -262,58 +259,78 @@ contains
     double precision                                            , dimension(3)          :: massFiltering                     , massFilteringScales
     double precision                                            , parameter             :: odeToleranceAbsolute      =1.0d-03, odeToleranceRelative      =1.0d-03
     type            (odeSolver                                 )                        :: solver
-    integer                                                                             :: iTime
-    double precision                                                                    :: timeInitial                       , timeCurrent
+    type            (rangeLattice                              )                        :: lattice
+    logical                                     , allocatable   , dimension(:)          :: isComputed
+    integer                                                                             :: iTime                             , status
+    double precision                                                                    :: timeInitial                       , timeCurrent        , &
+         &                                                                                 timePresent
 
-    ! Check if we need to recompute our table.
-    if (self%remakeTable(time)) then
-       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
-       call self%fileRead()
-       call File_Unlock(fileLock,sync=.false.)
-    end if
-    if (self%remakeTable(time)) then
-       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Lock(char(self%fileName),fileLock,lockIsShared=.false.)
-       ! Evaluate a suitable starting time for filtering mass calculations.
-       timeInitial=self%cosmologyFunctions_ %cosmicTime                 (                            &
-            &       self%cosmologyFunctions_%expansionFactorFromRedshift (                           &
-            &                                                             redshiftMaximumNaozBarkana &
-            &                                                            )                           &
-            &                                                           )
-       ! Abort if time is too early.
-       if (time <= timeInitial .and. self%timeTooEarlyIsFatal) call Error_Report('time is too early'//{introspection:location})
-       ! Find minimum and maximum times to tabulate.
-       self%timeMaximum=    max(self%cosmologyFunctions_%cosmicTime(1.0d0),time      )
-       self%timeMinimum=max(min(self%cosmologyFunctions_%cosmicTime(1.0d0),time/2.0d0),timeInitial)
-       ! Decide how many points to tabulate and allocate table arrays.
-       self%countTimes=int(log10(self%timeMaximum/self%timeMinimum)*dble(tablePointsPerDecade))+1
-       ! Create the tables.
-       call self%table%destroy()
-       call self%table%create (                   &
-            &                  self%timeMinimum , &
-            &                  self%timeMaximum , &
-            &                  self%countTimes    &
-            &                 )
-       ! Set the initial state for the composite variables used to solve for filtering mass.
+    ! Evaluate a suitable starting time for filtering mass calculations. The fitting function of Naoz & Barkana used to set the
+    ! initial conditions is valid only at redshifts below 150, which therefore imposes a hard lower limit on the range which can
+    ! be tabulated.
+    timeInitial=self%cosmologyFunctions_ %cosmicTime                 (                            &
+         &       self%cosmologyFunctions_%expansionFactorFromRedshift (                           &
+         &                                                             redshiftMaximumNaozBarkana &
+         &                                                            )                           &
+         &                                                           )
+    timePresent=self%cosmologyFunctions_ %cosmicTime                 (1.0d0                      )
+    ! Abort if time is too early.
+    if (time <= timeInitial .and. self%timeTooEarlyIsFatal) call Error_Report('time is too early'//{introspection:location})
+    if (.not.allocated(self%table)) allocate(table1DLogarithmicLinear :: self%table)
+    ! Find the range of times to tabulate, pinned to an absolute lattice of points per decade so that the tabulation is
+    ! independent of the time at which it was first requested. The table always spans the present epoch, and is never tabulated
+    ! beyond it unless a later time is requested.
+    lattice=Range_Pinned(                                                                &
+         &                              time                                           , &
+         &                              tablePointsPerDecade                           , &
+         &                              gridSchemePerDecade                            , &
+         &               rangeCurrent  =[timePresent,timePresent]                      , &
+         &               latticeCurrent=self%table%lattice                             , &
+         &               limitMinimum  =timeInitial                                    , &
+         &               limitMaximum  =max(timePresent,time)                          , &
+         &               anchorEvery   =tableAnchorEvery                                 &
+         &              )
+    if (self%table%lattice%covers(lattice)) return
+    ! Merge in any tabulation already cached on disk, then re-evaluate the range required in the light of it.
+    call Table_Cache_Restore(self%table,self%fileName,status)
+    lattice=Range_Pinned(                                                                &
+         &                              time                                           , &
+         &                              tablePointsPerDecade                           , &
+         &                              gridSchemePerDecade                            , &
+         &               rangeCurrent  =[timePresent,timePresent]                      , &
+         &               latticeCurrent=self%table%lattice                             , &
+         &               limitMinimum  =timeInitial                                    , &
+         &               limitMaximum  =max(timePresent,time)                          , &
+         &               anchorEvery   =tableAnchorEvery                                 &
+         &              )
+    call self%table%extend(lattice,isComputed)
+    ! Solve the ODE system for those points which are not already known. Note that no lock is held while doing so.
+    if (any(.not.isComputed)) then
+       ! Set the initial state for the composite variables used to solve for filtering mass - this also establishes the scales
+       ! used by the ODE solver, so must be done before it is constructed.
        call self%conditionsInitialODEs(timeInitial,massFiltering,massFilteringScales)
-       ! Loop over times and populate tables.
-       solver=odeSolver(3_c_size_t,massFilteringODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative,scale=massFilteringScales)    
-       do iTime=1,self%countTimes
-          ! Reset the initial state composite variables used to solve for filtering mass.
-          call self%conditionsInitialODEs(timeInitial,massFiltering,massFilteringScales)
-          ! Solve the ODE system
-          timeCurrent=timeInitial
-          if (self%table%x(iTime) > timeInitial) &
-               & call solver%solve(timeCurrent,self%table%x(iTime),massFiltering)
-          call self%table%populate(massFiltering(3),iTime)
-       end do
-       ! Specify that tabulation has been made.
-       self%initialized=.true.
-       ! Store file.
-       call self%fileWrite()
-       call File_Unlock(fileLock)
+       solver=odeSolver(3_c_size_t,massFilteringODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative,scale=massFilteringScales)
+       select type (table_ => self%table)
+       type is (table1DLogarithmicLinear)
+          do iTime=1,lattice%count
+             if (isComputed(iTime)) cycle
+             ! Reset the initial state composite variables used to solve for filtering mass.
+             call self%conditionsInitialODEs(timeInitial,massFiltering,massFilteringScales)
+             ! Solve the ODE system
+             timeCurrent=timeInitial
+             if (table_%x(iTime) > timeInitial) &
+                  & call solver%solve(timeCurrent,table_%x(iTime),massFiltering)
+             call table_%populate(massFiltering(3),iTime)
+          end do
+       end select
+       ! Merge with, and write back, the cache file.
+       call Table_Cache_Store(self%table,self%fileName)
     end if
+    ! Record the tabulated range.
+    self%timeMinimum=self%table%lattice%minimum()
+    self%timeMaximum=self%table%lattice%maximum()
+    self%countTimes =self%table%lattice%count
+    self%initialized=.true.
     return
 
   contains
@@ -602,63 +619,5 @@ contains
     return
   end function gnedin2000rLSS
 
-  logical function gnedin2000RemakeTable(self,time)
-    !!{RST
-    Determine if the table should be remade.
-    !!}
-    implicit none
-    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
-    double precision                                            , intent(in   ) :: time
 
-    gnedin2000RemakeTable=.not.self%initialized .or. time < self%timeMinimum
-    return
-  end function gnedin2000RemakeTable
 
-  subroutine gnedin2000FileRead(self)
-    !!{RST
-    Read tabulated data on linear growth factor from file.
-    !!}
-    use :: File_Utilities, only : File_Exists
-    use :: HDF5_Access   , only : hdf5Access
-    use :: IO_HDF5       , only : hdf5File
-    implicit none
-    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout)             :: self
-    double precision                                            , dimension(:), allocatable :: massFiltering
-    type            (hdf5File                                  )                            :: dataFile
-
-    ! Return immediately if the file does not exist.
-    if (.not.File_Exists(self%fileName)) return
-    if (self%initialized) call self%table%destroy()
-    !$ call hdf5Access%set()
-    dataFile=hdf5File(self%fileName,overWrite=.false.,readOnly=.true.)
-    call dataFile%readDataset  ('massFiltering',     massFiltering)
-    call dataFile%readAttribute('timeMinimum'  ,self%timeMinimum  )
-    call dataFile%readAttribute('timeMaximum'  ,self%timeMaximum  )
-    !$ call hdf5Access%unset()
-    call self%table%create  (self%timeMinimum,self%timeMaximum,size(massFiltering))
-    call self%table%populate(                                       massFiltering )
-    deallocate(massFiltering)
-    self%initialized=.true.
-    return
-  end subroutine gnedin2000FileRead
-
-  subroutine gnedin2000FileWrite(self)
-    !!{RST
-    Write tabulated data on linear growth factor to file.
-    !!}
-    use :: HDF5       , only : hsize_t
-    use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5File
-    implicit none
-    class(intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
-    type (hdf5File                                  )                :: dataFile
-
-    ! Open the data file.
-    !$ call hdf5Access%set()
-    dataFile=hdf5File(self%fileName,overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
-    call dataFile%writeDataset  (reshape(self%table      %ys(),[self%table%size()]),          'massFiltering')
-    call dataFile%writeAttribute(        self%timeMinimum                          ,          'timeMinimum'  )
-    call dataFile%writeAttribute(        self%timeMaximum                          ,          'timeMaximum'  )
-    !$ call hdf5Access%unset()
-    return
-  end subroutine gnedin2000FileWrite
