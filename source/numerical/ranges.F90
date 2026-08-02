@@ -74,6 +74,8 @@ module Numerical_Ranges
        <method description="Return the value of the final point."                                                              method="maximum"          />
        <method description="Return the values of all points."                                                                  method="values"           />
        <method description="Return the natural logarithms of the values of all points (logarithmic gridding schemes only)."     method="valuesLogarithmic"/>
+       <method description="Return the spacing of the points (``perUnit`` gridding scheme only)."                              method="step"             />
+       <method description="Return the spacing of the natural logarithms of the points (logarithmic gridding schemes only)."   method="stepLogarithmic"  />
        <method description="Return true if ``lattice`` lies on the same lattice as this object, and all of its points are points of this object." method="covers"  />
      </methods>
      !!]
@@ -83,6 +85,8 @@ module Numerical_Ranges
      procedure :: maximum           => rangeLatticeMaximum
      procedure :: values            => rangeLatticeValues
      procedure :: valuesLogarithmic => rangeLatticeValuesLogarithmic
+     procedure :: step              => rangeLatticeStep
+     procedure :: stepLogarithmic   => rangeLatticeStepLogarithmic
      procedure :: covers            => rangeLatticeCovers
   end type rangeLattice
 
@@ -377,6 +381,52 @@ contains
     end do
     return
   end function rangeLatticeValuesLogarithmic
+
+  double precision function rangeLatticeStep(self)
+    !!{RST
+    Return the spacing of the points of the lattice. Available only for the ``perUnit`` gridding scheme, for which the points
+    are uniformly spaced in value; for the logarithmic schemes see ``rangeLatticeStepLogarithmic``.
+
+    Note that this is deliberately *not* evaluated as the difference of two neighbouring lattice points: that difference varies
+    in its final bits with position along the lattice, so a table which used it would change its interpolation by of order one
+    unit in the last place when extended. Evaluated as below the spacing is a pure function of ``pointsPer``, and so is
+    invariant under extension.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class(rangeLattice), intent(in   ) :: self
+
+    rangeLatticeStep=0.0d0
+    select case (self%scheme%ID)
+    case (gridSchemePerUnit%ID)
+       rangeLatticeStep=1.0d0/dble(self%pointsPer)
+    case default
+       call Error_Report('the points of a logarithmically-spaced lattice are not uniformly spaced in value'//{introspection:location})
+    end select
+    return
+  end function rangeLatticeStep
+
+  double precision function rangeLatticeStepLogarithmic(self)
+    !!{RST
+    Return the spacing of the natural logarithms of the points of the lattice. Available only for the logarithmic gridding
+    schemes. As for ``rangeLatticeStep`` this is evaluated as a pure function of ``pointsPer`` so that it is invariant under
+    extension of the range.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class(rangeLattice), intent(in   ) :: self
+
+    rangeLatticeStepLogarithmic=0.0d0
+    select case (self%scheme%ID)
+    case (gridSchemePerDecade%ID)
+       rangeLatticeStepLogarithmic=log(10.0d0)/dble(self%pointsPer)
+    case (gridSchemePerOctave%ID)
+       rangeLatticeStepLogarithmic=log( 2.0d0)/dble(self%pointsPer)
+    case default
+       call Error_Report('logarithmic spacing is defined only for logarithmic gridding schemes'//{introspection:location})
+    end select
+    return
+  end function rangeLatticeStepLogarithmic
 
   logical function rangeLatticeCovers(self,lattice)
     !!{RST

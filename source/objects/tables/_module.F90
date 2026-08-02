@@ -492,11 +492,16 @@ contains
     return
   end subroutine Table_1D_Extend
 
-  subroutine Table_1D_Extend_Uniform(self,lattice,xValues,isComputed,tableCount,extrapolationType)
+  subroutine Table_1D_Extend_Uniform(self,lattice,xValues,deltaX,isComputed,tableCount,extrapolationType)
     !!{RST
     Worker used to extend 1-D tables which have uniformly-spaced *internal* abscissae. ``xValues`` must be the internal-coordinate
     abscissae of the points of ``lattice``---for example, for a logarithmically-spaced table these are the natural logarithms of
-    the lattice points.
+    the lattice points---and ``deltaX`` their spacing.
+
+    Note that ``deltaX`` is supplied by the caller (from the lattice) rather than evaluated here as ``xValues(2)-xValues(1)``.
+    The difference of two neighbouring lattice points varies in its final bits with position along the lattice, so deriving the
+    interpolation factor from it would change every interpolated value by of order one unit in the last place whenever the lower
+    bound of the table moved - defeating the very reuse which extension exists to provide.
 
     Previously computed values are preserved by copying them into the index window which they occupy in the new table---the
     index offset is computed from the integer lattice indices, so no searching or floating-point comparison of abscissae is
@@ -509,6 +514,7 @@ contains
     class           (table1DLinearLinear             ), intent(inout)                            :: self
     type            (rangeLattice                    ), intent(in   )                            :: lattice
     double precision                                  , intent(in   )             , dimension(:) :: xValues
+    double precision                                  , intent(in   )                            :: deltaX
     logical                                           , intent(  out), allocatable, dimension(:) :: isComputed
     integer                                           , intent(in   ), optional                  :: tableCount
     type            (enumerationExtrapolationTypeType), intent(in   ), optional   , dimension(2) :: extrapolationType
@@ -555,7 +561,7 @@ contains
     if (allocated(yvPrevious)) self%yv(offset+1:offset+size(yvPrevious,dim=1),:)=yvPrevious
     self%xCount        =lattice%count
     self%lattice       =lattice
-    self%inverseDeltaX =1.0d0/(self%xv(2)-self%xv(1))
+    self%inverseDeltaX =1.0d0/deltaX
     self%tablePrevious =-1
     self%dTablePrevious=-1
     self%xPrevious     =-1.0d0
@@ -1279,7 +1285,7 @@ contains
     type   (enumerationExtrapolationTypeType), intent(in   ), optional  , dimension(2)  :: extrapolationType
 
     if (lattice%scheme /= gridSchemePerUnit) call Error_Report('a linearly-spaced table requires a `perUnit` gridding scheme'//{introspection:location})
-    call Table_1D_Extend_Uniform(self,lattice,lattice%values(),isComputed,tableCount,extrapolationType)
+    call Table_1D_Extend_Uniform(self,lattice,lattice%values(),lattice%step(),isComputed,tableCount,extrapolationType)
     return
   end subroutine Table_Linear_1D_Extend
 
@@ -1470,7 +1476,7 @@ contains
          &   lattice%scheme /= gridSchemePerOctave  &
          & ) call Error_Report('a logarithmically-spaced table requires a `perDecade` or `perOctave` gridding scheme'//{introspection:location})
     ! The internal abscissae of this table type are the natural logarithms of the tabulation points.
-    call Table_1D_Extend_Uniform(self,lattice,lattice%valuesLogarithmic(),isComputed,tableCount,extrapolationType)
+    call Table_1D_Extend_Uniform(self,lattice,lattice%valuesLogarithmic(),lattice%stepLogarithmic(),isComputed,tableCount,extrapolationType)
     self%previousSet         =.false.
     self%xLinearPrevious     =-1.0d0
     self%xLogarithmicPrevious=-1.0d0
