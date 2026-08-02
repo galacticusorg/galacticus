@@ -28,7 +28,8 @@ program Test_Make_Ranges
   use :: Array_Utilities , only : Array_Reverse
   use :: Display         , only : displayVerbositySet, verbosityLevelStandard
   use :: Numerical_Ranges, only : Make_Range         , rangeTypeLinear       , rangeTypeLogarithmic, Range_Pinned        , &
-       &                          rangeLattice       , gridSchemePerDecade   , gridSchemePerOctave , gridSchemePerUnit
+       &                          rangeLattice       , gridSchemePerDecade   , gridSchemePerOctave , gridSchemePerUnit   , &
+       &                          Range_Lattice_Offset, Range_Lattice_Extend
   use :: Unit_Tests      , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                               , dimension(1:11) :: range1
@@ -38,6 +39,8 @@ program Test_Make_Ranges
   double precision              , allocatable    , dimension(:   ) :: values      , valuesNarrow , &
        &                                                              valuesWide
   integer                                                          :: offset
+  double precision              , allocatable    , dimension(:   ) :: valuesRaw
+  logical                       , allocatable    , dimension(:   ) :: isComputedRaw
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -146,6 +149,23 @@ program Test_Make_Ranges
   ! The union of lattices is exact, and independent of the order in which the ranges were requested.
   latticeUnion=Range_Pinned(3.0d+0,10,gridSchemePerDecade,latticeCurrent=latticeWide)
   call Assert("per-decade: union is independent of request order",[latticeUnion%indexMinimum,latticeUnion%count],[latticeWide%indexMinimum,latticeWide%count])
+
+  ! Extension of a tabulation held in a raw array, rather than in a table object.
+  latticeNarrow=Range_Pinned(15.0d0,10,gridSchemePerDecade,anchorEvery=5)
+  call Range_Lattice_Extend(rangeLattice(),latticeNarrow,valuesRaw,isComputedRaw)
+  call Assert("raw array: extension of an unallocated array computes every point",count(isComputedRaw),0                  )
+  call Assert("raw array: extension of an unallocated array sizes to the lattice",size (valuesRaw    ),latticeNarrow%count)
+  valuesRaw=latticeNarrow%values()
+  ! Extend onto a wider lattice, and check that the previously computed values are preserved at the right offset.
+  latticeWide=Range_Pinned(1.5d3,10,gridSchemePerDecade,anchorEvery=5,latticeCurrent=latticeNarrow)
+  offset     =Range_Lattice_Offset(latticeNarrow,latticeWide)
+  call Range_Lattice_Extend(latticeNarrow,latticeWide,valuesRaw,isComputedRaw)
+  call Assert("raw array: extension preserves precisely the previously computed points",count(isComputedRaw)                                 ,latticeNarrow%count)
+  call Assert("raw array: extension marks the correct window as computed"              ,all(isComputedRaw(offset+1:offset+latticeNarrow%count)),.true.           )
+  call Assert("raw array: extension preserves the values bit-for-bit"                                       , &
+       &      all(valuesRaw(offset+1:offset+latticeNarrow%count) == latticeNarrow%values())                 , &
+       &      .true.                                                                                          &
+       &     )
 
   ! End unit tests.
   call Unit_Tests_End_Group()

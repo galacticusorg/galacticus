@@ -27,7 +27,7 @@ module Numerical_Ranges
   !!}
   implicit none
   private
-  public :: Make_Range, Range_Pinned
+  public :: Make_Range, Range_Pinned, Range_Lattice_Offset, Range_Lattice_Extend
 
   ! Parameters to specify type of range required.
   integer, parameter, public :: rangeTypeLinear=0, rangeTypeLogarithmic=1, rangeTypeUndefined=-1
@@ -294,6 +294,70 @@ contains
     lattice%count       =indexMaximum-indexMinimum+1
     return
   end function Range_Pinned_Array
+
+  integer function Range_Lattice_Offset(latticeCurrent,latticeNew)
+    !!{RST
+    Return the index offset at which the points of ``latticeCurrent`` appear within ``latticeNew``---that is, the point with
+    index :math:`i` of ``latticeCurrent`` is the point with index :math:`i+`\ ``offset`` of ``latticeNew``.
+
+    This is the primitive needed to extend a tabulation which is held in raw arrays rather than in a
+    :galacticus-class:`table1D`. Sites of that kind differ in the rank of their arrays and in which of their dimensions is the
+    tabulated axis, so rather than attempt to be generic over both, this returns the offset and leaves the caller to move its
+    own arrays---typically a ``Move_Alloc`` followed by a single array-section assignment. ``Range_Lattice_Extend`` provides
+    the whole operation for the common case of a rank-1 array.
+
+    It is an error for the two lattices to be incommensurate, or for ``latticeNew`` not to contain ``latticeCurrent``.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    type(rangeLattice), intent(in   ) :: latticeCurrent, latticeNew
+
+    Range_Lattice_Offset=0
+    if (.not.latticeCurrent%isDefined() .or. .not.latticeNew%isDefined()) &
+         & call Error_Report('the lattices provided are not usable'                                            //{introspection:location})
+    if (latticeCurrent%scheme    /= latticeNew%scheme   )                 &
+         & call Error_Report('the lattices provided use different gridding schemes'                            //{introspection:location})
+    if (latticeCurrent%pointsPer /= latticeNew%pointsPer)                 &
+         & call Error_Report('the lattices provided use different densities of points'                         //{introspection:location})
+    if (.not.latticeNew%covers(latticeCurrent)          )                 &
+         & call Error_Report('the new lattice does not contain the current one - tabulations can only be extended'//{introspection:location})
+    Range_Lattice_Offset=latticeCurrent%indexMinimum-latticeNew%indexMinimum
+    return
+  end function Range_Lattice_Offset
+
+  subroutine Range_Lattice_Extend(latticeCurrent,latticeNew,values,isComputed)
+    !!{RST
+    Extend the rank-1 array ``values``, tabulated on ``latticeCurrent``, onto ``latticeNew``, preserving the values already
+    computed. On return ``isComputed`` is true for those points whose values were preserved, and false for those which the
+    caller must now evaluate. If ``values`` is unallocated it is simply allocated to the new lattice, with ``isComputed``
+    false throughout.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    type            (rangeLattice), intent(in   )                            :: latticeCurrent, latticeNew
+    double precision              , intent(inout), allocatable, dimension(:) :: values
+    logical                       , intent(  out), allocatable, dimension(:) :: isComputed
+    double precision              ,                allocatable, dimension(:) :: valuesPrevious
+    integer                                                                  :: offset
+
+    if (.not.latticeNew%isDefined()) call Error_Report('the lattice provided is not usable'//{introspection:location})
+    allocate(isComputed(latticeNew%count))
+    isComputed=.false.
+    if (allocated(values) .and. latticeCurrent%isDefined()) then
+       if (size(values) /= latticeCurrent%count) call Error_Report('array does not match the lattice on which it is tabulated'//{introspection:location})
+       offset=Range_Lattice_Offset(latticeCurrent,latticeNew)
+       call Move_Alloc(values,valuesPrevious)
+       allocate(values(latticeNew%count))
+       values                                    =0.0d0
+       values    (offset+1:offset+size(valuesPrevious))=valuesPrevious
+       isComputed(offset+1:offset+size(valuesPrevious))=.true.
+    else
+       if (allocated(values)) deallocate(values)
+       allocate(values(latticeNew%count))
+       values=0.0d0
+    end if
+    return
+  end subroutine Range_Lattice_Extend
 
   logical function rangeLatticeIsDefined(self)
     !!{RST
