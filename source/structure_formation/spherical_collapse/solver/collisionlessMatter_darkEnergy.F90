@@ -255,12 +255,16 @@ contains
           ! In the case of dark energy we cannot (easily) determine the largest (i.e. least negative) value of ε for which a
           ! perturbation can collapse. So, use no perturbation.
           epsilonPerturbationMaximum=  0.0d0
-          ! Estimate a suitably negative minimum value for ε.
-          epsilonPerturbationMinimum=-10.0d0
           ! Evaluate cosmological parameters at the present time.
           OmegaMatterEpochal    =cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
           OmegaDarkEnergyEpochal=cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
           hubbleTimeEpochal     =cosmologyFunctions_%expansionRate         (                expansionFactor)
+          ! Estimate a suitably negative minimum value for ε. The initial expansion rate of the perturbation is proportional to
+          ! √(Ωₘ/aᵢ+ε) (see `cllsnlssMttrDarkEnergyPerturbationDynamicsSolver`), so ε can not be more negative than -Ωₘ/aᵢ - at
+          ! precisely that value the perturbation begins at rest, and so collapses at the earliest possible epoch. At late times
+          ! in a dark energy dominated universe Ωₘ→0, so this physical bound can be much less negative than the nominal value of
+          ! -10 used at earlier epochs.
+          epsilonPerturbationMinimum=max(-10.0d0,-OmegaMatterEpochal/expansionFactorInitialFraction)
           time_                 =sphericalCollapse_ %x                     (                iTime          )
           ! Check dark energy equation of state is within acceptable range.
           if (cosmologyFunctions_%equationOfStateDarkEnergy(time=time_) >= -1.0d0/3.0d0) &
@@ -445,12 +449,18 @@ contains
          &              )**(2.0d0/3.0d0)
     ! Find the perturbation radius at this early time. This is, by construction, just the initial expansion factor.
     perturbationRadiusInitial=+expansionFactorInitial
-    ! Find the perturbation expansion rate at early time (Percival, 2005, A&A, 443, 819, eqn. 22).
-    expansionRatePerturbationInitial=+hubbleTimeEpochal            &
-         &                           *sqrt(                        &
-         &                                 +OmegaMatterEpochal     &
-         &                                 /expansionFactorInitial &
-         &                                 +epsilonPerturbation    &
+    ! Find the perturbation expansion rate at early time (Percival, 2005, A&A, 443, 819, eqn. 22). The argument of the square
+    ! root is non-negative for any physically-valid ε (see where the root finding range is set in
+    ! `cllsnlssMttrDarkEnergyTabulate`), but is clamped here to guard against it evaluating to a very small negative value due
+    ! to round-off when ε lies at the extreme of that range.
+    expansionRatePerturbationInitial=+hubbleTimeEpochal                  &
+         &                           *sqrt(                              &
+         &                                 max(                          &
+         &                                     +0.0d0                  , &
+         &                                     +OmegaMatterEpochal       &
+         &                                     /expansionFactorInitial   &
+         &                                     +epsilonPerturbation      &
+         &                                    )                          &
          &                                )
     ! Set initial conditions.
     propertyValues=[                                  &
