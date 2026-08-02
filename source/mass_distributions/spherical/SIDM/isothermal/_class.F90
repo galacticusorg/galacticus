@@ -329,20 +329,46 @@ contains
          type   (hdf5File    ) :: file
          type   (rangeLattice) :: latticeCached
          integer               :: pointsPerCached, indexMinimumCached, countCached
-         file=hdf5File(fileName)
+         ! Open read-only. Opening read-write would have HDF5 take an exclusive lock on the file - so a second thread reading it
+         ! concurrently fails to open it at all - and would have HDF5 write to the file even though we only read from it.
+         file=hdf5File(fileName,overWrite=.false.,readOnly=.true.)
          if (file%hasAttribute('pointsPer')) then
             call file%readAttribute('pointsPer'   ,pointsPerCached   )
             call file%readAttribute('indexMinimum',indexMinimumCached)
             call file%readAttribute('count'       ,countCached       )
             latticeCached=rangeLattice(gridSchemePerUnit,pointsPerCached,indexMinimumCached,countCached)
-            if (latticeCached%isDefined() .and. latticeCached%covers(self%latticeXi)) then
+            ! Adopt the cached tabulation if we hold nothing yet, or if it spans everything we do hold. Note that the first of
+            ! these is the usual case: objects of this class are constructed per halo, and each therefore begins with no
+            ! tabulation at all - `covers` is false when either lattice is undefined, so testing it alone would reject the
+            ! cache on every first call and leave every halo to recompute and rewrite the entire tabulation.
+            if     (                                                 &
+                 &   latticeCached  %isDefined(              )       &
+                 &  .and.                                            &
+                 &   (                                               &
+                 &     .not.                                         &
+                 &      self%latticeXi%isDefined(             )       &
+                 &    .or.                                           &
+                 &      latticeCached %covers   (self%latticeXi)      &
+                 &   )                                               &
+                 & ) then
                call file%readDataset('xi'                         ,     xi                         )
                call file%readDataset('radii'                      ,self%radiiDimensionless         )
                call file%readDataset('y0'                         ,     y0                         )
                call file%readDataset('z0'                         ,     z0                         )
                call file%readDataset('densityProfileDimensionless',self%densityProfileDimensionless)
                call file%readDataset('massProfileDimensionless'   ,self%massProfileDimensionless   )
-               if (size(xi) == latticeCached%count) self%latticeXi=latticeCached
+               if (size(xi) == latticeCached%count) then
+                  self%latticeXi=latticeCached
+               else
+                  ! The datasets do not match the lattice recorded alongside them, so the file is not self-consistent. Discard
+                  ! everything read from it rather than leave a partially-restored tabulation behind, and retabulate.
+                  if (allocated(     xi                         )) deallocate(     xi                         )
+                  if (allocated(     y0                         )) deallocate(     y0                         )
+                  if (allocated(     z0                         )) deallocate(     z0                         )
+                  if (allocated(self%radiiDimensionless         )) deallocate(self%radiiDimensionless         )
+                  if (allocated(self%densityProfileDimensionless)) deallocate(self%densityProfileDimensionless)
+                  if (allocated(self%massProfileDimensionless   )) deallocate(self%massProfileDimensionless   )
+               end if
             end if
          end if
        end block hdf5FileScope
