@@ -1211,6 +1211,7 @@ jobs:
                       tests.spherical_collapse.dark_energy.constantEoSminus0.6.exe,
                       tests.spherical_collapse.dark_energy.constantEoSminus0.8.exe,
                       tests.spherical_collapse.baryons_dark_matter.exe,
+                      tests.spherical_collapse.determinism.exe,
                       tests.spherical_collapse.nonlinear.exe,
                       tests.warm_dark_matter.exe,
                       tests.linear_growth.cosmological_constant.exe,

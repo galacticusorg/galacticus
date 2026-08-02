@@ -192,12 +192,13 @@ contains
     !!{RST
     Tabulate spherical collapse solutions for :math:`\delta_\mathrm{crit}`, :math:`\Delta_\mathrm{vir}`, or :math:`R_\mathrm{ta}/R_\mathrm{vir}` vs. time.
     !!}
-    !$ use :: OMP_Lib    , only : OMP_Get_Thread_Num       , OMP_Get_Max_Threads
-    use    :: Display    , only : displayCounter           , displayCounterClear          , displayIndent                , displayUnindent, &
-          &                       verbosityLevelWorking
-    use    :: Error      , only : Error_Report
-    use    :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
-    use    :: Tables     , only : table1DLogarithmicLinear
+    !$ use :: OMP_Lib         , only : OMP_Get_Thread_Num       , OMP_Get_Max_Threads
+    use    :: Display         , only : displayCounter           , displayCounterClear          , displayIndent                , displayUnindent, &
+          &                            verbosityLevelWorking
+    use    :: Error           , only : Error_Report
+    use    :: Numerical_Ranges, only : Range_Pinned             , rangeLattice                 , gridSchemePerOctave
+    use    :: Root_Finder     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use    :: Tables          , only : table1DLogarithmicLinear
     implicit none
     class           (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)             , intent(inout)  :: self
     double precision                                                                 , intent(in   )  :: time
@@ -206,14 +207,13 @@ contains
     class           (linearGrowthClass                                 ), pointer                     :: linearGrowth_                  => null()
     double precision                                                    , parameter                   :: toleranceAbsolute              =  0.0d0  , toleranceRelative              =1.0d-9
     double precision                                                                 , dimension(2  ) :: timeRange
-    double precision                                                    , allocatable, dimension(:  ) :: timesPrevious
-    double precision                                                    , allocatable, dimension(:,:) :: valuesPrevious
+    logical                                                             , allocatable, dimension(:  ) :: isComputed
+    type            (rangeLattice                                      )                              :: lattice
     type            (rootFinder                                        ), save                        :: finderPerturbationInitial                , finderExpansionMaximum
     logical                                                             , save                        :: finderPerturbationConstructed  =  .false., finderExpansionConstructed     =.false.
     !$omp threadprivate(finderPerturbationInitial,finderExpansionMaximum,finderPerturbationConstructed,finderExpansionConstructed)
     integer                                                                                           :: countTimes                               , iTime                                  , &
-         &                                                                                               iCount                                   , iTimeMinimum                           , &
-         &                                                                                               iTimeMaximum                             , countTimesEffective
+         &                                                                                               iCount                                   , countTimesEffective
     double precision                                                                                  :: fractionDarkMatter                       , epsilonPerturbation                    , &
          &                                                                                               epsilonPerturbationMaximum               , epsilonPerturbationMinimum             , &
          &                                                                                               densityContrastExpansionMaximum          , expansionFactorExpansionMaximum        , &
@@ -228,47 +228,29 @@ contains
     type            (varying_string                                    )                              :: message
     character       (len=13                                            )                              :: label
 
-    ! Find minimum and maximum times to tabulate.
-    if (allocated(sphericalCollapse_)) then
-       ! Use currently tabulated range as the starting point.
-       timeMinimum=sphericalCollapse_%x(+1)
-       timeMaximum=sphericalCollapse_%x(-1)
-    else
-       ! Specify an initial default range.
-       timeMinimum= 0.1d0
-       timeMaximum=20.0d0
-    end if
-    ! Expand the range to ensure the requested time is included.
-    timeMinimum=min(timeMinimum,time/2.0d0)
-    timeMaximum=max(timeMaximum,time*2.0d0)
-    ! Round to the nearest factor of 2.
-    timeMinimum=2.0d0**floor  (log(timeMinimum)/log(2.0d0))
-    timeMaximum=2.0d0**ceiling(log(timeMaximum)/log(2.0d0))
-    ! Determine number of points to tabulate.
-    countTimes=nint(log(timeMaximum/timeMinimum)/log(2.0d0)*dble(self%tablePointsPerOctave))
+    ! Specify the default range of times to tabulate - this range is tabulated irrespective of the requested time.
+    timeMinimum= 0.1d0
+    timeMaximum=20.0d0
     ! Copy baryon clustering option to module-scope.
     baryonsCluster=self%baryonsCluster
-    ! Deallocate table if currently allocated.
-    if (allocated(sphericalCollapse_)) then
-       ! Store the current solution.
-       timesPrevious      =sphericalCollapse_%xs()
-       valuesPrevious     =sphericalCollapse_%ys()
-       iTimeMinimum       =nint(log(timesPrevious(                 1 )/timeMinimum)/log(2.0d0)*self%tablePointsPerOctave)+1
-       iTimeMaximum       =nint(log(timesPrevious(size(timesPrevious))/timeMinimum)/log(2.0d0)*self%tablePointsPerOctave)+1
-       countTimesEffective=countTimes-(iTimeMaximum-iTimeMinimum+1)
-       ! Destroy the table.
-       call sphericalCollapse_%destroy()
-       deallocate(sphericalCollapse_)
-    else
-       iTimeMinimum       =+huge(0)
-       iTimeMaximum       =-huge(0)
-       countTimesEffective=countTimes
-    end if
-    allocate(table1DLogarithmicLinear :: sphericalCollapse_)
+    if (.not.allocated(sphericalCollapse_)) allocate(table1DLogarithmicLinear :: sphericalCollapse_)
     select type (sphericalCollapse_)
     type is (table1DLogarithmicLinear)
-       ! Create the table.
-       call sphericalCollapse_%create(timeMinimum,timeMaximum,countTimes)
+       ! Find the range of times to tabulate, pinned to an absolute lattice of points per octave. Pinning makes the tabulation -
+       ! and therefore every value interpolated from it - independent of the time at which the table was first requested, and
+       ! allows the table to be extended without changing (or recomputing) any previously computed value.
+       lattice=Range_Pinned(                                                      &
+            &                              time                                 , &
+            &                              self%tablePointsPerOctave            , &
+            &                              gridSchemePerOctave                  , &
+            &               rangeCurrent  =[timeMinimum,timeMaximum]            , &
+            &               latticeCurrent=sphericalCollapse_%lattice             &
+            &              )
+       call sphericalCollapse_%extend(lattice,isComputed)
+       countTimes         =lattice%count
+       countTimesEffective=count(.not.isComputed)
+       timeMinimum        =lattice%minimum()
+       timeMaximum        =lattice%maximum()
        ! Solve ODE to get corresponding overdensities.
        message="Solving spherical collapse model for baryons + dark matter + dark energy universe for "
        select case (calculationType%ID)
@@ -296,7 +278,7 @@ contains
             &              isNew    =.true.               , &
             &              verbosity=verbosityLevelWorking  &
             &             )
-       !$omp parallel private(epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,timeExpansionMaximum,expansionFactorExpansionMaximum,q,y,r,z,timeEnergyFixed,a,b,x,linearGrowth_) num_threads(min(OMP_Get_Max_Threads(),countTimesEffective))
+       !$omp parallel private(epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,timeExpansionMaximum,expansionFactorExpansionMaximum,q,y,r,z,timeEnergyFixed,a,b,x,linearGrowth_) num_threads(max(1,min(OMP_Get_Max_Threads(),countTimesEffective)))
        !$omp critical(sphericalCollapseSolverBrynsDrkMttrDrkEnrgyDeepCopy)
        allocate(cosmologyFunctions_,mold=self%cosmologyFunctions_)
        if (calculationType == cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity) then
@@ -319,11 +301,8 @@ contains
        !$omp barrier
        !$omp do schedule(dynamic)
        do iTime=1,countTimes
-          if (iTime >= iTimeMinimum .and. iTime <= iTimeMaximum) then
-             call sphericalCollapse_%populate(                                        &
-                  &                           valuesPrevious(iTime-iTimeMinimum+1,1), &
-                  &                                          iTime                    &
-                  &                          )
+          if (isComputed(iTime)) then
+             ! The value at this point was preserved when the table was extended, so there is nothing to do.
           else
              if (OMP_Get_Thread_Num() == 0)                                                    &
                   & call displayCounter(                                                       &

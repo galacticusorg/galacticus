@@ -151,12 +151,13 @@ contains
     !!{RST
     Tabulate spherical collapse solutions for :math:`\delta_\mathrm{crit}`, :math:`\Delta_\mathrm{vir}`, or :math:`R_\mathrm{ta}/R_\mathrm{vir}` vs. time.
     !!}
-    use :: Display      , only : displayCounter           , displayCounterClear          , displayIndent                , displayUnindent, &
-          &                      verbosityLevelWorking
-    use :: Error        , only : Error_Report
-    use :: Linear_Growth, only : normalizeMatterDominated
-    use :: Root_Finder  , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
-    use :: Tables       , only : table1DLogarithmicLinear
+    use :: Display         , only : displayCounter           , displayCounterClear          , displayIndent                , displayUnindent, &
+          &                         verbosityLevelWorking
+    use :: Error           , only : Error_Report
+    use :: Linear_Growth   , only : normalizeMatterDominated
+    use :: Numerical_Ranges, only : Range_Pinned             , rangeLattice                 , gridSchemePerDecade
+    use :: Root_Finder     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Tables          , only : table1DLogarithmicLinear
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrDarkEnergy)             , intent(inout) :: self
     double precision                                                            , intent(in   ) :: time
@@ -169,7 +170,9 @@ contains
     logical                                                                                     :: finderAmplitudeConstructed     =  .false., finderExpansionConstructed     =.false.
     !$omp threadprivate(finderAmplitudePerturbation,finderExpansionMaximum,finderAmplitudeConstructed,finderExpansionConstructed)
     integer                                                                                     :: countTimes                               , iTime                                  , &
-         &                                                                                         iCount
+         &                                                                                         iCount                                   , countTimesEffective
+    logical                                                        , allocatable, dimension(:) :: isComputed
+    type            (rangeLattice                                 )                            :: lattice
     double precision                                                                            :: expansionFactor                          , epsilonPerturbation                    , &
          &                                                                                         epsilonPerturbationMaximum               , epsilonPerturbationMinimum             , &
          &                                                                                         densityContrastExpansionMaximum          , expansionFactorExpansionMaximum        , &
@@ -185,31 +188,27 @@ contains
 
     ! Validate.
     if (calculationType == cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity .and. .not.associated(self%linearGrowth_)) call Error_Report('linearGrowth object was not provided'//{introspection:location})
-    ! Find minimum and maximum times to tabulate.
-    if (allocated(sphericalCollapse_)) then
-       ! Use currently tabulated range as the starting point.
-       timeMinimum=sphericalCollapse_%x(+1)
-       timeMaximum=sphericalCollapse_%x(-1)
-    else
-       ! Specify an initial default range.
-       timeMinimum= 0.1d0
-       timeMaximum=20.0d0
-    end if
-    ! Expand the range to ensure the requested time is included.
-    timeMinimum=min(timeMinimum,time/2.0d0)
-    timeMaximum=max(timeMaximum,time*2.0d0)
-    ! Determine number of points to tabulate.
-    countTimes=int(log10(timeMaximum/timeMinimum)*dble(tablePointsPerDecade))
-    ! Deallocate table if currently allocated.
-    if (allocated(sphericalCollapse_)) then
-       call sphericalCollapse_%destroy()
-       deallocate(sphericalCollapse_)
-    end if
-    allocate(table1DLogarithmicLinear :: sphericalCollapse_)
+    ! Specify the default range of times to tabulate - this range is tabulated irrespective of the requested time.
+    timeMinimum= 0.1d0
+    timeMaximum=20.0d0
+    if (.not.allocated(sphericalCollapse_)) allocate(table1DLogarithmicLinear :: sphericalCollapse_)
     select type (sphericalCollapse_)
     type is (table1DLogarithmicLinear)
-       ! Create the table.
-       call sphericalCollapse_%create(timeMinimum,timeMaximum,countTimes)
+       ! Find the range of times to tabulate, pinned to an absolute lattice of points per decade. Pinning makes the tabulation -
+       ! and therefore every value interpolated from it - independent of the time at which the table was first requested, and
+       ! allows the table to be extended without changing (or recomputing) any previously computed value.
+       lattice=Range_Pinned(                                                      &
+            &                              time                                 , &
+            &                              tablePointsPerDecade                 , &
+            &                              gridSchemePerDecade                  , &
+            &               rangeCurrent  =[timeMinimum,timeMaximum]            , &
+            &               latticeCurrent=sphericalCollapse_%lattice             &
+            &              )
+       call sphericalCollapse_%extend(lattice,isComputed)
+       countTimes         =lattice%count
+       countTimesEffective=count(.not.isComputed)
+       timeMinimum        =lattice%minimum()
+       timeMaximum        =lattice%maximum()
        ! Solve ODE to get corresponding overdensities.
        message="Solving spherical collapse model for dark energy universe for "
        write (label,'(e12.6)') timeMinimum
@@ -245,8 +244,10 @@ contains
        !$omp barrier
        !$omp do schedule(dynamic)
        do iTime=1,countTimes
+          ! Skip any point whose value was preserved when the table was extended.
+          if (isComputed(iTime)) cycle
           call displayCounter(                                                        &
-               &                        int(100.0d0*dble(iCount-1)/dble(countTimes)), &
+               &                        int(100.0d0*dble(iCount-1)/dble(countTimesEffective)), &
                &              isNew    =.false.                                     , &
                &              verbosity=verbosityLevelWorking                         &
                &             )

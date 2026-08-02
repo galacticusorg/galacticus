@@ -25,19 +25,27 @@ program Test_Tables
   !!{RST
   Tests that tables work correctly.
   !!}
-  use :: Array_Utilities, only : directionDecreasing         , directionIncreasing
-  use :: Display        , only : displayVerbositySet         , verbosityLevelStandard
-  use :: Tables         , only : table                       , table1D                 , table1DLinearCSpline              , table1DLinearLinear, &
-          &                      table1DLinearMonotoneCSpline, table1DLogarithmicLinear, table1DNonUniformLinearLogarithmic, table2DLogLogLin
-  use :: Unit_Tests     , only : Assert                      , Unit_Tests_Begin_Group  , Unit_Tests_End_Group              , Unit_Tests_Finish
+  use :: Array_Utilities , only : directionDecreasing         , directionIncreasing
+  use :: Display         , only : displayVerbositySet         , verbosityLevelStandard
+  use :: Numerical_Ranges, only : Range_Pinned                , rangeLattice            , gridSchemePerOctave
+  use :: Tables          , only : table                       , table1D                 , table1DLinearCSpline              , table1DLinearLinear, &
+          &                       table1DLinearMonotoneCSpline, table1DLogarithmicLinear, table1DNonUniformLinearLogarithmic, table2DLogLogLin
+  use :: Unit_Tests      , only : Assert                      , Unit_Tests_Begin_Group  , Unit_Tests_End_Group              , Unit_Tests_Finish
   implicit none
-  class           (table           ), allocatable :: myTable
-  class           (table1D         ), allocatable :: myReversedTable
-  type            (table2DLogLogLin)              :: myTable2D
-  integer                                         :: i              , j
-  double precision                                :: x              , y, &
-       &                                             yPrevious
-  logical                                         :: isMonotonic
+  class           (table           ), allocatable                 :: myTable
+  class           (table1D         ), allocatable                 :: myReversedTable
+  type            (table2DLogLogLin)                              :: myTable2D
+  type            (rangeLattice    )                              :: latticeNarrow, latticeWide
+  integer                                                         :: i            , j          , &
+       &                                                             offset
+  double precision                                                :: x            , y          , &
+       &                                                             yPrevious
+  logical                                                         :: isMonotonic
+  logical                           , allocatable, dimension(:  ) :: isComputed
+  double precision                  , allocatable, dimension(:  ) :: xValuesNarrow, xValuesWide, &
+       &                                                             xValuesDirect
+  double precision                  , allocatable, dimension(:,:) :: yValuesNarrow, yValuesWide, &
+       &                                                             yValuesDirect
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -373,6 +381,67 @@ program Test_Tables
        &     )
   ! Destroy the table.
   call myTable2D%destroy()
+
+  call Unit_Tests_End_Group()
+
+  ! Test extension of tables onto an absolute lattice.
+  call Unit_Tests_Begin_Group("Table extension")
+
+  ! Build a logarithmic table on a per-octave lattice, tabulating y=x².
+  allocate(table1DLogarithmicLinear :: myTable)
+  select type (myTable)
+  type is (table1DLogarithmicLinear)
+     latticeNarrow=Range_Pinned(3.0d0,4,gridSchemePerOctave)
+     call myTable%extend(latticeNarrow,isComputed)
+     call Assert('extension of an empty table requires every point to be computed',count(isComputed),0)
+     call Assert('extension of an empty table gives the lattice point count'      ,myTable%size()   ,latticeNarrow%count)
+     do i=1,myTable%size()
+        call myTable%populate(myTable%x(i)**2,i)
+     end do
+     xValuesNarrow=myTable%xs()
+     yValuesNarrow=myTable%ys()
+     ! Extend the table to a wider range on the same lattice. Only the newly added points should require computation.
+     latticeWide=Range_Pinned(30.0d0,4,gridSchemePerOctave,latticeCurrent=myTable%lattice)
+     call myTable%extend(latticeWide,isComputed)
+     offset=latticeNarrow%indexMinimum-latticeWide%indexMinimum
+     call Assert('extension marks precisely the previously computed points as computed',count(isComputed)                    ,latticeNarrow%count)
+     call Assert('extension marks the correct window as computed'                      ,all(isComputed(offset+1:offset+latticeNarrow%count)),.true.)
+     xValuesWide=myTable%xs()
+     yValuesWide=myTable%ys()
+     ! Both abscissae and previously computed values must be preserved bit-for-bit.
+     call Assert('extension preserves abscissae bit-for-bit'                                   , &
+          &      all(xValuesWide(offset+1:offset+latticeNarrow%count  ) == xValuesNarrow     ) , &
+          &      .true.                                                                          &
+          &     )
+     call Assert('extension preserves values bit-for-bit'                                      , &
+          &      all(yValuesWide(offset+1:offset+latticeNarrow%count,1) == yValuesNarrow(:,1)) , &
+          &      .true.                                                                          &
+          &     )
+     ! Compute the newly added points.
+     do i=1,myTable%size()
+        if (.not.isComputed(i)) call myTable%populate(myTable%x(i)**2,i)
+     end do
+     xValuesWide=myTable%xs()
+     yValuesWide=myTable%ys()
+     call myTable%destroy()
+  end select
+  deallocate(myTable)
+
+  ! Build a second table directly on the wider lattice - it must be bit-identical to the extended table.
+  allocate(table1DLogarithmicLinear :: myTable)
+  select type (myTable)
+  type is (table1DLogarithmicLinear)
+     call myTable%extend(latticeWide,isComputed)
+     do i=1,myTable%size()
+        call myTable%populate(myTable%x(i)**2,i)
+     end do
+     xValuesDirect=myTable%xs()
+     yValuesDirect=myTable%ys()
+     call Assert('a table built directly has abscissae identical to one built by extension',all(xValuesDirect      == xValuesWide      ),.true.)
+     call Assert('a table built directly has values identical to one built by extension'   ,all(yValuesDirect(:,1) == yValuesWide(:,1)),.true.)
+     call myTable%destroy()
+  end select
+  deallocate(myTable)
 
   ! End unit tests.
   call Unit_Tests_End_Group()

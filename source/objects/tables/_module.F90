@@ -26,6 +26,7 @@ module Tables
   Defines a ``table`` class with optimized interpolation operators.
   !!}
   use :: Numerical_Interpolation, only : interpolator
+  use :: Numerical_Ranges       , only : rangeLattice
   use :: Table_Labels           , only : enumerationExtrapolationTypeType
   private
   public :: table                          , table1D                          , table1DGeneric                    , &
@@ -101,6 +102,7 @@ module Tables
      !!}
      integer                                                                         :: xCount
      type            (enumerationExtrapolationTypeType)             , dimension(2  ) :: extrapolationType
+     type            (rangeLattice                    )                              :: lattice
      double precision                                  , allocatable, dimension(:  ) :: xv
      double precision                                  , allocatable, dimension(:,:) :: yv
    contains
@@ -117,12 +119,14 @@ module Tables
        <method description="Return an array of all :math:`y`-values. If ``table`` is specified then the ``table``\ :math:`^\mathrm{th}` table is used for the :math:`y`-values, otherwise the first table is used." method="ys" />
        <method description="Return the effective value of :math:`x` to use in table interpolations." method="xEffective"/>
        <method description="Return the weights to be applied to the table to integrate (using the trapezium rule) between ``x0`` and ``x1``." method="integrationWeights" />
+       <method description="Extend the table onto the given absolute lattice (creating it if it does not yet exist), preserving any previously computed values. On return ``isComputed`` is true for those points whose values were preserved, and false for those which the caller must now evaluate. The new lattice must be commensurate with, and must contain, the lattice on which the table is currently tabulated." method="extend" />
        <method description="Assign ``table1d`` objects." method="assignment(=)" />
      </methods>
      !!]
      procedure(Table1D_Interpolate ), deferred :: interpolate
      procedure(Table1D_Interpolate ), deferred :: interpolateGradient
      procedure                                 :: destroy             => Table_1D_Destroy
+     procedure                                 :: extend              => Table_1D_Extend
      procedure                                 :: reverse             => Table_1D_Reverse
      procedure                                 :: isMonotonic         => Table1D_Is_Monotonic
      procedure                                 :: size                => Table1D_Size
@@ -225,6 +229,7 @@ module Tables
      </methods>
      !!]
      procedure :: create              => Table_Linear_1D_Create
+     procedure :: extend              => Table_Linear_1D_Extend
      procedure ::                        Table_Linear_1D_Populate
      procedure ::                        Table_Linear_1D_Populate_Single
      generic   :: populate            => Table_Linear_1D_Populate            , Table_Linear_1D_Populate_Single
@@ -240,6 +245,7 @@ module Tables
      double precision :: xLinearPrevious,xLogarithmicPrevious
    contains
      procedure :: create              => Table_Logarithmic_1D_Create
+     procedure :: extend              => Table_Logarithmic_1D_Extend
      procedure :: interpolate         => Table_Logarithmic_1D_Interpolate
      procedure :: interpolateGradient => Table_Logarithmic_1D_Interpolate_Gradient
      procedure :: x                   => Table_Logarithmic_1D_X
@@ -456,13 +462,108 @@ contains
     !!{RST
     Destroy a 1-D table.
     !!}
+    use :: Numerical_Ranges, only : rangeLattice
     implicit none
     class(table1D), intent(inout) :: self
 
     if (allocated(self%xv)) deallocate(self%xv)
     if (allocated(self%yv)) deallocate(self%yv)
+    self%lattice=rangeLattice()
     return
   end subroutine Table_1D_Destroy
+
+  subroutine Table_1D_Extend(self,lattice,isComputed,tableCount,extrapolationType)
+    !!{RST
+    Extend a 1-D table onto an absolute lattice. This is supported only for those table types which use uniformly-spaced
+    internal abscissae---for all others this is an error.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Numerical_Ranges, only : rangeLattice
+    implicit none
+    class  (table1D                         ), intent(inout)                            :: self
+    type   (rangeLattice                    ), intent(in   )                            :: lattice
+    logical                                  , intent(  out), allocatable, dimension(:) :: isComputed
+    integer                                  , intent(in   ), optional                  :: tableCount
+    type   (enumerationExtrapolationTypeType), intent(in   ), optional  , dimension(2)  :: extrapolationType
+    !$GLC attributes unused :: self, lattice, tableCount, extrapolationType
+
+    allocate(isComputed(0))
+    call Error_Report('extension onto an absolute lattice is not supported for this table type'//{introspection:location})
+    return
+  end subroutine Table_1D_Extend
+
+  subroutine Table_1D_Extend_Uniform(self,lattice,xValues,isComputed,tableCount,extrapolationType)
+    !!{RST
+    Worker used to extend 1-D tables which have uniformly-spaced *internal* abscissae. ``xValues`` must be the internal-coordinate
+    abscissae of the points of ``lattice``---for example, for a logarithmically-spaced table these are the natural logarithms of
+    the lattice points.
+
+    Previously computed values are preserved by copying them into the index window which they occupy in the new table---the
+    index offset is computed from the integer lattice indices, so no searching or floating-point comparison of abscissae is
+    involved, and the preserved values (and their abscissae) are unchanged bit-for-bit.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Numerical_Ranges, only : rangeLattice
+    use :: Table_Labels    , only : extrapolationTypeExtrapolate
+    implicit none
+    class           (table1DLinearLinear             ), intent(inout)                            :: self
+    type            (rangeLattice                    ), intent(in   )                            :: lattice
+    double precision                                  , intent(in   )             , dimension(:) :: xValues
+    logical                                           , intent(  out), allocatable, dimension(:) :: isComputed
+    integer                                           , intent(in   ), optional                  :: tableCount
+    type            (enumerationExtrapolationTypeType), intent(in   ), optional   , dimension(2) :: extrapolationType
+    double precision                                  , allocatable             , dimension(:,:) :: yvPrevious
+    integer                                                                                      :: tableCountActual, offset
+
+    if (.not.lattice%isDefined()           ) call Error_Report('the lattice provided is not usable'      //{introspection:location})
+    if (size(xValues) /= lattice%count     ) call Error_Report('abscissae provided do not match lattice' //{introspection:location})
+    allocate(isComputed(lattice%count))
+    isComputed=.false.
+    offset    =0
+    if     (                          &
+         &   self%lattice%isDefined() &
+         &  .and.                     &
+         &   allocated(self%xv      ) &
+         &  .and.                     &
+         &   allocated(self%yv      ) &
+         & ) then
+       ! The table is already tabulated on a lattice. Verify that the new lattice is commensurate with, and contains, the
+       ! existing one, and arrange to preserve the previously computed values.
+       if (self%lattice%scheme    /= lattice%scheme   ) call Error_Report('table is tabulated using a different gridding scheme'                              //{introspection:location})
+       if (self%lattice%pointsPer /= lattice%pointsPer) call Error_Report('table is tabulated using a different density of points'                            //{introspection:location})
+       if (.not.lattice%covers(self%lattice)          ) call Error_Report('the new range does not contain the current range - tables can only be extended'    //{introspection:location})
+       tableCountActual=size(self%yv,dim=2)
+       if (present(tableCount)) then
+          if (tableCount /= tableCountActual)           call Error_Report('the number of tables can not be changed when extending a table'                    //{introspection:location})
+       end if
+       offset                                        =self%lattice%indexMinimum-lattice%indexMinimum
+       isComputed(offset+1:offset+self%lattice%count)=.true.
+       call Move_Alloc(self%yv,yvPrevious)
+    else
+       tableCountActual=1
+       if (present(tableCount)) tableCountActual=tableCount
+       ! Nothing is being preserved, so reset the extrapolation type to the default.
+       self%extrapolationType=extrapolationTypeExtrapolate
+    end if
+    ! Build the new table.
+    if (allocated(self%xv)) deallocate(self%xv)
+    if (allocated(self%yv)) deallocate(self%yv)
+    allocate(self%xv(lattice%count                 ))
+    allocate(self%yv(lattice%count,tableCountActual))
+    self%xv=xValues
+    self%yv=0.0d0
+    if (allocated(yvPrevious)) self%yv(offset+1:offset+size(yvPrevious,dim=1),:)=yvPrevious
+    self%xCount        =lattice%count
+    self%lattice       =lattice
+    self%inverseDeltaX =1.0d0/(self%xv(2)-self%xv(1))
+    self%tablePrevious =-1
+    self%dTablePrevious=-1
+    self%xPrevious     =-1.0d0
+    self%dxPrevious    =-1.0d0
+    ! Set the extrapolation type if one was specified.
+    if (present(extrapolationType)) self%extrapolationType=extrapolationType
+    return
+  end subroutine Table_1D_Extend_Uniform
 
   double precision function Table1D_X(self,i)
     !!{RST
@@ -648,6 +749,7 @@ contains
 
     to%xCount           =from%xCount
     to%extrapolationType=from%extrapolationType
+    to%lattice          =from%lattice
     if (allocated(from%xv)) then
        allocate(to%xv(size(from%xv)))
        to%xv=from%xv
@@ -1126,7 +1228,7 @@ contains
     Create a 1-D linear table.
     !!}
     use :: Error            , only : Error_Report
-    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear
+    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear      , rangeLattice
     use :: Table_Labels     , only : extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
     class           (table1DLinearLinear             ), intent(inout)                         :: self
@@ -1139,6 +1241,8 @@ contains
     ! Determine number of tables.
     tableCountActual=1
     if (present(tableCount)) tableCountActual=tableCount
+    ! Discard any lattice on which the table was previously tabulated - the abscissae are being rebuilt from the given range.
+    self%lattice=rangeLattice()
     ! Allocate arrays and construct the x-range.
     self%xCount=xCount
     if (allocated(self%xv)) deallocate(self%xv)
@@ -1159,6 +1263,25 @@ contains
     end if
     return
   end subroutine Table_Linear_1D_Create
+
+  subroutine Table_Linear_1D_Extend(self,lattice,isComputed,tableCount,extrapolationType)
+    !!{RST
+    Extend a 1-D linear table onto an absolute lattice. Since the abscissae of such a table are uniformly spaced in :math:`x`,
+    only the ``perUnit`` gridding scheme is applicable.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Numerical_Ranges, only : rangeLattice, gridSchemePerUnit
+    implicit none
+    class  (table1DLinearLinear             ), intent(inout)                            :: self
+    type   (rangeLattice                    ), intent(in   )                            :: lattice
+    logical                                  , intent(  out), allocatable, dimension(:) :: isComputed
+    integer                                  , intent(in   ), optional                  :: tableCount
+    type   (enumerationExtrapolationTypeType), intent(in   ), optional  , dimension(2)  :: extrapolationType
+
+    if (lattice%scheme /= gridSchemePerUnit) call Error_Report('a linearly-spaced table requires a `perUnit` gridding scheme'//{introspection:location})
+    call Table_1D_Extend_Uniform(self,lattice,lattice%values(),isComputed,tableCount,extrapolationType)
+    return
+  end subroutine Table_Linear_1D_Extend
 
   subroutine Table_Linear_1D_Populate(self,y,table)
     !!{RST
@@ -1326,6 +1449,33 @@ contains
     call self%table1DLinearLinear%create(log(xMinimum),log(xMaximum),xCount,tableCount,extrapolationType)
     return
   end subroutine Table_Logarithmic_1D_Create
+
+  subroutine Table_Logarithmic_1D_Extend(self,lattice,isComputed,tableCount,extrapolationType)
+    !!{RST
+    Extend a 1-D logarithmic table onto an absolute lattice. Since the abscissae of such a table are uniformly spaced in
+    :math:`\log x`, only the logarithmic gridding schemes are applicable.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Numerical_Ranges, only : rangeLattice, gridSchemePerDecade, gridSchemePerOctave
+    implicit none
+    class  (table1DLogarithmicLinear        ), intent(inout)                            :: self
+    type   (rangeLattice                    ), intent(in   )                            :: lattice
+    logical                                  , intent(  out), allocatable, dimension(:) :: isComputed
+    integer                                  , intent(in   ), optional                  :: tableCount
+    type   (enumerationExtrapolationTypeType), intent(in   ), optional  , dimension(2)  :: extrapolationType
+
+    if     (                                        &
+         &   lattice%scheme /= gridSchemePerDecade  &
+         &  .and.                                   &
+         &   lattice%scheme /= gridSchemePerOctave  &
+         & ) call Error_Report('a logarithmically-spaced table requires a `perDecade` or `perOctave` gridding scheme'//{introspection:location})
+    ! The internal abscissae of this table type are the natural logarithms of the tabulation points.
+    call Table_1D_Extend_Uniform(self,lattice,lattice%valuesLogarithmic(),isComputed,tableCount,extrapolationType)
+    self%previousSet         =.false.
+    self%xLinearPrevious     =-1.0d0
+    self%xLogarithmicPrevious=-1.0d0
+    return
+  end subroutine Table_Logarithmic_1D_Extend
 
   double precision function Table_Logarithmic_1D_X(self,i)
     !!{RST
