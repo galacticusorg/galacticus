@@ -43,6 +43,7 @@ program Test_Decaying_Dark_Matter
        &                                                          energyDerivativeVelocityEscape                , fractionDerivativeVelocityEscape                , &
        &                                                          energyDerivativeVelocityKickFiniteDifference  , fractionDerivativeVelocityKickFiniteDifference  , &
        &                                                          energyDerivativeVelocityEscapeFiniteDifference, fractionDerivativeVelocityEscapeFiniteDifference
+  logical                        , dimension(:,:), allocatable :: farFromCutoff
   double precision                                             :: velocityDispersion
   integer                                                      :: i                                             , j
   type            (varying_string)                             :: fileName
@@ -81,6 +82,7 @@ program Test_Decaying_Dark_Matter
   allocate(energyDerivativeVelocityEscapeFiniteDifference  (size(velocityKicks),size(velocityEscapes)))
   allocate(fractionDerivativeVelocityEscape                (size(velocityKicks),size(velocityEscapes)))
   allocate(fractionDerivativeVelocityEscapeFiniteDifference(size(velocityKicks),size(velocityEscapes)))
+  allocate(farFromCutoff                                   (size(velocityKicks),size(velocityEscapes)))
   do i=1,size(velocityKicks)
      do j=1,size(velocityEscapes)
         fractionRetained(i,j)=decayingDarkMatterFractionRetained(velocityDispersion,velocityEscapes(j),velocityKicks(i))
@@ -108,12 +110,22 @@ program Test_Decaying_Dark_Matter
      energyDerivativeVelocityKick                (:,j)=+energyDerivativeVelocityKick                (:,j)/(0.5d0*velocityKicks**2)
      energyDerivativeVelocityKickFiniteDifference(:,j)=+energyDerivativeVelocityKickFiniteDifference(:,j)/(0.5d0*velocityKicks**2)
   end do
+  ! The retained fraction and energy fall to zero at vₖ=2vₑ, and rise near-vertically away from it. Close to that cutoff the
+  ! analytic derivatives - which are differences across a single cell of the tabulation - and the finite differences below -
+  ! which are taken over the far coarser grid of the target data, and are one-sided - are not estimates of the same quantity,
+  ! and disagree by factors of order unity however finely the solutions are tabulated. Compare them only away from the cutoff;
+  ! the retained fractions and energies themselves are checked against the target data everywhere, above.
+  do i=1,size(velocityKicks)
+     do j=1,size(velocityEscapes)
+        farFromCutoff(i,j)=velocityKicks(i) < 1.8d0*velocityEscapes(j)
+     end do
+  end do
   call Assert('fraction; f     ',abs(fractionRetained-fractionRetainedTarget),max(1.0d-5,5.0d0*fractionRetainedTargetUncertainty),compareLessThanOrEqual)
   call Assert('  energy; ε     ',abs(energyRetained  -energyRetainedTarget  ),max(1.0d-5,5.0d0*energyRetainedTargetUncertainty  ),compareLessThanOrEqual)
-  call Assert('          ∂f/∂vₖ',fractionDerivativeVelocityKick  ,fractionDerivativeVelocityKickFiniteDifference  ,relTol=1.5d-1,absTol=2.0d-3)
-  call Assert('          ∂ε/∂vₖ',energyDerivativeVelocityKick    ,energyDerivativeVelocityKickFiniteDifference    ,relTol=4.0d-1,absTol=2.0d-2)
-  call Assert('          ∂f/∂vₑ',fractionDerivativeVelocityEscape,fractionDerivativeVelocityEscapeFiniteDifference,relTol=1.5d-1,absTol=1.0d-3)
-  call Assert('          ∂ε/∂vₑ',energyDerivativeVelocityEscape  ,energyDerivativeVelocityEscapeFiniteDifference  ,relTol=6.0d-1,absTol=5.0d-2)
+  call Assert('          ∂f/∂vₖ',pack(fractionDerivativeVelocityKick  ,farFromCutoff),pack(fractionDerivativeVelocityKickFiniteDifference  ,farFromCutoff),relTol=1.5d-1,absTol=2.0d-3)
+  call Assert('          ∂ε/∂vₖ',pack(energyDerivativeVelocityKick    ,farFromCutoff),pack(energyDerivativeVelocityKickFiniteDifference    ,farFromCutoff),relTol=4.0d-1,absTol=2.0d-2)
+  call Assert('          ∂f/∂vₑ',pack(fractionDerivativeVelocityEscape,farFromCutoff),pack(fractionDerivativeVelocityEscapeFiniteDifference,farFromCutoff),relTol=1.5d-1,absTol=1.0d-3)
+  call Assert('          ∂ε/∂vₑ',pack(energyDerivativeVelocityEscape  ,farFromCutoff),pack(energyDerivativeVelocityEscapeFiniteDifference  ,farFromCutoff),relTol=6.0d-1,absTol=5.0d-2)
   deallocate(fractionRetainedTarget                        )
   deallocate(fractionRetainedTargetUncertainty             )
   deallocate(energyRetainedTarget                          )
@@ -122,6 +134,7 @@ program Test_Decaying_Dark_Matter
   deallocate(energyDerivativeVelocityKickFiniteDifference  )
   deallocate(fractionDerivativeVelocityKick                )
   deallocate(fractionDerivativeVelocityKickFiniteDifference)
+  deallocate(farFromCutoff                                 )
   call Unit_Tests_End_Group()
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()

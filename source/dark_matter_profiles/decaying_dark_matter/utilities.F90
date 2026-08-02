@@ -26,16 +26,19 @@ module Decaying_Dark_Matter
   Implements useful shared utilities for calculations of decaying dark matter.
   !!}
   use :: Numerical_Interpolation, only : interpolator
+  use :: Numerical_Ranges       , only : rangeLattice
   private
   public :: decayingDarkMatterFractionRetained, decayingDarkMatterEnergyRetained, decayingDarkMatterFractionRetainedDerivatives, decayingDarkMatterEnergyRetainedDerivatives
 
-  ! Tables of retained fractions and energies.
-  double precision                                            :: velocityEscapeScaleFreeMinimum=+huge(0.0d0), velocityEscapeScaleFreeMaximum=-huge(0.0d0), &
-       &                                                         velocityKickScaleFreeMinimum  =+huge(0.0d0), velocityKickScaleFreeMaximum  =-huge(0.0d0)
+  ! Tables of retained fractions and energies, together with the absolute lattices on which they are tabulated.
+  type            (rangeLattice)                              :: latticeVelocityEscape                      , latticeVelocityKick
   double precision              , dimension(:  ), allocatable :: velocitiesEscapeScaleFree                  , velocitiesKickScaleFree
   double precision              , dimension(:,:), allocatable :: energyRetained                             , fractionRetained
   type            (interpolator)                , allocatable :: interpolatorVelocityEscape                 , interpolatorVelocityKick
-  !$omp threadprivate(velocityEscapeScaleFreeMinimum,velocityEscapeScaleFreeMaximum,velocityKickScaleFreeMinimum,velocityKickScaleFreeMaximum,velocitiesEscapeScaleFree,velocitiesKickScaleFree,energyRetained,fractionRetained,interpolatorVelocityEscape,interpolatorVelocityKick)
+  !$omp threadprivate(latticeVelocityEscape,latticeVelocityKick,velocitiesEscapeScaleFree,velocitiesKickScaleFree,energyRetained,fractionRetained,interpolatorVelocityEscape,interpolatorVelocityKick)
+
+  ! Number of points per decade at which each axis of the solutions is tabulated.
+  integer                                       , parameter   :: countVelocityEscapePerDecade  =    300     , countVelocityKickPerDecade    =    300
 
   ! Scale free velocity above which the velocity dispersion is negligible and we assume deterministic behavior.
   double precision                              , parameter   :: velocityScaleFreeLarge        =+100.0d0
@@ -43,6 +46,13 @@ module Decaying_Dark_Matter
   ! Minimum scale free escape velocity for which we can find a self-consistent velocity distribution function. Smaller values only
   ! occur at extreme distances outside of halos, so should not matter.
   double precision                              , parameter   :: velocityEscapeScaleFreeLimit  =+  2.3d0
+
+  ! Seed range for the kick velocity axis. Unlike the escape velocity axis - which is bounded below by the limit above, and for
+  ! which the deterministic limit provides a natural upper end - the kick velocity has no physical scale of its own, so a seed
+  ! must be stated. Unity is the natural reference of the scale free variable: below it the kick is smaller than the velocity
+  ! dispersion and essentially all particles are retained. Seeding matters because it guarantees that any two tabulations - built
+  ! in different runs, at different requested velocities - overlap, and so can always be merged onto the common lattice.
+  double precision                              , parameter   :: velocityKickScaleFreeSeed     =+  1.0d0
 
 contains
 
@@ -318,98 +328,111 @@ contains
     !!}
     use :: Display                 , only : displayCounter, displayCounterClear          , displayIndent                , displayUnindent          , &
          &                                  displayMessage, verbosityLevelStandard
-    use :: ISO_Varying_String      , only : varying_string, operator(//)                 , assignment(=)                , char
+    use :: ISO_Varying_String      , only : varying_string, operator(//)                 , assignment(=)
     use :: Numerical_Constants_Math, only : Pi
     use :: Root_Finder             , only : rootFinder    , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rangeExpandMultiplicative
     use :: Numerical_Integration   , only : integrator
-    use :: Numerical_Ranges        , only : Make_Range    , rangeTypeLogarithmic
+    use :: Numerical_Ranges        , only : Range_Pinned  , rangeLattice                 , gridSchemePerDecade          , Range_Lattice_Offset
     use :: File_Utilities          , only : File_Exists   , Directory_Make               , File_Path, File_Lock         , File_Unlock, lockDescriptor
     use :: HDF5_Access             , only : hdf5Access
     use :: IO_HDF5                 , only : hdf5File
     use :: Input_Paths             , only : inputPath     , pathTypeDataDynamic
     implicit none
-    double precision            , intent(in   )               :: velocityEscapeScaleFree              , velocityKickScaleFree
-    double precision            , parameter                   :: toleranceAbsolute           =  0.0d+0, toleranceRelative         =  1.0d-6
-    double precision            , parameter                   :: countVelocityEscapePerDecade=300.0d+0, countVelocityKickPerDecade=300.0d+0
-    double precision            , dimension(:  ), allocatable :: velocitiesEscapeScaleFree_           , velocitiesKickScaleFree_
-    double precision            , dimension(:,:), allocatable :: energyRetained_                      , fractionRetained_
-    double precision            , save                        :: velocityWidthScaleFree               , normalization                      , &
-         &                                                       velocityEscapeScaleFree_             , velocityKickScaleFree_             , &
-         &                                                       cosThetaMaximum
-    type            (rootFinder), save          , allocatable :: finder
-    type            (integrator), save          , allocatable :: integratorEnergy                     , integratorFraction
-    integer                     , save                        :: iVelocityKick
-    integer                                                   :: countVelocityEscape                  , countVelocityKick                  , &
-         &                                                       iVelocityEscape
-    logical                                                   :: remakeTable
+    double precision              , intent(inout)               :: velocityEscapeScaleFree
+    double precision              , intent(in   )               :: velocityKickScaleFree
+    double precision              , parameter                   :: toleranceAbsolute       =  0.0d+0, toleranceRelative     =  1.0d-6
+    ! Note that the abscissae and solutions are accumulated in these local arrays rather than directly in the module-scope arrays:
+    ! the latter are threadprivate, and so are not shared with the threads of the parallel region below.
+    double precision              , dimension(:  ), allocatable :: velocitiesEscapeScaleFree_        , velocitiesKickScaleFree_
+    double precision              , dimension(:,:), allocatable :: energyRetained_                   , fractionRetained_
+    double precision              , save                        :: velocityWidthScaleFree            , normalization                  , &
+         &                                                         velocityEscapeScaleFree_          , velocityKickScaleFree_         , &
+         &                                                         cosThetaMaximum
+    type            (rootFinder  ), save          , allocatable :: finder
+    type            (integrator  ), save          , allocatable :: integratorEnergy                  , integratorFraction
+    integer                       , save                        :: iVelocityKick
+    integer                                                     :: countVelocityEscape               , countVelocityKick              , &
+         &                                                         iVelocityEscape                   , offsetVelocityEscape           , &
+         &                                                         offsetVelocityKick
+    type            (rangeLattice)                              :: latticeEscape                     , latticeKick
+    logical                       , dimension(:,:), allocatable :: isComputed
     !$omp threadprivate(iVelocityKick,velocityEscapeScaleFree_,velocityKickScaleFree_,velocityWidthScaleFree,normalization,cosThetaMaximum,finder,integratorFraction,integratorEnergy)
-    
-    ! Determine if the tables must be remade.
-    remakeTable= velocityEscapeScaleFree < velocityEscapeScaleFreeMinimum .or. velocityEscapeScaleFree > velocityEscapeScaleFreeMaximum &
-         &      .or.                                                                                                                    &
-         &       velocityKickScaleFree   < velocityKickScaleFreeMinimum   .or. velocityKickScaleFree   > velocityKickScaleFreeMaximum
-    if (.not.remakeTable) return
+
+    ! Find the ranges of escape and kick velocity required, pinned to absolute lattices so that the tabulation - and hence every
+    ! value interpolated from it - is independent of the velocities at which it happened to be first requested, and so that it
+    ! can be extended without recomputing any solution already found.
+    call rangesRequired()
+    if     (                                                &
+         &   latticeVelocityEscape%covers(latticeEscape)    &
+         &  .and.                                           &
+         &   latticeVelocityKick  %covers(latticeKick  )    &
+         & ) then
+       call velocityEscapeScaleFreeClamp()
+       return
+    end if
     block
       type     (varying_string) :: message     , fileName
       character(len=8         ) :: labelMinimum, labelMaximum
       type     (lockDescriptor) :: fileLock
 
-      ! Get a lock on the file.
       fileName=inputPath(pathTypeDataDynamic)//'darkMatter/decayingDarkMatterRetention.hdf5'
-      call Directory_Make(File_Path(fileName)                              )
-      call File_Lock     (          fileName ,fileLock,lockIsShared=.false.)
-      ! Attempt to read existing data from file.
+      call Directory_Make(File_Path(fileName))
+      ! Adopt any tabulation already cached on disk. Since the tabulation lies on absolute lattices the cached and in-memory
+      ! solutions share abscissae wherever they overlap, so the cache is adopted whenever it spans everything we already hold -
+      ! rather than, as previously, being read over the top of whatever is in memory, which could discard a wider range. Note
+      ! that the file name deliberately carries no descriptor of any object's parameters: the retained fractions and energies are
+      ! a property of the truncated Maxwell-Boltzmann distribution alone, and so are common to every model.
       if (File_Exists(fileName)) then
-         if (allocated(velocitiesEscapeScaleFree)) deallocate(velocitiesEscapeScaleFree)
-         if (allocated(velocitiesKickScaleFree  )) deallocate(velocitiesKickScaleFree  )
-         if (allocated(fractionRetained         )) deallocate(fractionRetained         )
-         if (allocated(energyRetained           )) deallocate(energyRetained           )
-         block
-           type(hdf5File  ) :: file
-           !$ call hdf5Access%set()
-           file=hdf5File(fileName,overWrite=.false.,readOnly=.true.)
-           call file%readDataset('velocitiesEscape',velocitiesEscapeScaleFree)
-           call file%readDataset('velocitiesKick'  ,velocitiesKickScaleFree  )
-           call file%readDataset('energyRetained'  ,energyRetained           )
-           call file%readDataset('fractionRetained',fractionRetained         )
-           !$ call hdf5Access%unset()
-         end block
-         velocityEscapeScaleFreeMinimum=velocitiesEscapeScaleFree(                             1 )
-         velocityEscapeScaleFreeMaximum=velocitiesEscapeScaleFree(size(velocitiesEscapeScaleFree))
-         velocityKickScaleFreeMinimum  =velocitiesKickScaleFree  (                             1 )
-         velocityKickScaleFreeMaximum  =velocitiesKickScaleFree  (size(velocitiesKickScaleFree  ))
-         remakeTable= velocityEscapeScaleFree < velocityEscapeScaleFreeMinimum .or. velocityEscapeScaleFree > velocityEscapeScaleFreeMaximum &
-              &      .or.                                                                                                                    &
-              &       velocityKickScaleFree   < velocityKickScaleFreeMinimum   .or. velocityKickScaleFree   > velocityKickScaleFreeMaximum
+         ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+         call File_Lock(fileName,fileLock,lockIsShared=.true.)
+         call retainedRestore(fileName)
+         call File_Unlock(fileLock)
       end if
-      if (remakeTable) then
-         ! Find suitable ranges of escape velocity and kick velocity over which to tabulate. For the escape velocity we limit the
-         ! minimum value to a fixed multiple of the velocity dispersion. Below this it becomes difficult to find a velocity width
-         ! for the truncated Maxwell-Boltzmann distribution.
-         velocityEscapeScaleFreeMinimum=min(velocityEscapeScaleFreeMinimum,max(velocityEscapeScaleFreeLimit,0.5d0*velocityEscapeScaleFree))
-         velocityEscapeScaleFreeMaximum=max(velocityEscapeScaleFreeMaximum,                                 2.0d0*velocityEscapeScaleFree )
-         velocityKickScaleFreeMinimum  =min(velocityKickScaleFreeMinimum  ,                                 0.5d0*velocityKickScaleFree   )
-         velocityKickScaleFreeMaximum  =max(velocityKickScaleFreeMaximum  ,                                 2.0d0*velocityKickScaleFree   )
-         call displayIndent     ('Tabulating decaying dark matter retained fractions',verbosity=verbosityLevelStandard)
-         write (labelMinimum,'(f8.2)') velocityEscapeScaleFreeMinimum
-         write (labelMaximum,'(f8.2)') velocityEscapeScaleFreeMaximum
-         message=labelMinimum//' ≤ vₑ/σ  ≤ '//labelMaximum
-         call displayMessage(message,verbosity=verbosityLevelStandard)
-         write (labelMinimum,'(f8.2)') velocityKickScaleFreeMinimum
-         write (labelMaximum,'(f8.2)') velocityKickScaleFreeMaximum
-         message=labelMinimum//' ≤ vₖ/σ  ≤ '//labelMaximum
-         call displayMessage(message,verbosity=verbosityLevelStandard)
-         ! Construct grids.
-         if (allocated(velocitiesEscapeScaleFree)) deallocate(velocitiesEscapeScaleFree)
-         if (allocated(velocitiesKickScaleFree  )) deallocate(velocitiesKickScaleFree  )
-         if (allocated(fractionRetained         )) deallocate(fractionRetained         )
-         if (allocated(energyRetained           )) deallocate(energyRetained           )
-         countVelocityEscape       =int(log10(velocityEscapeScaleFreeMaximum/velocityEscapeScaleFreeMinimum)*countVelocityEscapePerDecade+1.0d0)
-         countVelocityKick         =int(log10(velocityKickScaleFreeMaximum  /velocityKickScaleFreeMinimum  )*countVelocityKickPerDecade  +1.0d0)
-         velocitiesEscapeScaleFree_=Make_Range(velocityEscapeScaleFreeMinimum,velocityEscapeScaleFreeMaximum,countVelocityEscape,rangeTypeLogarithmic)
-         velocitiesKickScaleFree_  =Make_Range(velocityKickScaleFreeMinimum  ,velocityKickScaleFreeMaximum  ,countVelocityKick  ,rangeTypeLogarithmic)
+      ! Re-evaluate the ranges required in the light of anything restored.
+      call rangesRequired()
+      if     (                                                &
+           &  .not.latticeVelocityEscape%covers(latticeEscape) &
+           &  .or.                                            &
+           &  .not.latticeVelocityKick  %covers(latticeKick  ) &
+           & ) then
+         ! Extend the tabulation onto the new lattices, preserving every solution already found. Both axes may grow, so the
+         ! surviving block is a rectangle offset within the new arrays.
+         countVelocityEscape=latticeEscape%count
+         countVelocityKick  =latticeKick  %count
+         ! Take the abscissae from the lattices rather than by subdividing the range, so that they are bit-identical to those of
+         ! any other tabulation built on the same lattice.
+         velocitiesEscapeScaleFree_=latticeEscape%values()
+         velocitiesKickScaleFree_  =latticeKick  %values()
          allocate(fractionRetained_(countVelocityEscape,countVelocityKick))
          allocate(energyRetained_  (countVelocityEscape,countVelocityKick))
+         allocate(isComputed       (countVelocityEscape,countVelocityKick))
+         fractionRetained_=0.0d0
+         energyRetained_  =0.0d0
+         isComputed       =.false.
+         if     (                                        &
+              &   allocated(fractionRetained          )  &
+              &  .and.                                   &
+              &   allocated(energyRetained            )  &
+              &  .and.                                   &
+              &   latticeVelocityEscape%isDefined(     ) &
+              &  .and.                                   &
+              &   latticeVelocityKick  %isDefined(     ) &
+              & ) then
+            offsetVelocityEscape=Range_Lattice_Offset(latticeVelocityEscape,latticeEscape)
+            offsetVelocityKick  =Range_Lattice_Offset(latticeVelocityKick  ,latticeKick  )
+            fractionRetained_(offsetVelocityEscape+1:offsetVelocityEscape+size(fractionRetained,dim=1),offsetVelocityKick+1:offsetVelocityKick+size(fractionRetained,dim=2))=fractionRetained
+            energyRetained_  (offsetVelocityEscape+1:offsetVelocityEscape+size(energyRetained  ,dim=1),offsetVelocityKick+1:offsetVelocityKick+size(energyRetained  ,dim=2))=energyRetained
+            isComputed       (offsetVelocityEscape+1:offsetVelocityEscape+size(fractionRetained,dim=1),offsetVelocityKick+1:offsetVelocityKick+size(fractionRetained,dim=2))=.true.
+         end if
+         call displayIndent     ('Tabulating decaying dark matter retained fractions',verbosity=verbosityLevelStandard)
+         write (labelMinimum,'(f8.2)') latticeEscape%minimum()
+         write (labelMaximum,'(f8.2)') latticeEscape%maximum()
+         message=labelMinimum//' ≤ vₑ/σ  ≤ '//labelMaximum
+         call displayMessage(message,verbosity=verbosityLevelStandard)
+         write (labelMinimum,'(f8.2)') latticeKick  %minimum()
+         write (labelMaximum,'(f8.2)') latticeKick  %maximum()
+         message=labelMinimum//' ≤ vₖ/σ  ≤ '//labelMaximum
+         call displayMessage(message,verbosity=verbosityLevelStandard)
          ! Begin parallel execution.
          call displayCounter(                                  &
               &                        0                     , &
@@ -436,13 +459,15 @@ contains
               &                  rangeExpandType              =rangeExpandMultiplicative      &
               &                 )
          !$omp do schedule(dynamic)
-         ! Iterate over escape and kick velocities.
+         ! Iterate over escape and kick velocities, skipping any solution which is already known.
          do iVelocityEscape=1,countVelocityEscape
             call displayCounter(                                                                          &
                  &                        int(100.0d0*dble(iVelocityEscape-1)/dble(countVelocityEscape)), &
                  &              isNew    =.false.                                                       , &
                  &              verbosity=verbosityLevelStandard                                          &
                  &             )
+            ! Skip the whole row - including the solution for the velocity width - if every solution in it is already known.
+            if (all(isComputed(iVelocityEscape,:))) cycle
             velocityEscapeScaleFree_=velocitiesEscapeScaleFree_(iVelocityEscape)
             ! Solve for the velocity width of the Maxwell-Boltzmann distribution that gives the required root-mean-squared velocity.
             velocityWidthScaleFree=finder%find(rootGuess=1.0d0)
@@ -450,6 +475,7 @@ contains
             normalization=+sqrt(2.0d0*Pi)*velocityWidthScaleFree**3                         *erf(        velocityEscapeScaleFree_/sqrt(2.0d0)/velocityWidthScaleFree    ) &
                  &        -     2.0d0    *velocityWidthScaleFree**2*velocityEscapeScaleFree_*exp(-0.5d0*(velocityEscapeScaleFree_            /velocityWidthScaleFree)**2)
             do iVelocityKick=1,countVelocityKick
+               if (isComputed(iVelocityEscape,iVelocityKick)) cycle
                velocityKickScaleFree_=velocitiesKickScaleFree_(iVelocityKick)
                ! Compute the kick energy retained. If the kick velocity exceeds twice the escape velocity then no particles remain bound.
                if (velocityKickScaleFree_ >= 2.0d0*velocityEscapeScaleFree_ .or. velocityKickScaleFree_ <= 0.0d0) then
@@ -472,7 +498,8 @@ contains
             end do
          end do
          !$omp end do
-         ! Transfer solutions to module-scope.
+         ! Transfer solutions to module-scope. This is done inside the parallel region because the module-scope variables are
+         ! threadprivate, so each thread must be given its own copy.
          if (allocated(velocitiesEscapeScaleFree)) deallocate(velocitiesEscapeScaleFree)
          if (allocated(velocitiesKickScaleFree  )) deallocate(velocitiesKickScaleFree  )
          if (allocated(energyRetained           )) deallocate(energyRetained           )
@@ -481,6 +508,8 @@ contains
          velocitiesKickScaleFree  =velocitiesKickScaleFree_
          energyRetained           =energyRetained_
          fractionRetained         =fractionRetained_
+         latticeVelocityEscape    =latticeEscape
+         latticeVelocityKick      =latticeKick
          ! Clean up objects.
          deallocate(integratorFraction)
          deallocate(integratorEnergy  )
@@ -488,19 +517,28 @@ contains
          !$omp end parallel
          call displayCounterClear(        verbosity=verbosityLevelStandard)
          call displayUnindent     ('done',verbosity=verbosityLevelStandard)
-         ! Store results to file.
+         ! Store the results to file, recording the lattices so that the tabulation can be restored onto exactly these abscissae.
+         ! The lock is taken only for the write - the solutions above were computed without holding it, so that concurrent
+         ! processes are not serialized behind a tabulation which may take minutes.
+         call File_Lock(fileName,fileLock,lockIsShared=.false.)
          block
            type(hdf5File  ) :: file
            !$ call hdf5Access%set()
            file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
-           call file%writeDataset(velocitiesEscapeScaleFree,'velocitiesEscape')
-           call file%writeDataset(velocitiesKickScaleFree  ,'velocitiesKick'  )
-           call file%writeDataset(energyRetained           ,'energyRetained'  )
-           call file%writeDataset(fractionRetained         ,'fractionRetained')         
+           call file%writeDataset  (velocitiesEscapeScaleFree         ,'velocitiesEscape'          )
+           call file%writeDataset  (velocitiesKickScaleFree           ,'velocitiesKick'            )
+           call file%writeDataset  (energyRetained                    ,'energyRetained'            )
+           call file%writeDataset  (fractionRetained                  ,'fractionRetained'          )
+           call file%writeAttribute(latticeVelocityEscape%pointsPer   ,'pointsPerVelocityEscape'   )
+           call file%writeAttribute(latticeVelocityEscape%indexMinimum,'indexMinimumVelocityEscape')
+           call file%writeAttribute(latticeVelocityEscape%count       ,'countVelocityEscape'       )
+           call file%writeAttribute(latticeVelocityKick  %pointsPer   ,'pointsPerVelocityKick'     )
+           call file%writeAttribute(latticeVelocityKick  %indexMinimum,'indexMinimumVelocityKick'  )
+           call file%writeAttribute(latticeVelocityKick  %count       ,'countVelocityKick'         )
            !$ call hdf5Access%unset()
-           end block
+         end block
+         call File_Unlock(fileLock)
       end if
-      call File_Unlock(fileLock)
       ! Build the interpolators.
       if (allocated(interpolatorVelocityEscape)) deallocate(interpolatorVelocityEscape)
       if (allocated(interpolatorVelocityKick  )) deallocate(interpolatorVelocityKick  )
@@ -509,9 +547,144 @@ contains
       interpolatorVelocityEscape=interpolator(velocitiesEscapeScaleFree)
       interpolatorVelocityKick  =interpolator(velocitiesKickScaleFree  )
     end block
+    call velocityEscapeScaleFreeClamp()
     return
 
   contains
+
+    subroutine rangesRequired()
+      !!{RST
+      Find the ranges of scale-free escape and kick velocity over which solutions must be tabulated, as sets of points on
+      absolute lattices. Both axes are pinned to whole decades, which gives the coarsest - and so most reproducible - set of
+      possible ranges. Each is seeded with a default range, which guarantees that any two tabulations overlap and hence can
+      always be merged.
+      !!}
+      implicit none
+
+      latticeEscape=Range_Pinned(                                                                           &
+           &                                    velocityEscapeScaleFree                                   , &
+           &                                    countVelocityEscapePerDecade                              , &
+           &                                    gridSchemePerDecade                                       , &
+           &                     rangeCurrent  =[velocityEscapeScaleFreeLimit,velocityScaleFreeLarge]     , &
+           &                     latticeCurrent=latticeVelocityEscape                                     , &
+           &                     limitMinimum  =velocityEscapeScaleFreeLimit                                &
+           &                    )
+      latticeKick  =Range_Pinned(                                                                           &
+           &                                    velocityKickScaleFree                                     , &
+           &                                    countVelocityKickPerDecade                                , &
+           &                                    gridSchemePerDecade                                       , &
+           &                     rangeCurrent  =[velocityKickScaleFreeSeed   ,velocityScaleFreeLarge]     , &
+           &                     latticeCurrent=latticeVelocityKick                                         &
+           &                    )
+      return
+    end subroutine rangesRequired
+
+    subroutine velocityEscapeScaleFreeClamp()
+      !!{RST
+      Clamp the requested scale-free escape velocity to the lower bound of the tabulation. That bound is the limiting value,
+      ``velocityEscapeScaleFreeLimit``, snapped *inward* to a lattice point, and so lies marginally above the limit itself -
+      while callers clamp their requests to precisely the limit. Without this the interpolators, which abort on out-of-range
+      arguments, would be asked to extrapolate below the first tabulated point.
+      !!}
+      implicit none
+
+      velocityEscapeScaleFree=max(velocityEscapeScaleFree,latticeVelocityEscape%minimum())
+      return
+    end subroutine velocityEscapeScaleFreeClamp
+
+    subroutine retainedRestore(fileName)
+      !!{RST
+      Adopt the tabulation cached in ``fileName``, if there is one and if it spans everything already held in memory. Because
+      the tabulation lies on absolute lattices, the cached solutions share abscissae with those in memory wherever the two
+      overlap, so adopting the cache in this case discards nothing.
+      !!}
+      use :: ISO_Varying_String, only : varying_string
+      implicit none
+      type   (varying_string), intent(in   ) :: fileName
+      type   (rangeLattice   )               :: latticeEscapeCached      , latticeKickCached
+      integer                                :: pointsPerEscapeCached    , indexMinimumEscapeCached, &
+           &                                    countEscapeCached        , pointsPerKickCached     , &
+           &                                    indexMinimumKickCached   , countKickCached
+
+      !$ call hdf5Access%set()
+      hdf5FileScope: block
+        type            (hdf5File)                              :: file
+        double precision          , dimension(:  ), allocatable :: velocitiesEscapeCached, velocitiesKickCached
+        double precision          , dimension(:,:), allocatable :: energyCached          , fractionCached
+        ! Open read-only: opening read-write would have HDF5 take an exclusive lock on the file, so that a second thread reading
+        ! it concurrently would fail to open it at all.
+        file=hdf5File(fileName,overWrite=.false.,readOnly=.true.)
+        ! A file written before the tabulation was pinned carries no record of its lattices, and cannot be placed on them, so it
+        ! is simply ignored and overwritten.
+        if (file%hasAttribute('pointsPerVelocityEscape')) then
+           call file%readAttribute('pointsPerVelocityEscape'   ,pointsPerEscapeCached   )
+           call file%readAttribute('indexMinimumVelocityEscape',indexMinimumEscapeCached)
+           call file%readAttribute('countVelocityEscape'       ,countEscapeCached       )
+           call file%readAttribute('pointsPerVelocityKick'     ,pointsPerKickCached     )
+           call file%readAttribute('indexMinimumVelocityKick'  ,indexMinimumKickCached  )
+           call file%readAttribute('countVelocityKick'         ,countKickCached         )
+           latticeEscapeCached=rangeLattice(gridSchemePerDecade,pointsPerEscapeCached,indexMinimumEscapeCached,countEscapeCached)
+           latticeKickCached  =rangeLattice(gridSchemePerDecade,pointsPerKickCached  ,indexMinimumKickCached  ,countKickCached  )
+           ! Adopt the cache if we hold nothing yet, or if it spans everything we do hold - in both dimensions. Note that
+           ! `covers` is false whenever either lattice is undefined, so the "nothing held yet" case must be tested explicitly;
+           ! it is the usual one, since this is how a freshly started thread acquires the tabulation.
+           if     (                                                                                 &
+                &   latticeEscapeCached%isDefined()                                                 &
+                &  .and.                                                                            &
+                &   latticeKickCached  %isDefined()                                                 &
+                &  .and.                                                                            &
+                &   (                                                                               &
+                &     .not.                                                                         &
+                &      latticeVelocityEscape%isDefined(                  )                          &
+                &    .or.                                                                           &
+                &      latticeEscapeCached  %covers   (latticeVelocityEscape)                       &
+                &   )                                                                               &
+                &  .and.                                                                            &
+                &   (                                                                               &
+                &     .not.                                                                         &
+                &      latticeVelocityKick  %isDefined(                  )                          &
+                &    .or.                                                                           &
+                &      latticeKickCached    %covers   (latticeVelocityKick  )                       &
+                &   )                                                                               &
+                & ) then
+              call file%readDataset('velocitiesEscape',velocitiesEscapeCached)
+              call file%readDataset('velocitiesKick'  ,velocitiesKickCached  )
+              call file%readDataset('energyRetained'  ,energyCached          )
+              call file%readDataset('fractionRetained',fractionCached        )
+              ! Adopt only if the datasets match the lattices recorded alongside them; otherwise the file is not
+              ! self-consistent, and everything read from it is discarded rather than leaving a partially-restored tabulation.
+              if     (                                                              &
+                   &   size(velocitiesEscapeCached      ) == latticeEscapeCached%count &
+                   &  .and.                                                         &
+                   &   size(velocitiesKickCached        ) == latticeKickCached  %count &
+                   &  .and.                                                         &
+                   &   size(fractionCached        ,dim=1) == latticeEscapeCached%count &
+                   &  .and.                                                         &
+                   &   size(fractionCached        ,dim=2) == latticeKickCached  %count &
+                   &  .and.                                                         &
+                   &   size(energyCached          ,dim=1) == latticeEscapeCached%count &
+                   &  .and.                                                         &
+                   &   size(energyCached          ,dim=2) == latticeKickCached  %count &
+                   & ) then
+                 call Move_Alloc(fractionCached,fractionRetained)
+                 call Move_Alloc(energyCached  ,energyRetained  )
+                 ! Take the abscissae from the lattices rather than from the file, so that they are bit-identical to those of
+                 ! any other tabulation built on the same lattice.
+                 if (allocated(velocitiesEscapeScaleFree)) deallocate(velocitiesEscapeScaleFree)
+                 if (allocated(velocitiesKickScaleFree  )) deallocate(velocitiesKickScaleFree  )
+                 allocate(velocitiesEscapeScaleFree(latticeEscapeCached%count))
+                 allocate(velocitiesKickScaleFree  (latticeKickCached  %count))
+                 velocitiesEscapeScaleFree=latticeEscapeCached%values()
+                 velocitiesKickScaleFree  =latticeKickCached  %values()
+                 latticeVelocityEscape    =latticeEscapeCached
+                 latticeVelocityKick      =latticeKickCached
+              end if
+           end if
+        end if
+      end block hdf5FileScope
+      !$ call hdf5Access%unset()
+      return
+    end subroutine retainedRestore
 
     double precision function fractionRetainedIntegrand(cosTheta) result(integrand)
       !!{RST
