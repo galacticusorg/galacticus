@@ -61,6 +61,22 @@ module Table_Caches
   private
   public :: Table_Cache_Restore, Table_Cache_Store, Table_Cache_File_Name
 
+  interface Table_Cache_Restore
+     !!{RST
+     Generic interface to routines which merge a cached tabulation into a table.
+     !!}
+     module procedure Table_Cache_Restore_1D
+     module procedure Table_Cache_Restore_2D
+  end interface Table_Cache_Restore
+
+  interface Table_Cache_Store
+     !!{RST
+     Generic interface to routines which merge a table with, and write it to, a cache file.
+     !!}
+     module procedure Table_Cache_Store_1D
+     module procedure Table_Cache_Store_2D
+  end interface Table_Cache_Store
+
   ! Version of the cache file format. Files written with a different version are ignored (and so will be recomputed and
   ! overwritten), which allows the format to be changed without a migration.
   integer, parameter :: formatVersionCurrent=1
@@ -95,7 +111,7 @@ contains
     return
   end function Table_Cache_File_Name
 
-  subroutine Table_Cache_Restore(table_,fileName,status)
+  subroutine Table_Cache_Restore_1D(table_,fileName,status)
     !!{RST
     Merge any cached tabulation in ``fileName`` into ``table_``. A shared lock is taken on the file for the duration of the
     read. On return ``status`` is ``errorStatusSuccess`` if the cache contributed anything to ``table_``, and
@@ -117,14 +133,14 @@ contains
     if (.not.File_Exists(fileName)) return
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock  (char(fileName),fileLock,lockIsShared=.true.)
-    call Table_Cache_Read(tableCached,fileName,status)
+    call Table_Cache_Read_1D(tableCached,fileName,status)
     call File_Unlock(fileLock)
     if (status /= errorStatusSuccess) return
-    call Table_Cache_Merge(table_,tableCached,status)
+    call Table_Cache_Merge_1D(table_,tableCached,status)
     return
-  end subroutine Table_Cache_Restore
+  end subroutine Table_Cache_Restore_1D
 
-  subroutine Table_Cache_Store(table_,fileName)
+  subroutine Table_Cache_Store_1D(table_,fileName)
     !!{RST
     Write ``table_`` to the cache file ``fileName``, first merging in anything which the file already contains. An exclusive
     lock is held for the duration, which - since the tabulation itself must already be complete - is only as long as the file
@@ -150,15 +166,15 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock     (char     (fileName),fileLock,lockIsShared=.false.)
     if (File_Exists(fileName)) then
-       call Table_Cache_Read(tableCached,fileName,status)
-       if (status == errorStatusSuccess) call Table_Cache_Merge(table_,tableCached,status)
+       call Table_Cache_Read_1D(tableCached,fileName,status)
+       if (status == errorStatusSuccess) call Table_Cache_Merge_1D(table_,tableCached,status)
     end if
-    call Table_Cache_Write(table_,fileName)
+    call Table_Cache_Write_1D(table_,fileName)
     call File_Unlock   (fileLock)
     return
-  end subroutine Table_Cache_Store
+  end subroutine Table_Cache_Store_1D
 
-  subroutine Table_Cache_Read(tableCached,fileName,status)
+  subroutine Table_Cache_Read_1D(tableCached,fileName,status)
     !!{RST
     Read a cached tabulation from ``fileName`` into a newly allocated table. The caller is responsible for holding a suitable
     lock on the file.
@@ -219,9 +235,9 @@ contains
     end if
     !$ call hdf5Access%unset()
     return
-  end subroutine Table_Cache_Read
+  end subroutine Table_Cache_Read_1D
 
-  subroutine Table_Cache_Write(table_,fileName)
+  subroutine Table_Cache_Write_1D(table_,fileName)
     !!{RST
     Write ``table_`` to ``fileName``. The caller is responsible for holding an exclusive lock on the file. The abscissae are
     written purely for the benefit of anyone inspecting the file - they are fully determined by the recorded lattice, and are
@@ -260,9 +276,9 @@ contains
     call file%writeDataset  (table_%yv                   ,'y'            )
     !$ call hdf5Access%unset()
     return
-  end subroutine Table_Cache_Write
+  end subroutine Table_Cache_Write_1D
 
-  subroutine Table_Cache_Merge(table_,tableCached,status)
+  subroutine Table_Cache_Merge_1D(table_,tableCached,status)
     !!{RST
     Merge the tabulation ``tableCached`` into ``table_``, returning ``errorStatusSuccess`` if anything was contributed.
 
@@ -332,6 +348,223 @@ contains
     end do
     status=errorStatusSuccess
     return
-  end subroutine Table_Cache_Merge
+  end subroutine Table_Cache_Merge_1D
+
+  subroutine Table_Cache_Restore_2D(table_,fileName,status)
+    !!{RST
+    Merge any cached tabulation in ``fileName`` into the two-dimensional table ``table_``, under a shared lock.
+
+    Merging in two dimensions is more restrictive than in one: the union of two rectangles is a rectangle only if one contains
+    the other, so unless the cached tabulation covers that in memory (in which case it is adopted) or is covered by it (in
+    which case there is nothing to do), the cached tabulation is reported and ignored. Merging the general case would require
+    the union to carry a record of which of its points have been computed, which tables do not presently keep.
+    !!}
+    use :: Display           , only : displayMessage , verbosityLevelWorking
+    use :: Error             , only : errorStatusFail, errorStatusSuccess
+    use :: File_Utilities    , only : File_Exists    , File_Lock            , File_Unlock, lockDescriptor
+    use :: ISO_Varying_String, only : char
+    use :: Tables            , only : table2DLogLogLin
+    implicit none
+    type   (table2DLogLogLin), intent(inout) :: table_
+    type   (varying_string  ), intent(in   ) :: fileName
+    integer                  , intent(  out) :: status
+    type   (table2DLogLogLin)                :: tableCached
+    type   (lockDescriptor  )                :: fileLock
+
+    status=errorStatusFail
+    if (.not.File_Exists(fileName)) return
+    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+    call File_Lock  (char(fileName),fileLock,lockIsShared=.true.)
+    call Table_Cache_Read_2D(tableCached,fileName,status)
+    call File_Unlock(fileLock)
+    if (status /= errorStatusSuccess) return
+    call Table_Cache_Merge_2D(table_,tableCached,status)
+    return
+  end subroutine Table_Cache_Restore_2D
+
+  subroutine Table_Cache_Store_2D(table_,fileName)
+    !!{RST
+    Write the two-dimensional table ``table_`` to the cache file ``fileName``, first merging in anything which the file already
+    contains---see ``Table_Cache_Restore_2D`` for the limits of merging in two dimensions. An exclusive lock is held only for
+    the duration of the file input/output.
+    !!}
+    use :: Error             , only : Error_Report  , errorStatusSuccess
+    use :: File_Utilities    , only : Directory_Make, File_Exists       , File_Lock  , File_Path, &
+         &                            File_Unlock   , lockDescriptor
+    use :: ISO_Varying_String, only : char
+    use :: Tables            , only : table2DLogLogLin
+    implicit none
+    type   (table2DLogLogLin), intent(inout) :: table_
+    type   (varying_string  ), intent(in   ) :: fileName
+    type   (table2DLogLogLin)                :: tableCached
+    type   (lockDescriptor  )                :: fileLock
+    integer                                  :: status
+
+    if (.not.table_%latticeX%isDefined() .or. .not.table_%latticeY%isDefined()) &
+         & call Error_Report('table was not built on absolute lattices'//{introspection:location})
+    call Directory_Make(File_Path(fileName)                              )
+    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+    call File_Lock     (char     (fileName),fileLock,lockIsShared=.false.)
+    if (File_Exists(fileName)) then
+       call Table_Cache_Read_2D(tableCached,fileName,status)
+       if (status == errorStatusSuccess) call Table_Cache_Merge_2D(table_,tableCached,status)
+    end if
+    call Table_Cache_Write_2D(table_,fileName)
+    call File_Unlock   (fileLock)
+    return
+  end subroutine Table_Cache_Store_2D
+
+  subroutine Table_Cache_Read_2D(tableCached,fileName,status)
+    !!{RST
+    Read a cached two-dimensional tabulation from ``fileName``. The caller is responsible for holding a suitable lock on the
+    file.
+    !!}
+    use :: Error           , only : errorStatusFail          , errorStatusSuccess
+    use :: HDF5_Access     , only : hdf5Access
+    use :: IO_HDF5         , only : hdf5File
+    use :: Numerical_Ranges, only : rangeLattice             , enumerationGridSchemeType
+    use :: Tables          , only : table2DLogLogLin         , tableTypeLogLogLin2D
+    implicit none
+    type            (table2DLogLogLin)                             , intent(  out) :: tableCached
+    type            (varying_string  )                             , intent(in   ) :: fileName
+    integer                                                        , intent(  out) :: status
+    type            (hdf5File        )                                             :: file
+    type            (rangeLattice    )                                             :: latticeX     , latticeY
+    logical                           , allocatable, dimension(:,:)                :: isComputed
+    double precision                  , allocatable, dimension(:,:,:)              :: valuesCached
+    integer                                                                        :: formatVersion, tableType   , &
+         &                                                                            gridSchemeX  , pointsPerX  , &
+         &                                                                            indexMinimumX, countX      , &
+         &                                                                            gridSchemeY  , pointsPerY  , &
+         &                                                                            indexMinimumY, countY      , &
+         &                                                                            countTables
+
+    status=errorStatusFail
+    !$ call hdf5Access%set()
+    file=hdf5File(fileName,readOnly=.true.)
+    if (file%hasAttribute('formatVersion')) then
+       call file%readAttribute('formatVersion',formatVersion)
+       if (formatVersion == formatVersionCurrent) then
+          call file%readAttribute('tableType'     ,tableType    )
+          if (tableType == tableTypeLogLogLin2D%ID) then
+             call file%readAttribute('gridSchemeX'   ,gridSchemeX  )
+             call file%readAttribute('pointsPerX'    ,pointsPerX   )
+             call file%readAttribute('indexMinimumX' ,indexMinimumX)
+             call file%readAttribute('countX'        ,countX       )
+             call file%readAttribute('gridSchemeY'   ,gridSchemeY  )
+             call file%readAttribute('pointsPerY'    ,pointsPerY   )
+             call file%readAttribute('indexMinimumY' ,indexMinimumY)
+             call file%readAttribute('countY'        ,countY       )
+             call file%readAttribute('countTables'   ,countTables  )
+             call file%readDataset  ('z'             ,valuesCached )
+             latticeX=rangeLattice(enumerationGridSchemeType(gridSchemeX),pointsPerX,indexMinimumX,countX)
+             latticeY=rangeLattice(enumerationGridSchemeType(gridSchemeY),pointsPerY,indexMinimumY,countY)
+             if     (                                                &
+                  &   latticeX%isDefined()                           &
+                  &  .and.                                           &
+                  &   latticeY%isDefined()                           &
+                  &  .and.                                           &
+                  &   size(valuesCached,dim=1) == countX             &
+                  &  .and.                                           &
+                  &   size(valuesCached,dim=2) == countY             &
+                  &  .and.                                           &
+                  &   size(valuesCached,dim=3) == countTables        &
+                  & ) then
+                call tableCached%extend(latticeX,latticeY,isComputed,tableCount=countTables)
+                tableCached%zv=valuesCached
+                status        =errorStatusSuccess
+             end if
+          end if
+       end if
+    end if
+    !$ call hdf5Access%unset()
+    return
+  end subroutine Table_Cache_Read_2D
+
+  subroutine Table_Cache_Write_2D(table_,fileName)
+    !!{RST
+    Write the two-dimensional table ``table_`` to ``fileName``. The caller is responsible for holding an exclusive lock on the
+    file.
+    !!}
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5    , only : hdf5File
+    use :: Tables     , only : table2DLogLogLin, tableTypeLogLogLin2D
+    implicit none
+    type(table2DLogLogLin), intent(in   ) :: table_
+    type(varying_string  ), intent(in   ) :: fileName
+    type(hdf5File        )                :: file
+
+    !$ call hdf5Access%set()
+    file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
+    call file%writeAttribute(formatVersionCurrent          ,'formatVersion')
+    call file%writeAttribute(tableTypeLogLogLin2D%ID       ,'tableType'    )
+    call file%writeAttribute(table_%latticeX%scheme%ID     ,'gridSchemeX'  )
+    call file%writeAttribute(table_%latticeX%pointsPer     ,'pointsPerX'   )
+    call file%writeAttribute(table_%latticeX%indexMinimum  ,'indexMinimumX')
+    call file%writeAttribute(table_%latticeX%count         ,'countX'       )
+    call file%writeAttribute(table_%latticeY%scheme%ID     ,'gridSchemeY'  )
+    call file%writeAttribute(table_%latticeY%pointsPer     ,'pointsPerY'   )
+    call file%writeAttribute(table_%latticeY%indexMinimum  ,'indexMinimumY')
+    call file%writeAttribute(table_%latticeY%count         ,'countY'       )
+    call file%writeAttribute(size(table_%zv,dim=3)         ,'countTables'  )
+    call file%writeDataset  (table_%xs()                   ,'x'            )
+    call file%writeDataset  (table_%ys()                   ,'y'            )
+    call file%writeDataset  (table_%zv                     ,'z'            )
+    !$ call hdf5Access%unset()
+    return
+  end subroutine Table_Cache_Write_2D
+
+  subroutine Table_Cache_Merge_2D(table_,tableCached,status)
+    !!{RST
+    Merge the two-dimensional tabulation ``tableCached`` into ``table_``---see ``Table_Cache_Restore_2D`` for why this is
+    restricted to the case in which one tabulation contains the other.
+    !!}
+    use :: Display         , only : displayMessage , verbosityLevelWorking
+    use :: Error           , only : errorStatusFail, errorStatusSuccess
+    use :: Tables          , only : table2DLogLogLin
+    implicit none
+    type   (table2DLogLogLin), intent(inout) :: table_
+    type   (table2DLogLogLin), intent(inout) :: tableCached
+    integer                  , intent(  out) :: status
+
+    status=errorStatusFail
+    ! If we have nothing in memory, simply adopt the cached tabulation.
+    if (.not.table_%latticeX%isDefined() .or. .not.table_%latticeY%isDefined()) then
+       table_=tableCached
+       status=errorStatusSuccess
+       return
+    end if
+    ! Ignore a cached tabulation built on incommensurate lattices.
+    if     (                                                              &
+         &   table_%latticeX%scheme    /= tableCached%latticeX%scheme     &
+         &  .or.                                                          &
+         &   table_%latticeY%scheme    /= tableCached%latticeY%scheme     &
+         &  .or.                                                          &
+         &   table_%latticeX%pointsPer /= tableCached%latticeX%pointsPer  &
+         &  .or.                                                          &
+         &   table_%latticeY%pointsPer /= tableCached%latticeY%pointsPer  &
+         & ) then
+       call displayMessage('ignoring a cached tabulation built on incommensurate lattices',verbosityLevelWorking)
+       return
+    end if
+    ! Nothing to contribute if we already contain everything cached.
+    if     (                                                &
+         &   table_     %latticeX%covers(tableCached%latticeX) &
+         &  .and.                                           &
+         &   table_     %latticeY%covers(tableCached%latticeY) &
+         & ) return
+    ! Adopt the cached tabulation if it contains everything we have.
+    if     (                                                &
+         &   tableCached%latticeX%covers(table_     %latticeX) &
+         &  .and.                                           &
+         &   tableCached%latticeY%covers(table_     %latticeY) &
+         & ) then
+       table_=tableCached
+       status=errorStatusSuccess
+       return
+    end if
+    call displayMessage('ignoring a cached tabulation which neither contains, nor is contained by, that in memory',verbosityLevelWorking)
+    return
+  end subroutine Table_Cache_Merge_2D
 
 end module Table_Caches

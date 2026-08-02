@@ -43,6 +43,7 @@ module Tables
    </description>
    <entry label="linearLinear1D"      />
    <entry label="logarithmicLinear1D" />
+   <entry label="logLogLin2D"         />
   </enumeration>
   !!]
   
@@ -417,6 +418,7 @@ module Tables
           &                                                                               inverseDeltaX       , inverseDeltaY       , &
           &                                                                               zPrevious           , dzPrevious
      logical                                                                           :: xPreviousSet        , yPreviousSet
+     type            (rangeLattice                   )                                 :: latticeX            , latticeY
      double precision                                  , allocatable, dimension(:    ) :: xv                  , yv
      double precision                                  , allocatable, dimension(:,:,:) :: zv
    contains
@@ -435,9 +437,11 @@ module Tables
        <method description="Return true if the table is initialized (this means the table is created, it may not yet have been populated)." method="isInitialized" />
        <method description="Populate the ``table``\ :math:`^\mathrm{th}` table with elements ``y``. If ``y`` is a scalar, then the index, ``i``, of the element to set must also be specified." method="populate" />
        <method description="Create the object with :math:`x`-values spanning the range ``xMinimum`` to ``xMaximum`` in ``xCount`` steps, and with ``tableCount`` tables." method="create" />
+       <method description="Extend the table onto the given pair of absolute lattices (creating it if it does not yet exist), preserving any previously computed values. On return ``isComputed`` is true for those points whose values were preserved, and false for those which the caller must now evaluate. Each new lattice must be commensurate with, and must contain, that on which the corresponding axis is currently tabulated." method="extend" />
      </methods>
      !!]
      procedure :: create                            => Table_2DLogLogLin_Create
+     procedure :: extend                            => Table_2DLogLogLin_Extend
      procedure :: Table_2DLogLogLin_Populate
      procedure :: Table_2DLogLogLin_Populate_Single
      generic   :: populate                          => Table_2DLogLogLin_Populate             , &
@@ -2456,7 +2460,7 @@ contains
     !!{RST
     Create a 2-D log-log-linear table.
     !!}
-    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear
+    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear, rangeLattice
     use :: Table_Labels     , only : extrapolationTypeExtrapolate
     implicit none
     class           (table2DLogLogLin                ), intent(inout)           :: self
@@ -2474,6 +2478,9 @@ contains
     self%yLinearPrevious     =-1.0d0
     self%xLogarithmicPrevious=-1.0d0
     self%yLogarithmicPrevious=-1.0d0
+    ! Discard any lattices on which the table was previously tabulated - the abscissae are being rebuilt from the given ranges.
+    self%latticeX            =rangeLattice()
+    self%latticeY            =rangeLattice()
     ! Determine number of tables.
     tableCountActual=1
     if (present(tableCount)) tableCountActual=tableCount
@@ -2587,6 +2594,104 @@ contains
     Table_2DLogLogLin_Zs=self%zv(:,:,tableActual)
     return
   end function Table_2DLogLogLin_Zs
+
+  subroutine Table_2DLogLogLin_Extend(self,latticeX,latticeY,isComputed,tableCount,extrapolationTypeX,extrapolationTypeY)
+    !!{RST
+    Extend a 2-D log-log-linear table onto a pair of absolute lattices, creating it if it does not yet exist. Each axis is
+    pinned independently, so the extended table spans the product of the two lattice ranges.
+
+    Previously computed values occupy a rectangular block of the extended table, and are copied into it at index offsets
+    computed from the integer lattice indices; the returned ``isComputed`` mask is true over that block and false over the
+    L-shaped remainder which the caller must evaluate. As for the one-dimensional case the spacings are taken from the
+    lattices rather than from the abscissae, so that they - and hence every interpolated value - are invariant under
+    extension.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Numerical_Ranges, only : rangeLattice, gridSchemePerDecade         , gridSchemePerOctave
+    use :: Table_Labels    , only : extrapolationTypeExtrapolate
+    implicit none
+    class           (table2DLogLogLin                ), intent(inout)                              :: self
+    type            (rangeLattice                    ), intent(in   )                              :: latticeX          , latticeY
+    logical                                           , intent(  out), allocatable, dimension(:,:) :: isComputed
+    integer                                           , intent(in   ), optional                    :: tableCount
+    type            (enumerationExtrapolationTypeType), intent(in   ), optional                    :: extrapolationTypeX, extrapolationTypeY
+    double precision                                  , allocatable              , dimension(:,:,:):: zvPrevious
+    integer                                                                                        :: tableCountActual  , offsetX   , &
+         &                                                                                            offsetY
+
+    if (.not.latticeX%isDefined() .or. .not.latticeY%isDefined()) call Error_Report('the lattices provided are not usable'//{introspection:location})
+    if     (                                                                                                    &
+         &   (latticeX%scheme /= gridSchemePerDecade .and. latticeX%scheme /= gridSchemePerOctave)               &
+         &  .or.                                                                                                &
+         &   (latticeY%scheme /= gridSchemePerDecade .and. latticeY%scheme /= gridSchemePerOctave)               &
+         & ) call Error_Report('a logarithmically-spaced table requires a `perDecade` or `perOctave` gridding scheme'//{introspection:location})
+    allocate(isComputed(latticeX%count,latticeY%count))
+    isComputed=.false.
+    offsetX   =0
+    offsetY   =0
+    if     (                            &
+         &   self%latticeX%isDefined()  &
+         &  .and.                       &
+         &   self%latticeY%isDefined()  &
+         &  .and.                       &
+         &   allocated(self%zv       )  &
+         & ) then
+       ! The table is already tabulated. Verify that each new lattice is commensurate with, and contains, the corresponding
+       ! existing one, and arrange to preserve the previously computed values.
+       if (self%latticeX%scheme    /= latticeX%scheme    .or. self%latticeY%scheme    /= latticeY%scheme   ) &
+            & call Error_Report('table is tabulated using a different gridding scheme'                                            //{introspection:location})
+       if (self%latticeX%pointsPer /= latticeX%pointsPer .or. self%latticeY%pointsPer /= latticeY%pointsPer) &
+            & call Error_Report('table is tabulated using a different density of points'                                          //{introspection:location})
+       if (.not.latticeX%covers(self%latticeX) .or. .not.latticeY%covers(self%latticeY))                     &
+            & call Error_Report('the new range does not contain the current range - tables can only be extended'                  //{introspection:location})
+       tableCountActual=size(self%zv,dim=3)
+       if (present(tableCount)) then
+          if (tableCount /= tableCountActual)                                                                &
+               & call Error_Report('the number of tables can not be changed when extending a table'                               //{introspection:location})
+       end if
+       offsetX                                                                                =self%latticeX%indexMinimum-latticeX%indexMinimum
+       offsetY                                                                                =self%latticeY%indexMinimum-latticeY%indexMinimum
+       isComputed(offsetX+1:offsetX+self%latticeX%count,offsetY+1:offsetY+self%latticeY%count)=.true.
+       call Move_Alloc(self%zv,zvPrevious)
+    else
+       tableCountActual=1
+       if (present(tableCount)) tableCountActual=tableCount
+       ! Nothing is being preserved, so reset the extrapolation types to the default.
+       self%extrapolationTypeX=extrapolationTypeExtrapolate
+       self%extrapolationTypeY=extrapolationTypeExtrapolate
+    end if
+    ! Build the new table.
+    if (allocated(self%xv)) deallocate(self%xv)
+    if (allocated(self%yv)) deallocate(self%yv)
+    if (allocated(self%zv)) deallocate(self%zv)
+    allocate(self%xv(latticeX%count                                ))
+    allocate(self%yv(               latticeY%count                 ))
+    allocate(self%zv(latticeX%count,latticeY%count,tableCountActual))
+    self%xv=latticeX%valuesLogarithmic()
+    self%yv=latticeY%valuesLogarithmic()
+    self%zv=0.0d0
+    if (allocated(zvPrevious))                                                                      &
+         & self%zv(offsetX+1:offsetX+size(zvPrevious,dim=1),offsetY+1:offsetY+size(zvPrevious,dim=2),:)=zvPrevious
+    self%xCount              =latticeX%count
+    self%yCount              =latticeY%count
+    self%latticeX            =latticeX
+    self%latticeY            =latticeY
+    self%inverseDeltaX       =1.0d0/latticeX%stepLogarithmic()
+    self%inverseDeltaY       =1.0d0/latticeY%stepLogarithmic()
+    self%tablePrevious       =-1
+    self%hx                  =-1.0d0
+    self%hy                  =-1.0d0
+    self%xPreviousSet        =.false.
+    self%yPreviousSet        =.false.
+    self%xLinearPrevious     =-1.0d0
+    self%yLinearPrevious     =-1.0d0
+    self%xLogarithmicPrevious=-1.0d0
+    self%yLogarithmicPrevious=-1.0d0
+    ! Set the extrapolation types if specified.
+    if (present(extrapolationTypeX)) self%extrapolationTypeX=extrapolationTypeX
+    if (present(extrapolationTypeY)) self%extrapolationTypeY=extrapolationTypeY
+    return
+  end subroutine Table_2DLogLogLin_Extend
 
   subroutine Table_2DLogLogLin_Populate(self,z,table)
     !!{RST

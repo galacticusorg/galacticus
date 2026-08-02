@@ -27,7 +27,7 @@ program Test_Tables
   !!}
   use :: Array_Utilities , only : directionDecreasing         , directionIncreasing
   use :: Display         , only : displayVerbositySet         , verbosityLevelStandard
-  use :: Numerical_Ranges, only : Range_Pinned                , rangeLattice            , gridSchemePerOctave
+  use :: Numerical_Ranges, only : Range_Pinned                , rangeLattice            , gridSchemePerOctave               , gridSchemePerDecade
   use :: Tables          , only : table                       , table1D                 , table1DLinearCSpline              , table1DLinearLinear, &
           &                       table1DLinearMonotoneCSpline, table1DLogarithmicLinear, table1DNonUniformLinearLogarithmic, table2DLogLogLin
   use :: Unit_Tests      , only : Assert                      , Unit_Tests_Begin_Group  , Unit_Tests_End_Group              , Unit_Tests_Finish
@@ -46,6 +46,10 @@ program Test_Tables
        &                                                             xValuesDirect
   double precision                  , allocatable, dimension(:,:) :: yValuesNarrow, yValuesWide, &
        &                                                             yValuesDirect
+  type            (table2DLogLogLin)                              :: myTable2DExtend
+  type            (rangeLattice    )                              :: latticeX2D   , latticeY2D
+  logical                           , allocatable, dimension(:,:) :: isComputed2D
+  double precision                  , allocatable, dimension(:,:) :: zValuesNarrow2D, zValuesWide2D
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -442,6 +446,30 @@ program Test_Tables
      call myTable%destroy()
   end select
   deallocate(myTable)
+
+  ! Test extension of a two-dimensional table, in which each axis is pinned independently and the previously computed values
+  ! occupy a rectangular block of the extended table.
+  latticeX2D=Range_Pinned(15.0d0,4,gridSchemePerDecade,anchorEvery=2)
+  latticeY2D=Range_Pinned( 3.0d0,4,gridSchemePerDecade,anchorEvery=2)
+  call myTable2DExtend%extend(latticeX2D,latticeY2D,isComputed2D)
+  call Assert('2D extension of an empty table requires every point to be computed',count(isComputed2D),0)
+  do i=1,latticeX2D%count
+     do j=1,latticeY2D%count
+        call myTable2DExtend%populate(myTable2DExtend%x(i)*myTable2DExtend%y(j),i,j)
+     end do
+  end do
+  zValuesNarrow2D=myTable2DExtend%zs()
+  ! Extend both axes and check that the previously computed block is preserved exactly.
+  latticeX2D=Range_Pinned(1.5d3,4,gridSchemePerDecade,anchorEvery=2,latticeCurrent=myTable2DExtend%latticeX)
+  latticeY2D=Range_Pinned(3.0d2,4,gridSchemePerDecade,anchorEvery=2,latticeCurrent=myTable2DExtend%latticeY)
+  call myTable2DExtend%extend(latticeX2D,latticeY2D,isComputed2D)
+  call Assert('2D extension preserves precisely the previously computed block',count(isComputed2D),size(zValuesNarrow2D,dim=1)*size(zValuesNarrow2D,dim=2))
+  zValuesWide2D=myTable2DExtend%zs()
+  call Assert('2D extension preserves the previously computed values bit-for-bit'                            , &
+       &      all(zValuesWide2D(1:size(zValuesNarrow2D,dim=1),1:size(zValuesNarrow2D,dim=2)) == zValuesNarrow2D), &
+       &      .true.                                                                                           &
+       &     )
+  call myTable2DExtend%destroy()
 
   ! End unit tests.
   call Unit_Tests_End_Group()

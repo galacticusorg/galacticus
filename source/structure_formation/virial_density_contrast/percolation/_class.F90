@@ -54,8 +54,6 @@
      !![
      <methods docformat="rst">
        <method description="Tabulate the virial density contrast as a function of mass and time." method="tabulate"    />
-       <method description="Restore a tabulated solution from file."                              method="restoreTable"/>
-       <method description="Store a tabulated solution to file."                                  method="storeTable"  />
      </methods>
      !!]
      final     ::                                percolationDestructor
@@ -66,8 +64,6 @@
      procedure :: deepCopy                    => percolationDeepCopy
      procedure :: deepCopyReset               => percolationDeepCopyReset
      procedure :: deepCopyFinalize            => percolationDeepCopyFinalize
-     procedure :: restoreTable                => percolationRestoreTable
-     procedure :: storeTable                  => percolationStoreTable
   end type virialDensityContrastPercolation
 
   interface virialDensityContrastPercolation
@@ -81,6 +77,16 @@
   ! Granularity parameters for tabulations.
   integer                    , parameter :: densityContrastTableTimePointsPerDecade=5
   integer                    , parameter :: densityContrastTableMassPointsPerDecade=5
+
+  ! Intervals, measured in lattice steps, to which the bounds of each tabulated axis are pinned. The time axis is anchored to
+  ! half decades since a whole decade of cosmic time spans most of the history of the universe; the mass axis, which already
+  ! spans eleven decades by default, is anchored to whole decades.
+  ! Ranges tabulated irrespective of the mass and time requested.
+  double precision           , parameter :: densityContrastTableTimeMinimumDefault = 1.0d-03, densityContrastTableTimeMaximumDefault=2.0d+01
+  double precision           , parameter :: densityContrastTableMassMinimumDefault = 4.0d+05, densityContrastTableMassMaximumDefault=1.0d+16
+
+  integer                    , parameter :: densityContrastTableTimeAnchorEvery    =densityContrastTableTimePointsPerDecade/2
+  integer                    , parameter :: densityContrastTableMassAnchorEvery    =densityContrastTableMassPointsPerDecade
 
   ! Module-scope record of state used when solving for the percolation density contrast.
   logical                                :: solving                                =.false.
@@ -129,9 +135,9 @@ contains
     Internal constructor for the :galacticus-class:`virialDensityContrastPercolation` dark matter halo virial density contrast class.
     !!}
     use :: Error             , only : Error_Report
-    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : operator(//)
+    use :: ISO_Varying_String, only : operator(//) , char
     use :: Input_Parameters  , only : inputParameter, inputParameters
+    use :: Table_Caches      , only : Table_Cache_File_Name
     implicit none
     type            (virialDensityContrastPercolation)                        :: self
     double precision                                  , intent(in   )         :: linkingLength
@@ -144,17 +150,17 @@ contains
     ! Add management to the shared percolationObjects resource.
     self%percolationObjectsManager=resourceManager(percolationObjects_)
     ! File name for tabulation.
-    self%fileName=inputPath(pathTypeDataDynamic)                                                       // &
-         &        'darkMatterHalos/'                                                                   // &
-         &        self%objectType      (                                                              )// &
-         &        '_'                                                                                  // &
-         &        self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
-         &        '.hdf5'
+    self%fileName=Table_Cache_File_Name(                                                                                          &
+         &                              subDirectory    ='darkMatterHalos'                                                      , &
+         &                              objectType      =char(self%objectType      (                                          )), &
+         &                              hashedDescriptor=char(self%hashedDescriptor(includeSourceDigest          =.true.        , &
+         &                                                                          includeFileModificationTimes=.true.        ))  &
+         &                             )
     ! Initialize tabulations.
-    self%densityContrastTableTimeMinimum= 1.0d-03
-    self%densityContrastTableTimeMaximum=20.0d+00
-    self%densityContrastTableMassMinimum= 4.0d+05
-    self%densityContrastTableMassMaximum= 1.0d+16
+    self%densityContrastTableTimeMinimum=densityContrastTableTimeMinimumDefault
+    self%densityContrastTableTimeMaximum=densityContrastTableTimeMaximumDefault
+    self%densityContrastTableMassMinimum=densityContrastTableMassMinimumDefault
+    self%densityContrastTableMassMaximum=densityContrastTableMassMaximumDefault
     self%densityContrastTableInitialized=.false.
     self%densityContrastTableRemakeCount= 0
     return
@@ -179,89 +185,99 @@ contains
     !!{RST
     Tabulate virial density contrast as a function of mass and time for the ``percolation`` density contrast class.
     !!}
-    use :: Display         , only : displayCounter                             , displayCounterClear, displayIndent, displayUnindent, &
+    use :: Display         , only : displayCounter                             , displayCounterClear, displayIndent      , displayUnindent, &
           &                         verbosityLevelWorking
     use :: Functions_Global, only : Virial_Density_Contrast_Percolation_Solver_
     use :: Error           , only : Error_Report
+    use :: Numerical_Ranges, only : Range_Pinned                               , rangeLattice       , gridSchemePerDecade
+    use :: Table_Caches    , only : Table_Cache_Restore                        , Table_Cache_Store
     implicit none
-    class           (virialDensityContrastPercolation), intent(inout) :: self
-    double precision                                  , intent(in   ) :: mass     , time
-    integer                                                           :: iMass    , iTime    , &
-         &                                                               iCount
-    logical                                                           :: makeTable
-    double precision                                                  :: tableMass, tableTime
+    class           (virialDensityContrastPercolation), intent(inout)               :: self
+    double precision                                  , intent(in   )               :: mass       , time
+    type            (rangeLattice                    )                              :: latticeMass, latticeTime
+    logical                                           , allocatable, dimension(:,:) :: isComputed
+    integer                                                                         :: iMass      , iTime      , &
+         &                                                                             iCount     , status
+    double precision                                                                :: tableMass  , tableTime
 
-    ! Always check if we need to make the table.
-    makeTable=.true.
-    do while (makeTable)
-       ! Assume table does not need remaking.
-       makeTable=.false.
-       ! Check for uninitialized table.
-       if (.not.self%densityContrastTableInitialized) call self%restoreTable()
-       if (.not.self%densityContrastTableInitialized) then
-          makeTable=.true.
-       ! Check for mass out of range.
-       else if (                                            &
-            &   mass < self%densityContrastTableMassMinimum &
-            &    .or.                                       &
-            &   mass > self%densityContrastTableMassMaximum &
-            &  ) then
-          makeTable=.true.
-          ! Compute the range of tabulation and number of points to use.
-          self%densityContrastTableMassMinimum=min(self%densityContrastTableMassMinimum,0.5d0*mass)
-          self%densityContrastTableMassMaximum=max(self%densityContrastTableMassMaximum,2.0d0*mass)
-       ! Check for time out of range.
-       else if (                                            &
-            &   time < self%densityContrastTableTimeMinimum &
-            &    .or.                                       &
-            &   time > self%densityContrastTableTimeMaximum &
-            &  ) then
-          makeTable=.true.
-          self%densityContrastTableTimeMinimum=min(self%densityContrastTableTimeMinimum,0.5d0*time)
-          self%densityContrastTableTimeMaximum=max(self%densityContrastTableTimeMaximum,2.0d0*time)
-       end if
-       ! Remake the table is necessary.
-       if (makeTable) then
-          ! Check that we have a pointer to the required objects.
-          if (.not.associated(self%percolationObjects_)) call Error_Report('no percolationObjects available'//{introspection:location})
-          ! Increment the number of table remakes.
-          self%densityContrastTableRemakeCount=self%densityContrastTableRemakeCount+1
-          ! Record that we are in the solving phase of calculation, so we will avoid recursive calls to this function.
-          solving=.true.
-          ! Allocate arrays to the appropriate sizes.
-          self%densityContrastTableMassCount=int(log10(self%densityContrastTableMassMaximum/self%densityContrastTableMassMinimum)*dble(densityContrastTableMassPointsPerDecade))+1
-          self%densityContrastTableTimeCount=int(log10(self%densityContrastTableTimeMaximum/self%densityContrastTableTimeMinimum)*dble(densityContrastTableTimePointsPerDecade))+1
-          ! Create the table.
-          call self%densityContrastTable%create(                                      &
-               &                                self%densityContrastTableMassMinimum, &
-               &                                self%densityContrastTableMassMaximum, &
-               &                                self%densityContrastTableMassCount  , &
-               &                                self%densityContrastTableTimeMinimum, &
-               &                                self%densityContrastTableTimeMaximum, &
-               &                                self%densityContrastTableTimeCount    &
-               &                               )
-          ! Tabulate the density contrast.
-          call displayIndent('Tabulating virial density contrasts for percolation class',verbosity=verbosityLevelWorking)
-          iCount=0
-          do iMass=1,self%densityContrastTableMassCount
-             tableMass=self%densityContrastTable%x(iMass)
-             do iTime=1,self%densityContrastTableTimeCount
-                tableTime=self%densityContrastTable%y(iTime)
-                iCount=iCount+1
-                call displayCounter(int(100.0d0*dble(iCount)/dble(self%densityContrastTableMassCount*self%densityContrastTableTimeCount)),isNew=(iCount==1),verbosity=verbosityLevelWorking)
-                call self%densityContrastTable%populate(Virial_Density_Contrast_Percolation_Solver_(tableMass,tableTime,self%linkingLength,densityContrastCurrent,self%percolationObjects_,self),iMass,iTime)
-             end do
+    ! Find the ranges of mass and time to tabulate, pinning each axis independently to an absolute lattice so that the
+    ! tabulation - and hence every value interpolated from it - is independent of the mass and time at which it was first
+    ! requested, and so that the table can be extended without changing or recomputing any previously computed value.
+    latticeMass=Range_Pinned(                                                                              &
+         &                                  mass                                                         , &
+         &                                  densityContrastTableMassPointsPerDecade                      , &
+         &                                  gridSchemePerDecade                                          , &
+         &                   rangeCurrent  =[densityContrastTableMassMinimumDefault,densityContrastTableMassMaximumDefault], &
+         &                   latticeCurrent=self%densityContrastTable%latticeX                            , &
+         &                   anchorEvery   =densityContrastTableMassAnchorEvery                             &
+         &                  )
+    latticeTime=Range_Pinned(                                                                              &
+         &                                  time                                                         , &
+         &                                  densityContrastTableTimePointsPerDecade                      , &
+         &                                  gridSchemePerDecade                                          , &
+         &                   rangeCurrent  =[densityContrastTableTimeMinimumDefault,densityContrastTableTimeMaximumDefault], &
+         &                   latticeCurrent=self%densityContrastTable%latticeY                            , &
+         &                   anchorEvery   =densityContrastTableTimeAnchorEvery                             &
+         &                  )
+    if     (                                                          &
+         &   self%densityContrastTable%latticeX%covers(latticeMass)   &
+         &  .and.                                                     &
+         &   self%densityContrastTable%latticeY%covers(latticeTime)   &
+         & ) return
+    ! Merge in any tabulation already cached on disk, then re-evaluate the ranges required in the light of it.
+    call Table_Cache_Restore(self%densityContrastTable,self%fileName,status)
+    latticeMass=Range_Pinned(                                                                              &
+         &                                  mass                                                         , &
+         &                                  densityContrastTableMassPointsPerDecade                      , &
+         &                                  gridSchemePerDecade                                          , &
+         &                   rangeCurrent  =[densityContrastTableMassMinimumDefault,densityContrastTableMassMaximumDefault], &
+         &                   latticeCurrent=self%densityContrastTable%latticeX                            , &
+         &                   anchorEvery   =densityContrastTableMassAnchorEvery                             &
+         &                  )
+    latticeTime=Range_Pinned(                                                                              &
+         &                                  time                                                         , &
+         &                                  densityContrastTableTimePointsPerDecade                      , &
+         &                                  gridSchemePerDecade                                          , &
+         &                   rangeCurrent  =[densityContrastTableTimeMinimumDefault,densityContrastTableTimeMaximumDefault], &
+         &                   latticeCurrent=self%densityContrastTable%latticeY                            , &
+         &                   anchorEvery   =densityContrastTableTimeAnchorEvery                             &
+         &                  )
+    call self%densityContrastTable%extend(latticeMass,latticeTime,isComputed)
+    if (any(.not.isComputed)) then
+       ! Check that we have a pointer to the required objects.
+       if (.not.associated(self%percolationObjects_)) call Error_Report('no percolationObjects available'//{introspection:location})
+       ! Increment the number of table remakes.
+       self%densityContrastTableRemakeCount=self%densityContrastTableRemakeCount+1
+       ! Record that we are in the solving phase of calculation, so we will avoid recursive calls to this function.
+       solving=.true.
+       ! Tabulate the density contrast at those points whose values were not preserved by the extension.
+       call displayIndent('Tabulating virial density contrasts for percolation class',verbosity=verbosityLevelWorking)
+       iCount=0
+       do iMass=1,latticeMass%count
+          tableMass=self%densityContrastTable%x(iMass)
+          do iTime=1,latticeTime%count
+             if (isComputed(iMass,iTime)) cycle
+             tableTime=self%densityContrastTable%y(iTime)
+             iCount=iCount+1
+             call displayCounter(int(100.0d0*dble(iCount)/dble(count(.not.isComputed))),isNew=(iCount==1),verbosity=verbosityLevelWorking)
+             call self%densityContrastTable%populate(Virial_Density_Contrast_Percolation_Solver_(tableMass,tableTime,self%linkingLength,densityContrastCurrent,self%percolationObjects_,self),iMass,iTime)
           end do
-          call displayCounterClear(verbosity=verbosityLevelWorking)
-          call displayUnindent('done',verbosity=verbosityLevelWorking)
-          ! Flag that the table is now initialized.
-          self%densityContrastTableInitialized=.true.
-          ! Store the table.
-          call self%storeTable()
-          ! Solving phase is finished.
-          solving=.false.
-       end if
-    end do
+       end do
+       call displayCounterClear(verbosity=verbosityLevelWorking)
+       call displayUnindent('done',verbosity=verbosityLevelWorking)
+       ! Merge with, and write back, the cache file.
+       call Table_Cache_Store(self%densityContrastTable,self%fileName)
+       ! Solving phase is finished.
+       solving=.false.
+    end if
+    ! Record the tabulated ranges.
+    self%densityContrastTableInitialized=.true.
+    self%densityContrastTableMassMinimum=self%densityContrastTable%latticeX%minimum()
+    self%densityContrastTableMassMaximum=self%densityContrastTable%latticeX%maximum()
+    self%densityContrastTableTimeMinimum=self%densityContrastTable%latticeY%minimum()
+    self%densityContrastTableTimeMaximum=self%densityContrastTable%latticeY%maximum()
+    self%densityContrastTableMassCount  =self%densityContrastTable%latticeX%count
+    self%densityContrastTableTimeCount  =self%densityContrastTable%latticeY%count
     return
   end subroutine percolationTabulate
 
@@ -401,87 +417,4 @@ contains
     return
   end subroutine percolationDeepCopy
 
-  subroutine percolationStoreTable(self)
-    !!{RST
-    Store the table to file.
-    !!}
-    use :: File_Utilities    , only : Directory_Make, File_Lock     , File_Path, File_Unlock, &
-          &                           lockDescriptor
-    use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5File
-    use :: ISO_Varying_String, only : char          , varying_string
-    implicit none
-    class(virialDensityContrastPercolation), intent(inout) :: self
-    type (lockDescriptor                  )                :: fileLock
 
-    call Directory_Make(File_Path(self%fileName))
-    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock     (self%fileName,fileLock,lockIsShared=.false.)
-    !$ call hdf5Access%set()
-    block
-      type(hdf5File  ) :: file
-      file=hdf5File(self%fileName,overWrite=.true.,readOnly=.false.)
-      call file%writeAttribute(        self%densityContrastTableTimeMinimum                                                                 ,'timeMinimum'    )
-      call file%writeAttribute(        self%densityContrastTableTimeMaximum                                                                 ,'timeMaximum'    )
-      call file%writeAttribute(        self%densityContrastTableMassMinimum                                                                 ,'massMinimum'    )
-      call file%writeAttribute(        self%densityContrastTableMassMaximum                                                                 ,'massMaximum'    )
-      call file%writeAttribute(        self%densityContrastTableTimeCount                                                                   ,'timeCount'      )
-      call file%writeAttribute(        self%densityContrastTableMassCount                                                                   ,'massCount'      )
-      call file%writeDataset  (        self%densityContrastTable%xs()                                                                       ,'mass'           )
-      call file%writeDataset  (        self%densityContrastTable%ys()                                                                       ,'time'           )
-      call file%writeDataset  (reshape(self%densityContrastTable%zs(),[self%densityContrastTable%size(1),self%densityContrastTable%size(2)]),'densityContrast')
-    end block
-    !$ call hdf5Access%unset()
-    call File_Unlock(fileLock)
-    return
-  end subroutine percolationStoreTable
-
-  subroutine percolationRestoreTable(self)
-    !!{RST
-    Attempt to restore a table from file.
-    !!}
-    use :: File_Utilities    , only : File_Exists, File_Lock     , File_Unlock, lockDescriptor
-    use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5File
-    use :: ISO_Varying_String, only : char       , varying_string
-    implicit none
-    class           (virialDensityContrastPercolation), intent(inout)               :: self
-    double precision                                  , allocatable, dimension(:  ) :: timeTable           , massTable
-    double precision                                  , allocatable, dimension(:,:) :: densityContrastTable
-    type            (lockDescriptor                  )                              :: fileLock
-
-    if (File_Exists(self%fileName)) then
-       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
-       !$ call hdf5Access%set()
-       block
-         type(hdf5File  ) :: file
-         file=hdf5File(self%fileName,readOnly=.true.)
-         call file%readAttribute('timeMinimum'    ,self%densityContrastTableTimeMinimum)
-         call file%readAttribute('timeMaximum'    ,self%densityContrastTableTimeMaximum)
-         call file%readAttribute('massMinimum'    ,self%densityContrastTableMassMinimum)
-         call file%readAttribute('massMaximum'    ,self%densityContrastTableMassMaximum)
-         call file%readAttribute('timeCount'      ,self%densityContrastTableTimeCount  )
-         call file%readAttribute('massCount'      ,self%densityContrastTableMassCount  )
-         call file%readDataset  ('mass'           ,massTable                           )
-         call file%readDataset  ('time'           ,timeTable                           )
-         call file%readDataset  ('densityContrast',densityContrastTable                )
-       end block
-       !$ call hdf5Access%unset()
-       call File_Unlock(fileLock)
-       call self%densityContrastTable%create  (                                       &
-            &                                  massTable           (1              ), &
-            &                                  massTable           (size(massTable)), &
-            &                                                       size(massTable) , &
-            &                                  timeTable           (1              ), &
-            &                                  timeTable           (size(timeTable)), &
-            &                                                       size(timeTable)   &
-            &                                 )
-       call self%densityContrastTable%populate(                                       &
-            &                                  densityContrastTable                   &
-            &                                 )
-       self%densityContrastTableInitialized=.true.
-       self%densityContrastTableRemakeCount=0
-    end if
-    return
-  end subroutine percolationRestoreTable

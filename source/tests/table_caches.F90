@@ -41,18 +41,24 @@ program Test_Table_Caches
   use :: Numerical_Ranges  , only : Range_Pinned       , rangeLattice          , gridSchemePerDecade
   use :: ISO_Varying_String, only : char
   use :: Table_Caches      , only : Table_Cache_Restore, Table_Cache_Store     , Table_Cache_File_Name
-  use :: Tables            , only : table1D            , table1DLogarithmicLinear
+  use :: Tables            , only : table1D            , table1DLogarithmicLinear, table2DLogLogLin
   use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   class           (table1D       ), allocatable                 :: tableStored  , tableRestored, &
        &                                                           tableMerged  , tableFine
   type            (rangeLattice  )                              :: latticeNarrow, latticeWide  , &
        &                                                           latticePartial
-  type            (varying_string)                              :: fileName     , fileNameFiltering
+  type            (varying_string)                              :: fileName     , fileNameFiltering, &
+       &                                                           fileName2D
+  type            (table2DLogLogLin)                            :: table2DStored, table2DRestored
+  type            (rangeLattice  )                              :: latticeX2D   , latticeY2D
+  logical                         , allocatable, dimension(:,:) :: isComputed2D
+  double precision                , allocatable, dimension(:,:) :: z2DStored    , z2DRestored
   logical                         , allocatable, dimension(:  ) :: isComputed
   double precision                , allocatable, dimension(:  ) :: xStored      , xRestored
   double precision                , allocatable, dimension(:,:) :: yStored      , yRestored
-  integer                                                       :: status
+  integer                                                       :: status       , i                , &
+       &                                                           j
   type            (cosmologyParametersSimple                 )  :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda            )  :: cosmologyFunctions_
   type            (intergalacticMediumStateSimple            )  :: intergalacticMediumState_
@@ -125,6 +131,28 @@ program Test_Table_Caches
   call populate(tableFine)
   call Table_Cache_Restore(tableFine,fileName,status)
   call Assert('a cached tabulation on an incommensurate lattice is ignored',[tableFine%lattice%pointsPer,tableFine%lattice%count],[20,latticeNarrow%count])
+
+  ! The same round trip for a two-dimensional table, whose axes are pinned independently.
+  fileName2D='testSuite/outputs/tableCache2D.hdf5'
+  if (File_Exists(fileName2D)) call File_Remove(fileName2D)
+  latticeX2D=Range_Pinned(15.0d0,4,gridSchemePerDecade,anchorEvery=2)
+  latticeY2D=Range_Pinned( 3.0d0,4,gridSchemePerDecade,anchorEvery=2)
+  call table2DStored%extend(latticeX2D,latticeY2D,isComputed2D)
+  do i=1,latticeX2D%count
+     do j=1,latticeY2D%count
+        call table2DStored%populate(table2DStored%x(i)*table2DStored%y(j),i,j)
+     end do
+  end do
+  z2DStored=table2DStored%zs()
+  call Table_Cache_Store  (table2DStored  ,fileName2D       )
+  call Table_Cache_Restore(table2DRestored,fileName2D,status)
+  z2DRestored=table2DRestored%zs()
+  call Assert('a cached 2D tabulation is restored'                ,status,errorStatusSuccess)
+  call Assert('the restored 2D tabulation is on the same lattices',                                                                &
+       &      [table2DRestored%latticeX%indexMinimum,table2DRestored%latticeX%count,table2DRestored%latticeY%indexMinimum,table2DRestored%latticeY%count], &
+       &      [latticeX2D     %indexMinimum        ,latticeX2D     %count         ,latticeY2D     %indexMinimum         ,latticeY2D     %count         ]  &
+       &     )
+  call Assert('the restored 2D values are bit-identical'          ,all(z2DRestored == z2DStored),.true.)
 
   ! Exercise a real, persisted tabulation which uses the cache: the Gnedin2000 filtering mass. The key property is that
   ! requesting an earlier epoch, which forces the table to be extended downwards, must not change the value already tabulated at
