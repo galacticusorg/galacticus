@@ -27,6 +27,8 @@
   <nodePropertyExtractor name="nodePropertyExtractorProjectedDensity" docformat="rst">
    <description>
    A property extractor class for the projected density at a set of radii. The radii and types of projected density to output is specified by the ``radiusSpecifiers`` parameter. This parameter's value can contain multiple entries, each of which should be a valid :ref:`radius specifier &lt;manual-sec-radiusspecifiers&gt;`.
+
+   A radius specifier can evaluate to zero---most often because the component on which it is based is absent or empty in the node in question. The projected density is not evaluated there: it is finite only if the central logarithmic slope of the density profile exceeds :math:`-1` (an :term:`NFW` profile, for example, gives a logarithmically divergent integral), and even then the Abel integral used here is performed in the logarithm of radius, and so can not begin at zero radius. By default a radius of zero is reported as a fatal error naming the offending specifier; setting ``zeroRadiusIsFatal`` to ``false`` instead writes the undefined-value sentinel in place of the projected density.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -35,9 +37,10 @@
      A property extractor class for the projected density at a set of radii.
      !!}
      private
-     class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_          => null()
-     integer                                                      :: radiiCount                  , elementCount_
-     logical                                                      :: includeRadii                , tolerateIntegrationFailures
+     class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_ => null()
+     integer                                                      :: radiiCount                    , elementCount_
+     logical                                                      :: includeRadii                  , tolerateIntegrationFailures, &
+          &                                                          zeroRadiusIsFatal
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusDefinitions       )                            :: radii
    contains
@@ -76,7 +79,8 @@ contains
     type   (inputParameters                      ), intent(inout)               :: parameters
     type   (varying_string                       ), allocatable  , dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass             ), pointer                     :: darkMatterHaloScale_
-    logical                                                                     :: includeRadii        , tolerateIntegrationFailures
+    logical                                                                     :: includeRadii        , tolerateIntegrationFailures, &
+         &                                                                         zeroRadiusIsFatal
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
     !![
@@ -103,9 +107,19 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>zeroRadiusIsFatal</name>
+      <defaultValue>.true.</defaultValue>
+      <description>
+      Specifies whether a radius specifier which evaluates to zero, in a node in which the projected density diverges at zero
+      radius, should be reported as a fatal error. If ``false``, the undefined-value sentinel is written in place of the
+      projected density instead.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorProjectedDensity(radiusSpecifiers,includeRadii,tolerateIntegrationFailures,darkMatterHaloScale_)
+    self=nodePropertyExtractorProjectedDensity(radiusSpecifiers,includeRadii,tolerateIntegrationFailures,zeroRadiusIsFatal,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"/>
@@ -113,7 +127,7 @@ contains
     return
   end function projectedDensityConstructorParameters
 
-  function projectedDensityConstructorInternal(radiusSpecifiers,includeRadii,tolerateIntegrationFailures,darkMatterHaloScale_) result(self)
+  function projectedDensityConstructorInternal(radiusSpecifiers,includeRadii,tolerateIntegrationFailures,zeroRadiusIsFatal,darkMatterHaloScale_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorProjectedDensity` property extractor class.
     !!}
@@ -121,9 +135,10 @@ contains
     type   (nodePropertyExtractorProjectedDensity)                              :: self
     type   (varying_string                       ), intent(in   ), dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass             ), intent(in   ), target       :: darkMatterHaloScale_
-    logical                                       , intent(in   )               :: includeRadii        , tolerateIntegrationFailures
+    logical                                       , intent(in   )               :: includeRadii        , tolerateIntegrationFailures, &
+         &                                                                         zeroRadiusIsFatal
     !![
-    <constructorAssign variables="radiusSpecifiers, includeRadii, tolerateIntegrationFailures, *darkMatterHaloScale_"/>
+    <constructorAssign variables="radiusSpecifiers, includeRadii, tolerateIntegrationFailures, zeroRadiusIsFatal, *darkMatterHaloScale_"/>
     !!]
 
     if (includeRadii) then
@@ -220,8 +235,22 @@ contains
           cycle
        end if
        massDistribution_        => node%massDistribution(self%radii%specifiers(i)%component,self%radii%specifiers(i)%mass)
+       if (radius_ <= 0.0d0) then
+          ! The radius is zero. The projected density along a line of sight through the center is finite only if the central
+          ! logarithmic slope of the density profile exceeds -1, but even then it can not be evaluated here: the Abel integral
+          ! below is performed in the logarithm of radius, and so can not begin at zero radius.
+          if (self%zeroRadiusIsFatal) &
+               & call resolver%reportZeroRadius(i,'projectedDensity','the line of sight integral is evaluated in the logarithm of radius, which can not begin at zero radius')
+          densityProjected       (i,1)=radiusUndefined
+          if (self%includeRadii)                      &
+               & densityProjected(i,2)=radius_
+          !![
+          <objectDestructor name="massDistribution_"/>
+          !!]
+          cycle
+       end if
        densityProjectedPrevious =  0.0d0
-       radiusOuter              =  max(radius_* 2.0d0                    ,radiusVirial)
+       radiusOuter              =  max(radius_*2.0d0,radiusVirial)
        ! Cut out a small region round the coordinate singularity at the inner radius. This region will be integrated analytically
        ! assuming a constant density over this region. The region outside of this cut-out will be integrated numerically.
        radiusSingularity       =min(radius_*(1.0d0+epsilonSingularity),radiusOuter )

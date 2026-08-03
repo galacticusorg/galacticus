@@ -29,6 +29,8 @@
   <nodePropertyExtractor name="nodePropertyExtractorCGMCoolingFunction" docformat="rst">
    <description>
    A property extractor that returns the radiative cooling function :math:`\Lambda(T,n_\mathrm{H},Z)` (in erg cm\ :math:`^3` s\ :math:`^{-1}`) of the circumgalactic medium at a user-specified set of radii in the hot halo, evaluated using the supplied :galacticus-class:`coolingFunctionClass` object with local density, temperature, and metallicity. The ``radiusSpecifiers`` parameter defines the radii; ``includeRadii`` and ``includeDensity`` optionally add the radius (Mpc) and hydrogen number density (cm\ :math:`^{-3}`) columns to the output. The ``label`` suffix distinguishes multiple instances of this extractor.
+
+   A radius specifier can evaluate to zero---most often because the component on which it is based is absent or empty in the node in question. The cooling function is then evaluable only if the hot halo mass distribution has a finite central density. By default a radius of zero at which it does not is reported as a fatal error naming the offending specifier; setting ``zeroRadiusIsFatal`` to ``false`` instead writes the undefined-value sentinel in place of the cooling function.
    </description>
    <deepCopy>
     <functionClass variables="radiation"/>
@@ -50,7 +52,8 @@
      integer                                                                     :: radiiCount                    , elementCount_ , &
           &                                                                         abundancesCount               , chemicalsCount, &
           &                                                                         indexRadii                    , indexDensity
-     logical                                                                     :: includeRadii                  , includeDensity
+     logical                                                                     :: includeRadii                  , includeDensity, &
+          &                                                                         zeroRadiusIsFatal
      type   (varying_string                         ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusDefinitions                      )                            :: radii
      type   (varying_string                         )                            :: label
@@ -88,7 +91,8 @@ contains
     class  (darkMatterHaloScaleClass               ), pointer                     :: darkMatterHaloScale_
     class  (coolingFunctionClass                   ), pointer                     :: coolingFunction_
     class  (cosmologyFunctionsClass                ), pointer                     :: cosmologyFunctions_
-    logical                                                                       :: includeRadii        , includeDensity
+    logical                                                                       :: includeRadii        , includeDensity, &
+         &                                                                           zeroRadiusIsFatal
     type   (varying_string                         )                              :: label
     
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
@@ -117,6 +121,16 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter docformat="rst">
+      <name>zeroRadiusIsFatal</name>
+      <defaultValue>.true.</defaultValue>
+      <description>
+      Specifies whether a radius specifier which evaluates to zero, in a node in which the density of the hot halo diverges at
+      zero radius, should be reported as a fatal error. If ``false``, the undefined-value sentinel is written in place of the
+      cooling function instead.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <defaultValue>var_str('')</defaultValue>
       <description>
@@ -128,7 +142,7 @@ contains
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     <objectBuilder class="coolingFunction"     name="coolingFunction_"     source="parameters"/>
     !!]
-    self=nodePropertyExtractorCGMCoolingFunction(radiusSpecifiers,includeRadii,includeDensity,label,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_)
+    self=nodePropertyExtractorCGMCoolingFunction(radiusSpecifiers,includeRadii,includeDensity,zeroRadiusIsFatal,label,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_" />
@@ -138,7 +152,7 @@ contains
     return
   end function cgmCoolingFunctionConstructorParameters
 
-  function cgmCoolingFunctionConstructorInternal(radiusSpecifiers,includeRadii,includeDensity,label,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
+  function cgmCoolingFunctionConstructorInternal(radiusSpecifiers,includeRadii,includeDensity,zeroRadiusIsFatal,label,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorCGMCoolingFunction` property extractor class.
     !!}
@@ -151,10 +165,11 @@ contains
     class  (cosmologyFunctionsClass                ), intent(in   ), target       :: cosmologyFunctions_
     class  (darkMatterHaloScaleClass               ), intent(in   ), target       :: darkMatterHaloScale_
     class  (coolingFunctionClass                   ), intent(in   ), target       :: coolingFunction_
-    logical                                         , intent(in   )               :: includeRadii        , includeDensity
+    logical                                         , intent(in   )               :: includeRadii        , includeDensity, &
+         &                                                                           zeroRadiusIsFatal
     type   (varying_string                         ), intent(in   )               :: label
     !![
-    <constructorAssign variables="radiusSpecifiers, includeRadii, includeDensity, *cosmologyFunctions_, *darkMatterHaloScale_, *coolingFunction_"/>
+    <constructorAssign variables="radiusSpecifiers, includeRadii, includeDensity, zeroRadiusIsFatal, *cosmologyFunctions_, *darkMatterHaloScale_, *coolingFunction_"/>
     !!]
 
     ! Decode radii specifiers.
@@ -299,7 +314,26 @@ contains
        end if
        ! Get density and temperature.
        coordinates             =  [radius,0.0d0,0.0d0]
-       massDistribution_       => node                   %massDistribution      (componentTypeHotHalo,massTypeGaseous)
+       massDistribution_       => node%massDistribution(componentTypeHotHalo,massTypeGaseous)
+       if     (                                                             &
+            &   radius                                             <= 0.0d0 &
+            &  .and.                                                        &
+            &   massDistribution_%densitySlopeLogarithmicCentral() <  0.0d0 &
+            & ) then
+          ! The radius is zero, but the density of the hot halo diverges at the center (or its central slope is unknown), so
+          ! the cooling function can not be evaluated here.
+          if (self%zeroRadiusIsFatal)                                                                                         &
+               & call resolver%reportZeroRadius(i,'cgmCoolingFunction','the density of the hot halo diverges at zero radius')
+          cgmCoolingFunctionExtract       (i,                1)=radiusUndefined
+          if (self%includeRadii  )                                              &
+               & cgmCoolingFunctionExtract(i,self%indexRadii  )=radius
+          if (self%includeDensity)                                              &
+               & cgmCoolingFunctionExtract(i,self%indexDensity)=radiusUndefined
+          !![
+          <objectDestructor name="massDistribution_"/>
+          !!]
+          cycle
+       end if
        kinematicsDistribution_ => massDistribution_      %kinematicsDistribution(                                    )
        density                 =  massDistribution_      %density               (coordinates                         )
        temperature             =  kinematicsDistribution_%temperature           (coordinates                         )
@@ -328,9 +362,9 @@ contains
        else
           cgmCoolingFunctionExtract    (i,                1)=+0.0d0
        end if
-       if (self%includeRadii  )                                                                                              &
+       if (self%includeRadii  )                                                                                                   &
             & cgmCoolingFunctionExtract(i,self%indexRadii  )=                                       radius
-       if (self%includeDensity)                                                                                              &
+       if (self%includeDensity)                                                                                                   &
             & cgmCoolingFunctionExtract(i,self%indexDensity)=                                       numberDensityHydrogen       
     end do
     return
