@@ -43,6 +43,12 @@ groups:
     citation: "Du et al. (2024)"
     citation_url: "https://ui.adsabs.harvard.edu/abs/2024arXiv240309597D"
     nav_order: 50
+  haloMassFunction:
+    title: "Halo mass function"
+    description: "Halo mass function model calibrated against the MDPL, Symphony, and COZMIC simulation suites."
+    citation: "Benson et al. (2026)"
+    citation_url: "https://ui.adsabs.harvard.edu/abs/2026arXiv260612137B"
+    nav_order: 55
   milkyWayModel:
     title: "Milky Way model"
     description: "Full Milky Way galaxy formation model."
@@ -222,6 +228,64 @@ metrics:
     group: decayingDM
     display_name: "τ = 80 Gyr, vₖ = 40 km/s"
     sort_key: "080-40"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+
+  # --- Halo mass function ------------------------------------------------
+  haloMassFunctionMDPL:
+    group: haloMassFunction
+    display_name: "MDPL suites"
+    sort_key: "10"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  haloMassFunctionSymphonyLMC:
+    group: haloMassFunction
+    display_name: "Symphony LMC, z = 0"
+    sort_key: "20"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  haloMassFunctionSymphonyMilkyWayZ0:
+    group: haloMassFunction
+    display_name: "Symphony Milky Way, z = 0"
+    sort_key: "30"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  haloMassFunctionSymphonyMilkyWayZ1:
+    group: haloMassFunction
+    display_name: "Symphony Milky Way, z ≈ 1"
+    sort_key: "31"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  haloMassFunctionSymphonyMilkyWayZ4:
+    group: haloMassFunction
+    display_name: "Symphony Milky Way, z ≈ 4"
+    sort_key: "32"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  haloMassFunctionSymphonyMilkyWayEnvironments:
+    group: haloMassFunction
+    display_name: "Symphony Milky Way, environments"
+    sort_key: "33"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  haloMassFunctionSymphonyGroup:
+    group: haloMassFunction
+    display_name: "Symphony Group, z = 0"
+    sort_key: "40"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  haloMassFunctionCOZMIC:
+    group: haloMassFunction
+    display_name: "COZMIC Milky Way, z = 0"
+    sort_key: "50"
     has_bench: true
     has_valid: true
     aggregator: standardLogLikelihood

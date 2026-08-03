@@ -1,8 +1,6 @@
 """Component-to-component assignment operator.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Hierarchy/Utils.pm.
 """
 
 
@@ -14,7 +12,7 @@ def Component_Assign(build):
     """Generate the `assign` method (overloads `assignment(=)`) on
     `nodeComponent`.
 
-    Mirrors `Component_Assign`.  Walks every (class, implementation,
+    Walks every (class, implementation,
     property) triple to emit the right per-property copy code.
     """
     function = {

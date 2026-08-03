@@ -32,7 +32,7 @@ module Power_Spectra_Nonlinear
    <name>powerSpectrumNonlinear</name>
    <descriptiveName>Nonlinear Power Spectrum</descriptiveName>
    <description>
-   Class providing non-linear matter power spectra :math:`P_\mathrm{NL}(k,t)`---the variance of the dark matter density field per unit logarithmic wavenumber interval, including the contributions from non-linear gravitational clustering that boost power on small scales beyond the linear prediction. Non-linear power spectra are essential for computing accurate two-point statistics, weak lensing observables, and halo model predictions at :math:`k \gtrsim 0.1` Mpc\ :math:`^{-1}`. Implementations include fitting formulae (e.g.\ halofit) and emulators trained on N-body simulations.
+   Class providing non-linear matter power spectra :math:`P_\mathrm{NL}(k,t)`---the variance of the dark matter density field per unit logarithmic wavenumber interval, including the contributions from non-linear gravitational clustering that boost power on small scales beyond the linear prediction. Non-linear power spectra are essential for computing accurate two-point statistics, weak lensing observables, and halo model predictions at :math:`k \gtrsim 0.1` Mpc\ :math:`^{-1}`. Implementations include fitting formulae (e.g. halofit) and emulators trained on N-body simulations.
    </description>
    <default>cosmicEmu</default>
    <method name="value" >

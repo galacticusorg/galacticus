@@ -52,7 +52,7 @@ _CLASS_HIERARCHY = {}
 
 
 def main():
-    """Main entry point — mirrors libraryInterfaces.pl."""
+    """Main entry point."""
 
     # Initialize code and Python interface structures
     code = {'main': []}
@@ -368,8 +368,17 @@ def _process_implementations(func_class, directive_locations, state_storables,
                     # otherwise tokens like "&\n   &  delta_0" leak into
                     # downstream emitters (e.g. as text in <referenceConstruct>)
                     # and break XML parsing because the literal `&` isn't escaped.
-                    args_constructor = [{'name': re.sub(r'[\s&]+', '', a)}
-                                        for a in m.group(1).split(',')]
+                    # Drop entries that strip to empty: an argument-less opener
+                    # written with whitespace between the parentheses (`( )`, as
+                    # opposed to `()`) captures a lone space here, which would
+                    # otherwise become a phantom empty-named argument and emit a
+                    # broken `integer(c_int) ::` declaration and `& = &` call.
+                    args_constructor = [
+                        {'name': name}
+                        for name in (re.sub(r'[\s&]+', '', a)
+                                     for a in m.group(1).split(','))
+                        if name
+                    ]
                 # Enrich each argument with its declared type from child declaration nodes.
                 child = node.get('firstChild')
                 while child:
@@ -391,7 +400,7 @@ def _process_implementations(func_class, directive_locations, state_storables,
         if not name_constructor:
             name_constructor = impl_name
 
-        # classID is assigned to every file, even abstract/excluded ones (mirrors Perl).
+        # classID is assigned to every file, even abstract/excluded ones.
         class_id += 1
 
         # impl_conf was already fetched up front so the interface-block

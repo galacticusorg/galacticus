@@ -2,7 +2,6 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/Implementations/ODESolver.pm.
 Eight hooks total — seven implementationIteratedFunctions plus one
 top-level `functions` hook (Implementation_ODE_Rate_Variables).
 """
@@ -48,8 +47,6 @@ def _evolver_count_expr(prop):
 
 def Implementation_ODE_Name_From_Index(build, class_dict, member):
     """Generate `<impl>NameFromIndex`.
-
-    Mirrors `Implementation_ODE_Name_From_Index`.
     """
     impl_type = _impl_type(class_dict, member)
     has_extends = isinstance(member.get('extends'), dict)
@@ -59,8 +56,8 @@ def Implementation_ODE_Name_From_Index(build, class_dict, member):
         'name':        impl_type + 'NameFromIndex',
         'description': (
             f"Return the name of the property of given index for a "
-            f"\\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component class."
+            f"``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component class."
         ),
         'modules':     ['ISO_Varying_String'],
         'variables':   [
@@ -86,12 +83,10 @@ def Implementation_ODE_Name_From_Index(build, class_dict, member):
     unused = []
     if not (has_extends or has_real_non_trivial_evolvers(member)):
         unused.append('self')
-    # Match Perl: the second push is guarded by `(extends or hasRealEvolvers
-    # or not extends)`, which is always true when `not extends` — so for
-    # extended types it pushes only when `hasRealEvolvers`, but Perl's
-    # third disjunct (`! exists(...->{'extends'})`) makes the whole
-    # condition always true — which means the `push` is never reached.
-    # That's a Perl bug; reproduce it by simply omitting the push.
+    # A second append to `unused` is deliberately never emitted here: the
+    # historical guard for it was always true, so the append was never
+    # reached.  That behavior is preserved (by simply omitting the append)
+    # to keep the generated code identical.
 
     if not has_extends:
         function['variables'].append({
@@ -183,8 +178,6 @@ def Implementation_ODE_Name_From_Index(build, class_dict, member):
 
 def Implementation_ODE_Serialize_Count(build, class_dict, member):
     """Generate `<impl>SerializeCount`.
-
-    Mirrors `Implementation_ODE_Serialize_Count`.
     """
     impl_type   = _impl_type(class_dict, member)
     has_extends = isinstance(member.get('extends'), dict)
@@ -307,8 +300,6 @@ def _ucfirst(text):
 
 def Implementation_ODE_Serialize_Values(build, class_dict, member):
     """Generate `<impl>SerializeValues`.
-
-    Mirrors `Implementation_ODE_Serialize_Values`.
     """
     impl_type   = _impl_type(class_dict, member)
     has_extends = isinstance(member.get('extends'), dict)
@@ -320,8 +311,8 @@ def Implementation_ODE_Serialize_Values(build, class_dict, member):
         'name':        impl_type + 'SerializeValues',
         'description': (
             f"Serialize evolvable properties of a "
-            f"\\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component to array."
+            f"``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component to array."
         ),
         'variables':   [
             {
@@ -427,8 +418,6 @@ def Implementation_ODE_Serialize_Values(build, class_dict, member):
 
 def Implementation_ODE_Deserialize_Values(build, class_dict, member):
     """Generate `<impl>DeserializeValues`.
-
-    Mirrors `Implementation_ODE_Deserialize_Values`.
     """
     impl_type   = _impl_type(class_dict, member)
     has_extends = isinstance(member.get('extends'), dict)
@@ -550,8 +539,6 @@ def Implementation_ODE_Deserialize_Values(build, class_dict, member):
 
 def Implementation_ODE_Serialize_NonNegative(build, class_dict, member):
     """Generate `<impl>SerializeNonNegative`.
-
-    Mirrors `Implementation_ODE_Serialize_NonNegative`.
     """
     impl_type   = _impl_type(class_dict, member)
     has_extends = isinstance(member.get('extends'), dict)
@@ -563,8 +550,8 @@ def Implementation_ODE_Serialize_NonNegative(build, class_dict, member):
         'name':        impl_type + 'SerializeNonNegative',
         'description': (
             f"Serialize non-negative status of evolvable properties of a "
-            f"\\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component to array."
+            f"``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component to array."
         ),
         'variables':   [
             {
@@ -668,8 +655,6 @@ def Implementation_ODE_Serialize_NonNegative(build, class_dict, member):
 
 def Implementation_ODE_Offsets(build, class_dict, member):
     """Generate `<impl>SerializeOffsets`.
-
-    Mirrors `Implementation_ODE_Offsets`.
     """
     impl_type   = _impl_type(class_dict, member)
     has_extends = isinstance(member.get('extends'), dict)
@@ -681,8 +666,8 @@ def Implementation_ODE_Offsets(build, class_dict, member):
         'name':        impl_type + 'SerializeOffsets',
         'description': (
             f"Compute offsets into serialization arrays for a "
-            f"\\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component."
+            f"``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component."
         ),
         'variables':   [
             {
@@ -809,9 +794,7 @@ def Implementation_ODE_Offsets(build, class_dict, member):
 
 
 def Implementation_ODE_Offset_Variables(build, class_dict, member):
-    """Mirrors `Implementation_ODE_Offset_Variables`.
-
-    Declares the `offsetAll<...>` / `offsetActive<...>` / `offsetInactive<...>`
+    """Declare the `offsetAll<...>` / `offsetActive<...>` / `offsetInactive<...>`
     module-scope variables.  Meta-property offsets are emitted only for
     the `null` member of each class so that we get exactly one copy.
     """
@@ -829,9 +812,9 @@ def Implementation_ODE_Offset_Variables(build, class_dict, member):
 
     for prop in list_real_evolvers(member):
         for status in ('all', 'active', 'inactive'):
-            # Mirror the Perl `offsetName($status, $class->{'name'}.$member->{'name'}, $property->{'name'})`
-            # which intentionally passes the concatenated class+member as
-            # the "componentName" arg of the 3-arg form.
+            # The concatenated class+member is intentionally passed as the
+            # "componentName" arg of the 3-arg form — this fixes the
+            # generated offset variable names.
             offset = offset_name(status, name + member['name'], prop['name'])
             build.setdefault('variables', []).append({
                 'intrinsic':  'integer',
@@ -841,9 +824,9 @@ def Implementation_ODE_Offset_Variables(build, class_dict, member):
 
 
 def Implementation_ODE_Rate_Variables(build):
-    """Mirrors `Implementation_ODE_Rate_Variables`.  Declares the
-    module-scope state arrays consumed by the per-implementation ODE
-    methods (rates, scales, inactive flags, analytic flags).
+    """Declare the module-scope state arrays consumed by the
+    per-implementation ODE methods (rates, scales, inactive flags,
+    analytic flags).
     """
     build.setdefault('variables', []).extend([
         {

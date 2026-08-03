@@ -214,7 +214,7 @@ contains
     Constructor for the :galacticus-class:`outputAnalysisSubhaloRadialDistribution` output analysis class for internal use.
     !!}
     use :: HDF5_Access            , only : hdf5Access
-    use :: IO_HDF5                , only : hdf5Object
+    use :: IO_HDF5                , only : hdf5File                  , hdf5Group
     use :: Output_Times           , only : outputTimesClass
     use :: Cosmology_Functions    , only : cosmologyFunctionsClass
     use :: Virial_Density_Contrast, only : virialDensityContrastClass
@@ -236,12 +236,13 @@ contains
          &                                                                                      massThreshold
     integer         (c_size_t                                 )                              :: countRadiiFractional              , i
     type            (varying_string                           )                              :: labelTarget
-    type            (hdf5Object                               )                              :: file                              , radialDistributionGroup
+    type            (hdf5File                                 )                              :: file
+    type            (hdf5Group                                )                              :: radialDistributionGroup
     logical                                                                                  :: thresholdIsRatio
     
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    file                   =hdf5Object          (fileName,readOnly=.true.)
+    file=hdf5File(fileName,readOnly=.true.)
     call    file                   %readAttribute('label'                  ,         labelTarget                  )
     call    file                   %readAttribute('redshift'               ,         redshift_                    )
     radialDistributionGroup=file                   %openGroup   ('radialDistribution')
@@ -614,15 +615,16 @@ contains
     !!}
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5Object
+    use :: IO_HDF5                         , only : hdf5File  , hdf5Group, hdf5Dataset
     use :: Numerical_Constants_Astronomical, only : massSolar
     use :: Units_MetaData                  , only : unitType
     implicit none
     class(outputAnalysisSubhaloRadialDistribution), intent(inout)           :: self
     type (varying_string                         ), intent(in   ), optional :: groupName
-    type (hdf5Object                             )               , target   :: analysesGroup, subGroup
-    type (hdf5Object                             )               , pointer  :: inGroup
-    type (hdf5Object                             )                          :: analysisGroup, dataset
+    type (hdf5Group                              )               , target   :: analysesGroup, subGroup
+    type (hdf5Group                              )               , pointer  :: inGroup
+    type (hdf5Group                              )                          :: analysisGroup
+    type (hdf5Dataset                            )                          :: dataset
 
     ! Finalize analysis.
     call self%finalizeAnalysis()

@@ -89,7 +89,7 @@ def test_from_raw_None_attributes_becomes_empty_list():
 
 
 def test_from_raw_missing_name_raises():
-    """Mirrors the Perl behaviour: every argument must have a name."""
+    """Every argument must have a name; a missing name raises."""
     import pytest
     with pytest.raises(KeyError):
         ArgSpec.from_raw({'intrinsic': 'integer'})

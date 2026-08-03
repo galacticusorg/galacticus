@@ -18,14 +18,14 @@ Below is a flowchart indicating the physical components and processes that typic
        end
        subgraph Environment
         direction LR
-        CGM[<a href='https://github.com/galacticusorg/galacticus/wiki/CGM-Physics' style='text-decoration: none'>CGM</a>]
+        CGM[<a href='cgm.html' style='text-decoration: none'>CGM</a>]
         IGM
        end
-       CGM -->|<a href='https://github.com/galacticusorg/galacticus/wiki/CGM-Cooling-Physics' style='text-decoration: none'>cooling</a>| DiskISM
-       DiskISM -->|<a href='https://github.com/galacticusorg/galacticus/wiki/Star-Formation-Physics' style='text-decoration: none'>star formation</a>| DiskStars
+       CGM -->|<a href='cgm-cooling.html' style='text-decoration: none'>cooling</a>| DiskISM
+       DiskISM -->|<a href='star-formation.html' style='text-decoration: none'>star formation</a>| DiskStars
        DiskStars -->|<a href='https://galacticus.readthedocs.io/en/latest/physics/stellarPopulationProperties.html' style='text-decoration: none'>recycling</a>| DiskISM
-       SpheroidISM -->|<a href='https://github.com/galacticusorg/galacticus/wiki/Star-Formation-Physics' style='text-decoration: none'>star formation</a>| SpheroidStars
+       SpheroidISM -->|<a href='star-formation.html' style='text-decoration: none'>star formation</a>| SpheroidStars
        SpheroidStars -->|<a href='https://galacticus.readthedocs.io/en/latest/physics/stellarPopulationProperties.html' style='text-decoration: none'>recycling</a>| SpheroidISM
        Disk -->|<a href='https://galacticus.readthedocs.io/en/latest/physics/galacticDynamicsBarInstability.html' style='text-decoration: none'>instability</a>| Spheroid
-       DiskISM -->|<a href='https://github.com/galacticusorg/galacticus/wiki/Outflow-Physics' style='text-decoration: none'>outflow</a>| Environment
-       SpheroidISM -->|<a href='https://github.com/galacticusorg/galacticus/wiki/Outflow-Physics' style='text-decoration: none'>outflow</a>| Environment
+       DiskISM -->|<a href='outflows.html' style='text-decoration: none'>outflow</a>| Environment
+       SpheroidISM -->|<a href='outflows.html' style='text-decoration: none'>outflow</a>| Environment

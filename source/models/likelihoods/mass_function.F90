@@ -90,6 +90,7 @@ contains
     Constructor for the :galacticus-class:`posteriorSampleLikelihoodMassFunction` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
     type            (posteriorSampleLikelihoodMassFunction)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters
@@ -177,11 +178,11 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`posteriorSampleLikelihoodMassFunction` posterior sampling likelihood class.
     !!}
-    use :: Display          , only : displayMessage, displayMagenta    , displayReset
-    use :: Input_Paths      , only : inputPath     , pathTypeDataStatic
-    use :: HDF5_Access      , only : hdf5Access
-    use :: IO_HDF5          , only : hdf5Object
-    use :: Linear_Algebra   , only : assignment(=)
+    use :: Display       , only : displayMessage, displayMagenta    , displayReset
+    use :: Input_Paths   , only : inputPath     , pathTypeDataStatic
+    use :: HDF5_Access   , only : hdf5Access
+    use :: IO_HDF5       , only : hdf5File
+    use :: Linear_Algebra, only : assignment(=)
     type            (posteriorSampleLikelihoodMassFunction)                              :: self
     double precision                                       , intent(in   )               :: redshiftMinimum        , redshiftMaximum       , &
          &                                                                                  haloMassMinimum        , haloMassMaximum       , &
@@ -192,7 +193,7 @@ contains
     class           (haloMassFunctionClass                ), intent(in   ), target       :: haloMassFunction_
     class           (surveyGeometryClass                  ), intent(in   ), target       :: surveyGeometry_
     double precision                                       , allocatable  , dimension(:) :: massBinWidth           , eigenValueArray
-    type            (hdf5Object                           )                              :: massFunctionFile
+    type            (hdf5File                             )                              :: massFunctionFile
     integer                                                                              :: i
     type            (matrix                               )                              :: eigenVectors
     type            (vector                               )                              :: eigenValues
@@ -204,7 +205,7 @@ contains
     self%logHaloMassMaximum=log10(haloMassMaximum)
     ! Read the mass function file.
     !$ call hdf5Access%set()
-    massFunctionFile=hdf5Object(char(inputPath(pathTypeDataStatic))//massFunctionFileName,readOnly=.true.)
+    massFunctionFile=hdf5File(inputPath(pathTypeDataStatic)//massFunctionFileName,readOnly=.true.)
     call massFunctionFile%readDataset("mass"                ,self%mass                )
     call massFunctionFile%readDataset("massFunctionObserved",self%massFunctionObserved)
     call massFunctionFile%readDataset("covariance"          ,self%covarianceMatrix    )

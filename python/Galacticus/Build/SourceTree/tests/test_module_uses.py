@@ -228,8 +228,8 @@ def test_assignment_to_use_prefixed_var_not_parsed_as_use():
 
 
 def test_use_double_colon_no_space_accepted():
-    """The boundary fix must still accept the `use::module` spelling (which
-    the Perl regex wrongly rejected)."""
+    """The boundary fix must still accept the `use::module` spelling
+    (historically rejected)."""
     source = (
         "module foo\n"
         "  use::iso_fortran_env\n"

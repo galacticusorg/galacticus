@@ -68,6 +68,8 @@
       <scale value="0.689"/>
     </cosmologicalMassVariance>
   </change>
+  <!-- Re-point the sigma_8 parameter used by the halo mass function after the above encapsulation. -->
+  <change type="update" path="haloMassFunction/cosmologicalMassVariance/sigma_8" value="=[cosmologicalMassVariance/cosmologicalMassVariance/sigma_8]"/>
   
   <!-- Change the concentration model to use one appropriate for WDM -->
   <!-- First, copy the existing concentration model into a temporary location so that we can later use it in our reference

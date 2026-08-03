@@ -10,14 +10,15 @@ import urllib.request
 from datetime import datetime, timezone
 
 # Count source lines of code in Galacticus source files, accounting for embedded
-# XML and LaTeX, and report month-over-month deltas to Slack.
+# XML and LaTeX and for RST documentation, and report month-over-month deltas to
+# Slack.
 # Andrew Benson (04-January-2024)
 
 HISTORY_PATH = ".github/metrics/slocHistory.json"
 
 
-def count_fortran_xml_latex():
-    """Walk source/ and docs/ to count Fortran/embedded-XML/embedded-LaTeX/LaTeX lines."""
+def count_fortran_xml_latex_rst():
+    """Walk source/ and docs/ to count Fortran/embedded-XML/embedded-LaTeX/LaTeX/RST lines."""
     counts = {}
     source_files = []
     for root, _dirs, files in os.walk('source'):
@@ -25,10 +26,13 @@ def count_fortran_xml_latex():
             if f.endswith('.F90') or f.endswith('.Inc'):
                 source_files.append(os.path.join(root, f))
     doc_files = []
+    rst_files = []
     for root, _dirs, files in os.walk('docs'):
         for f in files:
             if f.endswith('.tex'):
                 doc_files.append(os.path.join(root, f))
+            elif f.endswith('.rst'):
+                rst_files.append(os.path.join(root, f))
     for file_name in source_files:
         in_xml   = False
         in_latex = False
@@ -58,6 +62,12 @@ def count_fortran_xml_latex():
                 if re.match(r'^\s*$', line) or re.match(r'^\s*%', line):
                     continue
                 counts['latex'] = counts.get('latex', 0) + 1
+    for file_name in rst_files:
+        with open(file_name, 'r', errors='replace') as f:
+            for line in f:
+                if re.match(r'^\s*$', line):
+                    continue
+                counts['rst'] = counts.get('rst', 0) + 1
     return counts
 
 
@@ -65,7 +75,7 @@ def count_via_sloccount():
     """Run sloccount and return per-language line counts (excluding f90, handled above)."""
     counts = {}
     result = subprocess.run(
-        'sloccount aux constraints parameters parameters.xml perl plots schema scripts testSuite source',
+        'sloccount aux constraints parameters parameters.xml plots schema scripts testSuite source',
         shell=True, capture_output=True, text=True
     )
     if result.returncode != 0:
@@ -84,7 +94,7 @@ def count_via_sloccount():
 
 
 def compute_counts():
-    counts = count_fortran_xml_latex()
+    counts = count_fortran_xml_latex_rst()
     for language, n in count_via_sloccount().items():
         counts[language] = counts.get(language, 0) + n
     return counts

@@ -21,6 +21,8 @@ import os
 import re
 import sys
 
+from Galacticus.Build.Jobserver import slots as jobserver_slots
+
 # Worker count when run standalone (no `make`, no explicit override). Capped at
 # the task count by `resolve_jobs`. Oversubscribing cores is intentional: the
 # work is I/O-latency bound, so workers blocked on NFS still overlap waits.
@@ -79,6 +81,10 @@ def scan(tasks, worker, script_name, jobs=None):
     is requested or there is a single task. On a worker failure the underlying
     error is surfaced with a hint to re-run serially for a full traceback,
     rather than a raw pool traceback.
+
+    When run under a `make` jobserver (from a `+`-marked recipe) the requested
+    worker count is further capped by the job slots make actually has free, so a
+    scan running alongside other recipes cannot oversubscribe the build.
     """
     tasks = list(tasks)
     if not tasks:
@@ -88,6 +94,14 @@ def scan(tasks, worker, script_name, jobs=None):
     if jobs <= 1:
         return [worker(task) for task in tasks]
 
+    with jobserver_slots(jobs) as granted:
+        if granted <= 1:
+            return [worker(task) for task in tasks]
+        return _scan_pool(tasks, worker, script_name, granted)
+
+
+def _scan_pool(tasks, worker, script_name, jobs):
+    """Run `tasks` across a fork-based pool of `jobs` workers, in task order."""
     results = [None] * len(tasks)
     ctx = multiprocessing.get_context('fork')
     try:

@@ -4,8 +4,6 @@
 in the enclosing subprogram.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/DebugHDF5.pm
 """
 
 import re
@@ -22,10 +20,7 @@ def _debug_enabled():
 
 
 def _enclosing_subprogram(node):
-    """Return the enclosing function/subroutine/program ancestor of `node`.
-
-    Mirrors the loop at DebugHDF5.pm:56-58.
-    """
+    """Return the enclosing function/subroutine/program ancestor of `node`."""
     cur = node
     while cur is not None and cur.get('type') not in ('function', 'subroutine', 'program'):
         cur = cur.get('parent')
@@ -65,7 +60,7 @@ def _add_hdf5_use(subprogram, module_name):
 
 
 def process_debug_hdf5(tree, options):
-    """Mirrors Process_DebugHDF5() from DebugHDF5.pm."""
+    """Replace hdf5Access set/unset calls with explicit locked IO calls."""
     if not _debug_enabled():
         return
 
@@ -81,7 +76,7 @@ def process_debug_hdf5(tree, options):
 
         subprogram = _enclosing_subprogram(node)
         module_name = _enclosing_module_name(node)
-        # Perl emits the call substitution only when the enclosing module is
+        # The call substitution is emitted only when the enclosing module is
         # neither IO_HDF5 nor Error (those define the locked routines); the
         # module-use statement is suppressed in those modules too.
         add_call = module_name not in ('IO_HDF5', 'Error')

@@ -23,7 +23,7 @@ Implements an N-body data importer for IRATE files.
 
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParametersClass
-  use :: IO_HDF5             , only : hdf5Object
+  use :: IO_HDF5             , only : hdf5File
 
   !![
   <nbodyImporter name="nbodyImporterIRATE" docformat="rst">
@@ -41,7 +41,7 @@ Implements an N-body data importer for IRATE files.
      class  (cosmologyParametersClass), pointer                   :: cosmologyParameters_ => null()
      class  (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_  => null()
      type   (varying_string          )                            :: fileName                      , label
-     type   (hdf5Object              )                            :: file
+     type   (hdf5File                )                            :: file
      integer                                                      :: snapshot
      logical                                                      :: haveProperties
      type   (varying_string          ), allocatable, dimension(:) :: properties
@@ -166,7 +166,7 @@ contains
     use :: Dictionaries, only : doubleDictionary       , integerSizeTDictionary        , rank1DoublePtrDictionary    , rank1IntegerSizeTPtrDictionary, &
           &                    rank2DoublePtrDictionary, rank2IntegerSizeTPtrDictionary, varyingStringDictionary     , genericDictionary
     use :: HDF5_Access , only : hdf5Access
-    use :: IO_HDF5     , only : H5T_NATIVE_DOUBLES     , H5T_NATIVE_INTEGERS           , hdf5Object
+    use :: IO_HDF5     , only : H5T_NATIVE_DOUBLES     , H5T_NATIVE_INTEGERS           , hdf5File, hdf5Group, hdf5Dataset
     use :: IO_IRATE    , only : irate
     implicit none
     class           (nbodyImporterIRATE), intent(inout)                              :: self
@@ -176,7 +176,8 @@ contains
     double precision                                   , dimension(:  ), pointer     :: propertyReal
     double precision                                   , dimension(:,:), pointer     :: position       , velocity
     type            (irate             )                                             :: irate_
-    type            (hdf5Object        )                                             :: snapshotGroup  , dataset
+    type            (hdf5Group         )                                             :: snapshotGroup
+    type            (hdf5Dataset       )                                             :: dataset
     character       (len=13            )                                             :: snapshotLabel
     integer                                                                          :: i              , status
     double precision                                                                 :: boxSize
@@ -208,7 +209,7 @@ contains
     if (.not.self%haveProperties .or. any(self%properties == 'velocity'  )) call simulations(1)%propertiesRealRank1%set('velocity'  ,velocity   )
     write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
     !$ call hdf5Access%set()
-    self%file=hdf5Object(self%fileName,readOnly=.true.,objectsOverwritable=.false.)
+    self%file=hdf5File(self%fileName,readOnly=.true.,objectsOverwritable=.false.)
     snapshotGroup            =self%file         %openGroup(snapshotLabel)
     simulations  (1)%analysis=     snapshotGroup%openGroup('HaloCatalog')
     call simulations(1)%analysis%datasets(datasetNames)

@@ -67,12 +67,32 @@ runs:
         # `brew update`. Remove the unused tap to keep CI logs clean. The `|| true`
         # guards against runner images that don't ship the tap.
         brew untap aws/tap 2>/dev/null || true
-        # Refresh the formula index first: the runner image ships an older
-        # `gcc` (e.g. 15.2.0) and a stale tap that reports it as current, so a
-        # bare `brew install gcc` is a no-op and no `gcc-16` binary appears.
+        # Refresh the formula index first so the versioned `gcc@16` formula and
+        # its current bottle are visible to the install below.
         brew update
-        brew install gcc
-        brew upgrade gcc
+        # Install GCC 16 via the versioned `gcc@16` formula rather than the
+        # unversioned `gcc`. The unversioned formula tracks whatever Homebrew
+        # calls latest, so when it eventually moves to GCC 17 a bare
+        # `brew install gcc` would stop providing the `gcc-16` binary that
+        # CCOMPILER expects; `gcc@16` pins us deterministically until we choose
+        # to bump. Guard the commands so the common already-current case stays
+        # silent instead of emitting a "gcc@16 <version> already installed"
+        # warning on every build: install only when absent, upgrade only when
+        # actually outdated.
+        if ! brew list --versions gcc@16 >/dev/null 2>&1; then
+          brew install gcc@16
+        elif [[ -n "$(brew outdated gcc@16)" ]]; then
+          brew upgrade gcc@16
+        fi
+        # The runner image pre-installs the unversioned `gcc` formula, which
+        # (while it is still GCC 16) provides the same `gcc-16`/`g++-16`/
+        # `gfortran-16` symlinks as `gcc@16` and would collide with them. Unlink
+        # it (no-op once Homebrew's `gcc` moves to 17 and stops owning `*-16`,
+        # or if the image ever drops it) and force `gcc@16` to own the links so
+        # the `*-16` binaries CCOMPILER/FCCOMPILER/CPPCOMPILER expect resolve to
+        # the pinned toolchain.
+        brew unlink gcc 2>/dev/null || true
+        brew link --overwrite gcc@16
     - name: Install guile
       shell: bash
       run: |
@@ -97,8 +117,14 @@ runs:
         rm -rf libmatheval-1.1.13.tar.gz libmatheval-1.1.13
     - name: Install qhull
       shell: bash
+      # NOTE: `www.qhull.org` presents a certificate which is not valid for that host, so this must be fetched over plain HTTP and
+      # its identity can not be established by TLS. The library built from this archive is linked into the macOS executables which
+      # are notarized and published to users, so anyone able to intercept this connection could otherwise substitute their own
+      # code. The SHA-256 check below is therefore what establishes the integrity of this archive, and must not be removed. If the
+      # pinned version is changed, recompute the hash from a source you trust.
       run: |
         curl -L --fail --retry 5 --retry-all-errors --retry-max-time 120 http://www.qhull.org/download/qhull-2020-src-8.0.2.tgz --output qhull-2020-src-8.0.2.tgz
+        echo "b5c2d7eb833278881b952c8a52d20179eab87766b00b865000469a45c1838b7e  qhull-2020-src-8.0.2.tgz" | shasum -a 256 -c -
         tar xvfz qhull-2020-src-8.0.2.tgz
         cd qhull-2020.2
         make -j3 CC=${CCOMPILER} CXX=${CPPCOMPILER}
@@ -108,7 +134,8 @@ runs:
     - name: Install GSL
       shell: bash
       run: |
-        curl -L --fail --retry 5 --retry-all-errors --retry-max-time 120 ftp://ftp.gnu.org/gnu/gsl/gsl-2.6.tar.gz --output gsl-2.6.tar.gz
+        curl -L --fail --retry 5 --retry-all-errors --retry-max-time 120 https://ftp.gnu.org/gnu/gsl/gsl-2.6.tar.gz --output gsl-2.6.tar.gz
+        echo "b782339fc7a38fe17689cb39966c4d821236c28018b6593ddb6fd59ee40786a8  gsl-2.6.tar.gz" | shasum -a 256 -c -
         tar xvfz gsl-2.6.tar.gz
         cd gsl-2.6
         CC=${CCOMPILER} ./configure --prefix=/usr/local
@@ -182,7 +209,8 @@ runs:
     - name: Install FFTW3
       shell: bash
       run: |
-        curl -L --fail --retry 5 --retry-all-errors --retry-max-time 120 ftp://ftp.fftw.org/pub/fftw/fftw-3.3.4.tar.gz --output fftw-3.3.4.tar.gz
+        curl -L --fail --retry 5 --retry-all-errors --retry-max-time 120 https://www.fftw.org/fftw-3.3.4.tar.gz --output fftw-3.3.4.tar.gz
+        echo "8f0cde90929bc05587c3368d2f15cd0530a60b8a9912a8e2979a72dbe5af0982  fftw-3.3.4.tar.gz" | shasum -a 256 -c -
         tar xvfz fftw-3.3.4.tar.gz
         cd fftw-3.3.4
         F77=${FCCOMPILER} CC=${CCOMPILER} ./configure --prefix=/usr/local
@@ -193,7 +221,8 @@ runs:
     - name: Install ANN
       shell: bash
       run: |
-        curl -L --fail --retry 5 --retry-all-errors --retry-max-time 120 http://www.cs.umd.edu/~mount/ANN/Files/1.1.2/ann_1.1.2.tar.gz --output ann_1.1.2.tar.gz
+        curl -L --fail --retry 5 --retry-all-errors --retry-max-time 120 https://www.cs.umd.edu/~mount/ANN/Files/1.1.2/ann_1.1.2.tar.gz --output ann_1.1.2.tar.gz
+        echo "eea03f2e224b66813226d775053316675375dcec45bd263674c052d9324a49a5  ann_1.1.2.tar.gz" | shasum -a 256 -c -
         tar xvfz ann_1.1.2.tar.gz
         cd ann_1.1.2
         sed -E -i~ "s|C\+\+ = g\+\+|C\+\+ = $CPPCOMPILER|" Make-config

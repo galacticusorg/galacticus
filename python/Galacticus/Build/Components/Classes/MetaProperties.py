@@ -2,17 +2,16 @@
 `meta_property_types` data table.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Classes/MetaProperties.pm.
 """
 
 
 
-from Galacticus.Build.Components.Utils import register
+from Galacticus.Build.Components.Utils import register, offset_name
+from Galacticus.Build.Components.Properties.Evolve import _is_debugging
 
-# The order of entries is preserved verbatim from the Perl module so that
-# generated identifier suffixes (`Float`, `LongInteger`, `Integer` × ranks
-# 0/1) keep matching what the rest of the pipeline expects.
+# The order of entries fixes the generated identifier suffixes (`Float`,
+# `LongInteger`, `Integer` × ranks 0/1) that the rest of the pipeline
+# expects — do not reorder.
 meta_property_types = [
     {'label': 'float',       'intrinsic': 'double precision',                          'rank': 0},
     {'label': 'float',       'intrinsic': 'double precision',                          'rank': 1},
@@ -26,8 +25,6 @@ meta_property_types = [
 def Class_Meta_Property_Get(build, class_dict):
     """Generate one `<class><Label>Rank<N>MetaPropertyGet` per
     meta-property type, returning the stored value.
-
-    Mirrors `Class_Meta_Property_Get`.
     """
     name      = class_dict['name']
     cap       = _ucfirst(name)
@@ -42,6 +39,7 @@ def Class_Meta_Property_Get(build, class_dict):
             if rank > 0 else ''
         )
 
+        modules = ['ISO_Varying_String']
         if active:
             kind_suffix = (
                 f"%values" if rank > 0 else ""
@@ -52,6 +50,21 @@ def Class_Meta_Property_Get(build, class_dict):
                 f"Rank{rank}MetaPropertyLabels(metaPropertyID)),'{mpt['label']}',"
                 f"{rank})\n"
             )
+            # In debugging builds, guard reads of inactive float rank-0 meta-properties (the only meta-property kind
+            # that supports inactivity) while active-property derivatives are being evaluated - their stored values
+            # are stale during that phase, so any such read is a bug (see issue #128).
+            if _is_debugging() and mpt['label'] == 'float' and rank == 0:
+                offset_all = offset_name('all', name, 'floatRank0MetaProperties')
+                content += (
+                    "if (evaluationActiveRHS) then\n"
+                    f" if (nodeInactives({offset_all}(metaPropertyID))) call Error_Report("
+                    f"'value of inactive float rank-0 meta-property \"'//char({name}"
+                    f"FloatRank0MetaPropertyLabels(metaPropertyID))//'\" of the {name} "
+                    "component was read during active property evolution'"
+                    "//{introspection:location})\n"
+                    "end if\n"
+                )
+                modules.append('Error')
             if rank > 0:
                 size_args = ','.join(
                     f"size(self%{mpt['label']}Rank{rank}"
@@ -79,7 +92,7 @@ def Class_Meta_Property_Get(build, class_dict):
                 f"Return the value of a rank-{rank} {mpt['label']} "
                 f"meta-property of a {type_name} component given its ID."
             ),
-            'modules':     ['ISO_Varying_String'],
+            'modules':     modules,
             'variables':   [
                 {
                     'intrinsic':  'class',
@@ -187,11 +200,86 @@ def Class_Meta_Property_Get_Reference(build, class_dict):
         })
 
 
+def Class_Meta_Property_Is_Created(build, class_dict):
+    """Generate one `<class><Label>Rank<N>MetaPropertyCrtd` per
+    meta-property type, reporting whether any class creates the
+    meta-property with the given ID.
+
+    Registering a meta-property with `isCreator="no"` always yields a valid ID,
+    but the meta-property has no storage unless some class registered it with
+    `isCreator="yes"`. Reading such a meta-property is fatal (the accessors call
+    `metaPropertyNoCreator`), which is the right behavior when the meta-property
+    is genuinely required. This query lets a caller instead treat an uncreated
+    meta-property as simply absent - needed where a quantity is optional, such
+    as a radius expressed as a fraction of a fuzzy-dark-matter soliton radius in
+    a model containing no solitons.
+    """
+    name      = class_dict['name']
+    cap       = _ucfirst(name)
+    type_name = 'nodeComponent' + cap
+    active    = name in (build.get('componentClassListActive') or [])
+
+    for mpt in meta_property_types:
+        rank      = mpt['rank']
+        cap_label = _ucfirst(mpt['label'])
+
+        if active:
+            # `...MetaPropertyCreator` is only allocated once at least one
+            # meta-property of this kind has been registered.
+            content = (
+                f"if (allocated({name}{cap_label}Rank{rank}MetaPropertyCreator)) then\n"
+                f" isCreated_={name}{cap_label}Rank{rank}"
+                f"MetaPropertyCreator(metaPropertyID)\n"
+                "else\n"
+                " isCreated_=.false.\n"
+                "end if\n"
+            )
+        else:
+            content = 'isCreated_=.false.\n'
+
+        function = {
+            'type':        'logical => isCreated_',
+            # Abbreviated to `...MetaPropertyCrtd` to stay within the Fortran
+            # 63-character identifier limit: the longest class+label combination
+            # (`darkMatterProfile`+`longInteger`) reaches 62 characters even with
+            # this short suffix. The caller-facing type-bound name below spells it
+            # out in full.
+            'name':        f"{type_name}{cap_label}Rank{rank}MetaPropertyCrtd",
+            'description': (
+                f"Return true if some class creates the rank-{rank} "
+                f"{mpt['label']} meta-property of a {type_name} component with "
+                f"the given ID, and false if none does (in which case the "
+                f"meta-property has no storage and must not be read)."
+            ),
+            'modules':     ['ISO_Varying_String'],
+            'variables':   [
+                {
+                    'intrinsic':  'class',
+                    'type':       type_name,
+                    'attributes': ['intent(in   )'],
+                    'variables':  ['self'],
+                },
+                {
+                    'intrinsic':  'integer',
+                    'attributes': ['intent(in   )'],
+                    'variables':  ['metaPropertyID'],
+                },
+            ],
+            'content':     '!$GLC attributes unused :: self\n' + content,
+        }
+
+        build.setdefault('types', {}).setdefault(type_name, {}) \
+                                      .setdefault('boundFunctions', []) \
+                                      .append({
+            'type':       'procedure',
+            'descriptor': function,
+            'name':       f"{mpt['label']}Rank{rank}MetaPropertyIsCreated",
+        })
+
+
 def Class_Meta_Property_Set(build, class_dict):
     """Generate one `<class><Label>Rank<N>MetaPropertySet` per
     meta-property type, storing the provided value.
-
-    Mirrors `Class_Meta_Property_Set`.
     """
     name      = class_dict['name']
     cap       = _ucfirst(name)
@@ -267,4 +355,5 @@ def _ucfirst(text):
 
 register('classMetaProperties', 'classIteratedFunctions', Class_Meta_Property_Get          )
 register('classMetaProperties', 'classIteratedFunctions', Class_Meta_Property_Get_Reference)
+register('classMetaProperties', 'classIteratedFunctions', Class_Meta_Property_Is_Created   )
 register('classMetaProperties', 'classIteratedFunctions', Class_Meta_Property_Set          )

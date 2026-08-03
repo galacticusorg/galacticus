@@ -20,8 +20,8 @@ from __future__ import annotations
 #
 # When read back through `xml_to_dict()`, that becomes
 # `{'functionClasses': [{'name': ..., 'module': ...}, ...]}` — a *list* of
-# entry dicts.  The original Perl scripts produced (and consumed) the
-# attribute-keyed shape `{'functionClasses': {'X': {'module': ...}, ...}}`,
+# entry dicts.  Legacy writers produced (and consumed) the attribute-keyed
+# shape `{'functionClasses': {'X': {'module': ...}, ...}}`,
 # so most callers in the codebase still test `isinstance(fc, dict)` first
 # and then look for a `functionClass` wrapper key.  Centralise the shape-
 # bridging here so every reader handles the actual on-disk format.

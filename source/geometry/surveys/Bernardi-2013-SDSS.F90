@@ -212,12 +212,13 @@ contains
          &                         Directory_Make
     use :: Error          , only : Error_Report
     use :: System_Download, only : download
-    use :: System_Command , only : System_Command_Do
+    use :: System_Command , only : System_Command_Do, shellEscape
     implicit none
     class  (surveyGeometryBernardi2013SDSS)                           , intent(inout) :: self
     type   (varying_string                ), allocatable, dimension(:), intent(inout) :: mangleFiles
     type   (lockDescriptor                )                                           :: lock
     integer                                                                           :: status
+    type   (varying_string                )                                           :: escapedGzFile
 
     allocate(mangleFiles(1))
     mangleFiles(1)=self%mangleDirectory()//"sdss_dr72safe0_res6d.pol"
@@ -228,7 +229,8 @@ contains
           call download("https://zenodo.org/records/10998446/files/sdss_dr72safe0_res6d.pol.gz",char(mangleFiles(1))//".gz",status=status)
           if (status /= 0 .or. .not.File_Exists(mangleFiles(1)//".gz")) &
                & call Error_Report('failed to download mangle polygon file'//{introspection:location})
-          call System_Command_Do("gunzip "//mangleFiles(1)//".gz",status)
+          escapedGzFile=shellEscape(mangleFiles(1)//".gz")
+          call System_Command_Do("gunzip "//escapedGzFile,status)
           if (status /= 0 .or. .not.File_Exists(mangleFiles(1))) &
                & call Error_Report('failed to decompress mangle polygon file'//{introspection:location})
        end if

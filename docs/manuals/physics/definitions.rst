@@ -55,7 +55,7 @@ Galaxy luminosities are output in the :term:`AB magnitude` system, such that a l
 Peculiar Velocities
 -------------------
 
-Velocities in Galacticus are always *physical* velocities. When reading merger tree properties (including velocities) from file it is often convenient to store velocities without the Hubble flow contribution, as "peculiar velocities", in the file---see `here <https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group>`_ for how to specify whether or not  the velocities included in the file include the Hubble flow or not.
+Velocities in Galacticus are always *physical* velocities. When reading merger tree properties (including velocities) from file it is often convenient to store velocities without the Hubble flow contribution, as "peculiar velocities", in the file---see the :ref:`forest halos group <forest-halos-group>` for how to specify whether or not  the velocities included in the file include the Hubble flow or not.
 
 If peculiar velocities are stored it is important to use the same definition of peculiar velocity as is used by Galacticus. Defining :math:`t` to be physical time and :math:`\mathbf{x}` to be comoving position, Galacticus uses the conventional definition of peculiar velocity in a cosmological context, namely that it is the deviation of the physical velocity from the Hubble flow. Physical coordinates are given by :math:`\mathbf{r} = a\mathbf{x}`, so the peculiar velocity is
 
@@ -94,7 +94,9 @@ The elements of this colon-separated specifier determine the radius at which a p
    the numerical value of the radius at which to compute the property (with units specified by the ``radiusType`` element);
 
 ``radiusType``
-   specifies the units of the ``radius`` element---valid options are ``diskRadius``, ``hotHaloOuterRadius``, ``diskHalfMassRadius``, ``spheroidRadius``, ``spheroidHalfMassRadius``, ``darkMatterScaleRadius``, ``virialRadius``, just ``radius`` (which implies radii are given in units of Mpc), ``galacticMassFraction{<fraction>}``, ``stellarMassFraction{<fraction>}``, or  ``galacticLightFraction{<fraction>}{<luminosity>}``, where the final three form specify a radius containing a fixed ``<fraction>`` of the galactic or stellar mass, or light respectively (for the case of galactic light, ``<luminosity>`` specifies the band, e.g. ``SDSS_r:rest:z0.0000``);
+   specifies the units of the ``radius`` element---valid options are ``diskRadius``, ``hotHaloOuterRadius``, ``diskHalfMassRadius``, ``spheroidRadius``, ``spheroidHalfMassRadius``, ``darkMatterScaleRadius``, ``virialRadius``, ``solitonRadiusCore``, ``solitonRadiusSoliton``, just ``radius`` (which implies radii are given in units of Mpc), ``galacticMassFraction{<fraction>}``, ``stellarMassFraction{<fraction>}``, or  ``galacticLightFraction{<fraction>}{<luminosity>}``, where the final three form specify a radius containing a fixed ``<fraction>`` of the galactic or stellar mass, or light respectively (for the case of galactic light, ``<luminosity>`` specifies the band, e.g. ``SDSS_r:rest:z0.0000``);
+
+   The ``solitonRadiusCore`` and ``solitonRadiusSoliton`` options express radii in units of the core and transition radii of the :term:`FDM` soliton respectively. These are meaningful only in models which grow solitons---see :galacticus-class:`darkMatterProfileDMOSolitonNFW`. Where they are not (because the model contains no soliton-forming dark matter profile, or because no soliton formed in the halo in question), the radius is *undefined*: no property is computed there, and a large negative sentinel value is written to the output instead. Filter such entries out before analysis;
 
 ``componentType``
    specifies which components of the node should be counted---allowed values are ``all``, ``disk``, ``spheroid``, ``hotHalo``, ``darkHalo``, and ``blackHole``;

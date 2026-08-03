@@ -147,6 +147,7 @@ contains
     use :: Vectors                         , only : Vector_Magnitude
     implicit none
     double precision                                             , dimension(3)          :: chandrasekhar1943Acceleration
+    double precision                                             , dimension(3)          :: chandrasekharIntegral
     class           (satelliteDynamicalFrictionChandrasekhar1943), intent(inout), target :: self
     type            (treeNode                                   ), intent(inout)         :: node
     class           (nodeComponentBasic                         ), pointer               :: basic
@@ -164,14 +165,15 @@ contains
     velocity                      =   satellite%velocity        ()
     massDistribution_             =>  node     %massDistribution()
     massDistributionHost_         =>  nodeHost %massDistribution()
-    chandrasekhar1943Acceleration =  +4.0d0                                                                                                                &
-            &                        *Pi                                                                                                                   &
-            &                        *massDistributionHost_%chandrasekharIntegral(massDistributionHost_,massDistribution_,massSatellite,position,velocity) &
-            &                        *self                 %coulombLogarithm     (node                                                                   ) &
-            &                        *gravitationalConstant_internal**2                                                                                    &
-            &                        *massSatellite                                                                                                        &
-            &                        *kilo                                                                                                                 &
-            &                        *gigaYear                                                                                                             &
+    chandrasekharIntegral         =   massDistributionHost_%chandrasekharIntegral(massDistributionHost_,massDistribution_,massSatellite,position,velocity)
+    chandrasekhar1943Acceleration =  +4.0d0                             &
+            &                        *Pi                                &
+            &                        *chandrasekharIntegral             &
+            &                        *self%coulombLogarithm(node)       &
+            &                        *gravitationalConstant_internal**2 &
+            &                        *massSatellite                     &
+            &                        *kilo                              &
+            &                        *gigaYear                          &
             &                        /megaParsec
     !![
     <objectDestructor name="massDistribution_"    />

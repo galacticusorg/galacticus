@@ -67,14 +67,14 @@ contains
     <inputParameter docformat="rst">
       <name>wavelengthMinimum</name>
       <description>
-      The minimum wavelength (in units of \AA) for the power-law spectrum.
+      The minimum wavelength (in units of Å) for the power-law spectrum.
       </description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>wavelengthMaximum</name>
       <description>
-      The maximum wavelength (in units of \AA) for the power-law spectrum.
+      The maximum wavelength (in units of Å) for the power-law spectrum.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -88,7 +88,7 @@ contains
     <inputParameter docformat="rst">
       <name>normalization</name>
       <description>
-      The normalization (in units of :math:`L_\odot / \AA`) of the power-law spectrum.
+      The normalization (in units of :math:`L_\odot / Å`) of the power-law spectrum.
       </description>
       <source>parameters</source>
     </inputParameter>

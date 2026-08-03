@@ -32,12 +32,12 @@ module Radiative_Transfer_Photon_Packet
    <name>radiativeTransferPhotonPacket</name>
    <descriptiveName>Radiative Transfer Photon Packets</descriptiveName>
    <description>
-   Class providing photon packets for Monte Carlo radiative transfer calculations---discrete bundles of photon energy that are launched from sources and propagated through the computational domain, interacting with matter via absorption and scattering. Each packet carries a wavelength (in \AA), a wavelength range, a luminosity (in :math:`L_\odot`), a 3-D position, a direction of propagation, and a weight tracking how much of the original energy remains. The packet's trajectory through the grid determines the local radiation field and drives the ionization and heating of the matter.
+   Class providing photon packets for Monte Carlo radiative transfer calculations---discrete bundles of photon energy that are launched from sources and propagated through the computational domain, interacting with matter via absorption and scattering. Each packet carries a wavelength (in Å), a wavelength range, a luminosity (in :math:`L_\odot`), a 3-D position, a direction of propagation, and a weight tracking how much of the original energy remains. The packet's trajectory through the grid determines the local radiation field and drives the ionization and heating of the matter.
    </description>
    <default>simple</default>
    <method name="wavelengthSet" >
     <description>
-    Set the wavelength (in \AA) of the photon packet.
+    Set the wavelength (in Å) of the photon packet.
     </description>
     <type>void</type>
     <pass>yes</pass>
@@ -45,14 +45,14 @@ module Radiative_Transfer_Photon_Packet
    </method>
    <method name="wavelength" >
     <description>
-    Get the wavelength (in \AA) of the photon packet.
+    Get the wavelength (in Å) of the photon packet.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="wavelengthMinimumSet" >
     <description>
-    Set the minimum wavelength (in \AA) of the photon packet.
+    Set the minimum wavelength (in Å) of the photon packet.
     </description>
     <type>void</type>
     <pass>yes</pass>
@@ -60,14 +60,14 @@ module Radiative_Transfer_Photon_Packet
    </method>
    <method name="wavelengthMinimum" >
     <description>
-    Get the minimum wavelength (in \AA) of the photon packet.
+    Get the minimum wavelength (in Å) of the photon packet.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="wavelengthMaximumSet" >
     <description>
-    Set the maximum wavelength (in \AA) of the photon packet.
+    Set the maximum wavelength (in Å) of the photon packet.
     </description>
     <type>void</type>
     <pass>yes</pass>
@@ -75,7 +75,7 @@ module Radiative_Transfer_Photon_Packet
    </method>
    <method name="wavelengthMaximum" >
     <description>
-    Get the maximum wavelength (in \AA) of the photon packet.
+    Get the maximum wavelength (in Å) of the photon packet.
     </description>
     <type>double precision</type>
     <pass>yes</pass>

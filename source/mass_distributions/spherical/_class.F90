@@ -34,19 +34,19 @@
      !!}
      private
      ! Memoized solutions for the enclosed mass.
-     double precision              , allocatable, dimension(:) :: massProfileMass__                                          , massProfileRadius__
-     double precision                                          :: massProfileRadiusMinimum__                    =+huge(0.0d0), massProfileRadiusMaximum__     =-huge(0.0d0)
+     double precision              , allocatable, dimension(:) :: massProfileMass__                                     , massProfileRadius__
+     double precision                                          :: massProfileRadiusMinimum__               =+huge(0.0d0), massProfileRadiusMaximum__     =-huge(0.0d0)
      type            (interpolator), allocatable               :: massProfile__
-     logical                                                   :: tolerateEnclosedMassIntegrationFailure        =.false.
+     logical                                                   :: tolerateEnclosedMassIntegrationFailure   =.false.
      ! Memoized solutions for the potential.
-     double precision              , allocatable, dimension(:) :: potentialProfilePotential__                                , potentialProfileRadius__
-     double precision                                          :: potentialProfileRadiusMinimum__               =+huge(0.0d0), potentialProfileRadiusMaximum__=-huge(0.0d0), &
-          &                                                       potentialProfileRadiusMinimumActual__         =+huge(0.0d0), potentialRadiusZeroPoint__     =-huge(0.0d0)
+     double precision              , allocatable, dimension(:) :: potentialProfilePotential__                           , potentialProfileRadius__
+     double precision                                          :: potentialProfileRadiusMinimum__          =+huge(0.0d0), potentialProfileRadiusMaximum__=-huge(0.0d0), &
+          &                                                       potentialProfileRadiusMinimumActual__    =+huge(0.0d0), potentialRadiusZeroPoint__     =-huge(0.0d0)
      type            (interpolator), allocatable               :: potentialProfile__
-     logical                                                   :: toleratePotentialIntegrationFailure           =.false.
-     double precision                                          :: toleranceRelativePotential                    =1.0d-6
+     logical                                                   :: toleratePotentialIntegrationFailure      =.false.
+     double precision                                          :: toleranceRelativePotential               =1.0d-6
      ! Options controlling implementation.
-     logical                                                   :: chandrasekharIntegralComputeVelocityDispersion=.true.
+     logical                                                   :: chandrasekharIntegralSuppressExtendedMass=.true.
    contains
      !![
      <methods docformat="rst">
@@ -818,13 +818,13 @@ contains
     use :: Numerical_Constants_Astronomical, only : gigaYear     , megaParsec         , gravitationalConstant_internal
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    double precision                              , dimension(3)  :: acceleration
+    type            (coordinateCartesian         )                :: acceleration
     class           (massDistributionSpherical   ), intent(inout) :: self
     class           (coordinate                  ), intent(in   ) :: coordinates
     type            (coordinateSpherical         )                :: coordinatesSpherical
     type            (coordinateCartesian         )                :: coordinatesCartesian
     double precision                                              :: radius
-    double precision                              , dimension(3)  :: positionCartesian
+    double precision                              , dimension(3)  :: positionCartesian   , accelerationVector
 
     ! Get position in spherical and Cartesian coordinate systems.
     coordinatesSpherical=coordinates
@@ -833,18 +833,19 @@ contains
     positionCartesian=coordinatesCartesian
     radius           =coordinatesSpherical%r()
     if (radius > 0.0d0) then
-       acceleration=-self%massEnclosedBySphere(radius           )    &
-            &       *                          positionCartesian     &
-            &       /                          radius            **3
-       if (.not.self%isDimensionless())                    &
-            & acceleration=+acceleration                   &
-            &              *kilo                           &
-            &              *gigaYear                       &
-            &              /megaParsec                     &
-            &              *gravitationalConstant_internal
+       accelerationVector=-self%massEnclosedBySphere(radius           )    &
+            &             *                          positionCartesian     &
+            &             /                          radius            **3
+       if (.not.self%isDimensionless())                          &
+            & accelerationVector=+accelerationVector             &
+            &                    *kilo                           &
+            &                    *gigaYear                       &
+            &                    /megaParsec                     &
+            &                    *gravitationalConstant_internal
     else
-       acceleration=0.0d0
+       accelerationVector=0.0d0
     end if
+    acceleration=accelerationVector
     return
   end function sphericalAcceleration
 
@@ -942,9 +943,10 @@ contains
     !!{RST
     Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
     !!}
+    use :: Coordinates             , only : coordinateCartesian, assignment(=)
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    double precision                              , dimension(3)  :: sphericalPositionSample
+    type            (coordinateCartesian         )                :: sphericalPositionSample
     class           (massDistributionSpherical   ), intent(inout) :: self
     class           (randomNumberGeneratorClass  ), intent(inout) :: randomNumberGenerator_
     double precision                                              :: mass                   , radius, &
@@ -990,20 +992,22 @@ contains
     use :: Ideal_Gases_Thermodynamics, only : Ideal_Gas_Sound_Speed
     use :: Error                     , only : Error_Report
     implicit none
-    double precision                           , dimension(3)  :: integral
+    type            (coordinateCartesian      )                :: integral
     class           (massDistributionSpherical), intent(inout) :: self
     class           (massDistributionClass    ), intent(inout) :: massDistributionEmbedding           , massDistributionPerturber
     double precision                           , intent(in   ) :: massPerturber
-    class           (coordinate               ), intent(in   ) :: coordinates                         , velocity
-    double precision                           , dimension(3)  :: velocityCartesian_
+    class           (coordinate               ), intent(in   ) :: coordinates
+    type            (coordinateCartesian      ), intent(in   ) :: velocity
+    double precision                           , dimension(3)  :: velocityCartesian_                  , integralVector
     double precision                           , parameter     :: XvMaximum                    =10.0d0
     type            (coordinateCartesian      )                :: velocityCartesian
     double precision                                           :: radius                              , velocity_                , &
          &                                                        density                             , velocityDispersion       , &
          &                                                        factorSuppressionExtendedMass       , xV
-    
-    integral =0.0d0
-    velocity_=velocity%rSpherical()
+
+    integralVector=0.0d0
+    integral      =[0.0d0,0.0d0,0.0d0]
+    velocity_     =velocity%rSpherical()
     if (velocity_ <= 0.0d0) return
     radius =coordinates%rSpherical(           )
     density=self       %density   (coordinates)
@@ -1023,11 +1027,11 @@ contains
     end if
     velocityCartesian = velocity
     velocityCartesian_= velocityCartesian
-    integral          =-density               &
+    integralVector    =-density               &
          &             *velocityCartesian_    &
          &             /velocity_         **3
     if (Xv <= XvMaximum)                      &
-         & integral   =+integral              &
+         & integralVector=+integralVector     &
          &             *(                     &
          &               +erf ( xV   )        &
          &               -2.0d0               &
@@ -1037,11 +1041,17 @@ contains
          &              )
     ! Compute suppression factor due to satellite being an extended mass distribution. This is largely untested - it is meant to
     ! simply avoid extremely large accelerations for subhalo close to the center of its host when that subhalo is much more
-    ! extended than the host.
-    factorSuppressionExtendedMass=min(1.0d0,massDistributionPerturber%massEnclosedBySphere(radius)/massPerturber)
+    ! extended than the host. It can be disabled (restoring the prior behavior) via the `chandrasekharIntegralSuppressExtendedMass`
+    ! option.
+    if (self%chandrasekharIntegralSuppressExtendedMass) then
+       factorSuppressionExtendedMass=min(1.0d0,massDistributionPerturber%massEnclosedBySphere(radius)/massPerturber)
+    else
+       factorSuppressionExtendedMass=1.0d0
+    end if
     ! Evaluate the integral.
-    integral=+integral                      &
-         &   *factorSuppressionExtendedMass
+    integralVector=+integralVector                &
+         &         *factorSuppressionExtendedMass
+    integral      =integralVector
     return
   end function sphericalChandrasekharIntegral
 

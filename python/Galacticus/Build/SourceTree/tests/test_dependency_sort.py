@@ -48,8 +48,8 @@ def test_before_places_X_before_Y():
 
 
 def test_unknown_reference_silently_dropped():
-    """A name in `after`/`before` that isn't itself a task is ignored —
-    matches Perl's `if (grep {$_ eq $dependent} @objects)` skip."""
+    """A name in `after`/`before` that isn't itself a task is silently
+    ignored — historical behavior, deliberately preserved."""
     assert dependency_sort({'A': {'after': 'doesNotExist'}}) == ['A']
 
 

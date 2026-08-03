@@ -5,8 +5,6 @@ kernel header.  In documentation builds, also writes a per-file
 `<constants>` XML manifest.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/Constants.pm
 """
 
 import os
@@ -22,8 +20,8 @@ from Galacticus.Build.SourceTree.Process import register_process
 def _compile_and_run(c_source):
     """Compile `c_source` with $CCOMPILER $CFLAGS and return its stdout.
 
-    Used for both the GSL and kernel extraction paths (Constants.pm:56-60,
-    Constants.pm:127-132).  Raises on compilation failure.
+    Used for both the GSL and kernel extraction paths.  Raises on
+    compilation failure.
     """
     build_path = os.environ.get('BUILDPATH')
     if not build_path:
@@ -59,10 +57,7 @@ def _compile_and_run(c_source):
 
 
 def _emit_gsl_enum(directive):
-    """Build `enum, bind(c) ... end enum` from a GSL-header enum.
-
-    Mirrors Constants.pm:42-70.
-    """
+    """Build `enum, bind(c) ... end enum` from a GSL-header enum."""
     members = [m.strip() for m in re.split(r'\s*,\s*', directive['members']) if m.strip()]
     c_src = (
         "#include <stdio.h>\n"
@@ -83,10 +78,7 @@ def _emit_gsl_enum(directive):
 
 
 def _emit_gsl_scalar(directive, type_str):
-    """Build a `type, parameter, public :: var = value` line from a GSL scalar.
-
-    Mirrors Constants.pm:72-110.
-    """
+    """Build a `type, parameter, public :: var = value` line from a GSL scalar."""
     c_src  = "#include <stdio.h>\n"
     c_src += "#include <float.h>\n"
     c_src += f"#include <gsl/{directive['gslHeader']}.h>\n"
@@ -121,10 +113,7 @@ def _emit_gsl_scalar(directive, type_str):
 
 
 def _emit_kernel_scalar(directive, type_str):
-    """Build a `parameter` line from a kernel-header integer symbol.
-
-    Mirrors Constants.pm:112-135.
-    """
+    """Build a `parameter` line from a kernel-header integer symbol."""
     if type_str != 'integer':
         raise RuntimeError(
             "process_constant: kernelSymbol constants must have type='integer'")
@@ -146,7 +135,7 @@ def _emit_inline(directive, type_str):
 
 
 def process_constant(tree, options):
-    """Mirrors Process_Constant() from Constants.pm."""
+    """Process `constant` directives in the tree."""
     constants_orphaned = []   # directives awaiting a module-name tag
     all_constants      = []
     file_name          = None
@@ -193,7 +182,7 @@ def process_constant(tree, options):
         constants_orphaned.append(directive)
         directive['processed'] = True
 
-    # Tag final file name.  Matches Constants.pm:156-159.
+    # Tag final file name.
     for c in all_constants:
         c['fileName'] = file_name
 

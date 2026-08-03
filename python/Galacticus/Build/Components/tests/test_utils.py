@@ -12,9 +12,8 @@ pipeline.  It owns:
   - `Label_Lengths` for computing those length-max globals.
 
 It carried zero coverage despite being on the critical path of every
-components-build phase.  These tests pin the documented behaviour against
-the Perl reference so any accidental change to a frequently-called primitive
-is caught.
+components-build phase.  These tests pin the documented behaviour so any
+accidental change to a frequently-called primitive is caught.
 """
 
 import pytest
@@ -73,7 +72,7 @@ def test_is_output_intrinsic(type_name, expected):
 
 def test_register_appends_to_owner_phase_list():
     """Multiple registrations under the same owner+phase preserve registration
-    order (Perl array semantics)."""
+    order."""
     fn1 = lambda build: None
     fn2 = lambda build: None
     register('test_owner_unique_xyz', 'test_phase', fn1)
@@ -110,7 +109,7 @@ def test_offset_name_invalid_status_raises():
 
 
 def test_offset_name_wrong_arity_raises():
-    """Mirrors Perl's `die` on an unsupported signature."""
+    """An unsupported signature is a fatal error."""
     with pytest.raises(TypeError, match="incorrect number of arguments"):
         offset_name('all')
     with pytest.raises(TypeError, match="incorrect number of arguments"):

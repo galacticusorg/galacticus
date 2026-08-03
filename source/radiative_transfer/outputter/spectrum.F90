@@ -204,7 +204,7 @@ contains
     implicit none
     class           (radiativeTransferOutputterSpectrum), intent(inout)                    :: self
     class           (radiativeTransferSourceClass      ), intent(inout)                    :: radiativeTransferSource_
-    type            (hdf5Object                        ), intent(inout)                    :: outputGroup
+    type            (hdf5Group                         ), intent(inout)                    :: outputGroup
     type            (integrator                        )                                   :: integrator_
     double precision                                    , dimension(self%countWavelengths) :: spectrumEmitted
     integer         (c_size_t                          )                                   :: i
@@ -325,7 +325,7 @@ contains
     use    :: String_Handling                 , only : String_Upper_Case_First
     implicit none
     class  (radiativeTransferOutputterSpectrum), intent(inout) :: self
-    type   (hdf5Object                        ), intent(inout) :: outputGroup
+    type   (hdf5Group                         ), intent(inout) :: outputGroup
     integer(c_size_t                          )                :: i          , sourceIndex
 
     ! Apply unit conversions and make the spectrum differential with respect to wavelength.

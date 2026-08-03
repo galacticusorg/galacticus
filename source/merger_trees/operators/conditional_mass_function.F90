@@ -1471,13 +1471,14 @@ contains
     !!}
     use    :: Output_HDF5                     , only : outputFile
     use    :: HDF5_Access                     , only : hdf5Access
-    use    :: IO_HDF5                         , only : hdf5Object
+    use    :: IO_HDF5                         , only : hdf5File           , hdf5Group, hdf5Dataset
     use    :: Numerical_Constants_Astronomical, only : massSolar
     use    :: Units_MetaData                  , only : unitType
     !$ use :: OMP_Lib                         , only : OMP_Get_Num_Threads
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                         :: self
-    type            (hdf5Object                     )                                        :: conditionalMassFunctionGroup       , massDataset
+    type            (hdf5Group                      )                                        :: conditionalMassFunctionGroup
+    type            (hdf5Dataset                    )                                        :: massDataset
     double precision                                 , allocatable  , dimension(:          ) :: normalizationSubhaloMassFunction   , normalizationSubhaloMassFunctionError
     double precision                                 , allocatable  , dimension(:,:        ) :: normalization                      , normalizationError
     double precision                                 , allocatable  , dimension(:,:,:      ) :: conditionalMassFunction            , conditionalMassFunctionError

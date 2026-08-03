@@ -620,17 +620,17 @@ contains
     !!}
     use :: File_Utilities, only : File_Exists
     use :: HDF5_Access   , only : hdf5Access
-    use :: IO_HDF5       , only : hdf5Object
+    use :: IO_HDF5       , only : hdf5File
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout)             :: self
     double precision                                            , dimension(:), allocatable :: massFiltering
-    type            (hdf5Object                                )                            :: dataFile
+    type            (hdf5File                                  )                            :: dataFile
 
     ! Return immediately if the file does not exist.
     if (.not.File_Exists(self%fileName)) return
     if (self%initialized) call self%table%destroy()
     !$ call hdf5Access%set()
-    dataFile=hdf5Object(self%fileName,overWrite=.false.,readOnly=.true.)
+    dataFile=hdf5File(self%fileName,overWrite=.false.,readOnly=.true.)
     call dataFile%readDataset  ('massFiltering',     massFiltering)
     call dataFile%readAttribute('timeMinimum'  ,self%timeMinimum  )
     call dataFile%readAttribute('timeMaximum'  ,self%timeMaximum  )
@@ -646,16 +646,16 @@ contains
     !!{RST
     Write tabulated data on linear growth factor to file.
     !!}
-    use :: HDF5   , only : hsize_t
+    use :: HDF5       , only : hsize_t
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5, only : hdf5Object
+    use :: IO_HDF5    , only : hdf5File
     implicit none
     class(intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
-    type (hdf5Object                                )                :: dataFile
+    type (hdf5File                                  )                :: dataFile
 
     ! Open the data file.
     !$ call hdf5Access%set()
-    dataFile=hdf5Object(char(self%fileName),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
+    dataFile=hdf5File(self%fileName,overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
     call dataFile%writeDataset  (reshape(self%table      %ys(),[self%table%size()]),          'massFiltering')
     call dataFile%writeAttribute(        self%timeMinimum                          ,          'timeMinimum'  )
     call dataFile%writeAttribute(        self%timeMaximum                          ,          'timeMaximum'  )

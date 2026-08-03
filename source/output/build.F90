@@ -125,7 +125,7 @@ contains
     use            :: Input_Paths       , only : inputPath         , pathTypeExec
     use            :: HDF5              , only : h5get_libversion_f
     use            :: HDF5_Access       , only : hdf5Access
-    use            :: IO_HDF5           , only : hdf5Object
+    use            :: IO_HDF5           , only : hdf5Group
     use, intrinsic :: ISO_C_Binding     , only : c_char            , c_f_pointer , c_null_char
     use            :: ISO_Varying_String, only : assignment(=)     , char        , operator(//), operator(/=), &
           &                                      varying_string
@@ -134,7 +134,7 @@ contains
     character(kind=c_char,len=1), dimension(:), pointer :: charVersionString
     type     (varying_string   ), dimension(1)          :: changeSet
     integer                     , parameter             :: versionStringLengthMaximum=10
-    type     (hdf5Object       )                        :: buildGroup
+    type     (hdf5Group        )                        :: buildGroup
     integer                                             :: hdfError                     , hdfVersionMajor   , &
          &                                                 hdfVersionMinor              , hdfVersionRelease , &
          &                                                 iChr

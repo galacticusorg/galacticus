@@ -36,7 +36,7 @@ Implements a merger tree evolution timestepping class which limits the step to t
 
    where :math:`t` is the current time, :math:`t_{\mathrm{record},i}` is the :math:`i^\mathrm{th}` time at which the evolution of main branch galaxies is to be output and :math:`i` is chosen to be the smallest :math:`i` such that :math:`t_{\mathrm{record},i} &gt; t`. If there is no :math:`i` for which :math:`t_{\mathrm{record},i} &gt; t` this criterion is not applied. If this criterion is the limiting criterion for :math:`\Delta t` then the properties of the galaxy will be recorded at the end of the timestep.
 
-   Timesteps are logarithmically spaced in cosmic time between ``[timeBegin]`` and \newline ``[timeEnd]``, with the total number of timesteps specified by ``[countSteps]``.
+   Timesteps are logarithmically spaced in cosmic time between ``[timeBegin]`` and ``[timeEnd]``, with the total number of timesteps specified by ``[countSteps]``.
 
    This recorded evolution will be written to the group ``mainProgenitorEvolution`` in the Galacticus output file. Within that group two datasets, ``time`` and ``expansionFactor``, give the times and expansion factors at which evolution was recorded. Then for each merger tree two datasets, ``stellarMass&lt;N&gt;`` and ``totalMass&lt;N&gt;`` (where ``&lt;N&gt;`` is the merger tree index), give the stellar and total baryonic mass of the main branch progenitor at each timestep.
    </description>
@@ -283,11 +283,11 @@ contains
     use            :: Error                           , only : Error_Report
     use            :: Output_HDF5                     , only : outputFile
     use            :: HDF5_Access                     , only : hdf5Access
-    use            :: IO_HDF5                         , only : hdf5Object
+    use            :: IO_HDF5                         , only : hdf5File    , hdf5Group     , hdf5Dataset
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: ISO_Varying_String              , only : var_str              , varying_string
+    use            :: ISO_Varying_String              , only : var_str     , varying_string
     use            :: Kind_Numbers                    , only : kind_int8
-    use            :: Numerical_Constants_Astronomical, only : gigaYear             , massSolar
+    use            :: Numerical_Constants_Astronomical, only : gigaYear    , massSolar
     use            :: Units_MetaData                  , only : unitType
     use            :: String_Handling                 , only : operator(//)
     use            :: Locks                           , only : ompLock
@@ -299,7 +299,8 @@ contains
     logical                , intent(in   ) :: nodePassesFilter
     type   (ompLock       ), intent(inout) :: treeLock
     type   (varying_string)                :: datasetName
-    type   (hdf5Object    )                :: outputGroup     , dataset
+    type   (hdf5Group     )                :: outputGroup
+    type   (hdf5Dataset   )                :: dataset
     !$GLC attributes unused :: treeLock
 
     select type (self)

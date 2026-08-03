@@ -2,8 +2,6 @@
 a `treeNode` instance.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/TreeNodes/State.pm.
 """
 
 
@@ -14,7 +12,7 @@ from Galacticus.Build.Components.Utils import register
 def Tree_Node_Size_Of(build):
     """Generate the `sizeOf` type-bound method for `treeNode`.
 
-    Mirrors `Tree_Node_Size_Of`.  The function sums `sizeof(self)`, the
+    The function sums `sizeof(self)`, the
     size of every component-class array currently allocated, and the
     size of every event object hanging off `self%event`.
     """

@@ -4,8 +4,6 @@ once per `<instance>`, substituting generic placeholders of the form
 instance's attribute values.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/Generics.pm
 """
 
 import copy
@@ -31,10 +29,10 @@ _SEP = '¦'   # ¦
 def _dollar_to_backref(template):
     r"""Convert Perl-style `$1`…`$9` backrefs in a `to` string to Python `\1`…`\9`.
 
-    The Perl code performs `eval qq{"$to"}` which interpolates scalar variables,
-    and in practice the only variables used are capture references like `$1`.
-    Translate them to Python regex backreferences for use with `re.sub`.
-    Any literal `\` is escaped first so it isn't interpreted by `re.sub`.
+    `<generic>` directive data uses `$N` capture references in its regEx-form
+    modifiers; translate them to Python regex backreferences for use with
+    `re.sub`.  Any literal `\` is escaped first so it isn't interpreted by
+    `re.sub`.
     """
     # Escape existing backslashes first so they survive re.sub.
     out = template.replace('\\', '\\\\')
@@ -47,8 +45,6 @@ def _replace_generic(line, identifier, instance, modifier):
     """Substitute `{identifier¦modifier}` (and bare `{identifier}` when
     modifier is absent) or `{identifier¦modifier¦FROM}` with the instance's
     attribute value.
-
-    Mirrors Perl ReplaceGeneric() at Generics.pm:150-167.
     """
     value = instance[modifier]
     m_regex = re.match(r'^regEx' + _SEP + r'(.*)' + _SEP + r'(.*)' + _SEP, value)
@@ -73,8 +69,6 @@ def _replace_generic_conditional(line, identifier, instance):
     """Substitute `{identifier¦match¦REGEX¦MATCH_TEXT¦NOMATCH_TEXT}` with
     either MATCH_TEXT or NOMATCH_TEXT depending on whether REGEX matches the
     instance's `label`.
-
-    Mirrors Perl ReplaceGenericConditional() at Generics.pm:169-187.
     """
     pattern = re.compile(
         r'\{' + re.escape(identifier) + _SEP + r'match' + _SEP
@@ -95,8 +89,7 @@ def _replace_generic_conditional(line, identifier, instance):
 
 def _substitute_all(text, identifier, instance):
     """Apply `_replace_generic` for every modifier in instance plus the final
-    `_replace_generic_conditional` pass.  Matches the two-step loop in
-    Generics.pm:53-57 and :65-67.
+    `_replace_generic_conditional` pass.
     """
     for modifier in sorted(instance.keys()):
         text = _replace_generic(text, identifier, instance, modifier)
@@ -119,7 +112,7 @@ def _substitute_content_lines(content, identifier, instance):
 def _stack_it(root, initial_depth=-1):
     """Return a pre-order list of (node, depth) pairs rooted at `root`.
 
-    Mirrors Perl StackIt().  The resulting list, when popped, yields a
+    The resulting list, when popped, yields a
     reverse-pre-order traversal (children processed before their parent),
     which is what Generics needs so that replacements at a given depth don't
     invalidate earlier stack entries.
@@ -141,9 +134,7 @@ def _stack_it(root, initial_depth=-1):
 def _reparse_declaration(code_node):
     """If `code_node` is the raw-text child of a `declaration` node, re-run
     the declarations parser over its content so the structured `declarations`
-    list reflects whatever the generic expansion produced.  Mirrors the
-    `$copyNode->{'parent'}->{'type'} eq "declaration"` branch at
-    Generics.pm:73-79 / :132-138.
+    list reflects whatever the generic expansion produced.
     """
     parent = code_node.get('parent')
     if parent is None or parent.get('type') != 'declaration':
@@ -193,10 +184,10 @@ def _has_generic_ancestor(node, generic_re):
 # ---------------------------------------------------------------------------
 
 def process_generics(tree, options):
-    """Mirrors Process_Generics() from Generics.pm."""
-    # We iterate by materializing the walk up-front because the walk mutates
-    # the tree underneath us (Perl uses Walk_Tree which tolerates this; our
-    # walk_tree is a generator that wouldn't).
+    """Process `generic` directives in the tree."""
+    # We iterate by materializing the walk up-front because this pass mutates
+    # the tree underneath us and walk_tree is a generator that wouldn't
+    # tolerate that.
     for node in list(walk_tree(tree)):
         if node.get('type') != 'generic':
             continue
@@ -283,7 +274,7 @@ def _strip_processed_directive_content(root):
 def _expand_subtree(sub_node, identifier, instances, tree_name):
     """Clone sub_node per instance, apply substitutions, serialize each clone,
     and re-parse it so the resulting subtree has fresh directive / declaration
-    structure.  Matches the inner block at Generics.pm:40-90.
+    structure.
     """
     copies = []
     for instance in instances:
@@ -319,7 +310,7 @@ def _expand_subtree(sub_node, identifier, instances, tree_name):
         # contains `{introspection:location:NNN}` tags.  Re-instrumenting
         # would re-tag those, replacing baked-in line numbers with the line
         # number of the position they happen to land on in the synthesised
-        # text — matches Perl ParseCode's `instrument => 0` option.
+        # text.
         reparsed = parse_code(serialize(copied), name=tree_name, instrument=False)
         process_tree(reparsed)
         copies.append(reparsed)
@@ -329,7 +320,7 @@ def _expand_subtree(sub_node, identifier, instances, tree_name):
 def _expand_content_lines(code_node, identifier, instances, generic_re):
     """For each line in code_node['content'] that contains a generic
     placeholder, emit one substituted copy per instance; other lines are
-    copied verbatim.  Mirrors Generics.pm:102-139.
+    copied verbatim.
     """
     out = []
     for line in code_node['content'].splitlines(keepends=True):

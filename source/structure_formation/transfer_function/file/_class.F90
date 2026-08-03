@@ -323,7 +323,7 @@ contains
          &                                 displayMessage
     use :: Error                  , only : Error_Report
     use :: HDF5_Access            , only : hdf5Access
-    use :: IO_HDF5                , only : hdf5Object
+    use :: IO_HDF5                , only : hdf5File                        , hdf5Group
     use :: Numerical_Comparison   , only : Values_Differ
     use :: Numerical_Interpolation, only : GSL_Interp_cSpline
     use :: File_Utilities         , only : File_Name_Expand                , File_Lock                         , File_Unlock
@@ -365,10 +365,11 @@ contains
        if (self%useLock) call File_Lock(fileName,fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
        hdf5FileScope: block
-         type(hdf5Object) :: darkMatterGroup    , parametersObject, &
-              &              extrapolationObject, wavenumberObject, &
-              &              fileObject         , baryonsGroup
-         fileObject=hdf5Object(fileName,readOnly=.true.)
+         type(hdf5Group) :: darkMatterGroup    , parametersObject, &
+              &             extrapolationObject, wavenumberObject, &
+              &             baryonsGroup
+         type(hdf5File ) :: fileObject
+         fileObject=hdf5File(fileName,readOnly=.true.)
          ! Check that the file has the correct format version number.
          call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
          if (versionNumber /= fileFormatVersionCurrent) call Error_Report("file '"//char(File_Name_Expand(fileName))//"' has the incorrect version number"//{introspection:location})

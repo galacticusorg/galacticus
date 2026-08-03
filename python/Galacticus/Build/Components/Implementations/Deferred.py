@@ -2,8 +2,6 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/Implementations/Deferred.pm.
-
 Four `implementationIteratedFunctions` hooks per (class, member):
 
   Implementation_Deferred_Binding_Pointers      — module-scope
@@ -42,12 +40,10 @@ def _walk_to_template_member(member, method_name):
     """Walk the `extends.implementation` chain upward as long as each
     parent has a binding for `method_name`; return the topmost member.
 
-    Mirrors the `while ( exists($baseMember->{'extends'}) && grep ... )`
-    loop in Deferred.pm.  The Perl code uses `$baseMember = $baseMember->{'extends'}`
-    on the assignment side (a quirk in the original — `$baseMember` ends
-    up as the `extends` *dict*, not the parent member dict, so subsequent
-    `$baseMember->{'name'}` reads the parent's class entry's `name`
-    rather than the parent member's `name`).  Mirrored here verbatim.
+    The walk deliberately ends on the `extends` *dict*, not the parent
+    member dict — so a subsequent `['name']` lookup reads the class
+    entry's `name` rather than the parent member's `name`.  This affects
+    generated names and is preserved historical behavior.
     """
     base_member = member
     while True:
@@ -59,12 +55,14 @@ def _walk_to_template_member(member, method_name):
             break
         if not any(b.get('method') == method_name for b in _bindings(parent)):
             break
-        base_member = ext  # Faithful Perl-ism — see docstring.
+        base_member = ext  # Deliberately the `extends` dict — see docstring.
     return base_member
 
 
 def Implementation_Deferred_Binding_Pointers(build, class_dict, member):
-    """Mirrors `Implementation_Deferred_Binding_Pointers`."""
+    """Declare the module-level `…Deferred` procedure pointer and
+    `…IsSetValue` flag for each deferred binding.
+    """
     name      = class_dict['name']
     cap_member = _ucfirst(member['name'])
     for binding in _bindings(member):
@@ -93,7 +91,9 @@ def Implementation_Deferred_Binding_Pointers(build, class_dict, member):
 
 
 def Implementation_Deferred_Binding_Attachers(build, class_dict, member):
-    """Mirrors `Implementation_Deferred_Binding_Attachers`."""
+    """Generate the `<method>Function` setter that attaches a function
+    to each deferred binding.
+    """
     name        = class_dict['name']
     cap_member  = _ucfirst(member['name'])
     impl_type   = 'nodeComponent' + _ucfirst(name) + cap_member
@@ -111,9 +111,9 @@ def Implementation_Deferred_Binding_Attachers(build, class_dict, member):
             'type':        'void',
             'name':        member_function_name + 'DfrrdFnctnSet',
             'description': (
-                f"Set the function to be used for the \\mono{{{method_name}}} "
-                f"method of the \\mono{{{member['name']}}} implementation of "
-                f"the \\mono{{{name}}} component class."
+                f"Set the function to be used for the ``{method_name}`` "
+                f"method of the ``{member['name']}`` implementation of "
+                f"the ``{name}`` component class."
             ),
             'variables':   [
                 {
@@ -139,7 +139,9 @@ def Implementation_Deferred_Binding_Attachers(build, class_dict, member):
 
 
 def Implementation_Deferred_Binding_Attach_Status(build, class_dict, member):
-    """Mirrors `Implementation_Deferred_Binding_Attach_Status`."""
+    """Generate the `<method>FunctionIsSet` query reporting whether each
+    deferred binding has been attached.
+    """
     name        = class_dict['name']
     cap_member  = _ucfirst(member['name'])
     impl_type   = 'nodeComponent' + _ucfirst(name) + cap_member
@@ -153,9 +155,9 @@ def Implementation_Deferred_Binding_Attach_Status(build, class_dict, member):
             'name':        member_function_name + 'DfrrdFnctnIsSet',
             'description': (
                 f"Return true if the deferred function for the "
-                f"\\mono{{{method_name}}} method of the "
-                f"\\mono{{{member['name']}}} implementation of the "
-                f"\\mono{{{name}}} component class has been set."
+                f"``{method_name}`` method of the "
+                f"``{member['name']}`` implementation of the "
+                f"``{name}`` component class has been set."
             ),
             'content': (
                 f"{member_function_name}DfrrdFnctnIsSet="
@@ -173,7 +175,9 @@ def Implementation_Deferred_Binding_Attach_Status(build, class_dict, member):
 
 
 def Implementation_Deferred_Binding_Wrappers(build, class_dict, member):
-    """Mirrors `Implementation_Deferred_Binding_Wrappers`."""
+    """Generate the wrapper method that calls each deferred binding's
+    attached function, erroring if none has been set.
+    """
     name        = class_dict['name']
     cap         = _ucfirst(name)
     cap_member  = _ucfirst(member['name'])
@@ -208,8 +212,8 @@ def Implementation_Deferred_Binding_Wrappers(build, class_dict, member):
             'type':        function_type,
             'name':        member_function_name,
             'description': (
-                f"Call the deferred function for the \\mono{{{method_name}}} "
-                f"method of the \\mono{{{name}}} component class if it has "
+                f"Call the deferred function for the ``{method_name}`` "
+                f"method of the ``{name}`` component class if it has "
                 "been set."
             ),
             'modules':     ['Error'],
@@ -345,7 +349,8 @@ def _ucfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Implementations/Deferred.pm:23-27.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('implementationsDeferred', 'implementationIteratedFunctions',

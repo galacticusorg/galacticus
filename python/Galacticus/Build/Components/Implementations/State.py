@@ -1,8 +1,6 @@
 """Per-implementation state variable + sizeOf accessor.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Implementations/State.pm.
 """
 
 
@@ -16,8 +14,6 @@ from Galacticus.Build.Components.Utils import (
 
 def Implementation_State(build, class_dict, member):
     """Declare `nodeComponent<Class><Member>IsActiveValue` module variable.
-
-    Mirrors `Implementation_State`.
     """
     cap_class  = _ucfirst(class_dict['name'])
     cap_member = _ucfirst(member['name'])
@@ -30,7 +26,7 @@ def Implementation_State(build, class_dict, member):
 
 def Implementation_Size_Of(build, class_dict, member):
     """Generate `nodeComponent<Class><Member>SizeOf` reporting the
-    in-memory size.  Mirrors `Implementation_Size_Of`.
+    in-memory size.
     """
     cap_class  = _ucfirst(class_dict['name'])
     cap_member = _ucfirst(member['name'])

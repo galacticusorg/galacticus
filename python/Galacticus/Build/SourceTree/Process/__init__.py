@@ -2,10 +2,8 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors the Galacticus::Build::SourceTree::ProcessTree() driver and the
-%processHooks / %processDependencies / %postprocessHooks registries from
-perl/Galacticus/Build/SourceTree.pm.  Each Process submodule registers
-itself at import time via register_process() or register_postprocess().
+Each Process submodule registers itself at import time via
+register_process() or register_postprocess().
 """
 
 
@@ -23,7 +21,7 @@ ANALYZE_HOOKS       = {}   # name -> callable(tree, options)
 def register_analyze(name, fn):
     """Register an analyze hook.
 
-    Mirrors `$Hooks::analyzeHooks{name} = \\&fn`.  Analyze hooks run in
+    Analyze hooks run in
     alphabetical order after process_tree() when analyze_tree() is invoked.
     """
     ANALYZE_HOOKS[name] = fn
@@ -31,10 +29,6 @@ def register_analyze(name, fn):
 
 def register_process(name, fn, before=()):
     """Register a process hook.
-
-    Mirrors the Perl idiom
-        $Hooks::processHooks{name}        = \\&fn;
-        $Hooks::processDependencies{name} = [before, ...];
 
     Parameters
     ----------
@@ -44,8 +38,7 @@ def register_process(name, fn, before=()):
         Hook function invoked with the root node and an options dict.
     before : iterable of str
         Other hook names that MUST run after this one — i.e. each entry
-        depends on `name`.  Matches the meaning of Perl's
-        `processDependencies{name} = [...]`.
+        depends on `name`.
     """
     PROCESS_HOOKS[name] = fn
     if before:
@@ -55,7 +48,7 @@ def register_process(name, fn, before=()):
 def register_postprocess(name, fn):
     """Register a post-process hook.
 
-    Mirrors `$Hooks::postprocessHooks{name} = \\&fn`.  Post-process hooks run
+    Post-process hooks run
     in alphabetical order after every process hook has completed.
     """
     POSTPROCESS_HOOKS[name] = fn
@@ -63,8 +56,6 @@ def register_postprocess(name, fn):
 
 def process_tree(tree, options=None):
     """Run every registered process hook on the tree, in dependency order.
-
-    Mirrors Perl Galacticus::Build::SourceTree::ProcessTree().
 
     The hook-execution order is the topological sort of PROCESS_HOOKS using
     PROCESS_DEPENDENCIES as the precedence graph: if
@@ -74,8 +65,7 @@ def process_tree(tree, options=None):
         options = {}
 
     # Build the edge set that Sort.Topo.sort expects: edges[A] = list of
-    # names that must precede A.  Perl does exactly this (SourceTree.pm:190-195):
-    #     push(@{$dependencies{$dependent}}, $processor);
+    # names that must precede A.
     edges = {}
     for name, dependents in PROCESS_DEPENDENCIES.items():
         for dependent in dependents:
@@ -90,9 +80,9 @@ def process_tree(tree, options=None):
     return tree
 
 
-# Wire up the one existing post-process hook (Parse.Directives).  This matches
-# the Perl registration at Parse/Directives.pm:14 and keeps callers who just
-# invoke process_tree() from having to remember to run it themselves.
+# Wire up the one existing post-process hook (Parse.Directives).  This keeps
+# callers who just invoke process_tree() from having to remember to run it
+# themselves.
 def _register_directives_postprocess():
     from Galacticus.Build.SourceTree.Parse.Directives import post_process_directives
 

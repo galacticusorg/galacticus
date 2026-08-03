@@ -25,7 +25,7 @@
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Galactic_Filters        , only : galacticFilterClass
-  use :: IO_HDF5                 , only : hdf5Object
+  use :: IO_HDF5                 , only : hdf5File                 , hdf5Group, hdf5Dataset
 
   !![
   <mergerTreeOutputter name="mergerTreeOutputterHaloFourierProfiles" docformat="rst">
@@ -57,7 +57,7 @@
      integer                                                                :: wavenumberPointsPerDecade          , wavenumberCount
      double precision                                                       :: wavenumberMaximum                  , wavenumberMinimum
      double precision                           , allocatable, dimension(:) :: wavenumber
-     type            (hdf5Object               )                            :: outputGroup
+     type            (hdf5Group                )                            :: outputGroup
    contains
      final     ::               haloFourierProfilesDestructor
      procedure :: outputTree => haloFourierProfilesOutputTree
@@ -194,8 +194,8 @@ contains
     class           (massDistributionClass                 )               , pointer      :: massDistribution_
     double precision                                        , allocatable  , dimension(:) :: fourierProfile
     type            (mergerTreeWalkerAllNodes              )                              :: treeWalker
-    type            (hdf5Object                            )                              :: outputGroup      , treeGroup   , &
-         &                                                                                   dataset
+    type            (hdf5Group                             )                              :: outputGroup      , treeGroup
+    type            (hdf5Dataset                           )                              :: dataset
     integer         (c_size_t                              )                              :: treeIndexPrevious
     double precision                                                                      :: expansionFactor  , radiusVirial
     integer                                                                               :: i

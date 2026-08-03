@@ -3,7 +3,7 @@
 Used by the deepCopyActions and stateStorables catalog scripts, which both
 need the map of derived types (name, parent, abstractness) defined in a file
 together with the AST nodes carrying a given directive. Historically each
-script carried its own copy (a legacy of the Perl-to-Python port).
+script carried its own copy; they live here so fixes land once.
 """
 
 import re

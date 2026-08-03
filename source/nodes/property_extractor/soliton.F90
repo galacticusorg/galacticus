@@ -33,14 +33,14 @@
      A property extractor class for the properties of the :term:`FDM` soliton.
      !!}
      private
-     integer :: massCoreNormalID, massCoreID, densityCoreID, radiusCoreID, radiusSolitonID, zetaID
+     integer :: massCoreNormalID, massCoreID, densityCoreID, radiusCoreID, radiusSolitonID, zetaID, solitonStatusID
    contains
      procedure :: elementCount => solitonElementCount
      procedure :: extract      => solitonExtract
      procedure :: names        => solitonNames
      procedure :: descriptions => solitonDescriptions
      procedure :: unitsInSI    => solitonUnitsInSI
-     procedure :: units       => solitonUnits
+     procedure :: units        => solitonUnits
   end type nodePropertyExtractorSoliton
 
   interface nodePropertyExtractorSoliton
@@ -83,6 +83,7 @@ contains
     <addMetaProperty component="darkMatterProfile" name="solitonRadiusCore"     id="self%radiusCoreID"     isEvolvable="no"  isCreator="no"/>
     <addMetaProperty component="darkMatterProfile" name="solitonRadiusSoliton"  id="self%radiusSolitonID"  isEvolvable="no"  isCreator="no"/>
     <addMetaProperty component="darkMatterProfile" name="solitonZeta"           id="self%zetaID"           isEvolvable="no"  isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonStatus"         id="self%solitonStatusID" isEvolvable="no" isCreator="no"/>
     !!]
     return
   end function solitonConstructorInternal
@@ -96,7 +97,7 @@ contains
     double precision                              , intent(in   ) :: time
     !$GLC attributes unused :: self, time
 
-    solitonElementCount=6
+    solitonElementCount=7
     return
   end function solitonElementCount
 
@@ -114,12 +115,13 @@ contains
     class(nodeComponentDarkMatterProfile)               , pointer     :: darkMatterProfile
     !$GLC attributes unused :: time, instance
 
-    allocate(solitonExtract(6))
+    allocate(solitonExtract(7))
     darkMatterProfile => node%darkMatterProfile()
     select type (darkMatterProfile)
     type is (nodeComponentDarkMatterProfile)
        ! Dark matter profile does not exist.
       solitonExtract=[        & 
+        &             0.0d0,  &
         &             0.0d0,  &
         &             0.0d0,  &
         &             0.0d0,  &
@@ -134,7 +136,8 @@ contains
        &              darkMatterProfile%floatRank0MetaPropertyGet(self%densityCoreID   ), &
        &              darkMatterProfile%floatRank0MetaPropertyGet(self%radiusCoreID    ), &
        &              darkMatterProfile%floatRank0MetaPropertyGet(self%radiusSolitonID ), &
-       &              darkMatterProfile%floatRank0MetaPropertyGet(self%zetaID          )  &
+       &              darkMatterProfile%floatRank0MetaPropertyGet(self%zetaID          ), &
+       &              darkMatterProfile%floatRank0MetaPropertyGet(self%solitonStatusID )  &
        &             ]    
     end select
     return
@@ -150,13 +153,14 @@ contains
     type            (varying_string   ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
 
-    allocate(names(6))
+    allocate(names(7))
     names(1)=var_str('solitonMassCoreNormal')
     names(2)=var_str('solitonMassCore'      )
     names(3)=var_str('solitonDensityCore'   )
     names(4)=var_str('solitonRadiusCore'    )
     names(5)=var_str('solitonRadiusSoliton' )
     names(6)=var_str('solitonZetazOverZeta0')
+    names(7)=var_str('solitonStatus'        )
     return
   end subroutine solitonNames
 
@@ -170,13 +174,14 @@ contains
     type            (varying_string   ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
-    allocate(descriptions(6))
+    allocate(descriptions(7))
     descriptions(1)=var_str('The solitonic core mass of the FDM halo (without scatter), in units of M☉.')
     descriptions(2)=var_str('The solitonic core mass of the FDM halo, in units of M☉.'                  )
     descriptions(3)=var_str('The soliton central density of the FDM halo, in units of [M☉/Mpc³].'       )
     descriptions(4)=var_str('The soliton core radius of the FDM halo, in units of Mpc.'                 )
     descriptions(5)=var_str('The soliton transition radius of the FDM halo, in units of Mpc.'           )
     descriptions(6)=var_str('The ratio of density contrast at redshift z and 0, dimensionless.'         )
+    descriptions(7)=var_str('If the solitonic core solution can be found.')
     return
   end subroutine solitonDescriptions
 
@@ -188,16 +193,17 @@ contains
     implicit none
     double precision                   , allocatable  , dimension(:) :: solitonUnitsInSI
     class(nodePropertyExtractorSoliton), intent(inout)               :: self
-    double precision                                 , intent(in   )              :: time
+    double precision                   , intent(in   )               :: time
     !$GLC attributes unused :: self, time
 
-    allocate(solitonUnitsInSI(6))
+    allocate(solitonUnitsInSI(7))
     solitonUnitsInSI=[                         &
          &            massSolar              , &
          &            massSolar              , &
          &            massSolar/megaParsec**3, &
          &            megaParsec             , &
          &            megaParsec             , &
+         &            1.0d0                  , &
          &            1.0d0                    &
          &           ]
     return
@@ -216,12 +222,13 @@ contains
     !$GLC attributes unused :: self
 
     siValues=self%unitsInSI(time)
-    allocate(units(6))
+    allocate(units(7))
     units(1)=unitType(siValues(1),description='Solar masses',quantity='solMass'      )
     units(2)=unitType(siValues(2),description='Solar masses',quantity='solMass'      )
     units(3)=unitType(siValues(3),description='M☉/Mpc³'     ,quantity='solMass/Mpc^3')
     units(4)=unitType(siValues(4),description='Mpc'         ,quantity='Mpc'          )
     units(5)=unitType(siValues(5),description='Mpc'         ,quantity='Mpc'          )
     units(6)=unitType(siValues(6)                                                    )
+    units(7)=unitType(siValues(7)                                                    )
     return
   end function solitonUnits

@@ -2,7 +2,7 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/NodeEvents.pm.  Seven hooks:
+Seven hooks:
 
   types      → Build_Node_Event_Class
   interfaces → Node_Event_Task_Interface, Node_Event_Merge_Time_Set_Interface
@@ -15,8 +15,7 @@ Mirrors perl/Galacticus/Build/Components/NodeEvents.pm.  Seven hooks:
 from Galacticus.Build.Components.Utils import register
 
 
-# Static table of node-event classes.  Mirrors the `@{$build->{nodeEventClasses}}`
-# array assembled at NodeEvents.pm:42-166.  Index in this list is the
+# Static table of node-event classes.  Index in this list is the
 # `classCount` integer the polymorphic builder reads from disk.
 _NODE_EVENT_CLASSES = [
     {
@@ -143,16 +142,14 @@ _NODE_EVENT_CLASSES = [
 
 def Build_Node_Event_Class(build):
     """Define one Fortran type per entry in `_NODE_EVENT_CLASSES`.
-    Mirrors `Build_Node_Event_Class`.
 
     Stores the class table on `build['nodeEventClasses']` so the
     sister hooks can iterate it; sister hooks read this dynamic table
-    rather than the static one above (they were written that way in
-    the Perl original).
+    rather than the static one above.
     """
     build['nodeEventClasses'] = _NODE_EVENT_CLASSES
     for entry in _NODE_EVENT_CLASSES:
-        # Mirror Perl literal `isPublic => "true"` (string, not bool).
+        # Downstream code expects the string "true" here, not a bool.
         type_def = {
             'name':        entry['name'],
             'comment':     entry['description'],
@@ -165,7 +162,7 @@ def Build_Node_Event_Class(build):
 
 
 def Node_Event_Task_Interface(build):
-    """Mirrors `Node_Event_Task_Interface`."""
+    """Emit the `nodeEventTask` abstract interface."""
     build.setdefault('interfaces', {})['nodeEventTask'] = {
         'name':      'nodeEventTask',
         'comment':   "Interface for node event tasks.",
@@ -194,7 +191,7 @@ def Node_Event_Task_Interface(build):
 
 
 def Node_Event_Merge_Time_Set_Interface(build):
-    """Mirrors `Node_Event_Merge_Time_Set_Interface`."""
+    """Emit the `nodeEventInterTreeMergeTimeSet` abstract interface."""
     build.setdefault('interfaces', {})['nodeEventInterTreeMergeTimeSet'] = {
         'name':      'nodeEventInterTreeMergeTimeSet',
         'comment':   "Interface for node event inter tree merge time set functions.",
@@ -218,14 +215,13 @@ def Node_Event_Merge_Time_Set_Interface(build):
 
 def Node_Event_Deserialize_Raw(build):
     """Generate per-class `<class>DeserializeRaw` methods.
-    Mirrors `Node_Event_Deserialize_Raw`.
     """
     for entry in build.get('nodeEventClasses') or []:
         function = {
             'type':        'void',
             'name':        entry['name'] + 'DeserializeRaw',
             'description': (
-                f"Deserialize a \\mono{{{entry['name']}}} object from raw file."
+                f"Deserialize a ``{entry['name']}`` object from raw file."
             ),
             'content':     '',
             'modules':     ['ISO_C_Binding'],
@@ -285,14 +281,13 @@ def Node_Event_Deserialize_Raw(build):
 
 def Node_Event_Serialize_Raw(build):
     """Generate per-class `<class>SerializeRaw` methods.
-    Mirrors `Node_Event_Serialize_Raw`.
     """
     for class_count, entry in enumerate(build.get('nodeEventClasses') or []):
         function = {
             'type':        'void',
             'name':        entry['name'] + 'SerializeRaw',
             'description': (
-                f"Serialize a \\mono{{{entry['name']}}} object to raw file."
+                f"Serialize a ``{entry['name']}`` object to raw file."
             ),
             'modules':     ['ISO_C_Binding'],
             'variables':   [
@@ -356,13 +351,13 @@ def Node_Event_Serialize_Raw(build):
 
 def Node_Event_Deserialize_Raw_Polymorphic(build):
     """Generate the top-level `nodeEventBuildFromRaw` polymorphic
-    deserializer.  Mirrors `Node_Event_Deserialize_Raw_Polymorphic`.
+    deserializer.
     """
     function = {
         'type':        'class(nodeEvent), pointer => event',
         'name':        'nodeEventBuildFromRaw',
         'description': (
-            r"Build a \mono{nodeEvent} class object from a raw dump file."
+            r"Build a ``nodeEvent`` class object from a raw dump file."
         ),
         'modules':     ['Error'],
         'variables':   [
@@ -397,20 +392,16 @@ def Node_Event_Deserialize_Raw_Polymorphic(build):
 
 
 def Node_Event_Non_Static_Size_Of(build):
-    """Generate `nodeEventSizeOf`.  Mirrors `Node_Event_Non_Static_Size_Of`.
+    """Generate `nodeEventSizeOf`.
 
-    The Perl original interpolates `$code::class->{'name'}` into the
-    description, but `$code::class` is never set in this hook's scope —
-    it's a sister-hook iterator variable, so Perl evaluates the deref
-    as undef and emits `\\mono{}`.  We fix the bug by hard-coding
-    `nodeEvent` (the actual `class(...)` of `self` in the generated
-    function), which is what the description was clearly meant to say.
+    The description hard-codes `nodeEvent` — the actual `class(...)` of
+    `self` in the generated function.
     """
     function = {
         'type':        'integer(c_size_t)',
         'name':        'nodeEventSizeOf',
         'description': (
-            r"Compute the size of the non-static parts of a \mono{nodeEvent} object."
+            r"Compute the size of the non-static parts of a ``nodeEvent`` object."
         ),
         'variables':   [
             {
@@ -436,7 +427,8 @@ def _bind(build, type_name, function, method_name):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl NodeEvents.pm:19-34.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('nodeEvents', 'types',      Build_Node_Event_Class)

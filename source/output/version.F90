@@ -92,7 +92,7 @@ contains
     use, intrinsic :: ISO_C_Binding     , only : c_null_char
 #else
     use            :: Input_Paths       , only : pathTypeDataDynamic
-    use            :: System_Command    , only : System_Command_Do
+    use            :: System_Command    , only : System_Command_Do                , shellEscape
     use            :: File_Utilities    , only : File_Name_Temporary              , File_Remove
 #endif
     use            :: Dates_and_Times   , only : Formatted_Date_and_Time
@@ -103,7 +103,7 @@ contains
     use            :: Output_HDF5       , only : outputFile
     use            :: HDF5_Access       , only : hdf5Access
     use            :: Input_Paths       , only : inputPath                        , pathTypeDataStatic
-    use            :: IO_HDF5           , only : hdf5Object
+    use            :: IO_HDF5           , only : hdf5Group
     use            :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , XML_Parse
     use            :: ISO_Varying_String, only : varying_string                   , char
     use            :: String_Handling   , only : String_C_to_Fortran
@@ -113,11 +113,12 @@ contains
     integer                            :: ioErr
     character(len= 41       )          :: gitHashDatasets
     character(len=128       )          :: textBufferFixed
-    type     (hdf5Object    )          :: versionGroup
+    type     (hdf5Group     )          :: versionGroup
     type     (varying_string)          :: runTime        , inputPathStatic
 #ifndef GIT2AVAIL
     integer                            :: status         , hashUnit
-    type     (varying_string)          :: hashFileName
+    type     (varying_string)          :: hashFileName   , escapedStaticPath, &
+         &                                escapedHashFile
 #endif
 
     ! Record the count of the system clock.
@@ -141,9 +142,12 @@ contains
     gitHashDatasets=char(String_C_to_Fortran(gitHashDatasets))
 #else
     ! Git2 library is not available. If we have the command line `git` installed, use it instead.
-    gitHashDatasets="unknown"
-    hashFileName   =File_Name_Temporary("repoHash.txt")
-    call System_Command_Do("cd "//char(inputPath(pathTypeDataStatic))//"; if which git > /dev/null && git rev-parse --is-inside-work-tree > /dev/null 2>&1 ; then git rev-parse HEAD > "//char(hashFileName)//"; else echo unknown > "//char(hashFileName)//"; fi",iStatus=status)
+    gitHashDatasets  ="unknown"
+    hashFileName     =File_Name_Temporary("repoHash.txt"    )
+    escapedStaticPath=inputPath          (pathTypeDataStatic)
+    escapedStaticPath=shellEscape        (escapedStaticPath )
+    escapedHashFile  =shellEscape        (hashFileName      )
+    call System_Command_Do("cd "//char(escapedStaticPath)//"; if which git > /dev/null && git rev-parse --is-inside-work-tree > /dev/null 2>&1 ; then git rev-parse HEAD > "//char(escapedHashFile)//"; else echo unknown > "//char(escapedHashFile)//"; fi",iStatus=status)
     if (status == 0) then
        open(newUnit=hashUnit,file=char(hashFileName),status="old",form="formatted",iostat=ioErr)
        if (ioErr == 0) read (hashUnit,'(a)') gitHashDatasets
@@ -185,12 +189,12 @@ contains
     Output final version information to the main output file.
     !!}
     use :: Dates_and_Times   , only : Formatted_Date_and_Time
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5Group
     use :: HDF5_Access       , only : hdf5Access
     use :: Output_HDF5       , only : outputFile
     use :: ISO_Varying_String, only : varying_string
     implicit none
-    type            (hdf5Object    ) :: versionGroup
+    type            (hdf5Group     ) :: versionGroup
     type            (varying_string) :: runTime
     integer         (c_size_t      ) :: countEndClockSystem, rateClockSystem
     double precision                 :: timeRunDuration

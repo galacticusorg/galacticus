@@ -98,7 +98,8 @@ contains
     type            (massDistributionSphericalScaler)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
     class           (massDistributionClass          ), pointer       :: massDistribution_
-    double precision                                                 :: factorScalingLength, factorScalingMass
+    double precision                                                 :: factorScalingLength                     , factorScalingMass
+    logical                                                          :: chandrasekharIntegralSuppressExtendedMass
 
     !![
     <inputParameter docformat="rst">
@@ -115,11 +116,19 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>chandrasekharIntegralSuppressExtendedMass</name>
+      <defaultValue>.true.</defaultValue>
+      <source>parameters</source>
+      <description>
+      If true, the Chandrasekhar integral (used to compute dynamical friction) is suppressed by a factor accounting for the finite extent of the perturbing subhalo. If false, no such suppression is applied.
+      </description>
+    </inputParameter>
     <objectBuilder class="massDistribution" name="massDistribution_" source="parameters"/>
     !!]
     select type (massDistribution_)
     class is (massDistributionSpherical)
-       self=massDistributionSphericalScaler(factorScalingLength,factorScalingMass,massDistribution_)
+       self=massDistributionSphericalScaler(factorScalingLength,factorScalingMass,massDistribution_,chandrasekharIntegralSuppressExtendedMass)
     class default
        call Error_Report('a spherically-symmetric mass distribution is required'//{introspection:location})
     end select
@@ -130,17 +139,17 @@ contains
     return
   end function sphericalScalerConstructorParameters
   
-  function sphericalScalerConstructorInternal(factorScalingLength,factorScalingMass,massDistribution_,chandrasekharIntegralComputeVelocityDispersion) result(self)
+  function sphericalScalerConstructorInternal(factorScalingLength,factorScalingMass,massDistribution_,chandrasekharIntegralSuppressExtendedMass) result(self)
     !!{RST
     Constructor for the :galacticus-class:`massDistributionSphericalScaler` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalScaler)                          :: self
     class           (massDistributionSpherical      ), intent(in   ), target   :: massDistribution_
-    double precision                                 , intent(in   )           :: factorScalingLength                           , factorScalingMass
-    logical                                          , intent(in   ), optional :: chandrasekharIntegralComputeVelocityDispersion
+    double precision                                 , intent(in   )           :: factorScalingLength                      , factorScalingMass
+    logical                                          , intent(in   ), optional :: chandrasekharIntegralSuppressExtendedMass
     !![
-    <constructorAssign variables="factorScalingLength, factorScalingMass, *massDistribution_, chandrasekharIntegralComputeVelocityDispersion"/>
+    <constructorAssign variables="factorScalingLength, factorScalingMass, chandrasekharIntegralSuppressExtendedMass, *massDistribution_"/>
     !!]
  
     self%componentType              =self%massDistribution_%componentType
@@ -228,7 +237,7 @@ contains
          &                                                                             coordinatesScaled, &
          &                                                                             logarithmic        &
          &                                                                            )
-    if (.not.logarithmic)                                                             &
+    if (.not.logarithmic_)                                                            &
          & sphericalScalerDensityGradientRadial=+sphericalScalerDensityGradientRadial &
          &                                      *self%factorScalingMass               &
          &                                      /self%factorScalingLength**4
@@ -342,26 +351,28 @@ contains
     !!{RST
     Computes the gravitational acceleration at ``coordinates`` for spherically-symmetric mass distributions.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gigaYear, gravitationalConstant_internal, megaParsec
+    use :: Coordinates                     , only : assignment(=), coordinateCartesian
+    use :: Numerical_Constants_Astronomical, only : gigaYear     , gravitationalConstant_internal, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    double precision                                 , dimension(3)  :: sphericalScalerAcceleration
+    type            (coordinateCartesian            )                :: sphericalScalerAcceleration
     class           (massDistributionSphericalScaler), intent(inout) :: self
     class           (coordinate                     ), intent(in   ) :: coordinates
     class           (coordinate                     ), allocatable   :: coordinatesScaled
+    double precision                                 , dimension(3)  :: accelerationVector
 
     call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
-    sphericalScalerAcceleration=+self%massDistribution_%acceleration         (                  &
-         &                                                                    coordinatesScaled &
-         &                                                                   )                  &
-         &                      *self                  %factorScalingMass                       &
-         &                      /self                  %factorScalingLength**2
-    if (self%massDistribution_%isDimensionless())                      &
-         & sphericalScalerAcceleration=+sphericalScalerAcceleration    &
-         &                             *kilo                           &
-         &                             *gigaYear                       &
-         &                             /megaParsec                     &
-         &                             *gravitationalConstant_internal
+    accelerationVector=self%massDistribution_%acceleration(coordinatesScaled)
+    accelerationVector=+accelerationVector                    &
+         &             *self%factorScalingMass                &
+         &             /self%factorScalingLength**2
+    if (self%massDistribution_%isDimensionless())             &
+         & accelerationVector=+accelerationVector             &
+         &                    *kilo                           &
+         &                    *gigaYear                       &
+         &                    /megaParsec                     &
+         &                    *gravitationalConstant_internal
+    sphericalScalerAcceleration=accelerationVector
     return
   end function sphericalScalerAcceleration
 
@@ -431,16 +442,17 @@ contains
     Computes the gravitational tidal tensor at ``coordinates`` in a scaled spherical mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
-    use :: Coordinates                     , only : coordinateCartesian           , assignment(=)
     implicit none
-    type (tensorRank2Dimension3Symmetric )                :: tidalTensor
-    class(massDistributionSphericalScaler), intent(inout) :: self
-    class(coordinate                     ), intent(in   ) :: coordinates
-    class(coordinate                     ), allocatable   :: coordinatesScaled
-    type (coordinateCartesian            )                :: position
+    type            (tensorRank2Dimension3Symmetric )                :: tidalTensor
+    class           (massDistributionSphericalScaler), intent(inout) :: self
+    class           (coordinate                     ), intent(in   ) :: coordinates
+    class           (coordinate                     ), allocatable   :: coordinatesScaled
+    ! The memoized tidal tensor is keyed on the Cartesian components of the coordinates, so that the cache
+    ! behaves correctly irrespective of the coordinate system in which `coordinates` is expressed.
+    double precision                                 , dimension(3)  :: position
 
-    position=coordinates
-    if (any(position%position /= self%positionTidalTensorPrevious)) then
+    position=coordinates%toCartesian()
+    if (any(position /= self%positionTidalTensorPrevious)) then
        call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
        self%tidalTensorPrevious=+self%massDistribution_%tidalTensor           (                  &
             &                                                                  coordinatesScaled &
@@ -450,7 +462,7 @@ contains
        if (self%massDistribution_%isDimensionless())                   &
             & self%tidalTensorPrevious=+self%tidalTensorPrevious       &
             &                          *gravitationalConstant_internal
-       self%positionTidalTensorPrevious=position%position
+       self%positionTidalTensorPrevious=position
     end if
     tidalTensor=self%tidalTensorPrevious
     return
@@ -460,13 +472,16 @@ contains
     !!{RST
     Sample a position from a scaled spherical mass distribution.
     !!}
+    use :: Coordinates, only : coordinateCartesian, assignment(=)
     implicit none
-    double precision                                 , dimension(3)  :: sphericalScalerPositionSample
+    type            (coordinateCartesian            )                :: sphericalScalerPositionSample
     class           (massDistributionSphericalScaler), intent(inout) :: self
     class           (randomNumberGeneratorClass     ), intent(inout) :: randomNumberGenerator_
+    double precision                                 , dimension(3)  :: positionArray
 
-    sphericalScalerPositionSample=+self%massDistribution_%positionSample     (randomNumberGenerator_) &
-         &                        *self                  %factorScalingLength
+    positionArray                =self%massDistribution_%positionSample(randomNumberGenerator_)
+    positionArray                =+positionArray*self%factorScalingLength
+    sphericalScalerPositionSample=positionArray
     return
   end function sphericalScalerPositionSample
 

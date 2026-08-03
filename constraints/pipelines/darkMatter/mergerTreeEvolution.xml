@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <parameters>
-  <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
+  <lastModified revision="a3e1665914d944c9fa844f662a028072e84740a5" time="2026-07-28T17:29:21"/>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
@@ -11,7 +11,12 @@
     <mergeProbability      value="0.10"  />
     <branchIntervalStep    value="true"  />
     <redshiftMaximum       value="10.0"  />
-    <toleranceTimeEarliest value="1.0e-5"/>
+    <!-- Relaxed from 1.0e-5: the tight tolerance trips "branch is making no progress"
+         in cole2000 during first-run adaptive tabulation (e.g. sigma(M) tables
+         extending mid-build). 1.0e-4 avoids the warm-up aborts with negligible impact
+         on tree accuracy (a full 12.5k-tree progenitor run also completes cleanly at
+         1.0e-3 if more margin is wanted). -->
+    <toleranceTimeEarliest value="1.0e-4"/>
   </mergerTreeBuilder>
   <mergerTreeBranchingProbability value="PCHPlus">
     <!-- Best fit values from PCH -->

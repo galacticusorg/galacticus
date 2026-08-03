@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Format a Galacticus parameter file to make it more easily comprehensible.
-Port of parametersFormat.pl (Andrew Benson, 08-March-2016)
+Andrew Benson (08-March-2016)
 """
 
 import re
@@ -524,7 +524,7 @@ def _process_parameters(parameters):
         )
 
         # Insert in reverse-sorted order at position 0 so the final order is
-        # ascending (mirrors the Perl insertBefore-at-firstChild logic).
+        # ascending.
         for param in reversed(sorted_params):
             parameters.insert(0, param)
 
@@ -562,7 +562,7 @@ def main():
     ET.indent(tree, space="  ")
 
     # Insert a blank line before every section comment that is a direct child
-    # of a <parameters> element (matches the Perl "\n  " text-node insertion).
+    # of a <parameters> element.
     for parameters in parameter_sets:
         children = list(parameters)
         for i, child in enumerate(children):

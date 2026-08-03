@@ -2,8 +2,7 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/Classes/Defaults.pm.  Three
-`classIteratedFunctions` hooks emit per-class default-value getters:
+Three `classIteratedFunctions` hooks emit per-class default-value getters:
 `<prop>IsGettable`, `<prop>` (the default-value lookup), and
 `<prop>RateGet` (a zero-rate fallback).
 """
@@ -27,8 +26,6 @@ def _class_members_by_property(class_dict):
     """Group every property name to a triple: `{name, property, members}`
     where `members` is the subset of class members that supply a
     `classDefault` for that property.
-
-    Mirrors `Class_Members_By_Property`.
     """
     properties = {}
     for member in class_dict.get('members') or []:
@@ -47,8 +44,6 @@ def Class_Property_Is_Gettable(build, class_dict):
     """Generate `<class><Prop>IsGettable` per class property —
     returns true when at least one member that supplies that
     property is active at run-time.
-
-    Mirrors `Class_Property_Is_Gettable`.
     """
     class_name = class_dict['name']
     cap_class  = _ucfirst(class_name)
@@ -63,8 +58,8 @@ def Class_Property_Is_Gettable(build, class_dict):
             'type':        'logical',
             'name':        f"{class_name}{cap_prop}IsGettable",
             'description': (
-                f"Returns true if the \\mono{{{prop_name}}} property is "
-                f"gettable for the \\mono{{{class_name}}} component class."
+                f"Returns true if the ``{prop_name}`` property is "
+                f"gettable for the ``{class_name}`` component class."
             ),
         }
         content = f"{class_name}{cap_prop}IsGettable=.false.\n"
@@ -91,8 +86,6 @@ def Class_Property_Default(build, class_dict):
     default value for the property.  Walks active class members that
     declare a `classDefault` and falls back to type-zero when none
     matches.
-
-    Mirrors `Class_Property_Default`.
     """
     class_name = class_dict['name']
     cap_class  = _ucfirst(class_name)
@@ -111,8 +104,8 @@ def Class_Property_Default(build, class_dict):
             'type':        return_type,
             'name':        f"{class_name}{cap_prop}",
             'description': (
-                f"Returns the default value for the \\mono{{{prop_name}}} "
-                f"property for the \\mono{{{class_name}}} component class."
+                f"Returns the default value for the ``{prop_name}`` "
+                f"property for the ``{class_name}`` component class."
             ),
             'variables':   [
                 {
@@ -213,7 +206,7 @@ def Class_Property_Default(build, class_dict):
 
 def Class_Property_Rate_Default(build, class_dict):
     """Generate `<class><Prop>RateGet` returning a zero rate for the
-    property.  Mirrors `Class_Property_Rate_Default`.
+    property.
     """
     class_name = class_dict['name']
     cap_class  = _ucfirst(class_name)
@@ -233,8 +226,8 @@ def Class_Property_Rate_Default(build, class_dict):
             'type':        return_type,
             'name':        f"{class_name}{cap_prop}RateGet",
             'description': (
-                f"Returns a zero rate for the \\mono{{{prop_name}}} property "
-                f"for the \\mono{{{class_name}}} component class."
+                f"Returns a zero rate for the ``{prop_name}`` property "
+                f"for the ``{class_name}`` component class."
             ),
             'variables':   [
                 {
@@ -267,8 +260,7 @@ def Class_Property_Rate_Default(build, class_dict):
 
 def _format_return_type(descriptor):
     """Build the `<type>(<inner>), <attrs> => classDefault` return-type
-    string from a `data_object_definition` descriptor.  Mirrors the
-    Perl ternary that walks `intrinsic` / `type` / `attributes`.
+    string from a `data_object_definition` descriptor.
     """
     parts = [descriptor['intrinsic']]
     if 'type' in descriptor:

@@ -1,8 +1,6 @@
 """Per-class `<class>Type` name accessor.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Classes/Names.pm.
 """
 from __future__ import annotations
 
@@ -12,7 +10,7 @@ from Galacticus.Build.Components.Utils import register
 def Class_Type(build: dict, class_dict: dict) -> None:
     """Generate `nodeComponent<Class>Type` returning the class label.
 
-    Mirrors `Class_Type`.  Body just returns `'nodeComponent:<class>'`.
+    Body just returns `'nodeComponent:<class>'`.
     """
     name      = class_dict['name']
     type_name = 'nodeComponent' + _ucfirst(name)

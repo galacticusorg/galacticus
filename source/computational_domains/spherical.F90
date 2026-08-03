@@ -667,11 +667,11 @@ contains
     use    :: Units_MetaData                  , only : unitType
     implicit none
     class           (computationalDomainSpherical), intent(inout)               :: self
-    type            (hdf5Object                  ), intent(inout)               :: outputGroup
+    type            (hdf5Group                   ), intent(inout)               :: outputGroup
     integer         (c_size_t                    )                              :: i             , countOutputs, &
          &                                                                         output
     double precision                              , allocatable  , dimension(:) :: propertyScalar
-    type            (hdf5Object                  )                              :: dataset
+    type            (hdf5Dataset                 )                              :: dataset
     
     !$ call hdf5Access%set  ()
     call outputGroup%writeDataset  (self%boundariesCells%boundary                                                              ,'domainBoundariesRadial'  ,datasetReturned=dataset)

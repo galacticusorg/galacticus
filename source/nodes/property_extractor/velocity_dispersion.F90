@@ -21,7 +21,7 @@
   Implements a property extractor class for the velocity dispersion at a set of radii.
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale    , darkMatterHaloScaleClass
-  use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
+  use :: Galactic_Structure_Radii_Definitions, only : radiusDefinitions
   use :: Galactic_Structure_Options          , only : enumerationMassTypeType, enumerationComponentTypeType, enumerationWeightByType
   use :: Mass_Distributions                  , only : massDistributionClass  , kinematicsDistributionClass
   
@@ -42,11 +42,7 @@
      logical                                                      :: includeRadii                           , integrationFailureIsFatal
      double precision                                             :: toleranceRelative
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
-     type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
-     logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
-          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded, &
-          &                                                          nuclearStarClusterIsNeeded             , satelliteIsNeeded   , &
-          &                                                          hotHaloIsNeeded
+     type   (radiusDefinitions       )                            :: radii
    contains
      final     ::                       velocityDispersionDestructor
      procedure :: columnDescriptions => velocityDispersionColumnDescriptions
@@ -143,7 +139,6 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorVelocityDispersion` property extractor class.
     !!}
-    use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
     type            (nodePropertyExtractorVelocityDispersion)                              :: self
     type            (varying_string                         ), intent(in   ), dimension(:) :: radiusSpecifiers
@@ -160,17 +155,7 @@ contains
        self%elementCount_=1
     end if
     self%radiiCount      =size(radiusSpecifiers)
-    call Galactic_Structure_Radii_Definition_Decode(                                    &
-         &                                          radiusSpecifiers                  , &
-         &                                          self%radii                        , &
-         &                                          self%hotHaloIsNeeded              , &
-         &                                          self%diskIsNeeded                 , &
-         &                                          self%spheroidIsNeeded             , &
-         &                                          self%nuclearStarClusterIsNeeded   , &
-         &                                          self%satelliteIsNeeded            , &
-         &                                          self%virialRadiusIsNeeded         , &
-         &                                          self%darkMatterScaleRadiusIsNeeded  &
-         &                                         )
+    call self%radii%decode(radiusSpecifiers)
     return
   end function velocityDispersionConstructorInternal
 
@@ -218,37 +203,28 @@ contains
     !!{RST
     Implement a ``velocityDispersion`` property extractor.
     !!}
-    use :: Galactic_Structure_Options          , only : componentTypeAll               , componentTypeDisk           , componentTypeSpheroid                     , massTypeGalactic                  , &
-          &                                             massTypeStellar                , massTypeAll
-    use :: Galactic_Structure_Radii_Definitions, only : directionLambdaR               , directionLineOfSight        , directionLineOfSightInteriorAverage       , directionRadial                   , &
-          &                                             radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius                      , radiusTypeGalacticLightFraction   , &
-          &                                             radiusTypeGalacticMassFraction , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius          , radiusTypeSpheroidRadius          , &
-          &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius      , radiusTypeNuclearStarClusterHalfMassRadius, radiusTypeNuclearStarClusterRadius, &
-          &                                             radiusTypeHotHaloOuterRadius
-    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid                     , nodeComponentNSC                  , &
-          &                                             nodeComponentHotHalo           , treeNode
-    use :: Coordinates                         , only : coordinateSpherical            , assignment(=)
+    use :: Galactic_Structure_Options          , only : componentTypeDisk  , componentTypeSpheroid, componentTypeAll                   , massTypeStellar, &
+          &                                             massTypeAll
+    use :: Galactic_Structure_Radii_Definitions, only : directionLambdaR   , directionLineOfSight , directionLineOfSightInteriorAverage, directionRadial, &
+          &                                             radiusResolver     , radiusUndefined
+    use :: Galacticus_Nodes                    , only : treeNode
+    use :: Coordinates                         , only : coordinateSpherical, assignment(=)
     use :: Numerical_Integration               , only : integrator
-    use :: Error                               , only : Error_Report
     implicit none
     double precision                                         , dimension(:,:), allocatable :: velocityDispersionExtract
     class           (nodePropertyExtractorVelocityDispersion), intent(inout) , target      :: self
     type            (treeNode                               ), intent(inout) , target      :: node
     double precision                                         , intent(in   )               :: time
     type            (multiCounter                           ), intent(inout) , optional    :: instance
-    class           (nodeComponentHotHalo                   ), pointer                     :: hotHalo
-    class           (nodeComponentDisk                      ), pointer                     :: disk
-    class           (nodeComponentSpheroid                  ), pointer                     :: spheroid
-    class           (nodeComponentNSC                       ), pointer                     :: nuclearStarCluster
-    class           (nodeComponentDarkMatterProfile         ), pointer                     :: darkMatterProfile
     double precision                                         , parameter                   :: outerRadiusMultiplier           =10.0d0
     integer                                                                                :: i
-    double precision                                                                       :: radius                                 , radiusVirial            , &
-         &                                                                                    radiusFromFraction                     , densityIntegrand        , &
-         &                                                                                    radiusZero                             , velocityDensityIntegrand, &
-         &                                                                                    numerator                              , denominator             , &
-         &                                                                                    massDisk                               , massSpheroid
-    logical                                                                                :: scaleIsZero
+    double precision                                                                       :: radius                                 , radiusScale             , &
+         &                                                                                    densityIntegrand                       , velocityDensityIntegrand, &
+         &                                                                                    radiusZero                             , numerator               , &
+         &                                                                                    denominator                            , massDisk                , &
+         &                                                                                    massSpheroid
+    logical                                                                                :: rangeIsDegenerate
+    type            (radiusResolver                         )                              :: resolver
     type            (integrator                             )                              :: integratorVelocitySurfaceDensity       , integratorSurfaceDensity, &
          &                                                                                    integratorLambdaR2                     , integratorLambdaR1
     type            (coordinateSpherical                    )                              :: coordinates
@@ -259,96 +235,31 @@ contains
     integratorLambdaR1              =integrator(velocityDispersionLambdaRIntegrand1              ,toleranceRelative=1.0d-2)
     integratorLambdaR2              =integrator(velocityDispersionLambdaRIntegrand2              ,toleranceRelative=1.0d-2)
     allocate(velocityDispersionExtract(self%radiiCount,self%elementCount_))
-    radiusVirial                                         =  0.0d0
-    if (self%         virialRadiusIsNeeded) radiusVirial       =  self%darkMatterHaloScale_%radiusVirial(node                    )
-    if (self%              hotHaloIsNeeded) hotHalo            =>                                        node%hotHalo          ()
-    if (self%                 diskIsNeeded) disk               =>                                        node%disk             ()
-    if (self%             spheroidIsNeeded) spheroid           =>                                        node%spheroid         ()
-    if (self%   nuclearStarClusterIsNeeded) nuclearStarCluster =>                                        node%NSC              ()
-    if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile  =>                                        node%darkMatterProfile()
+    resolver=radiusResolver(self%radii,node,self%darkMatterHaloScale_)
     do i=1,self%radiiCount
-       scaleIsZero=.false.
-       radius     =self%radii(i)%value
-       select case (self%radii(i)%type%ID)
-       case   (radiusTypeRadius                          %ID)
-          radiusOuter_=    radius                                    *outerRadiusMultiplier
-       case   (radiusTypeVirialRadius                    %ID)
-          radius                       =    radius*radiusVirial
-          radiusOuter_=max(radius,radiusVirial                      )*outerRadiusMultiplier
-       case   (radiusTypeDarkMatterScaleRadius           %ID)
-          radius                       =    radius*darkMatterProfile %         scale()
-          radiusOuter_=max(radius,darkMatterProfile%         scale())*outerRadiusMultiplier
-       case   (radiusTypeHotHaloOuterRadius              %ID)
-          radius                       =    radius*hotHalo           %   outerRadius()
-          radiusOuter_=max(radius,hotHalo          %   outerRadius())*outerRadiusMultiplier
-          scaleIsZero                  =(hotHalo                    %   outerRadius() <= 0.0d0)
-       case   (radiusTypeDiskRadius                      %ID)
-          radius                       =    radius*disk              %        radius()
-          radiusOuter_=max(radius,disk             %        radius())*outerRadiusMultiplier
-          scaleIsZero                  =(disk                       %        radius() <= 0.0d0)
-       case   (radiusTypeSpheroidRadius                  %ID)
-          radius                       =    radius*spheroid          %        radius()
-          radiusOuter_=max(radius,spheroid         %        radius())*outerRadiusMultiplier
-          scaleIsZero                  =(spheroid                   %        radius() <= 0.0d0)
-       case   (radiusTypeNuclearStarClusterRadius        %ID)
-          radius                       =    radius*nuclearStarCluster%        radius()
-          radiusOuter_=max(radius,nuclearStarCluster              %        radius())*outerRadiusMultiplier
-          scaleIsZero                  =(nuclearStarCluster                        %        radius() <= 0.0d0)
-       case   (radiusTypeDiskHalfMassRadius              %ID)
-          radius                       =    radius*disk              %halfMassRadius()
-          radiusOuter_=max(radius,disk             %halfMassRadius())*outerRadiusMultiplier
-          scaleIsZero                  =(disk                       %halfMassRadius() <= 0.0d0)
-       case   (radiusTypeSpheroidHalfMassRadius          %ID)
-          radius                       =    radius*spheroid          %halfMassRadius()
-          radiusOuter_=max(radius,spheroid         %halfMassRadius())*outerRadiusMultiplier
-          scaleIsZero                  =(spheroid                   %halfMassRadius() <= 0.0d0)
-       case   (radiusTypeNuclearStarClusterHalfMassRadius%ID)
-          radius                       =    radius*nuclearStarCluster              %halfMassRadius()
-          radiusOuter_=max(radius,nuclearStarCluster                %halfMassRadius())*outerRadiusMultiplier
-          scaleIsZero                  =(nuclearStarCluster                        %halfMassRadius() <= 0.0d0)
-       case   (radiusTypeGalacticMassFraction            %ID,  &
-            &  radiusTypeGalacticLightFraction           %ID )
-          massDistribution_  =>  node             %massDistribution   (                                                &
-               &                                                       massType      =              massTypeGalactic,  &
-               &                                                       componentType =              componentTypeAll,  &
-               &                                                       weightBy      =self%radii(i)%weightBy        ,  &
-               &                                                       weightIndex   =self%radii(i)%weightByIndex      &
-               &                                                      )
-          radiusFromFraction =  +massDistribution_%radiusEnclosingMass(                                                &
-               &                                                       massFractional=self%radii(i)%fraction           &
-               &                                                      )
-          radius             =  +radius*radiusFromFraction
-          radiusOuter_       =  max(radius,radiusFromFraction)*outerRadiusMultiplier
-          !![
-	  <objectDestructor name="massDistribution_"/>
-	  !!]
-       case   (radiusTypeStellarMassFraction            %ID)
-          massDistribution_  =>  node             %massDistribution   (                                                &
-               &                                                       massType      =              massTypeStellar ,  &
-               &                                                       componentType =              componentTypeAll,  &
-               &                                                       weightBy      =self%radii(i)%weightBy        ,  &
-               &                                                       weightIndex   =self%radii(i)%weightByIndex      &
-               &                                                      )
-          radiusFromFraction =  +massDistribution_%radiusEnclosingMass(                                                &
-               &                                                       massFractional=self%radii(i)%fraction           &
-               &                                                      )
-          radius             =  +radius*radiusFromFraction
-          radiusOuter_       =  max(radius,radiusFromFraction)*outerRadiusMultiplier
-          !![
-	  <objectDestructor name="massDistribution_"/>
-	  !!]
-       case default
-          call Error_Report('unrecognized radius type'//{introspection:location})
-       end select
-       if (scaleIsZero) then
-          ! Do not compute dispersions if the component scale is zero.
+       call resolver%evaluate(i,radius,radiusScale)
+       if (radius < 0.0d0) then
+          ! The radius is undefined in this node - report the sentinel. Note that this test must precede any arithmetic on the
+          ! radius, since the sentinel would overflow (and so trap) under multiplication.
+          velocityDispersionExtract       (i,1)=radiusUndefined
+          if (self%includeRadii)                               &
+               & velocityDispersionExtract(i,2)=radiusUndefined
+          cycle
+       end if
+       radiusOuter_=max(radius,radiusScale)*outerRadiusMultiplier
+       ! The line-of-sight integrals below run out to `radiusOuter_`. If that is not positive the integration range is
+       ! degenerate - which happens whenever the component in whose units the radius is expressed has zero extent, and so is
+       ! absent - and no dispersion can be computed.
+       rangeIsDegenerate=(radiusOuter_ <= 0.0d0)
+       if (rangeIsDegenerate) then
+          ! Do not compute dispersions if the integration range is degenerate.
           velocityDispersionExtract(i,1)=0.0d0
        else
-          massDistribution_         => node             %      massDistribution(componentType=self%radii(i)%component       ,massType=self%radii(i)%mass                                                                                )
-          massDistributionWeighted_ => node             %      massDistribution(componentType=self%radii(i)%component       ,massType=self%radii(i)%mass        ,weightBy=self%radii(i)%weightBy,weightIndex=self%radii(i)%weightByIndex)
-          massDistributionTotal_    => node             %      massDistribution(componentType=              componentTypeAll,massType=              massTypeAll                                                                         )
-          kinematicsDistribution_   => massDistribution_%kinematicsDistribution(                                                                                                                                                        ) 
-          select case (self%radii(i)%direction%ID)
+          massDistribution_         => node             %      massDistribution(componentType=self%radii%specifiers(i)%component       ,massType=self%radii%specifiers(i)%mass                                                                                                    )
+          massDistributionWeighted_ => node             %      massDistribution(componentType=self%radii%specifiers(i)%component       ,massType=self%radii%specifiers(i)%mass      ,weightBy=self%radii%specifiers(i)%weightBy,weightIndex=self%radii%specifiers(i)%weightByIndex)
+          massDistributionTotal_    => node             %      massDistribution(componentType=                         componentTypeAll,massType=                        massTypeAll                                                                         )
+          kinematicsDistribution_   => massDistribution_%kinematicsDistribution(                                                                                                                                                                                                  ) 
+          select case (self%radii%specifiers(i)%direction%ID)
           case (directionRadial                    %ID)
              ! Radial velocity dispersion.
              coordinates                   =[radius,0.0d0,0.0d0]
@@ -356,19 +267,19 @@ contains
           case (directionLineOfSight               %ID)
              ! Line-of-sight velocity dispersion.
              self_               => self
-             massType_           =  self%radii(i)%mass
-             componentType_      =  self%radii(i)%component
-             weightBy_           =  self%radii(i)%integralWeightBy
-             weightIndex_        =  self%radii(i)%integralWeightByIndex
+             massType_           =  self%radii%specifiers(i)%mass
+             componentType_      =  self%radii%specifiers(i)%component
+             weightBy_           =  self%radii%specifiers(i)%integralWeightBy
+             weightIndex_        =  self%radii%specifiers(i)%integralWeightByIndex
              radiusImpact_       =  radius
              velocityDispersionExtract      (i,1) =  velocityDispersionLineOfSightVelocityDispersionIntegrand(radius)
           case (directionLineOfSightInteriorAverage%ID)
              ! Average over the line-of-sight velocity dispersion within the radius.
              self_          => self
-             massType_      =  self%radii(i)%mass
-             componentType_ =  self%radii(i)%component
-             weightBy_      =  self%radii(i)%integralWeightBy
-             weightIndex_   =  self%radii(i)%integralWeightByIndex
+             massType_      =  self%radii%specifiers(i)%mass
+             componentType_ =  self%radii%specifiers(i)%component
+             weightBy_      =  self%radii%specifiers(i)%integralWeightBy
+             weightIndex_   =  self%radii%specifiers(i)%integralWeightByIndex
              radiusZero                      =  0.0d0
              radiusImpact_  =  radius
              velocityDensityIntegrand        =integratorVelocitySurfaceDensity%integrate(radiusZero,radiusOuter_)
@@ -381,10 +292,10 @@ contains
           case (directionLambdaR                   %ID)
              ! The "lambdaR" parameter of Cappellari et al. (2007; MNRAS; 379; 418)
              self_          => self
-             massType_      =  self%radii(i)%mass
-             componentType_ =  self%radii(i)%component
-             weightBy_      =  self%radii(i)%integralWeightBy
-             weightIndex_   =  self%radii(i)%integralWeightByIndex
+             massType_      =  self%radii%specifiers(i)%mass
+             componentType_ =  self%radii%specifiers(i)%component
+             weightBy_      =  self%radii%specifiers(i)%integralWeightBy
+             weightIndex_   =  self%radii%specifiers(i)%integralWeightByIndex
              ! Check the total masses of the disk and spheroid components. If either is zero we can use the solutions for the
              ! appropriate limiting case.
              massDistributionStellarDisk_     => node%massDistribution(componentType=componentTypeDisk    ,massType=massTypeStellar,weightBy=weightBy_,weightIndex=weightIndex_)
@@ -477,7 +388,7 @@ contains
     allocate(values      (              0))
     valuesDescription=var_str('')
     valuesUnits      =unitType(0.0d0)
-    descriptions     =self%radii%name
+    descriptions     =self%radii%specifiers%name
     return
   end subroutine velocityDispersionColumnDescriptions
 

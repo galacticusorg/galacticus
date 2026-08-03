@@ -867,7 +867,7 @@ contains
 
   double precision function softPlus(x)
     !!{RST
-    Implementation of the `softPlus <https://en.wikipedia.org/wiki/Rectifier_(neural_networks)\#Softplus>`_ function.
+    Implementation of the `softPlus <https://en.wikipedia.org/wiki/Rectifier_(neural_networks)#Softplus>`_ function.
     !!}
     implicit none
     double precision, intent(in   ) :: x

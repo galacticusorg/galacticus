@@ -69,7 +69,7 @@
        spectra                  Dataset {metallicityCount, ageCount, metallicityCount}
        wavelengths              Dataset {wavelengthCount}
 
-   where the datasets contain the tabulated ages (in Gyr), metallicities (logarithmic, relative to Solar), wavelengths (in \AA) and spectra (in :math:`L_\odot` Hz\ :math:`^{-1}`).
+   where the datasets contain the tabulated ages (in Gyr), metallicities (logarithmic, relative to Solar), wavelengths (in Å) and spectra (in :math:`L_\odot` Hz\ :math:`^{-1}`).
 
    Scripts to convert the data provided by :cite:t:`maraston_evolutionary_2005` and :cite:t:`bruzual_stellar_2003` into Galacticus's format are provided in the ``scripts/ssps`` folder.
    </description>
@@ -137,7 +137,7 @@ contains
       <name>fileName</name>
       <source>parameters</source>
       <description>
-      The path to the HDF5 file containing the tabulated stellar population spectra, with datasets for ages (Gyr), metallicities (log Solar), wavelengths (\AA), and spectra (:math:`L_\odot\,\mathrm{Hz}^{-1}`); see the ``scripts/ssps`` folder for conversion scripts.
+      The path to the HDF5 file containing the tabulated stellar population spectra, with datasets for ages (Gyr), metallicities (log Solar), wavelengths (Å), and spectra (:math:`L_\odot\,\mathrm{Hz}^{-1}`); see the ``scripts/ssps`` folder for conversion scripts.
       </description>
     </inputParameter>
     !!]
@@ -289,18 +289,18 @@ contains
     !!}
     use :: Error       , only : Error_Report
     use :: HDF5_Access , only : hdf5Access
-    use :: IO_HDF5     , only : hdf5Object
+    use :: IO_HDF5     , only : hdf5File
     use :: Table_Labels, only : extrapolationTypeExtrapolate, extrapolationTypeZero, extrapolationTypeFix
     implicit none
     class  (stellarPopulationSpectraFile), intent(inout) :: self
     integer                                              :: fileFormatVersion
-    type   (hdf5Object                  )                :: spectraFile
+    type   (hdf5File                    )                :: spectraFile
 
     ! Read file if necessary.
     if (.not.self%fileRead) then
        !$ call hdf5Access%set()
        ! Open the HDF5 file.
-       spectraFile=hdf5Object(self%fileName,readOnly=.true.)
+       spectraFile=hdf5File(self%fileName,readOnly=.true.)
        ! Check that this file has the correct format.
        call spectraFile%readAttribute('fileFormat',fileFormatVersion)
        if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('format of stellar tracks file is out of date'//{introspection:location})

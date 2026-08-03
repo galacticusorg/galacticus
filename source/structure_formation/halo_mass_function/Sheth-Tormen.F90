@@ -46,11 +46,12 @@ Implements a :cite:t:`sheth_ellipsoidal_2001` dark matter halo mass function cla
        <method description="Return the parameter :math:`A` in the :cite:t:`sheth_ellipsoidal_2001` halo mass function fit." method="normalization" />
      </methods>
      !!]
-     final     ::                  shethTormenDestructor
-     procedure :: differential  => shethTormenDifferential
-     procedure :: a             => shethTormenA
-     procedure :: p             => shethTormenP
-     procedure :: normalization => shethTormenNormalization
+     final     ::                                   shethTormenDestructor
+     procedure :: differential                   => shethTormenDifferential
+     procedure :: isCriticalOverdensityDependent => shethTormenIsCriticalOverdensityDependent
+     procedure :: a                              => shethTormenA
+     procedure :: p                              => shethTormenP
+     procedure :: normalization                  => shethTormenNormalization
   end type haloMassFunctionShethTormen
 
   interface haloMassFunctionShethTormen
@@ -200,6 +201,19 @@ contains
          &                  )
     return
   end function shethTormenDifferential
+
+  logical function shethTormenIsCriticalOverdensityDependent(self)
+    !!{RST
+    Return true as the Sheth-Tormen halo mass function is built on an :math:`f(\nu)` multiplicity
+    that consumes the (possibly mass-dependent) critical overdensity for collapse.
+    !!}
+    implicit none
+    class(haloMassFunctionShethTormen), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    shethTormenIsCriticalOverdensityDependent=.true.
+    return
+  end function shethTormenIsCriticalOverdensityDependent
 
   double precision function shethTormenA(self,time,mass)
     !!{RST

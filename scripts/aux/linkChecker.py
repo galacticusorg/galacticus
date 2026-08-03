@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Check for broken links in Galacticus documentation.
-# Andrew Benson (21-September-2020) [Perl]; ported to Python 2026
+# Andrew Benson (21-September-2020)
 
 import sys
 import os

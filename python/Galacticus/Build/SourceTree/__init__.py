@@ -1,10 +1,6 @@
 """Provides a tree-based parser for Galacticus Fortran source files.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors the subset of perl/Galacticus/Build/SourceTree.pm used by the
-Galacticus build scripts, together with the Parse::Directives and
-Parse::ModuleUses parsers that libraryInterfaces.py requires.
 """
 
 import re
@@ -12,7 +8,7 @@ import os
 
 
 from Galacticus.Build.FortranUtils import get_fortran_line
-from Fortran.Utils import UNIT_OPENERS, UNIT_CLOSERS
+from Fortran.Utils import UNIT_OPENERS, UNIT_CLOSERS, check_no_parameterized_derived_type
 from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
 
 # ---------------------------------------------------------------------------
@@ -20,19 +16,34 @@ from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
 # ---------------------------------------------------------------------------
 
 def parse_file(filename):
-    """Read a Fortran source file and return the root AST node.
-
-    Mirrors Perl Galacticus::Build::SourceTree::ParseFile().
-    """
+    """Read a Fortran source file and return the root AST node."""
     with open(filename, 'r', errors='replace') as fh:
         content = fh.read()
-    return parse_code(content, name=os.path.basename(filename), source=filename)
+    return parse_code(content, name=_name_relative_to_source(filename),
+                      source=filename)
+
+
+def _name_relative_to_source(filename):
+    """Return `filename` relative to its innermost `source/` directory.
+
+    The `source/` tree is organized hierarchically, so a bare basename is
+    ambiguous (many subdirectories contain e.g. an `_class.F90`).  The file
+    node's `name` — reported by `{introspection:location}` expansions and
+    build error messages — therefore carries the path below `source/`
+    (e.g. `intergalactic_medium/state/internal.F90`).  Files that do not
+    live under a `source/` directory (generated includes under $BUILDPATH,
+    test fixtures) keep their basename.
+    """
+    parts = os.path.normpath(filename).split(os.sep)
+    for i in range(len(parts) - 2, -1, -1):
+        if parts[i] == 'source':
+            return '/'.join(parts[i + 1:])
+    return os.path.basename(filename)
 
 
 def parse_code(code, name='<string>', source=None, instrument=True):
     """Build an AST from a Fortran source string.
 
-    Mirrors Perl Galacticus::Build::SourceTree::ParseCode(code, fileName).
     Used by Process/Generics when it serializes a macro-expanded subtree and
     needs to re-parse it from its textual form.
 
@@ -41,8 +52,7 @@ def parse_code(code, name='<string>', source=None, instrument=True):
     `process_source_introspection` then expands those into a full Fortran
     expression naming the surrounding scope.  Re-parses of generic-expanded
     or otherwise synthesised content should pass `instrument=False` so the
-    line numbers aren't tagged a second time — matching Perl ParseCode's
-    `instrument => 0` option.
+    line numbers aren't tagged a second time.
     """
     if instrument:
         from Galacticus.Build.SourceTree.Process.SourceIntrospection import (
@@ -66,7 +76,7 @@ def parse_code(code, name='<string>', source=None, instrument=True):
 def walk_tree(node):
     """Depth-first generator over all nodes in the tree.
 
-    Mirrors the Perl Walk_Tree loop idiom.  Yields every node exactly once
+    Yields every node exactly once
     in pre-order (parent before children).
     """
     yield node
@@ -77,10 +87,7 @@ def walk_tree(node):
 
 
 def children(node):
-    """Return a list of direct child nodes.
-
-    Mirrors Perl Galacticus::Build::SourceTree::Children().
-    """
+    """Return a list of direct child nodes."""
     result = []
     child = node.get('firstChild')
     while child:
@@ -102,14 +109,12 @@ def _link_children(parent, child_list):
 
 
 def _build_tree(root):
-    """Parse root['content'] into child AST nodes, then recurse.
-
-    Mirrors Perl Build_Children + Parse_Unit + the directive/moduleUse/
-    declaration parse hooks.
+    """Parse root['content'] into child AST nodes, then recurse, running
+    the directive/moduleUse/declaration parse passes over the result.
     """
     # Step 1: comment out embedded LaTeX (`!!{ ... !!}`) and XML (`!![ ... !!]`)
-    # blocks by prefixing each body line with "!< ".  Mirrors Perl
-    # Comment_Embedded(): the markers themselves remain unmodified (they are
+    # blocks by prefixing each body line with "!< ".
+    # The markers themselves remain unmodified (they are
     # already valid Fortran comments because they begin with "!!"), but the
     # body lines need the "!< " prefix to be valid Fortran when serialized
     # straight to the compiler.  We store the commented content in code nodes
@@ -120,8 +125,7 @@ def _build_tree(root):
     unit_children = _parse_units(root)
     _link_children(root, unit_children)
 
-    # Step 3: run the parse passes over the whole tree (matches the set of
-    # parseHooks registered in perl/Galacticus/Build/SourceTree.pm).
+    # Step 3: run the parse passes over the whole tree.
     _pass_directives(root)
     _pass_module_uses(root)
     _pass_declarations(root)
@@ -168,42 +172,58 @@ def _make_code_node(content, source, line, parent=None):
     }
 
 
-def _parse_units(parent):
+def _parse_units(parent, first_line=None):
     """Split parent['content'] into child nodes (clean implementation).
 
     parent['content'] is expected to already have any embedded LaTeX/XML
     blocks commented out by _comment_embedded() — every line stored in a
     code/opener/closer field is the same line we will later serialize, so
     the round-trip output is valid Fortran.
+
+    `first_line` is the absolute (1-based) line number, in the original
+    source file, of the first line of parent['content'].  When omitted it
+    is derived from parent['line'], which for a root file node (line 0)
+    yields line 1.  Every child node's `line` is set to the absolute
+    1-based line number of its first line — these feed the `.lmap`
+    line-number mappings and the `{introspection:location}` expansions,
+    so they must survive arbitrarily deep nesting.
     """
     content   = parent.get('content', '')
     source    = parent.get('source', 'unknown')
-    base_line = parent.get('line',   0)
+    if first_line is None:
+        first_line = parent.get('line', 0) + 1
 
     import io
     fh = io.StringIO(content)
 
-    # Each stack entry: [node_dict, inner_lines_list]
+    # Each stack entry: [node_dict, inner_lines_list].  inner_lines_list
+    # holds (absolute_line, raw_text) tuples for buffered source lines and
+    # ('\x00NODE\x00', node) sentinels for pre-built child nodes.
     stack         = []
     top_children  = []
     raw_code_buf  = []
-    raw_code_line = base_line
-    current_line  = base_line
+    raw_code_line = first_line
+    current_line  = first_line   # absolute line number of the next unread line
 
     def flush_code(destination_list):
-        nonlocal raw_code_buf, raw_code_line
+        nonlocal raw_code_buf
         if raw_code_buf:
             destination_list.append(
                 _make_code_node(''.join(raw_code_buf), source, raw_code_line))
             raw_code_buf  = []
-            raw_code_line = current_line
 
     while True:
         raw_line, processed_line, _ = get_fortran_line(fh)
         if not raw_line and not processed_line:
             break
 
+        # Reject parameterized derived types loudly: the parser and downstream
+        # generators cannot represent type parameters and would silently drop a
+        # PDT from generated code.  See issue #114.
+        check_no_parameterized_derived_type(processed_line)
+
         n_newlines    = raw_line.count('\n')
+        start_line    = current_line
         line_after    = current_line + n_newlines
 
         # ---- check for a closer matching the innermost open unit ----
@@ -214,7 +234,7 @@ def _parse_units(parent):
                 top_node['closer'] = raw_line
                 # Recurse into the accumulated inner content.
                 # inner_lines may contain pre-built sentinel nodes interspersed
-                # with raw string chunks, so use _children_from_mixed_lines.
+                # with raw line chunks, so use _children_from_mixed_lines.
                 inner_lines = stack[-1][1]
                 if inner_lines:
                     inner_children = _children_from_mixed_lines(inner_lines, top_node)
@@ -226,9 +246,8 @@ def _parse_units(parent):
                     # (raw_code_buf accumulates top-level code; it would be
                     # empty here in practice, but handle defensively.)
                     if raw_code_buf:
-                        stack[-1][1].append(''.join(raw_code_buf))
+                        stack[-1][1].append((raw_code_line, ''.join(raw_code_buf)))
                         raw_code_buf  = []
-                        raw_code_line = line_after
                     # The closed node goes into the outer unit's inner lines as
                     # a pre-built node object (we mark it with a sentinel key).
                     stack[-1][1].append(('\x00NODE\x00', top_node))
@@ -263,9 +282,8 @@ def _parse_units(parent):
             # Flush pending raw code to the appropriate destination.
             if stack:
                 if raw_code_buf:
-                    stack[-1][1].append(''.join(raw_code_buf))
+                    stack[-1][1].append((raw_code_line, ''.join(raw_code_buf)))
                     raw_code_buf  = []
-                    raw_code_line = line_after
             else:
                 flush_code(top_children)
 
@@ -278,7 +296,7 @@ def _parse_units(parent):
                 'firstChild': None,
                 'sibling':    None,
                 'source':     source,
-                'line':       current_line,
+                'line':       start_line,
             }
 
             # moduleProcedure and `contains` are self-closing: the former has
@@ -308,8 +326,10 @@ def _parse_units(parent):
 
         # ---- plain code line ----
         if stack:
-            stack[-1][1].append(raw_line)
+            stack[-1][1].append((start_line, raw_line))
         else:
+            if not raw_code_buf:
+                raw_code_line = start_line
             raw_code_buf.append(raw_line)
 
         current_line = line_after
@@ -345,47 +365,55 @@ def _children_from_mixed_lines(inner_lines, parent):
     """Build child node list from inner_lines.
 
     inner_lines is a list where each element is either:
-      - a string — a raw Fortran source line (already commented for embedded
-        LaTeX/XML by _comment_embedded()), or
+      - an (absolute_line, text) 2-tuple — a raw Fortran source chunk
+        (already commented for embedded LaTeX/XML by _comment_embedded())
+        together with the 1-based line number of its first line in the
+        original source file, or
       - a ('\x00NODE\x00', node) 2-tuple — a pre-built child node injected
         when a sub-unit closed while an outer unit was still open.
 
-    Runs of plain strings are joined and re-parsed via _parse_units(); pre-
-    built nodes pass through unchanged.
+    Runs of raw chunks are joined and re-parsed via _parse_units(), passing
+    the absolute line number of the run's first line so that the resulting
+    child nodes carry correct original-source line numbers; pre-built nodes
+    pass through unchanged.
     """
     children = []
     line_buf = []
+    run_line = None
     source   = parent.get('source', 'unknown')
-    line     = parent.get('line',   0)
 
     def _flush():
+        nonlocal run_line
         if not line_buf:
             return
         dummy = {
             'content': ''.join(line_buf),
             'source':  source,
-            'line':    line,
+            'line':    run_line,
         }
-        children.extend(_parse_units(dummy))
+        children.extend(_parse_units(dummy, first_line=run_line))
         line_buf.clear()
+        run_line = None
 
     for item in inner_lines:
-        if isinstance(item, tuple) and item[0] == '\x00NODE\x00':
+        if not (isinstance(item, tuple) and len(item) == 2):
+            raise TypeError(
+                f"_children_from_mixed_lines: expected an (line, text) or "
+                f"sentinel tuple, got {type(item).__name__!r}: {item!r}"
+            )
+        if item[0] == '\x00NODE\x00':
             _flush()
             children.append(item[1])
-        elif isinstance(item, str):
-            line_buf.append(item)
         else:
-            raise TypeError(
-                f"_children_from_mixed_lines: expected a string or sentinel "
-                f"tuple, got {type(item).__name__!r}: {item!r}"
-            )
+            if not line_buf:
+                run_line = item[0]
+            line_buf.append(item[1])
     _flush()
     return children
 
 
 # ---------------------------------------------------------------------------
-# Parse pass 1: directives  (mirrors Parse::Directives)
+# Parse pass 1: directives
 # ---------------------------------------------------------------------------
 
 
@@ -401,10 +429,7 @@ def _pass_directives(tree):
 
 
 def replace_node(old_node, new_nodes):
-    """Replace old_node in the tree with new_nodes.
-
-    Mirrors Perl Galacticus::Build::SourceTree::ReplaceNode().
-    """
+    """Replace old_node in the tree with new_nodes."""
     if not new_nodes:
         return
     parent = old_node.get('parent')
@@ -435,10 +460,7 @@ def replace_node(old_node, new_nodes):
 
 
 def insert_before_node(node, new_nodes):
-    """Insert new_nodes as siblings immediately before node in the parent's child list.
-
-    Mirrors Perl Galacticus::Build::SourceTree::InsertBeforeNode().
-    """
+    """Insert new_nodes as siblings immediately before node in the parent's child list."""
     parent = node.get('parent')
     if parent is None:
         raise ValueError("insert_before_node: cannot insert before a root node")
@@ -455,10 +477,7 @@ def insert_before_node(node, new_nodes):
 
 
 def insert_after_node(node, new_nodes):
-    """Insert new_nodes as siblings immediately after node in the parent's child list.
-
-    Mirrors Perl Galacticus::Build::SourceTree::InsertAfterNode().
-    """
+    """Insert new_nodes as siblings immediately after node in the parent's child list."""
     parent = node.get('parent')
     if parent is None:
         raise ValueError("insert_after_node: cannot insert after a root node")
@@ -492,9 +511,8 @@ def _last_child(node):
 def insert_pre_contains(node, new_nodes):
     """Insert new_nodes before the `contains` child of node.
 
-    Mirrors Perl Galacticus::Build::SourceTree::InsertPreContains().  If no
-    `contains` exists, the new nodes are appended at the end of node's
-    children — matching Perl's `InsertAfterNode($lastChild, ...)` fallback.
+    If no `contains` exists, the new nodes are appended at the end of
+    node's children.
     """
     contains_node = _find_child_by_type(node, 'contains')
     if contains_node is not None:
@@ -511,12 +529,10 @@ def insert_post_contains(node, new_nodes):
     """Insert new_nodes as the first children placed after the `contains`
     marker of node.
 
-    Mirrors Perl Galacticus::Build::SourceTree::InsertPostContains(), which
-    auto-creates a `contains` node if the parent does not already have one,
-    then prepends the new nodes into its child list.  In our representation
-    `contains` is a self-closing sibling marker, so "prepend as children of
-    contains" becomes "insert immediately after contains" — the serialized
-    output is identical.
+    Auto-creates a `contains` node if the parent does not already have one.
+    In our representation `contains` is a self-closing sibling marker, so
+    "prepend as children of contains" becomes "insert immediately after
+    contains" — the serialized output is identical either way.
     """
     contains_node = _find_child_by_type(node, 'contains')
     if contains_node is None:
@@ -538,10 +554,7 @@ def insert_post_contains(node, new_nodes):
 
 
 def prepend_child_to_node(node, new_nodes):
-    """Insert new_nodes as the first children of node.
-
-    Mirrors Perl Galacticus::Build::SourceTree::PrependChildToNode().
-    """
+    """Insert new_nodes as the first children of node."""
     first_child = node.get('firstChild')
     if first_child is None:
         _link_children(node, new_nodes)
@@ -552,9 +565,10 @@ def prepend_child_to_node(node, new_nodes):
 def set_visibility(node, unit_name, visibility):
     """Ensure `unit_name` is listed in node's `public` or `private` visibility.
 
-    Mirrors Perl Galacticus::Build::SourceTree::SetVisibility().  Auto-creates
+    Auto-creates
     a `visibility` child node if one does not exist, placing it after any
-    existing `moduleUse` child (matching the Perl ordering requirement), and
+    existing `moduleUse` child — Fortran requires visibility statements to
+    follow `use` statements — and
     regenerates its `firstChild` code content with the sorted `public` /
     `private` lists.
     """
@@ -598,8 +612,8 @@ def set_visibility(node, unit_name, visibility):
     vis_dict = visibility_node.setdefault('visibility', {})
     vis_dict.setdefault(visibility, {})[unit_name] = True
 
-    # Rebuild the visibility code, matching Perl's iteration order
-    # `foreach ('private', 'public')`.
+    # Rebuild the visibility code in fixed private-then-public order so the
+    # regenerated code is deterministic.
     content = ''
     for level in ('private', 'public'):
         entries = vis_dict.get(level)
@@ -613,7 +627,7 @@ def set_visibility(node, unit_name, visibility):
 
 
 # ---------------------------------------------------------------------------
-# Parse pass 2: module uses  (mirrors Parse::ModuleUses)
+# Parse pass 2: module uses
 # ---------------------------------------------------------------------------
 
 def _pass_module_uses(tree):
@@ -629,7 +643,7 @@ def _pass_module_uses(tree):
 
 
 # ---------------------------------------------------------------------------
-# Parse pass 3: declarations  (mirrors Parse::Declarations)
+# Parse pass 3: declarations
 # ---------------------------------------------------------------------------
 
 def _pass_declarations(tree):
@@ -646,11 +660,14 @@ def _pass_declarations(tree):
         decl_buf  = []
         decls     = []
         implicit_none = False
+        code_line     = node['line']   # absolute line of first buffered code line
+        decl_line     = node['line']   # absolute line of first buffered decl line
+        current_line  = node['line']   # absolute line of the next unread line
 
         def flush_code():
             if code_buf:
                 new_nodes.append(_make_code_node(
-                    ''.join(code_buf), node['source'], node['line']))
+                    ''.join(code_buf), node['source'], code_line))
                 code_buf.clear()
 
         def flush_decls():
@@ -664,10 +681,10 @@ def _pass_declarations(tree):
                     'firstChild':   None,
                     'sibling':      None,
                     'source':       node['source'],
-                    'line':         node['line'],
+                    'line':         decl_line,
                 }
                 # Store raw text in firstChild so serialize() can reconstruct
-                # the original source — mirrors Perl Parse_Declarations behaviour.
+                # the original source.
                 dn['firstChild'] = {
                     'type':       'code',
                     'content':    ''.join(decl_buf),
@@ -675,7 +692,7 @@ def _pass_declarations(tree):
                     'sibling':    None,
                     'firstChild': None,
                     'source':     node['source'],
-                    'line':       node['line'],
+                    'line':       decl_line,
                 }
                 new_nodes.append(dn)
                 decl_buf.clear()
@@ -689,6 +706,8 @@ def _pass_declarations(tree):
             if not raw_line and not processed_line:
                 break
 
+            start_line = current_line
+
             is_decl = False
             if re.match(r'^\s*implicit\s+none\s*$', processed_line, re.IGNORECASE):
                 is_decl       = True
@@ -697,15 +716,22 @@ def _pass_declarations(tree):
             decl = parse_declaration(processed_line)
             if decl:
                 is_decl = True
+                decl['line'] = start_line
 
             if is_decl:
                 flush_code()
+                if not decl_buf:
+                    decl_line = start_line
                 decl_buf.append(raw_line)
                 if decl:
                     decls.append(decl)
             else:
                 flush_decls()
+                if not code_buf:
+                    code_line = start_line
                 code_buf.append(raw_line)
+
+            current_line = start_line + raw_line.count('\n')
 
         flush_decls()
         flush_code()
@@ -719,7 +745,7 @@ def _pass_declarations(tree):
 
 
 # ---------------------------------------------------------------------------
-# Parse pass 4: visibilities  (mirrors Parse::Visibilities)
+# Parse pass 4: visibilities
 # ---------------------------------------------------------------------------
 
 def _pass_visibilities(tree):
@@ -733,7 +759,7 @@ def _pass_visibilities(tree):
 
 
 # ---------------------------------------------------------------------------
-# Parse pass 5: OpenMP  (mirrors Parse::OpenMP)
+# Parse pass 5: OpenMP
 # ---------------------------------------------------------------------------
 
 def _pass_openmp(tree):
@@ -747,13 +773,11 @@ def _pass_openmp(tree):
 
 
 # ---------------------------------------------------------------------------
-# Serialization  (mirrors Perl Galacticus::Build::SourceTree::Serialize)
+# Serialization
 # ---------------------------------------------------------------------------
 
 def serialize(node, annotate=False, strip_mappings=False):
     """Reconstruct Fortran source text from an AST node and its siblings.
-
-    Mirrors Perl Galacticus::Build::SourceTree::Serialize().
 
     Parameters
     ----------
@@ -762,9 +786,8 @@ def serialize(node, annotate=False, strip_mappings=False):
     annotate : bool, default False
         When True, emit `!--> <origLine> <outLine> "<source>"` line-number
         mapping comments ahead of each node's serialized content.  When
-        False, the serialized output is pure Fortran.  (Perl defaults to
-        True; we default to False so existing callers that just want source
-        text are unaffected.)
+        False, the serialized output is pure Fortran.  (The default is False
+        because most callers just want plain source text.)
     strip_mappings : bool, default False
         When True, the annotations are removed from the returned source and
         collected into a second string.  In that mode the function returns a
@@ -795,14 +818,17 @@ def _serialize(node, annotate, strip_mappings):
     current       = node
 
     while current:
-        # Emit line-mapping annotation for this node.
+        # Emit line-mapping annotation for this node.  In strip mode the
+        # recorded output line is 1-based (the node's first line in the
+        # stripped output), matching the `line_number + 1` used when inner
+        # annotations are collected below — postprocess.py's remap
+        # arithmetic needs every entry on the same basis.
         if annotate and 'source' in current and 'line' in current:
-            mapping_line = f'!--> {current["line"]} {line_number} "{current["source"]}"\n'
             if strip_mappings:
-                mappings += mapping_line
+                mappings += f'!--> {current["line"]} {line_number + 1} "{current["source"]}"\n'
             else:
+                serialization += f'!--> {current["line"]} {line_number} "{current["source"]}"\n'
                 line_number   += 1
-                serialization += mapping_line
 
         # Serialize this node's own content.
         if current.get('type') == 'code':
@@ -839,7 +865,7 @@ def _serialize(node, annotate, strip_mappings):
 def analyze_tree(tree, options=None):
     """Run every registered analyze hook on the tree.
 
-    Mirrors Perl Galacticus::Build::SourceTree::AnalyzeTree().  The analyze
+    The analyze
     hook registry lives in Galacticus.Build.SourceTree.Process so that Analyze
     submodules can register themselves at import time; if no analyze modules
     have been imported, this is a no-op.

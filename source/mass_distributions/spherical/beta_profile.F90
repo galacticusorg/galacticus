@@ -362,7 +362,7 @@ contains
 
   double precision function betaProfileMassEnclosedBySphere(self,radius)
     !!{RST
-    Computes the mass enclosed within a sphere of given ``radius`` for :math:`\beta`-profile mass distributions. Result computed using `Wolfram Alpha <http://www.wolframalpha.com/input/?i=integrate+4*pi*r^2*rho\%2F\%281\%2Br^2\%29^\%283*beta\%2F2\%29>`_.
+    Computes the mass enclosed within a sphere of given ``radius`` for :math:`\beta`-profile mass distributions. Result computed using `Wolfram Alpha <http://www.wolframalpha.com/input/?i=integrate+4*pi*r^2*rho%2F%281%2Br^2%29^%283*beta%2F2%29>`_.
     !!}
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use :: Numerical_Constants_Math, only : Pi
@@ -435,7 +435,7 @@ contains
 
   double precision function betaProfilePotential(self,coordinates,status)
     !!{RST
-    Return the potential at the specified ``coordinates`` in a :math:`\beta`-profile mass distribution. Calculated using `Wolfram Alpha <http://www.wolframalpha.com/input/?i=integrate+4\%2F3+\%CF\%80+r+\%CF\%81+2F1\%283\%2F2\%2C+\%283+\%CE\%B2\%29\%2F2\%2C+5\%2F2\%2C+-r^2\%29>`_.
+    Return the potential at the specified ``coordinates`` in a :math:`\beta`-profile mass distribution. Calculated using `Wolfram Alpha <http://www.wolframalpha.com/input/?i=integrate+4%2F3+%CF%80+r+%CF%81+2F1%283%2F2%2C+%283+%CE%B2%29%2F2%2C+5%2F2%2C+-r^2%29>`_.
     !!}
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Hypergeometric_Functions        , only : Hypergeometric_2F1

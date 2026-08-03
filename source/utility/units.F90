@@ -29,7 +29,7 @@ module Units_MetaData
      Multiplicative conversion factor to SI units.
 
   ``description``
-     Human-readable units description (e.g.\ "Solar masses").
+     Human-readable units description (e.g. "Solar masses").
 
   ``quantity``
      `astropy <https://docs.astropy.org/en/stable/units/>`_-parseable units string (e.g.\ ``Msun``).

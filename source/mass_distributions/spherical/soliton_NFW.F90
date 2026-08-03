@@ -159,7 +159,7 @@
        <name>componentType</name>
        <defaultValue>var_str('unknown')</defaultValue>
        <description>
-       The galactic structure component type (e.g.\ dark matter halo, disk, spheroid) represented by this mass distribution, used for component-specific queries.
+       The galactic structure component type (e.g. dark matter halo, disk, spheroid) represented by this mass distribution, used for component-specific queries.
        </description>
        <source>parameters</source>
      </inputParameter>
@@ -167,7 +167,7 @@
        <name>massType</name>
        <defaultValue>var_str('unknown')</defaultValue>
        <description>
-       The mass type (e.g.\ dark matter, baryonic, total) represented by this mass distribution, used for mass-type-specific queries.
+       The mass type (e.g. dark matter, baryonic, total) represented by this mass distribution, used for mass-type-specific queries.
        </description>
        <source>parameters</source>
      </inputParameter>
@@ -431,7 +431,7 @@
         densityGradient   =0.0d0
      else if (coordinates%rSpherical() < self%radiusSoliton) then
         ! Soliton regime.
-        if (logarithmic) then
+        if (logarithmic_) then
            densityGradient=-16.0d0                                       &
                 &          *       coefficientCore*radiusCoreFree**2     &
                 &          /(1.0d0+coefficientCore*radiusCoreFree**2)
@@ -444,7 +444,7 @@
         end if
      else
         ! NFW regime.
-        if (logarithmic) then
+        if (logarithmic_) then
            densityGradient=  -1.0d0                  &
                 &            -2.0d0*radiusScaleFree  &
                 &          /(+1.0d0+radiusScaleFree)

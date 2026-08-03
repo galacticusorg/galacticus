@@ -5,9 +5,11 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     branches:
       - master
+permissions:
+  contents: read
 concurrency:
   group: hdf5Diff-${{ github.ref }}
-  cancel-in-progress: true  
+  cancel-in-progress: true
 defaults:
   run:
     shell: bash
@@ -16,8 +18,11 @@ jobs:
   HDF5-Diff:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
+    permissions:
+      contents:      read
+      pull-requests: write # required to post the diff as a comment on the pull request
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: 'Fetch master branch'
         run: |
           git fetch origin master --depth 1
@@ -34,7 +39,7 @@ jobs:
           sudo apt install -y hdf5-tools
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v47
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
         with:
           files: |
             **/*.hdf5
@@ -42,29 +47,53 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
           echo '# Changed HDF5 files' >> diffs.md
+      # NOTE: values which originate from the pull request (branch names, and the names of the files it changes) are passed into
+      # the scripts below through the environment, and never interpolated into the script text with `${{ }}`. Both are chosen by
+      # whoever opened the pull request, and git permits characters in them which are special to the shell, so interpolating them
+      # directly would allow arbitrary commands to be run on the runner. `set -f` additionally prevents a file name containing a
+      # glob character from being expanded against the workspace.
       - name: Identify any new HDF5 files
+        env:
+          ADDED_FILES:   ${{ steps.changed-files.outputs.added_files }}
+          HEAD_REPO_URL: ${{ github.event.pull_request.head.repo.html_url }}
+          HEAD_REF:      ${{ github.head_ref }}
         run: |
-          for file in ${{ steps.changed-files.outputs.added_files }}; do
-            echo Added: ${file}
-            echo "* Added: [${file}](https://myhdf5.hdfgroup.org/view?url=${{ github.event.pull_request.head.repo.html_url }}/${{ github.head_ref }}/blob/${file})" >> diffs.md
+          set -f
+          for file in ${ADDED_FILES}; do
+            echo Added: "${file}"
+            echo "* Added: [${file}](https://myhdf5.hdfgroup.org/view?url=${HEAD_REPO_URL}/${HEAD_REF}/blob/${file})" >> diffs.md
           done
       - name: Identify any deleted HDF5 files
+        env:
+          DELETED_FILES: ${{ steps.changed-files.outputs.deleted_files }}
+          HEAD_REPO_URL: ${{ github.event.pull_request.head.repo.html_url }}
+          HEAD_REF:      ${{ github.head_ref }}
+          BASE_REPO_URL: ${{ github.event.pull_request.base.repo.html_url }}
+          BASE_REF:      ${{ github.base_ref }}
         run: |
-          for file in ${{ steps.changed-files.outputs.deleted_files }}; do
-            echo Deleted: ${file}
-            echo "* Deleted: [${file}](https://myhdf5.hdfgroup.org/view?url=${{ github.event.pull_request.head.repo.html_url }}/${{ github.head_ref }}/blob/${file})" >> diffs.md
-            echo "  * Original: [${file}](https://myhdf5.hdfgroup.org/view?url=${{ github.event.pull_request.base.repo.html_url }}/${{ github.base_ref }}/blob/${file})" >> diffs.md
+          set -f
+          for file in ${DELETED_FILES}; do
+            echo Deleted: "${file}"
+            echo "* Deleted: [${file}](https://myhdf5.hdfgroup.org/view?url=${HEAD_REPO_URL}/${HEAD_REF}/blob/${file})" >> diffs.md
+            echo "  * Original: [${file}](https://myhdf5.hdfgroup.org/view?url=${BASE_REPO_URL}/${BASE_REF}/blob/${file})" >> diffs.md
           done
       - name: Identify any modified HDF5 files
+        env:
+          MODIFIED_FILES: ${{ steps.changed-files.outputs.modified_files }}
+          HEAD_REPO_URL:  ${{ github.event.pull_request.head.repo.html_url }}
+          HEAD_REF:       ${{ github.head_ref }}
+          BASE_REPO_URL:  ${{ github.event.pull_request.base.repo.html_url }}
+          BASE_REF:       ${{ github.base_ref }}
         run: |
-          for file in ${{ steps.changed-files.outputs.modified_files }}; do
-            echo Modified: ${file}
-            echo "* Modified: [${file}](https://myhdf5.hdfgroup.org/view?url=${{ github.event.pull_request.head.repo.html_url }}/${{ github.head_ref }}/blob/${file})" >> diffs.md
-            echo "  * Original: [${file}](https://myhdf5.hdfgroup.org/view?url=${{ github.event.pull_request.base.repo.html_url }}/${{ github.base_ref }}/blob/${file})" >> diffs.md
+          set -f
+          for file in ${MODIFIED_FILES}; do
+            echo Modified: "${file}"
+            echo "* Modified: [${file}](https://myhdf5.hdfgroup.org/view?url=${HEAD_REPO_URL}/${HEAD_REF}/blob/${file})" >> diffs.md
+            echo "  * Original: [${file}](https://myhdf5.hdfgroup.org/view?url=${BASE_REPO_URL}/${BASE_REF}/blob/${file})" >> diffs.md
             echo '```'  >> diffs.md
             FILE_SIZE=$(stat -c%s "${file}")
             if (( FILE_SIZE < 102400 )); then
-              git difftool --no-prompt --tool="hdf5diff" ${{ github.head_ref }} origin/${{ github.base_ref }} -- ${file} >> diffs.md
+              git difftool --no-prompt --tool="hdf5diff" "${HEAD_REF}" "origin/${BASE_REF}" -- "${file}" >> diffs.md
             else
               echo "File is too large to display diff" >> diffs.md
             fi
@@ -72,7 +101,7 @@ jobs:
           done
       - name: Check file existence
         id: check_files
-        uses: andstor/file-existence-action@v3
+        uses: andstor/file-existence-action@558493d6c74bf472d87c84eab196434afc2fa029 # v3
         with:
           files: diffs.md
       - name: Wrap warnings in collapsible section
@@ -84,7 +113,7 @@ jobs:
       - name: Comment on the PR if any diffs were found
         if: steps.check_files.outputs.files_exists == 'true' && github.event.pull_request.head.repo.full_name == github.repository
         continue-on-error: true
-        uses: thollander/actions-comment-pull-request@v3
+        uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3
         with:
           file-path: diffs-collapsible.md
       - name: Add a step summary

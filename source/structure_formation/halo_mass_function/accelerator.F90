@@ -48,11 +48,12 @@ Implements a dark matter halo mass function class which accelerates another mass
        <method method="tabulate" description="Tabulate the mass function."/>
      </methods>
      !!]
-     final     ::                 acceleratorDestructor
-     procedure :: differential => acceleratorDifferential
-     procedure :: integrated   => acceleratorIntegrated
-     procedure :: massFraction => acceleratorMassFraction
-     procedure :: tabulate     => acceleratorTabulate
+     final     ::                                   acceleratorDestructor
+     procedure :: differential                   => acceleratorDifferential
+     procedure :: isCriticalOverdensityDependent => acceleratorIsCriticalOverdensityDependent
+     procedure :: integrated                     => acceleratorIntegrated
+     procedure :: massFraction                   => acceleratorMassFraction
+     procedure :: tabulate                       => acceleratorTabulate
   end type haloMassFunctionAccelerator
 
   interface haloMassFunctionAccelerator
@@ -138,6 +139,18 @@ contains
     return
   end function acceleratorDifferential
 
+  logical function acceleratorIsCriticalOverdensityDependent(self)
+    !!{RST
+    Return whether the differential halo mass function depends on the critical overdensity for
+    collapse, by forwarding the query to the wrapped halo mass function.
+    !!}
+    implicit none
+    class(haloMassFunctionAccelerator), intent(inout) :: self
+
+    acceleratorIsCriticalOverdensityDependent=self%haloMassFunction_%isCriticalOverdensityDependent()
+    return
+  end function acceleratorIsCriticalOverdensityDependent
+
   double precision function acceleratorIntegrated(self,time,massLow,massHigh,node,status) result(massFunction)
     !!{RST
     Return the integrated halo mass function at the given time and mass.
@@ -200,6 +213,7 @@ contains
        self%massMinimum=+huge(0.0d0)
        self%massMaximum=-huge(0.0d0)
        self%time       =+time
+       if (allocated(self%mass)) deallocate(self%mass,self%massFunction)
     end if
     if     (                              &
          &   massLow  >= self%massMinimum &

@@ -85,7 +85,7 @@ module Virial_Orbits
    </method>
    <method name="velocityTangentialVectorMean" >
     <description>
-    Returns the mean vector of the vector tangential velocity averaged over all orbits.
+    Returns the mean vector of the vector tangential velocity averaged over all orbits. Components are Cartesian, in the order :math:`(v_\mathrm{x},v_\mathrm{y},v_\mathrm{z})`.
     </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
@@ -93,15 +93,30 @@ module Virial_Orbits
    </method>
    <method name="angularMomentumMagnitudeMean" >
     <description>
-    Returns the mean of the magnitude of the angular momentum averaged over all orbits.
+    Returns the mean of the magnitude of the (specific) angular momentum averaged over all orbits.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node, host</argument>
    </method>
+   <method name="angularMomentumMagnitudeSquaredMean" >
+    <description>
+    Returns the mean of the squared magnitude of the (specific) angular momentum averaged over all orbits. The default
+    implementation returns the square of the mean magnitude, :math:`\langle|j|\rangle^2`, which differs from the true second
+    moment :math:`\langle|j|^2\rangle` only by an :math:`\mathcal{O}(1)` shape factor :math:`(1+\mathrm{CV}^2)` set by the coefficient of
+    variation of the orbit distribution (e.g. :math:`\approx 1.04` for the :cite:t:`li_orbital_2020` distribution). Classes able to
+    evaluate the true second moment in closed form should override this method.
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node, host</argument>
+    <code>
+     virialOrbitAngularMomentumMagnitudeSquaredMean=self%angularMomentumMagnitudeMean(node,host)**2
+    </code>
+   </method>
    <method name="angularMomentumVectorMean" >
     <description>
-    Returns the mean vector of the angular momentum averaged over all orbits.
+    Returns the mean vector of the angular momentum averaged over all orbits. Components are Cartesian, in the order :math:`(J_\mathrm{x},J_\mathrm{y},J_\mathrm{z})`.
     </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>

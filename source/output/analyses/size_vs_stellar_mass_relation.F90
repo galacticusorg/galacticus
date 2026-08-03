@@ -273,7 +273,7 @@ contains
     use :: Error                                 , only : Error_Report
     use :: Geometry_Surveys                      , only : surveyGeometryFullSky
     use :: HDF5_Access                           , only : hdf5Access
-    use :: IO_HDF5                               , only : hdf5Object
+    use :: IO_HDF5                               , only : hdf5File                                                      , hdf5Group
     use :: ISO_Varying_String                    , only : var_str                                                       , varying_string
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar                              , nodePropertyExtractorRadiusEffectiveStellar
     use :: Numerical_Constants_Astronomical      , only : massSolar
@@ -342,8 +342,8 @@ contains
          &                                                                                                  weightPropertyDescription                                     , groupSampleName                                       , &
          &                                                                                                  selection                                                     , referenceTarget                                       , &
          &                                                                                                  labelTarget
-    type            (hdf5Object                                         )                                :: fileTarget                                                    , groupSample                                           , &
-         &                                                                                                  groupCosmology
+    type            (hdf5File                                           )                                :: fileTarget
+    type            (hdf5Group                                          )                                :: groupSample                                                   , groupCosmology
     character       (len=4                                              )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
     type            (enumerationFilterTypeType                          )                                :: filterType
     type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
@@ -353,7 +353,7 @@ contains
 
     ! Open the target data file and read basic information.
     !$ call hdf5Access%set()
-    fileTarget=hdf5Object(self%fileNameTarget,readOnly=.true.)
+    fileTarget=hdf5File(self%fileNameTarget,readOnly=.true.)
     ! Find the requested sample.
     groupSampleName=var_str('sample')//sample
     if (.not.fileTarget%hasGroup(char(groupSampleName))) call Error_Report(var_str('redshift interval ')//sample//' is not present in `'//self%fileNameTarget//'`'//{introspection:location})
@@ -805,13 +805,13 @@ contains
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object
+    use :: IO_HDF5    , only : hdf5File  , hdf5Group
     implicit none
     class(outputAnalysisSizeVsStellarMassRelation), intent(inout)           :: self
     type (varying_string                         ), intent(in   ), optional :: groupName
-    type (hdf5Object                             )               , target   :: analysesGroup, subGroup
-    type (hdf5Object                             )               , pointer  :: inGroup
-    type (hdf5Object                             )                          :: analysisGroup
+    type (hdf5Group                              )               , target   :: analysesGroup, subGroup
+    type (hdf5Group                              )               , pointer  :: inGroup
+    type (hdf5Group                              )                          :: analysisGroup
 
     call self%outputAnalysis_%finalize(groupName)
     ! Overwrite the log-likelihood - this allows us to handle cases where the model is zero everywhere.

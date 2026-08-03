@@ -1222,6 +1222,7 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="accelerator"/>
           <xs:enumeration value="bhattacharya2011"/>
+          <xs:enumeration value="decayingDarkMatter"/>
           <xs:enumeration value="despali2015"/>
           <xs:enumeration value="detectionEfficiency"/>
           <xs:enumeration value="environmentAveraged"/>
@@ -2407,6 +2408,7 @@
           <xs:enumeration value="nodeMajorMergerTime"/>
           <xs:enumeration value="nuclearStarClusterGrowth"/>
           <xs:enumeration value="null"/>
+          <xs:enumeration value="outputTrajectory"/>
           <xs:enumeration value="positionDiscrete"/>
           <xs:enumeration value="positionInterpolated"/>
           <xs:enumeration value="positionOrphans"/>
@@ -2439,6 +2441,7 @@
           <xs:enumeration value="stellarFeedbackDisks"/>
           <xs:enumeration value="stellarFeedbackSpheroids"/>
           <xs:enumeration value="subsubhaloPromotion"/>
+          <xs:enumeration value="testInactivePropertyRead"/>
           <xs:enumeration value="tidalHeatingSpheroids"/>
           <xs:enumeration value="tidalMassLossDisks"/>
           <xs:enumeration value="tidalMassLossSoliton"/>
@@ -2613,8 +2616,10 @@
           <xs:enumeration value="timeFirstInfall"/>
           <xs:enumeration value="timescaleBarInstability"/>
           <xs:enumeration value="trackOutflowedMass"/>
+          <xs:enumeration value="trajectoryEvent"/>
           <xs:enumeration value="treeWeight"/>
           <xs:enumeration value="tuple"/>
+          <xs:enumeration value="uniqueID"/>
           <xs:enumeration value="uniqueIDBranchTip"/>
           <xs:enumeration value="velocityDispersion"/>
           <xs:enumeration value="velocityMaximum"/>
@@ -3348,8 +3353,10 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="chandrasekhar1943"/>
           <xs:enumeration value="kaur2018"/>
+          <xs:enumeration value="lancaster2020"/>
           <xs:enumeration value="massRatioThreshold"/>
           <xs:enumeration value="petts2015"/>
+          <xs:enumeration value="scale"/>
           <xs:enumeration value="zero"/>
          </xs:restriction>
         </xs:simpleType>
@@ -4583,6 +4590,22 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="massRatioDistribution">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="hinkley"/>
+          <xs:enumeration value="normal"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="massType">
    <xs:complexType mixed="true">
     <xs:sequence>
@@ -4947,6 +4970,23 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="scale"/>
           <xs:enumeration value="summation"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="subresolutionAngularMomentumMethod">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="massScaled"/>
+          <xs:enumeration value="original"/>
+          <xs:enumeration value="resolutionScaled"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>

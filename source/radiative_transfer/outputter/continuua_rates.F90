@@ -179,7 +179,7 @@ contains
     implicit none
     class           (radiativeTransferOutputterContinuuaRates), intent(inout)                   :: self
     class           (radiativeTransferSourceClass            ), intent(inout)                   :: radiativeTransferSource_
-    type            (hdf5Object                              ), intent(inout)                   :: outputGroup
+    type            (hdf5Group                               ), intent(inout)                   :: outputGroup
     double precision                                          , allocatable  , dimension(:,:,:) :: rateEmitted
     type            (integrator                              )                                  :: integrator_
     integer                                                                                     :: i                       , j, &
@@ -309,7 +309,7 @@ contains
     use :: String_Handling         , only : String_Upper_Case_First
     implicit none
     class    (radiativeTransferOutputterContinuuaRates), intent(inout) :: self
-    type     (hdf5Object                              ), intent(inout) :: outputGroup
+    type     (hdf5Group                               ), intent(inout) :: outputGroup
     integer                                                            :: i          , j, &
          &                                                                sourceIndex
     character(len=30                                  )                :: label

@@ -3,7 +3,6 @@ per-class create/destroy.
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/TreeNodes/CreateDestroy.pm.
 Three `functions`-phase hooks emit the global lifecycle methods, plus
 two `classIteratedFunctions` hooks emit per-class create/destroy
 methods.
@@ -17,7 +16,7 @@ from Galacticus.Build.Components.Utils import register
 def Tree_Node_Creation(build):
     """Generate `treeNodeInitialize`.
 
-    Mirrors `Tree_Node_Creation`.  Initialises pointers, allocates one
+    Initialises pointers, allocates one
     instance per active component class, then sets index, unique ID,
     timestep, subsampling weight, and physical-state flags.
     """
@@ -54,7 +53,7 @@ def Tree_Node_Creation(build):
     function = {
         'type':        'void',
         'name':        'treeNodeInitialize',
-        'description': r"Initialize a \mono{treeNode} object.",
+        'description': r"Initialize a ``treeNode`` object.",
         'modules':     ['Error'],
         'variables':   [
             {
@@ -84,8 +83,6 @@ def Tree_Node_Creation(build):
 def Tree_Node_Builder(build):
     """Generate `treeNodeComponentBuilder` — populate components from a
     FoX_DOM XML node.
-
-    Mirrors `Tree_Node_Builder`.
     """
     active = set(build.get('componentClassListActive') or [])
     component_classes = list(
@@ -155,7 +152,7 @@ def Tree_Node_Builder(build):
         'type':        'void',
         'name':        'treeNodeComponentBuilder',
         'description': (
-            r"Build components in a \mono{treeNode} object given an XML "
+            r"Build components in a ``treeNode`` object given an XML "
             r"definition."
         ),
         'modules':     [
@@ -211,7 +208,7 @@ def Tree_Node_Builder(build):
 def Tree_Node_Finalization(build):
     """Generate `treeNodeDestroy`.
 
-    Mirrors `Tree_Node_Finalization`.  Destroys all per-class component
+    Destroys all per-class component
     arrays, the formation node, and walks the linked list of attached
     events to free each (and its paired event on a partner node).
     """
@@ -220,8 +217,9 @@ def Tree_Node_Finalization(build):
         f"call self%{c}Destroy()\n" for c in active
     )
     if destroy_block:
-        # Match Perl `join(" ", ...)` — a single space between entries
-        # rather than newlines.  The `\n` per line is already there.
+        # Join with a single space between entries rather than newlines —
+        # this line formatting is preserved for output identity.  The `\n`
+        # per line is already there.
         destroy_block = " ".join(destroy_block.splitlines(keepends=True))
 
     content = (
@@ -274,7 +272,7 @@ def Tree_Node_Finalization(build):
     function = {
         'type':        'void',
         'name':        'treeNodeDestroy',
-        'description': r"Destroy a \mono{treeNode} object.",
+        'description': r"Destroy a ``treeNode`` object.",
         'modules':     ['Error'],
         'variables':   [
             {
@@ -301,9 +299,7 @@ def Tree_Node_Finalization(build):
 
 def Tree_Node_Class_Creation(build, class_dict):
     """Generate `nodeComponent<Class>Create` — adds one instance of the
-    class on `self`.  Skipped entirely for inactive classes (matches Perl).
-
-    Mirrors `Tree_Node_Class_Creation`.
+    class on `self`.  Skipped entirely for inactive classes.
     """
     name = class_dict['name']
     if name not in (build.get('componentClassListActive') or []):
@@ -362,7 +358,7 @@ def Tree_Node_Class_Creation(build, class_dict):
         'type':        'void',
         'name':        f"nodeComponent{cap}Create",
         'description': (
-            f"Create the \\mono{{{name}}} component of \\mono{{self}}."
+            f"Create the ``{name}`` component of ``self``."
         ),
         'modules':     [
             'ISO_Varying_String',
@@ -396,7 +392,7 @@ def Tree_Node_Class_Creation(build, class_dict):
 def Tree_Node_Class_Destruction(build, class_dict):
     """Generate `nodeComponent<Class>Destroy` — frees the per-class array.
 
-    Mirrors `Tree_Node_Class_Destruction`.  Inactive classes get a stub
+    Inactive classes get a stub
     that raises an `Error_Report`.
     """
     name = class_dict['name']
@@ -406,7 +402,7 @@ def Tree_Node_Class_Destruction(build, class_dict):
         'type':        'void',
         'name':        f"nodeComponent{cap}Destroy",
         'description': (
-            f"Destroy the \\mono{{{name}}} component of \\mono{{self}}"
+            f"Destroy the ``{name}`` component of ``self``"
         ),
         'variables':   [
             {

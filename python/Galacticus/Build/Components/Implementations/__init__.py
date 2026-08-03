@@ -1,8 +1,6 @@
 """Components/Implementations — per-implementation generators.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Implementations.pm.
 """
 
 
@@ -22,8 +20,6 @@ logger = logging.getLogger(__name__)
 
 def Default_Full_Name(build):
     """Set `fullyQualifiedName = <Class><Name>` on every component.
-
-    Mirrors `Default_Full_Name`.
     """
     for impl in (build.get('components') or {}).values():
         impl['fullyQualifiedName'] = (
@@ -34,15 +30,13 @@ def Default_Full_Name(build):
 def Implementation_ID_List(build):
     """Populate `build['componentIdList']` with a sorted list of component
     implementation IDs (e.g. `["BasicStandard", "BlackHoleSimple", …]`).
-
-    Mirrors `Implementation_ID_List`.
     """
     components = build.get('components') or {}
     build['componentIdList'] = sorted(components.keys())
 
 
-# Default-attribute table for each implementation.  Mirrors the
-# `%defaults` hash inside `Implementation_Defaults` (Implementations.pm:64+).
+# Default-attribute table for each implementation, applied by
+# `Implementation_Defaults`.
 _IMPLEMENTATION_DEFAULTS = {
     'isDefault':      'booleanFalse',
     'bindings':       {
@@ -64,8 +58,6 @@ _IMPLEMENTATION_DEFAULTS = {
 def Implementation_Defaults(build):
     """Apply per-implementation default attributes and record the default
     implementation name on each class.
-
-    Mirrors the relevant top portion of `Implementation_Defaults`.
     """
     for impl in (build.get('components') or {}).values():
         for key, default in _IMPLEMENTATION_DEFAULTS.items():
@@ -81,7 +73,7 @@ def Implementation_Defaults(build):
 def Null_Implementations(build):
     """Synthesise a `null` implementation for any class that lacks one.
 
-    Mirrors `Null_Implementations`.  When a class has no `null` member,
+    When a class has no `null` member,
     we add one; if no other implementation was marked `isDefault`, the
     new null member becomes the default.
     """
@@ -120,8 +112,6 @@ def Null_Implementations(build):
 def Implementation_Dependencies(build):
     """Order each class's members in parent->child order, then rebuild
     `componentIdList` to match.
-
-    Mirrors `Implementation_Dependencies`.
     """
     logger.info("         --> Sorting implentations into parent->child order:")
 
@@ -154,8 +144,7 @@ def Implementation_Dependencies(build):
             logger.info(f"               --> {n}")
 
     # Rebuild componentIdList in dependency order: outer iterates classes,
-    # inner iterates the freshly-sorted memberNames.  Mirrors the Perl
-    # nestedmap at Implementations.pm:178-183.
+    # inner iterates the freshly-sorted memberNames.
     new_id_list = []
     for class_name in component_class_list:
         for impl_name in component_classes.get(class_name, {}).get('memberNames') or []:
@@ -166,8 +155,6 @@ def Implementation_Dependencies(build):
 def Implementation_Parents(build):
     """Resolve each implementation's `extends` link to the actual parent
     implementation dict (key `extends.implementation`).
-
-    Mirrors `Implementation_Parents`.
     """
     components = build.get('components') or {}
     for impl in components.values():
@@ -183,10 +170,10 @@ def Build_Component_Implementations(build):
     """Generate one `nodeComponent<FullyQualified>` Fortran type per
     component implementation.
 
-    Mirrors `Build_Component_Implementations`.  Linked-data variables come
+    Linked-data variables come
     from `implementation['content']['data']` (built by
     Properties.Construct_Data).  Each binding becomes a type-bound
-    procedure (deferred bindings are wrapped later by Deferred.pm).
+    procedure (deferred bindings are wrapped later by the Deferred module).
     Each property emits two boolean stubs (`<prop>IsGettable` /
     `<prop>IsSettable`) for the type's contract.
     """
@@ -246,8 +233,8 @@ def Build_Component_Implementations(build):
                 value = bool(attrs.get(verb))
                 # boolean_label is ('false', 'true') — index 0/1.
                 label = boolean_label[1 if value else 0]
-                # Perl: `$propertyName."IsGettable"` (matches the
-                # `<prop>IsGettable` accessor declared by Defaults).
+                # The method name must match the `<prop>IsGettable`
+                # accessor declared by Defaults.
                 method_suffix = 'I' + verb[1:]
                 type_bound_functions.append({
                     'type':     'procedure',

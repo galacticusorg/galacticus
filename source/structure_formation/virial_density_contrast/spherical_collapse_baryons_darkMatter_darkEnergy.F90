@@ -51,6 +51,7 @@
           &                                                                               turnaroundClusteredTimeMinimum              , turnaroundClusteredTimeMaximum               , &
           &                                                                               turnaroundUnclusteredTimeMinimum            , turnaroundUnclusteredTimeMaximum
      integer                                                                           :: tablePointsPerOctave
+     double precision                                                                  :: perturbationSmall
      logical                                                                           :: tableStore
      type            (enumerationCllsnlssMttrDarkEnergyFixedAtType      )              :: energyFixedAt
      class           (table1D                                           ), allocatable :: deltaVirialClustered                        , deltaVirialUnclustered                       , &
@@ -99,6 +100,7 @@ contains
     logical                                                                            :: tableStore
     type   (varying_string                                            )                :: energyFixedAt
     integer                                                                            :: tablePointsPerOctave
+    double precision                                                                   :: perturbationSmall
 
     !![
     <inputParameter docformat="rst">
@@ -125,11 +127,19 @@ contains
       The number of points per octave of time at which to tabulate solutions.
       </description>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>perturbationSmall</name>
+      <source>parameters</source>
+      <defaultValue>1.0d-3</defaultValue>
+      <description>
+      The largest initial perturbation considered to be sufficiently small. Larger initial perturbations will trigger an error.
+      </description>
+    </inputParameter>
     <objectBuilder class="cosmologyParameters"              name="cosmologyParameters_"              source="parameters"/>
     <objectBuilder class="cosmologyFunctions"               name="cosmologyFunctions_"               source="parameters"/>
     <objectBuilder class="intergalacticMediumFilteringMass" name="intergalacticMediumFilteringMass_" source="parameters"/>
     !!]
-    self=virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy(tableStore,tablePointsPerOctave,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_,intergalacticMediumFilteringMass_)
+    self=virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy(tableStore,tablePointsPerOctave,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),perturbationSmall,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumFilteringMass_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"             />
@@ -139,7 +149,7 @@ contains
     return
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters
 
-  function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal(tableStore,tablePointsPerOctave,energyFixedAt,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumFilteringMass_) result(self)
+  function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal(tableStore,tablePointsPerOctave,energyFixedAt,perturbationSmall,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumFilteringMass_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy` dark matter halo virial density contrast class.
     !!}
@@ -149,18 +159,19 @@ contains
     class  (cosmologyFunctionsClass                                   ), intent(in   ), target :: cosmologyFunctions_
     class  (intergalacticMediumFilteringMassClass                     ), intent(in   ), target :: intergalacticMediumFilteringMass_
     type   (enumerationCllsnlssMttrDarkEnergyFixedAtType              ), intent(in   )         :: energyFixedAt
+    double precision                                                  , intent(in   )         :: perturbationSmall
     logical                                                            , intent(in   )         :: tableStore
     integer                                                            , intent(in   )         :: tablePointsPerOctave
     !![
-    <constructorAssign variables="tableStore, tablePointsPerOctave, energyFixedAt, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumFilteringMass_"/>
+    <constructorAssign variables="tableStore, tablePointsPerOctave, energyFixedAt, perturbationSmall, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumFilteringMass_"/>
     !!]
 
     self%tableInitialized=.false.
     allocate(self%sphericalCollapseSolverClustered_  )
     allocate(self%sphericalCollapseSolverUnclustered_)
     !![
-    <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverClustered_"   constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.true. ,self%tablePointsPerOctave,self%energyFixedAt,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
-    <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverUnclustered_" constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.false.,self%tablePointsPerOctave,self%energyFixedAt,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverClustered_"   constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.true. ,self%tablePointsPerOctave,self%energyFixedAt,self%perturbationSmall,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverUnclustered_" constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.false.,self%tablePointsPerOctave,self%energyFixedAt,self%perturbationSmall,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
     !!]
     return
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal

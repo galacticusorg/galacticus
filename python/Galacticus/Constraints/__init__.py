@@ -2,8 +2,7 @@
 
 These modules support the dark-matter constraint pipeline scripts under
 ``constraints/pipelines/darkMatter/`` (notably ``pipeline.py`` and
-``haloMassFunctionPostProcess.py``), and mirror the corresponding
-``perl/Galacticus/Constraints/`` modules.
+``haloMassFunctionPostProcess.py``).
 
 Submodules:
 

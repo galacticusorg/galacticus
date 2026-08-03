@@ -2,7 +2,7 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/Properties.pm.  Six hooks:
+Six hooks:
 
   preValidate → Class_Defaults_Validate, Data_Validate
   default     → Property_Defaults
@@ -25,8 +25,7 @@ from Galacticus.Build.Components.Utils import (
 logger = logging.getLogger(__name__)
 
 
-# Default-attribute table for each property.  Mirrors the `%defaults`
-# hash inside Property_Defaults (Properties.pm:52-69).
+# Default-attribute table for each property, applied by Property_Defaults.
 _PROPERTY_DEFAULTS = {
     'properties': {
         'property': {
@@ -46,7 +45,7 @@ _PROPERTY_DEFAULTS = {
 def Property_Defaults(build):
     """Apply per-property default attributes.
 
-    Mirrors `Property_Defaults`.  Walks the nested defaults table and
+    Walks the nested defaults table and
     coerces missing attributes (`isVirtual` / `createIfNeeded` /
     `isDeferred` / `isNonNegative`) to the matching defaults.
     """
@@ -58,8 +57,6 @@ def Property_Defaults(build):
 def Data_Validate(build):
     """Verify each property has `type` and `rank`, and forbid
     `createIfNeeded` on rank > 0 properties.
-
-    Mirrors `Data_Validate`.
     """
     for component in (build.get('components') or {}).values():
         for prop in _component_properties(component):
@@ -86,7 +83,7 @@ _LABELS_BRACKET_RE = re.compile(r'^\[(.*)\]$')
 def Property_Output_Validate(build):
     """Validate the `output` block on every property.
 
-    Mirrors `Property_Output_Validate`.  Strips whitespace from
+    Strips whitespace from
     `labels` and `modules` after validation.
     """
     for component in (build.get('components') or {}).values():
@@ -141,8 +138,6 @@ def Property_Output_Validate(build):
 def Class_Defaults_Validate(build):
     """Verify that all implementations of a class declare consistent
     `classDefault` blocks for any property they share.
-
-    Mirrors `Class_Defaults_Validate`.
     """
     class_defaults = {}
     for component in (build.get('components') or {}).values():
@@ -191,8 +186,6 @@ def Class_Defaults_Validate(build):
 
 def Class_Defaults_Gather(build):
     """Collect per-class default settings into `build['classDefaults']`.
-
-    Mirrors `Class_Defaults_Gather`.
     """
     class_defaults = build.setdefault('classDefaults', {})
     for component in (build.get('components') or {}).values():
@@ -226,7 +219,7 @@ def Class_Defaults_Gather(build):
 
 def Class_Defaults_Scatter(build):
     """Push collected class defaults back onto every component property
-    that doesn't already declare one.  Mirrors `Class_Defaults_Scatter`.
+    that doesn't already declare one.
     """
     class_defaults = build.get('classDefaults') or {}
     for component in (build.get('components') or {}).values():
@@ -250,8 +243,6 @@ def Construct_Data(build):
     """Seed each property's `data` sub-dict, validate it against any
     parent implementation, and create the per-component `content.data`
     linked-data registry.
-
-    Mirrors `Construct_Data` (Properties.pm:260-318).
     """
     for component in (build.get('components') or {}).values():
         logger.info(
@@ -338,7 +329,8 @@ def _lcfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Properties.pm:21-44.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('properties', 'preValidate', Class_Defaults_Validate)

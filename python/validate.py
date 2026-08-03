@@ -12,7 +12,7 @@ import json
 import codecs
 from git import Repo
 
-__all__ = ['extract']
+__all__ = ['extract', 'write']
 
 
 def extract(fileName, name, suffix, parameterFileName):
@@ -161,6 +161,31 @@ def extract(fileName, name, suffix, parameterFileName):
             results.append(result)
         else:
             print(f"Warning: analysis '{analysisName}' has unknown 'type' attribute '{attributes['type']}', so it can not be processed.")
+    write(likelihoods,results,suffix,parameterFileName)
+
+
+def write(likelihoods, results, suffix, parameterFileName):
+    """Write benchmark and plot data files for a validation model.
+
+    Writes ``outputs/validate_<suffix>.json`` (the benchmark file of ``-log ℒ``
+    values consumed by the benchmark action) and ``outputs/results_<suffix>.json``
+    (the plot data consumed by the validation web pages).
+
+    Parameters
+    ----------
+    likelihoods : list[dict]
+        A list of dicts, one per analysis, each with keys ``"name"``, ``"unit"``
+        (always ``"-logℒ"``), and ``"value"`` (the string representation of
+        ``|-log ℒ|``).
+    results : list[dict]
+        A list of dicts containing plot-ready x/y data, error estimates, and
+        metadata for each analysis.
+    suffix : str
+        File-name suffix appended when writing result JSON files.
+    parameterFileName : str
+        Path to the Galacticus parameter XML file used to produce these results.
+        Stored in the result metadata for traceability.
+    """
     # Write benchmark results.
     f = codecs.open("outputs/validate_"+suffix+".json", "w", "utf-8")
     f.write(json.dumps(likelihoods,indent=4,ensure_ascii=False))

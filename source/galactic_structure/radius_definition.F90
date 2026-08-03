@@ -18,17 +18,30 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a module which provides parsing of radii definitions used in output specifiers.
+Contains a module which provides parsing and evaluation of radii definitions used in output specifiers.
 !!}
 
 module Galactic_Structure_Radii_Definitions
   !!{RST
-  Provides parsing of radii definitions used in output specifiers.
+  Provides parsing and evaluation of radii definitions used in output specifiers.
   !!}
   use :: ISO_Varying_String        , only : varying_string
-  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
+  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType  , enumerationMassTypeType, enumerationWeightByType, &
+       &                                    massTypeStellar
+  use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfile, nodeComponentDisk      , nodeComponentHotHalo   , &
+       &                                    nodeComponentNSC              , nodeComponentSatellite , nodeComponentSpheroid  , &
+       &                                    treeNode
   private
-  public :: radiusSpecifier, Galactic_Structure_Radii_Definition_Decode
+  public :: radiusSpecifier, radiusDefinitions, radiusResolver
+
+  !!{RST
+  Sentinel value returned in place of a radius which is undefined---for example, a radius specified as a fraction of a quantity
+  which does not exist in the node in question. A large negative value is used since no physical radius can ever be negative, and
+  since the code is compiled with ``-ffinite-math-only`` (so that ``NaN`` and ``∞`` are not usable as sentinels) and with
+  ``-ffpe-trap=overflow`` (so that consumers **must** test for this sentinel *before* performing any arithmetic on the radius).
+  !!}
+  double precision, parameter, public :: radiusUndefined=-huge(0.0d0)
 
   !![
   <enumeration docformat="rst">
@@ -53,6 +66,8 @@ module Galactic_Structure_Radii_Definitions
    <entry label="galacticMassFraction"             description="Radii are specified in units of the radius enclosing a fraction of the galactic mass"       />
    <entry label="galacticLightFraction"            description="Radii are specified in units of the radius enclosing a fraction of the galactic light"      />
    <entry label="stellarMassFraction"              description="Radii are specified in units of the radius enclosing a fraction of the stellar mass"        />
+   <entry label="solitonRadiusCore"                description="Radii are specified in units of the \gls{fdm} soliton core radius"                          />
+   <entry label="solitonRadiusSoliton"             description="Radii are specified in units of the \gls{fdm} soliton transition radius"                    />
   </enumeration>
   !!]
 
@@ -86,47 +101,94 @@ module Galactic_Structure_Radii_Definitions
      double precision                               :: fraction             , value
   end type radiusSpecifier
 
+  type radiusDefinitions
+     !!{RST
+     Type used to hold a decoded set of radius definitions, together with a record of which node components are required in order
+     to evaluate them. Radii are evaluated in a given node by first constructing a :galacticus-type:`radiusResolver` from this
+     object.
+     !!}
+     type   (radiusSpecifier), allocatable, dimension(:) :: specifiers
+     integer                                             :: count                     =0
+     integer                                             :: radiusCoreID              =-1     , radiusSolitonID     =-1
+     logical                                             :: hotHaloRequired           =.false., diskRequired        =.false., &
+          &                                                 spheroidRequired          =.false., satelliteRequired   =.false., &
+          &                                                 nuclearStarClusterRequired=.false., radiusVirialRequired=.false., &
+          &                                                 radiusScaleRequired       =.false., solitonRequired     =.false.
+   contains
+     !![
+     <methods docformat="rst">
+       <method method="decode" description="Decode a set of radii descriptors and store the corresponding specifiers, along with a record of which node components are required in order to evaluate them."/>
+     </methods>
+     !!]
+     procedure :: decode => radiusDefinitionsDecode
+  end type radiusDefinitions
+
+  type radiusResolver
+     !!{RST
+     Type used to evaluate a set of :galacticus-type:`radiusDefinitions` in a single :galacticus-type:`treeNode`. Constructing a
+     resolver gathers, once, all of the node components and halo scales needed by the definitions; each radius is then evaluated by
+     a call to the ``evaluate`` method. A resolver holds pointers into the node it was built for, so it must be constructed as a
+     local variable of the routine which uses it (and never cached in a shared object), and must not outlive that node.
+     !!}
+     type            (radiusDefinitions             ), pointer :: definitions_       => null()
+     type            (treeNode                      ), pointer :: node_              => null()
+     class           (nodeComponentHotHalo          ), pointer :: hotHalo            => null()
+     class           (nodeComponentDisk             ), pointer :: disk               => null()
+     class           (nodeComponentSpheroid         ), pointer :: spheroid           => null()
+     class           (nodeComponentNSC              ), pointer :: nuclearStarCluster => null()
+     class           (nodeComponentSatellite        ), pointer :: satellite          => null()
+     class           (nodeComponentDarkMatterProfile), pointer :: darkMatterProfile  => null()
+     double precision                                          :: radiusVirial       =  0.0d0 , fractionDarkMatter=1.0d0
+     double precision                                          :: radiusCore                  , radiusSoliton
+   contains
+     !![
+     <methods docformat="rst">
+       <method method="evaluate" description="Evaluate the radius corresponding to a given radius definition in the node to which this resolver is attached, optionally also returning the scale radius on which that radius is based. Returns ``radiusUndefined`` if the radius is undefined in this node."/>
+     </methods>
+     !!]
+     procedure :: evaluate => radiusResolverEvaluate
+  end type radiusResolver
+
+  interface radiusResolver
+     !!{RST
+     Constructors for the :galacticus-type:`radiusResolver` type.
+     !!}
+     module procedure radiusResolverConstructor
+  end interface radiusResolver
+
 contains
 
-
-  subroutine Galactic_Structure_Radii_Definition_Decode(descriptors,specifiers,hotHaloRequired,diskRequired,spheroidRequired,nuclearStarClusterRequired,satelliteRequired,radiusVirialRequired,radiusScaleRequired)
+  subroutine radiusDefinitionsDecode(self,descriptors)
     !!{RST
-    Decode a set of radii descriptors and return the corresponding specifiers.
+    Decode a set of radii descriptors and store the corresponding specifiers.
     !!}
     use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode   , enumerationMassTypeEncode  , weightByLuminosity      , weightByMass       , &
           &                                       enumerationComponentTypeDescribe , enumerationMassTypeDescribe, weightIndexNull
     use :: Error                         , only : Component_List                   , Error_Report               , errorStatusSuccess
     use :: Galacticus_Nodes              , only : defaultDarkMatterProfileComponent, defaultDiskComponent       , defaultSpheroidComponent, defaultNSCComponent, &
-          &                                       defaultHotHaloComponent          , treeNode
+          &                                       defaultHotHaloComponent
     use :: ISO_Varying_String            , only : char                             , extract                    , operator(==)            , assignment(=)      , &
           &                                       operator(//)
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     use :: String_Handling               , only : String_Count_Words               , String_Split_Words         , char
     implicit none
-    type     (varying_string ), intent(in   ), dimension(:)              :: descriptors
-    type     (radiusSpecifier), intent(inout), dimension(:), allocatable :: specifiers
-    logical                   , intent(  out)                            :: diskRequired              , spheroidRequired    , &
-         &                                                                  nuclearStarClusterRequired, radiusVirialRequired, &
-         &                                                                  radiusScaleRequired       , satelliteRequired   , &
-         &                                                                  hotHaloRequired
-    type     (varying_string  )              , dimension(5)              :: radiusDefinition
-    type     (varying_string  )              , dimension(3)              :: fractionDefinition
-    type     (varying_string  )              , dimension(2)              :: weightingDefinition
-    type     (varying_string  )                                          :: valueDefinition     , message
-    character(len=20          )                                          :: fractionLabel       , radiusLabel
-    character(len=27          )                                          :: extract_
-    integer                                                              :: i                   , radiiCount         , &
-         &                                                                  countComponents     , status
+    class    (radiusDefinitions), intent(inout), target       :: self
+    type     (varying_string   ), intent(in   ), dimension(:) :: descriptors
+    type     (radiusSpecifier  ), pointer      , dimension(:) :: specifiers
+    type     (varying_string   )               , dimension(5) :: radiusDefinition
+    type     (varying_string   )               , dimension(3) :: fractionDefinition
+    type     (varying_string   )               , dimension(2) :: weightingDefinition
+    type     (varying_string   )                              :: valueDefinition    , message
+    character(len=20           )                              :: fractionLabel      , radiusLabel
+    character(len=27           )                              :: extract_
+    integer                                                   :: i                  , radiiCount , &
+         &                                                       countComponents    , status
 
-    hotHaloRequired           =.false.
-    diskRequired              =.false.
-    spheroidRequired          =.false.
-    nuclearStarClusterRequired=.false.
-    satelliteRequired         =.false.
-    radiusVirialRequired      =.false.
-    radiusScaleRequired       =.false.
-    radiiCount                =size(descriptors)
-    allocate(specifiers(radiiCount))
+    radiiCount=size(descriptors)
+    self%count=radiiCount
+    allocate(self%specifiers(radiiCount))
+    ! Alias the specifiers array so that the parsing logic below need not repeat the `self%` prefix throughout.
+    specifiers => self%specifiers
     do i=1,radiiCount
        specifiers(i)%name=descriptors(i)
        countComponents=String_Count_Words(char(descriptors(i)),':',bracketing="{}")
@@ -156,10 +218,10 @@ contains
           specifiers(i)%type=radiusTypeRadius
        case ('virialRadius'                    )
           specifiers(i)%type=radiusTypeVirialRadius
-          radiusVirialRequired         =.true.
+          self%radiusVirialRequired      =.true.
        case ('hotHaloOuterRadius'              )
           specifiers(i)%type=radiusTypeHotHaloOuterRadius
-          hotHaloRequired              =.true.
+          self%hotHaloRequired           =.true.
           if (.not.defaultHotHaloComponent          %outerRadiusIsGettable   ())                                        &
                & call Error_Report                                                                                      &
                &(                                                                                                       &
@@ -172,7 +234,7 @@ contains
                &                             )
        case ('darkMatterScaleRadius'           )
           specifiers(i)%type=radiusTypeDarkMatterScaleRadius
-          radiusScaleRequired=.true.
+          self%radiusScaleRequired       =.true.
           if (.not.defaultDarkMatterProfileComponent%scaleIsGettable         ())                                        &
                & call Error_Report                                                                                      &
                &      (                                                                                                 &
@@ -185,7 +247,7 @@ contains
                &      )
        case ('diskRadius'                      )
           specifiers(i)%type=radiusTypeDiskRadius
-          diskRequired                 =.true.
+          self%diskRequired              =.true.
           if (.not.defaultDiskComponent             %radiusIsGettable        ())                                        &
                & call Error_Report                                                                                      &
                &(                                                                                                       &
@@ -198,7 +260,7 @@ contains
                &                             )
        case ('spheroidRadius'                  )
           specifiers(i)%type=radiusTypeSpheroidRadius
-          spheroidRequired             =.true.
+          self%spheroidRequired          =.true.
           if (.not.defaultSpheroidComponent         %radiusIsGettable        ())                                        &
                & call Error_Report                                                                                      &
                &(                                                                                                       &
@@ -211,7 +273,7 @@ contains
                &                             )
        case ('nuclearStarClusterRadius'        )
           specifiers(i)%type=radiusTypeNuclearStarClusterRadius
-          nuclearStarClusterRequired                 =.true.
+          self%nuclearStarClusterRequired=.true.
           if (.not.defaultNSCComponent             %radiusIsGettable        ())                                         &
                & call Error_Report                                                                                      &
                &(                                                                                                       &
@@ -225,7 +287,7 @@ contains
 
        case ('diskHalfMassRadius'              )
           specifiers(i)%type=radiusTypeDiskHalfMassRadius
-          diskRequired                 =.true.
+          self%diskRequired              =.true.
           if (.not.defaultDiskComponent             %halfMassRadiusIsGettable())                                        &
                & call Error_Report                                                                                      &
                &(                                                                                                       &
@@ -238,7 +300,7 @@ contains
                &                             )
        case ('spheroidHalfMassRadius'          )
           specifiers(i)%type=radiusTypeSpheroidHalfMassRadius
-          spheroidRequired   =.true.
+          self%spheroidRequired          =.true.
           if (.not.defaultSpheroidComponent         %halfMassRadiusIsGettable())                                        &
                & call Error_Report                                                                                      &
                &(                                                                                                       &
@@ -251,7 +313,7 @@ contains
                &                             )
        case ('nuclearStarClusterHalfMassRadius')
           specifiers(i)%type=radiusTypeNuclearStarClusterHalfMassRadius
-          nuclearStarClusterRequired   =.true.
+          self%nuclearStarClusterRequired=.true.
           if (.not.defaultNSCComponent         %halfMassRadiusIsGettable())                                             &
                & call Error_Report                                                                                      &
                &(                                                                                                       &
@@ -265,7 +327,7 @@ contains
 
        case ('satelliteBoundMassFraction'      )
           specifiers(i)%type=radiusTypeSatelliteBoundMassFraction
-          satelliteRequired=.true.
+          self%satelliteRequired         =.true.
           fractionLabel=fractionDefinition(2)
           read (fractionLabel,*,iostat=status) specifiers(i)%fraction
           if (status /= 0) then
@@ -304,6 +366,12 @@ contains
           end if
           specifiers(i)%weightBy     =weightByMass
           specifiers(i)%weightByIndex=weightIndexNull
+       case ('solitonRadiusCore'               )
+          specifiers(i)%type=radiusTypeSolitonRadiusCore
+          self%solitonRequired=.true.
+       case ('solitonRadiusSoliton'            )
+          specifiers(i)%type=radiusTypeSolitonRadiusSoliton
+          self%solitonRequired=.true.
        case default
           message="unrecognized radius type"//char(10)//enumerationRadiusTypeDescribe()
           call reportSpecifierError(specifiers(i)%name,message,highlight=1,bracketed=.false.)
@@ -360,8 +428,200 @@ contains
           call reportSpecifierError(specifiers(i)%name,message,highlight=countComponents,bracketed=.true.)
        end if
     end do
+    if (self%solitonRequired) call radiusDefinitionsSolitonRegister(self)
     return
-  end subroutine Galactic_Structure_Radii_Definition_Decode
+  end subroutine radiusDefinitionsDecode
+
+  subroutine radiusDefinitionsSolitonRegister(self)
+    !!{RST
+    Register the meta-properties in which the :term:`FDM` soliton radii are stored. These are registered only if some radius
+    definition actually refers to them, so that models with no such definitions do not carry the (unused) meta-properties. Note
+    that the meta-properties are registered here with ``isCreator="no"``---whether any class actually creates
+    them is not known until all classes have been constructed, and so must be tested when the radii are evaluated, not here.
+    !!}
+    implicit none
+    class(radiusDefinitions), intent(inout) :: self
+
+    !![
+    <addMetaProperty component="darkMatterProfile" name="solitonRadiusCore"    id="self%radiusCoreID"    isEvolvable="no" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonRadiusSoliton" id="self%radiusSolitonID" isEvolvable="no" isCreator="no"/>
+    !!]
+    return
+  end subroutine radiusDefinitionsSolitonRegister
+
+  function radiusResolverConstructor(definitions_,node,darkMatterHaloScale_,fractionDarkMatter,radiusVirialRequired) result(self)
+    !!{RST
+    Constructor for the :galacticus-type:`radiusResolver` type. Gathers, once, all of the node components and halo scales which
+    are required in order to evaluate the given set of radius definitions in the given node.
+
+    The optional ``fractionDarkMatter`` argument gives the fraction of the bound mass of a satellite which is
+    dark matter---it is required only if radii are specified in units of the satellite bound mass fraction. The optional
+    ``radiusVirialRequired`` argument forces the virial radius to be computed even if no radius definition
+    requires it---it is used by consumers which need the virial radius for their own purposes.
+    !!}
+    implicit none
+    type            (radiusResolver          )                          :: self
+    type            (radiusDefinitions       ), intent(in   ), target   :: definitions_
+    type            (treeNode                ), intent(inout), target   :: node
+    class           (darkMatterHaloScaleClass), intent(inout)           :: darkMatterHaloScale_
+    double precision                          , intent(in   ), optional :: fractionDarkMatter
+    logical                                   , intent(in   ), optional :: radiusVirialRequired
+    !![
+    <optionalArgument name="fractionDarkMatter"   defaultsTo="1.0d0"  />
+    <optionalArgument name="radiusVirialRequired" defaultsTo=".false."/>
+    !!]
+
+    self%definitions_       => definitions_
+    self%node_              => node
+    self%fractionDarkMatter =  fractionDarkMatter_
+    if     (                                                                                                                  &
+         &   definitions_%radiusVirialRequired                                                                                &
+         &  .or.                                                                                                              &
+         &                radiusVirialRequired_                                                                               &
+         & )                                          self%radiusVirial       =  darkMatterHaloScale_%radiusVirial     (node)
+    if     ( definitions_%hotHaloRequired           ) self%hotHalo            => node                %hotHalo          (    )
+    if     ( definitions_%diskRequired              ) self%disk               => node                %disk             (    )
+    if     ( definitions_%spheroidRequired          ) self%spheroid           => node                %spheroid         (    ) 
+    if     ( definitions_%nuclearStarClusterRequired) self%nuclearStarCluster => node                %NSC              (    )
+    if     ( definitions_%satelliteRequired         ) self%satellite          => node                %satellite        (    )
+    if     (                                                                                                                  &
+         &   definitions_%radiusScaleRequired                                                                                 &
+         &  .or.                                                                                                              &
+         &   definitions_%solitonRequired                                                                                     &
+         & )                                          self%darkMatterProfile  => node                %darkMatterProfile(    )
+    self%radiusCore   =radiusUndefined
+    self%radiusSoliton=radiusUndefined
+    if (definitions_%solitonRequired) then
+       select type (darkMatterProfile => self%darkMatterProfile)
+       type is (nodeComponentDarkMatterProfile)
+          ! The node has only the generic dark matter profile component, so it has no soliton properties. Both radii are left
+          ! undefined.
+       class default
+          ! The meta-properties always have valid IDs, but have storage only if some class creates them - which is not the case
+          ! in a model containing no fuzzy dark matter. A non-positive radius indicates a halo in which no soliton formed (the
+          ! soliton profiles store -1 in that case), which is likewise undefined here.
+          if (darkMatterProfile%floatRank0MetaPropertyIsCreated(definitions_%radiusCoreID   )) &
+               & self%radiusCore   =darkMatterProfile%floatRank0MetaPropertyGet(definitions_%radiusCoreID   )
+          if (darkMatterProfile%floatRank0MetaPropertyIsCreated(definitions_%radiusSolitonID)) &
+               & self%radiusSoliton=darkMatterProfile%floatRank0MetaPropertyGet(definitions_%radiusSolitonID)
+          if (self%radiusCore    <= 0.0d0) self%radiusCore   =radiusUndefined
+          if (self%radiusSoliton <= 0.0d0) self%radiusSoliton=radiusUndefined
+       end select
+    end if
+    return
+  end function radiusResolverConstructor
+
+  subroutine radiusResolverEvaluate(self,indexRadius,radius,radiusScale)
+    !!{RST
+    Evaluate the radius corresponding to the ``indexRadius``\ :sup:`th` radius definition in the node to which
+    this resolver is attached.
+
+    The optional ``radiusScale`` argument returns the scale radius on which the radius is based---that is, the
+    quantity of which the specified radius is a multiple (for radii specified absolutely, in Mpc, the radius itself is
+    returned). This is useful for consumers which must choose an outer radius for an integral.
+
+    If the radius is undefined, ``radiusUndefined`` is returned in both arguments. Consumers **must** test for
+    this sentinel *before* performing any arithmetic on the returned radius, since the sentinel is a large negative number which
+    will overflow (and so trap) under multiplication.
+    !!}
+    use :: Error                     , only : Error_Report
+    use :: Galactic_Structure_Options, only : componentTypeAll     , massTypeDark, massTypeGalactic, &
+         &                                    massTypeStellar
+    use :: Mass_Distributions        , only : massDistributionClass
+    implicit none
+    class           (radiusResolver       ), intent(inout)           :: self
+    integer                                , intent(in   )           :: indexRadius
+    double precision                       , intent(  out)           :: radius
+    double precision                       , intent(  out), optional :: radiusScale
+    class           (massDistributionClass), pointer                 :: massDistribution_
+    type            (radiusSpecifier      ), pointer                 :: specifier_
+    double precision                                                 :: radiusScale_     , mass
+
+    specifier_ => self%definitions_%specifiers(indexRadius)
+    radius     =  specifier_%value
+    select case (specifier_%type%ID)
+    case   (radiusTypeRadius                          %ID)
+       radiusScale_=radius
+    case   (radiusTypeVirialRadius                    %ID)
+       radiusScale_=self%radiusVirial
+    case   (radiusTypeDarkMatterScaleRadius           %ID)
+       radiusScale_=self%darkMatterProfile %         scale()
+    case   (radiusTypeHotHaloOuterRadius              %ID)
+       radiusScale_=self%hotHalo           %   outerRadius()
+    case   (radiusTypeDiskRadius                      %ID)
+       radiusScale_=self%disk              %        radius()
+    case   (radiusTypeSpheroidRadius                  %ID)
+       radiusScale_=self%spheroid          %        radius()
+    case   (radiusTypeNuclearStarClusterRadius        %ID)
+       radiusScale_=self%nuclearStarCluster%        radius()
+    case   (radiusTypeDiskHalfMassRadius              %ID)
+       radiusScale_=self%disk              %halfMassRadius()
+    case   (radiusTypeSpheroidHalfMassRadius          %ID)
+       radiusScale_=self%spheroid          %halfMassRadius()
+    case   (radiusTypeNuclearStarClusterHalfMassRadius%ID)
+       radiusScale_=self%nuclearStarCluster%halfMassRadius()
+    case   (radiusTypeSatelliteBoundMassFraction      %ID)
+       mass              =  +self             %satellite%boundMass       (                                             &
+            &                                                            )                                             &
+            &               *self             %fractionDarkMatter
+       massDistribution_ =>  self             %node_    %massDistribution(                                             &
+            &                                                             massType      =           massTypeDark    ,  &
+            &                                                             componentType =           componentTypeAll,  &
+            &                                                             weightBy      =specifier_%weightBy        ,  &
+            &                                                             weightIndex   =specifier_%weightByIndex      &
+            &                                                            )
+       radiusScale_      =  +massDistribution_%radiusEnclosingMass       (                                             &
+            &                                                             mass          =           mass               &
+            &                                                            )
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
+    case   (radiusTypeGalacticMassFraction            %ID)
+       massDistribution_ =>  self             %node_    %massDistribution(                                             &
+            &                                                             massType      =           massTypeGalactic,  &
+            &                                                             componentType =           componentTypeAll,  &
+            &                                                             weightBy      =specifier_%weightBy        ,  &
+            &                                                             weightIndex   =specifier_%weightByIndex      &
+            &                                                            )
+       radiusScale_      =  +massDistribution_%radiusEnclosingMass       (                                             &
+            &                                                             massFractional=specifier_%fraction           &
+            &                                                            )
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
+    case   (radiusTypeGalacticLightFraction           %ID,  &
+         &  radiusTypeStellarMassFraction             %ID)
+       massDistribution_ =>  self             %node_    %massDistribution(                                               &
+            &                                                             massType      =              massTypeStellar , &
+            &                                                             componentType =              componentTypeAll, &
+            &                                                             weightBy      =specifier_%weightBy           , &
+            &                                                             weightIndex   =specifier_%weightByIndex        &
+            &                                                            )
+       radiusScale_      =  +massDistribution_%radiusEnclosingMass       (                                               &
+            &                                                             massFractional=specifier_%fraction             &
+            &                                                            )
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
+    case   (radiusTypeSolitonRadiusCore               %ID)
+       radiusScale_=self%radiusCore
+    case   (radiusTypeSolitonRadiusSoliton            %ID)
+       radiusScale_=self%radiusSoliton
+    case default
+       radiusScale_=radiusUndefined
+       call Error_Report('unrecognized radius type'//{introspection:location})
+    end select
+    ! For radii specified absolutely there is no scale radius to multiply by - the radius is simply the value given. Where the
+    ! scale radius is undefined the radius is undefined too: the sentinel must be propagated rather than multiplied, since it is
+    ! a large negative number which would overflow (and so trap) under multiplication.
+    if      (radiusScale_ == radiusUndefined              ) then
+       radius=radiusUndefined
+    else if (specifier_%type%ID /= radiusTypeRadius%ID) then
+       radius=radius*radiusScale_
+    end if
+    if (present(radiusScale)) radiusScale=radiusScale_
+    return
+  end subroutine radiusResolverEvaluate
 
   subroutine extractFraction(specifier,radiusDefinition,openAt,fractionDefinition)
     !!{RST

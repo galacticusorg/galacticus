@@ -70,14 +70,15 @@ contains
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//), replace    , &
           &                           varying_string
     use :: String_Handling   , only : stringSubstitute
-    use :: System_Command    , only : System_Command_Do
+    use :: System_Command    , only : System_Command_Do, shellEscape
     use :: System_Download   , only : download
     use :: System_Compilers  , only : compiler         , compilerOptions      , languageC   , compilerValidate
     implicit none
     type   (varying_string), intent(  out)           :: classPath, classVersion
     logical                , intent(in   ), optional :: static
     integer                                          :: status
-    type   (varying_string)                          :: command
+    type   (varying_string)                          :: command         , escapedToolsPath, &
+         &                                              escapedTarFile  , escapedClassPath
     type   (lockDescriptor)                          :: fileLock
     !![
     <optionalArgument name="static" defaultsTo=".false." />
@@ -100,11 +101,16 @@ contains
              if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeTools)//"class_public-"//char(classVersion)//".tar.gz")) call Error_Report("unable to download CLASS"//{introspection:location})
           end if
           call displayMessage("unpacking CLASS code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeTools)//" -f "//inputPath(pathTypeTools)//"class_public-"//char(classVersion)//".tar.gz",status)
-          if (status /= 0 .or. .not.File_Exists(classPath)) call Error_Report('failed to unpack CLASS code'//{introspection:location})        
+          escapedToolsPath=inputPath  (pathTypeTools   )
+          escapedToolsPath=shellEscape(escapedToolsPath)
+          escapedTarFile  =inputPath  (pathTypeTools   )//"class_public-"//char(classVersion)//".tar.gz"
+          escapedTarFile  =shellEscape(escapedTarFile  )
+          call System_Command_Do("tar -x -v -z -C "//escapedToolsPath//" -f "//escapedTarFile,status)
+          if (status /= 0 .or. .not.File_Exists(classPath)) call Error_Report('failed to unpack CLASS code'//{introspection:location})
        end if
        call displayMessage("compiling CLASS code",verbosityLevelWorking)
-       command='cd '//classPath//'; cp Makefile Makefile.tmp; '
+       escapedClassPath=shellEscape(classPath)
+       command='cd '//escapedClassPath//'; cp Makefile Makefile.tmp; '
        ! Include Galacticus compilation flags here.
        command=command//'sed -E -i~ s/"^CC[[:space:]]+=[[:space:]]+gcc"/"CC='//char(stringSubstitute(compiler(languageC),"/","\/"))//'"/ Makefile.tmp; sed -E -i~ s/"^(CC|LD)FLAG = "/"\1FLAG = '//char(stringSubstitute(compilerOptions(languageC),"/","\/"))
        if (static_) command=command//' -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive'
@@ -138,17 +144,18 @@ contains
     Run CLASS as necessary to compute perturbations.
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
-    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists   , File_Lock     , &
-         &                                                        File_Path                   , File_Remove        , File_Unlock   , lockDescriptor
+    use               :: Dependencies                    , only : dependencyVersion           , dependencyVersionLabel
+    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make        , File_Exists   , File_Lock     , &
+         &                                                        File_Path                   , File_Remove           , File_Unlock   , lockDescriptor
     use               :: Error                           , only : Error_Report
     use               :: Input_Paths                     , only : inputPath                   , pathTypeDataDynamic
     use               :: HDF5                            , only : hsize_t
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: HDF5_Access                     , only : hdf5Access
-    use               :: IO_HDF5                         , only : hdf5Object
+    use               :: IO_HDF5                         , only : hdf5File                    , hdf5Group
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract       , len           , &
-          &                                                       operator(//)                , operator(==)       , varying_string
+    use               :: ISO_Varying_String              , only : assignment(=)               , char                  , extract       , len           , &
+          &                                                       operator(//)                , operator(==)          , varying_string
     use               :: Input_Parameters                , only : inputParameters
 #ifdef USEMPI
     use               :: MPI_Utilities                   , only : mpiSelf
@@ -164,27 +171,28 @@ contains
     implicit none
     class           (cosmologyParametersClass), intent(inout)                   :: cosmologyParameters_
     double precision                          , intent(in   ), dimension(:    ) :: redshifts
-    double precision                          , intent(in   )                   :: wavenumberRequired                      , wavenumberMaximum
+    double precision                          , intent(in   )                   :: wavenumberRequired                  , wavenumberMaximum
     integer                                   , intent(in   ), optional         :: countPerDecade
     type            (varying_string          ), intent(  out), optional         :: fileName
-    type            (table1DGeneric          ), intent(  out), optional         :: perturbationsDarkMatter                 , perturbationsBaryons
+    type            (table1DGeneric          ), intent(  out), optional         :: perturbationsDarkMatter             , perturbationsBaryons
     logical                                   , intent(inout), optional         :: wavenumberMaximumReached
-    double precision                          , allocatable  , dimension(:    ) :: wavenumbers                             , wavenumbersLogarithmic, &
-         &                                                                         perturbations_                          , redshiftsCombined
+    double precision                          , allocatable  , dimension(:    ) :: wavenumbers                         , wavenumbersLogarithmic      , &
+         &                                                                         perturbations_                      , redshiftsCombined
     double precision                          , allocatable  , dimension(:,:,:) :: perturbations
-    character       (len= 9                  ), allocatable  , dimension(:    ) :: redshiftLabels                          , redshiftLabelsCombined
-    integer         (c_size_t                ), allocatable  , dimension(:    ) :: redshiftRanks                           , redshiftRanksCombined
+    character       (len= 9                  ), allocatable  , dimension(:    ) :: redshiftLabels                      , redshiftLabelsCombined
+    integer         (c_size_t                ), allocatable  , dimension(:    ) :: redshiftRanks                       , redshiftRanksCombined
     type            (varying_string          ), allocatable  , dimension(:    ) :: datasetNames
-    integer         (hsize_t                 ), parameter                       :: chunkSize                   =100_hsize_t
+    integer         (hsize_t                 ), parameter                       :: chunkSize               =100_hsize_t
     type            (lockDescriptor          )                                  :: fileLock
-    integer                                                                     :: i                                       , j                     , &
+    integer                                                                     :: i                                   , j                           , &
          &                                                                         countRedshiftsUnique
-    type            (hdf5Object              )                                  :: classOutput                             , parametersGroup       , &
-         &                                                                         extrapolationWavenumberGroup            , extrapolationGroup    , &
-         &                                                                         speciesGroup
-    character       (len=32                  )                                  :: parameterLabel                          , datasetName           , &
+    type            (hdf5File                )                                  :: classOutput
+    type            (hdf5Group               )                                  :: parametersGroup                     , extrapolationWavenumberGroup, &
+         &                                                                         extrapolationGroup                  , speciesGroup
+    character       (len=32                  )                                  :: parameterLabel                      , datasetName                 , &
          &                                                                         redshiftLabel
-    type            (varying_string          )                                  :: uniqueLabel                             , fileName_
+    type            (varying_string          )                                  :: uniqueLabel                         , fileName_    , &
+         &                                                                     versionClass                        , labelVersionClass
     type            (inputParameters         )                                  :: descriptor
     logical                                                                     :: allEpochsFound
     !![
@@ -208,9 +216,14 @@ contains
     write (parameterLabel,'(i4)'  ) countPerDecade_
     call descriptor%addParameter("countPerDecade",parameterLabel)
     ! Add the unique label string to the descriptor.
-    uniqueLabel=descriptor%serializeToString()       // &
-         &      "_sourceDigest:"                     // &
-         &      String_C_To_Fortran(classSourceDigest)
+    ! Evaluate into a local first - gfortran leaks the temporary returned by a `varying_string`-valued
+    ! function when it is consumed directly by another function.
+    versionClass     =dependencyVersion     ("class")
+    labelVersionClass=dependencyVersionLabel("class")
+    uniqueLabel=descriptor%serializeToString()        // &
+         &      "_sourceDigest:"                      // &
+         &      String_C_To_Fortran(classSourceDigest)// &
+         &      labelVersionClass
     call descriptor%destroy()
     ! Build the file name.
     fileName_=char(inputPath(pathTypeDataDynamic))                    // &
@@ -228,7 +241,7 @@ contains
        allEpochsFound=.true.
        !$ call hdf5Access%set()
        hdf5ReadScope: block
-         classOutput=hdf5Object(fileName_)
+         classOutput=hdf5File(fileName_)
          call classOutput%readDataset('wavenumber',wavenumbers)
          allocate(perturbations(size(wavenumbers),3,size(redshifts)))
          speciesGroup=classOutput%openGroup('darkMatter')
@@ -258,7 +271,7 @@ contains
        if (File_Exists(fileName_)) then
           !$ call hdf5Access%set       (               )
           hdf5DatasetsScope: block
-            classOutput=hdf5Object(fileName_)
+            classOutput=hdf5File(fileName_)
             speciesGroup=classOutput%openGroup('darkMatter')
             call    speciesGroup%datasets(datasetNames   )
           end block hdf5DatasetsScope
@@ -300,9 +313,10 @@ contains
        ! Construct the output HDF5 file.
        !$ call hdf5Access  %set()
        hdf5WriteScope: block
-         classOutput=hdf5Object(fileName_,objectsOverwritable=.true.)
-         call    classOutput %writeAttribute('Perturbations created by CLASS.','description')
-         call    classOutput %writeAttribute(classFormatVersionCurrent,'fileFormat')
+         classOutput=hdf5File(fileName_,objectsOverwritable=.true.)
+         call    classOutput %writeAttribute('Perturbations created by CLASS.','description' )
+         call    classOutput %writeAttribute(classFormatVersionCurrent        ,'fileFormat'  )
+         call    classOutput %writeAttribute(versionClass                     ,'versionCLASS')
          call    classOutput %writeDataset(wavenumbers ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not. classOutput%hasDataset('wavenumber'))
          speciesGroup=classOutput%openGroup('darkMatter','Group containing perturbations for dark matter.')
          do i=1,countRedshiftsUnique
@@ -331,7 +345,7 @@ contains
     if (present(perturbationsDarkMatter)) then
        !$ call hdf5Access%set()
        hdf5DarkMatterScope: block
-         classOutput=hdf5Object(fileName_)
+         classOutput=hdf5File(fileName_)
          call classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call perturbationsDarkMatter%create(                                                 &
@@ -357,7 +371,7 @@ contains
     if (present(perturbationsBaryons)) then
        !$ call hdf5Access%set()
        hdf5BaryonsScope: block
-         classOutput=hdf5Object(fileName_)
+         classOutput=hdf5File(fileName_)
          call    classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call perturbationsBaryons   %create(                                                    &
@@ -390,17 +404,18 @@ contains
     Run CLASS as necessary to compute transfer functions.
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
-    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists   , File_Lock     , &
-         &                                                        File_Path                   , File_Remove        , File_Unlock   , lockDescriptor
+    use               :: Dependencies                    , only : dependencyVersion           , dependencyVersionLabel
+    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make        , File_Exists   , File_Lock     , &
+         &                                                        File_Path                   , File_Remove           , File_Unlock   , lockDescriptor
     use               :: Error                           , only : Error_Report
     use               :: Input_Paths                     , only : inputPath                   , pathTypeDataDynamic
     use               :: HDF5                            , only : hsize_t
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: HDF5_Access                     , only : hdf5Access
-    use               :: IO_HDF5                         , only : hdf5Object
+    use               :: IO_HDF5                         , only : hdf5File                    , hdf5Group
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract       , len           , &
-          &                                                       operator(//)                , operator(==)       , varying_string
+    use               :: ISO_Varying_String              , only : assignment(=)               , char                  , extract       , len           , &
+          &                                                       operator(//)                , operator(==)          , varying_string
     use               :: Input_Parameters                , only : inputParameters
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use               :: Numerical_Interpolation         , only : GSL_Interp_cSpline
@@ -418,7 +433,7 @@ contains
     type            (varying_string          ), intent(  out), optional         :: fileName
     type            (table1DGeneric          ), intent(  out), optional         :: transferFunctionDarkMatter              , transferFunctionBaryons
     logical                                   , intent(inout), optional         :: wavenumberMaximumReached
-    double precision                          , allocatable  , dimension(:    ) :: wavenumbers                             , wavenumbersLogarithmic  , &
+    double precision                          , allocatable  , dimension(:    ) :: wavenumbers                             , wavenumbersLogarithmic      , &
          &                                                                         transferFunctionLogarithmic             , redshiftsCombined
     double precision                          , allocatable  , dimension(:,:,:) :: transferFunctions
     character       (len= 9                  ), allocatable  , dimension(:    ) :: redshiftLabels                          , redshiftLabelsCombined
@@ -426,14 +441,15 @@ contains
     type            (varying_string          ), allocatable  , dimension(:    ) :: datasetNames
     integer         (hsize_t                 ), parameter                       :: chunkSize                   =100_hsize_t
     type            (lockDescriptor          )                                  :: fileLock
-    integer                                                                     :: i                                       , j                       , &
+    integer                                                                     :: i                                       , j                           , &
          &                                                                         countRedshiftsUnique
-    type            (hdf5Object              )                                  :: classOutput                             , parametersGroup         , &
-         &                                                                         extrapolationWavenumberGroup            , extrapolationGroup      , &
-         &                                                                         speciesGroup
-    character       (len=32                  )                                  :: parameterLabel                          , datasetName             , &
+    type            (hdf5File                )                                  :: classOutput
+    type            (hdf5Group               )                                  :: parametersGroup                         , extrapolationWavenumberGroup, &
+         &                                                                         extrapolationGroup                      , speciesGroup
+    character       (len=32                  )                                  :: parameterLabel                          , datasetName                 , &
          &                                                                         redshiftLabel
-    type            (varying_string          )                                  :: uniqueLabel                             , fileName_
+    type            (varying_string          )                                  :: uniqueLabel                             , fileName_, &
+         &                                                                     versionClass                            , labelVersionClass
     type            (inputParameters         )                                  :: descriptor
     logical                                                                     :: allEpochsFound
     !![
@@ -457,9 +473,14 @@ contains
     write (parameterLabel,'(i4)'  ) countPerDecade_
     call descriptor%addParameter("countPerDecade",parameterLabel)
     ! Add the unique label string to the descriptor.
-    uniqueLabel=descriptor%serializeToString()       // &
-         &      "_sourceDigest:"                     // &
-         &      String_C_To_Fortran(classSourceDigest)
+    ! Evaluate into a local first - gfortran leaks the temporary returned by a `varying_string`-valued
+    ! function when it is consumed directly by another function.
+    versionClass     =dependencyVersion     ("class")
+    labelVersionClass=dependencyVersionLabel("class")
+    uniqueLabel=descriptor%serializeToString()        // &
+         &      "_sourceDigest:"                      // &
+         &      String_C_To_Fortran(classSourceDigest)// &
+         &      labelVersionClass
     call descriptor%destroy()
     ! Build the file name.
     fileName_=char(inputPath(pathTypeDataDynamic))                        // &
@@ -477,7 +498,7 @@ contains
        allEpochsFound=.true.
        !$ call hdf5Access%set()
        hdf5ReadScope: block
-         classOutput=hdf5Object(char(fileName_))
+         classOutput=hdf5File(fileName_)
          call classOutput%readDataset('wavenumber',wavenumbers)
          allocate(transferFunctions(size(wavenumbers),3,size(redshifts)))
          speciesGroup=classOutput%openGroup('darkMatter')
@@ -507,7 +528,7 @@ contains
        if (File_Exists(fileName_)) then
           !$ call hdf5Access%set()
           hdf5DatasetsScope: block
-            classOutput=hdf5Object(char(fileName_))
+            classOutput=hdf5File(fileName_)
             speciesGroup=classOutput%openGroup('darkMatter')
             call speciesGroup%datasets(datasetNames)
           end block hdf5DatasetsScope
@@ -549,9 +570,10 @@ contains
        ! Construct the output HDF5 file.
        !$ call hdf5Access%set()
        hdf5WriteScope: block
-         classOutput=hdf5Object(char(fileName_),objectsOverwritable=.true.)
-         call classOutput %writeAttribute('Transfer functions created by CLASS.','description')
-         call classOutput %writeAttribute(classFormatVersionCurrent,'fileFormat')
+         classOutput=hdf5File(fileName_,objectsOverwritable=.true.)
+         call classOutput %writeAttribute('Transfer functions created by CLASS.','description' )
+         call classOutput %writeAttribute(classFormatVersionCurrent             ,'fileFormat'  )
+         call classOutput %writeAttribute(versionClass                          ,'versionCLASS')
          call classOutput %writeDataset(wavenumbers ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not. classOutput%hasDataset('wavenumber'))
          speciesGroup=classOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
          do i=1,countRedshiftsUnique
@@ -580,7 +602,7 @@ contains
     if (present(transferFunctionDarkMatter)) then
        !$ call hdf5Access%set()
        hdf5DarkMatterScope: block
-         classOutput=hdf5Object(char(fileName_))
+         classOutput=hdf5File(fileName_)
          call classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call transferFunctionDarkMatter%create(                                                 &
@@ -607,7 +629,7 @@ contains
     if (present(transferFunctionBaryons)) then
        !$ call hdf5Access%set()
        hdf5BaryonsScope: block
-         classOutput=hdf5Object(char(fileName_))
+         classOutput=hdf5File(fileName_)
          call classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call transferFunctionBaryons   %create(                                                 &
@@ -641,24 +663,26 @@ contains
     Run CLASS to compute the ratio :math:`\sigma_8^2/A_s`.
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass
-    use               :: File_Utilities                  , only : Directory_Make          , File_Exists       , File_Lock     , File_Unlock, &
+    use               :: Dependencies                    , only : dependencyVersion       , dependencyVersionLabel
+    use               :: File_Utilities                  , only : Directory_Make          , File_Exists           , File_Lock     , File_Unlock, &
          &                                                        File_Path               , lockDescriptor
     use               :: Input_Paths                     , only : inputPath               , pathTypeDataDynamic
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: HDF5_Access                     , only : hdf5Access
-    use               :: IO_HDF5                         , only : hdf5Object
+    use               :: IO_HDF5                         , only : hdf5File
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use               :: ISO_Varying_String              , only : varying_string          , char               , operator(//)
+    use               :: ISO_Varying_String              , only : varying_string          , char                  , operator(//)
     use               :: Input_Parameters                , only : inputParameters
     use               :: String_Handling                 , only : String_C_To_Fortran     , operator(//)
     use               :: System_Command                  , only : System_Command_Do
     implicit none
     class    (cosmologyParametersClass), intent(inout)                   :: cosmologyParameters_
     type     (lockDescriptor          )                                  :: fileLock
-    type     (hdf5Object              )                                  :: classOutput
+    type     (hdf5File                )                                  :: classOutput
     character(len=32                  )                                  :: parameterLabel
-    type     (varying_string          )                                  :: uniqueLabel                , fileName
+    type     (varying_string          )                                  :: uniqueLabel                , fileName, &
+         &                                                              versionClass               , labelVersionClass
     type     (inputParameters         )                                  :: descriptor
   
     ! Get a constructor descriptor for this object.
@@ -668,9 +692,14 @@ contains
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
     call descriptor%addParameter("Y_He",parameterLabel)
     ! Add the unique label string to the descriptor.
+    ! Evaluate into a local first - gfortran leaks the temporary returned by a `varying_string`-valued
+    ! function when it is consumed directly by another function.
+    versionClass     =dependencyVersion     ("class")
+    labelVersionClass=dependencyVersionLabel("class")
     uniqueLabel=descriptor%serializeToString()        // &
          &      "_sourceDigest:"                      // &
-         &      String_C_To_Fortran(classSourceDigest)
+         &      String_C_To_Fortran(classSourceDigest)// &
+         &      labelVersionClass
     call descriptor%destroy()
     ! Build the file name.
     fileName=char(inputPath(pathTypeDataDynamic))                    // &
@@ -685,7 +714,7 @@ contains
     if (File_Exists(fileName)) then
        !$ call hdf5Access %set          (                             )
        hdf5ReadScope: block
-         classOutput=hdf5Object(char(fileName))
+         classOutput=hdf5File(fileName)
          call    classOutput%readAttribute('normalization',normalization)      
        end block hdf5ReadScope
        !$ call hdf5Access %unset        (                             )
@@ -695,8 +724,9 @@ contains
        ! Construct the output HDF5 file.
        !$ call hdf5Access %set           (                              )
        hdf5WriteScope: block
-         classOutput=hdf5Object(char(fileName),objectsOverwritable=.true.)
-         call    classOutput%writeAttribute(normalization ,'normalization')
+         classOutput=hdf5File(fileName,objectsOverwritable=.true.)
+         call    classOutput%writeAttribute(normalization             ,'normalization')
+         call    classOutput%writeAttribute(versionClass             ,'versionCLASS' )
        end block hdf5WriteScope
        !$ call hdf5Access %unset         (                              )
     end if
@@ -722,7 +752,7 @@ contains
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use               :: Sorting                         , only : sortIndex
     use               :: String_Handling                 , only : operator(//)
-    use               :: System_Command                  , only : System_Command_Do
+    use               :: System_Command                  , only : System_Command_Do       , shellEscape
     implicit none
     class           (cosmologyParametersClass), intent(inout)                                          :: cosmologyParameters_
     double precision                          , intent(in   ), optional, dimension(:    )              :: redshifts
@@ -744,7 +774,8 @@ contains
          &                                                                                                j
     type            (varying_string          )                                                         :: classVersion                     , parameterFile          , &
          &                                                                                                classPath                        , workPath               , &
-         &                                                                                                transferFileName
+         &                                                                                                transferFileName                 , escapedExecutable      , &
+         &                                                                                                escapedParameterFile             , escapedLogFile
     logical                                                                                            :: found                            , haveTransferFunctions  , &
          &                                                                                                haveNormalization                , havePerturbations
     double precision                                                                                   :: sigma8                           , wavenumberCLASS
@@ -836,7 +867,10 @@ contains
     write (classParameterFile,'(a)') ''
     close(classParameterFile)
     ! Run CLASS.
-    call System_Command_Do(classPath//"class "//parameterFile//" > "//workPath//"/class.log")
+    escapedExecutable   =shellEscape(classPath//"class"    )
+    escapedParameterFile=shellEscape(parameterFile         )
+    escapedLogFile      =shellEscape(workPath//"/class.log")
+    call System_Command_Do(escapedExecutable//" "//escapedParameterFile//" > "//escapedLogFile)
     ! Extract the ratio σ₈²/Aₛ.
     if (haveNormalization) then
        found=.false.

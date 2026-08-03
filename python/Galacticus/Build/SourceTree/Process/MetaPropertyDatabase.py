@@ -4,8 +4,6 @@ declares an `addMetaProperty` directive and synthesizes a
 which functionClass implementation would create a given meta-property.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/MetaPropertyDatabase.pm
 """
 
 import os
@@ -41,9 +39,8 @@ def _locate_function_class(file_name, class_names):
     """Return `(functionClassName, implementationName)` for the `*` directive
     in `file_name` whose root tag + 'Class' matches one of `class_names`.
 
-    Mirrors MetaPropertyDatabase.pm:45-58.  Raises if the implementation's
-    `name` attribute does not begin with the function class name (the Perl
-    code `die`s in the same spot).
+    Raises if the implementation's `name` attribute does not begin with the
+    function class name.
     """
     for directive in extract_directives(file_name, '*', set_root_element_type=True):
         root_type = directive.get('rootElementType')
@@ -54,7 +51,7 @@ def _locate_function_class(file_name, class_names):
             raise RuntimeError(
                 "process_meta_property_database: functionClass implementation "
                 "name has incorrect prefix")
-        # Perl: lcfirst(stripped)
+        # Lowercase the first character of the stripped name.
         stripped = implementation_name[len(root_type):]
         implementation_name = stripped[:1].lower() + stripped[1:] if stripped else stripped
         return root_type, implementation_name
@@ -62,7 +59,7 @@ def _locate_function_class(file_name, class_names):
 
 
 def process_meta_property_database(tree, options):
-    """Mirrors Process_MetaPropertyDatabase() from MetaPropertyDatabase.pm."""
+    """Process `metaPropertyDatabase` directives in the tree."""
     build_path = os.environ.get('BUILDPATH')
     if not build_path:
         raise RuntimeError(

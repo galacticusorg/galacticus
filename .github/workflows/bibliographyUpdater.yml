@@ -21,6 +21,10 @@ on:
 defaults:
   run:
     shell: bash
+# All repository writes in this workflow are made with a GitHub App token generated below, not with `GITHUB_TOKEN`, so the
+# workflow token itself needs only read access.
+permissions:
+  contents: read
 jobs:
   Update-Bibliography:
     runs-on: ubuntu-latest
@@ -28,8 +32,8 @@ jobs:
       appid: ${{ secrets.DEPLOY_APP_ID }}
       adstoken: ${{ secrets.NASA_ADS_API_TOKEN }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/create-github-app-token@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
@@ -101,7 +105,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
       - name: Create Pull Request
         if: ${{ ( env.appid != '' ) && ( env.adstoken != '' ) && ( steps.existing.outputs.skip != 'true' ) }}
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
         with:
           title: "${{ steps.mode.outputs.refresh_all == 'true' && 'fix: Refresh bibliography metadata' || 'fix: Update bibliography records' }}"
           commit-message: "${{ steps.mode.outputs.refresh_all == 'true' && 'fix: Refresh bibliography metadata' || 'fix: Update bibliography records' }}"

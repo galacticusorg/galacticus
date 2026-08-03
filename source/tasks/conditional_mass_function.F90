@@ -337,7 +337,7 @@ contains
     use :: Display              , only : displayIndent, displayUnindent
     use :: Error                , only : Error_Report , errorStatusSuccess
     use :: Output_HDF5          , only : outputFile
-    use :: IO_HDF5              , only : hdf5Object
+    use :: IO_HDF5              , only : hdf5File     , hdf5Group
     use :: HDF5_Access          , only : hdf5Access
     use :: ISO_Varying_String   , only : char         , var_str           , varying_string
     use :: Numerical_Integration, only : integrator
@@ -355,7 +355,7 @@ contains
          &                                                                        logHaloMassUpper           , distanceMaximum
     type            (integrator                )                               :: integratorMassHalo         , integratorTime                   , &
          &                                                                        integratorNormalizationTime
-    type            (hdf5Object                )                               :: outputGroup
+    type            (hdf5Group                 )                               :: outputGroup
     type            (varying_string            )                               :: message
     character       (len=12                    )                               :: label
 

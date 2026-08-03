@@ -30,12 +30,12 @@ Below is the content of the file `source/star_formation/timescales/_class.F90 <h
 
 .. code-block:: fortran
 
-   !!{
+   !!{RST
    Contains a module which provides a class that implements timescales for star formation.
    !!}
 
    module Star_Formation_Timescales
-     !!{
+     !!{RST
      Provides a class that implements calculations of timescales for star formation.
      !!}
      use :: Galacticus_Nodes, only : nodeComponent
@@ -69,11 +69,11 @@ This section:
 
 .. code-block:: fortran
 
-   !!{
+   !!{RST
    Provides a class that implements timescales for star formation.
    !!}
 
-is just a comment that tells someone reading this file what to expect to find in this file. Content inside ``!!{`` ``!!}`` blocks in Galacticus should be in reStructuredText format - it will be included into our ReadTheDocs documentation.
+is just a comment that tells someone reading this file what to expect to find in this file. Content inside ``!!{RST`` ``!!}`` blocks in Galacticus is written in reStructuredText - it will be included into our ReadTheDocs documentation. The ``RST`` on the opening marker is what declares the body to be reStructuredText; without it the block is taken to be in the older LaTeX dialect and the ``Validate-Docstrings-RST`` check will ask for it to be converted.
 
 Module opener
 ^^^^^^^^^^^^^
@@ -99,7 +99,7 @@ Next, we have:
 
 .. code-block:: fortran
 
-     !!{
+     !!{RST
      Provides a class that implements calculations of timescales for star formation.
      !!}
 
@@ -207,7 +207,7 @@ Below is the content of the file `source/star_formation/timescales/halo_scaling.
 
 .. code-block:: fortran
 
-     !!{
+     !!{RST
      Implementation of a timescale for star formation which scales with the circular velocity of the host halo.
      !!}
 
@@ -215,19 +215,20 @@ Below is the content of the file `source/star_formation/timescales/halo_scaling.
      use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
      !![
-     <starFormationTimescale name="starFormationTimescaleHaloScaling">
+     <starFormationTimescale name="starFormationTimescaleHaloScaling" docformat="rst">
       <description>
-       A star formation timescale class in which the timescale scales with halo properties. Specifically,
-       \begin{equation}
-        \tau_\star = \tau_\mathrm{\star,0} \left( {V_\mathrm{vir} \over 200\hbox{km/s}} \right)^{\alpha_\star} (1+z)^{\beta_\star},
-       \end{equation}
-       where $\tau_\mathrm{\star,0}=${\normalfont \ttfamily [timescale]}, $\alpha_\star=${\normalfont \ttfamily
-       [exponentVelocityVirial]}, and $\beta_\star=${\normalfont \ttfamily [exponentRedshift]}.
+      A star formation timescale class in which the timescale scales with halo properties. Specifically,
+
+      .. math::
+
+         \tau_\star = \tau_\mathrm{\star,0} \left( {V_\mathrm{vir} \over 200\hbox{km/s}} \right)^{\alpha_\star} (1+z)^{\beta_\star},
+
+      where :math:`\tau_\mathrm{\star,0}=`\ ``[timescale]``, :math:`\alpha_\star=`\ ``[exponentVelocityVirial]``, and :math:`\beta_\star=`\ ``[exponentRedshift]``.
       </description>
      </starFormationTimescale>
      !!]
      type, extends(starFormationTimescaleClass) :: starFormationTimescaleHaloScaling
-        !!{
+        !!{RST
         Implementation of a haloScaling timescale for star formation.
         !!}
         private
@@ -253,8 +254,8 @@ Below is the content of the file `source/star_formation/timescales/halo_scaling.
      end type starFormationTimescaleHaloScaling
 
      interface starFormationTimescaleHaloScaling
-        !!{
-        Constructors for the {\normalfont \ttfamily haloScaling} timescale for star formation class.
+        !!{RST
+        Constructors for the ``haloScaling`` timescale for star formation class.
         !!}
         module procedure haloScalingConstructorParameters
         module procedure haloScalingConstructorInternal
@@ -265,8 +266,8 @@ Below is the content of the file `source/star_formation/timescales/halo_scaling.
    contains
 
      function haloScalingConstructorParameters(parameters) result(self)
-       !!{
-       Constructor for the {\normalfont \ttfamily haloScaling} timescale for star formation feedback class which takes a
+       !!{RST
+       Constructor for the ``haloScaling`` timescale for star formation feedback class which takes a
        parameter set as input.
        !!}
        use :: Input_Parameters, only : inputParameter, inputParameters
@@ -310,8 +311,8 @@ Below is the content of the file `source/star_formation/timescales/halo_scaling.
      end function haloScalingConstructorParameters
 
      function haloScalingConstructorInternal(timescale,exponentVelocityVirial,exponentRedshift,cosmologyFunctions_,darkMatterHaloScale_) result(self)
-       !!{
-       Internal constructor for the {\normalfont \ttfamily haloScaling} timescale for star formation class.
+       !!{RST
+       Internal constructor for the ``haloScaling`` timescale for star formation class.
        !!}
        implicit none
        type            (starFormationTimescaleHaloScaling)                        :: self
@@ -337,7 +338,7 @@ Below is the content of the file `source/star_formation/timescales/halo_scaling.
      end function haloScalingConstructorInternal
 
      subroutine haloScalingAutoHook(self)
-       !!{
+       !!{RST
        Attach to the calculation reset event.
        !!}
        use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
@@ -349,8 +350,8 @@ Below is the content of the file `source/star_formation/timescales/halo_scaling.
      end subroutine haloScalingAutoHook
 
      subroutine haloScalingDestructor(self)
-       !!{
-       Destructor for the {\normalfont \ttfamily haloScaling} timescale for star formation class.
+       !!{RST
+       Destructor for the ``haloScaling`` timescale for star formation class.
        !!}
        use :: Events_Hooks, only : calculationResetEvent
        implicit none
@@ -365,7 +366,7 @@ Below is the content of the file `source/star_formation/timescales/halo_scaling.
      end subroutine haloScalingDestructor
 
      subroutine haloScalingCalculationReset(self,node,uniqueID)
-       !!{
+       !!{RST
        Reset the halo scaling star formation timescale calculation.
        !!}
        use :: Galacticus_Nodes, only : treeNode
@@ -382,8 +383,8 @@ Below is the content of the file `source/star_formation/timescales/halo_scaling.
      end subroutine haloScalingCalculationReset
 
      double precision function haloScalingTimescale(self,component) result(timescale)
-       !!{
-       Returns the timescale (in Gyr) for star formation in the given {\normalfont \ttfamily component} in the halo scaling
+       !!{RST
+       Returns the timescale (in Gyr) for star formation in the given ``component`` in the halo scaling
        timescale model.
        !!}
        use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -432,7 +433,7 @@ Once again, we start with a comment that describes what this file contains:
 
 .. code-block:: fortran
 
-     !!{
+     !!{RST
      Implementation of a timescale for star formation which scales with the circular velocity of the host halo.
 
      !!}
@@ -471,7 +472,7 @@ Next, we must define a ``type`` for our implementation. This is the data type th
 .. code-block:: fortran
 
      type, extends(starFormationTimescaleClass) :: starFormationTimescaleHaloScaling
-        !!{
+        !!{RST
         Implementation of a haloScaling timescale for star formation.
         !!}
         private
@@ -512,7 +513,7 @@ Next we have a description of the implementation - this can be brief - it is inc
 
 .. code-block:: fortran
 
-        !!{
+        !!{RST
         Implementation of a haloScaling timescale for star formation.
         !!}
 
@@ -589,8 +590,8 @@ After defining our implementation type, we need to give a list of functions that
 .. code-block:: fortran
 
      interface starFormationTimescaleHaloScaling
-        !!{
-        Constructors for the {\normalfont \ttfamily haloScaling} timescale for star formation class.
+        !!{RST
+        Constructors for the ``haloScaling`` timescale for star formation class.
         !!}
         module procedure haloScalingConstructorParameters
         module procedure haloScalingConstructorInternal
@@ -635,8 +636,8 @@ We can now look at the first constructor function:
 .. code-block:: fortran
 
      function haloScalingConstructorParameters(parameters) result(self)
-       !!{
-       Constructor for the {\normalfont \ttfamily haloScaling} timescale for star formation feedback class which takes a
+       !!{RST
+       Constructor for the ``haloScaling`` timescale for star formation feedback class which takes a
        parameter set as input.
        !!}
        use :: Input_Parameters, only : inputParameter, inputParameters
@@ -783,8 +784,8 @@ Our second constructor is the *internal* constructor - this refers to a construc
 .. code-block:: fortran
 
      function haloScalingConstructorInternal(timescale,exponentVelocityVirial,exponentRedshift,cosmologyFunctions_,darkMatterHaloScale_) result(self)
-       !!{
-       Internal constructor for the {\normalfont \ttfamily haloScaling} timescale for star formation class.
+       !!{RST
+       Internal constructor for the ``haloScaling`` timescale for star formation class.
        !!}
        implicit none
        type            (starFormationTimescaleHaloScaling)                        :: self
@@ -875,7 +876,7 @@ The ``autoHook`` method is a special that gets called automatically whenever an 
 .. code-block:: fortran
 
      subroutine haloScalingAutoHook(self)
-       !!{
+       !!{RST
        Attach to the calculation reset event.
        !!}
        use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
@@ -902,8 +903,8 @@ We created our object with the constructors described above. When our object is 
 .. code-block:: fortran
 
      subroutine haloScalingDestructor(self)
-       !!{
-       Destructor for the {\normalfont \ttfamily haloScaling} timescale for star formation class.
+       !!{RST
+       Destructor for the ``haloScaling`` timescale for star formation class.
        !!}
        use :: Events_Hooks, only : calculationResetEvent
        implicit none
@@ -949,8 +950,8 @@ In our example, our function looks like this:
 .. code-block:: fortran
 
      double precision function haloScalingTimescale(self,component) result(timescale)
-       !!{
-       Returns the timescale (in Gyr) for star formation in the given {\normalfont \ttfamily component} in the halo scaling
+       !!{RST
+       Returns the timescale (in Gyr) for star formation in the given ``component`` in the halo scaling
        timescale model.
        !!}
        use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -1073,3 +1074,24 @@ Then, when you compile Galacticus it will automatically discover your new class,
      <exponentVelocityVirial value="0.0"/>
      <timescale              value="1.0"/>
    </starFormationTimescale>
+
+Recursive classes
+~~~~~~~~~~~~~~~~~~
+
+Occasionally a class composites a member of its *own* class---either directly, or via another, mutually-compositing class. If no such member is provided explicitly in the parameter file, the build searches up the parameter tree, re-discovers the object it is *currently* constructing, and tries to build it again---an unbounded recursion. Galacticus detects this and aborts with an informative error (see `issue #397 <https://github.com/galacticusorg/galacticus/issues/397>`_), listing the build stack and telling you to provide the required object explicitly.
+
+For a small number of classes, however, such a construction cycle is *legitimate and bounded*: the physics guarantees that re-entry terminates. (Examples include :galacticus-class:`virialDensityContrastPercolation`, whose percolation objects composite a :galacticus-class:`darkMatterHaloScaleVirialDensityContrastDefinition` that resolves back to the percolation object.) To allow such a class to participate in a bounded cycle, add ``recursive="yes"`` to its ``functionClass`` directive:
+
+.. code-block:: fortran
+
+   !![
+   <starFormationTimescale name="starFormationTimescaleMyRecursive" recursive="yes">
+    <description>A star formation timescale class that composites a bounded member of its own class.</description>
+   </starFormationTimescale>
+   !!]
+
+That single attribute is all that is required. When the build re-enters the node currently under construction, the factory returns a generated *shim*---a lightweight ``<name>Recursive`` object that holds only a weak pointer back to the real object under construction and forwards every method call to it. All of the supporting machinery is generated automatically: the shim type and its method forwarders, its ``deepCopy``/``stateStore``/``descriptor`` behaviour, and the weak (uncounted) back-reference that keeps reference counting sound so no memory leak results. You do **not** need to write any ``recursiveSelf`` pointers, per-method guards, or custom ``deepCopy`` code---this boilerplate was removed under `issue #695 <https://github.com/galacticusorg/galacticus/issues/695>`_.
+
+.. warning::
+
+   Only mark a class ``recursive="yes"`` if re-entry into it is genuinely bounded. The opt-in is deliberately *not* automatic: for a class whose cycle does *not* terminate (e.g. a filter that wraps itself), automatic shimming would convert the clean construction-time error above into an infinite recursion at *run* time, with no diagnostic. Leaving such a class un-opted-in preserves the informative construction-time abort.

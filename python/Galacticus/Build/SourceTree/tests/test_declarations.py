@@ -1,6 +1,6 @@
 """Regression tests for `Galacticus.Build.SourceTree.Parse.Declarations`.
 
-Covers two bug classes hit during the Perl->Python preprocessor port:
+Covers two bug classes in the declarations parser:
 
   1. `parse_declaration` mishandled type-specs whose body itself contained
      `(`/`)` — e.g. `character(len=len(tagName))` was clipped at the first

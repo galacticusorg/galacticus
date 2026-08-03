@@ -504,7 +504,7 @@ contains
     use            :: HDF5_Access                         , only : hdf5Access
     use            :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
     use            :: Galactic_Structure_Options          , only : componentTypeDarkMatterOnly        , massTypeDark
-    use            :: IO_HDF5                             , only : hdf5Object
+    use            :: IO_HDF5                             , only : hdf5File                           , hdf5Group                          , hdf5Dataset
     use, intrinsic :: ISO_C_Binding                       , only : c_size_t
     use            :: Mass_Distributions                  , only : massDistributionClass
     use            :: Node_Components                     , only : Node_Components_Thread_Initialize  , Node_Components_Thread_Uninitialize
@@ -575,9 +575,10 @@ contains
          &                                                                                              massHalfModeReference                                  , slopeHalfMode                , &
          &                                                                                              slopeQuarterMode                                       , wavenumberHalfMode           , &
          &                                                                                              wavenumberQuarterMode
-    type            (hdf5Object                             )                                        :: outputsGroup                                           , outputGroup                  , &
+    type            (hdf5Group                              )                                        :: outputsGroup                                           , outputGroup                  , &
          &                                                                                              containerGroup                                         , powerSpectrumGroup           , &
-         &                                                                                              cosmologyGroup                                         , dataset
+         &                                                                                              cosmologyGroup
+    type            (hdf5Dataset                            )                                        :: dataset
     integer                                                                                          :: statusHalfModeMass                                     , statusQuarterModeMass        , &
          &                                                                                              statusHalfModeMassReference                            , statusIntegrated
     type            (varying_string                         )                                        :: groupName                                              , description

@@ -29,6 +29,11 @@ module Node_Component_Position_Cartesian
   private
   public :: Node_Component_Position_Cartesian_Thread_Initialize, Node_Component_Position_Cartesian_Thread_Uninitialize, &
        &    Node_Component_Position_Cartesian_Inter_Tree_Insert 
+  ! The `position` and `velocity` properties below are rank-1, 3-element arrays. As with all bare 3-element
+  ! position/velocity arrays in Galacticus, their components are *Cartesian*, in the order (x,y,z) --- the
+  ! coordinate system is implicit in the representation and is not carried by the type. Code which needs a
+  ! system-aware position should assign these into a `coordinateCartesian` object, which then converts to
+  ! other systems automatically on assignment. See the convention documented in the `Coordinates` module.
   !![
   <component>
    <class>position</class>
@@ -40,7 +45,7 @@ module Node_Component_Position_Cartesian
       <type>double</type>
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output labels="[X,Y,Z]" unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Position of the node (in physical coordinates)."/>
+      <output labels="[X,Y,Z]" unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Position of the node, in Cartesian components (x,y,z) (in physical coordinates)."/>
       <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
     </property>
     <property>
@@ -48,7 +53,7 @@ module Node_Component_Position_Cartesian
       <type>double</type>
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output labels="[X,Y,Z]" unitsInSI="kilo" unitsDescription="km/s" unitsQuantity="km/s" comment="Velocity of the node (in physical coordinates)."/>
+      <output labels="[X,Y,Z]" unitsInSI="kilo" unitsDescription="km/s" unitsQuantity="km/s" comment="Velocity of the node, in Cartesian components (vx,vy,vz) (in physical coordinates)."/>
       <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
     </property>
     <property>

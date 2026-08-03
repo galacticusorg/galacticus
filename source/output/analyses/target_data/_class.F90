@@ -38,7 +38,7 @@ module Output_Analysis_Target_Data
    <default>standard</default>
    <method name="hasTarget" >
     <description>
-    Return whether the value and covariance target arrays are both allocated (i.e.\ a comparison dataset is present).
+    Return whether the value and covariance target arrays are both allocated (i.e. a comparison dataset is present).
     </description>
     <type>logical</type>
     <pass>yes</pass>

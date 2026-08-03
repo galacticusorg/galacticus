@@ -1,9 +1,6 @@
 """Provides parsing of Fortran variable declaration lines.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors the parseDeclaration() function from
-perl/Galacticus/Build/SourceTree/Parse/Declarations.pm
 """
 
 import re
@@ -15,8 +12,6 @@ from Galacticus.Build.FortranUtils import extract_bracketed
 
 def parse_declaration(line):
     """Parse a single Fortran variable declaration line.
-
-    Mirrors Perl Galacticus::Build::SourceTree::Parse::Declarations::parseDeclaration().
 
     Parameters
     ----------
@@ -132,8 +127,7 @@ def parse_declaration(line):
 def build_declarations(node):
     """Build Fortran declaration text from a declaration node's structured data.
 
-    Mirrors BuildDeclarations() from Parse/Declarations.pm.  Rewrites
-    node['firstChild']['content'] in place.
+    Rewrites node['firstChild']['content'] in place.
     """
     content = "implicit none\n" if node.get('implicitNone') else ""
     for declaration in node.get('declarations', []):
@@ -179,8 +173,8 @@ def build_declarations(node):
 def add_declarations(node, declarations):
     """Add declarations to an existing node, creating a declaration child if needed.
 
-    Mirrors AddDeclarations() from Parse/Declarations.pm.  The new declaration node
-    is inserted after any existing moduleUse child, otherwise before the first child.
+    The new declaration node is inserted after any existing moduleUse child,
+    otherwise before the first child.
     """
     from Galacticus.Build.SourceTree import insert_before_node, insert_after_node
 
@@ -230,9 +224,8 @@ def add_declarations(node, declarations):
 def add_attributes(node, variable_name, attributes):
     """Add attributes to the declaration of a named variable.
 
-    Mirrors AddAttributes() from Parse/Declarations.pm.  If the variable shares a
-    declaration line with others, that declaration is split so the target variable
-    can receive attributes independently.
+    If the variable shares a declaration line with others, that declaration is
+    split so the target variable can receive attributes independently.
     """
     declarations_found = None
     declaration_found  = None
@@ -279,8 +272,8 @@ def add_attributes(node, variable_name, attributes):
 def get_declaration(node, variable_name):
     """Return a descriptor of the declaration for a named variable.
 
-    Mirrors GetDeclaration() from Parse/Declarations.pm.  The returned dict is a
-    deep copy with 'variables' reduced to the single target variable (original case).
+    The returned dict is a deep copy with 'variables' reduced to the single
+    target variable (original case).
     Raises RuntimeError if no declarations are present or the variable is not found.
     """
     declarations_found = False
@@ -291,8 +284,7 @@ def get_declaration(node, variable_name):
         if child.get('type') == 'declaration':
             declarations_found = True
             for declaration in child.get('declarations', []):
-                # Strip any initializer value before comparing (mirrors Perl
-                # regex `m/^([^=]+)\s*=/ ? $1 : $_`).
+                # Strip any initializer value before comparing.
                 bare_names = []
                 for v in declaration.get('variables', []):
                     m_eq = re.match(r'^([^=]+)\s*=', v)
@@ -318,8 +310,7 @@ def get_declaration(node, variable_name):
 def declaration_exists(node, variable_name):
     """Return True if the named variable has a declaration in node.
 
-    Mirrors DeclarationExists() from Parse/Declarations.pm.  Case-insensitive.
-    Strips any `=…` initializer off each stored variable name before
+    Case-insensitive.  Strips any `=…` initializer off each stored variable name before
     comparing — declarations are stored as raw `name=value` tokens (e.g.
     `warnObjectBuilder0__=.false.`) but callers query by bare name.  Also
     falls back to `variableNames` (the parser's already-stripped list)

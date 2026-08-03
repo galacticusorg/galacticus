@@ -2,8 +2,7 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/Hierarchy.pm.  Two
-`functions`-phase hooks emitting `nodeClassHierarchyInitialize` and
+Two `functions`-phase hooks emitting `nodeClassHierarchyInitialize` and
 `nodeClassHierarchyFinalize`.
 """
 
@@ -19,7 +18,7 @@ _OUTPUT_CONDITION_RE = re.compile(r'\[\[([^\]]+)\]\]')
 def Hierarchy_Initialization(build):
     """Generate `nodeClassHierarchyInitialize`.
 
-    Mirrors `Hierarchy_Initialization`.  Reads run-time parameters that
+    Reads run-time parameters that
     select which implementation each component class uses, then
     allocates `default<Class>Component` from the matching template and
     flips on `nodeComponent<Full>IsActiveValue` for the chosen
@@ -52,7 +51,7 @@ def Hierarchy_Initialization(build):
     function = {
         'type':        'void',
         'name':        'nodeClassHierarchyInitialize',
-        'description': r"Initialize the \glc\ node/component class hierarchy.",
+        'description': r"Initialize the Galacticus node/component class hierarchy.",
         'modules':     [
             'Input_Parameters',
             'ISO_Varying_String',
@@ -109,7 +108,7 @@ def Hierarchy_Initialization(build):
                     ext = comp['extends']
                     cursor = _ucfirst(ext['class']) + _ucfirst(ext['name'])
                     content += (
-                        f"\tnodeComponent{cursor}IsActiveValue=.true.\n"
+                        f"        nodeComponent{cursor}IsActiveValue=.true.\n"
                     )
                 else:
                     cursor = ""
@@ -139,9 +138,9 @@ def Hierarchy_Initialization(build):
                     f"      <defaultValue>.false.</defaultValue>\n"
                     f"      <attachedTo>module</attachedTo>\n"
                     f"      <description>Specifies whether the "
-                    f"\\mono{{{prop['name']}}} method of the "
-                    f"\\mono{{{member['name']}}} implementation of the "
-                    f"\\mono{{{class_name}}} component class should be output."
+                    f"``{prop['name']}`` method of the "
+                    f"``{member['name']}`` implementation of the "
+                    f"``{class_name}`` component class should be output."
                     f"</description>\n"
                     f"      <type>string</type>\n"
                     f"      <cardinality>1</cardinality>\n"
@@ -184,7 +183,7 @@ def Hierarchy_Initialization(build):
 def Hierarchy_Finalization(build):
     """Generate `nodeClassHierarchyFinalize`.
 
-    Mirrors `Hierarchy_Finalization`.  Decrements the init counter and,
+    Decrements the init counter and,
     if zero, deallocates every `default<Class>Component` and tears down
     the mass-distributions cache.
     """
@@ -197,7 +196,7 @@ def Hierarchy_Finalization(build):
     function = {
         'type':        'void',
         'name':        'nodeClassHierarchyFinalize',
-        'description': r"Finalize the \glc\ node/component class hierarchy.",
+        'description': r"Finalize the Galacticus node/component class hierarchy.",
         'content':     (
             "!$omp critical (Node_Class_Hierarchy_Initialize)\n"
             "hierarchyInitialized=hierarchyInitialized-1\n"
@@ -230,7 +229,8 @@ def _ucfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Hierarchy.pm:23-26.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('hierarchy', 'functions', Hierarchy_Initialization)

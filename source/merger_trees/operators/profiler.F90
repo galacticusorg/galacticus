@@ -229,10 +229,10 @@ contains
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object
+    use :: IO_HDF5    , only : hdf5File  , hdf5Group
     implicit none
     class  (mergerTreeOperatorProfiler), intent(inout)               :: self
-    type   (hdf5Object                )                              :: profilerGroup
+    type   (hdf5Group                 )                              :: profilerGroup
     integer(kind_int8                 )                              :: nodeCountCurrent                , singleProgenitorCountCurrent
     integer(kind_int8                 ), dimension(:,:), allocatable :: nonPrimaryProgenitorCountCurrent
 

@@ -1,7 +1,7 @@
 Dark-Matter-Only Merger Trees
 =============================
 
-In this tutorial we'll use Galacticus to simulate a set of dark matter only `merger trees <https://en.wikipedia.org/wiki/Galaxy_merger#Merger_history_trees>`_. This tutorial assumes that you've already installed Galacticus (if you haven't, you can find the installation instructions `here <https://github.com/galacticusorg/galacticus/wiki#how-do-i-install-and-use-galacticus>`_), and have worked through the earlier tutorials so understand the basics of Galacticus parameter and output files.
+In this tutorial we'll use Galacticus to simulate a set of dark matter only `merger trees <https://en.wikipedia.org/wiki/Galaxy_merger#Merger_history_trees>`_. This tutorial assumes that you've already installed Galacticus (if you haven't, you can find the installation instructions in :doc:`../installation/index`), and have worked through the earlier tutorials so understand the basics of Galacticus parameter and output files.
 
 Running the calculation
 -----------------------

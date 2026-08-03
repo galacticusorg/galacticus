@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Unit tests for Python utility modules ported from Perl.
+# Unit tests for Python utility modules.
 # Tests the following modules:
 #   - Sort.Topo
 #   - List.ExtraUtils
@@ -899,7 +899,7 @@ def test_process_tree_orchestrator():
         call_order = []
         def hook_a(tree, options): call_order.append('a')
         def hook_b(tree, options): call_order.append('b')
-        # Perl convention: `before=['b']` means b runs AFTER a.
+        # `before=['b']` means b runs AFTER a.
         register_process('a', hook_a, before=['b'])
         register_process('b', hook_b)
         dummy_tree = {'type': 'file', 'firstChild': None, 'parent': None, 'sibling': None}
@@ -2620,7 +2620,7 @@ def test_set_visibility():
                  "public list sorted and joined")
     assert_equal('private :: secretVar' in out, True,
                  "private list emitted")
-    # Visibility block must come AFTER the `use foo` (matches Perl ordering).
+    # Visibility block must come AFTER the `use foo`.
     use_pos = out.index('use foo')
     vis_pos = out.index('public')
     assert_equal(vis_pos > use_pos, True,
@@ -2665,7 +2665,7 @@ def test_process_enumeration_basic():
     assert_equal('colorGreen=enumerationcolorType(1)' in out, True,
                  "second member increments")
     assert_equal('enumerationColorIsEqual' in out, True,
-                 "equality function emitted (name ucfirst'd per Perl)")
+                 "equality function emitted (generated name is ucfirst'd)")
     assert_equal('enumerationColorDescribe' in out, True,
                  "describe function always emitted")
 
@@ -2754,9 +2754,9 @@ def test_process_deep_copy_actions_setto():
         mod,
     )
 
-    # deepCopyActions reads $BUILDPATH/deepCopyActions.xml eagerly in Perl;
-    # the Python port delays the read until it's needed, but process_tree()
-    # fires every registered hook, so provide empty stub XML for the others.
+    # process_tree() fires every registered hook, and each hook reads its
+    # $BUILDPATH XML input (deepCopyActions reads deepCopyActions.xml only
+    # when needed), so provide empty stub XML for the others.
     tmpdir = tempfile.mkdtemp()
     open(os.path.join(tmpdir, 'deepCopyActions.xml'), 'w').close()
     with open(os.path.join(tmpdir, 'stateStorables.xml'), 'w') as fh:
@@ -3024,7 +3024,7 @@ def test_dependency_sort_after_and_before():
 
     # `X.after = Y` means X is placed AFTER Y in the output (the natural
     # English reading; see the long Implementation note in
-    # `Dependencies.py` for why our edge direction differs from Perl's).
+    # `Dependencies.py` for the reasoning behind the edge direction).
     order = dependency_sort({'X': {'after': 'Y'}, 'Y': {}})
     assert_equal(order, ['Y', 'X'],
                  "`after` edge places the tagged name after its reference")
@@ -3177,7 +3177,7 @@ def test_process_event_hooks_static_ordering():
         # Natural-English reading: first_hook has `after="second_hook"`, so
         # the emitted `call first_hook` comes AFTER `call second_hook`.
         # (See `Dependencies.dependency_sort`'s Implementation note for
-        # why our edge direction differs from the Perl original.)
+        # the reasoning behind the edge direction.)
         first_pos  = out.index('call first_hook')
         second_pos = out.index('call second_hook')
         assert_equal(second_pos < first_pos, True,
@@ -3488,7 +3488,7 @@ def test_process_source_digest():
     assert_equal('character(C_Char)' in out and 'dimension(23)' in out, True,
                  "MD5 character array declaration emitted")
     assert_equal('bind(C, name="someFileMD5")' in out, True,
-                 "C binding tag matches Perl-generated symbol name")
+                 "C binding tag matches expected symbol name format")
     assert_equal('use' in out and 'ISO_C_Binding' in out and 'C_Char' in out,
                  True, "ISO_C_Binding, only : C_Char imported")
 
@@ -4214,9 +4214,9 @@ def test_functionclass_load_and_sort_classes(tmp_source_write=None):
             # gfortran: when each child class's `type` node is later
             # threaded into the parent module's interfaces list, the
             # child's `extends(parent)` clause needs the parent type to
-            # have been declared earlier in the source.  The Perl
-            # original built `dep[parent] += [child]` which puts the
-            # child first; that ordering only happens to compile when
+            # have been declared earlier in the source.  Beware the
+            # reversed convention (`dep[parent] += [child]`), which puts
+            # the child first; that ordering only happens to compile when
             # nothing extends another non-abstract child (the cosmology
             # case demonstrably did, and broke).
             assert_equal([c['type'] for c in ordered],
@@ -4377,7 +4377,7 @@ def test_functionclass_source_digest_binding():
     assert_equal(
         'character(C_Char), dimension(23), bind(C, name="myClassMD5") '
         ':: myClass5' in out, True,
-        "C-binding declaration matches Perl SourceDigest::Binding format")
+        "C-binding declaration matches SourceDigest binding format")
 
 
 def test_functionclass_generate_type_definition():
@@ -4464,9 +4464,24 @@ def test_functionclass_generate_constructor_with_default_and_recursion():
 
     assert_equal('interface myFoo' in pre['content'], True,
                  "constructor interface declared")
-    assert_equal('RecursiveBuildNode' in pre['content'], True,
-                 "recursive-build state variable declared when any class is recursive")
     body = post['content']
+    # Recursion detection is now unified onto the shared object-build stack
+    # (issue #695): the factory records the object under construction on the
+    # stack and, on re-entry, queries the stack and returns the generated shim
+    # type -- in place of the former per-family RecursiveBuildNode/Object
+    # thread-private module variables.
+    assert_equal('RecursiveBuildNode' in pre['content'], False,
+                 "the retired per-family recursive-build module variables are "
+                 "no longer emitted")
+    assert_equal('recursiveObject => Input_Parameters_Build_Stack_Recursive_Object'
+                 in body, True,
+                 "recursive-build detection queries the object-build stack when "
+                 "any class is recursive")
+    assert_equal('call Input_Parameters_Build_Stack_Object_Set(self)' in body, True,
+                 "object under construction recorded on the build stack for a "
+                 "recursive class")
+    assert_equal('allocate(myFooRecursive :: self)' in body, True,
+                 "recursive re-entry short-circuits to the generated shim type")
     assert_equal('function myFooCnstrctrPrmtrs(parameters,copyInstance,'
                  'parameterName) result(self)' in body, True,
                  "constructor function declared with all expected parameters")

@@ -3,8 +3,6 @@ of a component class — return the list of implementations matching a
 requested attribute requirement.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Properties/Attributes.pm.
 """
 
 
@@ -17,7 +15,9 @@ from Galacticus.Build.Components.Properties.Utils     import attribute_adjective
 
 
 def Attributes_Match(build, class_dict):
-    """Mirrors `Attributes_Match`."""
+    """Generate `<class><Prop>AttributeMatch` — returns the list of member
+    implementations having the requested get/set/rate attributes.
+    """
     cap_class = _ucfirst(class_dict['name'])
     type_name = 'nodeComponent' + cap_class
 
@@ -50,8 +50,8 @@ def Attributes_Match(build, class_dict):
             'name':        f"{class_dict['name']}{cap_prop}AttributeMatch",
             'description': (
                 f"Return a text list of component implementations in the "
-                f"\\mono{{{class_dict['name']}}} class that have the desired "
-                f"attributes for the \\mono{{{prop_name}}} property"
+                f"``{class_dict['name']}`` class that have the desired "
+                f"attributes for the ``{prop_name}`` property"
             ),
             'modules':     ['ISO_Varying_String'],
             'variables':   [
@@ -86,9 +86,8 @@ def Attributes_Match(build, class_dict):
             "if (present(requireEvolvable)) requireEvolvableActual=requireEvolvable\n"
         )
 
-        # Iterate over members in sorted order (Perl `hashList(..., keyAs)`
-        # iterates the underlying hash without sorting; we sort for
-        # determinism).
+        # Iterate over members in sorted order — deliberate, for
+        # deterministic output.
         for member_name in sorted(prop_entry['members'].keys()):
             flags = prop_entry['members'][member_name]
             logic = []

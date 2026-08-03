@@ -46,7 +46,7 @@ contains
 
   subroutine FFTLogSineTransform(r,k,f,ft,direction)
     !!{RST
-    Wrapper function for \hyperlinknumerical.FFTlog.F90:fftlogs:fftlog\ ``FFTLog()`` which performs a Fourier sine transform. Since \hyperlinknumerical.FFTlog.F90:fftlogs:fftlog\ ``FFTLog()`` achieves this by using the :math:`J_{1/2}(x)=(2/\pi x)^{1/2} \sin(x)` Bessel function we apply the inverse of these factors to get a sine transform.
+    Wrapper function for ``FFTLog()`` which performs a Fourier sine transform. Since ``FFTLog()`` achieves this by using the :math:`J_{1/2}(x)=(2/\pi x)^{1/2} \sin(x)` Bessel function we apply the inverse of these factors to get a sine transform.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -64,7 +64,7 @@ contains
   
   subroutine FFTLogCosineTransform(r,k,f,ft,direction)
     !!{RST
-    Wrapper function for \hyperlinknumerical.FFTlog.F90:fftlogs:fftlog\ ``FFTLog()`` which performs a Fourier cosine transform. Since \hyperlinknumerical.FFTlog.F90:fftlogs:fftlog\ ``FFTLog()`` achieves this by using the :math:`J_{1/2}(x)=(2/\pi x)^{1/2} \cos(x)` Bessel function we apply the inverse of these factors to get a cosine transform.
+    Wrapper function for ``FFTLog()`` which performs a Fourier cosine transform. Since ``FFTLog()`` achieves this by using the :math:`J_{1/2}(x)=(2/\pi x)^{1/2} \cos(x)` Bessel function we apply the inverse of these factors to get a cosine transform.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

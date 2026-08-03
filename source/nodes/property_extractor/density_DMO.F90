@@ -22,7 +22,7 @@
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO            , only : darkMatterProfileDMOClass
-  use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
+  use :: Galactic_Structure_Radii_Definitions, only : radiusDefinitions
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDensityDMOProfile" docformat="rst">
@@ -41,11 +41,7 @@
      integer                                                       :: radiiCount                             , elementCount_
      logical                                                       :: includeRadii
      type   (varying_string           ), allocatable, dimension(:) :: radiusSpecifiers
-     type   (radiusSpecifier          ), allocatable, dimension(:) :: radii
-     logical                                                       :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
-          &                                                           spheroidIsNeeded                       , virialRadiusIsNeeded, &
-          &                                                           nuclearStarClusterIsNeeded             , satelliteIsNeeded   , &
-          &                                                           hotHaloIsNeeded
+     type   (radiusDefinitions        )                            :: radii
    contains
      final     ::                       densityDMOProfileDestructor
      procedure :: columnDescriptions => densityDMOProfileColumnDescriptions
@@ -115,8 +111,7 @@ contains
     Internal constructor for the :galacticus-class:`nodePropertyExtractorDensityDMOProfile` property extractor class.
     !!}
     use :: Error                               , only : Error_Report
-    use :: Galactic_Structure_Options          , only : componentTypeDarkMatterOnly               , massTypeDark, massTypeAll    
-    use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
+    use :: Galactic_Structure_Options          , only : componentTypeDarkMatterOnly, massTypeDark, massTypeAll    
     implicit none
     type   (nodePropertyExtractorDensityDMOProfile)                              :: self
     type   (varying_string                        ), intent(in   ), dimension(:) :: radiusSpecifiers
@@ -133,19 +128,9 @@ contains
        self%elementCount_=1
     end if
     self%radiiCount      =size(radiusSpecifiers)
-    call Galactic_Structure_Radii_Definition_Decode(                                    &
-         &                                          radiusSpecifiers                  , &
-         &                                          self%radii                        , &
-         &                                          self%hotHaloIsNeeded              , &
-         &                                          self%diskIsNeeded                 , &
-         &                                          self%spheroidIsNeeded             , &
-         &                                          self%nuclearStarClusterIsNeeded   , &
-         &                                          self%satelliteIsNeeded            , &
-         &                                          self%virialRadiusIsNeeded         , &
-         &                                          self%darkMatterScaleRadiusIsNeeded  &
-         &                                         )
-    if (any(self%radii%component /= componentTypeDarkMatterOnly                                    )) call Error_Report('only the dark halo component can be output'//{introspection:location})
-    if (any(self%radii%mass      /= massTypeDark                .and.self%radii%mass /= massTypeAll)) call Error_Report('only the dark matter can be output'        //{introspection:location})
+    call self%radii%decode(radiusSpecifiers)
+    if (any(self%radii%specifiers%component /= componentTypeDarkMatterOnly                                               )) call Error_Report('only the dark halo component can be output'//{introspection:location})
+    if (any(self%radii%specifiers%mass      /= massTypeDark                .and.self%radii%specifiers%mass /= massTypeAll)) call Error_Report('only the dark matter can be output'        //{introspection:location})
     return
   end function densityDMOProfileConstructorInternal
 
@@ -194,97 +179,35 @@ contains
     !!{RST
     Implement a ``densityDMOProfile`` property extractor.
     !!}
-    use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic            , massTypeStellar
-    use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius                      , radiusTypeGalacticLightFraction   , &
-          &                                             radiusTypeGalacticMassFraction , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius          , radiusTypeSpheroidRadius          , &
-          &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius      , radiusTypeNuclearStarClusterHalfMassRadius, radiusTypeNuclearStarClusterRadius, &
-          &                                             radiusTypeHotHaloOuterRadius
-    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid                     , nodeComponentNSC                  , &
-         &                                              nodeComponentHotHalo           , treeNode
+    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver       , radiusUndefined
+    use :: Galacticus_Nodes                    , only : treeNode
     use :: Mass_Distributions                  , only : massDistributionClass
-    use :: Coordinates                         , only : coordinateSpherical            , assignment(=)
+    use :: Coordinates                         , only : coordinateSpherical  , assignment(=)
     use :: Numerical_Constants_Math            , only : Pi
-    use :: Error                               , only : Error_Report
     implicit none
     double precision                                        , dimension(:,:), allocatable :: densityDMOProfileExtract
     class           (nodePropertyExtractorDensityDMOProfile), intent(inout) , target      :: self
     type            (treeNode                              ), intent(inout) , target      :: node
     double precision                                        , intent(in   )               :: time
     type            (multiCounter                          ), intent(inout) , optional    :: instance
-    class           (nodeComponentHotHalo                  ), pointer                     :: hotHalo
-    class           (nodeComponentDisk                     ), pointer                     :: disk
-    class           (nodeComponentSpheroid                 ), pointer                     :: spheroid
-    class           (nodeComponentNSC                      ), pointer                     :: nuclearStarCluster
-    class           (nodeComponentDarkMatterProfile        ), pointer                     :: darkMatterProfile
     class           (massDistributionClass                 ), pointer                     :: massDistribution_
+    type            (radiusResolver                        )                              :: resolver
     type            (coordinateSpherical                   )                              :: coordinates
     integer                                                                               :: i
-    double precision                                                                      :: radius                , radiusVirial
+    double precision                                                                      :: radius
     !$GLC attributes unused :: time, instance
 
     allocate(densityDMOProfileExtract(self%radiiCount,self%elementCount_))
-    radiusVirial                                               =  0.0d0
-    if (self%         virialRadiusIsNeeded) radiusVirial       =  self%darkMatterHaloScale_%radiusVirial(node                    )
-    if (self%              hotHaloIsNeeded) hotHalo            =>                                        node%hotHalo          ()
-    if (self%                 diskIsNeeded) disk               =>                                        node%disk             ()
-    if (self%             spheroidIsNeeded) spheroid           =>                                        node%spheroid         ()
-    if (self%   nuclearStarClusterIsNeeded) nuclearStarCluster =>                                        node%NSC              ()
-    if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile  =>                                        node%darkMatterProfile()
+    resolver=radiusResolver(self%radii,node,self%darkMatterHaloScale_)
     do i=1,self%radiiCount
-       radius=self%radii(i)%value
-       select case (self%radii(i)%type%ID)
-       case   (radiusTypeRadius                          %ID)
-          ! Nothing to do.
-       case   (radiusTypeVirialRadius                    %ID)
-          radius=+radius*radiusVirial
-       case   (radiusTypeDarkMatterScaleRadius           %ID)
-          radius=+radius*darkMatterProfile %         scale()
-       case   (radiusTypeHotHaloOuterRadius              %ID)
-          radius=+radius*hotHalo           %   outerRadius()
-       case   (radiusTypeDiskRadius                      %ID)
-          radius=+radius*disk              %        radius()
-       case   (radiusTypeSpheroidRadius                  %ID)
-          radius=+radius*spheroid          %        radius()
-       case   (radiusTypeNuclearStarClusterRadius        %ID)
-          radius=+radius*nuclearStarCluster%        radius()
-       case   (radiusTypeDiskHalfMassRadius              %ID)
-          radius=+radius*disk             %halfMassRadius()
-       case   (radiusTypeSpheroidHalfMassRadius          %ID)
-          radius=+radius*spheroid         %halfMassRadius()
-       case   (radiusTypeNuclearStarClusterHalfMassRadius%ID)
-          radius=+radius*nuclearStarCluster%halfMassRadius()
-       case   (radiusTypeGalacticMassFraction            %ID,  &
-            &  radiusTypeGalacticLightFraction           %ID)
-          massDistribution_ =>  node             %massDistribution   (                                                &
-               &                                                      massType      =              massTypeStellar ,  &
-               &                                                      componentType =              componentTypeAll,  &
-               &                                                      weightBy      =self%radii(i)%weightBy        ,  &
-               &                                                      weightIndex   =self%radii(i)%weightByIndex      &
-               &                                                     )
-          radius            =  +radius                                                                                &
-               &               *massDistribution_%radiusEnclosingMass(                                                &
-               &                                                      massFractional=self%radii(i)%fraction           &
-               &                                                     )
-          !![
-	  <objectDestructor name="massDistribution_"/>
-	  !!]
-       case   (radiusTypeStellarMassFraction  %ID)
-           massDistribution_ =>  node             %massDistribution  (                                                &
-               &                                                      massType      =              massTypeStellar ,  &
-               &                                                      componentType =              componentTypeAll,  &
-               &                                                      weightBy      =self%radii(i)%weightBy        ,  &
-               &                                                      weightIndex   =self%radii(i)%weightByIndex      &
-               &                                                     )
-          radius            =  +radius                                                                                &
-               &               *massDistribution_%radiusEnclosingMass(                                                &
-               &                                                      massFractional=self%radii(i)%fraction           &
-               &                                                     )
-          !![
-	  <objectDestructor name="massDistribution_"/>
-	  !!]
-       case default
-          call Error_Report('unrecognized radius type'//{introspection:location})
-       end select
+       call resolver%evaluate(i,radius)
+       if (radius < 0.0d0) then
+          ! The radius is undefined in this node - report the sentinel rather than evaluating the density there.
+          densityDMOProfileExtract       (i,1)=radiusUndefined
+          if (self%includeRadii)                               &
+               & densityDMOProfileExtract(i,2)=radiusUndefined
+          cycle
+       end if
        coordinates                          =  [radius,Pi/2.0d0,0.0d0]
        massDistribution_                    => self             %darkMatterProfileDMO_%get    (node       )
        densityDMOProfileExtract       (i,1) =  massDistribution_                      %density(coordinates)
@@ -348,7 +271,7 @@ contains
     allocate(values      (              0))
     valuesDescription=var_str('')
     valuesUnits      =unitType(1.0d0)
-    descriptions     =self%radii%name
+    descriptions     =self%radii%specifiers%name
     return
   end subroutine densityDMOProfileColumnDescriptions
 

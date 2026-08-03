@@ -2,13 +2,12 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/Utils.pm.  Sub-modules register
-themselves on the `component_utils` registry; the driver in
-Galacticus.Build.Components walks that registry phase by phase.
+Sub-modules register themselves on the `component_utils` registry; the
+driver in Galacticus.Build.Components walks that registry phase by phase.
 
-Module-level globals reproduce Perl's `our $foo` declarations
-(`class_name_length_max`, etc.).  `Label_Lengths` populates them during
-the `gather` phase; later phases read them for column-aligned output.
+Module-level globals (`class_name_length_max`, etc.) hold shared state:
+`Label_Lengths` populates them during the `gather` phase; later phases
+read them for column-aligned output.
 """
 from __future__ import annotations
 
@@ -35,10 +34,8 @@ component_utils: dict[str, dict[str, list[Callable]]] = {}
 def register(owner: str, phase: str, function: Callable) -> None:
     """Append `function` to the list of hooks for `(owner, phase)`.
 
-    Mirrors the Perl idiom of mutating
-    `%Galacticus::Build::Component::Utils::componentUtils` at module-load
-    time.  Multiple registrations under the same owner+phase run in
-    registration order, matching Perl's array iteration.
+    Multiple registrations under the same owner+phase run in registration
+    order — callers rely on this ordering.
     """
     component_utils.setdefault(owner, {}).setdefault(phase, []).append(function)
 
@@ -51,8 +48,7 @@ boolean_label                            = ('false', 'true')
 
 # Maximum lengths of various labels.  Initialised to 0 and then set by
 # `Label_Lengths` during the `gather` phase; downstream code never reads
-# them before that, matching Perl's `our $foo` being undef until populated
-# (in Python we choose 0 over None so the pad_* helpers' arithmetic stays
+# them before that (we choose 0 over None so the pad_* helpers' arithmetic stays
 # well-typed; reading any of these before Label_Lengths simply produces a
 # zero-padded label rather than a TypeError on arithmetic).
 class_name_length_max                    = 0
@@ -90,24 +86,17 @@ output_type_map = {
 
 
 def is_intrinsic(type_name: str | None) -> bool:
-    """Return True if `type_name` is one of the recognised intrinsic types.
-
-    Mirrors `Galacticus::Build::Components::Utils::isIntrinsic`.
-    """
+    """Return True if `type_name` is one of the recognised intrinsic types."""
     return type_name in intrinsic_types
 
 
 def is_output_intrinsic(type_name: str | None) -> bool:
-    """Return True if `type_name` is intrinsic *and* directly outputtable.
-
-    Mirrors `Galacticus::Build::Components::Utils::isOutputIntrinsic`.
-    """
+    """Return True if `type_name` is intrinsic *and* directly outputtable."""
     return type_name in ('double', 'integer', 'longInteger')
 
 
 # ---------------------------------------------------------------------------
-# Offset-name builder.  Two arities mirror the Perl module's two call
-# patterns:
+# Offset-name builder.  Two supported call signatures:
 #   offset_name(status, component_name, property_name)
 #   offset_name(status, class_dict,    member_dict, property_dict)
 # ---------------------------------------------------------------------------
@@ -121,7 +110,7 @@ _OFFSET_SHORT_NAME = {
 
 def offset_name(*args: Any) -> str:
     """Return the variable name used to store the ODE solver offset of a
-    property.  Mirrors `Components::Utils::offsetName`.
+    property.
     """
     if len(args) == 3:
         status, component_name, property_name = args
@@ -188,7 +177,7 @@ def _pad_generic(length: int, text: str, extra_pad: tuple[int, int]) -> str:
 # ---------------------------------------------------------------------------
 
 def apply_defaults(obj: Any, name: str, default: Any) -> None:
-    """Mirror Perl `applyDefaults($object, $name, $default)`.
+    """Fill in the default value for `name` on `obj` where none is set.
 
     `default` may be either a plain scalar (or string starting with
     `"boolean"`) or a nested dict of further defaults.

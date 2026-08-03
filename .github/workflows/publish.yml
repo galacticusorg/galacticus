@@ -29,17 +29,20 @@ defaults:
   run:
     shell: bash
 
+# Default to read-only; the publish and release jobs below request the specific write access each needs.
+permissions:
+  contents: read
 jobs:
   Build-Distribution:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           # setuptools_scm derives the version from tags, so we need full history.
           fetch-depth: 0
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: '3.12'
       - name: Build sdist and wheel
@@ -47,7 +50,7 @@ jobs:
           python -m pip install --upgrade build
           python -m build
       - name: Upload distribution artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: python-distribution
           path: dist/
@@ -62,7 +65,7 @@ jobs:
     steps:
       - name: Check out repository code
         if: ${{ github.event_name == 'push' }}
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
       - name: Verify bleeding-edge matches the tagged commit
@@ -93,13 +96,13 @@ jobs:
       id-token: write
     steps:
       - name: Download distribution artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: python-distribution
           path: dist/
       - name: Publish to TestPyPI
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.testpypi }}
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
           # A repeated dry run from the same commit produces the same dev
@@ -109,7 +112,7 @@ jobs:
         # No skip-existing here: a duplicate version on a real release should
         # fail loudly (it signals a tagging mistake).
         if: ${{ github.event_name == 'push' }}
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
 
   Release-Assets:
     # Mirror the current `bleeding-edge` binary/tools assets onto the versioned
@@ -122,7 +125,7 @@ jobs:
       contents: write
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Mirror bleeding-edge assets and pin datasets onto the version tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -164,5 +167,11 @@ jobs:
             } > release-notes.md
             gh release edit "${TAG}" --repo "${GITHUB_REPOSITORY}" --notes-file release-notes.md
           fi
+          # Publish the SHA-256 of every asset mirrored onto this tag. The launcher fetches this and verifies the executable and
+          # tools archives it downloads against it. It is generated outside `release-assets` and then moved in, so that it does
+          # not attempt to describe itself.
+          ( cd release-assets && sha256sum -- * ) > SHA256SUMS
+          mv SHA256SUMS release-assets/SHA256SUMS
+          cat release-assets/SHA256SUMS
           gh release upload "${TAG}" release-assets/* \
             --repo "${GITHUB_REPOSITORY}" --clobber

@@ -40,6 +40,11 @@
      type(lockDescriptor) :: fileLock
   end type intergalacticMediumStateRecFast
 
+  ! Generate a source digest.
+  !![
+  <sourceDigest name="recFastSourceDigest"/>
+  !!]
+
   interface intergalacticMediumStateRecFast
      !!{RST
      Constructors for the :galacticus-class:`intergalacticMediumStateRecFast` :term:`IGM` state class.
@@ -84,12 +89,14 @@ contains
     use :: File_Utilities                  , only : Count_Lines_in_File         , Directory_Make     , File_Exists, File_Lock, &
           &                                         File_Unlock                 , File_Name_Temporary, File_Remove
     use :: Input_Paths                     , only : inputPath                   , pathTypeDataDynamic
+    use :: Hashes_Cryptographic            , only : Hash_MD5
     use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5Object
+    use :: IO_HDF5                         , only : hdf5File                    , hdf5Group          , hdf5Dataset
     use :: Interfaces_RecFast              , only : Interface_RecFast_Initialize
     use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
+    use :: String_Handling                 , only : String_C_To_Fortran
     use :: Units_MetaData                  , only : unitType
-    use :: System_Command                  , only : System_Command_Do
+    use :: System_Command                  , only : System_Command_Do           , shellEscape
     implicit none
     type            (intergalacticMediumStateRecFast)                              :: self
     class           (cosmologyFunctionsClass        ), intent(in   ), target       :: cosmologyFunctions_
@@ -99,7 +106,9 @@ contains
          &                                                                            matterTemperature
     character       (len=32                         )                              :: parameterLabel
     type            (varying_string                 )                              :: parameterFile       , recFastFile      , &
-         &                                                                            recfastPath         , recfastVersion
+         &                                                                            recfastPath         , recfastVersion   , &
+         &                                                                            escapedExecutable   , escapedParameterFile, &
+         &                                                                            uniqueLabel
     double precision                                                               :: omegaDarkMatter
     integer                                                                        :: fileFormatVersion   , i                , &
          &                                                                            countRedshift       , parametersUnit   , &
@@ -112,8 +121,17 @@ contains
 
     ! Compute dark matter density.
     omegaDarkMatter=self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon()
+    ! Initialize RecFast. This is done before the file name is constructed, since the RecFast version - which is scraped from the
+    ! downloaded source - forms part of the cache key. Without it, a cached state computed by an earlier RecFast would be silently
+    ! reused after the code was updated.
+    call Interface_RecFast_Initialize(recfastPath,recfastVersion)
     ! Construct the file name.
+    uniqueLabel  ="_version:"                              // &
+         &        recfastVersion                           // &
+         &        "_sourceDigest:"                         // &
+         &        String_C_To_Fortran(recFastSourceDigest)
     self%fileName=inputPath(pathTypeDataDynamic)//'intergalacticMedium/recFast'
+    self%fileName=self%fileName//'_'//Hash_MD5(uniqueLabel)
     write (parameterLabel,'(f6.4)') self%cosmologyParameters_%OmegaMatter    (                   )
     self%fileName=self%fileName//'_OmegaMatter'    //trim(parameterLabel)
     write (parameterLabel,'(f6.4)') self%cosmologyParameters_%OmegaDarkEnergy(                   )
@@ -138,8 +156,8 @@ contains
        ! Check file version number.
        !$ call hdf5Access%set()
        hdf5ReadScope: block
-         type(hdf5Object) :: outputFile 
-         outputFile=hdf5Object(char(self%fileName),overwrite=.false.,readOnly=.true.)
+         type(hdf5File  ) :: outputFile
+         outputFile=hdf5File(self%fileName,overwrite=.false.,readOnly=.true.)
          call outputFile%readAttribute('fileFormat',fileFormatVersion)
        end block hdf5ReadScope
        !$ call hdf5Access%unset()
@@ -149,8 +167,6 @@ contains
     end if
     ! Build file if necessary.
     if (buildFile) then
-       ! Initialize RecFast.
-       call Interface_RecFast_Initialize(recfastPath,recfastVersion)
        ! Build RecFast parameter file.
        parameterFile=File_Name_Temporary("recFastParameters")
        recFastFile  =parameterFile//".out"
@@ -163,7 +179,9 @@ contains
        close(parametersUnit)
        ! Run RecFast.
        call File_Lock(char(recfastPath//"recfast.exe"),fileLock,lockIsShared=.false.)
-       call System_Command_Do(recfastPath//"recfast.exe < "//parameterFile)
+       escapedExecutable   =shellEscape(recfastPath//"recfast.exe")
+       escapedParameterFile=shellEscape(parameterFile             )
+       call System_Command_Do(escapedExecutable//" < "//escapedParameterFile)
        call File_Unlock(fileLock)
        ! Parse the output file.
        countRedshift=Count_Lines_in_File(recFastFile)-1
@@ -183,9 +201,10 @@ contains
        ! Create the output file.
        !$ call hdf5Access%set()
        hdf5WriteScope: block
-         type(hdf5Object) :: outputFile, dataset          , &
-              &             provenance , recFastProvenance
-         outputFile=hdf5Object(self%fileName,overwrite=.true.)
+         type(hdf5File   ) :: outputFile
+         type(hdf5Dataset) :: dataset
+         type(hdf5Group  ) :: provenance, recFastProvenance
+         outputFile=hdf5File(self%fileName,overwrite=.true.)
          call outputFile%writeDataset  (redshift           ,'redshift'         ,'Redshift'                                            )
          call outputFile%writeDataset  (electronFraction   ,'electronFraction' ,'Electron fraction'                                   )
          call outputFile%writeDataset  (hIonizedFraction   ,'hIonizedFraction' ,'Fraction of ionized hydrogen'                        )

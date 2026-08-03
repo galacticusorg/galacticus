@@ -50,14 +50,14 @@ Constants
 Comments
 ~~~~~~~~
 
-* Documentation comments — the ``!!{ ... !!}`` blocks and the ``<description>`` elements of embedded directives that are rendered into this documentation — are written in reStructuredText (the codebase migrated from its older LaTeX dialect to reStructuredText for ReadTheDocs). Comments *outside* such blocks should avoid markup and prefer Unicode symbols where helpful — e.g. ``! km s¯¹`` rather than ``! km s^{-1}``.
+* Documentation comments — the ``!!{RST ... !!}`` blocks and the ``<description>`` elements of embedded directives (whose enclosing element carries ``docformat="rst"``) that are rendered into this documentation — are written in reStructuredText (the codebase migrated from its older LaTeX dialect to reStructuredText for ReadTheDocs). Comments *outside* such blocks should avoid markup and prefer Unicode symbols where helpful — e.g. ``! km s¯¹`` rather than ``! km s^{-1}``.
 * Where a line of code implements an equation or model from a paper, cite it in a comment, preferably linking to the NASA ADS entry:
 
   .. code-block:: fortran
 
      ! Critical mass model from Author1 & Author2 (2015; http://.......).
 
-* Cite papers in class ``<description>`` elements too, using ``\cite{key}``, and add the corresponding entry to ``docs/Galacticus.bib``. The preferred workflow is to add the NASA ADS record to the Galacticus `Zotero library <https://www.zotero.org/groups/16170/galacticus/library>`_ and export it to ``docs/Galacticus.bib`` (it is then included automatically in the documentation bibliography).
+* Cite papers in class ``<description>`` elements too, using the ``sphinxcontrib-bibtex`` roles — ``:cite:t:`key``` for a textual citation ("Author (Year)") and ``:cite:p:`key``` for a parenthetical one ("(Author Year)") — and add the corresponding entry to ``docs/Galacticus.bib``. The preferred workflow is to add the NASA ADS record to the Galacticus `Zotero library <https://www.zotero.org/groups/16170/galacticus/library>`_ and export it to ``docs/Galacticus.bib`` (it is then included automatically in the documentation bibliography).
 
 Node Class Hierarchy Builder
 ----------------------------
@@ -97,7 +97,7 @@ For example, rank-1, long integer arguments which will not be modified in their 
 The ``build`` Data Structure
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``build`` data structure (a Python ``dict``) is used to accumulate all objects, variables, interfaces, and functions needed to build the class hierarchy used to represent nodes and components in Galacticus. The build pipeline lives under ``python/Galacticus/Build/Components/`` and is driven by ``scripts/build/buildCode.py``; sub-modules register hooks that mutate ``build`` during a sequence of named phases (``preValidate``, ``default``, ``gather``, ``scatter``, ``postValidate``, ``content``, ``types``, ``interfaces``, ``functions``). At the end of the node objects build process, this dict is processed to generate the required Fortran code, which is appended to ``build['content']``. The following subsections describe how to add information to it.
+The ``build`` data structure (a Python ``dict``) is used to accumulate all objects, variables, interfaces, and functions needed to build the class hierarchy used to represent nodes and components in Galacticus. The build pipeline lives under ``python/Galacticus/Build/Components/`` and is driven by the ``componentBuilder`` source-tree process hook (``python/Galacticus/Build/SourceTree/Process/ComponentBuilder.py``); sub-modules register hooks that mutate ``build`` during a sequence of named phases (``preValidate``, ``default``, ``gather``, ``scatter``, ``postValidate``, ``content``, ``types``, ``interfaces``, ``functions``). At the end of the node objects build process, this dict is processed to generate the required Fortran code, which is appended to ``build['content']``. The following subsections describe how to add information to it.
 
 Component Classes and Implementations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -193,7 +193,7 @@ Any module-scope variables can be appended to the list ``build['variables']`` (e
 Galacticus Preprocessor Directives
 ----------------------------------
 
-Galacticus has its own preprocessor for Fortran source files. This preprocesses parses each source file into an internal tree representation, performs various manipulations on that tree, and then outputs the preprocessed file for compilation. The preprocessor is used to automate and standardize many common tasks, through the inclusion of directives into the source code. Directives are specified in comment lines beginning ``!#``, and are written in XML. The remainder of this section describes the various preprocessor functionalities, and gives examples of their usage.
+Galacticus has its own preprocessor for Fortran source files. This preprocesses parses each source file into an internal tree representation, performs various manipulations on that tree, and then outputs the preprocessed file for compilation. The preprocessor is used to automate and standardize many common tasks, through the inclusion of directives into the source code. Directives are written in XML, enclosed in a comment block opened by ``!![`` and closed by ``!!]``. The remainder of this section describes the various preprocessor functionalities, and gives examples of their usage.
 
 Source Code Introspection
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -225,7 +225,9 @@ The ``sourceDigest`` directive will generate an :term:`MD5 hash` hash of the sou
 
 .. code-block:: none
 
-     !# <sourceDigest name="mySourceDigest"/>
+     !![
+     <sourceDigest name="mySourceDigest"/>
+     !!]
 
 A source digest will be generated and stored as a ``character(len=22)`` variable called ``mySourceDigest``.
 
@@ -245,7 +247,9 @@ As an example, the following constructor requires an instance of the ``cosmology
        type(inputParameters          ), intent(in   ) :: parameters
        class(cosmologyParametersClass), pointer       :: cosmologyParameters_
 
-       !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+       !![
+       <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+       !!]
        myConstructorParameters=myConstructorInternal(cosmologyParameters_)
        return
      end function myConstructorParameters
@@ -258,25 +262,31 @@ In cases where an explicit ``parameterName`` attribute is given, it is possible 
 
 .. code-block:: none
 
-    !# <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="globalParameters">
-    !#  <default>
-    !#   <diskMassDistribution value="exponentialDisk">
-    !#    <dimensionless value="true"/>
-    !#   </diskMassDistribution>
-    !#  </default>
-    !# </objectBuilder>
+    !![
+    <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="globalParameters">
+     <default>
+      <diskMassDistribution value="exponentialDisk">
+       <dimensionless value="true"/>
+      </diskMassDistribution>
+     </default>
+    </objectBuilder>
+    !!]
 
 When a class accepts a list of objects of the same type (e.g.\ to implement a summation over multiple instances), the ``copy`` attribute may be used to build multiple copies in a loop. The value of ``copy`` is a loop variable (optionally with explicit bounds as a Fortran ``do`` statement). For example:
 
 .. code-block:: none
 
-    !# <objectBuilder class="mergerTreeEvolveTimestep" name="mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_" source="parameters" copy="i"/>
+    !![
+    <objectBuilder class="mergerTreeEvolveTimestep" name="mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_" source="parameters" copy="i"/>
+    !!]
 
 or with explicit bounds:
 
 .. code-block:: none
 
-    !# <objectBuilder class="stellarPopulationSpectraPostprocessor" name="postprocessors(i)%stellarPopulationSpectraPostprocessor_" source="parameters" copy="i=1,countPostprocessors"/>
+    !![
+    <objectBuilder class="stellarPopulationSpectraPostprocessor" name="postprocessors(i)%stellarPopulationSpectraPostprocessor_" source="parameters" copy="i=1,countPostprocessors"/>
+    !!]
 
 In the first case, the loop index ``i`` is used as the ``copyInstance`` argument when retrieving the object, allowing the parameter node to hold multiple instances. In the second case, the loop runs from 1 to ``countPostprocessors`` explicitly.
 
@@ -291,8 +301,10 @@ This directive can (and should) be used to destroy objects built by the ``object
        implicit none
        type(powerSpectrumPrimordialTransferredSimple), intent(inout) :: self
 
-       !# <objectDestructor name="self%transferFunction_"       />
-       !# <objectDestructor name="self%powerSpectrumPrimordial_"/>
+       !![
+       <objectDestructor name="self%transferFunction_"       />
+       <objectDestructor name="self%powerSpectrumPrimordial_"/>
+       !!]
       return
      end subroutine simpleDestructor
 
@@ -364,7 +376,9 @@ A common requirement in object constructors is to assign the values of arguments
        implicit none
        type            (galacticFilterStellarMass)                :: stellarMassConstructorInternal
        double precision                           , intent(in   ) :: massThreshold
-       !# <constructorAssign variables="massThreshold"/>
+       !![
+       <constructorAssign variables="massThreshold"/>
+       !!]
        return
      end function stellarMassConstructorInternal
 
@@ -424,15 +438,17 @@ Galacticus supports storing its internal state to file to allow :ref:`restarts <
 
 .. code-block:: none
 
-    !# <stateStorable class="table">
-    !#  <table1DGeneric>
-    !#   <restoreTo variables="reset" state=".true."/>
-    !#   <exclude variables="staticData"/>
-    !#  </table1DGeneric>
-    !#  <table2DLinLinLin>
-    !#   <restoreTo variables="resetX, resetY" state=".true."/>
-    !#  </table2DLinLinLin>
-    !# </stateStorable>
+    !![
+    <stateStorable class="table">
+     <table1DGeneric>
+      <restoreTo variables="reset" state=".true."/>
+      <exclude variables="staticData"/>
+     </table1DGeneric>
+     <table2DLinLinLin>
+      <restoreTo variables="resetX, resetY" state=".true."/>
+     </table2DLinLinLin>
+    </stateStorable>
+    !!]
 
 This specifies that the ``table`` class (and all child classes) can and should be stored to file as part of the representation of the internal state. Code to store and restore all data associated with any object of this class (as well as restoring polymorphic objects to the correct type) will be generated. If certain variables of the class or subclass should be restored to specific values this can be specified through a ``restoreTo`` element placed within an element with the name of the class or subclass (e.g. the ``table1DGeneric`` in the above example). The ``restoreTo`` element should specify a comma-separated list of one or more variables to set in its ``variables`` attribute, and the state to which they should be restored in its ``state`` attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a ``exclude`` element---a list of variables to exclude should be given as a comma-separated list in its ``variables`` attribute.
 
@@ -565,15 +581,17 @@ In some instances it is useful to be able to call a function with different comb
 
 .. code-block:: none
 
-     !# <conditionalCall>
-     !#  <call>self=massDistributionBetaProfile(beta{conditions})</call>
-     !#  <argument name="densityNormalization" value="densityNormalization" parameterPresent="parameters"/>
-     !#  <argument name="mass"                 value="mass"                 parameterPresent="parameters"/>
-     !#  <argument name="outerRadius"          value="outerRadius"          parameterPresent="parameters"/>
-     !#  <argument name="coreRadius"           value="coreRadius"           parameterPresent="parameters"/>
-     !#  <argument name="dimensionless"        value="dimensionless"        parameterPresent="parameters"/>
-     !# </conditionalCall>
-     !# <inputParametersValidate source="parameters"/>
+     !![
+     <conditionalCall>
+      <call>self=massDistributionBetaProfile(beta{conditions})</call>
+      <argument name="densityNormalization" value="densityNormalization" parameterPresent="parameters"/>
+      <argument name="mass"                 value="mass"                 parameterPresent="parameters"/>
+      <argument name="outerRadius"          value="outerRadius"          parameterPresent="parameters"/>
+      <argument name="coreRadius"           value="coreRadius"           parameterPresent="parameters"/>
+      <argument name="dimensionless"        value="dimensionless"        parameterPresent="parameters"/>
+     </conditionalCall>
+     <inputParametersValidate source="parameters"/>
+     !!]
 
 The ``call`` element specifies the function call, and contains the special sequence ``{conditions}`` which will be replaced with the conditionally-present arguments. One or more ``argument`` elements should specify the various arguments which should be included in the call. For each such element the ``name`` attribute specifies the name of the dummy argument in the called function, the ``value`` attribute specifies the value (or variables) to pass this this dummy argument. A condition for inclusion of the argument must also be specified. In the above, the special ``parameterPresent`` condition is used. The argument will be included in the call if a parameter with a name matching the ``name`` attribute exists in the parameter set named in the ``parameterPresent`` attribute. Alternatively a ``condition`` attribute can be given. An argument is included in the call if the expression given in the ``condition`` attribute evaluates to true.
 
@@ -590,7 +608,9 @@ Fortran supports optional arguments to functions, but does not provide for a def
        implicit none
        class  (cosmologyParametersSimple), intent(inout)           :: self
        integer                           , intent(in   ), optional :: units
-       !# <optionalArgument name="units" defaultsTo="hubbleUnitsStandard" />
+       !![
+       <optionalArgument name="units" defaultsTo="hubbleUnitsStandard" />
+       !!]
 
        select case (units_)
        case (hubbleUnitsStandard)
@@ -614,16 +634,18 @@ The ``enumeration`` directive allows specification of an enumeration (a set of l
 
    module Cosmology_Parameters
 
-     !# <enumeration>
-     !#  <name>hubbleUnits</name>
-     !#  <description>Specifies the units for the Hubble constant.</description>
-     !#  <visibility>public</visibility>
-     !#  <validator>yes</validator>
-     !#  <encodeFunction>yes</encodeFunction>
-     !#  <entry label="standard" />
-     !#  <entry label="time"     />
-     !#  <entry label="littleH"  />
-     !# </enumeration>
+     !![
+     <enumeration>
+      <name>hubbleUnits</name>
+      <description>Specifies the units for the Hubble constant.</description>
+      <visibility>public</visibility>
+      <validator>yes</validator>
+      <encodeFunction>yes</encodeFunction>
+      <entry label="standard" />
+      <entry label="time"     />
+      <entry label="littleH"  />
+     </enumeration>
+     !!]
 
    contains
 
@@ -662,16 +684,18 @@ The ``inputParameter`` directive reads an input parameter and assigns the approp
      subroutine simpleParametersRead()
        implicit none
        double precision :: hubbleConstant
-       !# <inputParameter>
-       !#   <name>HubbleConstant</name>
-       !#   <source>myParameters</source>
-       !#   <variable>hubbleConstant</variable>
-       !#   <defaultValue>69.7d0</defaultValue>
-       !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
-       !#   <description>The present day value of the Hubble parameter in units of km/s/Mpc.</description>
-       !#   <type>real</type>
-       !#   <cardinality>0..1</cardinality>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>HubbleConstant</name>
+         <source>myParameters</source>
+         <variable>hubbleConstant</variable>
+         <defaultValue>69.7d0</defaultValue>
+         <defaultSource>(:cite:author:`hinshaw_nine-year_2012` :cite:year:`hinshaw_nine-year_2012`; CMB\ :math:`+H_0+`\ BAO)</defaultSource>
+         <description>The present day value of the Hubble parameter in units of km/s/Mpc.</description>
+         <type>real</type>
+         <cardinality>0..1</cardinality>
+       </inputParameter>
+       !!]
        if (hubbleConstant < 0.0d0) write (0,*) "The universe is collapsing!"
        return
      end subroutine simpleParametersRead
@@ -682,15 +706,17 @@ It is also possible to specify a set of parameter which iterate over names defin
 
 .. code-block:: none
 
-       !# <inputParameter>
-       !#   <iterator>fileNameFor(#imfRegisterName->name)IMF</iterator>
-       !#   <source>parameters</source>
-       !#   <variable>fileNames(IMF_Index("$1"))</variable>
-       !#   <defaultValue>Galacticus_Input_Path()//"data/SSP_Spectra_imf$1.hdf5"</defaultValue>
-       !#   <description>The name of the file of stellar populations to use for the named \gls{imf}.</description>
-       !#   <type>string</type>
-       !#   <cardinality>0..1</cardinality>
-     !# </inputParameter>
+     !![
+       <inputParameter>
+         <iterator>fileNameFor(#imfRegisterName->name)IMF</iterator>
+         <source>parameters</source>
+         <variable>fileNames(IMF_Index("$1"))</variable>
+         <defaultValue>Galacticus_Input_Path()//"data/SSP_Spectra_imf$1.hdf5"</defaultValue>
+         <description>The name of the file of stellar populations to use for the named :term:`IMF`.</description>
+         <type>string</type>
+         <cardinality>0..1</cardinality>
+     </inputParameter>
+     !!]
 
 Input Parameter Lists
 ~~~~~~~~~~~~~~~~~~~~~
@@ -735,6 +761,37 @@ The generated code gathers the names of all parameters that the object (includin
 ``extraAllowedNames``
    *(optional)* A space-separated list of additional parameter names which should be considered valid even though no ``inputParameter`` or ``objectBuilder`` directive reads them (e.g. parameters read indirectly by other means).
 
+.. _manual-sec-parameterMigrations:
+
+Parameter File Migrations
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a change to Galacticus alters the name, location, or meaning of an input parameter, a *migration* should be added so that existing parameter files continue to describe the same model. Migrations live in ``scripts/aux/migrations.xml`` and are applied by ``scripts/aux/parametersMigrate.py`` (see :galacticus-ref:`migratingParameterFiles` for how users run it).
+
+Each migration is keyed by the **full 40-character hash of the commit that introduced the change**:
+
+.. code-block:: xml
+
+   <migration commit="938122648f2740d19a67598157de78201a17e4b7">
+     <translation function="chandrasekhar_suppress_extended_mass"/>
+   </migration>
+
+A translation may either rewrite the parameter file declaratively, via an ``xpath`` attribute naming the elements to act on together with an action element (for example ``<remove/>``), or dispatch to a named Python function in ``parametersMigrate.py`` (registered in that script's ``SPECIAL_FUNCTIONS`` table) when the transformation is too involved to express as an XPath rewrite.
+
+.. warning::
+
+   **Commit hashes in** ``migrations.xml`` **must remain valid for the lifetime of the repository.**
+
+   To decide which migrations to apply, ``parametersMigrate.py`` walks the git ancestry between the parameter file's recorded ``lastModified`` revision and the current ``HEAD``, and matches each commit in that ancestry against the ``commit`` attributes in ``migrations.xml`` **by exact string equality**. A hash which is not present in the history therefore matches nothing: the migration is *silently skipped*. There is no error and no warning — parameter files simply fail to migrate, and models built from them quietly change behaviour.
+
+   The practical consequences are:
+
+   * Any operation which rewrites commit hashes (``git rebase``, ``git commit --amend``, or a squash merge) invalidates every ``migrations.xml`` entry that refers to a rewritten commit. If you rebase a branch that adds a migration, update the ``commit`` attribute to the new hash before pushing.
+   * A migration must never refer to the commit that contains it, since amending that commit to insert its own hash would change the hash again. Add the migration in a *later* commit than the change it migrates.
+   * For the same reason, pull requests which add migrations must be merged in a way that preserves commit hashes — see :galacticus-ref:`mergingPullRequests`.
+
+   After rebasing such a branch, confirm the hash is still reachable (``git cat-file -e <hash>`` succeeds *and* ``git branch --contains <hash>`` lists a branch), and re-run the migration on a representative parameter file to check that the expected ``Updating to revision <hash>`` line still appears.
+
 .. _manual-sec-functionClass:
 
 Function Classes
@@ -746,21 +803,23 @@ An example of a function class directive, which defines a class for cosmological
 
 .. code-block:: none
 
-     !# <functionClass>
-     !#  <name>cosmologyParameters</name>
-     !#  <descriptiveName>Cosmological Parameters</descriptiveName>
-     !#  <description>Object providing various cosmological parameters.</description>
-     !#  <default>simple</default>
-     !#  <defaultThreadPrivate>no</defaultThreadPrivate>
-     !#  <stateful>no</stateful>
-     !#  <calculationReset>no</calculationReset>
-     !#  <method name="HubbleConstant" >
-     !#   <description>Return the Hubble constant at the present day. The optional \mono{units} argument specifies if the return value should be in units of km/s/Mpc (hubbleUnitsStandard), Gyr$^{-1}$ (hubbleUnitsTime), or 100 km/s/Mpc (hubbleUnitsLittleH).</description>
-     !#   <type>double precision</type>
-     !#   <pass>yes</pass>
-     !#   <argument>integer, intent(in   ), optional :: units</argument>
-     !#  </method>
-     !# </functionClass>
+     !![
+     <functionClass>
+      <name>cosmologyParameters</name>
+      <descriptiveName>Cosmological Parameters</descriptiveName>
+      <description>Object providing various cosmological parameters.</description>
+      <default>simple</default>
+      <defaultThreadPrivate>no</defaultThreadPrivate>
+      <stateful>no</stateful>
+      <calculationReset>no</calculationReset>
+      <method name="HubbleConstant" >
+       <description>Return the Hubble constant at the present day. The optional ``units`` argument specifies if the return value should be in units of km/s/Mpc (hubbleUnitsStandard), Gyr\ :math:`^{-1}` (hubbleUnitsTime), or 100 km/s/Mpc (hubbleUnitsLittleH).</description>
+       <type>double precision</type>
+       <pass>yes</pass>
+       <argument>integer, intent(in   ), optional :: units</argument>
+      </method>
+     </functionClass>
+     !!]
 
 The directive should contain the following elements:
 
@@ -810,9 +869,11 @@ Implementations of this function class must be declared with a directive having 
 
 .. code-block:: none
 
-     !# <cosmologyParameters name="cosmologyParametersSimple">
-     !#  <description>Provides the Hubble constant: $H_0$.</description>
-     !# </cosmologyParameters>
+     !![
+     <cosmologyParameters name="cosmologyParametersSimple">
+      <description>Provides the Hubble constant: :math:`H_0`.</description>
+     </cosmologyParameters>
+     !!]
      type, extends(cosmologyParametersClass) :: cosmologyParametersSimple
         private
         double precision :: HubbleConstantValue
@@ -833,15 +894,17 @@ Implementations of this function class must be declared with a directive having 
        type(cosmologyParametersSimple) :: simpleDefaultConstructor
 
        ! Construct an instance of this class using a value of the Hubble constant read from the input parameter file.
-       !# <inputParameter>
-       !#   <name>H_0</name>
-       !#   <variable>simpleDefaultConstructor%HubbleConstantValue</variable>
-       !#   <defaultValue>69.7d0</defaultValue>
-       !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
-       !#   <description>The present day value of the Hubble parameter in units of km/s/Mpc.</description>
-       !#   <type>real</type>
-       !#   <cardinality>0..1</cardinality>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>H_0</name>
+         <variable>simpleDefaultConstructor%HubbleConstantValue</variable>
+         <defaultValue>69.7d0</defaultValue>
+         <defaultSource>(:cite:author:`hinshaw_nine-year_2012` :cite:year:`hinshaw_nine-year_2012`; CMB\ :math:`+H_0+`\ BAO)</defaultSource>
+         <description>The present day value of the Hubble parameter in units of km/s/Mpc.</description>
+         <type>real</type>
+         <cardinality>0..1</cardinality>
+       </inputParameter>
+       !!]
        return
      end function simpleDefaultConstructor
 
@@ -980,6 +1043,8 @@ The ``class`` attribute names the base class to which the actions apply. The dir
 
 The preprocessor generates a type-bound ``deepCopyActions`` method for the class (with a ``select type`` branch for each non-abstract type descended from it, applying the actions declared at each level of the inheritance chain). The deep-copy code generated for ``functionClass`` objects automatically calls this method on any member object of such a class after it is copied.
 
+.. _manual-sec-genericProgramming:
+
 Generic Programming
 ~~~~~~~~~~~~~~~~~~~
 
@@ -987,14 +1052,16 @@ The preprocessor supports generic programming by allowing generic types to be de
 
 .. code-block:: none
 
-     !# <generic identifier="Type">
-     !#  <instance label="Logical"        intrinsic="logical"                         outputConverter="regEx@\textbrokenbar@(.*)@\textbrokenbar@char($1)@\textbrokenbar@"/>
-     !#  <instance label="Integer"        intrinsic="integer"                         outputConverter="regEx@\textbrokenbar@(.*)@\textbrokenbar@$1@\textbrokenbar@"      />
-     !#  <instance label="Double"         intrinsic="double precision"                outputConverter="regEx@\textbrokenbar@(.*)@\textbrokenbar@$1@\textbrokenbar@"      />
-     !#  <instance label="LogicalRank1"   intrinsic="logical          , dimension(:)" outputConverter="regEx@\textbrokenbar@(.*)@\textbrokenbar@char($1)@\textbrokenbar@"/>
-     !#  <instance label="IntegerRank1"   intrinsic="integer          , dimension(:)" outputConverter="regEx@\textbrokenbar@(.*)@\textbrokenbar@$1@\textbrokenbar@"      />
-     !#  <instance label="DoubleRank1"    intrinsic="double precision , dimension(:)" outputConverter="regEx@\textbrokenbar@(.*)@\textbrokenbar@$1@\textbrokenbar@"      />
-     !# </generic>
+     !![
+     <generic identifier="Type">
+      <instance label="Logical"        intrinsic="logical"                         outputConverter="regEx¦(.*)¦char($1)¦"/>
+      <instance label="Integer"        intrinsic="integer"                         outputConverter="regEx¦(.*)¦$1¦"      />
+      <instance label="Double"         intrinsic="double precision"                outputConverter="regEx¦(.*)¦$1¦"      />
+      <instance label="LogicalRank1"   intrinsic="logical          , dimension(:)" outputConverter="regEx¦(.*)¦char($1)¦"/>
+      <instance label="IntegerRank1"   intrinsic="integer          , dimension(:)" outputConverter="regEx¦(.*)¦$1¦"      />
+      <instance label="DoubleRank1"    intrinsic="double precision , dimension(:)" outputConverter="regEx¦(.*)¦$1¦"      />
+     </generic>
+     !!]
 
 The above defines a generic type, which will be identified using the label "``Type``". The directive contains several ``instance`` elements, each of which specifies a specific type which should be implemented for the generic type. Each instance can contain an arbitrary number of attributes which specify strings or regular expressions which will be used to construct the specific implementation.
 
@@ -1011,20 +1078,20 @@ An example of the usage of generic tags using the above generic directive is:
         .
       contains
         final     ::        exampleTypeDestroy
-        procedure ::        exampleTypeSet{Type@\textbrokenbar@label}
-        generic   :: set => exampleTypeSet{Type@\textbrokenbar@label}
+        procedure ::        exampleTypeSet{Type¦label}
+        generic   :: set => exampleTypeSet{Type¦label}
      end type exampleType
 
    contains
 
-     subroutine exampleTypeSet{Type@\textbrokenbar@label}(self,setValue)
+     subroutine exampleTypeSet{Type¦label}(self,setValue)
        implicit none
        class           (exampleType), intent(in   ) :: self
-       {Type@\textbrokenbar@intrinsic}             , intent(in   ) :: setValue
+       {Type¦intrinsic}             , intent(in   ) :: setValue
 
-       {Type@\textbrokenbar@match@\textbrokenbar@^Logical@\textbrokenbar@! Do something to set a logical value.@\textbrokenbar@! Do something different to set a numerical value.@\textbrokenbar@}
-       write (0,*) "Value is: ",{Type@\textbrokenbar@outputConverter@\textbrokenbar@setValue}
-     end subroutine exampleTypeSet{Type@\textbrokenbar@label}
+       {Type¦match¦^Logical¦! Do something to set a logical value.¦! Do something different to set a numerical value.¦}
+       write (0,*) "Value is: ",{Type¦outputConverter¦setValue}
+     end subroutine exampleTypeSet{Type¦label}
 
 In this example, the ``exampleType`` class is defined to have a generic ``set`` method. The presence of the ``{Type@¦@label}`` generic tag will cause those lines to be replicated with the tag replaced by the content of the ``label`` attribute of each instance of the generic type. In the contained subroutine, a generic tag appears in the opener. As such, the entire subroutine will be replicated once for each instance of the generic type, and the generic tags replaced as appropriate.
 
@@ -1032,6 +1099,31 @@ When a generic instance attribute begins with ``regEx``, matching generic tags a
 
 Finally, the special generic tag ``match`` acts as a ternary operator. If the regular expression specified in the third element matches the ``label`` attribute of a specific instance, the generic tag is replaced with its fourth element, otherwise it is replaced with its fifth element.
 
+.. _manual-sec-parameterizedDerivedTypes:
+
+Parameterized Derived Types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Fortran *parameterized derived types* (PDTs)---derived types carrying ``kind`` and/or ``len`` type parameters, for example ``type :: tensor(rank, dimension)`` instantiated as ``type(tensor(2, 3)) :: t``---are **not supported** in the Galacticus source code. The build parser detects both PDT definitions (``type :: name(...)``) and parameterized declarations (``type(name(...)) :: ...``) and aborts the build with an explicit error. This is a deliberate design decision, not an oversight; the reasoning and the (narrow) conditions under which it might be revisited are recorded here so the question has a durable answer.
+
+Why PDTs are not used
+'''''''''''''''''''''
+
+* **The build toolchain cannot represent them.** Every source file is parsed by the in-house preprocessor (:galacticus-ref:`sourceTreePreprocessor`), whose type-definition and declaration recognizers do not understand type-parameter lists. A PDT would fail to be recognized as a type and would be *silently* dropped from the generated state-store, deep-copy, source-digest, and module-dependency code---a wrong-behavior failure rather than a compile error. Rather than leave that trap open, the parser rejects PDT syntax loudly (see issue `#114 <https://github.com/galacticusorg/galacticus/issues/114>`_).
+
+* **The genericity Galacticus actually needs lies along axes PDTs cannot express.** The code's real generic-programming needs vary over *intrinsic type* (e.g. integer vs. double vs. ``varying_string``), *array rank*, and *attribute* (pointer vs. allocatable). PDT ``kind``/``len`` parameters express none of these---they vary only compile-time size/kind within a single intrinsic type, of which Galacticus has essentially no unaddressed duplication. Where genuine genericity is required, the generic-programming preprocessor directives (:galacticus-ref:`genericProgramming`) already provide it, and are strictly more capable than PDTs.
+
+* **Compiler maturity and language direction.** PDTs are among the least-mature features of the supported compiler, and the Fortran standards committee's chosen direction for generic programming is the templates facility of Fortran 2028, not PDTs. Investing in PDTs would be a detour rather than a step along that path; the generic-programming directives are, in effect, a home-grown template mechanism that native templates could eventually replace.
+
+Adding new fixed-size numeric types
+'''''''''''''''''''''''''''''''''''
+
+If a family of fixed-size numeric types is ever needed (for example, tensor shapes beyond the existing rank-2, dimension-3, symmetric tensor used for tidal fields), implement it with the generic-programming preprocessor directives (:galacticus-ref:`genericProgramming`), supplying any per-shape packing or contraction conventions as instance attributes---**not** as a PDT.
+
+When to revisit
+'''''''''''''''
+
+Reconsider PDT support only if *all* of the following hold: (a) a concrete need arises for a family of fixed-size numeric types differing *only* in a compile-time size or kind within a single intrinsic type; (b) the generic-programming directives are a demonstrably poor fit; (c) the supported ``gfortran`` release has carried mature, bug-quiet PDT support for several releases; and (d) the preprocessor's type-definition and declaration parsers (plus the state-store, deep-copy, and dependency generators) have been extended to represent type parameters. Even then, support should be restricted to ``kind`` parameters---``len``-parameterized PDTs should be considered permanently out of scope on performance and portability grounds.
 Allocations
 ~~~~~~~~~~~
 
@@ -1227,6 +1319,51 @@ The first feature is the "unique ID"---an integer number assigned to each node i
 
 The second feature accounts for the fact that the properties of a node will change, so even if a function is called on a node with the same unique ID it may occasionally need to recompute its result. Galacticus provides a calculation reset task (see Section :galacticus-ref:`autoHook`). All such tasks are performed just prior to the computation of derivatives for a node being evolved. A function can register a calculation reset task and use it to flag that it must update its calculations even if called again with the same node.
 
+.. _manual-sec-onceOnlyInitialization:
+
+Once-Only Initialization Under OpenMP
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A common pattern in Galacticus is a module holding static, read-only data (atomic data, chemical structures, filter transmissions, tabulated databases) which must be read from file exactly once, no matter how many OpenMP threads are running. The obvious implementation guards the initialization with a named critical section:
+
+.. code-block:: fortran
+
+     !$omp critical(myDataInitialize)
+     if (.not.myDataInitialized) then
+        ! ...read the data...
+        myDataInitialized=.true.
+     end if
+     !$omp end critical(myDataInitialize)
+
+This is correct, but it takes the lock on **every** call, including the overwhelmingly common case where the data are already loaded and nothing needs to be done. Named critical sections are *global* locks, so when such an initializer is called from a hot path---particularly one reached during ODE evolution---and the model is run with a large number of threads, the resulting contention can dominate the run time. The problem was found in ``Atomic_Data_Initialize`` (``source/atomic/data.F90``), which is called from every public entry point of the ``Atomic_Data`` module, several of which are reached for every element, for every derivative evaluation.
+
+The fix is a double-checked lock, but the *naive* form of it---simply testing the shared ``myDataInitialized`` flag before taking the lock---is a data race under the OpenMP memory model. An unsynchronized read of the flag establishes no happens-before relationship with the initializing thread's writes, so a thread which observes the flag as ``.true.`` has no guarantee that it will also observe the data those writes produced; the compiler and hardware are both free to reorder around the unsynchronized read.
+
+Galacticus therefore uses a ``threadprivate`` flag recording that *this thread* has already passed through the critical section:
+
+.. code-block:: fortran
+
+     logical :: myDataInitialized      =.false.
+     logical :: myDataInitializedThread=.false.
+     !$omp threadprivate(myDataInitializedThread)
+     ...
+     if (myDataInitializedThread) return
+     !$omp critical(myDataInitialize)
+     if (.not.myDataInitialized) then
+        ! ...read the data...
+        myDataInitialized=.true.
+     end if
+     !$omp end critical(myDataInitialize)
+     myDataInitializedThread=.true.
+
+The ordering is supplied by the flush implied on exit from the critical section, which the code already relies upon: any thread which has left that section is guaranteed to see the fully-initialized data, so it need never enter it again. Each thread therefore acquires the lock exactly once for the lifetime of the run, and the hot path reduces to a load of a thread-local logical---no fence, no shared cache line, and no possibility of false sharing.
+
+This form also fails safe. OpenMP guarantees the persistence of ``threadprivate`` values between parallel regions only under certain conditions (unchanged team size, dynamic thread adjustment disabled). If those conditions are not met the per-thread flag can only revert to ``.false.``, never spuriously to ``.true.``, so the worst outcome is one redundant---and harmless---lock acquisition, not an unsynchronized read of uninitialized data.
+
+An alternative is to keep the shared flag and read it via ``!$omp atomic read seq_cst``, pairing it with an ``!$omp atomic write seq_cst`` when the flag is set; the listless flush implied by the ``seq_cst`` clause supplies the necessary release/acquire pair. This is also correct, and is preferable when a per-thread flag is inconvenient, but it pays a full memory fence on every call, so the ``threadprivate`` form is preferred on genuinely hot paths. (See Section :galacticus-ref:`eventHooksLocking` for a related case, where an atomic read replaces a read/write lock on a hot dispatch path.)
+
+Two points to note when writing such an initializer. First, the double check is *not* optional: the test inside the critical section must be retained, since several threads may pass the outer test before any of them acquires the lock. Omitting it allows two threads to run the initialization concurrently, which typically manifests as an attempt to allocate an already-allocated array. Second, the guard should be placed so that the fast path returns before any other work is done; in particular, an initializer called from several public entry points of the same module may be reached more than once per logical operation, so the fast path must be genuinely cheap.
+
 Global Functions
 ----------------
 
@@ -1236,11 +1373,13 @@ Galacticus provides for global functions which facilitate this---specifically, i
 
 .. code-block:: none
 
-     !# <functionGlobal>
-     !#  <unitName>myFunction</unitName>
-     !#  <type>double precision</type>
-     !#  <arguments>double precision , intent(in   ) :: mass, time</arguments>
-     !# </functionGlobal>
+     !![
+     <functionGlobal>
+      <unitName>myFunction</unitName>
+      <type>double precision</type>
+      <arguments>double precision , intent(in   ) :: mass, time</arguments>
+     </functionGlobal>
+     !!]
 
 Here, ``myFunction`` is the name of the function to make global, while the ``type`` and ``arguments`` (of which there may be more than one) elements are used to generate a suitable interface for the function. At run-time, a pointer to this function is then available from the ``Functions_Global`` module, named ``myFunction_``. Note that ``Functions_Global_Set`` provided by the ``Functions_Global_Utilities`` module must be called once to initialize these global function pointers prior to their use.
 

@@ -86,7 +86,7 @@ contains
     !!}
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Cosmology_Parameters            , only : hubbleUnitsLittleH
-    use            :: IO_HDF5                         , only : hdf5Object
+    use            :: IO_HDF5                         , only : hdf5File  , hdf5Group, hdf5Dataset
     use            :: ISO_Varying_String              , only : char              , trim
     use            :: Numerical_Constants_Astronomical, only : massSolar         , megaParsec
     use            :: Numerical_Constants_Prefixes    , only : hecto             , kilo
@@ -98,14 +98,15 @@ contains
     double precision            , intent(  out), pointer    , dimension(  :), optional :: mass
     integer         (c_size_t  ), intent(  out), pointer    , dimension(  :), optional :: IDs
     double precision                           , allocatable, dimension(  :)           :: unitsInCGS
-    type            (hdf5Object)                                                       :: irateFile       , snapshotGroup, &
-         &                                                                                halosGroup      , dataset
+    type            (hdf5File)                                                         :: irateFile
+    type            (hdf5Group)                                                        :: snapshotGroup, halosGroup
+    type            (hdf5Dataset)                                                      :: dataset
     character       (len=13    )                                                       :: snapshotLabel
     double precision                                                                   :: redshiftInternal, expansionFactor
 
     ! Read data from file.
     write (snapshotLabel,'(a,i5.5)') 'Snapshot',snapshot
-    irateFile=hdf5Object(char(self%fileName),readOnly=.true.)
+    irateFile=hdf5File(self%fileName,readOnly=.true.)
     snapshotGroup=irateFile    %openGroup(snapshotLabel)
     halosGroup   =snapshotGroup%openGroup('HaloCatalog')
     call snapshotGroup%readAttribute("Redshift",redshiftInternal,allowPseudoScalar=.true.)
@@ -144,14 +145,15 @@ contains
     !!{RST
     Read requested properties of the simulation from an :term:`IRATE` file.
     !!}
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5File, hdf5Group
     use :: ISO_Varying_String, only : char
     implicit none
     class           (irate     ), intent(inout)           :: self
     double precision            , intent(  out), optional :: boxSize
-    type            (hdf5Object)                          :: irateFile, simulationGroup
+    type            (hdf5File)                            :: irateFile
+    type            (hdf5Group)                           :: simulationGroup
 
-    irateFile=hdf5Object(char(self%fileName),readOnly=.true.)
+    irateFile=hdf5File(self%fileName,readOnly=.true.)
     simulationGroup=irateFile%openGroup('SimulationProperties')
     if (present(boxSize)) call simulationGroup%readAttribute("boxSize",boxSize,allowPseudoScalar=.true.)
     return
@@ -161,14 +163,15 @@ contains
     !!{RST
     Write requested properties of the simulation from an :term:`IRATE` file.
     !!}
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5File, hdf5Group
     use :: ISO_Varying_String, only : char
     implicit none
     class           (irate     ), intent(inout)           :: self
     double precision            , intent(in   ), optional :: boxSize
-    type            (hdf5Object)                          :: irateFile, simulationGroup
+    type            (hdf5File)                            :: irateFile
+    type            (hdf5Group)                           :: simulationGroup
 
-    irateFile=hdf5Object(char(self%fileName),readOnly=.false.)
+    irateFile=hdf5File(self%fileName,readOnly=.false.)
     simulationGroup=irateFile%openGroup('SimulationProperties')
     if (present(boxSize)) call simulationGroup%writeAttribute(boxSize,'boxSize')
     return
@@ -178,15 +181,15 @@ contains
     !!{RST
     Copy "``SimulationProperties``" group from one :term:`IRATE` file to another.
     !!}
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5File
     use :: ISO_Varying_String, only : char
     implicit none
     class(irate     ), intent(inout) :: self
     type (irate     ), intent(inout) :: targetFile
-    type (hdf5Object)                :: selfIRATEFile, targetIRATEFile
+    type (hdf5File  )                :: selfIRATEFile, targetIRATEFile
 
-    selfIRATEFile  =hdf5Object(char(self      %fileName),readOnly=.true. )
-    targetIRATEFile=hdf5Object(char(targetFile%fileName),readOnly=.false.)
+    selfIRATEFile  =hdf5File(self      %fileName,readOnly=.true. )
+    targetIRATEFile=hdf5File(targetFile%fileName,readOnly=.false.)
     call selfIRATEFile%copy("SimulationProperties",targetIRATEFile )
     return
   end subroutine irateCopySimulation
@@ -195,15 +198,15 @@ contains
     !!{RST
     Copy "``Cosmology``" group from one :term:`IRATE` file to another.
     !!}
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5File
     use :: ISO_Varying_String, only : char
     implicit none
     class(irate     ), intent(inout) :: self
     type (irate     ), intent(inout) :: targetFile
-    type (hdf5Object)                :: selfIRATEFile, targetIRATEFile
+    type (hdf5File  )                :: selfIRATEFile, targetIRATEFile
 
-    selfIRATEFile  =hdf5Object(char(self      %fileName),readOnly=.true. )
-    targetIRATEFile=hdf5Object(char(targetFile%fileName),readOnly=.false.)
+    selfIRATEFile  =hdf5File(self      %fileName,readOnly=.true. )
+    targetIRATEFile=hdf5File(targetFile%fileName,readOnly=.false.)
     call selfIRATEFile%copy ("Cosmology",targetIRATEFile)
     return
   end subroutine irateCopyCosmology
@@ -213,7 +216,7 @@ contains
     Write requested properties of halos to an :term:`IRATE` file.
     !!}
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: IO_HDF5                         , only : hdf5Object
+    use            :: IO_HDF5                         , only : hdf5File  , hdf5Group, hdf5Dataset
     use            :: ISO_Varying_String              , only : char
     use            :: Numerical_Constants_Astronomical, only : massSolar , megaParsec
     use            :: Numerical_Constants_Prefixes    , only : hecto     , kilo
@@ -225,8 +228,9 @@ contains
     double precision            , intent(in   ), dimension(  :), optional :: mass
     integer         (c_size_t  ), intent(in   ), dimension(  :), optional :: IDs
     logical                     , intent(in   )                , optional :: overwrite    , objectsOverwritable
-    type            (hdf5Object)                                          :: irateFile    , snapshotGroup      , &
-         &                                                                   halosGroup   , dataset
+    type            (hdf5File)                                            :: irateFile
+    type            (hdf5Group)                                           :: snapshotGroup, halosGroup
+    type            (hdf5Dataset)                                         :: dataset
     character       (len=13    )                                          :: snapshotLabel
     !![
     <optionalArgument name="overwrite"           defaultsTo=".false."/>
@@ -236,7 +240,7 @@ contains
     ! Write data to file. Chunking of the HDF5 datasets is disabled - this allows us to write zero-sized datasets (which can occur
     ! in the case of an empty selection of halos).
     write (snapshotLabel,'(a,i5.5)') 'Snapshot',snapshot
-    irateFile=hdf5Object(char(self%fileName),readOnly=.false.,overWrite=overWrite_,objectsOverwritable=objectsOverwritable_)
+    irateFile=hdf5File(self%fileName,readOnly=.false.,overWrite=overWrite_,objectsOverwritable=objectsOverwritable_)
     snapshotGroup=irateFile    %openGroup(snapshotLabel)
     halosGroup   =snapshotGroup%openGroup('HaloCatalog')
     call snapshotGroup%writeAttribute(redshift,"Redshift")

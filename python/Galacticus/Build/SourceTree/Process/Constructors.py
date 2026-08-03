@@ -4,8 +4,6 @@ allocatable-with-deferred-shape members, and bumps the reference count of
 functionClass pointer members so the construction chain is correct.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/Constructors.pm
 """
 
 import os
@@ -27,10 +25,7 @@ _STATE_STORABLES = None
 
 
 def _state_storables():
-    """Lazily load `$BUILDPATH/stateStorables.xml`, caching at module scope.
-
-    Mirrors the `unless ($stateStorables)` idiom in Constructors.pm:47-49.
-    """
+    """Lazily load `$BUILDPATH/stateStorables.xml`, caching at module scope."""
     global _STATE_STORABLES
     if _STATE_STORABLES is not None:
         return _STATE_STORABLES
@@ -47,10 +42,8 @@ def _state_storables():
 
 
 def _function_class_type_set(state_storables):
-    """Return the set of lowercased type names considered functionClasses.
-
-    Mirrors `keys(%{$stateStorables->{'functionClasses'}})` plus the
-    `functionClassInstances` list in Constructors.pm:106.
+    """Return the set of lowercased type names considered functionClasses:
+    the `functionClasses` names plus the `functionClassInstances` list.
     """
     return (
         {n.lower() for n in _shared_function_class_names(state_storables)}
@@ -61,8 +54,8 @@ def _function_class_type_set(state_storables):
 def _return_value_label(parent):
     """Return the function's result name.
 
-    Perl uses the `result(...)` identifier from the function opener if
-    present, otherwise the function name itself (Constructors.pm:53-58).
+    Uses the `result(...)` identifier from the function opener if present,
+    otherwise the function name itself.
     """
     opener = parent.get('opener') or ''
     m = re.search(r'result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$', opener)
@@ -75,7 +68,7 @@ _VARIABLE_TOKEN_RE = re.compile(r'^(\*?)(/?)([a-zA-Z0-9_]+)')
 
 
 def process_constructors(tree, options):
-    """Mirrors Process_Constructors() from Constructors.pm."""
+    """Process `constructorAssign` directives in the tree."""
     function_class_types = None  # lazy-loaded on first hit
 
     for node in walk_tree(tree):
@@ -87,7 +80,7 @@ def process_constructors(tree, options):
 
         parent = node.get('parent') or {}
         if parent.get('type') not in ('function', 'moduleProcedure'):
-            # Walk to the root for the error message, matching Perl.
+            # Walk to the root to name the file in the error message.
             root = node
             while root.get('parent') is not None:
                 root = root['parent']
@@ -120,10 +113,10 @@ def process_constructors(tree, options):
             has_default = default_match is not None
             default     = default_match.group(1) if has_default else None
 
-            # Perl always calls GetDeclaration here when the parent is a
-            # function; for moduleProcedure parents no declaration is fetched
-            # (the generated code is intentionally missing the optional /
-            # allocatable handling in that case — matches Perl).
+            # A declaration is fetched only when the parent is a function; for
+            # moduleProcedure parents none is fetched, so the generated code
+            # deliberately omits the optional / allocatable handling in that
+            # case (preserving output compatibility).
             declaration = None
             if parent.get('type') != 'moduleProcedure':
                 declaration = get_declaration(parent, argument_name)
@@ -133,7 +126,7 @@ def process_constructors(tree, options):
                         if any(a == 'optional' for a in attributes) else '')
 
             # Auto-allocate for deferred-shape allocatable members when
-            # requested.  Matches Constructors.pm:82-87.
+            # requested.
             if allocate == 'yes' and declaration is not None:
                 dim_matches = [
                     re.search(r'dimension\s*\(([:,]+)\)', a)

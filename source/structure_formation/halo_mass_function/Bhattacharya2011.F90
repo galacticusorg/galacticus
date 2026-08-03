@@ -51,14 +51,15 @@
        <method description="Return the parameter :math:`\bar{A}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="normalization" />
      </methods>
      !!]
-     final     ::                  bhattacharya2011Destructor
-     procedure :: differential  => bhattacharya2011Differential
-     procedure :: a             => bhattacharya2011A
-     procedure :: b             => bhattacharya2011B
-     procedure :: c             => bhattacharya2011C
-     procedure :: p             => bhattacharya2011P
-     procedure :: q             => bhattacharya2011Q
-     procedure :: normalization => bhattacharya2011Normalization
+     final     ::                                   bhattacharya2011Destructor
+     procedure :: differential                   => bhattacharya2011Differential
+     procedure :: isCriticalOverdensityDependent => bhattacharya2011IsCriticalOverdensityDependent
+     procedure :: a                              => bhattacharya2011A
+     procedure :: b                              => bhattacharya2011B
+     procedure :: c                              => bhattacharya2011C
+     procedure :: p                              => bhattacharya2011P
+     procedure :: q                              => bhattacharya2011Q
+     procedure :: normalization                  => bhattacharya2011Normalization
   end type haloMassFunctionBhattacharya2011
 
   interface haloMassFunctionBhattacharya2011
@@ -253,6 +254,19 @@ contains
          &                       )
     return
   end function bhattacharya2011Differential
+
+  logical function bhattacharya2011IsCriticalOverdensityDependent(self)
+    !!{RST
+    Return true as the :cite:t:`bhattacharya_dark_2011` halo mass function is built on an :math:`f(\nu)`
+    multiplicity that consumes the (possibly mass-dependent) critical overdensity for collapse.
+    !!}
+    implicit none
+    class(haloMassFunctionBhattacharya2011), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    bhattacharya2011IsCriticalOverdensityDependent=.true.
+    return
+  end function bhattacharya2011IsCriticalOverdensityDependent
 
   double precision function bhattacharya2011A(self,time,mass)
     !!{RST

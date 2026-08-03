@@ -33,7 +33,7 @@ module Merger_Tree_Filters
    <name>mergerTreeFilter</name>
    <descriptiveName>Merger Tree Filters</descriptiveName>
    <description>
-   Class providing merger tree filters---boolean predicates applied to a whole merger tree that determine whether it should be evolved and included in the simulation output. Filters allow trees to be selectively skipped based on e.g.\ their root halo mass, the presence of specific substructure, or random subsampling. This is useful for restricting expensive calculations to a subset of trees or for implementing importance sampling.
+   Class providing merger tree filters---boolean predicates applied to a whole merger tree that determine whether it should be evolved and included in the simulation output. Filters allow trees to be selectively skipped based on e.g. their root halo mass, the presence of specific substructure, or random subsampling. This is useful for restricting expensive calculations to a subset of trees or for implementing importance sampling.
    </description>
    <default>always</default>
    <method name="passes" >

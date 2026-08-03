@@ -187,6 +187,13 @@ Galacticus can take a long time to compile, so you may want to do a parallel mak
 
 will use up to 8 simultaneous jobs while building Galacticus - if your machine has sufficient cores you can use an even larger number.
 
+.. warning::
+
+   Do not run two ``make`` commands simultaneously in the same source tree (for example, a second
+   build started before an earlier — possibly backgrounded — build has finished). Concurrent makes
+   will race over the same generated files and fail in confusing ways. If you need concurrent
+   builds, use separate clones of the source tree, or separate build directories via ``BUILDPATH``.
+
 Download required datasets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

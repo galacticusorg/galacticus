@@ -2,11 +2,10 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/File/Changes.pm -- the `Update(oldFile, newFile, proveUpdate =>)`
-helper that compares `old_file` with the freshly-written `new_file`, and
-either moves `new_file` over `old_file` (if different) or deletes
-`new_file` (if identical).  Preserving the old file's mtime in the
-identical case lets Make skip rebuilds of downstream targets.
+The `update()` helper compares `old_file` with the freshly-written
+`new_file`, and either moves `new_file` over `old_file` (if different)
+or deletes `new_file` (if identical).  Preserving the old file's mtime
+in the identical case lets Make skip rebuilds of downstream targets.
 """
 from __future__ import annotations
 
@@ -27,7 +26,7 @@ def update(old_file: str, new_file: str, *, prove_update: bool = False) -> None:
     * Otherwise, `new_file` replaces `old_file`.
 
     When `prove_update=True`, an `<old_file>.up` sentinel is touched to
-    record that work was done -- matching Perl `proveUpdate => 'yes'`.
+    record that work was done.
     """
     if not os.path.exists(old_file):
         shutil.move(new_file, old_file)

@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # Format module use sections of Fortran source files.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors scripts/aux/formatModuleUses.pl
+# Andrew Benson (2026)
 
 import os
 import tempfile

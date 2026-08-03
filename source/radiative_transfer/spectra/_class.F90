@@ -32,7 +32,7 @@ module Radiative_Transfer_Spectra
    <name>radiativeTransferSpectrum</name>
    <descriptiveName>Radiative Transfer Spectra</descriptiveName>
    <description>
-   Class providing spectral energy distributions of sources for Monte Carlo radiative transfer calculations---the luminosity (in :math:`L_\odot` \AA\ :math:`^{-1}`) as a function of wavelength and the integrated luminosity over a wavelength range, used to initialize photon packet energies and to draw photon wavelengths from the source spectrum. Implementations include blackbody spectra, stellar population SEDs, and AGN power-law spectra, and determine the energy budget of photon packets launched into the computational domain.
+   Class providing spectral energy distributions of sources for Monte Carlo radiative transfer calculations---the luminosity (in :math:`L_\odot` Å\ :math:`^{-1}`) as a function of wavelength and the integrated luminosity over a wavelength range, used to initialize photon packet energies and to draw photon wavelengths from the source spectrum. Implementations include blackbody spectra, stellar population SEDs, and AGN power-law spectra, and determine the energy budget of photon packets launched into the computational domain.
    </description>
    <default>blackBody</default>
    <method name="luminosity" >
@@ -45,7 +45,7 @@ module Radiative_Transfer_Spectra
    </method>
    <method name="spectrum" >
     <description>
-    Return the spectrum (in units of :math:`L_\odot` \AA\ :math:`^{-1}`) of the source at the given ``wavelength``.
+    Return the spectrum (in units of :math:`L_\odot` Å\ :math:`^{-1}`) of the source at the given ``wavelength``.
     </description>
     <type>double precision</type>
     <pass>yes</pass>

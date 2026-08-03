@@ -6,8 +6,6 @@ the `XClassRestore` / `XClassRestore1D` dispatchers that rebuild the
 correct dynamic type on read.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/StateStorable.pm
 """
 
 import os
@@ -40,8 +38,8 @@ def _parse_type_opener(opener):
     """Return `(name, extends_or_None, abstract_bool)` for a `type … :: name`
     opener line, or None for openers carrying unexpanded `{Type¦…}` generic
     placeholders (StateStorable doesn't support generics, so those types are
-    silently skipped — DeepCopyActions makes the same carve-out at
-    DeepCopyActions.pm:62).  Raises only on genuinely unparseable openers.
+    silently skipped — DeepCopyActions makes the same carve-out).  Raises
+    only on genuinely unparseable openers.
     """
     if '{' in opener:
         return None
@@ -77,9 +75,7 @@ def _load_state_storables_xml():
 
 
 def _storable_types(state_storables):
-    """Return the set of registered stateStorable type names.  Matches Perl's
-    `grep {$_->{'type'} eq $type} @{$stateStorables->{'stateStorables'}}`.
-    """
+    """Return the set of registered stateStorable type names."""
     entries = (state_storables or {}).get('stateStorables')
     return {e.get('type') for e in as_array(entries) if isinstance(e, dict)}
 
@@ -119,8 +115,8 @@ def _strip_init(var):
 def _process_derived_declaration(declaration, scope_directive, exclude, storable_types):
     """Generate store/restore text for a `class(…)` or `type(…)` member.
 
-    Mirrors StateStorable.pm:205-303.  Returns a dict of fragments plus flags
-    needed to emit local-variable declarations in the outer subroutine.
+    Returns a dict of fragments plus flags needed to emit local-variable
+    declarations in the outer subroutine.
     """
     fragments = {
         'output':                '',
@@ -261,10 +257,7 @@ def _process_derived_declaration(declaration, scope_directive, exclude, storable
 
 
 def _process_allocatable_intrinsic(declaration, exclude):
-    """Store/restore for an allocatable intrinsic-type member.
-
-    Mirrors StateStorable.pm:310-347.
-    """
+    """Store/restore for an allocatable intrinsic-type member."""
     fragments = {
         'output': '',
         'input':  '',
@@ -340,7 +333,7 @@ def _process_allocatable_intrinsic(declaration, exclude):
 def _emit_class_restore(parent_class, target_class, classes, class_identifiers):
     """Emit `XClassRestore` + `XClassRestore1D` dispatch subroutines.
 
-    Mirrors StateStorable.pm:462-523.  Each subroutine reads a stored
+    Each subroutine reads a stored
     classIdentifier and reallocates `self` to the appropriate concrete type.
     """
     text = ''
@@ -352,7 +345,7 @@ def _emit_class_restore(parent_class, target_class, classes, class_identifiers):
             if rank > 0 else ''
         )
         code  = f"subroutine {parent_class}ClassRestore{suffix}(self,stateFile{stored_shape})\n"
-        code += " !!{\n"
+        code += " !!{RST\n"
         code += " Restore the class of this object from file.\n"
         code += " !!}\n"
         code += " use            :: Error        , only : Error_Report\n"
@@ -397,7 +390,7 @@ def _emit_class_restore(parent_class, target_class, classes, class_identifiers):
 
 _TYPE_BINDING = (
     "    !![\n"
-    "    <methods>\n"
+    "    <methods docformat=\"rst\">\n"
     "     <method method=\"stateStore\"   description=\"Store the state of this object to file.\"    />\n"
     "     <method method=\"stateRestore\" description=\"Restore the state of this object from file.\"/>\n"
     "    </methods>\n"
@@ -418,7 +411,7 @@ def _insert_parsed(parent, source_text, run_process_tree=False):
 
 
 def process_state_storable(tree, options):
-    """Mirrors Process_StateStorable() from StateStorable.pm."""
+    """Process `stateStorable` directives in the tree."""
     directive_nodes = []
     classes         = {}
     module_node     = None
@@ -456,7 +449,7 @@ def process_state_storable(tree, options):
     state_storables = _load_state_storables_xml()
     storable_types  = _storable_types(state_storables)
 
-    # Cull classes not in any directive's hierarchy.  Matches Perl:78-92.
+    # Cull classes not in any directive's hierarchy.
     targets = [n['directive']['class'] for n in directive_nodes]
     for cname in list(classes.keys()):
         matched = False
@@ -499,8 +492,7 @@ def process_state_storable(tree, options):
 
 def _class_restore_visibility_names(directive, classes):
     """Return every `XClassRestore{,1D}` symbol that should be made public for
-    the directive's class hierarchy.  Mirrors the SetVisibility loop inside
-    the classFunctionsRequired branch at StateStorable.pm:519-521.
+    the directive's class hierarchy.
     """
     names = []
     target = directive['class']
@@ -525,7 +517,7 @@ def _emit_store_restore(directive, classes, storable_types):
     # Openers (grow if label/storedShape/wasAllocated/ranks are needed).
     output_opener = (
         f"subroutine {target}StateStore(self,stateFile,gslStateFile,storeIdentifier)\n"
-        " !!{\n"
+        " !!{RST\n"
         " Store the state of this object to file.\n"
         " !!}\n"
         " use, intrinsic :: ISO_C_Binding     , only : c_size_t, c_ptr\n"
@@ -539,7 +531,7 @@ def _emit_store_restore(directive, classes, storable_types):
     )
     input_opener = (
         f"subroutine {target}StateRestore(self,stateFile,gslStateFile)\n"
-        " !!{\n"
+        " !!{RST\n"
         " Store the state of this object to file.\n"
         " !!}\n"
         " use, intrinsic :: ISO_C_Binding     , only : c_size_t, c_ptr\n"

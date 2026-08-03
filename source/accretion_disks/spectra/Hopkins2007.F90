@@ -135,11 +135,12 @@ contains
     use            :: Display                         , only : displayCounter         , displayCounterClear , displayIndent     , displayUnindent, &
           &                                                    verbosityLevelWorking
     use            :: File_Utilities                  , only : Count_Lines_in_File    , Directory_Make      , File_Exists       , File_Lock      , &
-          &                                                    File_Unlock
+          &                                                    File_Unlock            , File_Remove
     use            :: Error                           , only : Error_Report
+    use            :: Hashes_Cryptographic            , only : Hash_SHA256_File
     use            :: Input_Paths                     , only : inputPath              , pathTypeDataDynamic , pathTypeDataStatic
     use            :: HDF5_Access                     , only : hdf5Access
-    use            :: IO_HDF5                         , only : hdf5Object
+    use            :: IO_HDF5                         , only : hdf5File               , hdf5Dataset
     use, intrinsic :: ISO_Fortran_Env
     use            :: Numerical_Constants_Astronomical, only : luminositySolar
     use            :: Numerical_Constants_Physical    , only : speedLight
@@ -147,7 +148,7 @@ contains
     use            :: Units_MetaData                  , only : unitType
     use            :: Numerical_Ranges                , only : Make_Range             , rangeTypeLogarithmic
     use            :: String_Handling                 , only : operator(//)
-    use            :: System_Command                  , only : System_Command_Do
+    use            :: System_Command                  , only : System_Command_Do      , shellEscape
     use            :: System_Compilers                , only : languageC              , compilerValidate
     use            :: System_Download                 , only : download
     implicit none
@@ -157,15 +158,21 @@ contains
     double precision                                 , parameter                   :: luminosityBolometricMinimum=1.0d06
     double precision                                 , parameter                   :: luminosityBolometricMaximum=1.0d28
     integer                                          , parameter                   :: luminosityBolometricCount  =200
+    ! SHA-256 hash of the expected content of `agn_spectrum.c`. See the note where the file is downloaded, below: this pin is what
+    ! establishes the integrity of that file, as the identity of the server which provides it can not be verified.
+    character       (len= 64                        ), parameter                   :: hashSpectrumCode           ='82b8932cf66c114586caadcd5bf050e934058fe29ec3c44e49dcadfed86be00e'
     logical                                                                        :: makeFile
-    type            (hdf5Object                     )                              :: file                              , dataset
+    type            (hdf5File                       )                              :: file
+    type            (hdf5Dataset                    )                              :: dataset
     integer                                                                        :: fileFormatCurrentFile             , sedUnit             , &
          &                                                                            i                                 , j                   , &
          &                                                                            status                            , wavelengthCount
     character       (len= 16                        )                              :: label
     character       (len=256                        )                              :: line
     double precision                                                               :: frequencyLogarithmic              , spectrumLogarithmic
-    type            (varying_string                 )                              :: fileNameLock
+    type            (varying_string                 )                              :: fileNameLock                      , escapedBuildDir     , &
+         &                                                                            escapedExecutable                 , escapedSEDFile      , &
+         &                                                                            fileNameSpectrumCode              , hashComputed
 
     ! Determine if we need to make the file.
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
@@ -175,7 +182,7 @@ contains
     makeFile=.false.
     if (File_Exists(self%fileName)) then
        !$ call hdf5Access%set()
-       file=hdf5Object(char(self%fileName),readOnly=.true.)
+       file=hdf5File(self%fileName,readOnly=.true.)
        if (file%hasAttribute('fileFormat')) then
           call file%readAttribute('fileFormat',fileFormatCurrentFile,allowPseudoScalar=.true.)
           makeFile=fileFormatCurrentFile /= fileFormatCurrent
@@ -194,14 +201,38 @@ contains
        call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.false.)
        ! Download the AGN SED code.
        if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c")) then
-          call Directory_Make(inputPath(pathTypeDataDynamic)//"/AGN_Spectrum")
-          call download("http://www.tapir.caltech.edu/~phopkins/Site/qlf_files/agn_spectrum.c",char(inputPath(pathTypeDataStatic))//"aux/AGN_Spectrum/agn_spectrum.c",status=status)
+          call Directory_Make(inputPath(pathTypeDataDynamic)//"AGN_Spectrum")
+          ! NOTE: `www.tapir.caltech.edu` serves an expired, self-signed certificate issued to `localhost.localdomain`, so its
+          ! identity can not be verified and `allowInsecure` is required here. No mirror of this file is available (it is not held
+          ! in the Galacticus datasets repository, and there is no Internet Archive snapshot of it). Since the file downloaded
+          ! here is subsequently compiled and executed, its integrity is instead established by checking its content against the
+          ! SHA-256 hash pinned below before it is compiled.
+          fileNameSpectrumCode=inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c"
+          call download("https://www.tapir.caltech.edu/~phopkins/Site/qlf_files/agn_spectrum.c",char(fileNameSpectrumCode),status=status,allowInsecure=.true.)
           if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c")) call Error_Report('failed to download agn_spectrum.c'//{introspection:location})
+          ! Verify the integrity of the downloaded file. As the identity of the server can not be verified, this check is the only
+          ! thing standing between an intercepted download and the compilation and execution of arbitrary code, so a mismatch is
+          ! always fatal and the offending file is removed.
+          hashComputed=Hash_SHA256_File(fileNameSpectrumCode)
+          if (char(hashComputed) /= hashSpectrumCode) then
+             call File_Remove(fileNameSpectrumCode)
+             call Error_Report(                                                                                             &
+                  &            'the downloaded `agn_spectrum.c` does not match its expected content'                     // &
+                  &            char(10)//'  expected SHA-256: '//     hashSpectrumCode                                   // &
+                  &            char(10)//'  computed SHA-256: '//char(hashComputed    )                                  // &
+                  &            char(10)//'this file is compiled and executed, so it will not be used. If it has been'    // &
+                  &            char(10)//'legitimately updated by its author, update `hashSpectrumCode` in'              // &
+                  &            char(10)//'`source/accretion_disks/spectra/Hopkins2007.F90` after verifying the change.'  // &
+                  &            {introspection:location}                                                                     &
+                  &           )
+          end if
        end if
        ! Compile the AGN SED code.
        if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) then
           call compilerValidate(languageC,'AGN spectrum')
-          call System_Command_Do("cd "//char(inputPath(pathTypeDataStatic))//"aux/AGN_Spectrum; gcc agn_spectrum.c -o agn_spectrum.x -lm");
+          escapedBuildDir=inputPath(pathTypeDataDynamic)//"AGN_Spectrum"
+          escapedBuildDir=shellEscape(escapedBuildDir)
+          call System_Command_Do("cd "//char(escapedBuildDir)//"; gcc agn_spectrum.c -o agn_spectrum.x -lm");
           if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) call Error_Report('failed to compile agn_spectrum.c'//{introspection:location})
        end if
        ! Generate a tabulation of AGN spectra over a sufficiently large range of AGN luminosity.
@@ -211,7 +242,11 @@ contains
        do i=1,luminosityBolometricCount
           call displayCounter(int(100.0*dble(i-1)/dble(luminosityBolometricCount)),isNew=i==1,verbosity=verbosityLevelWorking)
           write (label,'(e12.6)') log10(luminosityBolometric(i))
-          call System_Command_Do(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x "//label//" > "//inputPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt")
+          escapedExecutable=inputPath  (pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x"
+          escapedExecutable=shellEscape(escapedExecutable  )
+          escapedSEDFile   =inputPath  (pathTypeDataDynamic)//"AGN_Spectrum/SED.txt"        
+          escapedSEDFile   =shellEscape(escapedSEDFile     )
+          call System_Command_Do(escapedExecutable//" "//label//" > "//escapedSEDFile)
           wavelengthCount=Count_Lines_in_File(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt",";")-4
           if (allocated(wavelength)) then
              if (wavelengthCount /= size(wavelength)) call Error_Report('inconsistent number of wavelengths'//{introspection:location})
@@ -219,7 +254,7 @@ contains
              allocate(wavelength(wavelengthCount                          ))
              allocate(SED       (wavelengthCount,luminosityBolometricCount))
           end if
-          open(newUnit=sedUnit,file=char(inputPath(pathTypeDataStatic))//"aux/AGN_Spectrum/SED.txt",status="old",form="formatted")
+          open(newUnit=sedUnit,file=char(inputPath(pathTypeDataDynamic))//"AGN_Spectrum/SED.txt",status="old",form="formatted")
           j=wavelengthCount+1
           do
              read(sedUnit,'(a)',iostat=status) line
@@ -236,7 +271,7 @@ contains
        call displayCounterClear(verbosity=verbosityLevelWorking)
        ! Store the data to file.
        !$ call hdf5Access%set()
-       file=hdf5Object(char(self%fileName),overWrite=.true.)
+       file=hdf5File(self%fileName,overWrite=.true.)
        call file   %writeDataset  (wavelength               ,"wavelength"          ,datasetReturned=dataset)
        call dataset%writeAttribute(unitType(1.0d0/metersToAngstroms  ,"Angstroms (Å)"          ,"angstrom" ),"units")
        call file   %writeDataset  (luminosityBolometric     ,"bolometricLuminosity",datasetReturned=dataset)

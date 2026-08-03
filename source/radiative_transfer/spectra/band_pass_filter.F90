@@ -20,7 +20,7 @@
   !![
   <radiativeTransferSpectrum name="radiativeTransferSpectrumBandPassFilter" docformat="rst">
    <description>
-   A photon spectrum class that applies a wavelength band-pass filter to another photon spectrum, returning zero luminosity outside the specified wavelength range. The passband is controlled by the ``[wavelengthMinimum]`` and ``[wavelengthMaximum]`` parameters (in units of \AA).
+   A photon spectrum class that applies a wavelength band-pass filter to another photon spectrum, returning zero luminosity outside the specified wavelength range. The passband is controlled by the ``[wavelengthMinimum]`` and ``[wavelengthMaximum]`` parameters (in units of Å).
    </description>
   </radiativeTransferSpectrum>
   !!]
@@ -63,7 +63,7 @@ contains
       <name>wavelengthMinimum</name>
       <defaultValue>0.0d0</defaultValue>
       <description>
-      The minimum wavelength (in units of \AA) to pass the spectrum.
+      The minimum wavelength (in units of Å) to pass the spectrum.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -71,7 +71,7 @@ contains
       <name>wavelengthMaximum</name>
       <defaultValue>huge(0.0d0)</defaultValue>
       <description>
-      The maximum wavelength (in units of \AA) to pass the spectrum.
+      The maximum wavelength (in units of Å) to pass the spectrum.
       </description>
       <source>parameters</source>
     </inputParameter>

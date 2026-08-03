@@ -35,6 +35,11 @@ module Node_Component_Satellite_Orbiting
        &    Node_Component_Satellite_Orbiting_Thread_Initialize, Node_Component_Satellite_Orbiting_Thread_Uninitialize, &
        &    Node_Component_Satellite_Orbiting_State_Store      , Node_Component_Satellite_Orbiting_State_Restore
   
+  ! The `position` and `velocity` properties below are rank-1, 3-element arrays. As with all bare 3-element
+  ! position/velocity arrays in Galacticus, their components are *Cartesian*, in the order (x,y,z) --- the
+  ! coordinate system is implicit in the representation and is not carried by the type. Code which needs a
+  ! system-aware position should assign these into a `coordinateCartesian` object, which then converts to
+  ! other systems automatically on assignment. See the convention documented in the `Coordinates` module.
   !![
   <component>
    <class>satellite</class>
@@ -46,7 +51,7 @@ module Node_Component_Satellite_Orbiting
       <type>double</type>
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output labels="[X,Y,Z]" unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Orbital position of the node relative to its immediate host (sub-)halo."/>
+      <output labels="[X,Y,Z]" unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Orbital position of the node relative to its immediate host (sub-)halo, in Cartesian components (x,y,z)."/>
       <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
     </property>
     <property>
@@ -54,7 +59,7 @@ module Node_Component_Satellite_Orbiting
       <type>double</type>
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output labels="[X,Y,Z]" unitsInSI="kilo" unitsDescription="km/s" unitsQuantity="km/s" comment="Orbital velocity of the node relative to its immediate host (sub-)halo."/>
+      <output labels="[X,Y,Z]" unitsInSI="kilo" unitsDescription="km/s" unitsQuantity="km/s" comment="Orbital velocity of the node relative to its immediate host (sub-)halo, in Cartesian components (vx,vy,vz)."/>
       <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
     </property>
     <property>
@@ -106,9 +111,6 @@ module Node_Component_Satellite_Orbiting
   class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
   !$omp threadprivate(darkMatterHaloScale_)
 
-  ! Option controlling whether or not unbound virial orbits are acceptable.
-  logical :: acceptUnboundOrbits
-
   ! A threadprivate object used to track to which thread events are attached.
   integer :: thread
   !$omp threadprivate(thread)
@@ -122,27 +124,15 @@ contains
     !!{RST
     Initializes the orbiting satellite methods module.
     !!}
-    use :: Galacticus_Nodes  , only : defaultSatelliteComponent, nodeComponentSatelliteOrbiting
-    use :: Input_Parameters  , only : inputParameter           , inputParameters
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatelliteOrbiting
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters               ), intent(inout) :: parameters
     type(nodeComponentSatelliteOrbiting)                :: satellite
-    type(inputParameters               )                :: subParameters
+    !$GLC attributes unused :: parameters
 
     ! Initialize the module if necessary.
     if (defaultSatelliteComponent%orbitingIsActive()) then
-       ! Find our parameters.
-       subParameters=parameters%subParameters('componentSatellite')
-       !![
-       <inputParameter docformat="rst">
-         <name>acceptUnboundOrbits</name>
-         <defaultValue>.false.</defaultValue>
-         <description>
-         If true, accept unbound virial orbits for satellites, otherwise reject them.
-         </description>
-         <source>subParameters</source>
-       </inputParameter>
-       !!]
        ! Specify the function to use for setting virial orbits.
        call satellite%virialOrbitSetFunction(Node_Component_Satellite_Orbiting_Virial_Orbit_Set)
        call satellite%virialOrbitFunction   (Node_Component_Satellite_Orbiting_Virial_Orbit    )

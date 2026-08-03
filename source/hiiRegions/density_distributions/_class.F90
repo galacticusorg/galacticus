@@ -35,7 +35,7 @@ module HII_Region_Density_Distributions
    <name>hiiRegionDensityDistribution</name>
    <descriptiveName>HII Region Density Distributions</descriptiveName>
    <description>
-   Class providing models for the distribution of hydrogen number density :math:`n_\mathrm{H}` within H**ii** regions---the probability distribution of gas density within the photoionized nebula. The cumulative density distribution is returned between specified minimum and maximum :math:`n_\mathrm{H}` values, and is used to model the density-dependent emission line ratios and ionization structure of the nebula. Different implementations (e.g.\ log-normal) capture the clumpy, inhomogeneous nature of real H**ii** regions, which affects nebular line luminosities and the ionizing photon budget.
+   Class providing models for the distribution of hydrogen number density :math:`n_\mathrm{H}` within H**ii** regions---the probability distribution of gas density within the photoionized nebula. The cumulative density distribution is returned between specified minimum and maximum :math:`n_\mathrm{H}` values, and is used to model the density-dependent emission line ratios and ionization structure of the nebula. Different implementations (e.g. log-normal) capture the clumpy, inhomogeneous nature of real H**ii** regions, which affects nebular line luminosities and the ionizing photon budget.
    </description>
    <default>logNormal</default>
    <method name="cumulativeDensityDistribution">

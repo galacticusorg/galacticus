@@ -163,7 +163,7 @@ contains
     Constructor for the :galacticus-class:`outputAnalysisSubhaloVMaxVsMass` output analysis class for internal use.
     !!}
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5Object
+    use :: IO_HDF5                 , only : hdf5File                  , hdf5Group
     use :: Output_Times            , only : outputTimesClass
     use :: Cosmology_Functions     , only : cosmologyFunctionsClass
     use :: Virial_Density_Contrast , only : virialDensityContrastClass
@@ -184,14 +184,15 @@ contains
          &                                                                              time                    , redshift_
     integer         (c_size_t                         )                              :: countMasses             , i
     type            (varying_string                   )                              :: labelTarget
-    type            (hdf5Object                       )                              :: file                    , velocityMaximumVsMassGroup
+    type            (hdf5File                         )                              :: file
+    type            (hdf5Group                        )                              :: velocityMaximumVsMassGroup
     !![
     <constructorAssign variables="redshift"/>
     !!]
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    file=hdf5Object(fileName,readOnly=.true.)
+    file=hdf5File(fileName,readOnly=.true.)
     call file                      %readAttribute('label'                               ,         labelTarget        )
     call file                      %readAttribute('redshift'                            ,         redshift_          )
     velocityMaximumVsMassGroup=file%openGroup('velocityMaximum')

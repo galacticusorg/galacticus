@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
+  <lastModified revision="a3e1665914d944c9fa844f662a028072e84740a5" time="2026-07-28T17:29:21"/>
 
   <verbosityLevel value="working"/>
 
@@ -279,6 +279,10 @@
     </nodeOperator>
     <!-- Bar instability in galactic disks -->
     <nodeOperator value="barInstability">
+      <!-- Stellar luminosities are solved as inactive properties (see the disk/spheroid components above), so bar   -->
+      <!-- instability must be told this too - otherwise it reads the (inactive, and therefore stale during active   -->
+      <!-- property evolution) stellar luminosities. See issue #128.                                                 -->
+      <luminositiesStellarInactive value="true"/>
       <galacticDynamicsBarInstability value="efstathiou1982">
 	<stabilityThresholdGaseous value="0.7"/>
 	<stabilityThresholdStellar value="1.1"/>

@@ -203,7 +203,7 @@ contains
     use            :: Output_HDF5            , only : outputFile
     use            :: Galacticus_Nodes       , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile     , nodeComponentSpin, treeNode
     use            :: Halo_Spin_Distributions, only : haloSpinDistributionNbodyErrors
-    use            :: IO_HDF5                , only : hdf5Object
+    use            :: IO_HDF5                , only : hdf5File                               , hdf5Group
     use            :: HDF5_Access            , only : hdf5Access
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Node_Components        , only : Node_Components_Thread_Initialize      , Node_Components_Thread_Uninitialize
@@ -218,7 +218,7 @@ contains
     double precision                                , allocatable  , dimension(:) :: spin                 , spinDistribution
     integer         (c_size_t                      )                              :: iOutput
     integer                                                                       :: iSpin                , spinCount
-    type            (hdf5Object                    )                              :: outputsGroup         , outputGroup     , &
+    type            (hdf5Group                     )                              :: outputsGroup         , outputGroup     , &
          &                                                                           containerGroup
     type            (varying_string                )                              :: groupName            , description
 

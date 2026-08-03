@@ -5,7 +5,7 @@ import subprocess
 import time
 
 # Check for closed GCC PRs in workarounds.
-# Andrew Benson (17-September-2021) [Perl]; ported to Python 2026
+# Andrew Benson (17-September-2021)
 
 WORKAROUNDS = {}
 DIRECTORIES = ("./source",)

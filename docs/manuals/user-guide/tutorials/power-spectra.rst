@@ -3,7 +3,7 @@ Power Spectra
 
 In this tutorial we'll use Galacticus to compute and output the cosmological linear theory power spectrum.
 
-If you haven't already installed Galacticus, you can find the installation instructions `here <https://github.com/galacticusorg/galacticus/wiki#how-do-i-install-and-use-galacticus>`_.
+If you haven't already installed Galacticus, you can find the installation instructions in :doc:`../installation/index`.
 
 Running the calculation
 -----------------------

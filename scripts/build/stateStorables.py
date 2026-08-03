@@ -17,8 +17,7 @@ name, enumerates:
 Writes `$BUILDPATH/stateStorables.xml` (atomic update) and caches per-file
 results in `$BUILDPATH/stateStorables.blob` (also atomic).
 
-Mirrors scripts/build/stateStorables.pl.
-Andrew Benson (ported to Python 2026).
+Andrew Benson (2026).
 """
 
 import os
@@ -40,6 +39,7 @@ from XML.Utils                        import dict_to_xml_string, xml_to_dict
 from Galacticus.Build.ScanCache import (
     file_identifier as _file_identifier,
     load_cache      as _load_cache,
+    prune           as _prune_cache,
 )
 
 
@@ -59,9 +59,7 @@ def _parse_directive_locations(path):
 
 
 def _fresh(cache_mtime, entry_exists, file_name):
-    """Perl's `$havePerFile && exists(...) && -M $file > $updateTime` idiom.
-
-    Returns True when the cached entry is still current and we should skip
+    """Return True when the cached entry is still current and we should skip
     rescanning this file.
     """
     if cache_mtime is None or not entry_exists:
@@ -76,8 +74,7 @@ def _collect_module_openers(file_name):
     """Return every module name opened in `file_name` (one per `module X`
     unit-opener line).
 
-    Uses `get_fortran_line` + the module opener regex -- the same
-    `$Fortran::Utils::unitOpeners{'module'}->{'regEx'}` the Perl uses.
+    Uses `get_fortran_line` + the module opener regex.
     """
     modules = []
     with open(file_name, 'r', errors='replace') as fh:
@@ -93,7 +90,7 @@ def _collect_module_openers(file_name):
 
 def _enclosing_module_name(node):
     """Walk up `node`'s parents, returning the first enclosing `module`
-    name (or `""` if none).  Mirrors the loop at stateStorables.pl:119-126.
+    name (or `""` if none).
     """
     cur = node
     while cur is not None:
@@ -177,6 +174,11 @@ def main(argv):
     storables_per_file, cache_mtime = _load_cache(blob_path)
     have_per_file = cache_mtime is not None
 
+    # Identifiers of every file participating in this run (accumulated across
+    # all four passes below), used to prune stale cache entries before the
+    # final aggregation.
+    current_identifiers = set()
+
     # -----------------------------------------------------------------------
     # Pass 1: every functionClass file -- extract modules + directives.
     # Parsed concurrently, merged in file order (reproducing the serial
@@ -184,6 +186,9 @@ def main(argv):
     # -----------------------------------------------------------------------
     function_class_files = as_array(
         (directive_locations.get('functionClass') or {}).get('file')
+    )
+    current_identifiers.update(
+        _file_identifier(f) for f in function_class_files
     )
     p1_tasks = [
         (_file_identifier(f), f) for f in function_class_files
@@ -228,6 +233,7 @@ def main(argv):
             )
             for instance_file in instance_files:
                 instance_identifier = _file_identifier(instance_file)
+                current_identifiers.add(instance_identifier)
                 if _fresh(cache_mtime,
                           instance_identifier in storables_per_file,
                           instance_file):
@@ -259,6 +265,9 @@ def main(argv):
     state_storable_files = as_array(
         (directive_locations.get('stateStorable') or {}).get('file')
     )
+    current_identifiers.update(
+        _file_identifier(f) for f in state_storable_files
+    )
     p3_tasks = [
         (_file_identifier(f), f) for f in state_storable_files
         if not _fresh(cache_mtime,
@@ -278,6 +287,9 @@ def main(argv):
     event_static_files = as_array(
         (directive_locations.get('eventHookStatic') or {}).get('file')
     )
+    current_identifiers.update(
+        _file_identifier(f) for f in event_static_files
+    )
     p4_tasks = [
         (_file_identifier(f), f) for f in event_static_files
         if not _fresh(cache_mtime,
@@ -290,6 +302,12 @@ def main(argv):
             storables_per_file.setdefault(
                 file_identifier, {},
             )['eventHookStatics'] = names
+
+    # Drop cache entries for files that no longer carry any of the cataloged
+    # directives (deleted, or the directive was removed), or their entries
+    # would keep contributing stale functionClasses/instances/storables/
+    # static hooks to stateStorables.xml forever.
+    _prune_cache(storables_per_file, current_identifiers)
 
     # -----------------------------------------------------------------------
     # Aggregate across files and sort.

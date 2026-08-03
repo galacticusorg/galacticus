@@ -4,8 +4,6 @@ other parts of the build (e.g. direct XML extractors), not by the
 SourceTree Process pipeline.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/NonProcessed.pm
 """
 
 
@@ -13,8 +11,7 @@ Mirrors perl/Galacticus/Build/SourceTree/Process/NonProcessed.pm
 from Galacticus.Build.SourceTree         import walk_tree
 from Galacticus.Build.SourceTree.Process import register_process
 
-# Directive types that we simply mark as processed.  Mirrors the
-# @nonProcessedDirectives list at NonProcessed.pm:17.
+# Directive types that we simply mark as processed.
 _NON_PROCESSED_DIRECTIVES = frozenset((
     'methods',
     'workaround',
@@ -30,8 +27,8 @@ _NON_PROCESSED_DIRECTIVES = frozenset((
 
 def is_non_processed_type(node_type):
     """Return True if `node_type` is a directive that does not require any
-    Process hook to handle it (mirrors the NonProcessed.pm exemption list,
-    plus any `*Task` type).
+    Process hook to handle it (the exemption list above, plus any `*Task`
+    type).
 
     Used both by `process_non_processed` (to mark such directives as
     processed early in the pipeline) and by `post_process_directives` (to
@@ -45,7 +42,7 @@ def is_non_processed_type(node_type):
 
 
 def process_non_processed(tree, options):
-    """Mirrors Process_NonProcessed() from NonProcessed.pm."""
+    """Mark exempt directive types as processed."""
     for node in walk_tree(tree):
         if is_non_processed_type(node.get('type', '')):
             directive = node.get('directive')

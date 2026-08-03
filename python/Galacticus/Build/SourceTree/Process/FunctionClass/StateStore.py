@@ -1,13 +1,11 @@
 """State store/restore code generation helpers for the functionClass
 pipeline.
 
-Andrew Benson (ported to Python 2026)
+Provides `state_store_explicit_function`,
+`generate_allocatable_state_store_code`, and `state_store_variables`.
+The stateStorables data is taken as an explicit parameter.
 
-Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionClass/StateStore.pm
-— all three exported functions (`state_store_explicit_function`,
-`generate_allocatable_state_store_code`, `state_store_variables`).
-Perl aliases `$stateStorables` from the parent package; we take it as a
-parameter here.
+Andrew Benson (ported to Python 2026)
 """
 
 import re
@@ -53,8 +51,7 @@ def state_store_explicit_function(non_abstract_class):
     declare a `<stateStore>` block with an explicit `store` / `restore`
     function in their directive.
 
-    Mirrors stateStoreExplicitFunction() at StateStore.pm:18-48.  Returns
-    `(input_code, output_code, modules_dict)`.
+    Returns `(input_code, output_code, modules_dict)`.
     """
     input_code  = ''
     output_code = ''
@@ -104,8 +101,6 @@ def generate_allocatable_state_store_code(state_store, state_stores,
     """Mutate `state_store` (outputCode / inputCode) and `state_stores`
     (allocatables / dimensionals / stateFileUsed / labelUsed flags) with
     the store/restore code for one allocatable member variable.
-
-    Mirrors generateAllocatableStateStoreCode() at StateStore.pm:50-88.
     """
     state_store.setdefault('outputCode', '')
     state_store.setdefault('inputCode',  '')
@@ -155,9 +150,9 @@ def state_store_variables(state_stores, state_store, class_record,
                           state_storables):
     """Walk `declarations` and emit store/restore code for every member.
 
-    Mirrors stateStoreVariables() at StateStore.pm:90-317.  `state_stores`
+    `state_stores`
     and `state_store` are the shared accumulators populated by
-    FunctionClass's main driver (Perl parent package).  Keys touched:
+    FunctionClass's main driver.  Keys touched:
       - `state_stores`: `allocatablesFound`, `dimensionalsFound`,
         `stateFileUsed`, `gslStateFileUsed`, `labelUsed`, `rankMaximum`,
         `stateRestoreModules`.
@@ -418,8 +413,8 @@ def state_store_variables(state_stores, state_store, class_record,
                 _maybe_flag_custom_hooks(state_store, declaration)
                 continue
 
-            # Unrecognised derived type — Perl simply does nothing with it
-            # (the `class`/`type` arm has no fall-through into the intrinsic
+            # Unrecognised derived type — deliberately emit nothing (the
+            # `class`/`type` arm has no fall-through into the intrinsic
             # branch).  Without this explicit continue our walk dropped into
             # the `is_allocatable` intrinsic path below and emitted, e.g.,
             # `write (stateFile) self%postprocessors` for a

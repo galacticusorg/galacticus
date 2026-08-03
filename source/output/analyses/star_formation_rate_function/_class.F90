@@ -221,7 +221,7 @@ contains
     Constructor for the :galacticus-class:`outputAnalysisStarFormationRateFunction` output analysis class which reads bin information from a standard format file.
     !!}
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object
+    use :: IO_HDF5    , only : hdf5File
     implicit none
     type            (outputAnalysisStarFormationRateFunction  )                              :: self
     type            (varying_string                           ), intent(in   )               :: label                                , comment
@@ -240,13 +240,13 @@ contains
     double precision                                           , dimension(:  ), allocatable :: starFormationRates                   , functionValueTarget              , &
          &                                                                                      functionErrorTarget
     double precision                                           , dimension(:,:), allocatable :: functionCovarianceTarget
-    type            (hdf5Object                               )                              :: dataFile
+    type            (hdf5File                                 )                              :: dataFile
     type            (varying_string                           )                              :: targetLabel
     logical                                                                                  :: haveTarget
     integer                                                                                  :: i
 
     !$ call hdf5Access%set()
-    dataFile=hdf5Object(fileName,readOnly=.true.)
+    dataFile=hdf5File(fileName,readOnly=.true.)
     call    dataFile%readDataset  ('starFormationRate'   ,starFormationRates      )
     haveTarget=   dataFile%hasDataset('starFormationRateFunctionObserved'          ) &
          &     .and.                                                                 &

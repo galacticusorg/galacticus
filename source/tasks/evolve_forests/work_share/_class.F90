@@ -34,7 +34,7 @@ module Task_Evolve_Forests_Work_Shares
    <name>evolveForestsWorkShare</name>
    <descriptiveName>Evolve Forests Work Share</descriptiveName>
    <description>
-   Class providing work sharing strategies for the evolve forests task---the algorithm that assigns merger tree forests to individual MPI processes and OpenMP threads for parallel execution. Implementations return the index of the next forest to be processed by the calling worker, a unique worker identifier, and the total worker count. Strategies include first-come-first-served (FCFS) dynamic scheduling and static pre-assignment, with load balancing optionally guided by tree processing time estimates from :galacticus-class:`metaTreeProcessingTimeClass`.
+   Class providing work sharing strategies for the evolve forests task---the algorithm that assigns merger tree forests to individual MPI processes and OpenMP threads for parallel execution. Implementations return the index of the next forest to be processed by the calling worker, a unique worker identifier, and the total worker count. Strategies include first-come-first-served (FCFS) dynamic scheduling and static pre-assignment. Under the default first-come-first-served scheduling, forests built in descending order of mass (the default) are processed most-expensive-first, which is a near-optimal (longest-processing-time-first) load-balancing strategy.
    </description>
    <default>FCFS</default>
    <method name="forestNumber" >
@@ -68,6 +68,18 @@ module Task_Evolve_Forests_Work_Shares
     <code>
      if (self%workerIDOffset_ &lt; 0) call evolveForestsWorkerIDs(self,utilizeOpenMPThreads)
      evolveForestsWorkShareWorkerCount=self%workerCount_
+    </code>
+   </method>
+   <method name="forestsClaimed" >
+    <description>
+    Return the number of forests claimed for processing so far, counted globally across all MPI processes, or a negative value if this is not known. For dynamic schedulers backed by a shared counter (e.g. first-come-first-served) this provides a globally-consistent progress count essentially for free---avoiding a collective reduction---and so is used for whole-run progress reporting under MPI.
+    </description>
+    <type>integer(c_size_t)</type>
+    <pass>yes</pass>
+    <code>
+     ! By default the number of forests claimed is not known.
+     !$GLC attributes unused :: self
+     evolveForestsWorkShareForestsClaimed=-1_c_size_t
     </code>
    </method>
    <data>integer :: workerIDOffset_=-1, workerCount_=-1</data>

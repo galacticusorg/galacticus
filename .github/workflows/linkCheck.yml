@@ -3,6 +3,8 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '32 13 * * *'
+permissions:
+  contents: read
 jobs:
   Check-Links:
     runs-on: ubuntu-latest
@@ -16,20 +18,20 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Cache dynamically-generated datasets
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ${{ github.workspace }}/linkCheckFailures.xml
           key: linkCheckFailures-${{ github.run_id }}
           restore-keys: |
             linkCheckFailures
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: '3.x'
       - name: Install tools
@@ -46,7 +48,7 @@ jobs:
           ./scripts/aux/linkChecker.py ${{ secrets.NASA_ADS_API_TOKEN }} badURLs.md
       - name: Check file existence
         id: check_files
-        uses: andstor/file-existence-action@v3
+        uses: andstor/file-existence-action@558493d6c74bf472d87c84eab196434afc2fa029 # v3
         with:
           files: badURLs.md
       - name: Output to a job summary

@@ -25,7 +25,7 @@ module NBody_Simulation_Data
   !!{RST
   Provides a class to store N-body simulation data.
   !!}
-  use :: IO_HDF5           , only : hdf5Object
+  use :: IO_HDF5           , only : hdf5Group
   use :: ISO_Varying_String, only : varying_string
   use :: Dictionaries      , only : rank1IntegerSizeTPtrDictionary, rank2IntegerSizeTPtrDictionary, rank1DoublePtrDictionary, rank2DoublePtrDictionary, &
        &                            integerSizeTDictionary        , doubleDictionary              , varyingStringDictionary , genericDictionary
@@ -38,7 +38,7 @@ module NBody_Simulation_Data
      A class to store N-body simulation data.
      !!}
      type(varying_string                ) :: label
-     type(hdf5Object                    ) :: analysis
+     type(hdf5Group                     ) :: analysis
      type(integerSizeTDictionary        ) :: attributesInteger
      type(doubleDictionary              ) :: attributesReal
      type(varyingStringDictionary       ) :: attributesText

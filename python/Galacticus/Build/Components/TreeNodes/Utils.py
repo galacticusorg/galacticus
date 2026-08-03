@@ -3,10 +3,8 @@ massBaryonic.
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/TreeNodes/Utils.pm.  Four
-`functions`-phase hooks.  This file lands in three commit-sized
-steps; this step ports `Copy` and `Move` only.  The remaining two
-hooks are stubbed and wired up in follow-up commits.
+Four `functions`-phase hooks: `Tree_Node_Copy`, `Tree_Node_Move`,
+`Tree_Node_Mass_Distribution`, and `Tree_Node_Mass_Baryonic`.
 """
 
 
@@ -24,7 +22,7 @@ _COPY_POINTERS = (
 
 
 def Tree_Node_Copy(build):
-    """Generate `treeNodeCopyNodeTo`.  Mirrors `Tree_Node_Copy`.
+    """Generate `treeNodeCopyNodeTo`.
 
     Copies value-typed fields and pointer-typed fields from `self` onto
     `targetNode`, then re-binds each component's `hostNode` pointer back
@@ -34,7 +32,7 @@ def Tree_Node_Copy(build):
     function = {
         'type':        'void',
         'name':        'treeNodeCopyNodeTo',
-        'description': r"Make a copy of \mono{self} in \mono{targetNode}.",
+        'description': r"Make a copy of ``self`` in ``targetNode``.",
         'variables':   [
             {
                 'intrinsic':  'class',
@@ -107,25 +105,24 @@ def Tree_Node_Copy(build):
 
     function['content'] = content
 
-    # Note: the Perl original adds `returnType` and `arguments` keys to the
-    # binding (TreeNodes/Utils.pm:103-104).  The base framework writes those
-    # out as part of the documentation block — match it here.
+    # Note: the `returnType` and `arguments` keys on the binding feed the
+    # documentation block that the base framework writes out.
     build.setdefault('types', {}).setdefault('treeNode', {}) \
                                  .setdefault('boundFunctions', []) \
                                  .append({
         'type':        'procedure',
         'descriptor':  function,
         'name':        'copyNodeTo',
-        'returnType':  r"\void",
+        'returnType':  r"``void``",
         'arguments':   (
-            r"\textcolor{red}{\textless class(treeNode)\textgreater} "
-            r"targetNode\arginout, \logicalzero\ [skipFormationNode]\argin"
+            r"``class(treeNode)`` "
+            r"targetNode [inout], ``logical`` [skipFormationNode] [in]"
         ),
     })
 
 
 def Tree_Node_Move(build):
-    """Generate `treeNodeComponentsMove`.  Mirrors `Tree_Node_Move`.
+    """Generate `treeNodeComponentsMove`.
 
     For each active class, destroys any existing `targetNode%component<X>`
     array, then `move_alloc`s `self%component<X>` into it and re-binds
@@ -135,7 +132,7 @@ def Tree_Node_Move(build):
         'type':        'void',
         'name':        'treeNodeComponentsMove',
         'description': (
-            r"Move components from \mono{self} to \mono{targetNode}."
+            r"Move components from ``self`` to ``targetNode``."
         ),
         'variables':   [
             {
@@ -181,7 +178,7 @@ def Tree_Node_Move(build):
 
 
 def Tree_Node_Mass_Distribution(build):
-    """Generate `treeNodeMassDistribution`.  Mirrors `Tree_Node_Mass_Distribution`.
+    """Generate `treeNodeMassDistribution`.
 
     Bulk of the body is a static template that maintains a small
     `massDistributions__` cache keyed by `(uniqueID, componentType,
@@ -194,7 +191,7 @@ def Tree_Node_Mass_Distribution(build):
         'name':        'treeNodeMassDistribution',
         'description': (
             r"Construct and return the mass distribution associated with "
-            r"\mono{self}."
+            r"``self``."
         ),
         'modules':     [
             ("Mass_Distributions        , only : massDistributionClass"
@@ -330,9 +327,8 @@ def Tree_Node_Mass_Distribution(build):
 
 
 # ---------------------------------------------------------------------------
-# Static body fragments for `Tree_Node_Mass_Distribution`.  Verbatim from
-# Utils.pm:264-368 (head) and Utils.pm:398-496 (tail).  The only dynamic
-# block is the per-class loop above.
+# Static body fragments for `Tree_Node_Mass_Distribution`.  The only
+# dynamic block is the per-class loop above.
 # ---------------------------------------------------------------------------
 
 _MASS_DISTRIBUTION_HEAD = """! Set defaults.
@@ -568,7 +564,7 @@ def _ucfirst(text):
 
 
 def Tree_Node_Mass_Baryonic(build):
-    """Generate `treeNodeMassBaryonic`.  Mirrors `Tree_Node_Mass_Baryonic`.
+    """Generate `treeNodeMassBaryonic`.
 
     Returns the sum of `massBaryonic()` over every component instance on
     every active class.
@@ -577,7 +573,7 @@ def Tree_Node_Mass_Baryonic(build):
         'type':        'double precision',
         'name':        'treeNodeMassBaryonic',
         'description': (
-            r"Return the total baryonic mass associated with \mono{self}."
+            r"Return the total baryonic mass associated with ``self``."
         ),
         'variables':   [
             {
@@ -610,7 +606,8 @@ def Tree_Node_Mass_Baryonic(build):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Utils.pm:21-25.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('treeNodeUtils', 'functions', Tree_Node_Copy)

@@ -1,8 +1,6 @@
 """Helper functions used during Fortran code generation for components.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/CodeGeneration.pm.
 """
 
 import re
@@ -14,8 +12,7 @@ _KIND_RE = re.compile(r'\s*(?:kind\s*=\s*)?([a-zA-Z0-9_]+)')
 def function_arguments(data):
     """Return the names of every argument-bearing variable in `data`.
 
-    Mirrors `Galacticus::Build::Components::CodeGeneration::Function_Arguments`:
-    a descriptor contributes its `variables` to the result iff it has at
+    A descriptor contributes its `variables` to the result iff it has at
     least one `intent(...)` attribute.
     """
     arguments = []
@@ -29,8 +26,6 @@ def function_arguments(data):
 def importables(data):
     """Return the names of every type that must be `import`ed inside an
     abstract interface using `data` as its variable list.
-
-    Mirrors `Galacticus::Build::Components::CodeGeneration::Importables`.
 
     Rules:
     * `class(<T>)` (T not "*") and `type(<T>)` always import T.

@@ -483,7 +483,7 @@ contains
     use            :: Error                           , only : Error_Report
     use            :: Input_Paths                     , only : inputPath                        , pathTypeDataDynamic
     use            :: HDF5_Access                     , only : hdf5Access
-    use            :: IO_HDF5                         , only : hdf5Object
+    use            :: IO_HDF5                         , only : hdf5File                         , hdf5Dataset
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Input_Parameters                , only : inputParameters
     use            :: Numerical_Constants_Astronomical, only : metallicitySolar
@@ -527,8 +527,8 @@ contains
           call displayIndent('Reading file: '//fileName,verbosityLevelWorking)
           !$ call hdf5Access%set()
           hdf5FormatScope: block
-            type(hdf5Object) :: file
-            file=hdf5Object(fileName,readOnly=.true.)
+            type(hdf5File  ) :: file
+            file=hdf5File(fileName,readOnly=.true.)
             call file%readAttribute('fileFormat',fileFormat)
           end block hdf5FormatScope
           !$ call hdf5Access%unset()
@@ -543,8 +543,8 @@ contains
           ! Read the cumulative property data from file.
           !$ call hdf5Access%set()
           hdf5ReadScope: block
-            type(hdf5Object) :: file
-            file=hdf5Object(fileName,readOnly=.true.)
+            type(hdf5File  ) :: file
+            file=hdf5File(fileName,readOnly=.true.)
             call file%readDataset("age"               ,property%age        )
             call file%readDataset("metallicity"       ,property%metallicity)
             call file%readDataset(char(property%label),property%property   )
@@ -565,8 +565,9 @@ contains
           call descriptor%destroy()
           !$ call hdf5Access%set()
           hdfWriteScope: block
-            type(hdf5Object) :: file, dataset
-            file=hdf5Object(fileName)
+            type(hdf5File   ) :: file
+            type(hdf5Dataset) :: dataset
+            file=hdf5File(fileName)
             call file   %writeAttribute(fileFormatCurrent                                                        ,'fileFormat'                         )
             call file   %writeAttribute(char(property%label           )                                          ,'description'                        )
             call file   %writeAttribute('Computed by Galacticus'                                                 ,'source'                             )
@@ -654,8 +655,8 @@ contains
           call displayUnindent    ('finished',verbosityLevelWorking)
           !$ call hdf5Access%set()
           hdf5PropertyScope: block
-            type(hdf5Object) :: file
-            file=hdf5Object(fileName)
+            type(hdf5File  ) :: file
+            file=hdf5File(fileName)
             call file%writeDataset(property%property,char(property%label))
           end block hdf5PropertyScope
           !$ call hdf5Access%unset()

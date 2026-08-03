@@ -307,7 +307,7 @@ contains
     !!}
     use :: Display                         , only : displayIndent, displayUnindent
     use :: Error                           , only : Error_Report , errorStatusSuccess
-    use :: IO_HDF5                         , only : hdf5Object
+    use :: IO_HDF5                         , only : hdf5File     , hdf5Dataset
     use :: HDF5_Access                     , only : hdf5Access
     use :: Numerical_Constants_Astronomical, only : massSolar    , megaParsec
     use :: Numerical_Constants_Math        , only : Pi
@@ -338,7 +338,8 @@ contains
     double precision                                                                      :: binCompleteness
     type            (integrator                )                                          :: integratorVolume            , integratorTimeI            , &
          &                                                                                   integratorBiasI             , integratorHaloOccupancyTime
-    type            (hdf5Object                )                                          :: massFunctionFile            , dataset
+    type            (hdf5File                  )                                          :: massFunctionFile
+    type            (hdf5Dataset               )                                          :: dataset
 
     call displayIndent('Begin task: mass function covariance' )
     ! Set a module-scope pointer to our self.
@@ -346,7 +347,7 @@ contains
     selfCopy => self
     ! Open the mass function file.
     !$ call hdf5Access%set()
-    massFunctionFile=hdf5Object(self%massFunctionFileName,overWrite=.true.)
+    massFunctionFile=hdf5File(self%massFunctionFileName,overWrite=.true.)
     ! Read the observed mass function if available.
     self%completenessErrorObserved=0.0d0
     if (massFunctionFile%hasDataset  ("massFunctionObserved")) call massFunctionFile%readDataset  ("massFunctionObserved",     massFunctionObserved     )

@@ -76,7 +76,7 @@ contains
       <name>wavelength</name>
       <defaultValue>1.0d4</defaultValue>
       <description>
-      The wavelength of the photon packet (in \AA).
+      The wavelength of the photon packet (in Å).
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -84,7 +84,7 @@ contains
       <name>wavelengthMinimum</name>
       <defaultValue>0.5d4</defaultValue>
       <description>
-      The minimum wavelength of the photon packet (in \AA).
+      The minimum wavelength of the photon packet (in Å).
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -92,7 +92,7 @@ contains
       <name>wavelengthMaximum</name>
       <defaultValue>2.0d4</defaultValue>
       <description>
-      The maximum wavelength of the photon packet (in \AA).
+      The maximum wavelength of the photon packet (in Å).
       </description>
       <source>parameters</source>
     </inputParameter>

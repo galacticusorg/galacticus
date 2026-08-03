@@ -34,7 +34,7 @@ module Cooling_Radii
    <name>coolingRadius</name>
    <descriptiveName>Cooling Radii</descriptiveName>
    <description>
-   Class providing models of the cooling radius (in Mpc) for gas in the hot halo surrounding a galaxy, defined as the radius within which gas can radiate its thermal energy within a specified cooling time. Gas inside the cooling radius is expected to have cooled and infallen onto the galaxy, driving star formation. The growth rate of the cooling radius determines the rate at which new gas becomes available to cool, and together with the freefall radius sets which cooling regime (rapid cooling vs.\ quasi-static) applies to a given halo.
+   Class providing models of the cooling radius (in Mpc) for gas in the hot halo surrounding a galaxy, defined as the radius within which gas can radiate its thermal energy within a specified cooling time. Gas inside the cooling radius is expected to have cooled and infallen onto the galaxy, driving star formation. The growth rate of the cooling radius determines the rate at which new gas becomes available to cool, and together with the freefall radius sets which cooling regime (rapid cooling vs. quasi-static) applies to a given halo.
    </description>
    <default>simple</default>
    <method name="radius" >

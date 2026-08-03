@@ -33,7 +33,7 @@ module Radiative_Transfer_Sources
    <name>radiativeTransferSource</name>
    <descriptiveName>Radiative Transfer Photon Sources</descriptiveName>
    <description>
-   Class providing photon sources for Monte Carlo radiative transfer calculations---objects that emit photon packets into the computational domain. Each implementation describes a specific type of radiation source (e.g.\ a point source, a stellar population, an AGN, or a uniform field) and provides the luminosity spectrum (in :math:`L_\odot` \AA\ :math:`^{-1}`), the integrated luminosity over a wavelength range, and a method to initialize photon packet properties (wavelength, position, direction, and luminosity weight) drawn from the source's spatial and spectral distribution.
+   Class providing photon sources for Monte Carlo radiative transfer calculations---objects that emit photon packets into the computational domain. Each implementation describes a specific type of radiation source (e.g. a point source, a stellar population, an AGN, or a uniform field) and provides the luminosity spectrum (in :math:`L_\odot` Å\ :math:`^{-1}`), the integrated luminosity over a wavelength range, and a method to initialize photon packet properties (wavelength, position, direction, and luminosity weight) drawn from the source's spatial and spectral distribution.
    </description>
    <default>point</default>
    <method name="initializePhotonPacket" >
@@ -46,7 +46,7 @@ module Radiative_Transfer_Sources
    </method>
    <method name="spectrum" >
     <description>
-    Return the spectrum (in units of :math:`L_\odot` \AA\ :math:`^{-1}`) of the source at the given ``wavelength``.
+    Return the spectrum (in units of :math:`L_\odot` Å\ :math:`^{-1}`) of the source at the given ``wavelength``.
     </description>
     <type>double precision</type>
     <pass>yes</pass>

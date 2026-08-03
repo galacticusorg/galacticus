@@ -64,6 +64,7 @@ contains
     !!{RST
     Initialize the interface with AxionCAMB, including downloading and compiling AxionCAMB if necessary.
     !!}
+    use :: Dependencies      , only : dependencyVersion
     use :: File_Utilities    , only : File_Exists      , File_Lock            , File_Unlock , lockDescriptor, &
          &                            Directory_Make
     use :: Display           , only : displayMessage   , verbosityLevelWorking
@@ -72,36 +73,54 @@ contains
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//), replace       , &
           &                           varying_string
     use :: String_Handling   , only : stringSubstitute
-    use :: System_Command    , only : System_Command_Do
+    use :: System_Command    , only : System_Command_Do, shellEscape
+    use :: System_Download   , only : download
     use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran, compilerValidate
     implicit none
-    type   (varying_string), intent(  out)           :: axionCambPath, axionCambVersion
+    type   (varying_string), intent(  out)           :: axionCambPath       , axionCambVersion
     logical                , intent(in   ), optional :: static
     integer                                          :: status
     type   (varying_string)                          :: command
     type   (lockDescriptor)                          :: fileLock
-    type   (varying_string)                          :: lockPath     , exePath
+    type   (varying_string)                          :: lockPath            , exePath         , &
+         &                                              tarBall             , url             , &
+         &                                              escapedAxionCambPath                  , &
+         &                                              escapedToolsPath    , escapedTarFile
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
 
-    ! Set path and version
-    axionCambPath   =inputPath(pathTypeTools)//"AxionCAMB/"
-    lockPath        =inputPath(pathTypeTools)//"axion_camb"
+    ! Set path and version. AxionCAMB publishes no releases, so it is pinned to a specific commit, and unpacked to a directory
+    ! named for that commit so that a change of pin forces a rebuild.
+    axionCambVersion=dependencyVersion("axioncamb")
+    axionCambPath   =inputPath(pathTypeTools)//"axionCAMB-"//axionCambVersion//"/"
+    lockPath        =inputPath(pathTypeTools)//"axion_camb_"//axionCambVersion
     exePath         =axionCambPath//"camb"
-    axionCambVersion="?"
-    call File_Lock(char(lockPath),fileLock,lockIsShared=.false.)
+    call Directory_Make(inputPath(pathTypeTools))
+    call File_Lock     (char(lockPath),fileLock,lockIsShared=.false.)
     ! Build the AxionCAMB code.
     if (.not.File_Exists(exePath)) then
        call compilerValidate(languageFortran,'AxionCAMB')
        if (.not.File_Exists(axionCambPath)) then
           ! Download AxionCAMB if necessary.
-          call displayMessage("downloading AxionCAMB code....",verbosityLevelWorking)
-          call System_Command_Do("git clone https://github.com/dgrin1/axionCAMB.git "//axionCambPath,status)
-          if (status /= 0 .or. .not.File_Exists(axionCambPath)) call Error_Report("unable to download AxionCAMB"//{introspection:location})
+          tarBall=inputPath(pathTypeTools)//"axionCAMB_"//axionCambVersion//".tar.gz"
+          if (.not.File_Exists(tarBall)) then
+             call displayMessage("downloading AxionCAMB code....",verbosityLevelWorking)
+             url="https://github.com/dgrin1/axionCAMB/archive/"//axionCambVersion//".tar.gz"
+             call download(url,tarBall,status=status,retries=5,retryWait=60)
+             if (status /= 0 .or. .not.File_Exists(tarBall)) call Error_Report("unable to download AxionCAMB"//{introspection:location})
+          end if
+          call displayMessage("unpacking AxionCAMB code....",verbosityLevelWorking)
+          escapedToolsPath=inputPath  (pathTypeTools )
+          escapedToolsPath=shellEscape(escapedToolsPath)
+          escapedTarFile  =shellEscape(tarBall         )
+          command="tar -x -v -z -C "//escapedToolsPath//" -f "//escapedTarFile
+          call System_Command_Do(char(command),status)
+          if (status /= 0 .or. .not.File_Exists(axionCambPath)) call Error_Report("failed to unpack AxionCAMB code"//{introspection:location})
        end if
        call displayMessage("compiling AxionCAMB code",verbosityLevelWorking)
-       command='cd '//axionCambPath//'; sed -E -i~ s/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)\/\(P%H0\/100\)\*\*2"/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)"/ inidriver_axion.F90; sed -E -i~ s/"^F90C[[:space:]]*=[[:space:]]*[[:alpha:]]+"/"F90C = '//stringSubstitute(compiler(languageFortran),"/","\/")//'\nFFLAGS = -O3 '// &
+       escapedAxionCambPath=shellEscape(axionCambPath)
+       command='cd '//escapedAxionCambPath//'; sed -E -i~ s/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)\/\(P%H0\/100\)\*\*2"/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)"/ inidriver_axion.F90; sed -E -i~ s/"^F90C[[:space:]]*=[[:space:]]*[[:alpha:]]+"/"F90C = '//stringSubstitute(compiler(languageFortran),"/","\/")//'\nFFLAGS = -O3 '// &
             &  stringSubstitute(compilerOptions(languageFortran),"/","\/")
        if (static_) command=command//" -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
        command=command//'"/ Makefile; find . -name "*.f90" | xargs sed -E -i~ s/"error stop"/"error stop "/; make -j1 camb'
@@ -118,6 +137,7 @@ contains
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
     use               :: Dark_Matter_Particles           , only : darkMatterParticleClass     , darkMatterParticleFuzzyDarkMatter
+    use               :: Dependencies                    , only : dependencyVersion           , dependencyVersionLabel
     use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make                   , File_Exists , File_Lock     , &
           &                                                       File_Path                   , File_Remove                      , File_Unlock , lockDescriptor, &
           &                                                       File_Name_Temporary
@@ -126,7 +146,7 @@ contains
     use               :: HDF5                            , only : hsize_t
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: HDF5_Access                     , only : hdf5Access
-    use               :: IO_HDF5                         , only : hdf5Object
+    use               :: IO_HDF5                         , only : hdf5File                    , hdf5Group
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
     use               :: ISO_Varying_String              , only : assignment(=)               , char                             , extract     , len           , &
           &                                                       operator(==)                , varying_string                   , operator(//)
@@ -137,7 +157,7 @@ contains
     !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
     use               :: Sorting                         , only : sortIndex
     use               :: String_Handling                 , only : operator(//)                , String_C_To_Fortran
-    use               :: System_Command                  , only : System_Command_Do
+    use               :: System_Command                  , only : System_Command_Do           , shellEscape
     use               :: Table_Labels                    , only : extrapolationTypeExtrapolate, extrapolationTypeFix
     use               :: Tables                          , only : table                       , table1DGeneric
     implicit none
@@ -160,7 +180,8 @@ contains
     type            (lockDescriptor          )                                  :: fileLock
     character       (len=255                 )                                  :: axionCambTransferLine
     type            (varying_string          )                                  :: axionCambVersion                        , parameterFile                 , &
-         &                                                                         axionCambPath                           , outputRoot
+         &                                                                         axionCambPath                           , outputRoot                    , &
+         &                                                                         labelVersionAxionCamb
     double precision                                                            :: wavenumberAxionCAMB                     , coldDarkMatterDensityFraction , &
          &                                                                         fuzzyDarkMatterDensityFraction
     double precision                                                            :: transferFunctionUnused
@@ -171,7 +192,8 @@ contains
     character       (len=32                  )                                  :: parameterLabel                          , datasetName                   , &
          &                                                                         redshiftLabel                           , indexLabel
     type            (varying_string          )                                  :: uniqueLabel                             , workPath                      , &
-         &                                                                         transferFileName                        , fileName_
+         &                                                                         transferFileName                        , fileName_                     , &
+         &                                                                         escapedExecutable                       , escapedParameterFile
     type            (inputParameters         )                                  :: descriptor
     logical                                                                     :: allEpochsFound
     !![
@@ -206,9 +228,14 @@ contains
        call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
     end select
     ! Add the unique label string to the descriptor.
+    ! Evaluate into locals first - gfortran leaks the temporary returned by a `varying_string`-valued
+    ! function when it is consumed directly by another function.
+    axionCambVersion     =dependencyVersion     ("axioncamb")
+    labelVersionAxionCamb=dependencyVersionLabel("axioncamb")
     uniqueLabel=descriptor%serializeToString()            // &
          &      "_sourceDigest:"                          // &
-         &      String_C_To_Fortran(axionCambSourceDigest)
+         &      String_C_To_Fortran(axionCambSourceDigest)// &
+         &      labelVersionAxionCamb
     call descriptor%destroy()
     ! Build the file name.
     fileName_=char(inputPath(pathTypeDataDynamic))                            // &
@@ -226,8 +253,9 @@ contains
        allEpochsFound=.true.
        !$ call hdf5Access%set()
        hdf5ReadScope: block
-         type(hdf5Object) :: axionCambOutput, speciesGroup
-         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         type(hdf5File ) :: axionCambOutput
+         type(hdf5Group) :: speciesGroup
+         axionCambOutput=hdf5File(fileName_,readOnly=.true.)
          call axionCambOutput%readDataset('wavenumber',wavenumbers)
          allocate(transferFunctions(size(wavenumbers),4,size(redshifts)))
          speciesGroup=axionCambOutput%openGroup('darkMatter')
@@ -286,8 +314,9 @@ contains
        if (File_Exists(fileName_)) then
           !$ call hdf5Access%set()
           hdf5DatasetsScope: block
-            type(hdf5Object) :: axionCambOutput, speciesGroup
-            axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+            type(hdf5File ) :: axionCambOutput
+            type(hdf5Group) :: speciesGroup
+            axionCambOutput=hdf5File(fileName_,readOnly=.true.)
             speciesGroup=axionCambOutput%openGroup('darkMatter')
             call speciesGroup%datasets(datasetNames)
           end block hdf5DatasetsScope
@@ -449,7 +478,9 @@ contains
        write (axionCambParameterFile,'(a,1x,"=",1x,i1   )') 'l_sample_boost               ',1
        close(axionCambParameterFile)
        ! Run AxionCAMB.
-       call System_Command_Do(axionCambPath//"camb "//parameterFile)
+       escapedExecutable   =shellEscape(axionCambPath//"camb")
+       escapedParameterFile=shellEscape(parameterFile        )
+       call System_Command_Do(escapedExecutable//" "//escapedParameterFile)
        ! Read the AxionCAMB transfer function file.
        if (allocated(wavenumbers      )) deallocate(wavenumbers      )
        if (allocated(transferFunctions)) deallocate(transferFunctions)
@@ -503,12 +534,13 @@ contains
        ! Construct the output HDF5 file.
        !$ call hdf5Access%set()
        hdf5WriteScope: block
-         type(hdf5Object) :: axionCambOutput             , parametersGroup   , &
-              &              extrapolationWavenumberGroup, extrapolationGroup, &
-              &              speciesGroup
-         axionCambOutput=hdf5Object(fileName_,readOnly=.false.,objectsOverwritable=.true.)
-         call axionCambOutput%writeAttribute('Transfer functions created by AxionCAMB.','description')
-         call axionCambOutput%writeAttribute(axionCambFormatVersionCurrent,'fileFormat')
+         type(hdf5File ) :: axionCambOutput
+         type(hdf5Group) :: parametersGroup             , extrapolationWavenumberGroup, &
+              &             extrapolationGroup          , speciesGroup
+         axionCambOutput=hdf5File(fileName_,readOnly=.false.,objectsOverwritable=.true.)
+         call axionCambOutput%writeAttribute('Transfer functions created by AxionCAMB.','description'     )
+         call axionCambOutput%writeAttribute(axionCambFormatVersionCurrent             ,'fileFormat'      )
+         call axionCambOutput%writeAttribute(axionCambVersion                         ,'versionAxionCAMB')
          call axionCambOutput%writeDataset(wavenumbers    ,'wavenumber'                                 ,chunkSize=chunkSize,appendTo=.not.axionCambOutput%hasDataset('wavenumber'))
          speciesGroup=axionCambOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
          do i=1,countRedshiftsUnique
@@ -554,8 +586,9 @@ contains
     if (present(transferFunctionDarkMatter)) then
        !$ call hdf5Access%set()
        hdf5TransferFunctionDarkMatterScope: block
-         type(hdf5Object) :: axionCambOutput, speciesGroup
-         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         type(hdf5File ) :: axionCambOutput
+         type(hdf5Group) :: speciesGroup
+         axionCambOutput=hdf5File(fileName_,readOnly=.true.)
          call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call transferFunctionDarkMatter     %create(                                                 &
@@ -582,8 +615,9 @@ contains
     if (present(transferFunctionColdDarkMatter)) then
        !$ call hdf5Access%set()
        hdf5TransferFunctionCDMScope: block
-         type(hdf5Object) :: axionCambOutput, speciesGroup
-         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         type(hdf5File ) :: axionCambOutput
+         type(hdf5Group) :: speciesGroup
+         axionCambOutput=hdf5File(fileName_,readOnly=.true.)
          call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call transferFunctionColdDarkMatter %create(                                                 &
@@ -610,8 +644,9 @@ contains
     if (present(transferFunctionFuzzyDarkMatter)) then
        !$ call hdf5Access%set()
        hdf5TransferFunctionAxionsScope: block
-         type(hdf5Object) :: axionCambOutput, speciesGroup
-         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         type(hdf5File ) :: axionCambOutput
+         type(hdf5Group) :: speciesGroup
+         axionCambOutput=hdf5File(fileName_,readOnly=.true.)
          call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call transferFunctionFuzzyDarkMatter%create(                                                 &
@@ -638,8 +673,9 @@ contains
     if (present(transferFunctionBaryons)) then
        !$ call hdf5Access%set()
        hdf5TransferFunctionBaryonsScope: block
-         type(hdf5Object) :: axionCambOutput, speciesGroup
-         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         type(hdf5File ) :: axionCambOutput
+         type(hdf5Group) :: speciesGroup
+         axionCambOutput=hdf5File(fileName_,readOnly=.true.)
          call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call transferFunctionBaryons        %create(                                                 &

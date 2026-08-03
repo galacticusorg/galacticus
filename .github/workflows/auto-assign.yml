@@ -4,11 +4,20 @@ on:
     types: [opened]
   pull_request_target:
     types: [assigned, opened, synchronize, reopened]
+# `pull_request_target` runs in the context of the base repository, so unlike `pull_request` its token carries write access and
+# secrets even for a pull request opened from a fork. Only the permissions the assignment action actually needs are granted here,
+# so that the elevated token this trigger provides can not be used for anything else. For the same reason this workflow must never
+# check out or execute code from the pull request.
+permissions:
+  contents: read
 jobs:
   run:
     runs-on: ubuntu-latest
+    permissions:
+      issues:        write
+      pull-requests: write
     steps:
-      - uses: wow-actions/auto-assign@v3
+      - uses: wow-actions/auto-assign@67fafa03df61d7e5f201734a2fa60d1ab111880d # v3
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           reviewers: |

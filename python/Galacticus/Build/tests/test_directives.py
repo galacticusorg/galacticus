@@ -37,8 +37,7 @@ def _write_source(tmp_path, body, name='source.F90'):
 # ---------------------------------------------------------------------------
 
 def test_missing_file_returns_empty_list(tmp_path):
-    """Mirrors Perl's `return unless -e $fileName`: a path that doesn't
-    exist must NOT raise, just return []."""
+    """A path that doesn't exist must NOT raise, just return []."""
     assert extract_directives(str(tmp_path / 'nope.F90'), 'foo') == []
 
 
@@ -95,7 +94,7 @@ def test_extracts_multiple_directives(tmp_path):
 
 def test_strips_bang_lt_prefix_inside_xml_block(tmp_path):
     """Lines inside a directive that start with `!<` (at column 0) have
-    that prefix stripped before XML parsing.  Legacy Perl convention from
+    that prefix stripped before XML parsing.  Legacy convention from
     the F77-fixed-column-comment era; harmless on free-form sources."""
     src = _write_source(tmp_path,
         "  !![\n"
@@ -108,7 +107,7 @@ def test_strips_bang_lt_prefix_inside_xml_block(tmp_path):
 
 def test_replaces_nbsp_entity_with_space(tmp_path):
     """`&nbsp;` inside a directive is replaced with a literal space.  Some
-    legacy Perl writers emit it to preserve formatting; ParseError would
+    legacy content uses it to preserve formatting; ParseError would
     be the silent failure mode otherwise (XML doesn't define `&nbsp;`)."""
     src = _write_source(tmp_path,
         "  !![\n"
@@ -206,8 +205,8 @@ def test_skips_instrument_marker_lines(tmp_path):
 # ---------------------------------------------------------------------------
 
 def test_malformed_xml_raises_RuntimeError(tmp_path):
-    """Mirrors Perl's `die` on parse failure — the caller has no way to
-    recover from a malformed embedded XML, so it's fatal with a message
+    """Parse failure is fatal — the caller has no way to
+    recover from a malformed embedded XML, so it raises with a message
     naming the file."""
     src = _write_source(tmp_path,
         "  !![\n  <foo>\n  </bar>\n  !!]\n",

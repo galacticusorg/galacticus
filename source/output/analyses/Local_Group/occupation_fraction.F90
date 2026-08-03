@@ -181,7 +181,7 @@ contains
           &                                                 galacticFilterSurveyGeometry                        , enumerationPositionTypeType
     use :: Geometry_Surveys                        , only : surveyGeometryFullSky
     use :: HDF5_Access                             , only : hdf5Access
-    use :: IO_HDF5                                 , only : hdf5Object
+    use :: IO_HDF5                                 , only : hdf5File
     use :: Input_Paths                             , only : inputPath                                           , pathTypeDataStatic
     use :: Node_Property_Extractors                , only : nodePropertyExtractorMassStellar                    , nodePropertyExtractorMassBasic
     use :: Numerical_Comparison                    , only : Values_Agree
@@ -195,6 +195,7 @@ contains
           &                                                 outputAnalysisPropertyOperatorBoolean               , outputAnalysisPropertyOperatorFilterHighPass, propertyOperatorList
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorSubsampling
     use :: Output_Times                            , only : outputTimesClass
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
     type            (outputAnalysisLocalGroupOccupationFraction         )                                :: self
     integer                                                              , intent(in   )                 :: covarianceBinomialBinsPerDecade
@@ -231,7 +232,7 @@ contains
     logical                                                              , parameter                     :: likelihoodNormalize                             =.false.
     double precision                                                     , parameter                     :: massStellarThreshold                            =+1.0d+0
     integer         (c_size_t                                           )                                :: i                                                           , bufferCount
-    type            (hdf5Object                                         )                                :: fileData
+    type            (hdf5File                                           )                                :: fileData
     type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="*outputTimes_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, massStellarSystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
@@ -239,7 +240,7 @@ contains
     
     ! Construct the target distribution.
     !$ call hdf5Access%set  ()
-    fileData=hdf5Object(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/fractionOccupation_Local_Group_Nadler2020.hdf5",readOnly=.true.)
+    fileData=hdf5File(inputPath(pathTypeDataStatic)//"observations/stellarHaloMassRelation/fractionOccupation_Local_Group_Nadler2020.hdf5",readOnly=.true.)
     call fileData%readDataset('massHalo'          ,massHaloData          )
     call fileData%readDataset('fractionOccupation',fractionOccupationData)
     !$ call hdf5Access%unset()
@@ -511,13 +512,13 @@ contains
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object
+    use :: IO_HDF5    , only : hdf5File, hdf5Group
     implicit none
     class(outputAnalysisLocalGroupOccupationFraction), intent(inout)           :: self
     type (varying_string                            ), intent(in   ), optional :: groupName
-    type (hdf5Object                                )               , target   :: analysesGroup, subGroup
-    type (hdf5Object                                )               , pointer  :: inGroup
-    type (hdf5Object                                )                          :: analysisGroup
+    type (hdf5Group                                 )               , target   :: analysesGroup, subGroup
+    type (hdf5Group                                 )               , pointer  :: inGroup
+    type (hdf5Group                                 )                          :: analysisGroup
 
     call self%outputAnalysis_%finalize(groupName)
     ! Overwrite log-likelihood with our own calculation.

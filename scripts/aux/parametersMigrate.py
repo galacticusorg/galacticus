@@ -196,12 +196,12 @@ def git_ancestry(hash_from, hash_to):
             message += f" Git error: {e.stderr.strip()}"
         raise RuntimeError(message) from e
     hashes = [h for h in result.stdout.strip().split("\n") if h]
-    hashes.reverse()  # Oldest first, matching Perl's reverse(@ancestry)
+    hashes.reverse()  # Oldest first.
     return hashes
 
 
 # ---------------------------------------------------------------------------
-# Migrate function (Perl lines 136-369) -- placeholder for Step 3
+# Migrate function
 # ---------------------------------------------------------------------------
 
 def migrate(input_doc, parameters, root_level, is_grid, input_filename, options, hash_head, is_in_git, migrations):
@@ -393,7 +393,7 @@ def migrate(input_doc, parameters, root_level, is_grid, input_filename, options,
 
 
 # ---------------------------------------------------------------------------
-# Special migration functions (Perl lines 371-1110)
+# Special migration functions
 # ---------------------------------------------------------------------------
 
 
@@ -1309,6 +1309,170 @@ def _ensure_satellite_destruction_timestep(parameters, is_grid):
             multi_node.append(destruction_node)
             parameters.insert(idx, multi_node)
 
+def johnson2021_correlated_branches(input_doc, parameters, is_grid):
+    """Pin parameter settings to those consistent with behavior prior to adding correlated scale radii along branches.
+
+    `countSampleEnergyUnresolved` is pinned to the class default of 100, not to 1. Prior to this
+    commit the energy of subresolution accretion was computed deterministically from the means of
+    the virial orbit distribution; it is now estimated by Monte Carlo sampling. A single sample is
+    therefore *not* equivalent to the prior behavior - it replaces that mean with one random draw,
+    which both inflates the scatter in, and biases, the resulting scale radii. Measured for halos
+    just above the merger tree mass resolution, sigma(log10 c) is 0.026 with the prior code, 0.075
+    with one sample, and 0.034 with 100 samples; the median concentration is likewise recovered.
+    The additional sampling costs little, since this calculation is a small share of the run time.
+    """
+    defaults = {
+        "factorMassResolution": "0.0",
+        "scatter": "0.0",
+        "scatterExcess": "0.0",
+        "correlationRateDecay": "0.0",
+        "correlationExponent": "0.0",
+        "countSampleEnergyUnresolved": "100",
+        "acceptUnboundOrbits": "true",
+    }
+    accept_type_nodes = parameters.xpath(".//darkMatterProfileScaleRadius[@value='johnson2021']")
+    if len(accept_type_nodes) == 0:
+        return
+    for accept_type in accept_type_nodes:
+        print(f"   translate special './/darkMatterProfileScaleRadius[@value=\"'johnson2021\"]'")
+        component_properties = {}
+        # Extract all sub-parameters.
+        for node_child in accept_type.xpath("*[@value]"):
+            component_properties[node_child.tag] = node_child.get("value")
+        for param_name, param_value in defaults.items():
+            if param_name not in component_properties:
+                param = etree.Element(param_name)
+                param.set("value", param_value)
+                accept_type.append(param)
+                print("append",param_name, param_value)
+
+
+def _suppress_extended_mass_disable(element):
+    """Append `chandrasekharIntegralSuppressExtendedMass=false` to `element` unless already set."""
+    if len(element.xpath("./chandrasekharIntegralSuppressExtendedMass[@value]")) > 0:
+        return
+    print(f"   append chandrasekharIntegralSuppressExtendedMass false to <{element.tag} value=\"{element.get('value')}\">")
+    new_elem = etree.Element("chandrasekharIntegralSuppressExtendedMass")
+    new_elem.set("value", "false")
+    element.append(new_elem)
+
+
+def chandrasekhar_suppress_extended_mass(input_doc, parameters, is_grid):
+    """Disable the extended-mass suppression of the Chandrasekhar integral.
+
+    Commit 938122648 introduced a factor in the spherical Chandrasekhar integral (used to compute
+    dynamical friction) that suppresses the integral to account for the finite extent of the
+    perturbing subhalo. This factor now defaults to being applied. Parameter files predating that
+    commit expect the prior behavior (no suppression), so we explicitly disable it here by adding
+    `chandrasekharIntegralSuppressExtendedMass=false`.
+
+    The option must be set on whichever mass distribution is actually used to evaluate the
+    Chandrasekhar integral. Dynamical friction uses the *non*-dark-matter-only `darkMatterProfile`
+    of the host (via `node%massDistribution()`), so the option is required there as well as on any
+    `heated` `darkMatterProfileDMO`. Because `adiabaticGnedin2004` is the default
+    `darkMatterProfile`, a file which uses dynamical friction but does not name a
+    `darkMatterProfile` explicitly has one inserted (with the default implementation) so that the
+    option can be attached.
+    """
+    for heated in parameters.xpath(".//darkMatterProfileDMO[@value='heated']"):
+        _suppress_extended_mass_disable(heated)
+    profiles = parameters.xpath(".//darkMatterProfile[@value='adiabaticGnedin2004' or @value='darkMatterOnly']")
+    for profile in profiles:
+        _suppress_extended_mass_disable(profile)
+    # If no `darkMatterProfile` is named at all, the default (`adiabaticGnedin2004`) is used and
+    # there is no element to which the option can be attached. Insert one, but only where dynamical
+    # friction is actually being computed - otherwise the option has no effect and we would be
+    # adding noise to every migrated file.
+    if len(parameters.xpath(".//darkMatterProfile[@value]")) > 0:
+        return
+    friction = parameters.xpath(".//satelliteDynamicalFriction[@value]")
+    if len(friction) == 0 or all(element.get("value") == "zero" for element in friction):
+        return
+    print("   insert darkMatterProfile adiabaticGnedin2004 (default) to carry chandrasekharIntegralSuppressExtendedMass")
+    profile = etree.Element("darkMatterProfile")
+    profile.set("value", "adiabaticGnedin2004")
+    if is_grid:
+        profile.set("iterable", "no")
+    parameters.append(profile)
+    _suppress_extended_mass_disable(profile)
+
+
+def vitvitska_subresolution_method(input_doc, parameters, is_grid):
+    """Special handling to preserve the sub-resolution angular momentum method across the default flip."""
+    nodes = parameters.xpath(".//nodeOperator[@value='haloAngularMomentumVitvitska2002']")
+    if len(nodes) <= 0:
+        return
+    print("   translate special './/nodeOperator[@value='haloAngularMomentumVitvitska2002']'")
+    for node in nodes:
+        # A model that stated its choice explicitly already means what it says - leave it alone.
+        if len(node.findall("useOriginalSubresolutionMethod[@value]")) > 0:
+            continue
+        # The default flipped from `true` to `false`, so an absent parameter used to mean `true`.
+        method_node = etree.Element("useOriginalSubresolutionMethod")
+        method_node.set("value", "true")
+        if is_grid:
+            method_node.set("iterable", "no")
+        node.append(method_node)
+
+
+def johnson2021_mass_function_slope(input_doc, parameters, is_grid):
+    """Preserve the Johnson2021 unresolved-accretion mass-function slope across its default change.
+    `massFunctionSlopeLogarithmic` was a compiled constant (-1.8) and is now an input parameter whose
+    default changed to -1.9 (unifying it with Vitvitska2002 and matching Benson 2019). A file predating
+    this change implicitly used -1.8, so pin that value to preserve its behaviour."""
+    nodes = parameters.xpath(".//darkMatterProfileScaleRadius[@value='johnson2021']")
+    if len(nodes) <= 0:
+        return
+    print("   translate special './/darkMatterProfileScaleRadius[@value='johnson2021']' (mass-function slope)")
+    for node in nodes:
+        # If the parameter is already stated explicitly, the file means what it says - leave it.
+        if len(node.findall("massFunctionSlopeLogarithmic[@value]")) > 0:
+            continue
+        slope_node = etree.Element("massFunctionSlopeLogarithmic")
+        slope_node.set("value", "-1.8")
+        if is_grid:
+            slope_node.set("iterable", "no")
+        node.append(slope_node)
+
+
+def vitvitska_subresolution_method_enum(input_doc, parameters, is_grid):
+    """Convert the boolean `useOriginalSubresolutionMethod` to the `subresolutionAngularMomentumMethod`
+    enumeration, preserving the original behaviour. The default variance method changed to the new,
+    physically-convergent `resolutionScaled` method, so a file predating this change must be pinned to
+    its former behaviour: the old boolean's `true`/`false` map to `original`/`massScaled` respectively.
+    (The earlier `vitvitska_subresolution_method` migration ensures the boolean is present, so any file
+    reaching here that used the model has it set explicitly.)
+
+    The obsolete boolean is removed unconditionally - including from a file which already states the new
+    enumeration parameter. It no longer exists in the code, so leaving it in place would produce an
+    `unrecognized parameter` warning at run time, and since that is only a warning it would go unnoticed."""
+    nodes = parameters.xpath(".//nodeOperator[@value='haloAngularMomentumVitvitska2002']")
+    if len(nodes) <= 0:
+        return
+    print("   translate special './/nodeOperator[@value='haloAngularMomentumVitvitska2002']' (enumeration)")
+    for node in nodes:
+        # Remove the obsolete boolean first, so that it is dropped even in the case below where the new
+        # enumeration parameter is already present and we leave that value alone.
+        boolean_nodes = node.findall("useOriginalSubresolutionMethod[@value]")
+        used_original = (
+            boolean_nodes[0].get("value").strip().lower() in ("true", ".true.", "yes")
+            if len(boolean_nodes) > 0
+            else None
+        )
+        for boolean_node in boolean_nodes:
+            print("   remove obsolete useOriginalSubresolutionMethod")
+            node.remove(boolean_node)
+        # If the new enumeration parameter is already present, the file means what it says - leave it.
+        if len(node.findall("subresolutionAngularMomentumMethod[@value]")) > 0:
+            continue
+        if used_original is None:
+            continue
+        method_node = etree.Element("subresolutionAngularMomentumMethod")
+        method_node.set("value", "original" if used_original else "massScaled")
+        if is_grid:
+            method_node.set("iterable", "no")
+        node.append(method_node)
+
 
 # ---------------------------------------------------------------------------
 # Dispatch table for special migration functions
@@ -1331,6 +1495,11 @@ SPECIAL_FUNCTIONS = {
     "satellite_bound_mass_initializor": satellite_bound_mass_initializor,
     "disk_very_simple_analytic_solver": disk_very_simple_analytic_solver,
     "satellite_orbit_initializor": satellite_orbit_initializor,
+    "vitvitska_subresolution_method": vitvitska_subresolution_method,
+    "vitvitska_subresolution_method_enum": vitvitska_subresolution_method_enum,
+    "johnson2021_mass_function_slope": johnson2021_mass_function_slope,
+    "johnson2021_correlated_branches": johnson2021_correlated_branches,
+    "chandrasekhar_suppress_extended_mass": chandrasekhar_suppress_extended_mass,
 }
 
 

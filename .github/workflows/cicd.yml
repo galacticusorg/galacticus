@@ -8,6 +8,7 @@ on:
     # validators in prChecks.yml and the ReadTheDocs build, so they skip this.
     paths: &codePaths
       - 'Makefile'
+      - 'aux/dependencies.yml'
       - 'source/**'
       - 'python/**'
       - 'scripts/build/**'
@@ -26,6 +27,13 @@ concurrency:
 defaults:
   run:
     shell: bash
+# Default to a read-only token for every job. The four jobs which genuinely need to write (posting pull request comments,
+# updating `gh-pages`, uploading release assets, and pushing the Docker image) request that access individually, below. Note that
+# a job-level `permissions` block replaces this default entirely for that job rather than adding to it, so each such block must
+# also restate the read access the job needs. `actions: read` is required here because jobs download build artifacts.
+permissions:
+  contents: read
+  actions:  read
 jobs:
   # Preprocessor regression tests
   ## Fast pure-Python checks that the preprocessor stack still emits the
@@ -37,9 +45,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: '3.x'
       - name: Install pytest
@@ -70,9 +78,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE
           export GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE
-          python3 scripts/build/parameterSchema.py `pwd` schema/parameters.xsd
-          git diff --exit-code -- schema/parameters.xsd \
-            || { echo "schema/parameters.xsd is out of date; run 'make parameters-schema' and commit."; exit 1; }
+          python3 scripts/build/parameterSchema.py `pwd` schema/parameters.xsd --check
       - run: echo "This job's status is ${{ job.status }}."
   # Build and deploy
   ## Linux
@@ -86,7 +92,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -102,19 +108,22 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           export BUILDPATH=./work/build
           set -o pipefail
-          make GALACTICUS_BUILD_OPTION=compileprof -j4 Galacticus.exe 2>&1 | tee build.log
+          # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
+          # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
+          # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          make GALACTICUS_BUILD_OPTION=compileprof -j2 Galacticus.exe 2>&1 | tee build.log
           set +o pipefail
           python3 ./scripts/build/buildProfiler.py build.log buildProfile.html --durationMinimum 20
           grep -vqzi error:          build.log || (echo "FAIL: errors found in build.log"          && false)
           grep -vqzi warning:        build.log || (echo "FAIL: warnings found in build.log"        && false)
           grep -vqzi 'is up to date' build.log || (echo "FAIL: 'is up to date' found in build.log" && false)
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-exec
           path: 'Galacticus.exe'
       - name: Upload build profile
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: build-profile
           path: 'buildProfile.html'
@@ -139,7 +148,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -154,18 +163,21 @@ jobs:
           # Disable link-time optimization: `make all` builds a very large number of executables, and running
           # LTO on each one makes this job prohibitively slow. LTO is retained in jobs that build only a single
           # executable (e.g. Galacticus.exe). See the LTO option in the Makefile.
-          make -j4 LTO=disabled all 2>&1 | tee build.log
+          # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
+          # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
+          # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          make -j2 LTO=disabled all 2>&1 | tee build.log
           set +o pipefail
           ! grep -n Error: build.log
           ! grep -n Warning: build.log
           ! grep -v 'is up to date' build.log | grep -n -C 5 make:
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-exec-non-static
           path: 'Galacticus.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: test-execs
           path: 'tests.*.exe'
@@ -180,7 +192,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -194,9 +206,12 @@ jobs:
           export GALACTICUS_FCFLAGS="$GALACTICUS_FCFLAGS -pg"
           export GALACTICUS_CFLAGS="$GALACTICUS_CFLAGS -pg"
           export GALACTICUS_CPPFLAGS="$GALACTICUS_CPPFLAGS -pg"
-          make -j4 Galacticus.exe
+          # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
+          # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
+          # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          make -j2 Galacticus.exe
       - name: Upload executables
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-exec-instrumented
           path: 'Galacticus.exe'
@@ -211,7 +226,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -223,9 +238,12 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          make -j4 Galacticus.exe
+          # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
+          # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
+          # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          make -j2 Galacticus.exe
       - name: Upload executables
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-exec-dmo
           path: 'Galacticus.exe'
@@ -240,7 +258,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -251,14 +269,17 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          make -j4 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
+          # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
+          # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
+          # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          make -j2 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-exec-MPI
           path: 'Galacticus.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: test-execs-MPI
           path: 'tests.*.exe'
@@ -273,7 +294,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -285,12 +306,20 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          make -j4 Galacticus.exe tests.debugging.exe
+          # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
+          # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
+          # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          make -j2 Galacticus.exe tests.debugging.exe
       - name: Upload test code executables
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: test-execs-debugging
           path: 'tests.*.exe'
+      - name: Upload Galacticus executable
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: galacticus-exec-debugging
+          path: 'Galacticus.exe'
       - run: echo "This job's status is ${{ job.status }}."
   ### Library
   Build-Library-Linux:
@@ -302,7 +331,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -334,7 +363,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
           tar cvfj libgalacticus.tar.bz2 galacticus
       - name: Upload library
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-library
           path: 'libgalacticus.tar.bz2'
@@ -357,18 +386,18 @@ jobs:
              echo "doPush=true"  >> "$GITHUB_OUTPUT"
           fi
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v6
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
         with:
           images: galacticusorg/galacticus
       - name: Build and push Docker image 
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
           push: ${{ steps.detectBranch.outputs.doPush }}
           tags: ghcr.io/galacticusorg/galacticus:latest
@@ -376,6 +405,7 @@ jobs:
           build-args: |
             REPO=${{ github.event.pull_request.head.repo.full_name || github.repository }}
             BRANCH=${{ github.head_ref || github.ref_name }}
+            COMMIT=${{ github.event.pull_request.head.sha || github.sha }}
   # The LaTeX/PDF documentation build has been retired; documentation is now
   # served from reStructuredText on ReadTheDocs (see docs/).
   ### Tools
@@ -388,9 +418,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Check out repository datasets
-        uses: actions/checkout@v7      
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -402,7 +432,7 @@ jobs:
           echo "GALACTICUS_FCFLAGS+=\ -static" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-exec
       - name: Build tools
@@ -419,16 +449,17 @@ jobs:
           fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           mangleVersion=`awk '{if ($1 == "mangle:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          axioncambVersion=`awk '{if ($1 == "axioncamb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           # Check that executables were statically linked
           ! ldd dynamic/CAMB-${cambVersion}/fortran/camb
-          ! ldd dynamic/AxionCAMB/camb
+          ! ldd dynamic/axionCAMB-${axioncambVersion}/camb
           ! ldd dynamic/class_public-${classVersion}/class
           ! ldd dynamic/RecFast/recfast.exe
           ! ldd dynamic/fsps-${fspsVersion}/src/autosps.exe
           ! ldd dynamic/mangle-${mangleVersion}/bin/ransack
           tar cfj tools.tar.bz2 \
             dynamic/CAMB-${cambVersion}/fortran/camb \
-            dynamic/AxionCAMB/camb \
+            dynamic/axionCAMB-${axioncambVersion}/camb \
             dynamic/class_public-${classVersion}/class \
             dynamic/RecFast/recfast.exe \
             dynamic/RecFast/currentVersion \
@@ -443,7 +474,7 @@ jobs:
             dynamic/fsps-${fspsVersion}/ISOCHRONES \
             dynamic/mangle-${mangleVersion}/bin/harmonize
       - name: Upload tools
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-tools
           path: ./datasets/tools.tar.bz2
@@ -458,7 +489,15 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Check out repository datasets
+        # Required by the tool build (buildTools.xml) below, which writes into
+        # $GALACTICUS_DATA_PATH (set to $GITHUB_WORKSPACE/datasets by the
+        # buildMacOS action).
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: Set up build environment
         uses: ./.github/actions/buildMacOS
@@ -483,23 +522,127 @@ jobs:
         run: |
           zip Galacticus_MacOS.zip Galacticus_MacOS.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-exec-MacOS
           path: |
             Galacticus_MacOS.exe
             Galacticus_MacOS.zip
       - name: Upload test code executables
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: test-execs-MacOS
           path: 'tests.*.exe'
       - name: Upload Galacticus debug symbols
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-debug-MacOS
           path: 'debugSymbolsMacOS.zip'
-  ### Apple Silicon build  
+      - name: Build tools
+        id: buildTools
+        run: |
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          mangleVersion=`awk '{if ($1 == "mangle:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          axioncambVersion=`awk '{if ($1 == "axioncamb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          # Export the dependency versions so the later "Package" step (a separate shell) can see them.
+          echo "classVersion=${classVersion}"       >> $GITHUB_ENV
+          echo "cambVersion=${cambVersion}"         >> $GITHUB_ENV
+          echo "forutilsVersion=${forutilsVersion}" >> $GITHUB_ENV
+          echo "fspsVersion=${fspsVersion}"         >> $GITHUB_ENV
+          echo "cloudyVersion=${cloudyVersion}"     >> $GITHUB_ENV
+          echo "mangleVersion=${mangleVersion}"     >> $GITHUB_ENV
+          echo "axioncambVersion=${axioncambVersion}" >> $GITHUB_ENV
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          mkdir -p $GALACTICUS_DATA_PATH/dynamic
+          set -o pipefail
+          # Use the statically-linked executable already built by this job to build the tools.
+          ./Galacticus_MacOS.exe parameters/buildTools.xml 2>&1 | tee build.log
+          cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
+          cd $GALACTICUS_DATA_PATH/dynamic/axionCAMB-${axioncambVersion}/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb
+          cd $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion}/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o class ' $GALACTICUS_EXEC_PATH/build.log`
+          cd $GALACTICUS_DATA_PATH/dynamic/RecFast/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
+          cd $GALACTICUS_DATA_PATH/dynamic/c${cloudyVersion}/source/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
+          cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
+          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/src/
+          cp ../bin/harmonize .
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
+          echo "camb=${GALACTICUS_DATA_PATH}/dynamic/CAMB-${cambVersion}/fortran/camb" >> "$GITHUB_OUTPUT"
+          echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/axionCAMB-${axioncambVersion}/camb" >> "$GITHUB_OUTPUT"
+          echo "class=${GALACTICUS_DATA_PATH}/dynamic/class_public-${classVersion}/class" >> "$GITHUB_OUTPUT"
+          echo "recfast=${GALACTICUS_DATA_PATH}/dynamic/RecFast/recfast.exe" >> "$GITHUB_OUTPUT"
+          echo "cloudy=${GALACTICUS_DATA_PATH}/dynamic/c${cloudyVersion}/source/cloudy.exe" >> "$GITHUB_OUTPUT"
+          echo "fsps=${GALACTICUS_DATA_PATH}/dynamic/fsps-${fspsVersion}/src/autosps.exe" >> "$GITHUB_OUTPUT"
+          echo "mangle=${GALACTICUS_DATA_PATH}/dynamic/mangle-${mangleVersion}/bin/harmonize" >> "$GITHUB_OUTPUT"
+      - name: Sign tool executables
+        uses: ./.github/actions/codeSignMacOS
+        with:
+          files: ${{ steps.buildTools.outputs.camb }} ${{ steps.buildTools.outputs.axioncamb }} ${{ steps.buildTools.outputs.class }} ${{ steps.buildTools.outputs.recfast }} ${{ steps.buildTools.outputs.cloudy }} ${{ steps.buildTools.outputs.fsps }} ${{ steps.buildTools.outputs.mangle }}
+          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
+          macos_certificate_password: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          macos_keychain_password: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+          macos_developer_id: ${{ secrets.MACOS_DEVELOPER_ID }}
+      - name: Package
+        run: |
+          # Package the zip with the signed executables
+          cd $GALACTICUS_DATA_PATH
+          # `convert_calpgm` is a helper that Cloudy compiles inside its own data directory to convert the
+          # CDMS/JPL catalogs at data-build time. It is never run by Galacticus, and it is not code-signed
+          # above, so leaving it in the archive causes notarization to reject the whole archive ("the binary
+          # is not signed", "no secure timestamp", "no hardened runtime"). Exclude it and its debug symbols.
+          toolProducts=(
+            dynamic/CAMB-${cambVersion}/fortran/camb
+            dynamic/axionCAMB-${axioncambVersion}/camb
+            dynamic/class_public-${classVersion}/class
+            dynamic/RecFast/recfast.exe
+            dynamic/RecFast/currentVersion
+            dynamic/c${cloudyVersion}/source/cloudy.exe
+            dynamic/c${cloudyVersion}/data
+            dynamic/fsps-${fspsVersion}/src/autosps.exe
+            dynamic/fsps-${fspsVersion}/dust
+            dynamic/fsps-${fspsVersion}/data
+            dynamic/fsps-${fspsVersion}/nebular
+            dynamic/fsps-${fspsVersion}/SPECTRA
+            dynamic/fsps-${fspsVersion}/OUTPUTS
+            dynamic/fsps-${fspsVersion}/ISOCHRONES
+            dynamic/mangle-${mangleVersion}/bin/harmonize
+          )
+          # `zip` only warns (and still exits successfully) when a named path does not exist, so any error in
+          # the paths above -- for example an unset version variable -- would silently produce an archive
+          # missing most of the tools. Require every path to be present before packaging.
+          missingProducts=0
+          for toolProduct in "${toolProducts[@]}"; do
+            if [ ! -e "${toolProduct}" ]; then
+              echo "::error::tool product to be packaged does not exist: ${toolProduct}"
+              missingProducts=1
+            fi
+          done
+          [ ${missingProducts} -eq 0 ] || exit 1
+          zip -r toolsMacOS.zip "${toolProducts[@]}" \
+            -x "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm" \
+               "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm.dSYM/*"
+      - name: Verify all packaged binaries are code-signed
+        uses: ./.github/actions/verifySignedMacOS
+        with:
+          archive: toolsMacOS.zip
+          working_directory: ${{ env.GALACTICUS_DATA_PATH }}
+          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
+      - name: Upload tool executables
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: galacticus-tools-MacOS
+          path: './datasets/toolsMacOS.zip'
+  ### Apple Silicon build
   Build-Executable-MacOS-M1:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: macos-15
@@ -508,7 +651,15 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Check out repository datasets
+        # Required by the tool build (buildTools.xml) below, which writes into
+        # $GALACTICUS_DATA_PATH (set to $GITHUB_WORKSPACE/datasets by the
+        # buildMacOS action).
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: Set up build environment
         uses: ./.github/actions/buildMacOS
@@ -534,17 +685,121 @@ jobs:
         run: |
           zip Galacticus_MacOS-M1.zip Galacticus_MacOS-M1.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-exec-MacOS-M1
           path: |
             Galacticus_MacOS-M1.exe
             Galacticus_MacOS-M1.zip
       - name: Upload Galacticus debug symbols
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-debug-MacOS-M1
           path: 'debugSymbolsMacOS-M1.zip'
+      - name: Build tools
+        id: buildTools
+        run: |
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          mangleVersion=`awk '{if ($1 == "mangle:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          axioncambVersion=`awk '{if ($1 == "axioncamb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          # Export the dependency versions so the later "Package" step (a separate shell) can see them.
+          echo "classVersion=${classVersion}"       >> $GITHUB_ENV
+          echo "cambVersion=${cambVersion}"         >> $GITHUB_ENV
+          echo "forutilsVersion=${forutilsVersion}" >> $GITHUB_ENV
+          echo "fspsVersion=${fspsVersion}"         >> $GITHUB_ENV
+          echo "cloudyVersion=${cloudyVersion}"     >> $GITHUB_ENV
+          echo "mangleVersion=${mangleVersion}"     >> $GITHUB_ENV
+          echo "axioncambVersion=${axioncambVersion}" >> $GITHUB_ENV
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          mkdir -p $GALACTICUS_DATA_PATH/dynamic
+          set -o pipefail
+          # Use the statically-linked executable already built by this job to build the tools.
+          ./Galacticus_MacOS-M1.exe parameters/buildTools.xml 2>&1 | tee build.log
+          cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
+          cd $GALACTICUS_DATA_PATH/dynamic/axionCAMB-${axioncambVersion}/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb
+          cd $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion}/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o class ' $GALACTICUS_EXEC_PATH/build.log`
+          cd $GALACTICUS_DATA_PATH/dynamic/RecFast/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
+          cd $GALACTICUS_DATA_PATH/dynamic/c${cloudyVersion}/source/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
+          cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
+          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/src
+          cp ../bin/harmonize .
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
+          echo "camb=${GALACTICUS_DATA_PATH}/dynamic/CAMB-${cambVersion}/fortran/camb" >> "$GITHUB_OUTPUT"
+          echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/axionCAMB-${axioncambVersion}/camb" >> "$GITHUB_OUTPUT"
+          echo "class=${GALACTICUS_DATA_PATH}/dynamic/class_public-${classVersion}/class" >> "$GITHUB_OUTPUT"
+          echo "recfast=${GALACTICUS_DATA_PATH}/dynamic/RecFast/recfast.exe" >> "$GITHUB_OUTPUT"
+          echo "cloudy=${GALACTICUS_DATA_PATH}/dynamic/c${cloudyVersion}/source/cloudy.exe" >> "$GITHUB_OUTPUT"
+          echo "fsps=${GALACTICUS_DATA_PATH}/dynamic/fsps-${fspsVersion}/src/autosps.exe" >> "$GITHUB_OUTPUT"
+          echo "mangle=${GALACTICUS_DATA_PATH}/dynamic/mangle-${mangleVersion}/bin/harmonize" >> "$GITHUB_OUTPUT"
+      - name: Sign tool executables
+        uses: ./.github/actions/codeSignMacOS
+        with:
+          files: ${{ steps.buildTools.outputs.camb }} ${{ steps.buildTools.outputs.axioncamb }} ${{ steps.buildTools.outputs.class }} ${{ steps.buildTools.outputs.recfast }} ${{ steps.buildTools.outputs.cloudy }} ${{ steps.buildTools.outputs.fsps }} ${{ steps.buildTools.outputs.mangle }}
+          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
+          macos_certificate_password: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          macos_keychain_password: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+          macos_developer_id: ${{ secrets.MACOS_DEVELOPER_ID }}
+      - name: Package
+        run: |
+          # Package the zip with the signed executables
+          cd $GALACTICUS_DATA_PATH
+          # `convert_calpgm` is a helper that Cloudy compiles inside its own data directory to convert the
+          # CDMS/JPL catalogs at data-build time. It is never run by Galacticus, and it is not code-signed
+          # above, so leaving it in the archive causes notarization to reject the whole archive ("the binary
+          # is not signed", "no secure timestamp", "no hardened runtime"). Exclude it and its debug symbols.
+          toolProducts=(
+            dynamic/CAMB-${cambVersion}/fortran/camb
+            dynamic/axionCAMB-${axioncambVersion}/camb
+            dynamic/class_public-${classVersion}/class
+            dynamic/RecFast/recfast.exe
+            dynamic/RecFast/currentVersion
+            dynamic/c${cloudyVersion}/source/cloudy.exe
+            dynamic/c${cloudyVersion}/data
+            dynamic/fsps-${fspsVersion}/src/autosps.exe
+            dynamic/fsps-${fspsVersion}/dust
+            dynamic/fsps-${fspsVersion}/data
+            dynamic/fsps-${fspsVersion}/nebular
+            dynamic/fsps-${fspsVersion}/SPECTRA
+            dynamic/fsps-${fspsVersion}/OUTPUTS
+            dynamic/fsps-${fspsVersion}/ISOCHRONES
+            dynamic/mangle-${mangleVersion}/bin/harmonize
+          )
+          # `zip` only warns (and still exits successfully) when a named path does not exist, so any error in
+          # the paths above -- for example an unset version variable -- would silently produce an archive
+          # missing most of the tools. Require every path to be present before packaging.
+          missingProducts=0
+          for toolProduct in "${toolProducts[@]}"; do
+            if [ ! -e "${toolProduct}" ]; then
+              echo "::error::tool product to be packaged does not exist: ${toolProduct}"
+              missingProducts=1
+            fi
+          done
+          [ ${missingProducts} -eq 0 ] || exit 1
+          zip -r toolsMacOSM1.zip "${toolProducts[@]}" \
+            -x "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm" \
+               "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm.dSYM/*"
+      - name: Verify all packaged binaries are code-signed
+        uses: ./.github/actions/verifySignedMacOS
+        with:
+          archive: toolsMacOSM1.zip
+          working_directory: ${{ env.GALACTICUS_DATA_PATH }}
+          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
+      - name: Upload tool executables
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: galacticus-tools-MacOS-M1
+          path: './datasets/toolsMacOSM1.zip'
   ## Library
   Build-Library-MacOS:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
@@ -554,14 +809,14 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Check out repository datasets
         # The interface test now boots the node-component class system
         # (nodesInitialize) and builds merger trees, which read static
         # datasets (e.g. abundances/Atomic_Data.xml) through
         # GALACTICUS_DATA_PATH — set to $GITHUB_WORKSPACE/datasets by the
         # buildMacOS action. Mirrors the Linux Python-Interface job.
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -595,7 +850,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
           zip -r libgalacticusMacOS.zip galacticus
       - name: Upload library
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-library-MacOS
           path: 'libgalacticusMacOS.zip'
@@ -604,211 +859,31 @@ jobs:
           python3 testSuite/test-Python-interface.py 2>&1 | tee pythonTest.log
           ! grep -q -e FAIL pythonTest.log
       - run: echo "This job's status is ${{ job.status }}."
-  ### Tools
-  Build-Tools-MacOS:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
-    runs-on: macos-15-intel
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v7
-      - name: Check out repository datasets
-        uses: actions/checkout@v7      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Set up build environment
-        uses: ./.github/actions/buildMacOS
-      - name: Build Galacticus
-        run: |
-          make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe
-      - name: Build tools
-        id: buildTools
-        run: |
-          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          mangleVersion=`awk '{if ($1 == "mangle:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          mkdir -p $GALACTICUS_DATA_PATH/dynamic
-          set -o pipefail
-          ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
-          cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
-          cd $GALACTICUS_DATA_PATH/dynamic/AxionCAMB/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb          
-          cd $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion}/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o class ' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/RecFast/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
-          cd $GALACTICUS_DATA_PATH/dynamic/c${cloudyVersion}/source/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/src/
-          cp ../bin/harmonize .
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
-          echo "camb=${GALACTICUS_DATA_PATH}/dynamic/CAMB-${cambVersion}/fortran/camb" >> "$GITHUB_OUTPUT"
-          echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/AxionCAMB/camb" >> "$GITHUB_OUTPUT"
-          echo "class=${GALACTICUS_DATA_PATH}/dynamic/class_public-${classVersion}/class" >> "$GITHUB_OUTPUT"
-          echo "recfast=${GALACTICUS_DATA_PATH}/dynamic/RecFast/recfast.exe" >> "$GITHUB_OUTPUT"
-          echo "cloudy=${GALACTICUS_DATA_PATH}/dynamic/c${cloudyVersion}/source/cloudy.exe" >> "$GITHUB_OUTPUT"
-          echo "fsps=${GALACTICUS_DATA_PATH}/dynamic/fsps-${fspsVersion}/src/autosps.exe" >> "$GITHUB_OUTPUT"
-          echo "mangle=${GALACTICUS_DATA_PATH}/dynamic/mangle-${mangleVersion}/bin/harmonize" >> "$GITHUB_OUTPUT"
-      - name: Sign tool executables
-        uses: ./.github/actions/codeSignMacOS
-        with:
-          files: ${{ steps.buildTools.outputs.camb }} ${{ steps.buildTools.outputs.axioncamb }} ${{ steps.buildTools.outputs.class }} ${{ steps.buildTools.outputs.recfast }} ${{ steps.buildTools.outputs.cloudy }} ${{ steps.buildTools.outputs.fsps }} ${{ steps.buildTools.outputs.mangle }}
-          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
-          macos_certificate_password: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
-          macos_keychain_password: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
-          macos_developer_id: ${{ secrets.MACOS_DEVELOPER_ID }}
-      - name: Package
-        run: |          
-          # Package the zip with the signed executables
-          cd $GALACTICUS_DATA_PATH
-          zip -r toolsMacOS.zip \
-            dynamic/CAMB-${cambVersion}/fortran/camb \
-            dynamic/AxionCAMB/camb \
-            dynamic/class_public-${classVersion}/class \
-            dynamic/RecFast/recfast.exe \
-            dynamic/RecFast/currentVersion \
-            dynamic/c${cloudyVersion}/source/cloudy.exe \
-            dynamic/c${cloudyVersion}/data \
-            dynamic/fsps-${fspsVersion}/src/autosps.exe \
-            dynamic/fsps-${fspsVersion}/dust \
-            dynamic/fsps-${fspsVersion}/data \
-            dynamic/fsps-${fspsVersion}/nebular \
-            dynamic/fsps-${fspsVersion}/SPECTRA \
-            dynamic/fsps-${fspsVersion}/OUTPUTS \
-            dynamic/fsps-${fspsVersion}/ISOCHRONES \
-            dynamic/mangle-${mangleVersion}/bin/harmonize
-      - name: Upload tool executables
-        uses: actions/upload-artifact@v7
-        with:
-          name: galacticus-tools-MacOS
-          path: './datasets/toolsMacOS.zip'
-      - run: echo "This job's status is ${{ job.status }}."
-  Build-Tools-MacOS-M1:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
-    runs-on: macos-15
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v7
-      - name: Check out repository datasets
-        uses: actions/checkout@v7      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Set up build environment
-        uses: ./.github/actions/buildMacOS
-      - name: Build Galacticus
-        run: |
-          make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe 2>&1 | tee build.log
-          ./scripts/build/staticRelinker.py `grep '\-o Galacticus.exe' build.log`
-      - name: Build tools
-        id: buildTools
-        run: |
-          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          mangleVersion=`awk '{if ($1 == "mangle:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          mkdir -p $GALACTICUS_DATA_PATH/dynamic
-          set -o pipefail
-          ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
-          cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
-          cd $GALACTICUS_DATA_PATH/dynamic/AxionCAMB/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb          
-          cd $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion}/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o class ' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/RecFast/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
-          cd $GALACTICUS_DATA_PATH/dynamic/c${cloudyVersion}/source/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/src
-          cp ../bin/harmonize .
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
-          echo "camb=${GALACTICUS_DATA_PATH}/dynamic/CAMB-${cambVersion}/fortran/camb" >> "$GITHUB_OUTPUT"
-          echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/AxionCAMB/camb" >> "$GITHUB_OUTPUT"
-          echo "class=${GALACTICUS_DATA_PATH}/dynamic/class_public-${classVersion}/class" >> "$GITHUB_OUTPUT"
-          echo "recfast=${GALACTICUS_DATA_PATH}/dynamic/RecFast/recfast.exe" >> "$GITHUB_OUTPUT"
-          echo "cloudy=${GALACTICUS_DATA_PATH}/dynamic/c${cloudyVersion}/source/cloudy.exe" >> "$GITHUB_OUTPUT"
-          echo "fsps=${GALACTICUS_DATA_PATH}/dynamic/fsps-${fspsVersion}/src/autosps.exe" >> "$GITHUB_OUTPUT"
-          echo "mangle=${GALACTICUS_DATA_PATH}/dynamic/mangle-${mangleVersion}/bin/harmonize" >> "$GITHUB_OUTPUT"
-      - name: Sign tool executables
-        uses: ./.github/actions/codeSignMacOS
-        with:
-          files: ${{ steps.buildTools.outputs.camb }} ${{ steps.buildTools.outputs.axioncamb }} ${{ steps.buildTools.outputs.class }} ${{ steps.buildTools.outputs.recfast }} ${{ steps.buildTools.outputs.cloudy }} ${{ steps.buildTools.outputs.fsps }} ${{ steps.buildTools.outputs.mangle }}
-          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
-          macos_certificate_password: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
-          macos_keychain_password: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
-          macos_developer_id: ${{ secrets.MACOS_DEVELOPER_ID }}
-      - name: Repackage
-        run: |          
-          # Re-package the zip with the signed executables
-          cd $GALACTICUS_DATA_PATH
-          zip -r toolsMacOSM1.zip \
-            dynamic/CAMB-${cambVersion}/fortran/camb \
-            dynamic/AxionCAMB/camb \
-            dynamic/class_public-${classVersion}/class \
-            dynamic/RecFast/recfast.exe \
-            dynamic/RecFast/currentVersion \
-            dynamic/c${cloudyVersion}/source/cloudy.exe \
-            dynamic/c${cloudyVersion}/data \
-            dynamic/fsps-${fspsVersion}/src/autosps.exe \
-            dynamic/fsps-${fspsVersion}/dust \
-            dynamic/fsps-${fspsVersion}/data \
-            dynamic/fsps-${fspsVersion}/nebular \
-            dynamic/fsps-${fspsVersion}/SPECTRA \
-            dynamic/fsps-${fspsVersion}/OUTPUTS \
-            dynamic/fsps-${fspsVersion}/ISOCHRONES \
-            dynamic/mangle-${mangleVersion}/bin/harmonize
-      - name: Upload tool executables
-        uses: actions/upload-artifact@v7
-        with:
-          name: galacticus-tools-MacOS-M1
-          path: './datasets/toolsMacOSM1.zip'
-      - run: echo "This job's status is ${{ job.status }}."
   Submit-Notarization-MacOS:
     runs-on: macos-15-intel
     if: github.ref == 'refs/heads/master'
     permissions:
       contents: read
-    needs: [ Build-Executable-MacOS, Build-Executable-MacOS-M1, Build-Tools-MacOS, Build-Tools-MacOS-M1 ]
+    # The tool artifacts (galacticus-tools-MacOS{,-M1}) are now produced by the
+    # executable build jobs, so those two jobs cover both executables and tools.
+    needs: [ Build-Executable-MacOS, Build-Executable-MacOS-M1 ]
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Download artifacts (executable-macos)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-exec-MacOS
       - name: Download artifacts (executable-macos-m1)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-exec-MacOS-M1
       - name: Download artifacts (tools-macos)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-tools-MacOS
       - name: Download artifacts (tools-macos-m1)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-tools-MacOS-M1
       - name: Submit macOS artifacts for notarization
@@ -818,7 +893,7 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.MACOS_APP_SPECIFIC_PASSWORD }}
         run: python3 ./scripts/aux/notarizationSubmit.py
       - name: Upload notarization request metadata
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: notarization-requests
           path: 'notarization-requests-${{ github.sha }}.json'
@@ -902,12 +977,16 @@ jobs:
   Watch-Updates:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
+    permissions:
+      contents:      read
+      actions:       read
+      pull-requests: write # required to post the list of updated files as a comment on the pull request
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -918,19 +997,25 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v47
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
         with:
           files: |
             **/*.F90
             **/*.Inc
+      # NOTE: the names of the files changed by the pull request are passed in through the environment, and never interpolated
+      # into the script text with `${{ }}`: they are chosen by whoever opened the pull request, and git permits characters in
+      # them which are special to the shell. `set -f` prevents a name containing a glob character being expanded.
       - name: Look for updates
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
+          set -f
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          PYTHONPATH=$GALACTICUS_EXEC_PATH/python python3 scripts/aux/updateMonitor.py ${{ steps.changed-files.outputs.all_changed_files }}
+          PYTHONPATH=$GALACTICUS_EXEC_PATH/python python3 scripts/aux/updateMonitor.py ${CHANGED_FILES}
       - name: Check file existence
         id: check_files
-        uses: andstor/file-existence-action@v3
+        uses: andstor/file-existence-action@558493d6c74bf472d87c84eab196434afc2fa029 # v3
         with:
           files: warnings.md
       - name: Output to a job summary
@@ -946,7 +1031,7 @@ jobs:
       - name: Comment on the PR if any warnings were found
         if: steps.check_files.outputs.files_exists == 'true' && github.event.pull_request.head.repo.full_name == github.repository
         continue-on-error: true
-        uses: thollander/actions-comment-pull-request@v3
+        uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3
         with:
           file-path: warnings-collapsible.md
   # Validation
@@ -1017,6 +1102,24 @@ jobs:
       cacheData: 0
       uploadFile: ./testSuite/outputs/*.json
       uploadName: validate-darkMatterOnlySubhalosCOZMIC${{ matrix.simulation }}MilkyWay${{ matrix.resolution }}
+    secrets: inherit
+  Validate-Halo-Mass-Function:
+    needs: Build-Executable-DMO-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        group: [ "MDPL", "SymphonyLMC", "SymphonyGroup", "SymphonyMilkyWayZ0", "SymphonyMilkyWayZ1", "SymphonyMilkyWayZ4", "COZMIC" ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-haloMassFunction.py
+      options: "${{ matrix.group }}"
+      artifact: galacticus-exec-dmo
+      runPath: ./testSuite
+      cacheData: 1
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validate-haloMassFunction${{ matrix.group }}
     secrets: inherit
   Validate-Milky-Way-Model:
     needs: Build-Executable-Linux
@@ -1108,7 +1211,8 @@ jobs:
                       tests.meshes.exe,
                       tests.convex_hulls.exe,
                       tests.comparisons.exe,
-                      tests.geometry.coordinate_systems.exe,
+                      tests.coordinates.exe,
+                      tests.coordinates_constructors.exe,
                       tests.dictionaries.exe,
                       tests.hashes.perfect.exe,
                       tests.regular_expressions.exe,
@@ -1142,6 +1246,7 @@ jobs:
                       tests.sort.exe,
                       tests.sort.topological.exe,
                       tests.string_utilities.exe,
+                      tests.system.download.exe,
                       tests.vectors.exe,
                       tests.multi_counters.exe,
                       tests.tensors.exe,
@@ -1201,6 +1306,7 @@ jobs:
                       tests.dark_matter_profiles.Zhao1996.exe,
                       tests.dark_matter_profiles.fuzzy_dark_matter.exe,
                       tests.decaying_dark_matter.exe,
+                      tests.decaying_dark_matter_spherical_collapse.exe,
                       tests.spectra.postprocess.Inoue2014.exe,
                       tests.recombination_computed.exe,
                       tests.recombination_cooling.Hummer.exe,
@@ -1210,6 +1316,7 @@ jobs:
                       tests.stellar_populations.luminosities.exe,
                       tests.excursion_sets.exe,
                       tests.merger_tree_branching.exe,
+                      tests.merger_tree_census.exe,
                       tests.event_hooks.exe,
                       tests.tree_branch_destroy.exe,
                       tests.binary_search_trees.exe,
@@ -1374,8 +1481,6 @@ jobs:
                 test-tidallyTruncatedNFWFit.py,
                 test-constraint-deterministic-spins.py,
                 test-constraint-mass-function.py,
-                test-extract-directives.py,
-                test-fortran-utils.py,
                 test-halo-mass-functions.py,
                 test-inactive_luminosities.py,
                 test-interoutput-star-formation-rate.py,
@@ -1427,13 +1532,39 @@ jobs:
                 test-merger-tree-export.sh,
                 test-AGNSED.py,
                 test-SIDM-parametric.py,
+                test-decaying-dark-matter-halo-mass-function.py,
                 test-objectBuilder-recursion.py,
+                test-objectBuilder-recursion-success.py,
                 test-library-interfaces.py,
-                test-merger-tree-read-ties.py ]
+                test-merger-tree-read-ties.py,
+                test-node-trajectory.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
       artifact: galacticus-exec
+      runPath: ./testSuite
+    secrets: inherit
+  ## Inactive-property models run against the debugging (-DDEBUGGING) executable. Only in debugging builds are the
+  ## run-time checks that no inactive property value is read during active-property evolution (issue #128) compiled
+  ## into the generated property getters. The positive test asserts the check fires on a deliberate erroneous read;
+  ## the remaining models exercise inactive properties (and inactive float rank-0 meta-properties) legitimately and
+  ## must complete without the check firing.
+  Miscellaneous-Debugging:
+    needs: Build-Executables-Debugging-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        file: [ test-inactive-property-read.py,
+                test-inactive_luminosities.py,
+                test-outputSelector.py,
+                test-output-tree-contiguousity.py,
+                test-CGM-mass-cooled.py,
+                test-galacticStructureStateDeallocateBug.py ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: ${{ matrix.file }}
+      artifact: galacticus-exec-debugging
       runPath: ./testSuite
     secrets: inherit
   Miscellaneous-Unexpected:
@@ -1621,6 +1752,15 @@ jobs:
       runPath: ./testSuite
       options: --processesPerNode 4 --allowRunAsRoot yes
     secrets: inherit
+  MPI-Posterior-Sample-Proposal-Log:
+    needs: Build-Executables-MPI-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-posteriorSampleProposalLog_MPI.py
+      artifact: galacticus-exec-MPI
+      runPath: ./testSuite
+      options: --processesPerNode 4 --allowRunAsRoot yes
+    secrets: inherit
   MPI-MCMC:
     needs: Build-Executables-MPI-Linux
     uses: ./.github/workflows/testModel.yml
@@ -1703,7 +1843,7 @@ jobs:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -1743,12 +1883,12 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: Check out repository datasets
         # The stellar-populations tutorial reads static datasets (the
         # stellar-properties compilation) through GALACTICUS_DATA_PATH.
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1763,7 +1903,7 @@ jobs:
           apt -y update && apt -y upgrade
           apt -y install python3 python3-numpy
       - name: Download library
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-library
       - name: Test interface
@@ -1801,10 +1941,14 @@ jobs:
   # Validate, deploy and update
   Validate:
     runs-on: ubuntu-latest
-    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Dark-Matter-Only-Subhalos-Symphony, Validate-Dark-Matter-Only-Subhalos-Symphony-X64, Validate-Dark-Matter-Only-Subhalos-COZMICWDM, Validate-Milky-Way-Model, Validate-PonosV, Validate-Baryonic-Suppression, Validate-Idealized-Subhalo-Simulations, Validate-Decaying-Dark-Matter-Only-Subhalos ]
+    permissions:
+      contents:      write # required to publish benchmark results to the `gh-pages` branch
+      actions:       read
+      pull-requests: write # required to comment when a benchmark alert is raised
+    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Dark-Matter-Only-Subhalos-Symphony, Validate-Dark-Matter-Only-Subhalos-Symphony-X64, Validate-Dark-Matter-Only-Subhalos-COZMICWDM, Validate-Halo-Mass-Function, Validate-Milky-Way-Model, Validate-PonosV, Validate-Baryonic-Suppression, Validate-Idealized-Subhalo-Simulations, Validate-Decaying-Dark-Matter-Only-Subhalos ]
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: 'Dark matter-only subhalos benchmarks'
         uses: ./.github/actions/benchmark
         with:
@@ -2083,16 +2227,83 @@ jobs:
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime80.0_velocityKick40.0'
           threshold: '250%'
           token: ${{ secrets.GITHUB_TOKEN }}
+      # Halo mass function validations. These models are deterministic (unlike
+      # the tree-based validations above) so a tight alert threshold is used.
+      - name: 'Halo mass function validation (MDPL)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (MDPL)'
+          type: 'validate'
+          suffix: 'haloMassFunctionMDPL'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (Symphony LMC)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (Symphony LMC)'
+          type: 'validate'
+          suffix: 'haloMassFunctionSymphonyLMC'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (Symphony Group)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (Symphony Group)'
+          type: 'validate'
+          suffix: 'haloMassFunctionSymphonyGroup'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (Symphony Milky Way z=0)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (Symphony Milky Way z=0)'
+          type: 'validate'
+          suffix: 'haloMassFunctionSymphonyMilkyWayZ0'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (Symphony Milky Way z=1)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (Symphony Milky Way z=1)'
+          type: 'validate'
+          suffix: 'haloMassFunctionSymphonyMilkyWayZ1'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (Symphony Milky Way z=4)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (Symphony Milky Way z=4)'
+          type: 'validate'
+          suffix: 'haloMassFunctionSymphonyMilkyWayZ4'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (Symphony Milky Way environments)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (Symphony Milky Way environments)'
+          type: 'validate'
+          artifact: 'validate-haloMassFunctionSymphonyMilkyWayZ0'
+          suffix: 'haloMassFunctionSymphonyMilkyWayEnvironments'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (COZMIC)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (COZMIC)'
+          type: 'validate'
+          suffix: 'haloMassFunctionCOZMIC'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifacts (validate-PonosV)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: validate-PonosV
       - name: Download artifacts (validate-baryonicSuppression)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: validate-baryonicSuppression
       - name: Download artifacts (build-profile)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: build-profile
       - name: Push validation results
@@ -2116,6 +2327,10 @@ jobs:
           mkdir -p dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8
           mkdir -p dev/valid/milkyWayModel
           mkdir -p dev/valid/strongLensing
+          for group in MDPL SymphonyLMC SymphonyGroup SymphonyMilkyWayZ0 SymphonyMilkyWayZ1 SymphonyMilkyWayZ4 SymphonyMilkyWayEnvironments COZMIC; do
+            mkdir -p "dev/valid/haloMassFunction$group"
+            mv "results_haloMassFunction$group.json" "dev/valid/haloMassFunction$group/results.json"
+          done
           mv results_darkMatterOnlySubhalos.json                          dev/valid/darkMatterOnlySubhalos/results.json
           mv results_darkMatterOnlySubhalosSymphonyCDMMilkyWayX1.json     dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1/results.json
           mv results_darkMatterOnlySubhalosSymphonyCDMMilkyWayX8.json     dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8/results.json
@@ -2147,7 +2362,7 @@ jobs:
           done
           git config --local user.email "github@users.noreply.github.com"
           git config --local user.name "github-action-validate"
-          git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX64/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8/results.json dev/valid/milkyWayModel/results.json dev/valid/strongLensing/results_PonosV.json dev/valid/baryonicSuppression/results_baryonicSuppression.json dev/valid/idealizedSubhaloSimulation_*/results.json dev/valid/darkMatterOnlySubhalos_decayingDarkMatter_*/results.json
+          git add dev/valid/haloMassFunction*/results.json dev/valid/darkMatterOnlySubhalos/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX64/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8/results.json dev/valid/milkyWayModel/results.json dev/valid/strongLensing/results_PonosV.json dev/valid/baryonicSuppression/results_baryonicSuppression.json dev/valid/idealizedSubhaloSimulation_*/results.json dev/valid/darkMatterOnlySubhalos_decayingDarkMatter_*/results.json
           git commit -m "Update validation results"
           git push --set-upstream origin gh-pages
           git checkout -
@@ -2195,6 +2410,9 @@ jobs:
   Deploy:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
+    permissions:
+      contents: write # required to upload build artifacts as `bleeding-edge` release assets
+      actions:  read
     needs: [ Build-Executable-Linux,
              Build-Executables-Instrumented-Linux,
              Build-Executables-MPI-Linux,
@@ -2204,8 +2422,6 @@ jobs:
              Build-Executable-MacOS,
              Build-Executable-MacOS-M1,
              Build-Library-MacOS,
-             Build-Tools-MacOS,
-             Build-Tools-MacOS-M1,
              Submit-Notarization-MacOS,
              Profile-Dark-Matter-Only-Subhalos,
              Profile-Milky-Way-Model,
@@ -2243,17 +2459,17 @@ jobs:
              Validate ]
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Download artifacts (executable-linux)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-exec
       - name: Download artifacts (library-linux)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-library
       - name: Download artifacts (tools-linux)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-tools
       - name: Upload assets to release
@@ -2261,37 +2477,40 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.bz2 --clobber
+          # Record the checksums of the assets the launcher downloads and executes, before the local copies are removed. These are
+          # collected across the upload steps of this job and published as a single `SHA256SUMS` asset at the end of it.
+          sha256sum Galacticus.exe tools.tar.bz2 >> "${GITHUB_WORKSPACE}/SHA256SUMS"
           rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.bz2
       - name: Download artifacts (executable-macos)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-exec-MacOS
       - name: Download artifacts (debug-macos)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-debug-MacOS
       - name: Download artifacts (executable-macos-m1)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-exec-MacOS-M1
       - name: Download artifacts (debug-macos-m1)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-debug-MacOS-M1
       - name: Download artifacts (library-macos)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-library-MacOS
       - name: Download artifacts (tools-macos)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-tools-MacOS
       - name: Download artifacts (tools-macos-m1)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-tools-MacOS-M1
       - name: Download artifacts (notarization metadata)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: notarization-requests
       - name: Upload assets to release
@@ -2299,29 +2518,30 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload bleeding-edge ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json --clobber
+          sha256sum Galacticus_MacOS.exe Galacticus_MacOS-M1.exe toolsMacOS.zip toolsMacOSM1.zip >> "${GITHUB_WORKSPACE}/SHA256SUMS"
           rm -f ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json
       - name: Download artifacts (perf-darkMatterOnlySubHalos)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: perf-darkMatterOnlySubHalos
       - name: Download artifacts (perf-milkyWay)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: perf-milkyWay
       - name: Download artifacts (perf-milkyWay_SIDM)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: perf-milkyWay_SIDM
       - name: Download artifacts (perf-darkMatterOnlySubHalos-gprof)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: perf-darkMatterOnlySubHalos-gprof
       - name: Download artifacts (perf-milkyWay-gprof)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: perf-milkyWay-gprof
       - name: Download artifacts (perf-milkyWay_SIDM-gprof)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: perf-milkyWay_SIDM-gprof
       - name: Upload assets to release
@@ -2330,14 +2550,32 @@ jobs:
         run: |
           gh release upload bleeding-edge ./darkMatterOnlySubHalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubHalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2 --clobber
           rm ./darkMatterOnlySubHalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubHalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2
+      # Publish the checksums collected by the upload steps above. The launcher fetches this asset and checks the executable and
+      # tools archives it downloads against it, so that a corrupted or substituted asset is caught rather than being run. It is
+      # written last so that it always describes the assets just uploaded.
+      - name: Publish asset checksums
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ ! -s "${GITHUB_WORKSPACE}/SHA256SUMS" ]; then
+            echo "::error::no asset checksums were recorded by the upload steps."
+            exit 1
+          fi
+          sort -k2 -o "${GITHUB_WORKSPACE}/SHA256SUMS" "${GITHUB_WORKSPACE}/SHA256SUMS"
+          cat "${GITHUB_WORKSPACE}/SHA256SUMS"
+          gh release upload bleeding-edge "${GITHUB_WORKSPACE}/SHA256SUMS" --clobber
   Update-Release-Tag:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
+    # The `bleeding-edge` tag is moved using a GitHub App token generated in this job, not `GITHUB_TOKEN`, so no write access is
+    # needed here.
+    permissions:
+      contents: read
     needs: Deploy
-    env: 
+    env:
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - uses: actions/create-github-app-token@v3
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
@@ -2346,7 +2584,7 @@ jobs:
           permission-contents: write
           permission-workflows: write
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Update tag

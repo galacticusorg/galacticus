@@ -410,7 +410,7 @@ contains
     use    :: Galacticus_Nodes          , only : mergerTree                       , nodeComponentBasic                 , nodeComponentPosition , nodeComponentSatellite, &
           &                                      treeNode
     use    :: HDF5_Access               , only : hdf5Access
-    use    :: IO_HDF5                   , only : hdf5Object
+    use    :: IO_HDF5                   , only : hdf5File                         , hdf5Group
     use    :: ISO_Varying_String        , only : varying_string                   , var_str
     use    :: Locks                     , only : ompLock
     use    :: Merger_Tree_Walkers       , only : mergerTreeWalkerAllNodes
@@ -460,8 +460,9 @@ contains
     ! Open the HDF5 file for output.
     !$ call hdf5Access%set  ()
     hdf5ScopeInitial: block
-      type(hdf5Object) :: outputFile, header
-      outputFile=hdf5Object(self%outputFileName,overWrite=.true.,readOnly=.false.)
+      type(hdf5File ) :: outputFile
+      type(hdf5Group) :: header
+      outputFile=hdf5File(self%outputFileName,overWrite=.true.,readOnly=.false.)
       ! Create the header.
       header=outputFile%openGroup('Header','Group containing Gadget metadata.')
       ! Particle properties.
@@ -773,9 +774,9 @@ contains
           ! Accumulate the particle data to file.
           !$ call hdf5Access%set  ()
           hdf5ScopeWrite: block
-            type(hdf5Object) :: outputFile   , header, &
-                 &              particleGroup
-            outputFile=hdf5Object(self%outputFileName,overWrite=.false.,readOnly=.false.,objectsOverwritable=.true.)
+            type(hdf5File ) :: outputFile
+            type(hdf5Group) :: header       , particleGroup
+            outputFile=hdf5File(self%outputFileName,overWrite=.false.,readOnly=.false.,objectsOverwritable=.true.)
             ! Get current count of particles in file.
             header=outputFile%openGroup('Header','Group containing Gadget metadata.')
             call header%readAttributeStatic('NumPart_Total',particleCounts)

@@ -69,17 +69,21 @@ contains
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//)   , replace    , &
           &                           varying_string
     use :: String_Handling   , only : stringSubstitute
-    use :: System_Command    , only : System_Command_Do
+    use :: System_Command    , only : System_Command_Do, shellEscape
     use :: System_Download   , only : download
     use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran, compilerValidate
     implicit none
-    type     (varying_string), intent(  out)           :: cambPath       , cambVersion
+    type     (varying_string), intent(  out)           :: cambPath            , cambVersion
     logical                  , intent(in   ), optional :: static
     integer                                            :: status
-    type     (varying_string)                          :: command        , forutilsVersion , &
-         &                                                makeFile       , makeFileForUtils, &
-         &                                                tarBall        , executable      , &
-         &                                                url            , tarBallForUtils
+    type     (varying_string)                          :: command             , forutilsVersion   , &
+         &                                                makeFile            , makeFileForUtils  , &
+         &                                                tarBall             , executable        , &
+         &                                                url                 , tarBallForUtils   , &
+         &                                                escapedToolsPath    , escapedTarFile    , &
+         &                                                escapedForUtilsDir  , escapedForUtilsTar, &
+         &                                                escapedCambPath     , stampForUtils     , &
+         &                                                escapedForUtilsStamp
     type     (lockDescriptor)                          :: fileLock
     !![
     <optionalArgument name="static" defaultsTo=".false." />
@@ -94,8 +98,12 @@ contains
     makeFileForUtils=cambPath//"../forutils/Makefile"
     tarBall         =inputPath(pathTypeTools)//"CAMB_"//char(cambVersion)//".tar.gz"
     tarBallForUtils =cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz"
+    ! CAMB's build system requires forutils to be unpacked to a fixed path relative to the CAMB source, so the directory name can
+    ! not carry the forutils version. Instead, record the unpacked version in a stamp file. A change of forutils version then
+    ! leaves no matching stamp, forcing forutils to be re-unpacked and CAMB to be rebuilt against it.
+    stampForUtils   =cambPath//"../forutils/.galacticusForUtilsVersion_"//char(forutilsVersion)
     ! Build the CAMB code.
-    if (.not.File_Exists(executable)) then
+    if (.not.File_Exists(executable) .or. .not.File_Exists(stampForUtils)) then
        call compilerValidate(languageFortran,'CAMB')
        call Directory_Make(cambPath                                      )
        call File_Lock     (cambPath//"camb",fileLock,lockIsShared=.false.)
@@ -109,28 +117,40 @@ contains
              if (status /= 0 .or. .not.File_Exists(tarBall)) call Error_Report("unable to download CAMB"//{introspection:location})
           end if
           call displayMessage("unpacking CAMB code....",verbosityLevelWorking)
-          command="tar -x -v -z -C "//inputPath(pathTypeTools)//" -f "//inputPath(pathTypeTools)//"CAMB_"//cambVersion//".tar.gz"
+          escapedToolsPath=inputPath(pathTypeTools)
+          escapedToolsPath=shellEscape(escapedToolsPath)
+          escapedTarFile=inputPath    (pathTypeTools   )//"CAMB_"//cambVersion//".tar.gz"
+          escapedTarFile=shellEscape  (escapedTarFile  )
+          command="tar -x -v -z -C "//escapedToolsPath//" -f "//escapedTarFile
           call System_Command_Do(command,status);
           if (status /= 0 .or. .not.File_Exists(cambPath)) call Error_Report('failed to unpack CAMB code'//{introspection:location})
-          ! Download the "forutils" package if necessary.
-          if (.not.File_Exists(makeFileForUtils)) then
-             if (.not.File_Exists(tarBallForUtils)) then
-                call displayMessage("downloading forutils code....",verbosityLevelWorking)
-                url="https://github.com/cmbant/forutils/archive/refs/tags/"//forutilsVersion//".tar.gz"
-                call download(url,tarBallForUtils,status=status,retries=5,retryWait=60)
-                if (status /= 0 .or. .not.File_Exists(tarBallForUtils)) call Error_Report("unable to download forutils"//{introspection:location})
-             end if
-             call displayMessage("unpacking forutils code....",verbosityLevelWorking)
-             command="tar -x -v -z -C "//cambPath//"../forutils -f "//cambPath//"../forutils_"//forutilsVersion//".tar.gz --strip-components 1"
-             call System_Command_Do(command);          
-             if (status /= 0 .or. .not.File_Exists(makeFileForUtils)) call Error_Report('failed to unpack forutils code'//{introspection:location})
+       end if
+       ! Unpack the "forutils" package at the required version if not already present. Any previously-unpacked version is removed
+       ! first, so that a change of forutils version does not leave a mixture of the two.
+       if (.not.File_Exists(stampForUtils)) then
+          if (.not.File_Exists(tarBallForUtils)) then
+             call displayMessage("downloading forutils code....",verbosityLevelWorking)
+             url="https://github.com/cmbant/forutils/archive/refs/tags/"//forutilsVersion//".tar.gz"
+             call download(url,tarBallForUtils,status=status,retries=5,retryWait=60)
+             if (status /= 0 .or. .not.File_Exists(tarBallForUtils)) call Error_Report("unable to download forutils"//{introspection:location})
           end if
-       end if       
+          call displayMessage("unpacking forutils code....",verbosityLevelWorking)
+          escapedForUtilsDir  =shellEscape(cambPath//"../forutils"                             )
+          escapedForUtilsTar  =shellEscape(cambPath//"../forutils_"//forutilsVersion//".tar.gz")
+          escapedForUtilsStamp=shellEscape(stampForUtils                                       )
+          command="rm -rf "//escapedForUtilsDir//"; mkdir -p "//escapedForUtilsDir//"; tar -x -v -z -C "//escapedForUtilsDir//" -f "//escapedForUtilsTar//" --strip-components 1"
+          call System_Command_Do(command,status);
+          if (status /= 0 .or. .not.File_Exists(makeFileForUtils)) call Error_Report('failed to unpack forutils code'//{introspection:location})
+          command="touch "//escapedForUtilsStamp
+          call System_Command_Do(command,status);
+          if (status /= 0 .or. .not.File_Exists(stampForUtils)) call Error_Report('failed to stamp forutils version'//{introspection:location})
+       end if
        call displayMessage("compiling CAMB code",verbosityLevelWorking)
-       command='cd '//cambPath//'; sed -E -i~ s/"ifortErr[[:space:]]*=.*"/"ifortErr = 1"/ Makefile; sed -E -i~ s/"gfortErr[[:space:]]*=.*"/"gfortErr = 0"/ Makefile; sed -E -i~ s/"gfortran"/"'//stringSubstitute(compiler(languageFortran),"/","\/")//'"/ Makefile; sed -E -i~ s/"gfortran"/"'//stringSubstitute(compiler(languageFortran),"/","\/")//'"/ ../forutils/Makefile_compiler; sed -E -i~ s/"^FFLAGS[[:space:]]*\+=[[:space:]]*\-march=native"/"FFLAGS+="/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*=[[:space:]]*.*"/"FFLAGS = -cpp -Ofast -fopenmp '//stringSubstitute(compilerOptions(languageFortran),"/","\/")
+       escapedCambPath=shellEscape(cambPath)
+       command='cd '//escapedCambPath//'; sed -E -i~ s/"ifortErr[[:space:]]*=.*"/"ifortErr = 1"/ Makefile; sed -E -i~ s/"gfortErr[[:space:]]*=.*"/"gfortErr = 0"/ Makefile; sed -E -i~ s/"gfortran"/"'//stringSubstitute(compiler(languageFortran),"/","\/")//'"/ Makefile; sed -E -i~ s/"gfortran"/"'//stringSubstitute(compiler(languageFortran),"/","\/")//'"/ ../forutils/Makefile_compiler; sed -E -i~ s/"^FFLAGS[[:space:]]*\+=[[:space:]]*\-march=native"/"FFLAGS+="/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*=[[:space:]]*.*"/"FFLAGS = -cpp -Ofast -fopenmp '//stringSubstitute(compilerOptions(languageFortran),"/","\/")
        if (static_) command=command//" -static -Wl,--whole-archive -lpthread -ldl -Wl,--no-whole-archive"
        command=command//'"/ Makefile'
-       if (static_) command=command//'; cp $GALACTICUS_EXEC_PATH/source/utility/OpenMP/workaround.c '//cambPath//'; gcc -DSTATIC -c workaround.c -o workaround.o; sed -E -i~ s/"\-o camb$"/"workaround\.o \-o camb"/ Makefile_main'
+       if (static_) command=command//'; cp "$GALACTICUS_EXEC_PATH/source/utility/OpenMP/workaround.c" '//escapedCambPath//'; gcc -DSTATIC -c workaround.c -o workaround.o; sed -E -i~ s/"\-o camb$"/"workaround\.o \-o camb"/ Makefile_main'
        command=command//'; find . -name "*.f90" | xargs sed -E -i~ s/"error stop"/"error stop "/; make -j1 camb'
        call System_Command_Do(command,status);
        if (status /= 0 .or. .not.File_Exists(executable)) call Error_Report("failed to build CAMB code"//{introspection:location})
@@ -144,6 +164,7 @@ contains
     Run CAMB as necessary to compute transfer functions.
     !!}
     use            :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
+    use            :: Dependencies                    , only : dependencyVersion           , dependencyVersionLabel
     use            :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make                  , File_Exists   , File_Lock     , &
          &                                                     File_Path                   , File_Remove                     , File_Unlock   , lockDescriptor, &
          &                                                     File_Name_Temporary
@@ -152,7 +173,7 @@ contains
     use            :: HDF5                            , only : hsize_t
     use            :: Hashes_Cryptographic            , only : Hash_MD5
     use            :: HDF5_Access                     , only : hdf5Access
-    use            :: IO_HDF5                         , only : hdf5Object
+    use            :: IO_HDF5                         , only : hdf5File                    , hdf5Group
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: ISO_Varying_String              , only : assignment(=)               , char                            , extract       , len           , &
           &                                                    operator(//)                , operator(==)                    , varying_string
@@ -161,7 +182,7 @@ contains
     use            :: Numerical_Interpolation         , only : GSL_Interp_cSpline
     use            :: Sorting                         , only : sortIndex
     use            :: String_Handling                 , only : String_C_To_Fortran         , operator(//)
-    use            :: System_Command                  , only : System_Command_Do
+    use            :: System_Command                  , only : System_Command_Do           , shellEscape
     use            :: Table_Labels                    , only : extrapolationTypeExtrapolate, enumerationExtrapolationTypeType
     use            :: Tables                          , only : table                       , table1DGeneric
     implicit none
@@ -183,7 +204,9 @@ contains
     type            (lockDescriptor                  )                                  :: fileLock
     character       (len=255                         )                                  :: cambTransferLine
     type            (varying_string                  )                                  :: cambPath                                , cambVersion             , &
-         &                                                                                 parameterFile                           , outputRoot
+         &                                                                                 parameterFile                           , outputRoot              , &
+         &                                                                                 versionCamb                             , versionForUtils         , &
+         &                                                                                 labelVersionCamb                        , labelVersionForUtils
     double precision                                                                    :: wavenumberCAMB
     integer                                                                             :: status                                  , cambParameterFile       , &
          &                                                                                 i                                       , cambTransferFile        , &
@@ -194,7 +217,8 @@ contains
          &                                                                                 redshiftLabel                           , indexLabel              , &
          &                                                                                 extracted
     type            (varying_string                  )                                  :: uniqueLabel                             , workPath                , &
-         &                                                                                 transferFileName                        , fileName_
+         &                                                                                 transferFileName                        , fileName_               , &
+         &                                                                                 escapedExecutable                       , escapedParameterFile
     type            (inputParameters                 )                                  :: descriptor
     logical                                                                             :: allEpochsFound
     !![
@@ -217,10 +241,18 @@ contains
     ! Add wavenumber resolution to descriptor.
     write (parameterLabel,'(i4)'  ) countPerDecade_
     call descriptor%addParameter("countPerDecade",parameterLabel)
-    ! Add the unique label string to the descriptor.
+    ! Add the unique label string to the descriptor. The dependency version labels are evaluated into
+    ! local variables first - gfortran leaks the temporary returned by a `varying_string`-valued
+    ! function when it is consumed directly by another function.
+    versionCamb         =dependencyVersion     ("camb"    )
+    versionForUtils     =dependencyVersion     ("forutils")
+    labelVersionCamb    =dependencyVersionLabel("camb"    )
+    labelVersionForUtils=dependencyVersionLabel("forutils")
     uniqueLabel=descriptor%serializeToString()       // &
          &      "_sourceDigest:"                     // &
-         &      String_C_To_Fortran(cambSourceDigest)
+         &      String_C_To_Fortran(cambSourceDigest)// &
+         &      labelVersionCamb                     // &
+         &      labelVersionForUtils
     call descriptor%destroy()
     ! Build the file name.
     fileName_=inputPath(pathTypeDataDynamic)               // &
@@ -247,8 +279,9 @@ contains
           allEpochsFound=.true.
           !$ call hdf5Access%set()
           hdf5ReadScope: block
-            type(hdf5Object) :: cambOutput, speciesGroup
-            cambOutput=hdf5Object(fileName_,readOnly=.true.)
+            type(hdf5File ) :: cambOutput
+            type(hdf5Group) :: speciesGroup
+            cambOutput=hdf5File(fileName_,readOnly=.true.)
             call cambOutput%readDataset('wavenumber',wavenumbers)
             allocate(transferFunctions(size(wavenumbers),2,size(redshifts)))
             speciesGroup=cambOutput%openGroup('darkMatter')
@@ -285,8 +318,9 @@ contains
              if (File_Exists(fileName_)) then
                 !$ call hdf5Access%set()
                 hdf5DatasetsScope: block
-                  type(hdf5Object) :: cambOutput, speciesGroup
-                  cambOutput  =hdf5Object(fileName_,readOnly=.true.)
+                  type(hdf5File ) :: cambOutput
+                  type(hdf5Group) :: speciesGroup
+                  cambOutput  =hdf5File(fileName_,readOnly=.true.)
                   speciesGroup=cambOutput%openGroup('darkMatter')
                   call speciesGroup%datasets(datasetNames)
                 end block hdf5DatasetsScope
@@ -437,7 +471,9 @@ contains
              write (cambParameterFile,'(a,1x,"=",1x,i1   )') 'l_sample_boost               ',1
              close(cambParameterFile)
              ! Run CAMB.
-             call System_Command_Do(cambPath//"camb "//parameterFile)
+             escapedExecutable   =shellEscape(cambPath//"camb")
+             escapedParameterFile=shellEscape(parameterFile   )
+             call System_Command_Do(escapedExecutable//" "//escapedParameterFile)
              ! Read the CAMB transfer function file.
              if (allocated(wavenumbers      )) deallocate(wavenumbers      )
              if (allocated(transferFunctions)) deallocate(transferFunctions)
@@ -480,12 +516,14 @@ contains
              ! Construct the output HDF5 file.
              !$ call hdf5Access%set()
              hdf5WriteScope: block
-               type(hdf5Object) :: speciesGroup      , parametersGroup             , &
-                    &              extrapolationGroup, extrapolationWavenumberGroup, &
-                    &              cambOutput
-               cambOutput=hdf5Object(fileName_,readOnly=.false.,objectsOverwritable=.true.)
+               type(hdf5File ) :: cambOutput
+               type(hdf5Group) :: speciesGroup      , parametersGroup             , &
+                    &              extrapolationGroup, extrapolationWavenumberGroup
+               cambOutput=hdf5File(fileName_,readOnly=.false.,objectsOverwritable=.true.)
                call cambOutput%writeAttribute('Transfer functions created by CAMB.','description')
                call cambOutput%writeAttribute(cambFormatVersionCurrent,'fileFormat')
+               call cambOutput%writeAttribute(versionCamb                 ,'versionCAMB'    )
+               call cambOutput%writeAttribute(versionForUtils             ,'versionForUtils')
                call cambOutput%writeDataset  (wavenumbers             ,'wavenumber'                                  ,chunkSize=chunkSize,appendTo=.not.  cambOutput%hasDataset('wavenumber'))
                speciesGroup=cambOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
                do i=1,countRedshiftsUnique
@@ -516,8 +554,9 @@ contains
        if (present(transferFunctionDarkMatter)) then
           !$ call hdf5Access%set()
           hdf5TransferDarkMatterScope: block
-            type(hdf5Object) :: cambOutput, speciesGroup
-            cambOutput=hdf5Object(fileName_,readOnly=.true.)
+            type(hdf5File ) :: cambOutput
+            type(hdf5Group) :: speciesGroup
+            cambOutput=hdf5File(fileName_,readOnly=.true.)
             call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
             wavenumbersLogarithmic=log(wavenumbersLogarithmic)
             extrapolationType     =extrapolationTypeExtrapolate
@@ -542,8 +581,9 @@ contains
        if (present(transferFunctionBaryons)) then
           !$ call hdf5Access%set()
           hdf5TransferFunctionBaryonsScope: block
-            type(hdf5Object) :: cambOutput, speciesGroup
-            cambOutput=hdf5Object(fileName_,readOnly=.true.)
+            type(hdf5File ) :: cambOutput
+            type(hdf5Group) :: speciesGroup
+            cambOutput=hdf5File(fileName_,readOnly=.true.)
             call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
             wavenumbersLogarithmic=log(wavenumbersLogarithmic)
             extrapolationType     =extrapolationTypeExtrapolate

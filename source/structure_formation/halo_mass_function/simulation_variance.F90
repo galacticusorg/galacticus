@@ -43,8 +43,9 @@ Implements a dark matter halo mass function class which modifies another mass fu
      class           (darkMatterHaloBiasClass), pointer :: darkMatterHaloBias_  => null()
      class           (powerSpectrumClass     ), pointer :: powerSpectrum_       => null()
    contains
-     final     ::                 simulationVarianceDestructor
-     procedure :: differential => simulationVarianceDifferential
+     final     ::                                   simulationVarianceDestructor
+     procedure :: differential                   => simulationVarianceDifferential
+     procedure :: isCriticalOverdensityDependent => simulationVarianceIsCriticalOverdensityDependent
   end type haloMassFunctionSimulationVariance
 
   interface haloMassFunctionSimulationVariance
@@ -164,7 +165,7 @@ contains
     !!}
     use :: Display       , only : displayIndent, displayUnindent    , displayMessage, verbosityLevelWorking
     use :: HDF5_Access   , only : hdf5Access
-    use :: IO_HDF5       , only : hdf5Object
+    use :: IO_HDF5       , only : hdf5File
     use :: File_Utilities, only : File_Exists  , File_Lock          , File_Unlock   , lockDescriptor
     use :: Input_Paths   , only : inputPath    , pathTypeDataDynamic
     implicit none
@@ -209,8 +210,8 @@ contains
                call File_Lock(char(fileNameVariance),fileLock,lockIsShared=.true.)
                !$ call hdf5Access%set()
                hdf5ReadScope: block
-                 type(hdf5Object) :: varianceFile
-                 varianceFile=hdf5Object(fileNameVariance,readOnly=.true.)
+                 type(hdf5File  ) :: varianceFile
+                 varianceFile=hdf5File(fileNameVariance,readOnly=.true.)
                  call varianceFile%readAttribute('variance',self%varianceSimulation)
                end block hdf5ReadScope
                !$ call hdf5Access%unset()
@@ -231,8 +232,8 @@ contains
                call File_Lock(char(fileNameVariance),fileLock,lockIsShared=.false.)
                !$ call hdf5Access%set()
                hdf5WriteScope: block
-                 type(hdf5Object) :: varianceFile
-                 varianceFile=hdf5Object(fileNameVariance,readOnly=.false.,overWrite=.true.)
+                 type(hdf5File  ) :: varianceFile
+                 varianceFile=hdf5File(fileNameVariance,readOnly=.false.,overWrite=.true.)
                  call varianceFile%writeAttribute(self%varianceSimulation,'variance')
                end block hdf5WriteScope
                !$ call hdf5Access%unset()
@@ -260,6 +261,18 @@ contains
          &           )
     return
   end function simulationVarianceDifferential
+
+  logical function simulationVarianceIsCriticalOverdensityDependent(self)
+    !!{RST
+    Return whether the differential halo mass function depends on the critical overdensity for
+    collapse, by forwarding the query to the wrapped halo mass function.
+    !!}
+    implicit none
+    class(haloMassFunctionSimulationVariance), intent(inout) :: self
+
+    simulationVarianceIsCriticalOverdensityDependent=self%massFunction_%isCriticalOverdensityDependent()
+    return
+  end function simulationVarianceIsCriticalOverdensityDependent
 
   double precision function integrandVarianceSimulationX(wavenumber)
     !!{RST

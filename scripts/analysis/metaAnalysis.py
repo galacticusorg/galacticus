@@ -8,7 +8,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 # Create plots of collected metadata on merger tree ODE evolver.
-# Andrew Benson (05-June-2011) [Perl]; ported to Python
+# Andrew Benson (05-June-2011)
 
 if len(sys.argv) != 3:
     print("Usage: metaAnalysis.py <modelFile> <outputFolder>", file=sys.stderr)

@@ -1,8 +1,6 @@
 """Per-property utilities + the `propertyIteratedFunctions` phase iterator.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Properties/Utils.pm.
 """
 
 
@@ -19,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 # Maps an action verb (`get` / `set` / `rate`) to the matching property
-# attribute key.  Mirrors `%attributeAdjective` at Properties/Utils.pm:30.
+# attribute key.
 attribute_adjective = {
     'get':  'isGettable',
     'set':  'isSettable',
@@ -30,9 +28,8 @@ attribute_adjective = {
 def Property_Function_Iterator(build):
     """Drive the `propertyIteratedFunctions` phase.
 
-    Mirrors `Property_Function_Iterator`.  Walks the `component_utils`
-    registry; for every owner that registered any
-    `propertyIteratedFunctions`, calls each function once per
+    Walks the `component_utils` registry; for every owner that registered
+    any `propertyIteratedFunctions`, calls each function once per
     `(class, member, property)` triple.
     """
     for owner_name in sorted(component_utils.keys()):

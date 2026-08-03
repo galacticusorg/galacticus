@@ -1,0 +1,64 @@
+name: Verify code signing of a MacOS archive
+
+description: >
+  Check that every Mach-O binary packaged into an archive destined for Apple notarization carries a
+  valid Developer ID signature with the hardened runtime enabled. Apple rejects the entire archive if
+  even one binary is unsigned, so catching this at packaging time avoids a rejection that only becomes
+  visible hours later when the notarization poll runs.
+
+inputs:
+  archive:
+    description: 'Name of the archive to verify'
+    required: true
+  working_directory:
+    description: 'Directory containing the archive; the archive entries are resolved relative to it'
+    required: true
+  macos_certificate:
+    description: 'Base-64 encoded signing certificate; if empty, verification is skipped'
+    required: false
+    default: ''
+runs:
+  using: 'composite'
+  steps:
+    - name: Verify code signing
+      shell: bash
+      env:
+        ARCHIVE: ${{ inputs.archive }}
+        WORKING_DIRECTORY: ${{ inputs.working_directory }}
+        MACOS_CERTIFICATE: ${{ inputs.macos_certificate }}
+      run: |
+        # Code-signing is skipped when the certificate is unavailable (e.g. a Dependabot or fork pull
+        # request), so skip verification too rather than failing on unsigned binaries we never signed.
+        if [ -z "${MACOS_CERTIFICATE}" ]; then
+          echo "macOS signing certificate is unavailable -- skipping code-signing verification."
+          exit 0
+        fi
+        cd "${WORKING_DIRECTORY}"
+        # List the archive entries (dropping directories) and identify which of them are Mach-O binaries.
+        # The entries are resolved against the files on disk from which the archive was just built, which
+        # avoids unpacking an archive that can be over a gigabyte in size. A tab is used as the separator
+        # in the `file` output since a colon (the default) also appears in the descriptions it emits.
+        unzip -Z1 "${ARCHIVE}" | grep -v '/$' > entriesToVerify.txt
+        file -F $'\t' -f entriesToVerify.txt | awk -F $'\t' '$2 ~ /Mach-O/ {print $1}' > binariesToVerify.txt
+        status=0
+        while IFS= read -r binary; do
+          if ! codesign --verify --strict "${binary}" > /dev/null 2>&1; then
+            echo "::error::${ARCHIVE} contains a binary which is not validly code-signed: ${binary}"
+            status=1
+            continue
+          fi
+          signature=$(codesign --display --verbose=2 "${binary}" 2>&1)
+          # An ad-hoc signature (which the linker applies to arm64 binaries by default) passes
+          # `codesign --verify`, so require a Developer ID authority explicitly.
+          if ! echo "${signature}" | grep -q -E '^Authority=Developer ID Application'; then
+            echo "::error::${ARCHIVE} contains a binary not signed with a Developer ID certificate: ${binary}"
+            status=1
+          fi
+          if ! echo "${signature}" | grep -q -E '^CodeDirectory .*flags=.*runtime'; then
+            echo "::error::${ARCHIVE} contains a binary without the hardened runtime enabled: ${binary}"
+            status=1
+          fi
+        done < binariesToVerify.txt
+        echo "Verified $(wc -l < binariesToVerify.txt) Mach-O binaries in ${ARCHIVE}."
+        rm -f entriesToVerify.txt binariesToVerify.txt
+        exit $status

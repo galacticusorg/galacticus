@@ -100,10 +100,10 @@ contains
     type (inputParameters                ), intent(inout) :: parameters
     class(massDistributionClass          ), pointer       :: massDistribution_
     class(massDistributionHeatingClass   ), pointer       :: massDistributionHeating_
-    type (varying_string                 )                :: nonAnalyticSolver                     , componentType                      , &
+    type (varying_string                 )                :: nonAnalyticSolver                     , componentType                            , &
          &                                                   massType
-    logical                                               :: tolerateVelocityMaximumFailure        , toleratePotentialIntegrationFailure, &
-         &                                                   tolerateEnclosedMassIntegrationFailure
+    logical                                               :: tolerateVelocityMaximumFailure        , toleratePotentialIntegrationFailure      , &
+         &                                                   tolerateEnclosedMassIntegrationFailure, chandrasekharIntegralSuppressExtendedMass
     double precision                                      :: fractionRadiusFinalSmall              , toleranceRelativePotential
     
     !![
@@ -171,12 +171,20 @@ contains
       The maximum allowed relative tolerance to use in numerical solutions for the gravitational potential in dark-matter-only density profiles before aborting.
       </description>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>chandrasekharIntegralSuppressExtendedMass</name>
+      <defaultValue>.true.</defaultValue>
+      <source>parameters</source>
+      <description>
+      If true, the Chandrasekhar integral (used to compute dynamical friction) is suppressed by a factor accounting for the finite extent of the perturbing subhalo. If false, no such suppression is applied.
+      </description>
+    </inputParameter>
     <objectBuilder class="massDistribution"        name="massDistribution_"        source="parameters"/>
     <objectBuilder class="massDistributionHeating" name="massDistributionHeating_" source="parameters"/>
     !!]
     select type (massDistribution_)
     class is (massDistributionSpherical)
-       self=massDistributionSphericalHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),tolerateVelocityMaximumFailure,tolerateEnclosedMassIntegrationFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativePotential,massDistribution_,massDistributionHeating_,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
+       self=massDistributionSphericalHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),tolerateVelocityMaximumFailure,tolerateEnclosedMassIntegrationFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativePotential,massDistribution_,massDistributionHeating_,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.),chandrasekharIntegralSuppressExtendedMass)
     class default
        call Error_Report('a spherically-symmetric mass distribution is required'//{introspection:location})
     end select
@@ -188,7 +196,7 @@ contains
     return
   end function sphericalHeatedConstructorParameters
   
-  function sphericalHeatedConstructorInternal(nonAnalyticSolver,tolerateVelocityMaximumFailure,tolerateEnclosedMassIntegrationFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativePotential,massDistribution_,massDistributionHeating_,componentType,massType) result(self)
+  function sphericalHeatedConstructorInternal(nonAnalyticSolver,tolerateVelocityMaximumFailure,tolerateEnclosedMassIntegrationFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativePotential,massDistribution_,massDistributionHeating_,componentType,massType,chandrasekharIntegralSuppressExtendedMass) result(self)
     !!{RST
     Constructor for the :galacticus-class:`massDistributionSphericalHeated` mass distribution class.
     !!}
@@ -197,14 +205,15 @@ contains
     class           (massDistributionSpherical        ), intent(in   ), target   :: massDistribution_
     class           (massDistributionHeatingClass     ), intent(in   ), target   :: massDistributionHeating_
     type            (enumerationNonAnalyticSolversType), intent(in   )           :: nonAnalyticSolver
-    logical                                            , intent(in   )           :: toleratePotentialIntegrationFailure      , tolerateEnclosedMassIntegrationFailure        , &
+    logical                                            , intent(in   )           :: toleratePotentialIntegrationFailure            , tolerateEnclosedMassIntegrationFailure        , &
          &                                                                          tolerateVelocityMaximumFailure
     type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
-    double precision                                   , intent(in   )           :: fractionRadiusFinalSmall                 , toleranceRelativePotential
-    double precision                                   , parameter               :: toleranceAbsolute                  =0.0d0, toleranceRelative                     =1.0d-6
+    logical                                            , intent(in   ), optional :: chandrasekharIntegralSuppressExtendedMass
+    double precision                                   , intent(in   )           :: fractionRadiusFinalSmall                       , toleranceRelativePotential
+    double precision                                   , parameter               :: toleranceAbsolute                        =0.0d0, toleranceRelative                     =1.0d-6
     !![
-    <constructorAssign variables="nonAnalyticSolver, tolerateVelocityMaximumFailure, toleratePotentialIntegrationFailure, tolerateEnclosedMassIntegrationFailure, fractionRadiusFinalSmall, toleranceRelativePotential, *massDistribution_, *massDistributionHeating_, componentType, massType"/>
+    <constructorAssign variables="nonAnalyticSolver, tolerateVelocityMaximumFailure, toleratePotentialIntegrationFailure, tolerateEnclosedMassIntegrationFailure, chandrasekharIntegralSuppressExtendedMass, fractionRadiusFinalSmall, toleranceRelativePotential, *massDistribution_, *massDistributionHeating_, componentType, massType"/>
     !!]
  
     self%      componentType=self%massDistribution_%componentType

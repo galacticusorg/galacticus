@@ -76,17 +76,18 @@ Implements a merger tree branching probability class using the algorithm of :cit
        <method description="Compute the :math:`a` parameter of the hypergeometric function."                   method="hypergeometricA"     />
      </methods>
      !!]
-     final     ::                          parkinsonColeHellyDestructor
-     procedure :: V                     => parkinsonColeHellyV
-     procedure :: modifier              => parkinsonColeHellyModifier
-     procedure :: hypergeometricA       => parkinsonColeHellyHypergeometricA
-     procedure :: rate                  => parkinsonColeHellyRate
-     procedure :: probability           => parkinsonColeHellyProbability
-     procedure :: probabilityBound      => parkinsonColeHellyProbabilityBound
-     procedure :: fractionSubresolution => parkinsonColeHellyFractionSubresolution
-     procedure :: massBranch            => parkinsonColeHellyMassBranch
-     procedure :: stepMaximum           => parkinsonColeHellyStepMaximum
-     procedure :: computeCommonFactors  => parkinsonColeHellyComputeCommonFactors
+     final     ::                                 parkinsonColeHellyDestructor
+     procedure :: V                            => parkinsonColeHellyV
+     procedure :: modifier                     => parkinsonColeHellyModifier
+     procedure :: progenitorMassFunctionFactor => parkinsonColeHellyProgenitorMassFunctionFactor
+     procedure :: hypergeometricA              => parkinsonColeHellyHypergeometricA
+     procedure :: rate                         => parkinsonColeHellyRate
+     procedure :: probability                  => parkinsonColeHellyProbability
+     procedure :: probabilityBound             => parkinsonColeHellyProbabilityBound
+     procedure :: fractionSubresolution        => parkinsonColeHellyFractionSubresolution
+     procedure :: massBranch                   => parkinsonColeHellyMassBranch
+     procedure :: stepMaximum                  => parkinsonColeHellyStepMaximum
+     procedure :: computeCommonFactors         => parkinsonColeHellyComputeCommonFactors
   end type mergerTreeBranchingProbabilityParkinsonColeHelly
 
   interface mergerTreeBranchingProbabilityParkinsonColeHelly
@@ -430,14 +431,12 @@ contains
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
     double precision                                                  , intent(in   ) :: massFraction     , haloMass
-    double precision                                                                  :: childSigmaSquared
+    double precision                                                                  :: childSigmaSquared, varianceDifference
 
     childSigmaSquared  =+self%cosmologicalMassVariance_%rootVariance(massFraction*haloMass,self%timeParent)**2
-    parkinsonColeHellyV=+       childSigmaSquared  &
-         &              /(                         &
-         &                +     childSigmaSquared  &
-         &                -self%sigmaParentSquared &
-         &               )**1.5d0
+    ! (childSigma²-σ_p²)^{3/2} written as d·√d to use a square root instead of a general power.
+    varianceDifference =+childSigmaSquared-self%sigmaParentSquared
+    parkinsonColeHellyV=+childSigmaSquared/(varianceDifference*sqrt(varianceDifference))
     return
   end function parkinsonColeHellyV
 
@@ -645,11 +644,25 @@ contains
     implicit none
     double precision, intent(in   ) :: childAlpha, childHaloMass, childSigma
 
-    parkinsonColeHellyProgenitorMassFunction=+      parkinsonColeHellyMergingRate(childSigma   ,childAlpha)    &
-         &                                   *self_%modifier                     (childSigma              )    &
-         &                                   /                                    childHaloMass            **2
+    ! The merging-rate × modifier product is obtained through a bindable function so that subclasses (e.g.
+    ! PCHPlus) can supply an algebraically-fused form that avoids redundant power evaluations.
+    parkinsonColeHellyProgenitorMassFunction=+self_%progenitorMassFunctionFactor(childSigma,childAlpha) &
+         &                                   /childHaloMass**2
     return
   end function parkinsonColeHellyProgenitorMassFunction
+
+  double precision function parkinsonColeHellyProgenitorMassFunctionFactor(self,childSigma,childAlpha)
+    !!{RST
+    The unnormalized progenitor mass function factor---the merging rate multiplied by the modifier. Provided
+    as a bindable function so that subclasses can override it with an algebraically-fused form.
+    !!}
+    implicit none
+    class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
+    double precision                                                  , intent(in   ) :: childSigma, childAlpha
+
+    parkinsonColeHellyProgenitorMassFunctionFactor=+parkinsonColeHellyMergingRate(childSigma,childAlpha)*self%modifier(childSigma)
+    return
+  end function parkinsonColeHellyProgenitorMassFunctionFactor
 
   double precision function parkinsonColeHellyMergingRate(childSigma,childAlpha)
     !!{RST
@@ -657,11 +670,14 @@ contains
     !!}
     implicit none
     double precision, intent(in   ) :: childAlpha       , childSigma
-    double precision                :: childSigmaSquared
+    double precision                :: childSigmaSquared, varianceDifference
 
     childSigmaSquared=childSigma**2
     if (childSigmaSquared > self_%sigmaParentSquared .and. childAlpha < 0.0d0) then
-       parkinsonColeHellyMergingRate=(childSigmaSquared/((childSigmaSquared-self_%sigmaParentSquared)**1.5d0))*abs(childAlpha)
+       ! The denominator (childSigma²-σ_p²)^{3/2} is written as d·√d to use a (cheaper) square root in place
+       ! of a general power.
+       varianceDifference           =childSigmaSquared-self_%sigmaParentSquared
+       parkinsonColeHellyMergingRate=(childSigmaSquared/(varianceDifference*sqrt(varianceDifference)))*abs(childAlpha)
     else
        parkinsonColeHellyMergingRate=0.0d0
     end if

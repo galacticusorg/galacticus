@@ -137,7 +137,7 @@ contains
     Determine the mean position and velocity of N-body particles.
     !!}
     use :: Error                           , only : Error_Report
-    use :: IO_HDF5                         , only : hdf5Object
+    use :: IO_HDF5                         , only : hdf5Group
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class           (nbodyOperatorRotationCurve), intent(inout)                 :: self
@@ -149,7 +149,7 @@ contains
     double precision                            , allocatable  , dimension(:  ) :: distanceRadialSquared
     double precision                            , allocatable  , dimension(:,:) :: positionRelative
     integer                                                                     :: k
-    type            (hdf5Object                )                                :: rotationCurveGroup
+    type            (hdf5Group                 )                                :: rotationCurveGroup
     integer         (c_size_t                  )                                :: i                           , j            , &
          &                                                                         iSimulation
     double precision                                                            :: massParticle

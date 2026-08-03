@@ -18,8 +18,7 @@ Outputs:
                                      so the identifier is valid in C).
   * `$BUILDPATH/<target>.md5.blob` -- pickle cache of per-file digest data.
 
-Mirrors scripts/build/sourceDigests.pl.
-Andrew Benson (ported to Python 2026).
+Andrew Benson (2026).
 """
 
 import base64
@@ -44,8 +43,7 @@ from Galacticus.Build.ScanCache import (
     load_cache      as _load_cache,
 )
 
-# Show INFO-level diagnostic output from the library modules (mirrors the
-# verbose `print()`-driven output of the Perl-era driver).
+# Show INFO-level diagnostic output from the library modules.
 _configure_default()
 
 
@@ -84,8 +82,6 @@ def _functionclass_names_and_modules(state_storables):
     """Return a list of functionClass *directive* names (i.e. the
     `<functionClass>Class` entries from `stateStorables.xml`, with the
     trailing `Class` stripped) plus the `functionClassInstances` names.
-
-    Mirrors sourceDigests.pl:42-47.
     """
     fcs = (state_storables or {}).get('functionClasses') or {}
     if isinstance(fcs, dict):
@@ -489,7 +485,7 @@ def main(argv):
             info = digests_per_file['types'][hash_name]
             digest = info.get('compositeMD5', '')
             # Replace `/` with `@` so the b64 digest is a valid C string
-            # literal in a header-less context (mirrors Perl line 213).
+            # literal in a header-less context.
             digest = digest.replace('/', '@')
             fh.write(f'char {hash_name}MD5[]="{digest}";\n')
 

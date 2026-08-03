@@ -75,8 +75,8 @@
    contains
      !![
      <methods docformat="rst">
-       <method description="\textcolorred&lt;integer(c_size_t)(2)&gt; interpolationIndicesMetallicity\argout, &lt;integer(c_size_t)(2,2)&gt; interpolationIndicesMass\argout, &lt;integer(c_size_t)(2,2,2)&gt; interpolationIndicesAge\argout, &lt;double(2)&gt; interpolationFactorsMetallicity\argout, &lt;double(2,2)&gt; interpolationFactorsMass\argout, &lt;double(2,2,2)&gt; interpolationFactorsAge\argout, \logicalzero\ metallicityOutOfRange\argout, \logicalzero\ massOutOfRange\argout, \logicalzero\ ageOutOfRange\argout" method="interpolationCompute" />
-       <method description="\textcolorred&lt;integer(c_size_t)(2)&gt; interpolationIndicesMetallicity\argin, &lt;integer(c_size_t)(2,2)&gt; interpolationIndicesMass\argin, &lt;integer(c_size_t)(2,2,2)&gt; interpolationIndicesAge\argin, &lt;double(2)&gt; interpolationFactorsMetallicity\argin, &lt;double(2,2)&gt; interpolationFactorsMass\argin, &lt;double(2,2,2)&gt; interpolationFactorsAge\argin, &lt;double(:,:,:)&gt; stellarTracks\argin" method="interpolate" />
+       <method description="``integer(c_size_t)(2)`` interpolationIndicesMetallicity [out], ``integer(c_size_t)(2,2)`` interpolationIndicesMass [out], ``integer(c_size_t)(2,2,2)`` interpolationIndicesAge [out], ``double(2)`` interpolationFactorsMetallicity [out], ``double(2,2)`` interpolationFactorsMass [out], ``double(2,2,2)`` interpolationFactorsAge [out], ``logical`` metallicityOutOfRange [out], ``logical`` massOutOfRange [out], ``logical`` ageOutOfRange [out]" method="interpolationCompute" />
+       <method description="``integer(c_size_t)(2)`` interpolationIndicesMetallicity [in], ``integer(c_size_t)(2,2)`` interpolationIndicesMass [in], ``integer(c_size_t)(2,2,2)`` interpolationIndicesAge [in], ``double(2)`` interpolationFactorsMetallicity [in], ``double(2,2)`` interpolationFactorsMass [in], ``double(2,2,2)`` interpolationFactorsAge [in], ``double(:,:,:)`` stellarTracks [in]" method="interpolate" />
        <method method="initialize" description="Initialize stellar data."/>
      </methods>
      !!]
@@ -149,7 +149,7 @@ contains
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5File     , hdf5Group   , hdf5Dataset
     use :: ISO_Varying_String, only : assignment(=), operator(//), varying_string
     use :: String_Handling   , only : operator(//)
     implicit none
@@ -161,13 +161,14 @@ contains
       integer                   :: ageCountMaximum        , fileFormatVersion      , &
            &                       initialMassCount       , initialMassCountMaximum, &
            &                       metallicityCountMaximum, metallicityCount
-      type     (hdf5Object    ) :: ageDataset             , massGroup              , &
-           &                       metallicityGroup       , stellarTracks
+      type     (hdf5Dataset   ) :: ageDataset
+      type     (hdf5Group     ) :: massGroup              , metallicityGroup
+      type     (hdf5File      ) :: stellarTracks
       logical                   :: foundMassGroup         , foundMetallicityGroup
 
       ! Open the HDF5 file.
       !$ call hdf5Access%set()
-      stellarTracks=hdf5Object(char(self%fileName),readOnly=.true.)
+      stellarTracks=hdf5File(self%fileName,readOnly=.true.)
       ! Check that this file has the correct format.
       call stellarTracks%readAttribute('fileFormat',fileFormatVersion,allowPseudoScalar=.true.)
       if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('format of stellar tracks file is out of date'//{introspection:location})

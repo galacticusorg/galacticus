@@ -2,8 +2,6 @@
 inactive / analytic + auto-create rate functions on the class type.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Properties/Evolve.pm.
 """
 
 import os
@@ -51,7 +49,7 @@ def _impl_type(class_dict, member):
 
 
 def Build_Count_Functions(build, class_dict, member, prop):
-    """Generate `<class><Member><Prop>Count`.  Mirrors `Build_Count_Functions`."""
+    """Generate `<class><Member><Prop>Count`."""
     if not _evolvable(prop):
         return
     impl_type = _impl_type(class_dict, member)
@@ -64,9 +62,9 @@ def Build_Count_Functions(build, class_dict, member, prop):
         'name':        fn_name,
         'description': (
             f"Return a count of the number of scalar properties in the "
-            f"\\mono{{{prop['name']}}} property of an "
-            f"\\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component class."
+            f"``{prop['name']}`` property of an "
+            f"``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component class."
         ),
         'variables':   [
             {
@@ -98,7 +96,7 @@ def Build_Count_Functions(build, class_dict, member, prop):
 
 
 def Build_Rate_Get_Functions(build, class_dict, member, prop):
-    """Generate `<class><Member><Prop>RateGet`.  Mirrors `Build_Rate_Get_Functions`."""
+    """Generate `<class><Member><Prop>RateGet`."""
     if not _evolvable(prop):
         return
 
@@ -123,9 +121,9 @@ def Build_Rate_Get_Functions(build, class_dict, member, prop):
             + 'RateGet'
         ),
         'description': (
-            f"Get the rate of change of the \\mono{{{prop['name']}}} "
-            f"property of an \\mono{{{member['name']}}} implementation "
-            f"of the \\mono{{{class_dict['name']}}} component class."
+            f"Get the rate of change of the ``{prop['name']}`` "
+            f"property of an ``{member['name']}`` implementation "
+            f"of the ``{class_dict['name']}`` component class."
         ),
         'modules':     ['Error'],
         'variables':   [
@@ -202,7 +200,7 @@ def Build_Rate_Get_Functions(build, class_dict, member, prop):
 
 
 def Build_Rate_Functions(build, class_dict, member, prop):
-    """Generate `<class><Member><Prop>Rate(Intrinsic)?`.  Mirrors `Build_Rate_Functions`."""
+    """Generate `<class><Member><Prop>Rate(Intrinsic)?`."""
     if not _evolvable(prop):
         return
 
@@ -232,9 +230,9 @@ def Build_Rate_Functions(build, class_dict, member, prop):
         'description': (
             "Accumulate"
             + (" directly (i.e. circumventing any deferred function binding)" if intrinsic_rate else "")
-            + f" to the rate of change of the \\mono{{{prop['name']}}} "
-            f"property of an \\mono{{{member['name']}}} implementation of "
-            f"the \\mono{{{class_dict['name']}}} component class."
+            + f" to the rate of change of the ``{prop['name']}`` "
+            f"property of an ``{member['name']}`` implementation of "
+            f"the ``{class_dict['name']}`` component class."
         ),
         'modules':     ['Error'],
         'variables':   [
@@ -409,8 +407,8 @@ def Build_Rate_Functions(build, class_dict, member, prop):
 
 
 def Build_Auto_Create_Rate_Functions(build, class_dict, member, prop):
-    """Mirrors `Build_Auto_Create_Rate_Functions`.  Bound to the
-    component class type, not the implementation.
+    """Generate the `<class><Prop>Rate` auto-create rate function — bound
+    to the component class type, not the implementation.
     """
     attrs = prop.get('attributes') or {}
     if (
@@ -436,8 +434,8 @@ def Build_Auto_Create_Rate_Functions(build, class_dict, member, prop):
         'type':        'void',
         'name':        class_dict['name'] + _ucfirst(prop['name']) + 'Rate',
         'description': (
-            f"Accept a rate set for the \\mono{{{prop['name']}}} property "
-            f"of the \\mono{{{class_dict['name']}}} component class. "
+            f"Accept a rate set for the ``{prop['name']}`` property "
+            f"of the ``{class_dict['name']}`` component class. "
             "Trigger an interrupt to create the component."
         ),
         'modules':     ['Error'],
@@ -496,7 +494,7 @@ def Build_Auto_Create_Rate_Functions(build, class_dict, member, prop):
 
 
 def Build_Scale_Functions(build, class_dict, member, prop):
-    """Mirrors `Build_Scale_Functions`."""
+    """Generate `<class><Member><Prop>Scale`."""
     if not _evolvable(prop):
         return
     type_descriptor, _ = data_object_definition(prop.get('data') or {}, match_only=True)
@@ -517,9 +515,9 @@ def Build_Scale_Functions(build, class_dict, member, prop):
             + 'Scale'
         ),
         'description': (
-            f"Set the absolute scale of the \\mono{{{prop['name']}}} "
-            f"property of an \\mono{{{member['name']}}} implementation of "
-            f"the \\mono{{{class_dict['name']}}} component class."
+            f"Set the absolute scale of the ``{prop['name']}`` "
+            f"property of an ``{member['name']}`` implementation of "
+            f"the ``{class_dict['name']}`` component class."
         ),
         'variables':   [
             {
@@ -555,7 +553,7 @@ def Build_Scale_Functions(build, class_dict, member, prop):
 
 
 def Build_Inactive_Functions(build, class_dict, member, prop):
-    """Mirrors `Build_Inactive_Functions`."""
+    """Generate `<class><Member><Prop>Inactive`."""
     if not _evolvable(prop):
         return
     impl_type = _impl_type(class_dict, member)
@@ -572,9 +570,9 @@ def Build_Inactive_Functions(build, class_dict, member, prop):
             + 'JcbnZr'
         ),
         'description': (
-            f"Indicate that the \\mono{{{prop['name']}}} property of an "
-            f"\\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component class is inactive "
+            f"Indicate that the ``{prop['name']}`` property of an "
+            f"``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component class is inactive "
             "for differential equation solving."
         ),
         'variables':   [
@@ -612,7 +610,7 @@ def Build_Inactive_Functions(build, class_dict, member, prop):
 
 
 def Build_Analytic_Functions(build, class_dict, member, prop):
-    """Mirrors `Build_Analytic_Functions`."""
+    """Generate `<class><Member><Prop>Analytic`."""
     if not _evolvable(prop):
         return
     impl_type = _impl_type(class_dict, member)
@@ -629,9 +627,9 @@ def Build_Analytic_Functions(build, class_dict, member, prop):
             + 'Alytc'
         ),
         'description': (
-            f"Indicate that the \\mono{{{prop['name']}}} property of an "
-            f"\\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component class is to be "
+            f"Indicate that the ``{prop['name']}`` property of an "
+            f"``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component class is to be "
             "solved analytically during differential evolution."
         ),
         'modules':     ['Error'],
@@ -697,7 +695,8 @@ def _ucfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Properties/Evolve.pm:21-29.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('propertiesEvolve', 'propertyIteratedFunctions', Build_Count_Functions)

@@ -121,7 +121,7 @@ contains
     use :: Geometry_Surveys                        , only : surveyGeometryLiWhite2009SDSS
     use :: Gravitational_Lensing                   , only : gravitationalLensingClass
     use :: HDF5_Access                             , only : hdf5Access
-    use :: IO_HDF5                                 , only : hdf5Object
+    use :: IO_HDF5                                 , only : hdf5File                                     , hdf5Group
     use :: ISO_Varying_String                      , only : var_str                                      , varying_string
     use :: Node_Property_Extractors                , only : nodePropertyExtractorRadiusHalfMassStellar   , nodePropertyExtractorMassStellar
     use :: Numerical_Constants_Astronomical        , only : megaParsec
@@ -179,7 +179,8 @@ contains
     !  log10(stellar mass).
     double precision                                                 , parameter                   :: massStellarErrorDex                     =8.06d-2
     integer         (c_size_t                                       )                              :: iBin
-    type            (hdf5Object                                     )                              :: dataFile                                       , distribution
+    type            (hdf5File                                       )                              :: dataFile
+    type            (hdf5Group                                      )                              :: distribution
     double precision                                                                               :: massStellarMinimum                             , massStellarMaximum                                  , &
          &                                                                                            indexSersicMinimum                             , indexSersicMaximum
     character       (len=16                                         )                              :: distributionName                               , massStellarMinimumLogarithmic                       , &
@@ -196,8 +197,8 @@ contains
     ! Construct sizes matched to those used by  Shen et al. (2003). Also read stellar mass and Sersic index ranges.
     write (distributionName,'(a,i2.2)') 'distribution',distributionNumber
     !$ call hdf5Access%set()
-    dataFile    =hdf5Object          (char(inputPath(pathTypeDataStatic)//'observations/galaxySizes/Galaxy_Sizes_By_Mass_SDSS_Shen_2003.hdf5'),readOnly=.true.)
-    distribution=dataFile  %openGroup(distributionName                                                                                                        )
+    dataFile    =hdf5File          (inputPath(pathTypeDataStatic)//'observations/galaxySizes/Galaxy_Sizes_By_Mass_SDSS_Shen_2003.hdf5',readOnly=.true.)
+    distribution=dataFile%openGroup(distributionName                                                                                                        )
     call distribution%readDataset  ('radius'             ,radii              )
     call distribution%readDataset  ('radiusFunction'     ,functionValueTarget)
     call distribution%readDataset  ('radiusFunctionError',functionErrorTarget)

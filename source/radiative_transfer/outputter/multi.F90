@@ -155,7 +155,7 @@ contains
     implicit none
     class(radiativeTransferOutputterMulti), intent(inout) :: self
     class(radiativeTransferSourceClass   ), intent(inout) :: radiativeTransferSource_
-    type (hdf5Object                     ), intent(inout) :: outputGroup
+    type (hdf5Group                      ), intent(inout) :: outputGroup
     type (multiOutputterList             ), pointer       :: outputter_
 
     outputter_ => self%outputters
@@ -205,7 +205,7 @@ contains
     !!}
     implicit none
     class(radiativeTransferOutputterMulti), intent(inout) :: self
-    type (hdf5Object                     ), intent(inout) :: outputGroup
+    type (hdf5Group                      ), intent(inout) :: outputGroup
     type (multiOutputterList             ), pointer       :: outputter_
 
     outputter_ => self%outputters

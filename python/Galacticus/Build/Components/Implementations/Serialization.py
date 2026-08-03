@@ -2,11 +2,9 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/Implementations/Serialization.pm.
-Note: the Perl source references `@code::unused` in three of the four
-hooks, but never populates it — so the `!$GLC attributes unused` lines
-in those functions are effectively dead code in the original.  We omit
-those branches here.
+Note: three of the four hooks deliberately emit no `!$GLC attributes
+unused` lines — the unused-variable list was never populated for them
+historically, so those branches are omitted here.
 """
 
 
@@ -51,7 +49,7 @@ def _meta_format(mpt, format_table):
 
 
 def Implementation_Serialize_ASCII(build, class_dict, member):
-    """Mirrors `Implementation_Serialize_ASCII`."""
+    """Generate `nodeComponent<Class><Member>SerializeASCII`."""
     cap_class   = _ucfirst(class_dict['name'])
     cap_member  = _ucfirst(member['name'])
     impl_type   = 'nodeComponent' + cap_class + cap_member
@@ -215,7 +213,7 @@ def Implementation_Serialize_ASCII(build, class_dict, member):
 
 
 def Implementation_Serialize_XML(build, class_dict, member):
-    """Mirrors `Implementation_Serialize_XML`."""
+    """Generate `nodeComponent<Class><Member>SerializeXML`."""
     cap_class  = _ucfirst(class_dict['name'])
     cap_member = _ucfirst(member['name'])
     impl_type  = 'nodeComponent' + cap_class + cap_member
@@ -270,7 +268,7 @@ def Implementation_Serialize_XML(build, class_dict, member):
         data  = prop.get('data') or {}
         ptype = data.get('type')
         rank  = int(data.get('rank') or 0)
-        # Perl filter: keep iff `! isVirtual || data.rank == 0`.
+        # Keep iff `not isVirtual or data.rank == 0`.
         if attrs.get('isVirtual') and rank != 0:
             continue
         if not attrs.get('isVirtual'):
@@ -362,7 +360,7 @@ def Implementation_Serialize_XML(build, class_dict, member):
 
 
 def Implementation_Serialize_Raw(build, class_dict, member):
-    """Mirrors `Implementation_Serialize_Raw`."""
+    """Generate `nodeComponent<Class><Member>SerializeRaw`."""
     cap_class  = _ucfirst(class_dict['name'])
     cap_member = _ucfirst(member['name'])
     impl_type  = 'nodeComponent' + cap_class + cap_member
@@ -488,7 +486,7 @@ def Implementation_Serialize_Raw(build, class_dict, member):
 
 
 def Implementation_Deserialize_Raw(build, class_dict, member):
-    """Mirrors `Implementation_Deserialize_Raw`."""
+    """Generate `nodeComponent<Class><Member>DeserializeRaw`."""
     cap_class  = _ucfirst(class_dict['name'])
     cap_member = _ucfirst(member['name'])
     impl_type  = 'nodeComponent' + cap_class + cap_member
@@ -727,7 +725,8 @@ def _ucfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Implementations/Serialization.pm:23-27.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('implementationsSerialization', 'implementationIteratedFunctions',

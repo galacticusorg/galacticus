@@ -25,22 +25,25 @@ program Tests_IO_XML
   !!{RST
   Tests the XML I/O module.
   !!}
-  use            :: Unit_Tests    , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
-  use            :: IO_XML        , only : XML_Count_Elements_By_Tag_Name                        , XML_Array_Read      , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, &
-          &                                XML_Parse                                             , XML_Path_Exists     , xmlNodeList          , XML_Get_ELements_By_Tag_Name
-  use            :: Display       , only : displayVerbositySet           , verbosityLevelStandard
-  use            :: FoX_DOM       , only : destroy                       , node                  , serialize           , extractDataContent
-  use            :: Error         , only : Error_Report
-  use, intrinsic :: ISO_C_Binding , only : c_size_t
-  use            :: System_Command, only : System_Command_Do
+  use            :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use            :: IO_XML            , only : XML_Count_Elements_By_Tag_Name                        , XML_Array_Read      , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, &
+          &                                    XML_Parse                                             , XML_Path_Exists     , xmlNodeList          , XML_Get_ELements_By_Tag_Name
+  use            :: Display           , only : displayVerbositySet           , verbosityLevelStandard
+  use            :: FoX_DOM           , only : destroy                       , node                  , serialize           , extractDataContent
+  use            :: Error             , only : Error_Report
+  use, intrinsic :: ISO_C_Binding     , only : c_size_t
+  use            :: System_Command    , only : System_Command_Do
+  use            :: ISO_Varying_String, only : varying_string                , char
   implicit none
-  type            (node       )                           , pointer :: doc        , xmlElement
-  type            (xmlNodeList), allocatable, dimension(:)          :: xmlElements
-  double precision             , allocatable, dimension(:)          :: array1     , array2
-  integer                      , allocatable, dimension(:)          :: iarray1
-  character       (len=1      ), allocatable, dimension(:)          :: carray1
-  integer                                   , dimension(1)          :: iValue
-  integer                                                           :: ioErr      , status
+  type            (node          ), pointer                   :: doc        , xmlElement
+  type            (xmlNodeList   ), allocatable, dimension(:) :: xmlElements
+  double precision                , allocatable, dimension(:) :: array1     , array2
+  integer                         , allocatable, dimension(:) :: iarray1
+  character       (len=1         ), allocatable, dimension(:) :: carray1
+  integer                                      , dimension(1) :: iValue
+  integer                                                     :: ioErr      , status
+  type            (varying_string)                            :: pathFailed
+  logical                                                     :: pathExists
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -93,6 +96,34 @@ program Tests_IO_XML
   ! Test path detection.
   call Assert("Extant path correctly detected"    ,XML_Path_Exists(doc,"test/level1/level2/level3"),.true. )
   call Assert("Non-extant path correctly detected",XML_Path_Exists(doc,"test/level1/level4/level3"),.false.)
+
+  ! Test positional (`[N]`) XPath predicates. The `test/some/path` element contains three `to` child elements, which we address
+  ! by position here.
+  call Unit_Tests_Begin_Group("Positional XPath predicates")
+  ! Select the third `to` element by its position and read its content.
+  xmlElement => XML_Get_First_Element_By_Tag_Name(doc,"test/some/path/to[3]",directChildrenOnly=.true.)
+  call extractDataContent(xmlElement,iValue)
+  call Assert("Select element by positional predicate",iValue,[653728])
+  ! Combine an attribute predicate with a positional predicate to select the (only) `to` element with `value='scoobydoo'`.
+  xmlElement => XML_Get_First_Element_By_Tag_Name(doc,"test/some/path/to[@value='scoobydoo'][1]/find",directChildrenOnly=.true.)
+  call extractDataContent(xmlElement,iValue)
+  call Assert("Combine attribute and positional predicates",iValue,[9275932])
+  ! Count direct-child elements, with and without a positional predicate.
+  xmlElement => XML_Get_First_Element_By_Tag_Name(doc,"test/some/path",directChildrenOnly=.true.)
+  call Assert("Count direct-child matches"                  ,XML_Count_Elements_By_Tag_Name(xmlElement,"to"   ,directChildrenOnly=.true.),3_c_size_t)
+  call Assert("Count direct-child matches (positional)"     ,XML_Count_Elements_By_Tag_Name(xmlElement,"to[2]",directChildrenOnly=.true.),1_c_size_t)
+  call Assert("Count direct-child matches (index too large)",XML_Count_Elements_By_Tag_Name(xmlElement,"to[9]",directChildrenOnly=.true.),0_c_size_t)
+  ! Retrieve the element list for a positional predicate - it should contain exactly the single indexed element.
+  call XML_Get_Elements_By_Tag_Name(xmlElement,"to[2]",xmlElements,directChildrenOnly=.true.)
+  call Assert("Retrieve single element for positional predicate",size(xmlElements),1)
+  ! Detect existence of positional paths.
+  call Assert("Extant positional path detected"    ,XML_Path_Exists(doc,"test/some/path/to[2]/find"),.true. )
+  call Assert("Non-extant positional path detected",XML_Path_Exists(doc,"test/some/path/to[3]/find"),.false.)
+  ! On failure, `pathFailed` should report the path up to and including the first segment that could not be matched.
+  pathExists=XML_Path_Exists(doc,"test/some/path/to[3]/find",pathFailed=pathFailed)
+  call Assert("Non-extant positional path returns false"  ,pathExists      ,.false.                    )
+  call Assert("Report location of path resolution failure",char(pathFailed),"test/some/path/to[3]/find")
+  call Unit_Tests_End_Group()
 
   ! Destroy the XML document.
   call destroy(doc)

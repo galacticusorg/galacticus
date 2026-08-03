@@ -4,8 +4,6 @@ a `wasAllocated_` tracker plus `use :: Error, only : Error_Report` so the
 generated code can report an inconsistent state.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/StateStore.pm
 """
 
 
@@ -30,8 +28,8 @@ def _emit_code_after(node, content):
 
 
 def process_state_store(tree, options):
-    """Mirrors Process_StateStore() from StateStore.pm, handling BOTH
-    `stateStore` and `stateRestore` directive types in a single walk.
+    """Handle BOTH `stateStore` and `stateRestore` directive types in a
+    single walk.
     """
     for node in walk_tree(tree):
         ntype = node.get('type')

@@ -625,7 +625,7 @@ contains
              active=active-1
              return
           end if
-          call Error_Report(var_str('ODE integration failed with status ')//status//{introspection:location})
+          call Error_Report(var_str('ODE integration failed with status ')//status_//{introspection:location})
        end select
     end do
     ! Return the new value of x.

@@ -34,27 +34,30 @@
      !!{RST
      A Gaussian ellipsoid mass distribution. The formulation and calculations follow the parameterizations and approach of :cite:t:`chandrasekhar_ellipsoidal_1987`. The ellipsoidal has scale lengths :math:`a_\mathrm{i}` along each of the three perpendicular axes (which are assumed to be aligned with the Cartesian :math:`(x,y,z)` axes).
      !!}
-     double precision                     , dimension(3          ) :: scaleLength
-     double precision                                              :: mass                             , density_
-     logical                                                       :: accelerationInitialized
-     double precision        , allocatable, dimension(:          ) :: accelerationX                    , accelerationScaleLength
-     double precision        , allocatable, dimension(:,:,:,:,:,:) :: accelerationVector
-     double precision                                              :: accelerationXMinimumLog          , accelerationXMaximumLog               , &
-          &                                                           accelerationScaleLengthMinimumLog, accelerationScaleLengthMaximumLog     , &
-          &                                                           accelerationXInverseInterval     , accelerationScaleLengthInverseInterval, &
-          &                                                           scaleLengthMaximum
-     integer                              , dimension(3          ) :: axesMapIn                        , axesMapOut
-     double precision                     , dimension(2          ) :: axisRatio
-     type            (matrix), allocatable                         :: rotationIn                       , rotationOut
-     double precision                     , dimension(3)           :: axis1                            , axis2                                 , &
-          &                                                           axis3
+     double precision             , dimension(3          ) :: scaleLength
+     double precision                                      :: mass                             , density_
+     logical                                               :: accelerationInitialized
+     double precision, allocatable, dimension(:          ) :: accelerationX                    , accelerationScaleLength
+     double precision, allocatable, dimension(:,:,:,:,:,:) :: accelerationVector
+     double precision                                      :: accelerationXMinimumLog          , accelerationXMaximumLog               , &
+          &                                                   accelerationScaleLengthMinimumLog, accelerationScaleLengthMaximumLog     , &
+          &                                                   accelerationXInverseInterval     , accelerationScaleLengthInverseInterval, &
+          &                                                   scaleLengthMaximum
+     integer                      , dimension(3          ) :: axesMapIn                        , axesMapOut
+     double precision             , dimension(2          ) :: axisRatio
+     ! Rotation matrices (into, and out of, the frame aligned with the principal axes) are stored as plain 3x3
+     ! arrays -- computed once in initialize() using the GSL-backed matrix type -- so that the per-evaluation
+     ! rotations in the density/acceleration hot paths use matmul, with no GSL vector/matrix heap allocation.
+     double precision             , dimension(3,3        ) :: rotationIn                       , rotationOut
+     double precision             , dimension(3)           :: axis1                            , axis2                                 , &
+          &                                                   axis3
    contains
      !![
      <methods docformat="rst">
        <method description="Compute the density on the isodensity surface defined by the parameter :math:`m^2`\ 2." method="densityEllipsoidal"     />
-       <method description="Tabulate the gravitational acceleration due to the ellipsoid."                  method="accelerationTabulate"   />
-       <method description="Interpolate in the tabulated gravitational acceleration due to the ellipsoid."  method="accelerationInterpolate"/>
-       <method description="(Re)initialize the structural properties of the Gaussian ellispoid."            method="initialize"             />
+       <method description="Tabulate the gravitational acceleration due to the ellipsoid."                          method="accelerationTabulate"   />
+       <method description="Interpolate in the tabulated gravitational acceleration due to the ellipsoid."          method="accelerationInterpolate"/>
+       <method description="(Re)initialize the structural properties of the Gaussian ellispoid."                    method="initialize"             />
      </methods>
      !!]
      procedure :: density                 => gaussianEllipsoidDensity
@@ -179,14 +182,14 @@ contains
     use :: Linear_Algebra      , only : vector       , assignment(=)
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
-    type            (massDistributionGaussianEllipsoid)                                        :: self
-    double precision                                   , intent(in   ), dimension(3)           :: scaleLength
-    type            (vector                           ), intent(in   ), dimension(3), optional :: axes
-    type            (matrix                           ), intent(in   )              , optional :: rotation
-    double precision                                   , intent(in   )              , optional :: mass
-    logical                                            , intent(in   )              , optional :: dimensionless
-    type            (enumerationComponentTypeType     ), intent(in   )              , optional :: componentType
-    type            (enumerationMassTypeType          ), intent(in   )              , optional :: massType
+    type            (massDistributionGaussianEllipsoid)                                          :: self
+    double precision                                   , intent(in   ), dimension(3  )           :: scaleLength
+    type            (vector                           ), intent(in   ), dimension(3  ), optional :: axes
+    double precision                                   , intent(in   ), dimension(3,3), optional :: rotation
+    double precision                                   , intent(in   )                , optional :: mass
+    logical                                            , intent(in   )                , optional :: dimensionless
+    type            (enumerationComponentTypeType     ), intent(in   )                , optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   )                , optional :: massType
     !![
     <constructorAssign variables="mass, dimensionless, componentType, massType"/>
     !!]
@@ -220,12 +223,13 @@ contains
     use :: Numerical_Comparison    , only : Values_Differ
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (massDistributionGaussianEllipsoid), intent(inout)                         :: self
-    double precision                                   , intent(in   ), dimension(3)           :: scaleLength
-    type            (vector                           ), intent(in   ), dimension(3), optional :: axes
-    type            (matrix                           ), intent(in   )              , optional :: rotation
-    type            (vector                           )               , dimension(3)           :: axesPrinciple
-    integer                                                                                    :: i
+    class           (massDistributionGaussianEllipsoid), intent(inout)                           :: self
+    double precision                                   , intent(in   ), dimension(3  )           :: scaleLength
+    type            (vector                           ), intent(in   ), dimension(3  ), optional :: axes
+    double precision                                   , intent(in   ), dimension(3,3), optional :: rotation
+    type            (vector                           )               , dimension(3  )           :: axesPrinciple
+    type            (matrix                           )                                          :: rotationMatrix
+    integer                                                                                      :: i
 
     ! If dimensionless, then maximum scale length should be 1.0.
     if (self%dimensionless) then
@@ -259,11 +263,12 @@ contains
        self%axisRatio(i)=+self%scaleLength(self%axesMapOut(i)) &
             &            /self%scaleLengthMaximum
     end do
-    ! Compute rotation matrices required to rotate the ellipsoid to be aligned with the principle Cartesian axes, and back again.
-    if (allocated(self%rotationIn )) deallocate(self%rotationIn )
-    if (allocated(self%rotationOut)) deallocate(self%rotationOut)
-    allocate(self%rotationIn )
-    allocate(self%rotationOut)
+    ! Compute rotation matrices required to rotate the ellipsoid to be aligned with the principle Cartesian
+    ! axes, and back again, stored as plain 3x3 arrays for use by matmul in the density/acceleration hot paths.
+    ! For the principal-axes case the rotation is built with the GSL-backed matrix type (via matrixRotation) and
+    ! extracted; when a rotation matrix is supplied directly it is already a plain array. The reverse rotation is
+    ! the inverse of the (orthonormal) rotation matrix, which is simply its transpose -- avoiding a GSL matrix
+    ! inversion (and, in the supplied-rotation case, any GSL usage at all).
     if (present(axes)) then
        self%axis1      =axes(1)
        self%axis2      =axes(2)
@@ -271,13 +276,14 @@ contains
        axesPrinciple(1)=vector([1.0d0,0.0d0,0.0d0])
        axesPrinciple(2)=vector([0.0d0,1.0d0,0.0d0])
        axesPrinciple(3)=vector([0.0d0,0.0d0,1.0d0])
-       self%rotationIn =matrixRotation(axes,axesPrinciple)
+       rotationMatrix  =matrixRotation(axes,axesPrinciple)
+       self%rotationIn =rotationMatrix
     else if (present(rotation)) then
-       self%rotationIn=matrix(rotation)
+       self%rotationIn =rotation
     else
        call Error_Report('either principle axes or a rotation matrix must be supplied'//{introspection:location})
     end if
-    self%rotationOut=self%rotationIn%inverse()
+    self%rotationOut=transpose(self%rotationIn)
     return
   end subroutine gaussianEllipsoidInitialize
   
@@ -285,23 +291,18 @@ contains
     !!{RST
     Return the density at the specified ``coordinates`` in a Gaussian ellipsoid mass distribution.
     !!}
-    use :: Coordinates   , only : assignment(=), coordinateCartesian
-    use :: Linear_Algebra, only : assignment(=), operator(*)        , vector
+    use :: Coordinates, only : assignment(=), coordinateCartesian
     implicit none
     class           (massDistributionGaussianEllipsoid), intent(inout) :: self
     class           (coordinate                       ), intent(in   ) :: coordinates
     type            (coordinateCartesian              )                :: position
     double precision                                   , dimension(3)  :: positionComponents
     double precision                                                   :: mSquared
-    type           (vector                            )                :: positionVectorUnrotated, positionVector
 
     ! Rotate the position to the frame where the ellipsoid is aligned with the principle Cartesian axes.
     position                = coordinates
     positionComponents      = position
-    positionVectorUnrotated = positionComponents
-    positionVector          = self%rotationIn         &
-         &                   *positionVectorUnrotated
-    positionComponents      = positionVector
+    positionComponents      = matmul(self%rotationIn,positionComponents)
     position                = positionComponents
     ! Evaluate the density.
     mSquared                =+(position%x()/self%scaleLength(1))**2 &
@@ -333,28 +334,22 @@ contains
     Computes the gravitational acceleration at ``coordinates`` for Gaussian ellipsoid mass distributions.
     !!}
     use :: Coordinates                     , only : assignment(=)                 , coordinateCartesian
-    use :: Linear_Algebra                  , only : assignment(=)                 , operator(*)        , vector
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
-    double precision                                   , dimension(3)  :: gaussianEllipsoidAcceleration
+    type            (coordinateCartesian              )                :: gaussianEllipsoidAcceleration
     class           (massDistributionGaussianEllipsoid), intent(inout) :: self
     class           (coordinate                       ), intent(in   ) :: coordinates
     type            (coordinateCartesian              )                :: coordinatesCartesian
     double precision                                   , dimension(3)  :: positionCartesian            , positionCartesianScaleFree , &
-         &                                                                accelerationScaleFree
+         &                                                                accelerationScaleFree        , accelerationArray
     integer                                                            :: i
-    type            (vector                            )               :: positionVector               , positionVectorUnrotated    , &
-         &                                                                accelerationVector           , accelerationVectorUnrotated
-    
+
     ! Ensure that acceleration is tabulated.
     call self%accelerationTabulate()
     ! Construct the scale-free (and rotated) position.
     coordinatesCartesian    = coordinates
     positionCartesian       = coordinatesCartesian
-    positionVectorUnrotated = positionCartesian
-    positionVector          = self%rotationIn         &
-         &                   *positionVectorUnrotated
-    positionCartesian       = positionVector
+    positionCartesian       = matmul(self%rotationIn,positionCartesian)
     do i=1,3
        positionCartesianScaleFree(self%axesMapIn(i))=positionCartesian(i)
     end do
@@ -364,17 +359,15 @@ contains
     accelerationScaleFree=self%accelerationInterpolate(positionCartesianScaleFree)
     ! De-rotate and scale the acceleration.
     do i=1,3
-       gaussianEllipsoidAcceleration(self%axesMapOut(i))=accelerationScaleFree(i)
+       accelerationArray(self%axesMapOut(i))=accelerationScaleFree(i)
     end do
-    accelerationVector           = gaussianEllipsoidAcceleration
-    accelerationVectorUnrotated  = self%rotationOut              &
-         &                        *accelerationVector
-    gaussianEllipsoidAcceleration= accelerationVectorUnrotated
-    if (.not.self%isDimensionless())                                     &
-         & gaussianEllipsoidAcceleration=+gaussianEllipsoidAcceleration  &
-         &                               *gravitationalConstant_internal &
-         &                               *self%mass                      &
-         &                               /self%scaleLengthMaximum**2
+    accelerationArray=matmul(self%rotationOut,accelerationArray)
+    if (.not.self%isDimensionless())                         &
+         & accelerationArray=+accelerationArray              &
+         &                   *gravitationalConstant_internal &
+         &                   *self%mass                      &
+         &                   /self%scaleLengthMaximum**2
+    gaussianEllipsoidAcceleration=accelerationArray
     return
   end function gaussianEllipsoidAcceleration
   
@@ -512,7 +505,7 @@ contains
           &                                 File_Unlock          , lockDescriptor
     use :: Input_Paths             , only : inputPath            , pathTypeDataDynamic
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5Object
+    use :: IO_HDF5                 , only : hdf5File
     use :: ISO_Varying_String      , only : char                 , operator(//)        , varying_string
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
@@ -537,7 +530,7 @@ contains
     if (self%accelerationInitialized) return
     block
       type   (varying_string) :: fileName
-      type   (hdf5Object    ) :: file
+      type   (hdf5File      ) :: file
       type   (lockDescriptor) :: fileLock
       integer                 :: iLock
 
@@ -556,10 +549,10 @@ contains
          call File_Lock(fileName,fileLock,lockIsShared=iLock == 1)
          if (File_Exists(fileName)) then
             !$ call hdf5Access%set()
-            file=hdf5Object      (char(fileName      ),readOnly=.true.             )
-            call file%readDataset(     'x'            ,self%accelerationX          )
-            call file%readDataset(     'scaleLength'  ,self%accelerationScaleLength)
-            call file%readDataset(     'acceleration' ,self%accelerationVector     )
+            file=hdf5File(fileName,readOnly=.true.)
+            call file%readDataset('x'            ,self%accelerationX          )
+            call file%readDataset('scaleLength'  ,self%accelerationScaleLength)
+            call file%readDataset('acceleration' ,self%accelerationVector     )
             !$ call hdf5Access%unset()
             call File_Unlock(fileLock,sync=.false.)
             exit
@@ -615,10 +608,10 @@ contains
             call displayCounterClear(       verbosityLevelWorking)
             call displayUnindent     ("done",verbosityLevelWorking)
             !$ call hdf5Access%set()
-            file=hdf5Object       (char   (fileName                    )               ,overWrite=.true.,readOnly=.false.)
-            call file%writeDataset(        self%accelerationX           ,'x'                                             )
-            call file%writeDataset(        self%accelerationScaleLength ,'scaleLength'                                   )
-            call file%writeDataset(        self%accelerationVector      ,'acceleration'                                  )
+            file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
+            call file%writeDataset(self%accelerationX           ,'x'           )
+            call file%writeDataset(self%accelerationScaleLength ,'scaleLength' )
+            call file%writeDataset(self%accelerationVector      ,'acceleration')
             !$ call hdf5Access%unset()
             call File_Unlock(fileLock)
          end if

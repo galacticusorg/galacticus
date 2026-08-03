@@ -145,7 +145,7 @@ contains
     use :: Error                                 , only : Error_Report
     use :: Input_Paths                           , only : inputPath                                          , pathTypeDataStatic
     use :: HDF5_Access                           , only : hdf5Access
-    use :: IO_HDF5                               , only : hdf5Object
+    use :: IO_HDF5                               , only : hdf5File
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassBlackHole                 , nodePropertyExtractorVelocityDispersion        , nodePropertyExtractorScalarizer
     use :: Numerical_Comparison                  , only : Values_Agree
     use :: Numerical_Constants_Astronomical      , only : massSolar
@@ -191,7 +191,7 @@ contains
     logical                                                              , parameter                     :: likelihoodNormalize                             =.false.
     integer         (c_size_t                                           )                                :: iOutput                                                 , i
     logical                                                                                              :: includeRadii                                            , integrationFailureisFatal
-    type            (hdf5Object                                         )                                :: dataFile
+    type            (hdf5File                                           )                                :: dataFile
     type            (varying_string                                     )                                :: targetLabel
     type            (varying_string                                     )               , dimension(1  ) :: radiusSpecifiers
     type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
@@ -200,7 +200,7 @@ contains
     !!]
     
     !$ call hdf5Access%set()
-    dataFile=hdf5Object(char(inputPath(pathTypeDataStatic)//'/observations/blackHoles/blackHoleMassVsVelocityDispersion_McConnellMa2013.hdf5'),readOnly=.true.)
+    dataFile=hdf5File(inputPath(pathTypeDataStatic)//'/observations/blackHoles/blackHoleMassVsVelocityDispersion_McConnellMa2013.hdf5',readOnly=.true.)
     call dataFile%readDataset  ('velocityDispersionBinned',velocities         )
     call dataFile%readAttribute('label'                   ,targetLabel        )
     call dataFile%readDataset  ('massBlackHoleMean'       ,functionValueTarget)

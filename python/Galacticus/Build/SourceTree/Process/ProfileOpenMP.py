@@ -3,8 +3,6 @@
 with timing calls that accumulate wait-time per critical section.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/ProfileOpenMP.pm
 """
 
 import re
@@ -36,8 +34,8 @@ def _load_critical_sections():
             "process_profile_openmp: critical section enumeration file does not exist: "
             + path)
     root = ET.parse(path).getroot()
-    # Perl's XML::Simple groups `<critical name=…/>` children by name; do the
-    # same here so `descriptor['critical']['my_section']` works as in Perl.
+    # `keyed_tags` groups `<critical name=…/>` children into a name-keyed
+    # dict so `descriptor['critical']['my_section']` works.
     descriptor = xml_to_dict(root, keyed_tags={'critical'})
     return descriptor.get('critical', {}) or {}
 
@@ -66,7 +64,7 @@ def _enclosing_module_name(node):
 
 
 def process_profile_openmp(tree, options):
-    """Mirrors Profile_OpenMP() from ProfileOpenMP.pm."""
+    """Wrap listed `!$omp critical` sections with wait-time profiling calls."""
     if not _profile_enabled():
         return
     descriptor = _load_critical_sections()

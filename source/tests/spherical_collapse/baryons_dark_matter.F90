@@ -190,7 +190,8 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      tablePointsPerOctave                    =300                                        , &
           &                                                                                                                      tableStore                              =.false.                                    , &
           &                                                                                                                      energyFixedAt                           =cllsnlssMttrDarkEnergyFixedAtTurnaround    , &
-          &                                                                                                                      normalization                           =1.0d0                                        &
+          &                                                                                                                      perturbationSmall                       =1.0d-3                                     , &
+          &                                                                                                                      normalization                           =1.0d+0                                       &
           &                                                                                                                     )
      virialDensityContrastSphrclCllpsCllsnlssMttrCsmlgclCnstnt_ =virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                                       &
           &                                                                                                                      tableStore                              =.false.                                    , &
@@ -201,6 +202,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      tableStore                              =.true.                                     , &
           &                                                                                                                      tablePointsPerOctave                    =300                                        , &
           &                                                                                                                      energyFixedAt                           =cllsnlssMttrDarkEnergyFixedAtTurnaround    , &
+          &                                                                                                                      perturbationSmall                       =1.0d-3                                     , &
           &                                                                                                                      cosmologyParameters_                    =cosmologyParametersDMO_                    , &
           &                                                                                                                      cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_            , &
           &                                                                                                                      intergalacticMediumFilteringMass_       =intergalacticMediumFilteringMassGnedin2000_  &

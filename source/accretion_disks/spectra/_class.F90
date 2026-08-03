@@ -38,7 +38,7 @@ module Accretion_Disk_Spectra
    <default>hopkins2007</default>
    <method name="spectrumNode" >
     <description>
-    Returns the spectrum (in units of :math:`L_\odot` Hz\ :math:`^{-1}`) of the accretion disk at the given wavelength (in units of \AA) for ``node``.
+    Returns the spectrum (in units of :math:`L_\odot` Hz\ :math:`^{-1}`) of the accretion disk at the given wavelength (in units of Å) for ``node``.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
@@ -47,7 +47,7 @@ module Accretion_Disk_Spectra
    </method>
    <method name="spectrumMassRate" >
     <description>
-    Returns the spectrum (in units of :math:`L_\odot` Hz\ :math:`^{-1}`) of the accretion disk at the given wavelength (in units of \AA) for a specified accretion rate, and radiative efficiency.
+    Returns the spectrum (in units of :math:`L_\odot` Hz\ :math:`^{-1}`) of the accretion disk at the given wavelength (in units of Å) for a specified accretion rate, and radiative efficiency.
     </description>
     <type>double precision</type>
     <pass>yes</pass>

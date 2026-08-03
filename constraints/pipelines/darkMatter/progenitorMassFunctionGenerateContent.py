@@ -13,7 +13,11 @@ import lxml.etree as ET
 import numpy as np
 
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
-from Galacticus.Constraints.Simulations import iterate, parse_simulations_xml
+from Galacticus.Constraints.Simulations import (
+    iterate,
+    parse_simulations_xml,
+    write_hmf_mappings_file,
+)
 from XML.Utils import xml_to_dict
 
 # ---------------------------------------------------------------------------
@@ -40,6 +44,11 @@ def _parse_args():
                         help='Log file root for initializing from a prior posterior maximum')
     parser.add_argument('--randomize', default='no',
                         help='Randomize merger tree construction on each step (default: no)')
+    parser.add_argument('--massRatioDistribution', default='hinkley',
+                        choices=['normal', 'hinkley'],
+                        help='Distribution model for the progenitor-to-parent mass ratio under N-body '
+                             'mass errors: "hinkley" (exact ratio-of-normals) or "normal" (linearized '
+                             'Gaussian approximation) (default: hinkley)')
     args = parser.parse_args()
     # Normalise paths to end with '/'.
     for key in ('pipelinePath', 'outputDirectory'):
@@ -187,6 +196,10 @@ def _base_files(entry_groups,options):
             f'                                mergerTreeBranchingProbability/gamma3\n'
             f'\n'
             f'                         progenitorMassFunctionParameters/rootVarianceTargetFractional\n'
+            f'\n'
+            f'                         progenitorMassFunctionParameters/errorAmplitude\n'
+            f'                         progenitorMassFunctionParameters/errorExponent\n'
+            f'                         progenitorMassFunctionParameters/errorFractionalHighMass\n'
             f'                        "/>\n'
             )
         if options['randomize'] == 'yes':
@@ -208,12 +221,20 @@ def _base_files(entry_groups,options):
         )
 
         # --- Write one base parameter file ---
-        xi = 'xmlns:xi="http://www.w3.org/2001/XInclude"'
-        xp = 'xpointer="xpointer(parameters/*)"'
+        xi     = 'xmlns:xi="http://www.w3.org/2001/XInclude"'
+        xp     = 'xpointer="xpointer(parameters/*)"'
+        # Pull in ONLY the <haloMassFunction> element (not the task / error /
+        # component nodes that also live in haloMassFunction_{suite}.xml).
+        xp_hmf = 'xpointer="xpointer(parameters/haloMassFunction)"'
         suite_n = suite['name']
         grp_n   = grp['name']
         res_n   = res['name']
         sim_n   = sim['name']
+        # Shared halo-mass-function parameter mappings (also written by the HMF stage):
+        # the included haloMassFunction model references bare names (detection /
+        # perturbation / isolation) that these map to calibrated values in
+        # haloMassFunctionParameters.xml.
+        write_hmf_mappings_file(output_dir, suite, grp)
         base = (
             f'<?xml version="1.0" encoding="UTF-8"?>\n'
             f'<parameters>\n'
@@ -236,6 +257,16 @@ def _base_files(entry_groups,options):
             f'                                 {xp} {xi}/>\n'
             f'  <xi:include href="{output_dir}progenitorMassFunctionParameters.xml"'
             f'                                 {xp} {xi}/>\n'
+            f'  <!-- Calibrated halo mass function model from the HMF stage (the -->\n'
+            f'  <!-- processed/pruned copy in the output directory), reading the -->\n'
+            f'  <!-- calibrated values from haloMassFunctionParameters.xml. Only the -->\n'
+            f'  <!-- <haloMassFunction> section is included. -->\n'
+            f'  <xi:include href="{output_dir}haloMassFunction_{suite_n}.xml"'
+            f'                                 {xp_hmf} {xi}/>\n'
+            f'  <!-- Shared halo-mass-function parameter mappings the model references -->\n'
+            f'  <!-- by bare name (detection / perturbation / isolation). -->\n'
+            f'  <xi:include href="{output_dir}haloMassFunctionMappings_{suite_n}_{grp_n}.xml"'
+            f'                             {xp} {xi}/>\n'
             f'\n'
         )
         if options['randomize'] == 'yes':
@@ -260,12 +291,23 @@ def _base_files(entry_groups,options):
             f'  <massParticleAtResolution value="=[simulation/massParticle/{res_n}]"'
             f' ignoreWarnings="true"/>\n'
             f'\n'
-            f'  <!-- N-body halo mass uncertainties -->\n'
-            f'  <nbodyHaloMassError value="trenti2010">\n'
-            f'    <massParticle                value="=[massParticleAtResolution]"/>\n'
-            f'    <correlationNormalization    value="1.0"   />\n'
-            f'    <correlationMassExponent     value="1.0"   />\n'
-            f'    <correlationRedshiftExponent value="0.0"   />\n'
+            f'  <!-- N-body halo mass uncertainties: power-law fractional-error model, calibrated\n'
+            f'       in the MCMC. The fractional error is written as a function of particle number\n'
+            f'       N = M/m_p so that its amplitude is fixed at fixed N across resolutions:\n'
+            f'         sigma_pn(M) = A * (N/1000)^gamma,   with N = M/m_p,\n'
+            f'       reproduced by the powerLaw class (sigma = [sigma_12^2 (M/1e12)^2gamma + sigma_inf^2]^1/2)\n'
+            f'       by setting the internal normalization sigma_12 = A * (1e9/m_p)^gamma. Here A\n'
+            f'       (errorAmplitude) is the fractional error at N=1000 particles (Trenti et al. 2010: 0.135),\n'
+            f'       gamma (errorExponent) the mass slope, and sigma_inf (errorFractionalHighMass) a\n'
+            f'       resolution-independent floor. Correlation coefficients are fixed at Trenti values. -->\n'
+            f'  <nbodyHaloMassError value="powerLaw">\n'
+            f'    <normalization               value="=[progenitorMassFunctionParameters/errorAmplitude]*(1.0e9/[massParticleAtResolution])^([progenitorMassFunctionParameters/errorExponent])"/>\n'
+            f'    <exponent                    value="=[progenitorMassFunctionParameters/errorExponent]"          />\n'
+            f'    <fractionalErrorHighMass     value="=[progenitorMassFunctionParameters/errorFractionalHighMass]" />\n'
+            f'    <correlationModelTrivial     value="false"/>\n'
+            f'    <correlationNormalization    value="1.0"  />\n'
+            f'    <correlationMassExponent     value="1.0"  />\n'
+            f'    <correlationRedshiftExponent value="0.0"  />\n'
             f'  </nbodyHaloMassError>\n'
             f'\n'
             f'  <!-- Output control -->\n'
@@ -338,6 +380,7 @@ def _base_files(entry_groups,options):
                     continue
                 base += (
                     f'    <outputAnalysis value="progenitorMassFunction">\n'
+                    f'      <massRatioDistribution        value="{options["massRatioDistribution"]}"                                                             />\n'
                     f'      <fileName                     value="{file_name_target}"                                                                            />\n'
                     f'      <indexRedshift                value="{i}"                                                                                           />\n'
                     f'      <indexParent                  value="{j}"                                                                                           />\n'
@@ -392,8 +435,119 @@ def _config_strings(options):
     output_dir   = options['outputDirectory']
     pipeline_path = options['pipelinePath']
 
-    count_parameters = 16
-    gamma_initial   = 2.35 / math.sqrt(count_parameters)
+    # Active model parameters. Assembled as a single block so that the parameter
+    # count used to set the differential-evolution proposal size is *derived* from
+    # the actual number of active parameters, never hardcoded. Add or remove a
+    # <modelParameter value="active"> block here and gammaInitial tracks it.
+    active_parameters = (
+        '    <modelParameter value="active">\n'
+        '      <name value="mergerTreeBranchingProbability/G0"/>\n'
+        '      <label value="G_0" ignoreWarnings="true"/>\n'
+        '      <distributionFunction1DPrior value="uniform">\n'
+        '        <limitLower value="0.10"/>\n'
+        '        <limitUpper value="3.00"/>\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="logarithm"/>\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '        <median value="0.0"/>\n'
+        '        <scale value="1.0e-4"/>\n'
+        '      </distributionFunction1DPerturber>\n'
+        '    </modelParameter>\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="mergerTreeBranchingProbability/gamma1"/>\n'
+        '      <label value="\gamma_1" ignoreWarnings="true"/>\n'
+        '      <distributionFunction1DPrior value="uniform">\n'
+        '        <limitLower value="-1.00"/>\n'
+        '        <limitUpper value="+0.99"/>\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="identity"/>\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '        <median value="0.0"/>\n'
+        '        <scale value="1.0e-4"/>\n'
+        '      </distributionFunction1DPerturber>\n'
+        '    </modelParameter>\n'
+        '     <modelParameter value="active">\n'
+        '      <name value="mergerTreeBranchingProbability/gamma2" />\n'
+        '      <label value="\gamma_2" ignoreWarnings="true"/>\n'
+        '      <distributionFunction1DPrior value="uniform">\n'
+        '        <limitLower value="-1.00" />\n'
+        '        <limitUpper value="+1.00" />\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="identity" />\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '        <median value="0.0" />\n'
+        '        <scale value="1.0e-4" />\n'
+        '      </distributionFunction1DPerturber>\n'
+        '    </modelParameter>\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="mergerTreeBranchingProbability/gamma3"/>\n'
+        '      <label value="\gamma_3" ignoreWarnings="true"/>\n'
+        '      <distributionFunction1DPrior value="uniform">\n'
+        '        <limitLower value="+0.00"/>\n'
+        '        <limitUpper value="+1.00"/>\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="identity"/>\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '        <median value="0.0"/>\n'
+        '        <scale value="1.0e-4"/>\n'
+        '      </distributionFunction1DPerturber>\n'
+        '    </modelParameter>\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="progenitorMassFunctionParameters/rootVarianceTargetFractional"/>\n'
+        r'      <label value="\mathcal{C}" ignoreWarnings="true"/>' + '\n'
+        '      <distributionFunction1DPrior value="logUniform">\n'
+        '        <limitLower value="+1.00e-4"/>\n'
+        '        <limitUpper value="+1.00e+0"/>\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="identity"/>\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '        <median value="0.0"/>\n'
+        '        <scale value="1.0e-4"/>\n'
+        '      </distributionFunction1DPerturber>\n'
+        '    </modelParameter>\n'
+        # --- N-body halo mass-error (power-law) parameters ---
+        '    <modelParameter value="active">\n'
+        '      <name value="progenitorMassFunctionParameters/errorAmplitude"/>\n'
+        r'      <label value="\sigma_{1000}" ignoreWarnings="true"/>' + '\n'
+        '      <distributionFunction1DPrior value="logUniform">\n'
+        '        <limitLower value="+1.00e-2"/>\n'
+        '        <limitUpper value="+1.00e+0"/>\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="identity"/>\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '        <median value="0.0"/>\n'
+        '        <scale value="1.0e-4"/>\n'
+        '      </distributionFunction1DPerturber>\n'
+        '    </modelParameter>\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="progenitorMassFunctionParameters/errorExponent"/>\n'
+        r'      <label value="\gamma_\sigma" ignoreWarnings="true"/>' + '\n'
+        '      <distributionFunction1DPrior value="uniform">\n'
+        '        <limitLower value="-1.00"/>\n'
+        '        <limitUpper value="+0.00"/>\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="identity"/>\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '        <median value="0.0"/>\n'
+        '        <scale value="1.0e-4"/>\n'
+        '      </distributionFunction1DPerturber>\n'
+        '    </modelParameter>\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="progenitorMassFunctionParameters/errorFractionalHighMass"/>\n'
+        r'      <label value="\sigma_\infty" ignoreWarnings="true"/>' + '\n'
+        '      <distributionFunction1DPrior value="logUniform">\n'
+        '        <limitLower value="+1.00e-4"/>\n'
+        '        <limitUpper value="+1.00e+0"/>\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="identity"/>\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '        <median value="0.0"/>\n'
+        '        <scale value="1.0e-4"/>\n'
+        '      </distributionFunction1DPerturber>\n'
+        '    </modelParameter>\n'
+    )
+    count_parameters = active_parameters.count('<modelParameter value="active">')
+    gamma_initial    = 2.35 / math.sqrt(count_parameters)
 
     # ------------------------------------------------------------------ opener
     config_opener = (
@@ -437,8 +591,11 @@ def _config_strings(options):
             '  <posteriorSampleStateInitialize value="gaussianSphere">\n'
             '     <radiusSphere     value="1.0e-6"/>\n'
             '     <radiusIsRelative value="true"  />\n'
-            '     <!-- Initialize to the Parkinson, Cole, and Helly (2008) fit -->\n'
-            '     <position         value="0.57 0.38 -0.01 0.00 1.0e-2"/>\n'
+            '     <!-- Initialize to the Parkinson, Cole, and Helly (2008) fit for the branching\n'
+            '          parameters, and to the Trenti et al. (2010)-equivalent error model. Order must\n'
+            '          match the active <modelParameter> declarations: G0 gamma1 gamma2 gamma3\n'
+            '          rootVarianceTargetFractional errorAmplitude errorExponent errorFractionalHighMass -->\n'
+            '     <position         value="0.57 0.38 -0.01 0.00 1.0e-2 0.135 -0.333 0.01"/>\n'
             '  </posteriorSampleStateInitialize>   \n\n'
         )
 
@@ -538,71 +695,9 @@ def _config_strings(options):
         '    <posteriorSampleDffrntlEvltnRandomJump   value="adaptive"/>\n'
         '\n'
         '    <!-- Parameters of the dark matter progenitor mass function. -->\n'
-        '    <modelParameter value="active">\n'
-        '      <name value="mergerTreeBranchingProbability/G0"/>\n'
-        '      <label value="G_0" ignoreWarnings="true"/>\n'
-        '      <distributionFunction1DPrior value="uniform">\n'
-        '        <limitLower value="0.10"/>\n'
-        '        <limitUpper value="3.00"/>\n'
-        '      </distributionFunction1DPrior>\n'
-        '      <operatorUnaryMapper value="logarithm"/>\n'
-        '      <distributionFunction1DPerturber value="cauchy">\n'
-        '        <median value="0.0"/>\n'
-        '        <scale value="1.0e-4"/>\n'
-        '      </distributionFunction1DPerturber>\n'
-        '    </modelParameter>\n'
-        '    <modelParameter value="active">\n'
-        '      <name value="mergerTreeBranchingProbability/gamma1"/>\n'
-        '      <label value="\gamma_1" ignoreWarnings="true"/>\n'
-        '      <distributionFunction1DPrior value="uniform">\n'
-        '        <limitLower value="-1.00"/>\n'
-        '        <limitUpper value="+0.99"/>\n'
-        '      </distributionFunction1DPrior>\n'
-        '      <operatorUnaryMapper value="identity"/>\n'
-        '      <distributionFunction1DPerturber value="cauchy">\n'
-        '        <median value="0.0"/>\n'
-        '        <scale value="1.0e-4"/>\n'
-        '      </distributionFunction1DPerturber>\n'
-        '    </modelParameter>\n'
-        '     <modelParameter value="active">\n'
-        '      <name value="mergerTreeBranchingProbability/gamma2" />\n'
-        '      <label value="\gamma_2" ignoreWarnings="true"/>\n'
-        '      <distributionFunction1DPrior value="uniform">\n'
-        '        <limitLower value="-1.00" />\n'
-        '        <limitUpper value="+1.00" />\n'
-        '      </distributionFunction1DPrior>\n'
-        '      <operatorUnaryMapper value="identity" />\n'
-        '      <distributionFunction1DPerturber value="cauchy">\n'
-        '        <median value="0.0" />\n'
-        '        <scale value="1.0e-4" />\n'
-        '      </distributionFunction1DPerturber>\n'
-        '    </modelParameter>\n'
-        '    <modelParameter value="active">\n'
-        '      <name value="mergerTreeBranchingProbability/gamma3"/>\n'
-        '      <label value="\gamma_3" ignoreWarnings="true"/>\n'
-        '      <distributionFunction1DPrior value="uniform">\n'
-        '        <limitLower value="+0.00"/>\n'
-        '        <limitUpper value="+1.00"/>\n'
-        '      </distributionFunction1DPrior>\n'
-        '      <operatorUnaryMapper value="identity"/>\n'
-        '      <distributionFunction1DPerturber value="cauchy">\n'
-        '        <median value="0.0"/>\n'
-        '        <scale value="1.0e-4"/>\n'
-        '      </distributionFunction1DPerturber>\n'
-        '    </modelParameter>\n'
-        '    <modelParameter value="active">\n'
-        '      <name value="progenitorMassFunctionParameters/rootVarianceTargetFractional"/>\n'
-        r'      <label value="\mathcal{C}" ignoreWarnings="true"/>' + '\n'
-        '      <distributionFunction1DPrior value="logUniform">\n'
-        '        <limitLower value="+1.00e-4"/>\n'
-        '        <limitUpper value="+1.00e+0"/>\n'
-        '      </distributionFunction1DPrior>\n'
-        '      <operatorUnaryMapper value="identity"/>\n'
-        '      <distributionFunction1DPerturber value="cauchy">\n'
-        '        <median value="0.0"/>\n'
-        '        <scale value="1.0e-4"/>\n'
-        '      </distributionFunction1DPerturber>\n'
-        '    </modelParameter>\n'
+        )
+    config_closer += active_parameters
+    config_closer += (
         '\n'
         )
     if options['randomize'] == 'yes':
@@ -652,6 +747,13 @@ def _config_strings(options):
         '     <rootVarianceTargetFractional value="0.1" />\n'
         '     <!-- Parameter controlling if empty bins should be filled in using extrapolation -->\n'
         '     <fillInZeroBins               value="true"/>\n'
+        '     <!-- Power-law N-body halo mass-error model parameters (calibrated in the MCMC).\n'
+        '          Parametrized by particle number so the amplitude is fixed at fixed N=M/m_p across\n'
+        '          resolutions; the internal sigma_12 is derived per-resolution in the base file.\n'
+        '          Defaults reproduce the Trenti et al. (2010) error. -->\n'
+        '     <errorAmplitude              value="0.135"     /> <!-- A        : fractional error at N=1000 particles -->\n'
+        '     <errorExponent               value="-0.333333" /> <!-- gamma    : power-law slope with particle number -->\n'
+        '     <errorFractionalHighMass     value="0.01"      /> <!-- sigma_inf: resolution-independent floor         -->\n'
     )
 
     # -------------------------------------------------------- parameters_closer

@@ -93,7 +93,7 @@ def _group_entries(simulations, options):
 # ---------------------------------------------------------------------------
 
 def _build_jobs(entry_groups, options):
-    """Return list of Perl-style job dicts for the two model variants."""
+    """Return list of job dicts for the two model variants."""
     galacticus_exe = os.environ['GALACTICUS_EXEC_PATH'] + '/Galacticus.exe'
     pipeline_path  = os.environ['GALACTICUS_EXEC_PATH'] + '/constraints/pipelines/darkMatter/'
     force          = options['force']
@@ -191,7 +191,7 @@ def _plot_group(group, options):
         mass_ratio_model, pmf_model, pmf_cov_model, pmf_target, pmf_cov_target = _read_pmf(file_prefix + ':MPI0000.hdf5'     , name)
         mass_ratio_true,  pmf_true , pmf_cov_true, *_                          = _read_pmf(file_prefix + '.hdf5_true:MPI0000', name)
       
-        # Determine axis ranges (decade-rounded, matching Perl floor/ceil logic).
+        # Determine axis ranges (decade-rounded).
         non_zero = np.where((pmf_target > 0) & (mass_ratio_model >= mass_ratio_min) & (mass_ratio_model <= mass_ratio_max))
         x_min = 10 ** np.floor(np.log10(mass_ratio_model[non_zero].min()))
         x_max = 10 ** np.ceil( np.log10(mass_ratio_model[non_zero].max()))
@@ -266,7 +266,7 @@ def main():
 
     simulations = parse_simulations_xml(options['pipelinePath'] + 'simulations.xml')
 
-    # Perl: force re-run when --select is given.
+    # Force re-run when --select is given.
     if options.get('select') is not None:
         options['force'] = 'yes'
 

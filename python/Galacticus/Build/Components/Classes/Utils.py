@@ -2,16 +2,11 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors the small portion of perl/Galacticus/Build/Components/Classes/Utils.pm
-that runs as part of the components-build pipeline:
-`Class_Function_Iterator`.  This is itself a `functions`-phase hook that,
-when invoked, walks the `component_utils` registry looking for
+Provides three `functions`-phase hooks: `Class_Move` and `Class_Remove`
+(the per-class move/remove functions) plus `Class_Function_Iterator`,
+which walks the `component_utils` registry looking for
 `classIteratedFunctions` entries and dispatches each function once per
 component class.
-
-The remaining functions in the Perl Classes::Utils module
-(`Class_Move`, `Class_Remove`, the main `functions`-phase group) belong
-to a later port stage.
 """
 
 
@@ -26,7 +21,7 @@ logger = logging.getLogger(__name__)
 def Class_Function_Iterator(build):
     """Run every `classIteratedFunctions` hook once per component class.
 
-    Mirrors `Class_Function_Iterator`.  Owners may register a list of
+    Owners may register a list of
     functions under the `classIteratedFunctions` key; each function is
     called as `fn(build, class_dict)` for every entry in
     `build['componentClasses']`.
@@ -53,7 +48,7 @@ def Class_Move(build):
     instances of a component class from one node to another, optionally
     overwriting any pre-existing target instances.
 
-    Mirrors `Class_Move`.  Bound to `treeNode`, not the class type
+    Bound to `treeNode`, not the class type
     itself, since the method takes a target `treeNode` argument.
     """
     active = set(build.get('componentClassListActive') or [])
@@ -66,7 +61,7 @@ def Class_Move(build):
             'type':        'void',
             'name':        type_name + 'Move',
             'description': (
-                f"Move instances of the \\mono{{{name}}} component, "
+                f"Move instances of the ``{name}`` component, "
                 "from one node to another."
             ),
             'modules':     ['Error'],
@@ -175,10 +170,10 @@ def Class_Move(build):
             'type':       'procedure',
             'descriptor': function,
             'name':       name + 'Move',
-            'returnType': r"\void",
+            'returnType': r"``void``",
             'arguments':  (
-                r"\textcolor{red}{\textless type(treeNode)\textgreater} "
-                r"targetNode\arginout"
+                r"``type(treeNode)`` "
+                r"targetNode [inout]"
             ),
         })
 
@@ -186,8 +181,6 @@ def Class_Move(build):
 def Class_Remove(build):
     """Generate `nodeComponent<Class>Remove` per class — removes one
     indexed instance of a component class from a node.
-
-    Mirrors `Class_Remove`.
     """
     active = set(build.get('componentClassListActive') or [])
     for class_dict in (build.get('componentClasses') or {}).values():
@@ -199,7 +192,7 @@ def Class_Remove(build):
             'type':        'void',
             'name':        type_name + 'Remove',
             'description': (
-                f"Remove an instance of the \\mono{{{name}}} component "
+                f"Remove an instance of the ``{name}`` component "
                 "from a node."
             ),
             'modules':     ['Error'],
@@ -286,7 +279,7 @@ def _ucfirst(text):
     return text[:1].upper() + text[1:] if text else text
 
 
-# Hook registration order matches Perl Classes/Utils.pm:23-27.
+# Registration order determines the order of generated code — do not reorder.
 register('classUtils', 'functions', Class_Move)
 register('classUtils', 'functions', Class_Remove)
 register('classUtils', 'functions', Class_Function_Iterator)

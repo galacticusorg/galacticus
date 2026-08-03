@@ -1,8 +1,6 @@
 """Contains a Python module which implements parsing of OpenMP directives.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Parse/OpenMP.pm
 """
 
 import re
@@ -17,7 +15,7 @@ _OMP_PARALLEL_RE = re.compile(
 )
 
 # Options which attach to the composite (iterator) directive in a combined
-# `parallel do / workshare`.  Matches @iteratorOptions in OpenMP.pm:23.
+# `parallel do / workshare`.
 _ITERATOR_OPTIONS = ('schedule',)
 
 
@@ -26,8 +24,6 @@ def _extract_balanced_parens(s):
     where content is the balanced parenthesised substring (including the outer
     parens) and remainder is the rest of s with that content stripped.  Otherwise
     return ('', s).
-
-    Replaces the Perl `$RE{balanced}{-parens=>'()'}` pattern from Regexp::Common.
     """
     i = 0
     while i < len(s) and s[i].isspace():
@@ -51,8 +47,7 @@ def _extract_balanced_parens(s):
 
 def _parse_options(options_text):
     """Parse the trailing option text of an !$omp parallel[...] directive into
-    a list of {'name': str, 'content': str} dicts.  Mirrors the option loop at
-    OpenMP.pm:47-64.
+    a list of {'name': str, 'content': str} dicts.
     """
     options_text = options_text.lstrip()
     results = []
@@ -73,10 +68,7 @@ def _parse_options(options_text):
 
 
 def parse_openmp(tree):
-    """Walk the tree extracting `!$omp parallel[...]` directives into openMP nodes.
-
-    Mirrors Parse_OpenMP() from perl/Galacticus/Build/SourceTree/Parse/OpenMP.pm.
-    """
+    """Walk the tree extracting `!$omp parallel[...]` directives into openMP nodes."""
     from Galacticus.Build.SourceTree import walk_tree, replace_node, _make_code_node
 
     nodes_to_replace = []
@@ -211,8 +203,6 @@ def parse_openmp(tree):
 def update(node):
     """Regenerate the `!$omp …` line in node['firstChild']['content'] from
     node's name / isCloser / options.
-
-    Mirrors OpenMP.pm:174-179.
     """
     content = "!$omp " + ("end " if node.get('isCloser') else "") + node['name']
     for opt in node.get('options', []):
@@ -233,10 +223,7 @@ def update(node):
 
 
 def copyin(node, variable_names):
-    """Add `copyin(...)` variables to an openMP node, deduplicating existing entries.
-
-    Mirrors OpenMP.pm:181-208.
-    """
+    """Add `copyin(...)` variables to an openMP node, deduplicating existing entries."""
     options = node.setdefault('options', [])
     copyin_opt = next((o for o in options if o['name'] == 'copyin'), None)
     if copyin_opt is None:

@@ -22,7 +22,7 @@
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleClass
   use :: Cosmology_Functions                 , only : cosmologyFunctionsClass
-  use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
+  use :: Galactic_Structure_Radii_Definitions, only : radiusDefinitions
   use :: Cooling_Functions                   , only : coolingFunctionClass
   use :: Radiation_Fields                    , only : radiationFieldCosmicMicrowaveBackground
   !![
@@ -43,20 +43,16 @@
      A property extractor class for the CGM cooling function at a set of radii.
      !!}
      private
-     class  (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_           => null()
-     class  (darkMatterHaloScaleClass               ), pointer                   :: darkMatterHaloScale_          => null()
-     class  (coolingFunctionClass                   ), pointer                   :: coolingFunction_              => null()
-     type   (radiationFieldCosmicMicrowaveBackground), pointer                   :: radiation                     => null()
-     integer                                                                     :: radiiCount                             , elementCount_       , &
-          &                                                                         abundancesCount                        , chemicalsCount      , &
-          &                                                                         indexRadii                             , indexDensity
-     logical                                                                     :: includeRadii                           , includeDensity
+     class  (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_  => null()
+     class  (darkMatterHaloScaleClass               ), pointer                   :: darkMatterHaloScale_ => null()
+     class  (coolingFunctionClass                   ), pointer                   :: coolingFunction_     => null()
+     type   (radiationFieldCosmicMicrowaveBackground), pointer                   :: radiation            => null()
+     integer                                                                     :: radiiCount                    , elementCount_ , &
+          &                                                                         abundancesCount               , chemicalsCount, &
+          &                                                                         indexRadii                    , indexDensity
+     logical                                                                     :: includeRadii                  , includeDensity
      type   (varying_string                         ), allocatable, dimension(:) :: radiusSpecifiers
-     type   (radiusSpecifier                        ), allocatable, dimension(:) :: radii
-     logical                                                                     :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
-          &                                                                         spheroidIsNeeded                       , virialRadiusIsNeeded, &
-          &                                                                         nuclearStarClusterIsNeeded             , satelliteIsNeeded   , &
-          &                                                                         hotHaloIsNeeded
+     type   (radiusDefinitions                      )                            :: radii
      type   (varying_string                         )                            :: label
    contains
      final     ::                       cgmCoolingFunctionDestructor
@@ -146,10 +142,9 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorCGMCoolingFunction` property extractor class.
     !!}
-    use :: Abundances_Structure                , only : Abundances_Property_Count
-    use :: Chemical_Abundances_Structure       , only : Chemicals_Property_Count
-    use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
-    use :: String_Handling                     , only : String_Upper_Case_First
+    use :: Abundances_Structure         , only : Abundances_Property_Count
+    use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
+    use :: String_Handling              , only : String_Upper_Case_First
     implicit none
     type   (nodePropertyExtractorCGMCoolingFunction)                              :: self
     type   (varying_string                         ), intent(in   ), dimension(:) :: radiusSpecifiers
@@ -173,17 +168,7 @@ contains
        self%indexDensity =self%elementCount_
     end if
     self%radiiCount      =size(radiusSpecifiers)
-    call Galactic_Structure_Radii_Definition_Decode(                                    &
-         &                                          radiusSpecifiers                  , &
-         &                                          self%radii                        , &
-         &                                          self%hotHaloIsNeeded              , &
-         &                                          self%diskIsNeeded                 , &
-         &                                          self%spheroidIsNeeded             , &
-         &                                          self%nuclearStarClusterIsNeeded   , &
-         &                                          self%satelliteIsNeeded            , &
-         &                                          self%virialRadiusIsNeeded         , &
-         &                                          self%darkMatterScaleRadiusIsNeeded  &
-         &                                         )
+    call self%radii%decode(radiusSpecifiers)
     ! Get a count of the number of abundances and chemicals properties.
     self%abundancesCount=Abundances_Property_Count()
     self%chemicalsCount =Chemicals_Property_Count ()
@@ -247,14 +232,9 @@ contains
     use :: Abundances_Structure                , only : abundances
     use :: Chemical_Abundances_Structure       , only : chemicalAbundances
     use :: Chemical_Reaction_Rates_Utilities   , only : Chemicals_Mass_To_Fraction_Conversion
-    use :: Galactic_Structure_Options          , only : componentTypeAll                     , componentTypeHotHalo        , massTypeGaseous                   , massTypeGalactic                          , &
-         &                                              massTypeStellar
-    use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius      , radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius              , radiusTypeGalacticLightFraction           , &
-         &                                              radiusTypeGalacticMassFraction       , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius  , radiusTypeSpheroidRadius                  , &
-         &                                              radiusTypeStellarMassFraction        , radiusTypeVirialRadius      , radiusTypeNuclearStarClusterRadius, radiusTypeNuclearStarClusterHalfMassRadius, &
-          &                                             radiusTypeHotHaloOuterRadius
-    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile       , nodeComponentDisk           , nodeComponentSpheroid             , treeNode                                  , &
-         &                                              nodeComponentBasic                   , nodeComponentHotHalo        , nodeComponentNSC
+    use :: Galactic_Structure_Options          , only : componentTypeHotHalo                 , massTypeGaseous
+    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver, radiusUndefined
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                   , nodeComponentHotHalo        , treeNode
     use :: Mass_Distributions                  , only : massDistributionClass                , kinematicsDistributionClass
     use :: Coordinates                         , only : coordinateSpherical                  , assignment(=)
     use :: Numerical_Constants_Astronomical    , only : massSolar                            , megaParsec
@@ -269,84 +249,31 @@ contains
     type            (multiCounter                           ), intent(inout) , optional    :: instance
     class           (nodeComponentBasic                     )                , pointer     :: basic
     class           (nodeComponentHotHalo                   )                , pointer     :: hotHalo
-    class           (nodeComponentDisk                      )                , pointer     :: disk
-    class           (nodeComponentSpheroid                  )                , pointer     :: spheroid
-    class           (nodeComponentNSC                       )                , pointer     :: nuclearStarCluster
-    class           (nodeComponentDarkMatterProfile         )                , pointer     :: darkMatterProfile
     class           (massDistributionClass                  )                , pointer     :: massDistribution_
     class           (kinematicsDistributionClass            )                , pointer     :: kinematicsDistribution_
+    type            (radiusResolver                         )                              :: resolver
     type            (coordinateSpherical                    )                              :: coordinates
     integer                                                                                :: i
-    double precision                                                                       :: radius                   , radiusVirial         , &
-         &                                                                                    density                  , temperature          , &
-         &                                                                                    massToDensityConversion  , numberDensityHydrogen
+    double precision                                                                       :: radius                   , density              , &
+         &                                                                                    temperature              , numberDensityHydrogen, &
+         &                                                                                    massToDensityConversion
     type            (abundances                             )                              :: abundancesGas
     type            (chemicalAbundances                     )                              :: chemicalMasses           , fractionsChemical
     !$GLC attributes unused :: time, instance
 
     allocate(cgmCoolingFunctionExtract(self%radiiCount,self%elementCount_))
-    radiusVirial                                               =  0.0d0
-    if (self%         virialRadiusIsNeeded) radiusVirial       =  self%darkMatterHaloScale_%radiusVirial(node                    )
-    if (self%              hotHaloIsNeeded) hotHalo            =>                                        node%hotHalo          ()
-    if (self%                 diskIsNeeded) disk               =>                                        node%disk             ()
-    if (self%             spheroidIsNeeded) spheroid           =>                                        node%spheroid         ()
-    if (self%   nuclearStarClusterIsNeeded) nuclearStarCluster =>                                        node%NSC              ()
-    if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile  =>                                        node%darkMatterProfile()
+    resolver=radiusResolver(self%radii,node,self%darkMatterHaloScale_)
     do i=1,self%radiiCount
-       radius=self%radii(i)%value
-       select case (self%radii(i)%type%ID)
-       case   (radiusTypeRadius                          %ID)
-          ! Nothing to do.
-       case   (radiusTypeVirialRadius                    %ID)
-          radius=+radius*radiusVirial
-       case   (radiusTypeDarkMatterScaleRadius           %ID)
-          radius=+radius*darkMatterProfile %         scale()
-       case   (radiusTypeHotHaloOuterRadius              %ID)
-          radius=+radius*hotHalo           %   outerRadius()
-       case   (radiusTypeDiskRadius                      %ID)
-          radius=+radius*disk              %        radius()
-       case   (radiusTypeSpheroidRadius                  %ID)
-          radius=+radius*spheroid          %        radius()
-       case   (radiusTypeNuclearStarClusterRadius        %ID)
-          radius=+radius*nuclearStarCluster%        radius()
-       case   (radiusTypeDiskHalfMassRadius              %ID)
-          radius=+radius*disk              %halfMassRadius()
-       case   (radiusTypeSpheroidHalfMassRadius          %ID)
-          radius=+radius*spheroid          %halfMassRadius()
-       case   (radiusTypeNuclearStarClusterHalfMassRadius%ID)
-          radius=+radius*nuclearStarCluster%halfMassRadius()
-       case   (radiusTypeGalacticMassFraction            %ID,  &
-            &  radiusTypeGalacticLightFraction           %ID)
-          massDistribution_ =>  node             %massDistribution   (                                                &
-               &                                                      massType      =              massTypeStellar ,  &
-               &                                                      componentType =              componentTypeAll,  &
-               &                                                      weightBy      =self%radii(i)%weightBy        ,  &
-               &                                                      weightIndex   =self%radii(i)%weightByIndex      &
-               &                                                     )
-          radius            =  +radius                                                                                &
-               &               *massDistribution_%radiusEnclosingMass(                                                &
-               &                                                      massFractional=self%radii(i)%fraction           &
-               &                                                     )
-          !![
-	  <objectDestructor name="massDistribution_"/>
-	  !!]
-        case   (radiusTypeStellarMassFraction  %ID)
-           massDistribution_ =>  node             %massDistribution  (                                                &
-               &                                                      massType      =              massTypeStellar ,  &
-               &                                                      componentType =              componentTypeAll,  &
-               &                                                      weightBy      =self%radii(i)%weightBy        ,  &
-               &                                                      weightIndex   =self%radii(i)%weightByIndex      &
-               &                                                     )
-          radius            =  +radius                                                                                &
-               &               *massDistribution_%radiusEnclosingMass(                                                &
-               &                                                      massFractional=self%radii(i)%fraction           &
-               &                                                     )
-          !![
-	  <objectDestructor name="massDistribution_"/>
-	  !!]
-       case default
-          call Error_Report('unrecognized radius type'//{introspection:location})
-       end select
+       call resolver%evaluate(i,radius)
+       if (radius < 0.0d0) then
+          ! The radius is undefined in this node - report the sentinel rather than evaluating the cooling function there.
+          cgmCoolingFunctionExtract       (i,                1)=radiusUndefined
+          if (self%includeRadii  )                                              &
+               & cgmCoolingFunctionExtract(i,self%indexRadii  )=radiusUndefined
+          if (self%includeDensity)                                              &
+               & cgmCoolingFunctionExtract(i,self%indexDensity)=radiusUndefined
+          cycle
+       end if
        ! Extract properties needed for the cooling function.       
        basic   => node%basic  ()
        hotHalo => node%hotHalo()
@@ -464,7 +391,7 @@ contains
     allocate(values      (              0))
     valuesDescription=var_str('')
     valuesUnits      =unitType(0.0d0)
-    descriptions     =self%radii%name
+    descriptions     =self%radii%specifiers%name
     return
   end subroutine cgmCoolingFunctionColumnDescriptions
 

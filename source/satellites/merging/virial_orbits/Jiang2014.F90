@@ -242,7 +242,7 @@ contains
           &                                 File_Unlock                 , lockDescriptor
     use :: Input_Paths             , only : inputPath                   , pathTypeDataDynamic
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5Object
+    use :: IO_HDF5                 , only : hdf5File
     use :: String_Handling         , only : operator(//)
     implicit none
     type            (virialOrbitJiang2014        )                                :: self
@@ -261,12 +261,11 @@ contains
     type            (distributionFunction1DVoight)                                :: voightDistribution
     double precision                              , parameter                     :: toleranceAbsolute           =0.0d+0, toleranceRelative             =1.0d-3
     double precision                              , allocatable  , dimension(:,:) :: distribution_
-    double precision                                                              :: limitLower                         , limitUpper                           , halfWidthHalfMaximum,  &
-         &                                                                           fullWidthHalfMaximumLorentzian     , fullWidthHalfMaximumGaussian
+    double precision                                                              :: limitLower                         , limitUpper
     logical                                                                       :: limitFound                         , success
     type            (integrator                  )                                :: integratorTangential               , integratorTotal
     type            (varying_string              )                                :: fileName
-    type            (hdf5Object                  )                                :: file
+    type            (hdf5File                    )                                :: file
     type            (lockDescriptor              )                                :: fileLock
      !![
     <constructorAssign variables="*darkMatterHaloScale_, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, bRatioLow, bRatioIntermediate, bRatioHigh, gammaRatioLow, gammaRatioIntermediate, gammaRatioHigh, sigmaRatioLow, sigmaRatioIntermediate, sigmaRatioHigh, muRatioLow, muRatioIntermediate , muRatioHigh, *darkMatterProfileDMO_"/>
@@ -299,14 +298,16 @@ contains
        call File_Lock(fileName,fileLock,lockIsShared=attempt == 0)
        if (File_Exists(fileName)) then
           !$ call hdf5Access%set()
-          file=hdf5Object            (char(fileName)                ,readOnly=.true.                   )
-          call file%readAttribute    ('limitLower'                  ,     limitLower                   ) 
-          call file%readAttribute    ('limitUpper'                  ,     limitUpper                   ) 
+          file=hdf5File(fileName,readOnly=.true.)
           call file%readDatasetStatic('velocityTangentialMean'      ,self%velocityTangentialMean_      )
           call file%readDatasetStatic('velocityTotalRootMeanSquared',self%velocityTotalRootMeanSquared_)
           do i=1,3
              do j=1,3
                 call file%readDataset(char(var_str('distribution_')//i//'_'//j) , distribution_)
+                ! Recompute the limits for this element. These must match those used when the table was built - they can not be
+                ! read from the file as they differ between elements, and so are computed here from the (parameter-defined)
+                ! distribution properties using the same function used during tabulation.
+                call jiang2014VoightLimits(self,i,j,limitLower,limitUpper)
                 call self%voightDistributions(i,j)%create  (limitLower        ,limitUpper,tableCount)
                 call self%voightDistributions(i,j)%populate(distribution_(:,1)                      )
              end do
@@ -321,31 +322,13 @@ contains
           do i=1,3
              do j=1,3
                 ! Build the distribution.
-                ! Set the lower and upper limit of the distribution to +/-5 times the half-width at half-maximum below/above the mean
-                ! (limited also to 0). This avoids attempting to evaluate the distribution far from the mean (where it is small, but
-                ! the numerical evaluation of the hypergeometric function used in the CDF is unstable). The half-width at
-                ! half-maximum is estimated using the approximation of Olivero (1977; Journal of Quantitative Spectroscopy and
-                ! Radiative Transfer; 17; 233; http://adsabs.harvard.edu/abs/1977JQSRT..17..233O).
-                fullWidthHalfMaximumLorentzian=+2.0d0*self%gamma(i,j)
-                fullWidthHalfMaximumGaussian  =+2.0d0*self%sigma(i,j)*sqrt(2.0d0*log(2.0d0))
-                halfWidthHalfMaximum          =+0.5d0                                     &
-                     &                         *(                                         &
-                     &                           +      0.5346d0                          &
-                     &                           *      fullWidthHalfMaximumLorentzian    &
-                     &                           +sqrt(                                   &
-                     &                                 +0.2166d0                          &
-                     &                                 *fullWidthHalfMaximumLorentzian**2 &
-                     &                                 +fullWidthHalfMaximumGaussian  **2 &
-                     &                                )                                   &
-                     &                          )
-                limitLower                    =max(self%mu(i,j)-5.0d0*halfWidthHalfMaximum,0.0d0)
-                limitUpper                    =    self%mu(i,j)+5.0d0*halfWidthHalfMaximum
-                voightDistribution=distributionFunction1DVoight(                        &
-                     &                                          self%gamma(i,j)       , &
-                     &                                          self%mu   (i,j)       , &
-                     &                                          self%sigma(i,j)       , &
-                     &                                          limitLower            , &
-                     &                                          limitUpper              &
+                call jiang2014VoightLimits(self,i,j,limitLower,limitUpper)
+                voightDistribution=distributionFunction1DVoight(                 &
+                     &                                          self%gamma(i,j), &
+                     &                                          self%mu   (i,j), &
+                     &                                          self%sigma(i,j), &
+                     &                                          limitLower     , &
+                     &                                          limitUpper       &
                      &                                         )
                 ! Tabulate the cumulative distribution.
                 call self%voightDistributions(i,j)%create(limitLower,limitUpper,tableCount)
@@ -376,11 +359,9 @@ contains
              end do
           end do
           !$ call hdf5Access%set()
-          file=hdf5Object         (char(fileName                     )                               ,overWrite=.true.,readOnly=.false.)
-          call file%writeAttribute(     limitLower                    ,'limitLower'                                                    ) 
-          call file%writeAttribute(     limitUpper                    ,'limitUpper'                                                    ) 
-          call file%writeDataset  (self%velocityTangentialMean_       ,'velocityTangentialMean'                                        )
-          call file%writeDataset  (self%velocityTotalRootMeanSquared_ ,'velocityTotalRootMeanSquared'                                  )
+          file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
+          call file%writeDataset(self%velocityTangentialMean_      ,'velocityTangentialMean'      )
+          call file%writeDataset(self%velocityTotalRootMeanSquared_,'velocityTotalRootMeanSquared')
           do i=1,3
              do j=1,3
                 call file%writeDataset(self%voightDistributions(i,j)%ys(),char(var_str('distribution_')//i//'_'//j))
@@ -462,6 +443,45 @@ contains
     end function jiang2014DistributionVelocityTotalSquared
 
   end function jiang2014ConstructorInternal
+
+  subroutine jiang2014VoightLimits(self,i,j,limitLower,limitUpper)
+    !!{RST
+    Compute the lower and upper limits of the tabulated Voight distribution for element ``(i,j)`` of the
+    :cite:t:`jiang_orbital_2014` orbital parameter distribution.
+
+    The limits are set to :math:`\pm 5` times the half-width at half-maximum below/above the mean (limited also to zero). This
+    avoids attempting to evaluate the distribution far from the mean (where it is small, but the numerical evaluation of the
+    hypergeometric function used in the CDF is unstable). The half-width at half-maximum is estimated using the approximation of
+    Olivero (1977; Journal of Quantitative Spectroscopy and Radiative Transfer; 17; 233;
+    http://adsabs.harvard.edu/abs/1977JQSRT..17..233O).
+
+    These limits differ between elements, and so can not be stored as a single value alongside the tabulated distributions. They
+    are instead recomputed here - from the parameters of the distribution - both when tabulating and when reading a previously
+    tabulated result from file, so that the two paths can not diverge.
+    !!}
+    implicit none
+    type            (virialOrbitJiang2014), intent(in   ) :: self
+    integer                               , intent(in   ) :: i                             , j
+    double precision                      , intent(  out) :: limitLower                    , limitUpper
+    double precision                                      :: fullWidthHalfMaximumLorentzian, fullWidthHalfMaximumGaussian, &
+         &                                                   halfWidthHalfMaximum
+
+    fullWidthHalfMaximumLorentzian=+2.0d0*self%gamma(i,j)
+    fullWidthHalfMaximumGaussian  =+2.0d0*self%sigma(i,j)*sqrt(2.0d0*log(2.0d0))
+    halfWidthHalfMaximum          =+0.5d0                                     &
+         &                         *(                                         &
+         &                           +      0.5346d0                          &
+         &                           *      fullWidthHalfMaximumLorentzian    &
+         &                           +sqrt(                                   &
+         &                                 +0.2166d0                          &
+         &                                 *fullWidthHalfMaximumLorentzian**2 &
+         &                                 +fullWidthHalfMaximumGaussian  **2 &
+         &                                )                                   &
+         &                          )
+    limitLower                    =max(self%mu(i,j)-5.0d0*halfWidthHalfMaximum,0.0d0)
+    limitUpper                    =    self%mu(i,j)+5.0d0*halfWidthHalfMaximum
+    return
+  end subroutine jiang2014VoightLimits
 
   subroutine jiang2014Destructor(self)
     !!{RST

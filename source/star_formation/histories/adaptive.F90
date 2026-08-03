@@ -189,7 +189,7 @@ contains
     use :: Galactic_Structure_Options, only : componentTypeMax, componentTypeMin
     use :: Numerical_Ranges          , only : Make_Range      , rangeTypeLogarithmic
     use :: HDF5_Access               , only : hdf5Access
-    use :: IO_HDF5                   , only : hdf5Object
+    use :: IO_HDF5                   , only : hdf5File
     use :: Input_Paths               , only : inputPath       , pathTypeDataDynamic
     use :: File_Utilities            , only : File_Exists     , File_Lock           , File_Unlock, lockDescriptor, &
          &                                    Directory_Make
@@ -210,7 +210,7 @@ contains
          &                                                                                   metric               , metricChangeMinimum, &
          &                                                                                   metricChange         , metricMinimumGlobal
     type            (varying_string              )                                        :: fileName
-    type            (hdf5Object                  )                                        :: file
+    type            (hdf5File                    )                                        :: file
     type            (lockDescriptor              )                                        :: fileLock
     character       (len=16                      )                                        :: name
     integer                                                                               :: iLock
@@ -264,7 +264,7 @@ contains
        if (File_Exists(fileName)) then
           !$ call hdf5Access%set()
           hdf5ReadScope: block
-            file=hdf5Object(fileName,readOnly=.true.)
+            file=hdf5File(fileName,readOnly=.true.)
             do iOutput=1,self%outputTimes_%count()
                write (name,'(a,i4.4)') 'times'   ,iOutput
                call file%readDataset(name,self%intervals(iOutput)%time    )
@@ -376,7 +376,7 @@ contains
           end do
           !$ call hdf5Access%set()
           hdfWriteScope: block
-            file=hdf5Object(char(fileName),overWrite=.false.,readOnly=.false.)
+            file=hdf5File(fileName,overWrite=.false.,readOnly=.false.)
             do iOutput=1,self%outputTimes_%count()
                write (name,'(a,i4.4)') 'times'   ,iOutput
                call file%writeDataset(self%intervals(iOutput)%time    ,name)

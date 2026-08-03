@@ -2,7 +2,7 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/TreeNodes.pm.  Two hooks:
+Two hooks:
 
   types     → Build_Tree_Node_Class    — declares the `treeNode` Fortran
                                          type with all of its
@@ -23,7 +23,7 @@ from Galacticus.Build.Components.Utils import register
 def Build_Tree_Node_Class(build):
     """Define `treeNode` on `build['types']`.
 
-    Mirrors `Build_Tree_Node_Class`.  Almost entirely declarative; only
+    Almost entirely declarative; only
     the per-class data-content section depends on
     `componentClassListActive` (populated by Classes/Gather_Classes).
     """
@@ -41,7 +41,7 @@ def Build_Tree_Node_Class(build):
 
     build.setdefault('types', {})['treeNode'] = {
         'name':           'treeNode',
-        'comment':        r"A class for \glspl{node} in merger trees.",
+        'comment':        r"A class for :term:`node`\ s in merger trees.",
         'isPublic':       True,
         'boundFunctions': type_bound_functions,
         'dataContent':    data_content,
@@ -50,8 +50,6 @@ def Build_Tree_Node_Class(build):
 
 def Insert_Interrupt_Interface(build):
     """Emit the `interruptTask` abstract interface.
-
-    Mirrors `Insert_Interrupt_Interface`.
     """
     build.setdefault('interfaces', {})['interruptTask'] = {
         'name':      'interruptTask',
@@ -74,8 +72,7 @@ def Insert_Interrupt_Interface(build):
 
 
 # ---------------------------------------------------------------------------
-# Standard data content for the `treeNode` type.  Verbatim from
-# TreeNodes.pm:253-291.
+# Standard data content for the `treeNode` type.
 # ---------------------------------------------------------------------------
 
 _BASE_DATA_CONTENT = [
@@ -120,7 +117,7 @@ _BASE_DATA_CONTENT = [
 ]
 
 # ---------------------------------------------------------------------------
-# Standard type-bound function table.  Verbatim from TreeNodes.pm:32-251.
+# Standard type-bound function table.
 # ---------------------------------------------------------------------------
 
 _BASE_BOUND_FUNCTIONS = [
@@ -129,7 +126,7 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'type',
         'function':    'Tree_Node_Type',
         'description': "Return the type of this node.",
-        'returnType':  r"\textcolor{red}{\textless type(varying\_string)\textgreater}",
+        'returnType':  r"``type(varying_string)``",
         'arguments':   "",
     },
     {
@@ -137,7 +134,7 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'index',
         'function':    'Tree_Node_Index',
         'description': "Return the index of this node.",
-        'returnType':  r"\textcolor{red}{\textless integer(kind\_int8)\textgreater}",
+        'returnType':  r"``integer(kind_int8)``",
         'arguments':   "",
     },
     {
@@ -145,15 +142,15 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'indexSet',
         'function':    'Tree_Node_Index_Set',
         'description': "Set the index of this node.",
-        'returnType':  r"\void",
-        'arguments':   r"\textcolor{red}{\textless integer(kind\_int8)\textgreater} index\argin",
+        'returnType':  r"``void``",
+        'arguments':   r"``integer(kind_int8)`` index [in]",
     },
     {
         'type':        'procedure',
         'name':        'timeStep',
         'function':    'Tree_Node_Time_Step',
         'description': "Return the time-step last used by this node.",
-        'returnType':  r"\doublezero",
+        'returnType':  r"``double``",
         'arguments':   "",
     },
     {
@@ -161,15 +158,15 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'timeStepSet',
         'function':    'Tree_Node_Time_Step_Set',
         'description': "Set the time-step used by this node.",
-        'returnType':  r"\void",
-        'arguments':   r"\doublezero\ timeStep\argin",
+        'returnType':  r"``void``",
+        'arguments':   r"``double`` timeStep [in]",
     },
     {
         'type':        'procedure',
         'name':        'subsamplingWeight',
         'function':    'Tree_Node_Subsampling_Weight',
         'description': "Return the subsampling weight of this node.",
-        'returnType':  r"\doublezero",
+        'returnType':  r"``double``",
         'arguments':   "",
     },
     {
@@ -177,15 +174,15 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'subsamplingWeightSet',
         'function':    'Tree_Node_Subsampling_Weight_Set',
         'description': "Set the subsampling weight of this node.",
-        'returnType':  r"\void",
-        'arguments':   r"\doublezero\ subsamplingWeight\argin",
+        'returnType':  r"``void``",
+        'arguments':   r"``double`` subsamplingWeight [in]",
     },
     {
         'type':        'procedure',
         'name':        'uniqueID',
         'function':    'Tree_Node_Unique_ID',
         'description': "Return the unique identifier for this node.",
-        'returnType':  r"\textcolor{red}{\textless integer(kind\_int8)\textgreater}",
+        'returnType':  r"``integer(kind_int8)``",
         'arguments':   "",
     },
     {
@@ -193,15 +190,15 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'uniqueIDSet',
         'function':    'Tree_Node_Unique_ID_Set',
         'description': "Set the unique identifier for this node.",
-        'returnType':  r"\void",
-        'arguments':   r"\textcolor{red}{\textless integer(kind\_int8)\textgreater} uniqueID\argin",
+        'returnType':  r"``void``",
+        'arguments':   r"``integer(kind_int8)`` uniqueID [in]",
     },
     {
         'type':        'procedure',
         'name':        'removeFromHost',
         'function':    'Tree_Node_Remove_From_Host',
         'description': "Remove this node from the satellite population of its host halo.",
-        'returnType':  r"\void",
+        'returnType':  r"``void``",
         'arguments':   "",
     },
     {
@@ -209,7 +206,7 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'removeFromMergee',
         'function':    'Tree_Node_Remove_From_Mergee',
         'description': "Remove this node from the list of mergees associated with its merge target.",
-        'returnType':  r"\void",
+        'returnType':  r"``void``",
         'arguments':   "",
     },
     {
@@ -217,7 +214,7 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'isPrimaryProgenitor',
         'function':    'treeNodeIsPrimaryProgenitor',
         'description': "Return true if this node is the primary progenitor of its descendant, false otherwise.",
-        'returnType':  r"\logicalzero",
+        'returnType':  r"``logical``",
         'arguments':   "",
     },
     {
@@ -234,8 +231,8 @@ _BASE_BOUND_FUNCTIONS = [
         'function':    ['Tree_Node_Is_Primary_Progenitor_Of_Index',
                         'Tree_Node_Is_Primary_Progenitor_Of_Node'],
         'description': "Return true is this node is the primary progenitor of the specified (by index or pointer) node, false otherwise.",
-        'returnType':  r"\logicalzero",
-        'arguments':   r"\textcolor{red}{\textless integer(kind\_int8)\textgreater} targetNodeIndex\argin|\textcolor{red}{\textless *type(treeNode)\textgreater} targetNode\argin",
+        'returnType':  r"``logical``",
+        'arguments':   r"``integer(kind_int8)`` targetNodeIndex [in]|``*type(treeNode)`` targetNode [in]",
     },
     {
         'type':        'procedure',
@@ -251,15 +248,15 @@ _BASE_BOUND_FUNCTIONS = [
         'function':    ['Tree_Node_Is_Progenitor_Of_Index',
                         'Tree_Node_Is_Progenitor_Of_Node'],
         'description': "Return true is this node is a progenitor of the specified (by index or pointer) node, false otherwise.",
-        'returnType':  r"\logicalzero",
-        'arguments':   r"\textcolor{red}{\textless integer(kind\_int8)\textgreater} targetNodeIndex\argin|\textcolor{red}{\textless *type(treeNode)\textgreater} targetNode\argin",
+        'returnType':  r"``logical``",
+        'arguments':   r"``integer(kind_int8)`` targetNodeIndex [in]|``*type(treeNode)`` targetNode [in]",
     },
     {
         'type':        'procedure',
         'name':        'isOnMainBranch',
         'function':    'Tree_Node_Is_On_Main_Branch',
         'description': "Return true if this node is on the main branch of its tree, false otherwise.",
-        'returnType':  r"\logicalzero",
+        'returnType':  r"``logical``",
         'arguments':   "",
     },
     {
@@ -267,7 +264,7 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'isSatellite',
         'function':    'Tree_Node_Is_Satellite',
         'description': "Return true if this node is a satellite, false otherwise.",
-        'returnType':  r"\logicalzero",
+        'returnType':  r"``logical``",
         'arguments':   "",
     },
     {
@@ -275,7 +272,7 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'isolatedParent',
         'function':    'Tree_Node_Get_Isolated_Parent',
         'description': "Return a pointer to the isolated parent node of this node.",
-        'returnType':  r"\textcolor{red}{\textless *type(treeNode)\textgreater}",
+        'returnType':  r"``*type(treeNode)``",
         'arguments':   "",
     },
     {
@@ -283,7 +280,7 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'lastSatellite',
         'function':    'Tree_Node_Get_Last_Satellite',
         'description': "Return a pointer to the last satellite in the list of satellites beloning to this node.",
-        'returnType':  r"\textcolor{red}{\textless *type(treeNode)\textgreater}",
+        'returnType':  r"``*type(treeNode)``",
         'arguments':   "",
     },
     {
@@ -291,7 +288,7 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'earliestProgenitor',
         'function':    'Tree_Node_Get_Earliest_Progenitor',
         'description': "Return a pointer to the earliest progenitor (along the main branch) of this node.",
-        'returnType':  r"\textcolor{red}{\textless *type(treeNode)\textgreater}",
+        'returnType':  r"``*type(treeNode)``",
         'arguments':   "",
     },
     {
@@ -299,7 +296,7 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'mergesWith',
         'function':    'Tree_Node_Merges_With_Node',
         'description': "Return a pointer to the node with which this node will merge.",
-        'returnType':  r"\textcolor{red}{\textless *type(treeNode)\textgreater}",
+        'returnType':  r"``*type(treeNode)``",
         'arguments':   "",
     },
     {
@@ -307,15 +304,15 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'walkBranchWithSatellites',
         'function':    'treeNodeWalkBranchWithSatellites',
         'description': "Return a pointer to the next node when performing a walk of a single branch of the tree, including satellites.",
-        'returnType':  r"\void",
-        'arguments':   r"\textcolor{red}{\textless *type(treeNode)\textgreater} startNode\arginout",
+        'returnType':  r"``void``",
+        'arguments':   r"``*type(treeNode)`` startNode [inout]",
     },
     {
         'type':        'procedure',
         'name':        'walkTreeWithSatellites',
         'function':    'treeNodeWalkTreeWithSatellites',
         'description': "Return a pointer to the next node when performing a walk of the entire tree, including satellites.",
-        'returnType':  r"\void",
+        'returnType':  r"``void``",
         'arguments':   "",
     },
     {
@@ -323,24 +320,24 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'destroyBranch',
         'function':    'treeNodeDestroyBranch',
         'description': "Destroy a branch of a merger tree rooted at this node.",
-        'returnType':  r"\void",
+        'returnType':  r"``void``",
         'arguments':   "",
     },
     {
         'type':        'procedure',
         'name':        'attachEvent',
         'function':    'Tree_Node_Attach_Event',
-        'description': r"Attach a \mono{nodeEvent} object to this node.",
-        'returnType':  r"\void",
-        'arguments':   r"\textcolor{red}{\textless *class(nodeEvent)\textgreater} newEvent\arginout",
+        'description': r"Attach a ``nodeEvent`` object to this node.",
+        'returnType':  r"``void``",
+        'arguments':   r"``*class(nodeEvent)`` newEvent [inout]",
     },
     {
         'type':        'procedure',
         'name':        'removePairedEvent',
         'function':    'Tree_Node_Remove_Paired_Event',
-        'description': r"Remove a paired \mono{nodeEvent} from this node.",
-        'returnType':  r"\void",
-        'arguments':   r"\textcolor{red}{\textless class(nodeEvent)\textgreater} event\argin",
+        'description': r"Remove a paired ``nodeEvent`` from this node.",
+        'returnType':  r"``void``",
+        'arguments':   r"``class(nodeEvent)`` event [in]",
     },
 ]
 

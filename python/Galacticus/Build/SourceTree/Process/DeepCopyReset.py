@@ -2,8 +2,6 @@
 each named object and marks the directive as processed.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/DeepCopyReset.pm
 """
 
 
@@ -13,7 +11,7 @@ from Galacticus.Build.SourceTree.Process import register_process
 
 
 def process_deep_copy_reset(tree, options):
-    """Mirrors Process_DeepCopyReset() from DeepCopyReset.pm."""
+    """Process `deepCopyReset` directives in the tree."""
     for node in walk_tree(tree):
         if node.get('type') != 'deepCopyReset':
             continue

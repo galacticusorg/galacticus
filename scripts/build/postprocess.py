@@ -65,16 +65,15 @@ interoperable_variables= {}   # {unit: {var: True}}
 unit_name = None
 try:
     with open(preprocessed_source, 'r', errors='replace') as fh:
-        # Regexes from Fortran::Utils for unit openers.
         # Unit-opener regexes — used only to extract the unit NAME so we can
         # later associate `!$GLC attributes unused :: …` directives with the
         # correct enclosing routine.  We deliberately do NOT match the
-        # argument list: the original Perl regex used a nested
-        # `(?:\(\s*(?:[a-zA-Z0-9_{}¦,\s]*)\))*` for the argument list, and
-        # the equivalent Python pattern has Python's NFA engine backtracking
-        # exponentially when a long generated line of identifier+whitespace
-        # characters never produces a `function`/`subroutine` match.  The
-        # argument-list capture isn't read anywhere downstream, so dropping
+        # argument list: a nested pattern such as
+        # `(?:\(\s*(?:[a-zA-Z0-9_{}¦,\s]*)\))*` for the argument list has
+        # Python's NFA engine backtracking exponentially when a long
+        # generated line of identifier+whitespace characters never produces
+        # a `function`/`subroutine` match.  The argument-list capture isn't
+        # read anywhere downstream, so dropping
         # it is purely a simplification, not a behaviour change.  Each
         # alternation has its trailing `\s+` folded inside the group so
         # `(?:opt\s+)*` cannot fight with a separate `\s*` for the same

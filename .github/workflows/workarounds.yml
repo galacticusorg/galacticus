@@ -3,6 +3,8 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '08 08 * * *'
+permissions:
+  contents: read
 jobs:
   Check-Workarounds:
     runs-on: ubuntu-latest
@@ -14,7 +16,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |

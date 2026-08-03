@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Analyze a variety of cosmological N-body simulations to extract statistics of interest.
 
-Python port of constraints/pipelines/darkMatter/simulationsAnalyze.pl
-Andrew Benson (ported to Python 2026)
+Andrew Benson (2026)
 """
 
 import argparse
@@ -99,8 +98,8 @@ def _build_active_steps(active_analyses):
 def _run_hooks(hook_key, step_id, entries, suites_cfg, manager, options):
     """Run all preprocess or postprocess hooks for a step in iteration order.
 
-    Mirrors the Perl while(workDone) loop: iterates through entries calling
-    the i-th hook function until no entry has an i-th hook, then submits jobs.
+    Iterates through entries calling the i-th hook function until no entry
+    has an i-th hook (i.e. until an iteration does no work), then submits jobs.
     """
     iteration = 0
     while True:

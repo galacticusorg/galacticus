@@ -25,7 +25,8 @@ module Meta_Tree_Compute_Times
   !!{RST
   Provides a class for calculations of the time taken to process merger trees.
   !!}
-  use :: Galacticus_Nodes, only : mergerTree
+  use            :: Galacticus_Nodes, only : mergerTree
+  use, intrinsic :: ISO_C_Binding   , only : c_size_t
   implicit none
   private
 
@@ -48,6 +49,19 @@ module Meta_Tree_Compute_Times
       ! Return a negative value indicating that no estimate is available.
       !$GLC attributes unused :: self, massTree
       metaTreeProcessingTimeTime=-1.0d0
+    </code>
+   </method>
+   <method name="timeByCountNodes" >
+    <description>
+    Return an estimate of the time needed to process a tree with the given number of nodes, or a negative value if no such estimate is available. This is useful for the read path, where the node count of a tree is known before it is evolved but its root mass is not.
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>integer(c_size_t), intent(in   ) :: countNodes</argument>
+    <code>
+      ! Return a negative value indicating that no estimate is available.
+      !$GLC attributes unused :: self, countNodes
+      metaTreeProcessingTimeTimeByCountNodes=-1.0d0
     </code>
    </method>
    <method name="timeRemaining" >

@@ -139,16 +139,19 @@ contains
     !!{RST
     Initialize the wavelength of the photon packet.
     !!}
+    use :: Coordinates             , only : coordinateCartesian, assignment(=)
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (radiativeTransferSourceDistributed), intent(inout) :: self
     class           (radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket
-    double precision                                                    :: theta       , phi
+    double precision                                    , dimension(3)  :: positionSampled
+    double precision                                                    :: theta          , phi
 
     ! Choose a position in the distributed source.
-    call photonPacket%positionSet(                                                                    &
-         &                        +self%massDistribution_%positionSample(self%randomNumberGenerator_) &
-         &                        +self                  %position                                    &
+    positionSampled=self%massDistribution_%positionSample(self%randomNumberGenerator_)
+    call photonPacket%positionSet(                    &
+         &                        +positionSampled    &
+         &                        +self%position      &
          &                       )
     ! Choose a propagation direction isotropically at random.
     phi  =+     2.0d0*Pi*self%randomNumberGenerator_%uniformSample()

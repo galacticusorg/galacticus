@@ -400,7 +400,7 @@ contains
      use            :: Galacticus_Nodes                , only : mergerTree        , mergerTreeList, nodeComponentBasic, treeNode, &
           &                                                     universe          , universeEvent
      use            :: HDF5_Access                     , only : hdf5Access
-     use            :: IO_HDF5                         , only : hdf5Object
+     use            :: IO_HDF5                         , only : hdf5Group         , hdf5Dataset
      use, intrinsic :: ISO_C_Binding                   , only : c_size_t
      use            :: ISO_Varying_String              , only : varying_string
      use            :: Numerical_Constants_Math        , only : Pi
@@ -424,7 +424,8 @@ contains
      type            (odeSolver         )                           :: solver
      type            (varying_string    )                           :: message
      character       (len=6             )                           :: label
-     type            (hdf5Object        )                           :: igmGroup                         , igmDataset
+     type            (hdf5Group         )                           :: igmGroup
+     type            (hdf5Dataset       )                           :: igmDataset
      integer         (c_size_t          )                           :: iNow
      double precision                                               :: treetimeLatest                   , timeCurrent    , &
           &                                                            timeMaximum

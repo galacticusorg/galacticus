@@ -3,9 +3,9 @@ import re
 import sys
 
 # Perform static analysis of Fortran files.
-# Andrew Benson (28-February-2023) [Python port]
+# Andrew Benson (28-February-2023)
 #
-# Checks performed (mirrors staticAnalyzer.pl):
+# Checks performed:
 #  1. class/type pointer members in derived types that are not null-initialized.
 #  2. Duplicated variable assignments in <constructorAssign> directives.
 #  3. Empty constructor functions (no-argument constructors for known types).

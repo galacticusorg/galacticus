@@ -2,15 +2,13 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors the perl/Galacticus/Build/Components/Classes/ directory.  The
-parent module Classes.pm contributes `Gather_Classes` (a `gather`-phase
+This module contributes `Gather_Classes` (a `gather`-phase
 hook that groups component implementations by their class name and
 populates `componentClasses` / `componentClassList` /
 `componentClassListActive`) plus `Build_Component_Classes` (a `types`
 phase hook that emits one `nodeComponent<Class>` Fortran type per class).
-Only the small `Gather_Classes` piece is ported here for now — the type
-builder and the per-class iterated hooks come with the full Classes/
-port.
+The remaining per-class generators live in the sibling modules of this
+package.
 """
 
 import logging
@@ -29,7 +27,7 @@ from Galacticus.Build.Components.NullFunctions import create_null_function
 
 def Gather_Classes(build):
     """Group component implementations by class name and build active-class
-    lists.  Mirrors `Gather_Classes`.
+    lists.
 
     After this hook runs, `build` carries:
 
@@ -77,9 +75,8 @@ def Gather_Classes(build):
 def Build_Component_Classes(build):
     """Define one `nodeComponent<Class>` Fortran type per component class.
 
-    Mirrors `Build_Component_Classes` (Classes.pm:75-217).  For every
-    `(implementation, property)` pair under each class that has at
-    least one of `isGettable` / `isSettable` / `isEvolvable`, emit
+    For every `(implementation, property)` pair under each class that
+    has at least one of `isGettable` / `isSettable` / `isEvolvable`, emit
     null-function bindings for `Set` / `Count` / `Rate` / `Analytic`
     / `Inactive` / `Scale` as appropriate.  Each function name is
     deduplicated per-class via `properties_created`.
@@ -117,13 +114,13 @@ def Build_Component_Classes(build):
                             'type':        'procedure',
                             'name':        fn_name,
                             'function':    bound_to,
-                            'returnType':  r"\void",
+                            'returnType':  r"``void``",
                             'arguments':   (
-                                data_object_doc_name(prop) + r"\ value"
+                                data_object_doc_name(prop) + r" value"
                             ),
                             'description': (
-                                f"Set the \\mono{{{prop['name']}}} property "
-                                f"of the \\mono{{{class_name}}} component."
+                                f"Set the ``{prop['name']}`` property "
+                                f"of the ``{class_name}`` component."
                             ),
                         })
                         properties_created.add(fn_name)
@@ -142,12 +139,12 @@ def Build_Component_Classes(build):
                                 'property':  {'type': 'integer', 'rank': 0},
                                 'intent':    'in',
                             }),
-                            'returnType':  r"\intzero",
+                            'returnType':  r"``integer``",
                             'arguments':   "",
                             'description': (
                                 f"Compute the count of evolvable quantities in the "
-                                f"\\mono{{{prop['name']}}} property of the "
-                                f"\\mono{{{impl_id}}} component."
+                                f"``{prop['name']}`` property of the "
+                                f"``{impl_id}`` component."
                             ),
                         })
                         properties_created.add(fn_name)
@@ -165,14 +162,14 @@ def Build_Component_Classes(build):
                                     'property':  prop,
                                     'intent':    'inout',
                                 }),
-                                'returnType':  r"\void",
+                                'returnType':  r"``void``",
                                 'arguments':   (
-                                    data_object_doc_name(prop) + r"\ value"
+                                    data_object_doc_name(prop) + r" value"
                                 ),
                                 'description': (
                                     f"Cumulate to the rate of the "
-                                    f"\\mono{{{prop['name']}}} property of the "
-                                    f"\\mono{{{impl_id}}} component."
+                                    f"``{prop['name']}`` property of the "
+                                    f"``{impl_id}`` component."
                                 ),
                             })
 
@@ -187,11 +184,11 @@ def Build_Component_Classes(build):
                                     'property':  prop,
                                     'intent':    'inout',
                                 }),
-                                'returnType':  r"\void",
+                                'returnType':  r"``void``",
                                 'arguments':   "",
                                 'description': (
-                                    f"Mark the \\mono{{{prop['name']}}} property of "
-                                    f"the \\mono{{{impl_id}}} component as "
+                                    f"Mark the ``{prop['name']}`` property of "
+                                    f"the ``{impl_id}`` component as "
                                     f"analtyically-solvable."
                                 ),
                             })
@@ -204,11 +201,11 @@ def Build_Component_Classes(build):
                                     'property':  prop,
                                     'intent':    'inout',
                                 }),
-                                'returnType':  r"\void",
+                                'returnType':  r"``void``",
                                 'arguments':   "",
                                 'description': (
-                                    f"Mark the \\mono{{{prop['name']}}} property of "
-                                    f"the \\mono{{{impl_id}}} component as inactive."
+                                    f"Mark the ``{prop['name']}`` property of "
+                                    f"the ``{impl_id}`` component as inactive."
                                 ),
                             })
                             type_bound_functions.append({
@@ -220,13 +217,13 @@ def Build_Component_Classes(build):
                                     'property':  prop,
                                     'intent':    'inout',
                                 }),
-                                'returnType':  r"\void",
+                                'returnType':  r"``void``",
                                 'arguments':   (
-                                    data_object_doc_name(prop) + r"\ value"
+                                    data_object_doc_name(prop) + r" value"
                                 ),
                                 'description': (
-                                    f"Set the scale of the \\mono{{{prop['name']}}} "
-                                    f"property of the \\mono{{{impl_id}}} component."
+                                    f"Set the scale of the ``{prop['name']}`` "
+                                    f"property of the ``{impl_id}`` component."
                                 ),
                             })
                         properties_created.add(fn_name)
@@ -235,7 +232,7 @@ def Build_Component_Classes(build):
         build.setdefault('types', {})[type_name] = {
             'name':           type_name,
             'comment':        (
-                f"Type for the \\mono{{{class_name}}} component class."
+                f"Type for the ``{class_name}`` component class."
             ),
             'isPublic':       True,
             'extends':        'nodeComponent',
@@ -248,7 +245,8 @@ def _ucfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Classes.pm:21-28.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('classes', 'gather', Gather_Classes)

@@ -14,7 +14,4 @@ syntactic element:
 * :mod:`~Galacticus.Build.SourceTree.Parse.OpenMP` -- OpenMP directives.
 * :mod:`~Galacticus.Build.SourceTree.Parse.Visibilities` -- ``public`` /
   ``private`` access specifiers.
-
-These parsers mirror the corresponding ``perl/Galacticus/Build/SourceTree/Parse/``
-modules.
 """
