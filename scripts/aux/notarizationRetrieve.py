@@ -72,10 +72,15 @@ for request in requests:
         )
         if log_result.returncode == 0:
             log_data = json.loads(log_result.stdout)
-            issues = log_data.get("issues", [])
-            issue_messages = [issue.get("message") for issue in issues if issue.get("message")]
-            for message in issue_messages:
-                failure_details.append(f"{asset}: {message}")
+            issues = log_data.get("issues", []) or []
+            for issue in issues:
+                message = issue.get("message")
+                if not message:
+                    continue
+                # Include the path reported by Apple -- without it the message (e.g. "The binary is not
+                # signed.") does not identify which of the many binaries in the archive was rejected.
+                path = issue.get("path")
+                failure_details.append(f"{asset}: {message}" + (f" [{path}]" if path else ""))
 
 if "failure" in statuses:
     overall = "failure"

@@ -596,22 +596,47 @@ jobs:
         run: |
           # Package the zip with the signed executables
           cd $GALACTICUS_DATA_PATH
-          zip -r toolsMacOS.zip \
-            dynamic/CAMB-${cambVersion}/fortran/camb \
-            dynamic/axionCAMB-${axioncambVersion}/camb \
-            dynamic/class_public-${classVersion}/class \
-            dynamic/RecFast/recfast.exe \
-            dynamic/RecFast/currentVersion \
-            dynamic/c${cloudyVersion}/source/cloudy.exe \
-            dynamic/c${cloudyVersion}/data \
-            dynamic/fsps-${fspsVersion}/src/autosps.exe \
-            dynamic/fsps-${fspsVersion}/dust \
-            dynamic/fsps-${fspsVersion}/data \
-            dynamic/fsps-${fspsVersion}/nebular \
-            dynamic/fsps-${fspsVersion}/SPECTRA \
-            dynamic/fsps-${fspsVersion}/OUTPUTS \
-            dynamic/fsps-${fspsVersion}/ISOCHRONES \
+          # `convert_calpgm` is a helper that Cloudy compiles inside its own data directory to convert the
+          # CDMS/JPL catalogs at data-build time. It is never run by Galacticus, and it is not code-signed
+          # above, so leaving it in the archive causes notarization to reject the whole archive ("the binary
+          # is not signed", "no secure timestamp", "no hardened runtime"). Exclude it and its debug symbols.
+          toolProducts=(
+            dynamic/CAMB-${cambVersion}/fortran/camb
+            dynamic/axionCAMB-${axioncambVersion}/camb
+            dynamic/class_public-${classVersion}/class
+            dynamic/RecFast/recfast.exe
+            dynamic/RecFast/currentVersion
+            dynamic/c${cloudyVersion}/source/cloudy.exe
+            dynamic/c${cloudyVersion}/data
+            dynamic/fsps-${fspsVersion}/src/autosps.exe
+            dynamic/fsps-${fspsVersion}/dust
+            dynamic/fsps-${fspsVersion}/data
+            dynamic/fsps-${fspsVersion}/nebular
+            dynamic/fsps-${fspsVersion}/SPECTRA
+            dynamic/fsps-${fspsVersion}/OUTPUTS
+            dynamic/fsps-${fspsVersion}/ISOCHRONES
             dynamic/mangle-${mangleVersion}/bin/harmonize
+          )
+          # `zip` only warns (and still exits successfully) when a named path does not exist, so any error in
+          # the paths above -- for example an unset version variable -- would silently produce an archive
+          # missing most of the tools. Require every path to be present before packaging.
+          missingProducts=0
+          for toolProduct in "${toolProducts[@]}"; do
+            if [ ! -e "${toolProduct}" ]; then
+              echo "::error::tool product to be packaged does not exist: ${toolProduct}"
+              missingProducts=1
+            fi
+          done
+          [ ${missingProducts} -eq 0 ] || exit 1
+          zip -r toolsMacOS.zip "${toolProducts[@]}" \
+            -x "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm" \
+               "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm.dSYM/*"
+      - name: Verify all packaged binaries are code-signed
+        uses: ./.github/actions/verifySignedMacOS
+        with:
+          archive: toolsMacOS.zip
+          working_directory: ${{ env.GALACTICUS_DATA_PATH }}
+          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
       - name: Upload tool executables
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -729,22 +754,47 @@ jobs:
         run: |
           # Package the zip with the signed executables
           cd $GALACTICUS_DATA_PATH
-          zip -r toolsMacOSM1.zip \
-            dynamic/CAMB-${cambVersion}/fortran/camb \
-            dynamic/axionCAMB-${axioncambVersion}/camb \
-            dynamic/class_public-${classVersion}/class \
-            dynamic/RecFast/recfast.exe \
-            dynamic/RecFast/currentVersion \
-            dynamic/c${cloudyVersion}/source/cloudy.exe \
-            dynamic/c${cloudyVersion}/data \
-            dynamic/fsps-${fspsVersion}/src/autosps.exe \
-            dynamic/fsps-${fspsVersion}/dust \
-            dynamic/fsps-${fspsVersion}/data \
-            dynamic/fsps-${fspsVersion}/nebular \
-            dynamic/fsps-${fspsVersion}/SPECTRA \
-            dynamic/fsps-${fspsVersion}/OUTPUTS \
-            dynamic/fsps-${fspsVersion}/ISOCHRONES \
+          # `convert_calpgm` is a helper that Cloudy compiles inside its own data directory to convert the
+          # CDMS/JPL catalogs at data-build time. It is never run by Galacticus, and it is not code-signed
+          # above, so leaving it in the archive causes notarization to reject the whole archive ("the binary
+          # is not signed", "no secure timestamp", "no hardened runtime"). Exclude it and its debug symbols.
+          toolProducts=(
+            dynamic/CAMB-${cambVersion}/fortran/camb
+            dynamic/axionCAMB-${axioncambVersion}/camb
+            dynamic/class_public-${classVersion}/class
+            dynamic/RecFast/recfast.exe
+            dynamic/RecFast/currentVersion
+            dynamic/c${cloudyVersion}/source/cloudy.exe
+            dynamic/c${cloudyVersion}/data
+            dynamic/fsps-${fspsVersion}/src/autosps.exe
+            dynamic/fsps-${fspsVersion}/dust
+            dynamic/fsps-${fspsVersion}/data
+            dynamic/fsps-${fspsVersion}/nebular
+            dynamic/fsps-${fspsVersion}/SPECTRA
+            dynamic/fsps-${fspsVersion}/OUTPUTS
+            dynamic/fsps-${fspsVersion}/ISOCHRONES
             dynamic/mangle-${mangleVersion}/bin/harmonize
+          )
+          # `zip` only warns (and still exits successfully) when a named path does not exist, so any error in
+          # the paths above -- for example an unset version variable -- would silently produce an archive
+          # missing most of the tools. Require every path to be present before packaging.
+          missingProducts=0
+          for toolProduct in "${toolProducts[@]}"; do
+            if [ ! -e "${toolProduct}" ]; then
+              echo "::error::tool product to be packaged does not exist: ${toolProduct}"
+              missingProducts=1
+            fi
+          done
+          [ ${missingProducts} -eq 0 ] || exit 1
+          zip -r toolsMacOSM1.zip "${toolProducts[@]}" \
+            -x "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm" \
+               "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm.dSYM/*"
+      - name: Verify all packaged binaries are code-signed
+        uses: ./.github/actions/verifySignedMacOS
+        with:
+          archive: toolsMacOSM1.zip
+          working_directory: ${{ env.GALACTICUS_DATA_PATH }}
+          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
       - name: Upload tool executables
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
