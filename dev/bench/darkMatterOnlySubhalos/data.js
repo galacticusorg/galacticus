@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785795278924,
+  "lastUpdate": 1785795291131,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "76e00e5c4ca046c22328317515ffe66c75ed338a",
-          "message": "Merge pull request #845 from galacticusorg/fixMemoryLeaks\n\nFix memory leaks",
-          "timestamp": "2025-05-18T17:23:20Z",
-          "tree_id": "393683877263021870f7ec7462cc6f28611e6b50",
-          "url": "https://github.com/galacticusorg/galacticus/commit/76e00e5c4ca046c22328317515ffe66c75ed338a"
-        },
-        "date": 1747612252930,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": "18.633452248927114",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": "10.466254239919694",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": "24300.10047372952",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8784,6 +8745,45 @@ window.BENCHMARK_DATA = {
             "value": 24.825,
             "range": "0.05316483800407955",
             "unit": "seconds"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "ae9cc618d0868833023d94cfd8288f42b5cffbe2",
+          "message": "feat(ssps): add fixed stellar spectrum metallicity option for SSP tables\n\nAllows the ionizing stellar spectrum to be held fixed at a chosen\nmetallicity while the HII region gas metallicity continues to vary\nacross the grid, so that the effects of gas-phase abundances can be\nisolated from those of the stellar spectrum. The ionizing photon rate\nper unit stellar mass, the Cloudy normalization, and the validation\ncheck all follow the fixed spectrum, and the requested and adopted\nmetallicities are recorded in the output file.\n\nAlso gives `--abundanceAdjust` an explicit empty-list default, since\n`action='append'` otherwise leaves it as `None`.",
+          "timestamp": "2026-08-03T07:58:19-07:00",
+          "tree_id": "46ce2b23f221f6406a2b99cbf53fad18a17105bf",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ae9cc618d0868833023d94cfd8288f42b5cffbe2"
+        },
+        "date": 1785795290362,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 5.131100330290323,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 2.9634902545431197,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 11883.528394560999,
+            "unit": "-logℒ"
           }
         ]
       }
