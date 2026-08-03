@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "6cd4316ed766428efed5b6330b379ec7c155abeb",
-        "message": "Merge pull request #1306 from galacticusorg/satelliteFixesOnMaster\n\nfix: two dynamical friction bugs affecting subhalo counts, and the associated parameter migrations\n",
-        "timestamp": "2026-07-29 15:07:04+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/6cd4316ed766428efed5b6330b379ec7c155abeb"
+        "id": "ae9cc618d0868833023d94cfd8288f42b5cffbe2",
+        "message": "feat(ssps): add fixed stellar spectrum metallicity option for SSP tables\n\nAllows the ionizing stellar spectrum to be held fixed at a chosen\nmetallicity while the HII region gas metallicity continues to vary\nacross the grid, so that the effects of gas-phase abundances can be\nisolated from those of the stellar spectrum. The ionizing photon rate\nper unit stellar mass, the Cloudy normalization, and the validation\ncheck all follow the fixed spectrum, and the requested and adopted\nmetallicities are recorded in the output file.\n\nAlso gives `--abundanceAdjust` an explicit empty-list default, since\n`action='append'` otherwise leaves it as `None`.\n",
+        "timestamp": "2026-08-03 07:58:19-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/ae9cc618d0868833023d94cfd8288f42b5cffbe2"
     },
     "results": [
         {
@@ -22,7 +22,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo bound mass cumulative distribution function",
                 "description": "Subhalo bound mass cumulative distribution function (τ=20.0 Gyr; vₖ=20.0 km/s)",
-                "logLikelihood": "21.089333485727945",
+                "logLikelihood": "16.95793991303294",
                 "type": "function1D"
             },
             "data": {
@@ -38,14 +38,14 @@ window.ANALYSES_DATA = {
                     7742636826.811277
                 ],
                 "yDataset": [
-                    50.029684286459,
-                    34.976627024890604,
-                    25.089503961325573,
-                    10.581077334201078,
-                    9.877762635717696,
+                    47.08112006508809,
+                    32.12580295471954,
+                    24.875827642694674,
+                    10.497744000867746,
+                    9.794429302384364,
                     5.770595896174332,
                     3.882158463835708,
-                    1.7405285668428216,
+                    1.823861900176155,
                     0.5321228430721779
                 ],
                 "yDatasetTarget": [
@@ -82,7 +82,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo orbital radius cumulative distribution function",
                 "description": "Subhalo orbital radius cumulative distribution function (τ=20.0 Gyr; vₖ=20.0 km/s)",
-                "logLikelihood": "11.883100618069223",
+                "logLikelihood": "9.909335003994357",
                 "type": "function1D"
             },
             "data": {
@@ -99,14 +99,14 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     0.0,
-                    0.25,
-                    1.0462090053450979,
-                    5.134506295664958,
-                    16.629097259584032,
-                    35.2216875510463,
-                    50.91097735591168,
-                    50.91097735591168,
-                    50.91097735591168
+                    0.3127323710101589,
+                    1.2756080430219237,
+                    2.643424248468262,
+                    13.580602760384403,
+                    32.57333872503608,
+                    47.962413134540746,
+                    47.962413134540746,
+                    47.962413134540746
                 ],
                 "yDatasetTarget": [
                     0.0,

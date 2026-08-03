@@ -4,18 +4,18 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "6cd4316ed766428efed5b6330b379ec7c155abeb",
-        "message": "Merge pull request #1306 from galacticusorg/satelliteFixesOnMaster\n\nfix: two dynamical friction bugs affecting subhalo counts, and the associated parameter migrations\n",
-        "timestamp": "2026-07-29 15:07:04+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/6cd4316ed766428efed5b6330b379ec7c155abeb"
+        "id": "ae9cc618d0868833023d94cfd8288f42b5cffbe2",
+        "message": "feat(ssps): add fixed stellar spectrum metallicity option for SSP tables\n\nAllows the ionizing stellar spectrum to be held fixed at a chosen\nmetallicity while the HII region gas metallicity continues to vary\nacross the grid, so that the effects of gas-phase abundances can be\nisolated from those of the stellar spectrum. The ionizing photon rate\nper unit stellar mass, the Cloudy normalization, and the validation\ncheck all follow the fixed spectrum, and the requested and adopted\nmetallicities are recorded in the output file.\n\nAlso gives `--abundanceAdjust` an explicit empty-list default, since\n`action='append'` otherwise leaves it as `None`.\n",
+        "timestamp": "2026-08-03 07:58:19-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/ae9cc618d0868833023d94cfd8288f42b5cffbe2"
     },
     "results": [
         {
             "attributes": {
                 "name": "Symphony MilkyWay CDM resolutionX1 z=0.990 (47 realizations)",
-                "logLikelihood": "-3961.991134723228",
+                "logLikelihood": "-3961.9911701440033",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -42,40 +42,40 @@ window.ANALYSES_DATA = {
                     89125093813.37473
                 ],
                 "yDataset": [
-                    4.920327685695681,
-                    3.3153768881197876,
-                    2.2308569384479355,
-                    1.4998034079295859,
-                    1.107026822514144,
-                    0.9064947858639955,
-                    0.6768293103384565,
-                    0.45445480217234857,
-                    0.30584677012863937,
-                    0.20596263487254182,
-                    0.13814461893299806,
-                    0.09189921772438601,
-                    0.06108249737456863,
-                    0.04100195776204461,
-                    0.02785626026458782,
-                    0.01880664099300645
+                    4.920328713423873,
+                    3.3153771730143786,
+                    2.230856811362825,
+                    1.4998031725532326,
+                    1.1070266388266221,
+                    0.9064946410147259,
+                    0.6768291624475732,
+                    0.4544547177584038,
+                    0.3058467194367348,
+                    0.20596261995340923,
+                    0.1381446228470129,
+                    0.09189922569513138,
+                    0.061082505274300036,
+                    0.04100196348869266,
+                    0.02785626022286753,
+                    0.018806640945435018
                 ],
                 "yError": [
-                    0.07644152385829224,
-                    0.05328834775515957,
-                    0.037573123105300685,
-                    0.026886353427705272,
-                    0.029713588288793218,
-                    0.025469472696981788,
-                    0.014537698155818506,
-                    0.01100211985932695,
-                    0.00849035514343107,
-                    0.006655773300029293,
-                    0.005270668417883977,
-                    0.004268712341483034,
-                    0.003507950910903069,
-                    0.002990571178581317,
-                    0.0030058172682099413,
-                    0.004890542416756473
+                    0.07644154809154377,
+                    0.05328835442055851,
+                    0.03757312021677915,
+                    0.026886348120739166,
+                    0.029713582463538522,
+                    0.025469468132146494,
+                    0.014537694854837429,
+                    0.01100211798788977,
+                    0.008490353984377901,
+                    0.006655772938976094,
+                    0.005270668514237739,
+                    0.004268712568975942,
+                    0.003507951173288693,
+                    0.0029905714134287544,
+                    0.003005817266078678,
+                    0.004890542410505021
                 ],
                 "yDatasetTarget": [
                     4.647912050406365,
@@ -93,7 +93,7 @@ window.ANALYSES_DATA = {
                     0.05104854130649155,
                     0.03573654435984256,
                     0.024114585085250384,
-                    0.003704877180846126
+                    0.0037048771808461255
                 ]
             }
         }
