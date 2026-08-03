@@ -203,19 +203,19 @@ contains
     implicit none
     class           (nbodyOperatorMassFunctionCorrelation), intent(inout)                 :: self
     type            (nBodyData                           ), intent(inout), dimension(:  ) :: simulations
-    double precision                                      , allocatable  , dimension(:  ) :: massFunction        , massBin    , &
+    double precision                                      , allocatable  , dimension(:  ) :: massFunction        , massBin     , &
          &                                                                                   massFunctionsAverage
-    double precision                                      , allocatable  , dimension(:,:) :: massFunctions       , correlation, &
+    double precision                                      , allocatable  , dimension(:,:) :: massFunctions       , correlation , &
          &                                                                                   covariance
     integer         (c_size_t                            ), allocatable  , dimension(:  ) :: countBin            , indexID
     integer                                               , allocatable  , dimension(:  ) :: weight
     type            (simulationData                      ), allocatable  , dimension(:  ) :: simulationData_
-    integer         (c_size_t                            )                                :: iSimulation         , massCount  , &
-         &                                                                                   i                   , j          , &
+    integer         (c_size_t                            )                                :: iSimulation         , massCount   , &
+         &                                                                                   i                   , j           , &
          &                                                                                   k                   , iBootstrap
     double precision                                                                      :: binWidthInverse
     type            (hdf5Group                           )                                :: simulationGroup
-
+    
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
@@ -384,10 +384,11 @@ contains
 #endif
        !$ call hdf5Access%set()
        simulationGroup=outputFile%openGroup('correlation')
-       call simulationGroup%writeDataset  (massBin                  ,'mass'       )
-       call simulationGroup%writeDataset  (correlation              ,'correlation')
-       call simulationGroup%writeAttribute(self%description         ,"description")
-       call simulationGroup%writeAttribute(Formatted_Date_and_Time(),"timestamp"  )
+       call simulationGroup%writeDataset  (massBin                  ,'mass'        )
+       call simulationGroup%writeDataset  (covariance               ,'covariance'  )
+       call simulationGroup%writeDataset  (correlation              ,'correlation' )
+       call simulationGroup%writeAttribute(self%description         ,"description" )
+       call simulationGroup%writeAttribute(Formatted_Date_and_Time(),"timestamp"   )
        !$ call hdf5Access%unset()
 #ifdef USEMPI
     end if
