@@ -62,8 +62,9 @@ def data_object_primitive_name(data_object, *, match_only=False):
 def data_object_doc_name(data_object):
     """Return the display name used for this type in component documentation.
 
-    An RST inline literal, e.g. ```` ``double(:)`` ````.  Literals are verbatim,
-    so the type spec needs no escaping.
+    An RST inline literal, e.g. ```` ``double precision(:)`` ````.  Literals are
+    verbatim, so the type spec needs no escaping.  The rank is written in
+    parentheses, as Fortran writes it and as the rendered method signatures do.
     """
     if 'type' not in data_object:
         raise RuntimeError(
@@ -76,7 +77,7 @@ def data_object_doc_name(data_object):
     else:
         body = f"type({type_label})"
     if rank > 0:
-        body += "[" + ",".join([":"] * rank) + "]"
+        body += "(" + ",".join([":"] * rank) + ")"
     return f"``{body}``"
 
 

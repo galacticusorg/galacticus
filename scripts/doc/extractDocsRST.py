@@ -43,6 +43,11 @@ from extractContributors import (                              # noqa: E402
     collect_contributor_names, render_contributors_rst,
 )
 from Galacticus.Parameters.query import resolved_parameters    # noqa: E402
+from Galacticus.Build.SourceTree import parse_code, walk_tree  # noqa: E402
+from Galacticus.Build.SourceTree.Parse.Signatures import (     # noqa: E402
+    arguments_to_rst, is_declaration, normalize_argument, procedure_signature,
+    return_type_to_rst,
+)
 
 
 def _build_catalog(source_dir):
@@ -110,26 +115,145 @@ def _extract_methods(block: str) -> list[dict]:
     return methods
 
 
-# A ``<methods>`` block of type-bound procedures (one per implementation), each
-# ``<method method="…" description="…"/>``.  Unlike the functionClass
-# ``<method name=…>`` interface, the description is a still-LaTeX attribute.
+# A ``<methods>`` block of type-bound procedures (one per implementation).  Each
+# entry is either the short ``<method method="…" description="…"/>`` form or, in
+# the blocks the code generators emit, a ``<method …>`` element wrapping the
+# description and the method's signature.
 _TYPE_METHODS_RE = re.compile(r'<methods\b[^>]*>(.*?)</methods>', re.DOTALL)
-_TYPE_METHOD_RE = re.compile(r'<method\b([^>]*?)/?>')
+_TYPE_METHOD_RE = re.compile(r'<method\b([^>]*?)(?:/>|>(.*?)</method>)',
+                             re.DOTALL)
 
 
 def _extract_type_methods(text: str) -> list[dict]:
-    """Extract ``<method method="…" description="…"/>`` entries from every
-    ``<methods>`` block in a file — the methods a concrete implementation's
-    derived type declares, beyond the base-class interface."""
+    """Extract the ``<method>`` entries of every ``<methods>`` block in a file —
+    the methods a concrete implementation's derived type declares, beyond the
+    base-class interface.
+
+    Carries the return type and arguments where the block declares them; where
+    it does not, :func:`_derive_type_method_signatures` recovers them from the
+    procedures the methods are bound to.
+    """
     out = []
     for mb in _TYPE_METHODS_RE.finditer(text):
         for m in _TYPE_METHOD_RE.finditer(mb.group(1)):
-            name = _attr(m.group(1), 'method')
+            attrs, inner = m.group(1), m.group(2) or ''
+            name = _attr(attrs, 'method')
             if not name:
                 continue
-            out.append({'name': name,
-                        'description': _attr(m.group(1), 'description')})
+            description = _attr(attrs, 'description')
+            if description is None:
+                dm = _DESC_RE.search(inner)
+                description = dm.group(1).strip() if dm else None
+            out.append({
+                'name':        name,
+                'description': description,
+                'type':        _child(inner, 'type'),
+                'arguments':   [re.sub(r'\s+', ' ', a).strip()
+                                for a in _ARG_RE.findall(inner)],
+            })
     return out
+
+
+# Type-bound procedure bindings, as declared in a derived type's ``contains``
+# section: a plain binding (with or without a ``=> target``), a deferred binding
+# naming its abstract interface, and a generic binding.
+_BINDING_RE = re.compile(
+    r'^[ \t]*procedure\b([^:\n(]*)::[ \t]*([A-Za-z0-9_]+)'
+    r'[ \t]*(?:=>[ \t]*([A-Za-z0-9_]+))?[ \t]*$', re.MULTILINE | re.IGNORECASE)
+_DEFERRED_BINDING_RE = re.compile(
+    r'^[ \t]*procedure[ \t]*\([ \t]*([A-Za-z0-9_]+)[ \t]*\)([^:\n]*)::'
+    r'[ \t]*([A-Za-z0-9_]+)', re.MULTILINE | re.IGNORECASE)
+_GENERIC_BINDING_RE = re.compile(
+    r'^[ \t]*generic\b[^:\n]*::[ \t]*(.+?)[ \t]*=>[ \t]*(.+?)[ \t]*$',
+    re.MULTILINE | re.IGNORECASE)
+# The derived type a ``<methods>`` block documents runs from its ``type``
+# statement to the matching ``end type``.  The negative lookahead keeps a
+# ``type(…) :: …`` declaration from being mistaken for a type definition.
+_TYPE_OPEN_RE = re.compile(r'^[ \t]*type\b(?![ \t]*\()[^\n]*$',
+                           re.MULTILINE | re.IGNORECASE)
+_TYPE_CLOSE_RE = re.compile(r'^[ \t]*end[ \t]+type\b', re.MULTILINE | re.IGNORECASE)
+
+
+def _binding_region(text: str, start: int, end: int) -> str:
+    """Return the derived-type body enclosing the ``<methods>`` block spanning
+    ``start``–``end``, so that only that type's bindings are read."""
+    opens = [m.start() for m in _TYPE_OPEN_RE.finditer(text, 0, start)]
+    close = _TYPE_CLOSE_RE.search(text, end)
+    return text[opens[-1] if opens else start: close.end() if close else len(text)]
+
+
+def _bindings(region: str) -> dict[str, tuple[str, bool]]:
+    """Map each method name in a derived-type body to the procedure it binds to
+    and whether the binding passes the object (``nopass`` bindings do not)."""
+    bindings: dict[str, tuple[str, bool]] = {}
+    for m in _BINDING_RE.finditer(region):
+        attributes, name, target = m.group(1), m.group(2), m.group(3)
+        bindings[name.lower()] = (target or name,
+                                  'nopass' not in attributes.lower())
+    for m in _DEFERRED_BINDING_RE.finditer(region):
+        # A deferred binding names the abstract interface that declares the
+        # signature; that interface stands in for the (absent) procedure.
+        interface, attributes, name = m.group(1), m.group(2), m.group(3)
+        bindings.setdefault(name.lower(),
+                            (interface, 'nopass' not in attributes.lower()))
+    for m in _GENERIC_BINDING_RE.finditer(region):
+        # A generic binding may cover several specific procedures; the first
+        # stands for the signature, which is as much as can be said of a name
+        # that deliberately has more than one.
+        name, targets = m.group(1), m.group(2)
+        first = targets.split(',')[0].strip()
+        resolved = bindings.get(first.lower())
+        bindings.setdefault(name.strip().lower(),
+                            resolved if resolved else (first, True))
+    return bindings
+
+
+def _derive_type_method_signatures(text: str, path: str,
+                                   methods: list[dict]) -> None:
+    """Fill in the return type and arguments of type-bound methods, in place.
+
+    Hand-written ``<methods>`` blocks declare only a name and a description, so
+    the signature is recovered from the procedure each method is bound to: the
+    file is parsed, and each binding followed to its procedure's declarations.
+    Methods whose binding or procedure cannot be found (an abstract class whose
+    procedures are generated at build time, a name assembled by the generic
+    preprocessor) keep just their description.
+
+    A file's ``<methods>`` blocks are treated together, as the extracted methods
+    themselves are: where a file declares several types, a method name they share
+    resolves to the binding of the last of them.
+    """
+    if all(m.get('type') or m.get('arguments') for m in methods):
+        return
+    region = ''
+    for mb in _TYPE_METHODS_RE.finditer(text):
+        region += _binding_region(text, mb.start(), mb.end())
+    bindings = _bindings(region)
+    if not bindings:
+        return
+    try:
+        tree = parse_code(text, name=path, instrument=False)
+    except Exception as exc:                                    # noqa: BLE001
+        print(f'warning: could not parse {path} for method signatures: {exc}',
+              file=sys.stderr)
+        return
+    procedures = {node['name'].lower(): node for node in walk_tree(tree)
+                  if node['type'] in ('function', 'subroutine')
+                  and node.get('name')}
+    for method in methods:
+        if method.get('type') or method.get('arguments'):
+            continue
+        binding = bindings.get(html.unescape(method['name']).lower())
+        if binding is None:
+            continue
+        target, passes_object = binding
+        procedure = procedures.get(target.lower())
+        if procedure is None:
+            continue
+        return_type, arguments = procedure_signature(
+            procedure, skip_passed_object=passes_object)
+        method['type']      = return_type
+        method['arguments'] = arguments
 
 
 def _extract_entries(block: str) -> list[dict]:
@@ -259,6 +383,7 @@ def scan_source(source_dir: str):
                                     'description': md.group(1).strip()})
             tmeths = _extract_type_methods(text)
             if tmeths:
+                _derive_type_method_signatures(text, path, tmeths)
                 methods_by_file[path] = tmeths
             for bm in _BLOCK_RE.finditer(text):
                 block = bm.group(1)
@@ -440,6 +565,38 @@ def _implementation_parameters(impl: dict, params_by_file: dict,
     return resolved
 
 
+def render_method(meth: dict, glsmap: dict) -> list[str]:
+    """Render one method as a definition-list entry: its signature, then its
+    description and one bullet per argument.
+
+    The same rendering serves the class interface and each implementation's own
+    methods, so that a method reads the same wherever it appears.  Both the type
+    and the arguments arrive either as Fortran declarations (hand-written
+    directives) or already in the documentation's argument notation (the
+    generators, and the signatures recovered from source); each is converted
+    only if it needs to be.
+    """
+    signature = f'``{meth["name"]}``'
+    return_type = return_type_to_rst(meth.get('type'))
+    if return_type:
+        signature += f' → {return_type}'
+
+    # The description is already RST (converted in the source); unescape the XML
+    # entities, as for <description> elements.
+    description = re.sub(r'\s*\n\s*', ' ',
+                         _desc_to_rst(meth.get('description'), glsmap)).strip()
+    body = description or '—'
+    arguments = []
+    for argument in meth.get('arguments') or []:
+        arguments.extend(arguments_to_rst([argument]) if is_declaration(argument)
+                         else [normalize_argument(argument)])
+    if arguments:
+        # One bullet per argument, as a single (tight) list: a blank line
+        # between bullets would render the list loosely spaced.
+        body += '\n\n' + '\n'.join(f'* {argument}' for argument in arguments)
+    return [signature, textwrap.indent(body, '   '), '']
+
+
 def render_family(fam: str, families: dict, implementations: dict,
                   params_by_file: dict, methods_by_file: dict,
                   glsmap: dict, catalog: dict | None = None) -> str:
@@ -460,18 +617,7 @@ def render_family(fam: str, families: dict, implementations: dict,
     if methods:
         out.append(_heading('Methods', '-'))
         for meth in methods:
-            sig = f'``{meth["name"]}``'
-            rtype = (meth.get('type') or '').strip()
-            if rtype:
-                sig += f' → ``{rtype}``'
-            mdesc = re.sub(r'\s*\n\s*', ' ',
-                           _desc_to_rst(meth.get('description'), glsmap)).strip()
-            body = mdesc or '—'
-            for arg in meth.get('arguments') or []:
-                body += f'\n\n* ``{arg}``'
-            out.append(sig)
-            out.append(textwrap.indent(body, '   '))
-            out.append('')
+            out.extend(render_method(meth, glsmap))
 
     impls = sorted(implementations.get(fam, []),
                    key=lambda d: str(d.get('name', '')).lower())
@@ -491,14 +637,7 @@ def render_family(fam: str, families: dict, implementations: dict,
         if imethods:
             out.append('**Methods**\n')
             for meth in imethods:
-                # The description attribute is already RST (converted in source);
-                # just unescape the XML entities, as for <description> elements.
-                mdesc = re.sub(
-                    r'\s*\n\s*', ' ',
-                    html.unescape(meth.get('description') or '')).strip()
-                out.append(f'* ``{meth["name"]}`` — {mdesc}' if mdesc
-                           else f'* ``{meth["name"]}``')
-            out.append('')
+                out.extend(render_method(meth, glsmap))
         params = _implementation_parameters(impl, params_by_file, catalog)
         if params:
             out.append('**Parameters**\n')

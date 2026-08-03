@@ -7,9 +7,18 @@
       <xs:sequence>
 	<xs:element name="method" minOccurs="0" maxOccurs="unbounded">
 	  <xs:complexType>
-	    <xs:all>
-	      <xs:element name="description" minOccurs="0" type="xs:string"/>
-	    </xs:all>
+	    <!-- A choice (rather than a sequence) so that the child elements may
+	         appear in any order: `<type>` and `<argument>` carry the method's
+	         signature, which the documentation renders alongside the
+	         description. `<argument>` holds one argument per element. Both it
+	         and `<type>` may be written either as Fortran (a declaration, a type
+	         spec) or already in the documentation's notation; the extractor
+	         converts whichever needs it. -->
+	    <xs:choice minOccurs="0" maxOccurs="unbounded">
+	      <xs:element name="description" type="xs:string"/>
+	      <xs:element name="type"        type="xs:string"/>
+	      <xs:element name="argument"    type="xs:string"/>
+	    </xs:choice>
 	    <xs:attribute name="method"      type="xs:string" use="required" />
 	    <xs:attribute name="description" type="xs:string"                />
 	  </xs:complexType>

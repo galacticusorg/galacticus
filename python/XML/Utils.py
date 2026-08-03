@@ -10,7 +10,22 @@ import xml.etree.ElementTree as ET
 
 from typing import Any
 
-__all__ = ['xml_to_dict', 'dict_to_xml_string']
+__all__ = ['xml_to_dict', 'dict_to_xml_string', 'xml_escape']
+
+
+def xml_escape(text: Any) -> str:
+    """Escape `&`, `<`, `>` and `"` for an XML text or attribute context.
+
+    Used by the code generators, which build directive XML by string
+    concatenation rather than through ElementTree.
+    """
+    return (
+        str(text)
+        .replace('&', '&amp;')
+        .replace('<', '&lt;')
+        .replace('>', '&gt;')
+        .replace('"', '&quot;')
+    )
 
 
 def xml_to_dict(
