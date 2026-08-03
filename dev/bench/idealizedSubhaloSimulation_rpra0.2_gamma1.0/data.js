@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785361868527,
+  "lastUpdate": 1785795426406,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=1.0)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "b90646e7cb33f064bd8f7c42805b7f989c69abc6",
-          "message": "Merge pull request #654 from galacticusorg/featClassDefaultErrorMessage\n\nAdd a more helpful error message for invalid default class names",
-          "timestamp": "2024-07-27T00:59:01Z",
-          "tree_id": "03e8dbfa2ab30d0dbff452f274a8fd3dee88fc24",
-          "url": "https://github.com/galacticusorg/galacticus/commit/b90646e7cb33f064bd8f7c42805b7f989c69abc6"
-        },
-        "date": 1722069782944,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
-            "value": 30.5921378545015,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": 16.7577755419615,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
-            "value": 17.5163186371832,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9900,6 +9861,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/6cd4316ed766428efed5b6330b379ec7c155abeb"
         },
         "date": 1785361867211,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": 30.59213755756872,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 16.75777555466471,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": 17.51631864678526,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "ae9cc618d0868833023d94cfd8288f42b5cffbe2",
+          "message": "feat(ssps): add fixed stellar spectrum metallicity option for SSP tables\n\nAllows the ionizing stellar spectrum to be held fixed at a chosen\nmetallicity while the HII region gas metallicity continues to vary\nacross the grid, so that the effects of gas-phase abundances can be\nisolated from those of the stellar spectrum. The ionizing photon rate\nper unit stellar mass, the Cloudy normalization, and the validation\ncheck all follow the fixed spectrum, and the requested and adopted\nmetallicities are recorded in the output file.\n\nAlso gives `--abundanceAdjust` an explicit empty-list default, since\n`action='append'` otherwise leaves it as `None`.",
+          "timestamp": "2026-08-03T07:58:19-07:00",
+          "tree_id": "46ce2b23f221f6406a2b99cbf53fad18a17105bf",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ae9cc618d0868833023d94cfd8288f42b5cffbe2"
+        },
+        "date": 1785795425451,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
