@@ -369,6 +369,7 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`darkMatterProfileScaleRadiusJohnson2021` dark matter halo profile scale radius class.
     !!}
+    use :: Johnson2021_Statistics, only : johnson2021EnergyModelInitialized
     implicit none
     type            (darkMatterProfileScaleRadiusJohnson2021)                        :: self
     class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
@@ -391,6 +392,7 @@ contains
     <constructorAssign variables="massExponent, peakHeightExponent, energyBoost, unresolvedEnergy, factorMassResolution, scatter, scatterExcess, correlationRateDecay, correlationExponent, massFunctionSlopeLogarithmic, countSampleEnergyUnresolved, mainBranchOnly, applySubsamplingWeights, acceptUnboundOrbits, includeUnresolvedVariance, *cosmologyFunctions_, *darkMatterProfileScaleRadius_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *virialOrbit_, *mergerTreeMassResolution_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
     !!]
 
+    johnson2021EnergyModelInitialized=.true.
     return
   end function darkMatterProfileScaleJohnson2021ConstructorInternal
 
