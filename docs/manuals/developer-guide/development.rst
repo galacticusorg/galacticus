@@ -145,8 +145,8 @@ The build scripts key on a number of special comment markers in the source. None
 ``!![`` … ``!!]``
    Delimits an embedded XML directive block (a *code directive* — see :galacticus-ref:`buildDiscoveryDirectives`). Parsed by ``Galacticus.Build.Directives`` and by the source-tree preprocessor; skipped by the plain-text scanners.
 
-``!!{`` … ``!!}``
-   Delimits an embedded documentation block (reStructuredText/LaTeX). Skipped by every scanner (prose inside could otherwise look like code, e.g. a ``program`` statement).
+``!!{RST`` … ``!!}``
+   Delimits an embedded documentation block, written in reStructuredText. Skipped by every scanner (prose inside could otherwise look like code, e.g. a ``program`` statement).
 
 ``!/ exclude``
    In a file containing a ``program`` unit: build the executable, but exclude it from the ``all`` target (``findExecutables.py``).

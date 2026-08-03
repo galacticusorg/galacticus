@@ -49,17 +49,17 @@ contains
     ``System_Command_Do``.
 
     Note that the result of ``shellEscape`` must first be assigned to a local variable, which is then used in building the
-    command string. The result of ``shellEscape`` must {\normalfont \bfseries not} be used directly as an actual argument (for
+    command string. The result of ``shellEscape`` must **not** be used directly as an actual argument (for
     example inline within a ``System_Command_Do`` argument, or as an operand of a concatenation that is passed as an actual
     argument), as gfortran leaks the function result in that case.
 
-    For the same reason, the {\normalfont \ttfamily token} argument passed to ``shellEscape`` must not contain a call to a
-    function that returns a {\normalfont \ttfamily varying\_string} (such as {\normalfont \ttfamily inputPath}), whether as the
-    bare argument ({\normalfont \ttfamily shellEscape(inputPath(...))}) or nested within a concatenation
-    ({\normalfont \ttfamily shellEscape(inputPath(...)//"...")}), since gfortran leaks that nested function result. Assign the
-    argument to a local variable first, then escape the variable, e.g. {\normalfont \ttfamily localVar=inputPath(...)//"..."}
-    followed by {\normalfont \ttfamily localVar=shellEscape(localVar)}. Building the value in an assignment is safe; only a
-    {\normalfont \ttfamily varying\_string}-returning function call that appears inside another call's argument list leaks.
+    For the same reason, the ``token`` argument passed to ``shellEscape`` must not contain a call to a
+    function that returns a ``varying_string`` (such as ``inputPath``), whether as the
+    bare argument (``shellEscape(inputPath(...))``) or nested within a concatenation
+    (``shellEscape(inputPath(...)//"...")``), since gfortran leaks that nested function result. Assign the
+    argument to a local variable first, then escape the variable, e.g. ``localVar=inputPath(...)//"..."``
+    followed by ``localVar=shellEscape(localVar)``. Building the value in an assignment is safe; only a
+    ``varying_string``-returning function call that appears inside another call's argument list leaks.
     !!}
     use :: ISO_Varying_String, only : varying_string, replace, operator(//)
     implicit none
@@ -74,8 +74,7 @@ contains
 
   function shellEscapeChar(token) result(escaped)
     !!{RST
-    Return the string ``token`` wrapped in single quotes, with any embedded single quotes escaped. See {\normalfont \ttfamily
-    shellEscapeVarStr}.
+    Return the string ``token`` wrapped in single quotes, with any embedded single quotes escaped. See ``shellEscapeVarStr``.
     !!}
     use :: ISO_Varying_String, only : varying_string, var_str
     implicit none

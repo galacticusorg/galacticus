@@ -24,7 +24,7 @@
   !![
   <satelliteMassBoundInitializor name="satelliteMassBoundInitializorBasicMass" docformat="rst">
    <description>
-   A satellite bound mass initializor class that sets the initial bound mass of the satellite halo to the basic node mass, i.e.\ the total mass of the halo at the time it becomes a satellite.
+   A satellite bound mass initializor class that sets the initial bound mass of the satellite halo to the basic node mass, i.e. the total mass of the halo at the time it becomes a satellite.
    </description>
   </satelliteMassBoundInitializor>
   !!]

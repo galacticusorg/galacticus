@@ -104,8 +104,8 @@ contains
 
   subroutine compilerValidate(language,toolName)
     !!{RST
-    Verify that the compiler for the given {\normalfont \ttfamily language} is available on the
-    {\normalfont \ttfamily PATH} before attempting to build an external tool from source at run
+    Verify that the compiler for the given ``language`` is available on the
+    ``PATH`` before attempting to build an external tool from source at run
     time, aborting with a clear, actionable error if it is not. This turns the otherwise cryptic
     build failure that results when no compiler is present (e.g. for a binary-only install) into a
     message telling the user what to install.

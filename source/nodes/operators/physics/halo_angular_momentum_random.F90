@@ -27,7 +27,7 @@
   !![
   <nodeOperator name="nodeOperatorHaloAngularMomentumRandom" docformat="rst">
    <description>
-   A node operator class that initializes the angular momentum of each dark matter halo by drawing a random spin parameter from a :galacticus-class:`haloSpinDistributionClass` (e.g.\ a log-normal distribution). ``factorReset`` specifies the multiplicative mass growth factor required before the spin parameter is redrawn, allowing halos that have undergone significant mass growth to acquire a new spin appropriate to their new mass.
+   A node operator class that initializes the angular momentum of each dark matter halo by drawing a random spin parameter from a :galacticus-class:`haloSpinDistributionClass` (e.g. a log-normal distribution). ``factorReset`` specifies the multiplicative mass growth factor required before the spin parameter is redrawn, allowing halos that have undergone significant mass growth to acquire a new spin appropriate to their new mass.
    </description>
   </nodeOperator>
   !!]

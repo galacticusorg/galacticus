@@ -26,7 +26,7 @@ def Class_Initialization(build, class_dict):
     function  = {
         'type':        'void',
         'name':        type_name + 'Initialize',
-        'description': f"Initialize a generic \\mono{{{name}}} component.",
+        'description': f"Initialize a generic ``{name}`` component.",
         'modules':     ['Error'],
         'variables':   [
             {
@@ -54,7 +54,7 @@ def Class_Finalization(build, class_dict):
     function  = {
         'type':        'void',
         'name':        type_name + 'Finalize',
-        'description': f"Finalize a generic \\mono{{{name}}} component.",
+        'description': f"Finalize a generic ``{name}`` component.",
         'variables':   [
             {
                 'intrinsic':  'class',
@@ -81,7 +81,7 @@ def Class_Builder(build, class_dict):
         'type':        'void',
         'name':        type_name + 'Builder',
         'description': (
-            f"Build a generic \\mono{{{name}}} component from a supplied "
+            f"Build a generic ``{name}`` component from a supplied "
             "XML definition."
         ),
         'modules':     ['Error', 'FoX_DOM, only : node'],
@@ -142,7 +142,7 @@ def Class_Create_By_Interrupt(build, class_dict):
         'type':        'void',
         'name':        name + 'CreateByInterrupt',
         'description': (
-            f"Create the \\mono{{{name}}} component of \\mono{{self}} via "
+            f"Create the ``{name}`` component of ``self`` via "
             "an interrupt."
         ),
         'variables':   [
@@ -201,7 +201,7 @@ def Class_Add_Meta_Property(build, class_dict):
             'name':        fn_id,
             'description': (
                 f"Add a rank-{rank} {mpt['label']}meta-property to the "
-                f"generic \\mono{{{name}}} component."
+                f"generic ``{name}`` component."
             ),
             'modules':     ['ISO_Varying_String', 'Error'],
             'variables':   [
@@ -367,7 +367,7 @@ def Class_Count_Meta_Property(build, class_dict):
             'name':        f"component{cap}Count{prefix}MetaProperties",
             'description': (
                 f"Return the number of rank-{rank} {mpt['label']}meta-properties "
-                f"associated with the generic \\mono{{{name}}} component."
+                f"associated with the generic ``{name}`` component."
             ),
             'variables':   [
                 {
@@ -412,7 +412,7 @@ def Class_Name_Meta_Property(build, class_dict):
             'name':        f"component{cap}Name{prefix}MetaProperty",
             'description': (
                 f"Return the name of the indexed of rank-{rank} {mpt['label']} "
-                f"meta-property associated with the generic \\mono{{{name}}} "
+                f"meta-property associated with the generic ``{name}`` "
                 "component."
             ),
             'modules':     ['ISO_Varying_String'],

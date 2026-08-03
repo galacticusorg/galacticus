@@ -400,7 +400,7 @@ contains
   
   recursive function XML_Count_Elements_By_Tag_Name(xmlElement,tagName,directChildrenOnly) result(countElements)
     !!{RST
-    Return a count of all nodes matching a given ``tagName``. See {\normalfont \ttfamily XML\_Get\_Elements\_By\_Tag\_Name} for a
+    Return a count of all nodes matching a given ``tagName``. See ``XML_Get_Elements_By_Tag_Name`` for a
     description of the ``directChildrenOnly`` argument.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

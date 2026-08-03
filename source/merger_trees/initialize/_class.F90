@@ -38,7 +38,7 @@ module Merger_Tree_Initialization
    <default>standard</default>
    <method name="initialize" >
     <description>
-    Set the initial conditions for all nodes in the given ``tree``, populating galaxy and halo properties (e.g.\ hot gas mass, dark matter halo state) at each node's formation time before ODE integration proceeds to ``timeEnd``.
+    Set the initial conditions for all nodes in the given ``tree``, populating galaxy and halo properties (e.g. hot gas mass, dark matter halo state) at each node's formation time before ODE integration proceeds to ``timeEnd``.
     </description>
     <type>void</type>
     <pass>yes</pass>

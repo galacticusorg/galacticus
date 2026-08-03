@@ -37,11 +37,11 @@ def Build_Class_Setters(build: dict) -> None:
                 'pass':        'nopass',
                 'name':        fn_name,
                 'function':    'Boolean_False',
-                'returnType':  r"\logicalzero",
+                'returnType':  r"``logical``",
                 'arguments':   "",
                 'description': (
-                    f"Specify whether the \\mono{{{prop['name']}}} "
-                    f"property of the \\mono{{{component['class']}}} "
+                    f"Specify whether the ``{prop['name']}`` "
+                    f"property of the ``{component['class']}`` "
                     "component is settable."
                 ),
             })
@@ -113,9 +113,9 @@ def Build_Set_Functions(build: dict, class_dict: dict, member: dict, prop: dict)
         'type':        'void',
         'name':        fn_name,
         'description': (
-            f"Set the \\mono{{{prop['name']}}} property of an "
-            f"\\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component class."
+            f"Set the ``{prop['name']}`` property of an "
+            f"``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component class."
         ),
         'variables':   [
             {

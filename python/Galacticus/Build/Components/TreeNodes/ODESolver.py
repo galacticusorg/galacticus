@@ -35,7 +35,7 @@ def Tree_Node_ODE_Step_Initialize(build):
             'name':        f"treeNodeODEStep{cap}sInitialize",
             'description': (
                 f"Initialize the {q['name']}s in components of tree node "
-                r"\mono{self} in preparation for an ODE solver step."
+                r"``self`` in preparation for an ODE solver step."
             ),
             'variables':   [
                 {
@@ -439,7 +439,7 @@ def Tree_Node_ODE_Offsets(build):
         'type':        'void',
         'name':        'treeNodeSerializeOffsets',
         'description': (
-            r"Compute offsets into serialization arrays for \mono{treeNode} object."
+            r"Compute offsets into serialization arrays for ``treeNode`` object."
         ),
         'variables':   [
             {

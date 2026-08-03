@@ -296,7 +296,7 @@ module Merger_Tree_Read_Importers
    </method>
    <method name="subhaloTraceCount" >
     <description>
-    Returns the number of snapshot epochs recorded in the subhalo trace for the given ``node``, i.e.\ the length of the time, position, and velocity arrays to be allocated before calling ``subhaloTrace``.
+    Returns the number of snapshot epochs recorded in the subhalo trace for the given ``node``, i.e. the length of the time, position, and velocity arrays to be allocated before calling ``subhaloTrace``.
     </description>
     <type>integer(kind=c_size_t)</type>
     <pass>yes</pass>

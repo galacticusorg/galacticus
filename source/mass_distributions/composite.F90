@@ -24,7 +24,7 @@
   !![
   <massDistribution name="massDistributionComposite" docformat="rst">
     <description>
-    A mass distribution class formed by superposing multiple component mass distributions (e.g.\ dark matter halo, disk, bulge, black hole), returning the combined density, potential, and enclosed mass as the sum over all components.
+    A mass distribution class formed by superposing multiple component mass distributions (e.g. dark matter halo, disk, bulge, black hole), returning the combined density, potential, and enclosed mass as the sum over all components.
     </description>
     <linkedList type="massDistributionList" variable="massDistributions" next="next" object="massDistribution_" objectType="massDistributionClass"/>
   </massDistribution>

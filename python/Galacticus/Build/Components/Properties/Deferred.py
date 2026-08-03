@@ -117,9 +117,9 @@ def Properties_Deferred_Get_Functions(build, class_dict, member, prop):
             + 'Get'
         ),
         'description': (
-            f"Get the value of the \\mono{{{prop['name']}}} property of "
-            f"the \\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component using a deferred "
+            f"Get the value of the ``{prop['name']}`` property of "
+            f"the ``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component using a deferred "
             "function."
         ),
         'variables':   [
@@ -176,9 +176,9 @@ def Properties_Deferred_Set_Functions(build, class_dict, member, prop):
             + 'Set'
         ),
         'description': (
-            f"Set the value of the \\mono{{{prop['name']}}} property of "
-            f"the \\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component using a deferred "
+            f"Set the value of the ``{prop['name']}`` property of "
+            f"the ``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component using a deferred "
             "function."
         ),
         'variables':   [
@@ -239,9 +239,9 @@ def Properties_Deferred_Rate_Functions(build, class_dict, member, prop):
             + 'Rate'
         ),
         'description': (
-            f"Accumulate the rate of change of the \\mono{{{prop['name']}}} "
-            f"property of the \\mono{{{member['name']}}} implementation of "
-            f"the \\mono{{{class_dict['name']}}} component using a deferred "
+            f"Accumulate the rate of change of the ``{prop['name']}`` "
+            f"property of the ``{member['name']}`` implementation of "
+            f"the ``{class_dict['name']}`` component using a deferred "
             "function."
         ),
         'variables':   [
@@ -317,9 +317,9 @@ def _generate_deferred_attacher(component, prop, build, method):
         'type':        'void',
         'name':        function_label + 'Function',
         'description': (
-            f"Set the function to be used for the \\mono{{{method}}} "
-            f"method of the \\mono{{{property_name}}} property of the "
-            f"\\mono{{{component_name}}} component."
+            f"Set the function to be used for the ``{method}`` "
+            f"method of the ``{property_name}`` property of the "
+            f"``{component_name}`` component."
         ),
         'variables':   [
             {
@@ -340,8 +340,8 @@ def _generate_deferred_attacher(component, prop, build, method):
         'name':        function_label + 'IsAttached',
         'description': (
             f"Return true if the deferred function used to {method} the "
-            f"\\mono{{{property_name}}} property of the "
-            f"\\mono{{{component_name}}} component class has been attached."
+            f"``{property_name}`` property of the "
+            f"``{component_name}`` component class has been attached."
         ),
         'content': (
             f"{function_label}IsAttached={function_label}IsAttchdVl\n"

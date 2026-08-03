@@ -25,11 +25,9 @@ program Test_System_Download
   !!{RST
   Tests the construction of the commands used to download content. Two properties are checked:
 
-  \begin{enumerate}
-   \item TLS certificates are verified unless verification is explicitly disabled by the caller; and
-   \item the URL is passed to the downloader as a single, literal token, so that a URL containing characters which are special to
+  #. TLS certificates are verified unless verification is explicitly disabled by the caller; and
+  #. the URL is passed to the downloader as a single, literal token, so that a URL containing characters which are special to
      the shell can not result in execution of arbitrary commands.
-  \end{enumerate}
 
   The second property is checked both by inspecting the constructed command, and by actually executing it with URLs carrying
   command-injection payloads and verifying that the injected command did not run. The URLs used for that check use the reserved

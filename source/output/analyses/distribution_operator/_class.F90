@@ -40,7 +40,7 @@ module Output_Analysis_Distribution_Operators
    <default>identity</default>
    <method name="operateScalar" >
     <description>
-    Map a single scalar galaxy property value to a smeared distribution across bins, applying the operator's response function (e.g.\ a Gaussian measurement error kernel) to produce a probability-weighted contribution to each bin.
+    Map a single scalar galaxy property value to a smeared distribution across bins, applying the operator's response function (e.g. a Gaussian measurement error kernel) to produce a probability-weighted contribution to each bin.
     </description>
     <type>double precision, dimension(size(propertyValueMinimum))</type>
     <pass>yes</pass>
@@ -52,7 +52,7 @@ module Output_Analysis_Distribution_Operators
    </method>
    <method name="operateDistribution" >
     <description>
-    Transform an existing binned distribution by applying the operator's response function (e.g.\ convolution with a measurement error kernel or survey selection function), returning the modified distribution.
+    Transform an existing binned distribution by applying the operator's response function (e.g. convolution with a measurement error kernel or survey selection function), returning the modified distribution.
     </description>
     <type>double precision, dimension(size(propertyValueMinimum))</type>
     <pass>yes</pass>

@@ -32,7 +32,7 @@ def Tree_Node_Copy(build):
     function = {
         'type':        'void',
         'name':        'treeNodeCopyNodeTo',
-        'description': r"Make a copy of \mono{self} in \mono{targetNode}.",
+        'description': r"Make a copy of ``self`` in ``targetNode``.",
         'variables':   [
             {
                 'intrinsic':  'class',
@@ -113,10 +113,10 @@ def Tree_Node_Copy(build):
         'type':        'procedure',
         'descriptor':  function,
         'name':        'copyNodeTo',
-        'returnType':  r"\void",
+        'returnType':  r"``void``",
         'arguments':   (
-            r"\textcolor{red}{\textless class(treeNode)\textgreater} "
-            r"targetNode\arginout, \logicalzero\ [skipFormationNode]\argin"
+            r"``class(treeNode)`` "
+            r"targetNode [inout], ``logical`` [skipFormationNode] [in]"
         ),
     })
 
@@ -132,7 +132,7 @@ def Tree_Node_Move(build):
         'type':        'void',
         'name':        'treeNodeComponentsMove',
         'description': (
-            r"Move components from \mono{self} to \mono{targetNode}."
+            r"Move components from ``self`` to ``targetNode``."
         ),
         'variables':   [
             {
@@ -191,7 +191,7 @@ def Tree_Node_Mass_Distribution(build):
         'name':        'treeNodeMassDistribution',
         'description': (
             r"Construct and return the mass distribution associated with "
-            r"\mono{self}."
+            r"``self``."
         ),
         'modules':     [
             ("Mass_Distributions        , only : massDistributionClass"
@@ -573,7 +573,7 @@ def Tree_Node_Mass_Baryonic(build):
         'type':        'double precision',
         'name':        'treeNodeMassBaryonic',
         'description': (
-            r"Return the total baryonic mass associated with \mono{self}."
+            r"Return the total baryonic mass associated with ``self``."
         ),
         'variables':   [
             {

@@ -60,7 +60,7 @@ module Merger_Tree_Construction
    </method>
    <method name="treeMasses" >
     <description>
-    Return the root masses (in units of $M_\odot$) of the trees that will be constructed. The output array is left unallocated if the masses are not known up-front. The default implementation leaves the array unallocated; implementations that know the tree masses up-front (e.g. the ``build`` constructor) should override this to enable whole-run run-time estimation.
+    Return the root masses (in units of :math:`M_\odot`) of the trees that will be constructed. The output array is left unallocated if the masses are not known up-front. The default implementation leaves the array unallocated; implementations that know the tree masses up-front (e.g. the ``build`` constructor) should override this to enable whole-run run-time estimation.
     </description>
     <type>void</type>
     <pass>yes</pass>

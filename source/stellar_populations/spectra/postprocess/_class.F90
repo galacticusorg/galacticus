@@ -38,7 +38,7 @@ module Stellar_Population_Spectra_Postprocess
    <default>inoue2014</default>
    <method name="multiplier" >
     <description>
-    Return the multiplicative correction factor (between 0 and 1) to apply to the stellar population spectrum at the given wavelength (\AA), stellar population age (Gyr), and source redshift, accounting for propagation effects such as IGM absorption.
+    Return the multiplicative correction factor (between 0 and 1) to apply to the stellar population spectrum at the given wavelength (Å), stellar population age (Gyr), and source redshift, accounting for propagation effects such as IGM absorption.
     </description>
     <type>double precision</type>
     <pass>yes</pass>

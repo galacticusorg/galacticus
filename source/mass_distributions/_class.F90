@@ -654,7 +654,7 @@ module Mass_Distributions
     Return the Chandrasekhar integral of the distribution. The ``velocity`` is a Cartesian velocity vector (a
     ``coordinateCartesian`` object); this is the only representation the implementations support and typing it
     explicitly avoids the silent, incorrect point-transformation of a velocity expressed in a non-Cartesian
-    basis (see issue \#75).
+    basis (see issue #75).
     </description>
     <type>type(coordinateCartesian)</type>
     <pass>yes</pass>
@@ -1079,7 +1079,7 @@ contains
   subroutine massDistributionListRelease(node)
     !!{RST
     Return a ``massDistributionList`` node to the thread-private free-list for re-use, nullifying
-    the caller's pointer. The caller must already have released (e.g.\ via an ``objectDestructor``)
+    the caller's pointer. The caller must already have released (e.g. via an ``objectDestructor``)
     any object referenced by ``node%massDistribution_``.
     !!}
     implicit none

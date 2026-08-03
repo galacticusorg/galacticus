@@ -247,7 +247,7 @@ type, extends(eventHook) :: eventHook{$interfaceType}
   private
  contains
   !![
-  <methods>
+  <methods docformat="rst">
     <method method="attach"     description="Attach a hook to the event."                         />
     <method method="isAttached" description="Return true if the object is attached to this event."/>
     <method method="detach"     description="Detach a hook from the event."                       />
@@ -269,7 +269,7 @@ end interface
 
 
 _ATTACH_TEMPLATE = """  subroutine eventHook{$interfaceType}Attach(self,object_,function_,openMPThreadBinding,label,dependencies)
-    !!{
+    !!{RST
     Attach an object to an event hook.
     !!}
     use    :: Display           , only : displayMessage             , verbosityLevelInfo
@@ -357,7 +357,7 @@ _ATTACH_TEMPLATE = """  subroutine eventHook{$interfaceType}Attach(self,object_,
 
 
 _DETACH_TEMPLATE = """  subroutine eventHook{$interfaceType}Detach(self,object_,function_)
-    !!{
+    !!{RST
     Attach an object to an event hook.
     !!}
     use    :: Display           , only : displayMessage             , verbosityLevelInfo
@@ -415,7 +415,7 @@ _DETACH_TEMPLATE = """  subroutine eventHook{$interfaceType}Detach(self,object_,
 
 
 _ISATTACHED_TEMPLATE = """  logical function eventHook{$interfaceType}IsAttached(self,object_,function_)
-    !!{
+    !!{RST
     Return true if an object is attached to an event hook.
     !!}
     use :: Error, only : Error_Report

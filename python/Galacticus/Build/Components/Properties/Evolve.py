@@ -62,9 +62,9 @@ def Build_Count_Functions(build, class_dict, member, prop):
         'name':        fn_name,
         'description': (
             f"Return a count of the number of scalar properties in the "
-            f"\\mono{{{prop['name']}}} property of an "
-            f"\\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component class."
+            f"``{prop['name']}`` property of an "
+            f"``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component class."
         ),
         'variables':   [
             {
@@ -121,9 +121,9 @@ def Build_Rate_Get_Functions(build, class_dict, member, prop):
             + 'RateGet'
         ),
         'description': (
-            f"Get the rate of change of the \\mono{{{prop['name']}}} "
-            f"property of an \\mono{{{member['name']}}} implementation "
-            f"of the \\mono{{{class_dict['name']}}} component class."
+            f"Get the rate of change of the ``{prop['name']}`` "
+            f"property of an ``{member['name']}`` implementation "
+            f"of the ``{class_dict['name']}`` component class."
         ),
         'modules':     ['Error'],
         'variables':   [
@@ -230,9 +230,9 @@ def Build_Rate_Functions(build, class_dict, member, prop):
         'description': (
             "Accumulate"
             + (" directly (i.e. circumventing any deferred function binding)" if intrinsic_rate else "")
-            + f" to the rate of change of the \\mono{{{prop['name']}}} "
-            f"property of an \\mono{{{member['name']}}} implementation of "
-            f"the \\mono{{{class_dict['name']}}} component class."
+            + f" to the rate of change of the ``{prop['name']}`` "
+            f"property of an ``{member['name']}`` implementation of "
+            f"the ``{class_dict['name']}`` component class."
         ),
         'modules':     ['Error'],
         'variables':   [
@@ -434,8 +434,8 @@ def Build_Auto_Create_Rate_Functions(build, class_dict, member, prop):
         'type':        'void',
         'name':        class_dict['name'] + _ucfirst(prop['name']) + 'Rate',
         'description': (
-            f"Accept a rate set for the \\mono{{{prop['name']}}} property "
-            f"of the \\mono{{{class_dict['name']}}} component class. "
+            f"Accept a rate set for the ``{prop['name']}`` property "
+            f"of the ``{class_dict['name']}`` component class. "
             "Trigger an interrupt to create the component."
         ),
         'modules':     ['Error'],
@@ -515,9 +515,9 @@ def Build_Scale_Functions(build, class_dict, member, prop):
             + 'Scale'
         ),
         'description': (
-            f"Set the absolute scale of the \\mono{{{prop['name']}}} "
-            f"property of an \\mono{{{member['name']}}} implementation of "
-            f"the \\mono{{{class_dict['name']}}} component class."
+            f"Set the absolute scale of the ``{prop['name']}`` "
+            f"property of an ``{member['name']}`` implementation of "
+            f"the ``{class_dict['name']}`` component class."
         ),
         'variables':   [
             {
@@ -570,9 +570,9 @@ def Build_Inactive_Functions(build, class_dict, member, prop):
             + 'JcbnZr'
         ),
         'description': (
-            f"Indicate that the \\mono{{{prop['name']}}} property of an "
-            f"\\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component class is inactive "
+            f"Indicate that the ``{prop['name']}`` property of an "
+            f"``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component class is inactive "
             "for differential equation solving."
         ),
         'variables':   [
@@ -627,9 +627,9 @@ def Build_Analytic_Functions(build, class_dict, member, prop):
             + 'Alytc'
         ),
         'description': (
-            f"Indicate that the \\mono{{{prop['name']}}} property of an "
-            f"\\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component class is to be "
+            f"Indicate that the ``{prop['name']}`` property of an "
+            f"``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component class is to be "
             "solved analytically during differential evolution."
         ),
         'modules':     ['Error'],

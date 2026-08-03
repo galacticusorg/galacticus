@@ -407,7 +407,7 @@ module Galacticus_Nodes
   !!]
   subroutine Node_Unique_ID_Initialize(parameters_)
     !!{RST
-    Initialize the global unique-ID counter used by {\normalfont \ttfamily Tree\_Node\_Unique\_ID\_Set}.
+    Initialize the global unique-ID counter used by ``Tree_Node_Unique_ID_Set``.
     This runs once, at node-component initialization---after MPI has been initialized and before any node
     is created---so that per-node ID assignment can be a lock-free atomic increment (with no per-call
     initialization) in both serial and MPI runs. Under MPI the counter starts at this process's rank and

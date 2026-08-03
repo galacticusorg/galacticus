@@ -89,8 +89,8 @@ def Implementation_Output_Count(build, class_dict, member):
         'name':        class_dict['name'] + cap_member + 'OutputCount',
         'description': (
             f"Increment the count of properties to output for a "
-            f"\\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component."
+            f"``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component."
         ),
         'content':     '',
         'variables':   [
@@ -196,8 +196,8 @@ def Implementation_Output_Names(build, class_dict, member):
         'name':        class_dict['name'] + cap_member + 'OutputNames',
         'description': (
             f"Return the names of properties to output for a "
-            f"\\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component."
+            f"``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component."
         ),
         'content':     '',
         'modules':     [
@@ -350,8 +350,8 @@ def Implementation_Post_Output(build, class_dict, member):
         'type':        'void',
         'name':        class_dict['name'] + cap_member + 'PostOutput',
         'description': (
-            f"Perform post-output processing for a \\mono{{{member['name']}}} "
-            f"implementation of the \\mono{{{class_dict['name']}}} component."
+            f"Perform post-output processing for a ``{member['name']}`` "
+            f"implementation of the ``{class_dict['name']}`` component."
         ),
         'content':     '',
         'variables':   [

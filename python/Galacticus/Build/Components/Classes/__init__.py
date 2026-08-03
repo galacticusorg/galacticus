@@ -114,13 +114,13 @@ def Build_Component_Classes(build):
                             'type':        'procedure',
                             'name':        fn_name,
                             'function':    bound_to,
-                            'returnType':  r"\void",
+                            'returnType':  r"``void``",
                             'arguments':   (
-                                data_object_doc_name(prop) + r"\ value"
+                                data_object_doc_name(prop) + r" value"
                             ),
                             'description': (
-                                f"Set the \\mono{{{prop['name']}}} property "
-                                f"of the \\mono{{{class_name}}} component."
+                                f"Set the ``{prop['name']}`` property "
+                                f"of the ``{class_name}`` component."
                             ),
                         })
                         properties_created.add(fn_name)
@@ -139,12 +139,12 @@ def Build_Component_Classes(build):
                                 'property':  {'type': 'integer', 'rank': 0},
                                 'intent':    'in',
                             }),
-                            'returnType':  r"\intzero",
+                            'returnType':  r"``integer``",
                             'arguments':   "",
                             'description': (
                                 f"Compute the count of evolvable quantities in the "
-                                f"\\mono{{{prop['name']}}} property of the "
-                                f"\\mono{{{impl_id}}} component."
+                                f"``{prop['name']}`` property of the "
+                                f"``{impl_id}`` component."
                             ),
                         })
                         properties_created.add(fn_name)
@@ -162,14 +162,14 @@ def Build_Component_Classes(build):
                                     'property':  prop,
                                     'intent':    'inout',
                                 }),
-                                'returnType':  r"\void",
+                                'returnType':  r"``void``",
                                 'arguments':   (
-                                    data_object_doc_name(prop) + r"\ value"
+                                    data_object_doc_name(prop) + r" value"
                                 ),
                                 'description': (
                                     f"Cumulate to the rate of the "
-                                    f"\\mono{{{prop['name']}}} property of the "
-                                    f"\\mono{{{impl_id}}} component."
+                                    f"``{prop['name']}`` property of the "
+                                    f"``{impl_id}`` component."
                                 ),
                             })
 
@@ -184,11 +184,11 @@ def Build_Component_Classes(build):
                                     'property':  prop,
                                     'intent':    'inout',
                                 }),
-                                'returnType':  r"\void",
+                                'returnType':  r"``void``",
                                 'arguments':   "",
                                 'description': (
-                                    f"Mark the \\mono{{{prop['name']}}} property of "
-                                    f"the \\mono{{{impl_id}}} component as "
+                                    f"Mark the ``{prop['name']}`` property of "
+                                    f"the ``{impl_id}`` component as "
                                     f"analtyically-solvable."
                                 ),
                             })
@@ -201,11 +201,11 @@ def Build_Component_Classes(build):
                                     'property':  prop,
                                     'intent':    'inout',
                                 }),
-                                'returnType':  r"\void",
+                                'returnType':  r"``void``",
                                 'arguments':   "",
                                 'description': (
-                                    f"Mark the \\mono{{{prop['name']}}} property of "
-                                    f"the \\mono{{{impl_id}}} component as inactive."
+                                    f"Mark the ``{prop['name']}`` property of "
+                                    f"the ``{impl_id}`` component as inactive."
                                 ),
                             })
                             type_bound_functions.append({
@@ -217,13 +217,13 @@ def Build_Component_Classes(build):
                                     'property':  prop,
                                     'intent':    'inout',
                                 }),
-                                'returnType':  r"\void",
+                                'returnType':  r"``void``",
                                 'arguments':   (
-                                    data_object_doc_name(prop) + r"\ value"
+                                    data_object_doc_name(prop) + r" value"
                                 ),
                                 'description': (
-                                    f"Set the scale of the \\mono{{{prop['name']}}} "
-                                    f"property of the \\mono{{{impl_id}}} component."
+                                    f"Set the scale of the ``{prop['name']}`` "
+                                    f"property of the ``{impl_id}`` component."
                                 ),
                             })
                         properties_created.add(fn_name)
@@ -232,7 +232,7 @@ def Build_Component_Classes(build):
         build.setdefault('types', {})[type_name] = {
             'name':           type_name,
             'comment':        (
-                f"Type for the \\mono{{{class_name}}} component class."
+                f"Type for the ``{class_name}`` component class."
             ),
             'isPublic':       True,
             'extends':        'nodeComponent',

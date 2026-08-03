@@ -28,7 +28,7 @@
   <enumeration docformat="rst">
    <name>massRatioDistribution</name>
    <description>
-   Enumeration of the models available for the distribution of the ratio of two N-body halo masses subject to (correlated) mass errors. ``normal`` treats the mass ratio itself as a normal deviate (a linearization of the ratio), while ``hinkley`` uses the exact distribution of the ratio of two correlated normal deviates \citep{hinkley_ratio_1969}. The ``normal`` model is a good approximation when the denominator (parent) mass is well determined, but underestimates the tails---which approach a Cauchy distribution---when the fractional uncertainty in either mass becomes large.
+   Enumeration of the models available for the distribution of the ratio of two N-body halo masses subject to (correlated) mass errors. ``normal`` treats the mass ratio itself as a normal deviate (a linearization of the ratio), while ``hinkley`` uses the exact distribution of the ratio of two correlated normal deviates :cite:p:`hinkley_ratio_1969`. The ``normal`` model is a good approximation when the denominator (parent) mass is well determined, but underestimates the tails---which approach a Cauchy distribution---when the fractional uncertainty in either mass becomes large.
    </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>

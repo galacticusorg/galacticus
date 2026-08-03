@@ -25,12 +25,12 @@
   <nodeOperator name="nodeOperatorTestInactivePropertyRead" docformat="rst">
    <description>
    A node operator, used solely for testing, that deliberately reads the stellar luminosities of the disk
-   component during evaluation of the derivatives of {\normalfont \ttfamily active} properties. When the disk
-   stellar luminosities are being solved as {\normalfont \ttfamily inactive} properties (and a Jacobian-based
-   ODE solver is in use, so that {\normalfont \ttfamily inactive} properties are marked as such) this is an
+   component during evaluation of the derivatives of ``active`` properties. When the disk
+   stellar luminosities are being solved as ``inactive`` properties (and a Jacobian-based
+   ODE solver is in use, so that ``inactive`` properties are marked as such) this is an
    erroneous read of a stale property value, and (in debugging builds) is trapped by the run-time check
-   introduced for \href{https://github.com/galacticusorg/galacticus/issues/128}{issue \#128}. Used by the
-   {\normalfont \ttfamily test-inactive-property-read.py} test.
+   introduced for `issue #128 &lt;https://github.com/galacticusorg/galacticus/issues/128&gt;`_. Used by the
+   ``test-inactive-property-read.py`` test.
    </description>
   </nodeOperator>
   !!]

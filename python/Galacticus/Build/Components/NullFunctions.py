@@ -140,7 +140,7 @@ def create_null_function(build, descriptor):
         'name':        function_name,
         'description': (
             f"A null {attribute} rate function for a rank {prop['rank']} "
-            f"\\mono{{{self_type.lower()}}} class.\n"
+            f"``{self_type.lower()}`` class.\n"
         ),
         'variables':   variables,
         'content':     unused_line,

@@ -158,7 +158,7 @@ contains
     !!{RST
     Time ``find(rootRange,rootRangeValues)`` where both endpoint function values are precomputed by the caller. Hits the ``rootFinderFindRangeValues`` entry point and avoids any duplicate evaluation of the user function at the bracket ends inside ``find``. The wrapper's cache of endpoint values should also be used by the first two GSL calls.
 
-    The two caller-side ``fQuad`` evaluations are deliberately inside the timed region: they represent the real cost a caller pays to use this entry point. The matching ``*_bracket`` scenario pays the same two evaluations inside ``rootFinderFindRange``, so the comparison between the two scenarios isolates "wrapper cache hit" vs.\ "wrapper cache miss plus procedure-pointer call to ``finderFunction``" rather than introducing or removing user-function calls.
+    The two caller-side ``fQuad`` evaluations are deliberately inside the timed region: they represent the real cost a caller pays to use this entry point. The matching ``*_bracket`` scenario pays the same two evaluations inside ``rootFinderFindRange``, so the comparison between the two scenarios isolates "wrapper cache hit" vs. "wrapper cache miss plus procedure-pointer call to ``finderFunction``" rather than introducing or removing user-function calls.
     !!}
     integer                         , intent(in   )                      :: solverType
     character       (len=*         ), intent(in   )                      :: id        , description

@@ -25,7 +25,7 @@ def Tree_Node_Class_Count(build, class_dict):
         'type':        'integer',
         'name':        f"treeNode{cap}Count",
         'description': (
-            f"Returns the number of \\mono{{{name}}} components in the node."
+            f"Returns the number of ``{name}`` components in the node."
         ),
         'modules':     ['Error'],
         'variables':   [
@@ -88,9 +88,9 @@ def Tree_Node_Class_Get(build, class_dict):
         'type':        f"class(nodeComponent{cap}), pointer => component",
         'name':        f"treeNode{cap}Get",
         'description': (
-            f"Return a \\mono{{{name}}} component member of the node. "
-            "If no \\mono{instance} is specified, return the first instance. "
-            "If \\mono{autoCreate} is \\mono{true} then create a single "
+            f"Return a ``{name}`` component member of the node. "
+            "If no ``instance`` is specified, return the first instance. "
+            "If ``autoCreate`` is ``true`` then create a single "
             "instance of the component if none exists in the node."
         ),
         'recursive':   True,

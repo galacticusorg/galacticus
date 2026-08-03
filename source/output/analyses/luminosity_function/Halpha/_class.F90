@@ -145,7 +145,7 @@ contains
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
       <description>
-      If true, include contamination by the [NII] (6548\AA :math:`+` 6584\AA) doublet.
+      If true, include contamination by the [NII] (6548Å :math:`+` 6584Å) doublet.
       </description>
     </inputParameter>
     <inputParameter docformat="rst">

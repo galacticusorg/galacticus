@@ -75,8 +75,8 @@
    contains
      !![
      <methods docformat="rst">
-       <method description="\textcolorred&lt;integer(c_size_t)(2)&gt; interpolationIndicesMetallicity\argout, &lt;integer(c_size_t)(2,2)&gt; interpolationIndicesMass\argout, &lt;integer(c_size_t)(2,2,2)&gt; interpolationIndicesAge\argout, &lt;double(2)&gt; interpolationFactorsMetallicity\argout, &lt;double(2,2)&gt; interpolationFactorsMass\argout, &lt;double(2,2,2)&gt; interpolationFactorsAge\argout, \logicalzero\ metallicityOutOfRange\argout, \logicalzero\ massOutOfRange\argout, \logicalzero\ ageOutOfRange\argout" method="interpolationCompute" />
-       <method description="\textcolorred&lt;integer(c_size_t)(2)&gt; interpolationIndicesMetallicity\argin, &lt;integer(c_size_t)(2,2)&gt; interpolationIndicesMass\argin, &lt;integer(c_size_t)(2,2,2)&gt; interpolationIndicesAge\argin, &lt;double(2)&gt; interpolationFactorsMetallicity\argin, &lt;double(2,2)&gt; interpolationFactorsMass\argin, &lt;double(2,2,2)&gt; interpolationFactorsAge\argin, &lt;double(:,:,:)&gt; stellarTracks\argin" method="interpolate" />
+       <method description="``integer(c_size_t)(2)`` interpolationIndicesMetallicity [out], ``integer(c_size_t)(2,2)`` interpolationIndicesMass [out], ``integer(c_size_t)(2,2,2)`` interpolationIndicesAge [out], ``double(2)`` interpolationFactorsMetallicity [out], ``double(2,2)`` interpolationFactorsMass [out], ``double(2,2,2)`` interpolationFactorsAge [out], ``logical`` metallicityOutOfRange [out], ``logical`` massOutOfRange [out], ``logical`` ageOutOfRange [out]" method="interpolationCompute" />
+       <method description="``integer(c_size_t)(2)`` interpolationIndicesMetallicity [in], ``integer(c_size_t)(2,2)`` interpolationIndicesMass [in], ``integer(c_size_t)(2,2,2)`` interpolationIndicesAge [in], ``double(2)`` interpolationFactorsMetallicity [in], ``double(2,2)`` interpolationFactorsMass [in], ``double(2,2,2)`` interpolationFactorsAge [in], ``double(:,:,:)`` stellarTracks [in]" method="interpolate" />
        <method method="initialize" description="Initialize stellar data."/>
      </methods>
      !!]

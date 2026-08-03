@@ -8974,7 +8974,7 @@ attributeValue=trim(attributeValue)
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Build the compound HDF5 type natively. A fixed-length, null-terminated, ASCII string datatype is used for the two string
-    ! fields, matching the C \mono{char[unitStringLength]} members of the type.
+    ! fields, matching the C `char[unitStringLength]` members of the type.
     call h5tcopy_f(H5T_C_S1,stringTypeID,errorCode)
     if (errorCode /= 0) call Error_Report('unable to copy string datatype for units attribute'          //self%locationReport()//{introspection:location})
     call h5tset_size_f(stringTypeID,int(unitStringLength,kind=size_t),errorCode)

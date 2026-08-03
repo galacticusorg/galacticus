@@ -56,8 +56,8 @@ def Implementation_ODE_Name_From_Index(build, class_dict, member):
         'name':        impl_type + 'NameFromIndex',
         'description': (
             f"Return the name of the property of given index for a "
-            f"\\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component class."
+            f"``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component class."
         ),
         'modules':     ['ISO_Varying_String'],
         'variables':   [
@@ -311,8 +311,8 @@ def Implementation_ODE_Serialize_Values(build, class_dict, member):
         'name':        impl_type + 'SerializeValues',
         'description': (
             f"Serialize evolvable properties of a "
-            f"\\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component to array."
+            f"``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component to array."
         ),
         'variables':   [
             {
@@ -550,8 +550,8 @@ def Implementation_ODE_Serialize_NonNegative(build, class_dict, member):
         'name':        impl_type + 'SerializeNonNegative',
         'description': (
             f"Serialize non-negative status of evolvable properties of a "
-            f"\\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component to array."
+            f"``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component to array."
         ),
         'variables':   [
             {
@@ -666,8 +666,8 @@ def Implementation_ODE_Offsets(build, class_dict, member):
         'name':        impl_type + 'SerializeOffsets',
         'description': (
             f"Compute offsets into serialization arrays for a "
-            f"\\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component."
+            f"``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component."
         ),
         'variables':   [
             {

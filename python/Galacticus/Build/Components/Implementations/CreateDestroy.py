@@ -36,8 +36,8 @@ def Implementation_Creation(build, class_dict, member):
         'type':        'void',
         'name':        impl_type + 'Initialize',
         'description': (
-            f"Initialize a \\mono{{{member['name']}}} member of the "
-            f"\\mono{{{name}}} component."
+            f"Initialize a ``{member['name']}`` member of the "
+            f"``{name}`` component."
         ),
         'variables':   [
             {
@@ -204,8 +204,8 @@ def Implementation_Finalization(build, class_dict, member):
         'type':        'void',
         'name':        impl_type + 'Finalize',
         'description': (
-            f"Finalize a \\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component."
+            f"Finalize a ``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component."
         ),
         'content':     '',
         'variables':   [
@@ -273,8 +273,8 @@ def Implementation_Builder(build, class_dict, member):
         'type':        'void',
         'name':        impl_type + 'Builder',
         'description': (
-            f"Build a \\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component from a supplied "
+            f"Build a ``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component from a supplied "
             "XML definition."
         ),
         'modules':     [

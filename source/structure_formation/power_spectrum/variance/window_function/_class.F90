@@ -32,7 +32,7 @@ module Power_Spectrum_Window_Functions
    <name>powerSpectrumWindowFunction</name>
    <descriptiveName>Power Spectrum Window Functions</descriptiveName>
    <description>
-   Class providing window functions :math:`W(k, M)` for filtering the matter power spectrum when computing the rms mass variance :math:`\sigma(M) = \int \mathrm{d}k\, k^2 P(k) |W(k,M)|^2`. The window function smooths the density field on the scale enclosing mass :math:`M`, and the choice of window (e.g.\ real-space top-hat, sharp :math:`k`-space, or Gaussian) affects the resulting mass function. Methods return the filter value at a given wavenumber and smoothing mass, and indicate the maximum relevant wavenumber and whether the amplitude is mass-independent.
+   Class providing window functions :math:`W(k, M)` for filtering the matter power spectrum when computing the rms mass variance :math:`\sigma(M) = \int \mathrm{d}k\, k^2 P(k) |W(k,M)|^2`. The window function smooths the density field on the scale enclosing mass :math:`M`, and the choice of window (e.g. real-space top-hat, sharp :math:`k`-space, or Gaussian) affects the resulting mass function. Methods return the filter value at a given wavenumber and smoothing mass, and indicate the maximum relevant wavenumber and whether the amplitude is mass-independent.
    </description>
    <default>topHat</default>
    <method name="value" >

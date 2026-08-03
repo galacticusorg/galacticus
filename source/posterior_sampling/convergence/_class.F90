@@ -61,7 +61,7 @@ module Posterior_Sampling_Convergence
    </method>
    <method name="logReport" >
     <description>
-    Write a human-readable report of the current convergence state (e.g.\ the :math:`\hat{R}` statistic and per-parameter values) to the open file unit ``fileUnit``.
+    Write a human-readable report of the current convergence state (e.g. the :math:`\hat{R}` statistic and per-parameter values) to the open file unit ``fileUnit``.
     </description>
     <type>void</type>
     <pass>yes</pass>

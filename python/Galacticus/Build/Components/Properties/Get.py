@@ -84,9 +84,9 @@ def Build_Get_Functions(build, class_dict, member, prop):
         'type':        function_type + ' => propertyValue',
         'name':        fn_name,
         'description': (
-            f"Get the \\mono{{{prop['name']}}} property of an "
-            f"\\mono{{{member['name']}}} implementation of the "
-            f"\\mono{{{class_dict['name']}}} component class."
+            f"Get the ``{prop['name']}`` property of an "
+            f"``{member['name']}`` implementation of the "
+            f"``{class_dict['name']}`` component class."
         ),
         'variables':   [
             {

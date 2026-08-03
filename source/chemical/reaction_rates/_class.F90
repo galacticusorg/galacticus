@@ -35,7 +35,7 @@ module Chemical_Reaction_Rates
    <name>chemicalReactionRate</name>
    <descriptiveName>Chemical Reaction Rates</descriptiveName>
    <description>
-   Class providing rates for chemical reactions among gas-phase species (e.g.\ H\ :math:`_2` formation and photodissociation, HD, HeH\ :math:`^+`). Given local conditions---column density for self-shielding, gas temperature, chemical abundances, a clumping factor, and the ambient radiation field---each implementation returns the net reaction rates (in consistent volumetric units) for each tracked chemical species. These rates drive the non-equilibrium evolution of the chemical network and are particularly relevant for modeling the formation of molecular gas and cooling in the early universe and in low-metallicity :term:`IGM` gas.
+   Class providing rates for chemical reactions among gas-phase species (e.g. H\ :math:`_2` formation and photodissociation, HD, HeH\ :math:`^+`). Given local conditions---column density for self-shielding, gas temperature, chemical abundances, a clumping factor, and the ambient radiation field---each implementation returns the net reaction rates (in consistent volumetric units) for each tracked chemical species. These rates drive the non-equilibrium evolution of the chemical network and are particularly relevant for modeling the formation of molecular gas and cooling in the early universe and in low-metallicity :term:`IGM` gas.
    </description>
    <default>zero</default>
    <method name="rates" >

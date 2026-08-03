@@ -221,7 +221,7 @@ def Node_Event_Deserialize_Raw(build):
             'type':        'void',
             'name':        entry['name'] + 'DeserializeRaw',
             'description': (
-                f"Deserialize a \\mono{{{entry['name']}}} object from raw file."
+                f"Deserialize a ``{entry['name']}`` object from raw file."
             ),
             'content':     '',
             'modules':     ['ISO_C_Binding'],
@@ -287,7 +287,7 @@ def Node_Event_Serialize_Raw(build):
             'type':        'void',
             'name':        entry['name'] + 'SerializeRaw',
             'description': (
-                f"Serialize a \\mono{{{entry['name']}}} object to raw file."
+                f"Serialize a ``{entry['name']}`` object to raw file."
             ),
             'modules':     ['ISO_C_Binding'],
             'variables':   [
@@ -357,7 +357,7 @@ def Node_Event_Deserialize_Raw_Polymorphic(build):
         'type':        'class(nodeEvent), pointer => event',
         'name':        'nodeEventBuildFromRaw',
         'description': (
-            r"Build a \mono{nodeEvent} class object from a raw dump file."
+            r"Build a ``nodeEvent`` class object from a raw dump file."
         ),
         'modules':     ['Error'],
         'variables':   [
@@ -401,7 +401,7 @@ def Node_Event_Non_Static_Size_Of(build):
         'type':        'integer(c_size_t)',
         'name':        'nodeEventSizeOf',
         'description': (
-            r"Compute the size of the non-static parts of a \mono{nodeEvent} object."
+            r"Compute the size of the non-static parts of a ``nodeEvent`` object."
         ),
         'variables':   [
             {

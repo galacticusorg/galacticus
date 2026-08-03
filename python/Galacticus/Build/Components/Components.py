@@ -42,7 +42,7 @@ def Build_Node_Component_Class(build):
             'description': (
                 f"Add a rank-{rank} {mpt['label']} meta-property to this class."
             ),
-            'returnType':  r"\intzero",
+            'returnType':  r"``integer``",
             'arguments':   _meta_property_arg_doc(mpt),
         })
 
@@ -75,7 +75,7 @@ def Build_Node_Component_Class(build):
 
     build.setdefault('types', {})['nodeComponent'] = {
         'name':           'nodeComponent',
-        'comment':        r"A class for components in \glspl{node}.",
+        'comment':        r"A class for components in :term:`node`\ s.",
         'isPublic':       True,
         'boundFunctions': type_bound_functions,
         'dataContent':    data_content,
@@ -86,13 +86,13 @@ def _meta_property_arg_doc(mpt):
     """Return the documentation-only argument string for an `add…MetaProperty`
     method.
     """
-    is_evolvable = r", \logicalzero\ [isEvolvable]" \
+    is_evolvable = r", ``logical`` [isEvolvable]" \
         if (mpt['label'] == 'float' and mpt['rank'] == 0) else ""
     return (
-        r"\textcolor{red}{\textless type(varying\_string)\textgreater} label, "
-        r"\textcolor{red}{\textless character(len=*)\textgreater} name"
+        r"``type(varying_string)`` label, "
+        r"``character(len=*)`` name"
         + is_evolvable
-        + r", \logicalzero\ [isCreator]"
+        + r", ``logical`` [isCreator]"
     )
 
 
@@ -108,15 +108,15 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'type',
         'function':    'Node_Component_Generic_Type',
         'description': "Return the type of this object.",
-        'returnType':  r"\textcolor{red}{\textless type(varying\_string)\textgreater}",
+        'returnType':  r"``type(varying_string)``",
         'arguments':   "",
     },
     {
         'type':        'procedure',
         'name':        'host',
         'function':    'Node_Component_Host_Node',
-        'description': r"Return a pointer to the host \mono{treeNode} object.",
-        'returnType':  r"\textcolor{red}{\textless *type(treeNode)\textgreater}",
+        'description': r"Return a pointer to the host ``treeNode`` object.",
+        'returnType':  r"``*type(treeNode)``",
         'arguments':   "",
     },
     {
@@ -124,7 +124,7 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'destroy',
         'function':    'Node_Component_Generic_Destroy',
         'description': "Destroy the object.",
-        'returnType':  r"\void",
+        'returnType':  r"``void``",
         'arguments':   "",
     },
     {
@@ -132,15 +132,15 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'serializeCount',
         'function':    'Node_Component_Serialize_Count_Zero',
         'description': "Return a count of the number of evolvable quantities to be evolved.",
-        'returnType':  r"\intzero",
-        'arguments':   r"\intzero\ propertyType\argin",
+        'returnType':  r"``integer``",
+        'arguments':   r"``integer`` propertyType [in]",
     },
     {
         'type':        'procedure',
         'name':        'serializationOffsets',
         'function':    'Node_Component_Serialization_Offsets',
         'description': "Set offsets into serialization arrays.",
-        'returnType':  r"\void",
+        'returnType':  r"``void``",
         'arguments':   "",
     },
     {
@@ -148,39 +148,39 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'serializeValues',
         'function':    'Node_Component_Serialize_Null',
         'description': "Serialize the evolvable quantities to an array.",
-        'returnType':  r"\void",
-        'arguments':   r"\doubleone\ array\argout, \intzero\ propertyType\argin",
+        'returnType':  r"``void``",
+        'arguments':   r"``double(:)`` array [out], ``integer`` propertyType [in]",
     },
     {
         'type':        'procedure',
         'name':        'serializeNonNegative',
         'function':    'Node_Component_Serialize_NonNegative_Null',
         'description': "Serialize the non-negative status of evolvable quantities to an array.",
-        'returnType':  r"\void",
-        'arguments':   r"\logicalone\ array\argout",
+        'returnType':  r"``void``",
+        'arguments':   r"``logical(:)`` array [out]",
     },
     {
         'type':        'procedure',
         'name':        'deserializeRaw',
         'function':    'Node_Component_Read_Raw_Null',
         'description': "Read properties from raw file.",
-        'returnType':  r"\void",
-        'arguments':   r"\intzero\ fileHandle\argin",
+        'returnType':  r"``void``",
+        'arguments':   r"``integer`` fileHandle [in]",
     },
     {
         'type':        'procedure',
         'name':        'deserializeValues',
         'function':    'Node_Component_Deserialize_Null',
         'description': "Deserialize the evolvable quantities from an array.",
-        'returnType':  r"\void",
-        'arguments':   r"\doubleone\ array\argin, \intzero\ propertyType\argin",
+        'returnType':  r"``void``",
+        'arguments':   r"``double(:)`` array [in], ``integer`` propertyType [in]",
     },
     {
         'type':        'procedure',
         'name':        'odeStepRatesInitialize',
         'function':    'Node_Component_ODE_Step_Initialize_Null',
         'description': "Initialize rates for evolvable properties.",
-        'returnType':  r"\void",
+        'returnType':  r"``void``",
         'arguments':   "",
     },
     {
@@ -188,7 +188,7 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'odeStepScalesInitialize',
         'function':    'Node_Component_ODE_Step_Initialize_Null',
         'description': "Initialize scales for evolvable properties.",
-        'returnType':  r"\void",
+        'returnType':  r"``void``",
         'arguments':   "",
     },
     {
@@ -196,7 +196,7 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'serializeASCII',
         'function':    'Node_Component_Dump_Null',
         'description': "Generate an ASCII dump of all properties.",
-        'returnType':  r"\void",
+        'returnType':  r"``void``",
         'arguments':   "",
     },
     {
@@ -204,7 +204,7 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'serializeXML',
         'function':    'Node_Component_Dump_XML_Null',
         'description': "Generate an XML dump of all properties.",
-        'returnType':  r"\void",
+        'returnType':  r"``void``",
         'arguments':   "",
     },
     {
@@ -212,20 +212,20 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'serializeRaw',
         'function':    'Node_Component_Dump_Raw_Null',
         'description': "Generate a binary dump of all properties.",
-        'returnType':  r"\void",
-        'arguments':   r"\intzero\ fileHandle\argin",
+        'returnType':  r"``void``",
+        'arguments':   r"``integer`` fileHandle [in]",
     },
     {
         'type':        'procedure',
         'name':        'outputCount',
         'function':    'Node_Component_Output_Count_Null',
         'description': "Compute a count of outputtable properties.",
-        'returnType':  r"\void",
+        'returnType':  r"``void``",
         'arguments':   (
-            r"\intzero\ integerPropertyCount\arginout, "
-            r"\intzero\ doublePropertyCount\arginout, "
-            r"\doublezero\ time\argin, "
-            r"\intzero\ instance\argin"
+            r"``integer`` integerPropertyCount [inout], "
+            r"``integer`` doublePropertyCount [inout], "
+            r"``double`` time [in], "
+            r"``integer`` instance [in]"
         ),
     },
     {
@@ -233,14 +233,14 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'outputNames',
         'function':    'Node_Component_Output_Names_Null',
         'description': "Generate names of outputtable properties.",
-        'returnType':  r"\void",
+        'returnType':  r"``void``",
         'arguments':   (
-            r"\intzero\ integerProperty\arginout, "
-            r"\textcolor{red}{\textless type(outputPropertyInteger)(:)\textgreater} integerProperties\arginout, "
-            r"\intzero\ doubleProperty\arginout, "
-            r"\textcolor{red}{\textless type(otuputPropertyDouble)(:)\textgreater} doubleProperties\arginout, "
-            r"\doublezero\ time\argin, "
-            r"\intzero\ instance\argin"
+            r"``integer`` integerProperty [inout], "
+            r"``type(outputPropertyInteger)(:)`` integerProperties [inout], "
+            r"``integer`` doubleProperty [inout], "
+            r"``type(otuputPropertyDouble)(:)`` doubleProperties [inout], "
+            r"``double`` time [in], "
+            r"``integer`` instance [in]"
         ),
     },
     {
@@ -248,16 +248,16 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'output',
         'function':    'Node_Component_Output_Null',
         'description': "Generate values of outputtable properties.",
-        'returnType':  r"\void",
+        'returnType':  r"``void``",
         'arguments':   (
-            r"\intzero\ integerProperty\arginout, "
-            r"\intzero\ integerBufferCount\arginout, "
-            r"\textcolor{red}{\textless type(outputPropertyInteger)(:)\textgreater} integerProperties\arginout, "
-            r"\intzero doubleProperty\arginout, "
-            r"\intzero\ doubleBufferCount\arginout, "
-            r"\textcolor{red}{\textless type(outputPropertyDouble)(:)\textgreater} doubleProperties\arginout, "
-            r"\doublezero\ time\argin, "
-            r"\intzero\ instance\argin"
+            r"``integer`` integerProperty [inout], "
+            r"``integer`` integerBufferCount [inout], "
+            r"``type(outputPropertyInteger)(:)`` integerProperties [inout], "
+            r"``integer`` doubleProperty [inout], "
+            r"``integer`` doubleBufferCount [inout], "
+            r"``type(outputPropertyDouble)(:)`` doubleProperties [inout], "
+            r"``double`` time [in], "
+            r"``integer`` instance [in]"
         ),
     },
     {
@@ -265,12 +265,12 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'massDistribution',
         'function':    'Node_Component_Mass_Distribution_Null',
         'description': "Return the mass distribution for this component.",
-        'returnType':  r"\textcolor{red}{\textless class(massDistribution)\textgreater}",
+        'returnType':  r"``class(massDistribution)``",
         'arguments':   (
-            r"\textcolor{red}{\textless type(enumerationComponentTypeType)\textgreater} [componentType]\argin, "
-            r"\textcolor{red}{\textless type(enumeratioMassTypeType)\textgreater} [massType]\argin, "
-            r"\textcolor{red}{\textless type(enumeratioWeightByType)\textgreater} [weightBy]\argin, "
-            r"\intzero\ [weightIndex]\argin"
+            r"``type(enumerationComponentTypeType)`` [componentType] [in], "
+            r"``type(enumeratioMassTypeType)`` [massType] [in], "
+            r"``type(enumeratioWeightByType)`` [weightBy] [in], "
+            r"``integer`` [weightIndex] [in]"
         ),
     },
     {
@@ -278,7 +278,7 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'massBaryonic',
         'function':    'Node_Component_Mass_Baryonic_Null',
         'description': "Return the total baryonic mass for this component.",
-        'returnType':  r"\doublezero",
+        'returnType':  r"``double``",
         'arguments':   "",
     },
     {
@@ -287,13 +287,13 @@ _BASE_BOUND_FUNCTIONS = [
         'function':    'Node_Component_Density_Null',
         'description': "Compute the density.",
         'mappable':    "summation",
-        'returnType':  r"\doublezero",
+        'returnType':  r"``double``",
         'arguments':   (
-            r"\textcolor{red}{\textless double(3)\textgreater} positionSpherical\argin, "
-            r"\enumComponentType\ [componentType]\argin, "
-            r"\enumMassType\ [massType]\argin, "
-            r"\enumWeightBy\ [weightBy]\argin, "
-            r"\intzero\ [weightIndex]\argin"
+            r"``double(3)`` positionSpherical [in], "
+            r"``enumerationComponentTypeType`` [componentType] [in], "
+            r"``enumerationMassTypeType`` [massType] [in], "
+            r"``enumerationWeightByType`` [weightBy] [in], "
+            r"``integer`` [weightIndex] [in]"
         ),
     },
     {
@@ -302,13 +302,13 @@ _BASE_BOUND_FUNCTIONS = [
         'function':    'Node_Component_Density_Spherical_Average_Null',
         'description': "Compute the spherically-averaged density.",
         'mappable':    "summation",
-        'returnType':  r"\doublezero",
+        'returnType':  r"``double``",
         'arguments':   (
-            r"\doublezero\ radius\argin, "
-            r"\enumComponentType\ [componentType]\argin, "
-            r"\enumMassType\ [massType]\argin, "
-            r"\enumWeightBy\ [weightBy]\argin, "
-            r"\intzero\ [weightIndex]\argin"
+            r"``double`` radius [in], "
+            r"``enumerationComponentTypeType`` [componentType] [in], "
+            r"``enumerationMassTypeType`` [massType] [in], "
+            r"``enumerationWeightByType`` [weightBy] [in], "
+            r"``integer`` [weightIndex] [in]"
         ),
     },
     {
@@ -317,13 +317,13 @@ _BASE_BOUND_FUNCTIONS = [
         'function':    'Node_Component_Surface_Density_Null',
         'description': "Compute the surface density.",
         'mappable':    "summation",
-        'returnType':  r"\doublezero",
+        'returnType':  r"``double``",
         'arguments':   (
-            r"\textcolor{red}{\textless double(3)\textgreater} positionCylindrical\argin, "
-            r"\enumComponentType\ [componentType]\argin, "
-            r"\enumMassType\ [massType]\argin, "
-            r"\enumWeightBy\ [weightBy]\argin, "
-            r"\intzero\ [weightIndex]\argin"
+            r"``double(3)`` positionCylindrical [in], "
+            r"``enumerationComponentTypeType`` [componentType] [in], "
+            r"``enumerationMassTypeType`` [massType] [in], "
+            r"``enumerationWeightByType`` [weightBy] [in], "
+            r"``integer`` [weightIndex] [in]"
         ),
     },
 ]

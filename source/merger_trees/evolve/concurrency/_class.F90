@@ -33,7 +33,7 @@ module Merger_Trees_Evolve_Concurrency
    <name>mergerTreeEvolveConcurrency</name>
    <descriptiveName>Merger Tree Evolution Concurrency</descriptiveName>
    <description>
-   Class providing logic that controls which nodes in a merger tree are evolved in each phase of a multi-phase evolution scheme. When halo and subhalo evolution are decoupled, different sets of nodes (e.g.\ isolated halos vs.\ satellite subhalos) can be evolved in separate phases to maintain consistency. Each implementation specifies how many phases to use and which nodes participate in each phase, enabling flexible parallelism and ordering of the ODE integration.
+   Class providing logic that controls which nodes in a merger tree are evolved in each phase of a multi-phase evolution scheme. When halo and subhalo evolution are decoupled, different sets of nodes (e.g. isolated halos vs. satellite subhalos) can be evolved in separate phases to maintain consistency. Each implementation specifies how many phases to use and which nodes participate in each phase, enabling flexible parallelism and ordering of the ODE integration.
    </description>
    <default>halosSubhalos</default>
    <method name="initializeTree">

@@ -44,7 +44,7 @@ module Radiative_Transfer_Matters
    <name>radiativeTransferMatter</name>
    <descriptiveName>Radiative Transfer Matter</descriptiveName>
    <description>
-   Class providing matter types for Monte Carlo radiative transfer calculations---the physical description of the gas and dust that photon packets interact with as they propagate through the computational domain. Methods populate domain cells with matter properties (density, temperature, ionization fractions), compute the absorption coefficient at each packet wavelength, accumulate absorbed energy from traversing packets, and update the matter state (e.g.\ photoionization equilibrium) after each iteration. The default implementation models atomic hydrogen gas.
+   Class providing matter types for Monte Carlo radiative transfer calculations---the physical description of the gas and dust that photon packets interact with as they propagate through the computational domain. Methods populate domain cells with matter properties (density, temperature, ionization fractions), compute the absorption coefficient at each packet wavelength, accumulate absorbed energy from traversing packets, and update the matter state (e.g. photoionization equilibrium) after each iteration. The default implementation models atomic hydrogen gas.
    </description>
    <default>atomic</default>
    <method name="propertyClass" >
@@ -103,7 +103,7 @@ module Radiative_Transfer_Matters
    </method>
    <method name="interactWithPhotonPacket" >
     <description>
-    Attempt a physical interaction (e.g.\ absorption, scattering, or re-emission) between the matter and the photon packet, updating the packet properties and returning true if an interaction occurred.
+    Attempt a physical interaction (e.g. absorption, scattering, or re-emission) between the matter and the photon packet, updating the packet properties and returning true if an interaction occurred.
     </description>
     <type>logical</type>
     <pass>yes</pass>
@@ -112,7 +112,7 @@ module Radiative_Transfer_Matters
    </method>
    <method name="stateSolve" >
     <description>
-    Solve for the equilibrium matter state (e.g.\ photoionization balance, dust temperature) in the given cell based on the radiation field accumulated during the current iteration, updating the cell properties in place.
+    Solve for the equilibrium matter state (e.g. photoionization balance, dust temperature) in the given cell based on the radiation field accumulated during the current iteration, updating the cell properties in place.
     </description>
     <type>void</type>
     <pass>yes</pass>
@@ -122,7 +122,7 @@ module Radiative_Transfer_Matters
    </method>
    <method name="convergenceMeasure" >
     <description>
-    Return a scalar convergence measure (e.g.\ the fractional change in ionization fraction or temperature) for the given cell between the current and previous iterations, used to assess global radiative transfer convergence.
+    Return a scalar convergence measure (e.g. the fractional change in ionization fraction or temperature) for the given cell between the current and previous iterations, used to assess global radiative transfer convergence.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
@@ -130,7 +130,7 @@ module Radiative_Transfer_Matters
    </method>
    <method name="outputProperty" >
     <description>
-    Return the value of the indexed output property (e.g.\ ionization fraction, temperature, or density) for the given cell, as written to the output HDF5 file after convergence.
+    Return the value of the indexed output property (e.g. ionization fraction, temperature, or density) for the given cell, as written to the output HDF5 file after convergence.
     </description>
     <type>double precision</type>
     <pass>yes</pass>

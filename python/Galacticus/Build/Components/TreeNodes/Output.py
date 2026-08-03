@@ -37,7 +37,7 @@ def Tree_Node_Output_Count(build):
         'name':        'treeNodeOutputCount',
         'description': (
             r"Increment the count of properties to output for a "
-            r"\mono{treeNode}."
+            r"``treeNode``."
         ),
         'variables':   [
             {
@@ -95,7 +95,7 @@ def Tree_Node_Output_Names(build):
         'name':        'treeNodeOutputNames',
         'description': (
             r"Establish the names of properties to output for a "
-            r"\mono{treeNode}."
+            r"``treeNode``."
         ),
         'modules':     [
             'Merger_Tree_Outputter_Buffer_Types',
@@ -192,7 +192,7 @@ def Tree_Node_Output(build):
         'name':        'treeNodeOutput',
         'description': (
             r"Populate output buffers with properties to output for a "
-            r"\mono{treeNode}."
+            r"``treeNode``."
         ),
         'modules':     [
             'Multi_Counters',
@@ -286,7 +286,7 @@ def Tree_Node_Post_Output(build):
         'type':        'void',
         'name':        'treeNodePostOutput',
         'description': (
-            r"Perform post-output processing of a \mono{treeNode}."
+            r"Perform post-output processing of a ``treeNode``."
         ),
         'variables':   [
             {

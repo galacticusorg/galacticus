@@ -36,7 +36,7 @@ module Merger_Tree_Timesteps
    <name>mergerTreeEvolveTimestep</name>
    <descriptiveName>Merger Tree Evolution Timesteps</descriptiveName>
    <description>
-   Class providing timestep control during merger tree evolution---objects that determine the maximum time to which a given node can be evolved in a single ODE integration step. Each implementation imposes a constraint on the timestep (e.g.\ a fraction of the dynamical time, the time to the next snapshot, the time to a satellite merger event) and optionally registers a callback task to execute at the end of the timestep. The shortest timestep from all registered instances determines the actual integration step.
+   Class providing timestep control during merger tree evolution---objects that determine the maximum time to which a given node can be evolved in a single ODE integration step. Each implementation imposes a constraint on the timestep (e.g. a fraction of the dynamical time, the time to the next snapshot, the time to a satellite merger event) and optionally registers a callback task to execute at the end of the timestep. The shortest timestep from all registered instances determines the actual integration step.
    </description>
    <default>standard</default>
    <method name="timeEvolveTo">
