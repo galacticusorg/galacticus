@@ -1474,10 +1474,10 @@ contains
     integer                                  , intent(in   ), optional                  :: tableCount
     type   (enumerationExtrapolationTypeType), intent(in   ), optional  , dimension(2)  :: extrapolationType
 
-    if     (                                        &
-         &   lattice%scheme /= gridSchemePerDecade  &
-         &  .and.                                   &
-         &   lattice%scheme /= gridSchemePerOctave  &
+    if     (                                       &
+         &   lattice%scheme /= gridSchemePerDecade &
+         &  .and.                                  &
+         &   lattice%scheme /= gridSchemePerOctave &
          & ) call Error_Report('a logarithmically-spaced table requires a `perDecade` or `perOctave` gridding scheme'//{introspection:location})
     ! The internal abscissae of this table type are the natural logarithms of the tabulation points.
     call Table_1D_Extend_Uniform(self,lattice,lattice%valuesLogarithmic(),lattice%stepLogarithmic(),isComputed,tableCount,extrapolationType)
@@ -2616,38 +2616,38 @@ contains
     integer                                           , intent(in   ), optional                    :: tableCount
     type            (enumerationExtrapolationTypeType), intent(in   ), optional                    :: extrapolationTypeX, extrapolationTypeY
     double precision                                  , allocatable              , dimension(:,:,:):: zvPrevious
-    integer                                                                                        :: tableCountActual  , offsetX   , &
+    integer                                                                                        :: tableCountActual  , offsetX           , &
          &                                                                                            offsetY
 
     if (.not.latticeX%isDefined() .or. .not.latticeY%isDefined()) call Error_Report('the lattices provided are not usable'//{introspection:location})
-    if     (                                                                                                    &
-         &   (latticeX%scheme /= gridSchemePerDecade .and. latticeX%scheme /= gridSchemePerOctave)               &
-         &  .or.                                                                                                &
-         &   (latticeY%scheme /= gridSchemePerDecade .and. latticeY%scheme /= gridSchemePerOctave)               &
+    if     (                                                                                                                                     &
+         &   (latticeX%scheme /= gridSchemePerDecade .and. latticeX%scheme /= gridSchemePerOctave)                                               &
+         &  .or.                                                                                                                                 &
+         &   (latticeY%scheme /= gridSchemePerDecade .and. latticeY%scheme /= gridSchemePerOctave)                                               &
          & ) call Error_Report('a logarithmically-spaced table requires a `perDecade` or `perOctave` gridding scheme'//{introspection:location})
     allocate(isComputed(latticeX%count,latticeY%count))
     isComputed=.false.
     offsetX   =0
     offsetY   =0
-    if     (                            &
-         &   self%latticeX%isDefined()  &
-         &  .and.                       &
-         &   self%latticeY%isDefined()  &
-         &  .and.                       &
-         &   allocated(self%zv       )  &
+    if     (                           &
+         &   self%latticeX%isDefined() &
+         &  .and.                      &
+         &   self%latticeY%isDefined() &
+         &  .and.                      &
+         &   allocated(self%zv       ) &
          & ) then
        ! The table is already tabulated. Verify that each new lattice is commensurate with, and contains, the corresponding
        ! existing one, and arrange to preserve the previously computed values.
        if (self%latticeX%scheme    /= latticeX%scheme    .or. self%latticeY%scheme    /= latticeY%scheme   ) &
-            & call Error_Report('table is tabulated using a different gridding scheme'                                            //{introspection:location})
+            & call Error_Report('table is tabulated using a different gridding scheme'                          //{introspection:location})
        if (self%latticeX%pointsPer /= latticeX%pointsPer .or. self%latticeY%pointsPer /= latticeY%pointsPer) &
-            & call Error_Report('table is tabulated using a different density of points'                                          //{introspection:location})
+            & call Error_Report('table is tabulated using a different density of points'                        //{introspection:location})
        if (.not.latticeX%covers(self%latticeX) .or. .not.latticeY%covers(self%latticeY))                     &
-            & call Error_Report('the new range does not contain the current range - tables can only be extended'                  //{introspection:location})
+            & call Error_Report('the new range does not contain the current range - tables can only be extended'//{introspection:location})
        tableCountActual=size(self%zv,dim=3)
        if (present(tableCount)) then
           if (tableCount /= tableCountActual)                                                                &
-               & call Error_Report('the number of tables can not be changed when extending a table'                               //{introspection:location})
+               & call Error_Report('the number of tables can not be changed when extending a table'             //{introspection:location})
        end if
        offsetX                                                                                =self%latticeX%indexMinimum-latticeX%indexMinimum
        offsetY                                                                                =self%latticeY%indexMinimum-latticeY%indexMinimum
@@ -2670,7 +2670,7 @@ contains
     self%xv=latticeX%valuesLogarithmic()
     self%yv=latticeY%valuesLogarithmic()
     self%zv=0.0d0
-    if (allocated(zvPrevious))                                                                      &
+    if (allocated(zvPrevious))                                                                                     &
          & self%zv(offsetX+1:offsetX+size(zvPrevious,dim=1),offsetY+1:offsetY+size(zvPrevious,dim=2),:)=zvPrevious
     self%xCount              =latticeX%count
     self%yCount              =latticeY%count

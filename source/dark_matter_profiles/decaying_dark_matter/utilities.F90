@@ -340,21 +340,21 @@ contains
     implicit none
     double precision              , intent(inout)               :: velocityEscapeScaleFree
     double precision              , intent(in   )               :: velocityKickScaleFree
-    double precision              , parameter                   :: toleranceAbsolute       =  0.0d+0, toleranceRelative     =  1.0d-6
+    double precision              , parameter                   :: toleranceAbsolute         =0.0d+0, toleranceRelative       =1.0d-6
     ! Note that the abscissae and solutions are accumulated in these local arrays rather than directly in the module-scope arrays:
     ! the latter are threadprivate, and so are not shared with the threads of the parallel region below.
-    double precision              , dimension(:  ), allocatable :: velocitiesEscapeScaleFree_        , velocitiesKickScaleFree_
-    double precision              , dimension(:,:), allocatable :: energyRetained_                   , fractionRetained_
-    double precision              , save                        :: velocityWidthScaleFree            , normalization                  , &
-         &                                                         velocityEscapeScaleFree_          , velocityKickScaleFree_         , &
+    double precision              , dimension(:  ), allocatable :: velocitiesEscapeScaleFree_       , velocitiesKickScaleFree_
+    double precision              , dimension(:,:), allocatable :: energyRetained_                  , fractionRetained_
+    double precision              , save                        :: velocityWidthScaleFree           , normalization                  , &
+         &                                                         velocityEscapeScaleFree_         , velocityKickScaleFree_         , &
          &                                                         cosThetaMaximum
     type            (rootFinder  ), save          , allocatable :: finder
-    type            (integrator  ), save          , allocatable :: integratorEnergy                  , integratorFraction
+    type            (integrator  ), save          , allocatable :: integratorEnergy                 , integratorFraction
     integer                       , save                        :: iVelocityKick
-    integer                                                     :: countVelocityEscape               , countVelocityKick              , &
-         &                                                         iVelocityEscape                   , offsetVelocityEscape           , &
+    integer                                                     :: countVelocityEscape              , countVelocityKick              , &
+         &                                                         iVelocityEscape                  , offsetVelocityEscape           , &
          &                                                         offsetVelocityKick
-    type            (rangeLattice)                              :: latticeEscape                     , latticeKick
+    type            (rangeLattice)                              :: latticeEscape                    , latticeKick
     logical                       , dimension(:,:), allocatable :: isComputed
     !$omp threadprivate(iVelocityKick,velocityEscapeScaleFree_,velocityKickScaleFree_,velocityWidthScaleFree,normalization,cosThetaMaximum,finder,integratorFraction,integratorEnergy)
 
@@ -362,10 +362,10 @@ contains
     ! value interpolated from it - is independent of the velocities at which it happened to be first requested, and so that it
     ! can be extended without recomputing any solution already found.
     call rangesRequired()
-    if     (                                                &
-         &   latticeVelocityEscape%covers(latticeEscape)    &
-         &  .and.                                           &
-         &   latticeVelocityKick  %covers(latticeKick  )    &
+    if     (                                             &
+         &   latticeVelocityEscape%covers(latticeEscape) &
+         &  .and.                                        &
+         &   latticeVelocityKick  %covers(latticeKick  ) &
          & ) then
        call velocityEscapeScaleFreeClamp()
        return
@@ -409,14 +409,14 @@ contains
          fractionRetained_=0.0d0
          energyRetained_  =0.0d0
          isComputed       =.false.
-         if     (                                        &
-              &   allocated(fractionRetained          )  &
-              &  .and.                                   &
-              &   allocated(energyRetained            )  &
-              &  .and.                                   &
-              &   latticeVelocityEscape%isDefined(     ) &
-              &  .and.                                   &
-              &   latticeVelocityKick  %isDefined(     ) &
+         if     (                                   &
+              &   allocated(fractionRetained)       &
+              &  .and.                              &
+              &   allocated(energyRetained  )       &
+              &  .and.                              &
+              &   latticeVelocityEscape%isDefined() &
+              &  .and.                              &
+              &   latticeVelocityKick  %isDefined() &
               & ) then
             offsetVelocityEscape=Range_Lattice_Offset(latticeVelocityEscape,latticeEscape)
             offsetVelocityKick  =Range_Lattice_Offset(latticeVelocityKick  ,latticeKick  )
@@ -525,16 +525,16 @@ contains
            type(hdf5File  ) :: file
            !$ call hdf5Access%set()
            file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
-           call file%writeDataset  (velocitiesEscapeScaleFree         ,'velocitiesEscape'          )
-           call file%writeDataset  (velocitiesKickScaleFree           ,'velocitiesKick'            )
-           call file%writeDataset  (energyRetained                    ,'energyRetained'            )
-           call file%writeDataset  (fractionRetained                  ,'fractionRetained'          )
-           call file%writeAttribute(latticeVelocityEscape%pointsPer   ,'pointsPerVelocityEscape'   )
-           call file%writeAttribute(latticeVelocityEscape%indexMinimum,'indexMinimumVelocityEscape')
-           call file%writeAttribute(latticeVelocityEscape%count       ,'countVelocityEscape'       )
-           call file%writeAttribute(latticeVelocityKick  %pointsPer   ,'pointsPerVelocityKick'     )
-           call file%writeAttribute(latticeVelocityKick  %indexMinimum,'indexMinimumVelocityKick'  )
-           call file%writeAttribute(latticeVelocityKick  %count       ,'countVelocityKick'         )
+           call file%writeDataset  (                      velocitiesEscapeScaleFree,'velocitiesEscape'          )
+           call file%writeDataset  (                      velocitiesKickScaleFree  ,'velocitiesKick'            )
+           call file%writeDataset  (                      energyRetained           ,'energyRetained'            )
+           call file%writeDataset  (                      fractionRetained         ,'fractionRetained'          )
+           call file%writeAttribute(latticeVelocityEscape%pointsPer                ,'pointsPerVelocityEscape'   )
+           call file%writeAttribute(latticeVelocityEscape%indexMinimum             ,'indexMinimumVelocityEscape')
+           call file%writeAttribute(latticeVelocityEscape%count                    ,'countVelocityEscape'       )
+           call file%writeAttribute(latticeVelocityKick  %pointsPer                ,'pointsPerVelocityKick'     )
+           call file%writeAttribute(latticeVelocityKick  %indexMinimum             ,'indexMinimumVelocityKick'  )
+           call file%writeAttribute(latticeVelocityKick  %count                    ,'countVelocityKick'         )
            !$ call hdf5Access%unset()
          end block
          call File_Unlock(fileLock)
@@ -561,20 +561,20 @@ contains
       !!}
       implicit none
 
-      latticeEscape=Range_Pinned(                                                                           &
-           &                                    velocityEscapeScaleFree                                   , &
-           &                                    countVelocityEscapePerDecade                              , &
-           &                                    gridSchemePerDecade                                       , &
-           &                     rangeCurrent  =[velocityEscapeScaleFreeLimit,velocityScaleFreeLarge]     , &
-           &                     latticeCurrent=latticeVelocityEscape                                     , &
-           &                     limitMinimum  =velocityEscapeScaleFreeLimit                                &
+      latticeEscape=Range_Pinned(                                                                      &
+           &                                    velocityEscapeScaleFree                              , &
+           &                                    countVelocityEscapePerDecade                         , &
+           &                                    gridSchemePerDecade                                  , &
+           &                     rangeCurrent  =[velocityEscapeScaleFreeLimit,velocityScaleFreeLarge], &
+           &                     latticeCurrent=latticeVelocityEscape                                , &
+           &                     limitMinimum  =velocityEscapeScaleFreeLimit                           &
            &                    )
-      latticeKick  =Range_Pinned(                                                                           &
-           &                                    velocityKickScaleFree                                     , &
-           &                                    countVelocityKickPerDecade                                , &
-           &                                    gridSchemePerDecade                                       , &
-           &                     rangeCurrent  =[velocityKickScaleFreeSeed   ,velocityScaleFreeLarge]     , &
-           &                     latticeCurrent=latticeVelocityKick                                         &
+      latticeKick  =Range_Pinned(                                                                      &
+           &                                    velocityKickScaleFree                                , &
+           &                                    countVelocityKickPerDecade                           , &
+           &                                    gridSchemePerDecade                                  , &
+           &                     rangeCurrent  =[velocityKickScaleFreeSeed   ,velocityScaleFreeLarge], &
+           &                     latticeCurrent=latticeVelocityKick                                    &
            &                    )
       return
     end subroutine rangesRequired
@@ -601,10 +601,10 @@ contains
       use :: ISO_Varying_String, only : varying_string
       implicit none
       type   (varying_string), intent(in   ) :: fileName
-      type   (rangeLattice   )               :: latticeEscapeCached      , latticeKickCached
-      integer                                :: pointsPerEscapeCached    , indexMinimumEscapeCached, &
-           &                                    countEscapeCached        , pointsPerKickCached     , &
-           &                                    indexMinimumKickCached   , countKickCached
+      type   (rangeLattice   )               :: latticeEscapeCached   , latticeKickCached
+      integer                                :: pointsPerEscapeCached , indexMinimumEscapeCached, &
+           &                                    countEscapeCached     , pointsPerKickCached     , &
+           &                                    indexMinimumKickCached, countKickCached
 
       !$ call hdf5Access%set()
       hdf5FileScope: block
@@ -628,24 +628,24 @@ contains
            ! Adopt the cache if we hold nothing yet, or if it spans everything we do hold - in both dimensions. Note that
            ! `covers` is false whenever either lattice is undefined, so the "nothing held yet" case must be tested explicitly;
            ! it is the usual one, since this is how a freshly started thread acquires the tabulation.
-           if     (                                                                                 &
-                &   latticeEscapeCached%isDefined()                                                 &
-                &  .and.                                                                            &
-                &   latticeKickCached  %isDefined()                                                 &
-                &  .and.                                                                            &
-                &   (                                                                               &
-                &     .not.                                                                         &
-                &      latticeVelocityEscape%isDefined(                  )                          &
-                &    .or.                                                                           &
-                &      latticeEscapeCached  %covers   (latticeVelocityEscape)                       &
-                &   )                                                                               &
-                &  .and.                                                                            &
-                &   (                                                                               &
-                &     .not.                                                                         &
-                &      latticeVelocityKick  %isDefined(                  )                          &
-                &    .or.                                                                           &
-                &      latticeKickCached    %covers   (latticeVelocityKick  )                       &
-                &   )                                                                               &
+           if     (                                                           &
+                &   latticeEscapeCached%isDefined()                           &
+                &  .and.                                                      &
+                &   latticeKickCached  %isDefined()                           &
+                &  .and.                                                      &
+                &   (                                                         &
+                &     .not.                                                   &
+                &      latticeVelocityEscape%isDefined(                     ) &
+                &    .or.                                                     &
+                &      latticeEscapeCached  %covers   (latticeVelocityEscape) &
+                &   )                                                         &
+                &  .and.                                                      &
+                &   (                                                         &
+                &     .not.                                                   &
+                &      latticeVelocityKick  %isDefined(                     ) &
+                &    .or.                                                     &
+                &      latticeKickCached    %covers   (latticeVelocityKick  ) &
+                &   )                                                         &
                 & ) then
               call file%readDataset('velocitiesEscape',velocitiesEscapeCached)
               call file%readDataset('velocitiesKick'  ,velocitiesKickCached  )
@@ -653,17 +653,17 @@ contains
               call file%readDataset('fractionRetained',fractionCached        )
               ! Adopt only if the datasets match the lattices recorded alongside them; otherwise the file is not
               ! self-consistent, and everything read from it is discarded rather than leaving a partially-restored tabulation.
-              if     (                                                              &
+              if     (                                                                 &
                    &   size(velocitiesEscapeCached      ) == latticeEscapeCached%count &
-                   &  .and.                                                         &
+                   &  .and.                                                            &
                    &   size(velocitiesKickCached        ) == latticeKickCached  %count &
-                   &  .and.                                                         &
+                   &  .and.                                                            &
                    &   size(fractionCached        ,dim=1) == latticeEscapeCached%count &
-                   &  .and.                                                         &
+                   &  .and.                                                            &
                    &   size(fractionCached        ,dim=2) == latticeKickCached  %count &
-                   &  .and.                                                         &
+                   &  .and.                                                            &
                    &   size(energyCached          ,dim=1) == latticeEscapeCached%count &
-                   &  .and.                                                         &
+                   &  .and.                                                            &
                    &   size(energyCached          ,dim=2) == latticeKickCached  %count &
                    & ) then
                  call Move_Alloc(fractionCached,fractionRetained)

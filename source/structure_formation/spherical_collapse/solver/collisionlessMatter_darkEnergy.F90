@@ -171,8 +171,8 @@ contains
     !$omp threadprivate(finderAmplitudePerturbation,finderExpansionMaximum,finderAmplitudeConstructed,finderExpansionConstructed)
     integer                                                                                     :: countTimes                               , iTime                                  , &
          &                                                                                         iCount                                   , countTimesEffective
-    logical                                                        , allocatable, dimension(:) :: isComputed
-    type            (rangeLattice                                 )                            :: lattice
+    logical                                                        , allocatable, dimension(:)  :: isComputed
+    type            (rangeLattice                                 )                             :: lattice
     double precision                                                                            :: expansionFactor                          , epsilonPerturbation                    , &
          &                                                                                         epsilonPerturbationMaximum               , epsilonPerturbationMinimum             , &
          &                                                                                         densityContrastExpansionMaximum          , expansionFactorExpansionMaximum        , &
@@ -197,13 +197,13 @@ contains
        ! Find the range of times to tabulate, pinned to an absolute lattice of points per decade. Pinning makes the tabulation -
        ! and therefore every value interpolated from it - independent of the time at which the table was first requested, and
        ! allows the table to be extended without changing (or recomputing) any previously computed value.
-       lattice=Range_Pinned(                                                      &
-            &                              time                                 , &
-            &                              tablePointsPerDecade                 , &
-            &                              gridSchemePerDecade                  , &
-            &               rangeCurrent  =[timeMinimum,timeMaximum]            , &
-            &               latticeCurrent=sphericalCollapse_%lattice           , &
-            &               anchorEvery   =tableAnchorEvery                       &
+       lattice=Range_Pinned(                                           &
+            &                              time                      , &
+            &                              tablePointsPerDecade      , &
+            &                              gridSchemePerDecade       , &
+            &               rangeCurrent  =[timeMinimum,timeMaximum] , &
+            &               latticeCurrent=sphericalCollapse_%lattice, &
+            &               anchorEvery   =tableAnchorEvery            &
             &              )
        call sphericalCollapse_%extend(lattice,isComputed)
        countTimes         =lattice%count
@@ -247,10 +247,10 @@ contains
        do iTime=1,countTimes
           ! Skip any point whose value was preserved when the table was extended.
           if (isComputed(iTime)) cycle
-          call displayCounter(                                                        &
+          call displayCounter(                                                                 &
                &                        int(100.0d0*dble(iCount-1)/dble(countTimesEffective)), &
-               &              isNew    =.false.                                     , &
-               &              verbosity=verbosityLevelWorking                         &
+               &              isNew    =.false.                                              , &
+               &              verbosity=verbosityLevelWorking                                  &
                &             )
           ! Get the current expansion factor.
           expansionFactor=cosmologyFunctions_%expansionFactor(sphericalCollapse_%x(iTime))
@@ -267,7 +267,7 @@ contains
           ! in a dark energy dominated universe Ωₘ→0, so this physical bound can be much less negative than the nominal value of
           ! -10 used at earlier epochs.
           epsilonPerturbationMinimum=max(-10.0d0,-OmegaMatterEpochal/expansionFactorInitialFraction)
-          time_                 =sphericalCollapse_ %x                     (                iTime          )
+          time_                     =sphericalCollapse_ %x(iTime)
           ! Check dark energy equation of state is within acceptable range.
           if (cosmologyFunctions_%equationOfStateDarkEnergy(time=time_) >= -1.0d0/3.0d0) &
                & call Error_Report('ω<-⅓ required'//{introspection:location})
@@ -455,14 +455,14 @@ contains
     ! root is non-negative for any physically-valid ε (see where the root finding range is set in
     ! `cllsnlssMttrDarkEnergyTabulate`), but is clamped here to guard against it evaluating to a very small negative value due
     ! to round-off when ε lies at the extreme of that range.
-    expansionRatePerturbationInitial=+hubbleTimeEpochal                  &
-         &                           *sqrt(                              &
-         &                                 max(                          &
-         &                                     +0.0d0                  , &
-         &                                     +OmegaMatterEpochal       &
-         &                                     /expansionFactorInitial   &
-         &                                     +epsilonPerturbation      &
-         &                                    )                          &
+    expansionRatePerturbationInitial=+hubbleTimeEpochal                 &
+         &                           *sqrt(                             &
+         &                                 max(                         &
+         &                                     +0.0d0                 , &
+         &                                     +OmegaMatterEpochal      &
+         &                                     /expansionFactorInitial  &
+         &                                     +epsilonPerturbation     &
+         &                                    )                         &
          &                                )
     ! Set initial conditions.
     propertyValues=[                                  &

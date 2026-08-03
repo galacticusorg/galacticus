@@ -29,43 +29,43 @@ program Test_Table_Caches
   !!}
   use :: Cosmology_Functions                  , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                 , only : cosmologyParametersSimple
-  use :: Display           , only : displayVerbositySet, verbosityLevelStandard
-  use :: Error             , only : errorStatusSuccess
+  use :: Display                              , only : displayVerbositySet                       , verbosityLevelStandard
+  use :: Error                                , only : errorStatusSuccess
   use :: Events_Hooks                         , only : eventsHooksInitialize
   use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMassGnedin2000
   use :: Intergalactic_Medium_State           , only : intergalacticMediumStateSimple
   use :: Linear_Growth                        , only : linearGrowthCollisionlessMatter
-  use :: File_Utilities    , only : Directory_Make     , File_Exists           , File_Remove
-  use :: IO_HDF5           , only : ioHDF5AccessInitialize
-  use :: ISO_Varying_String, only : varying_string     , assignment(=)
-  use :: Numerical_Ranges  , only : Range_Pinned       , rangeLattice          , gridSchemePerDecade
-  use :: ISO_Varying_String, only : char
-  use :: Table_Caches      , only : Table_Cache_Restore, Table_Cache_Store     , Table_Cache_File_Name
-  use :: Tables            , only : table1D            , table1DLogarithmicLinear, table2DLogLogLin
-  use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: File_Utilities                       , only : Directory_Make                            , File_Exists             , File_Remove
+  use :: IO_HDF5                              , only : ioHDF5AccessInitialize
+  use :: ISO_Varying_String                   , only : varying_string                            , assignment(=)
+  use :: Numerical_Ranges                     , only : Range_Pinned                              , rangeLattice            , gridSchemePerDecade
+  use :: ISO_Varying_String                   , only : char
+  use :: Table_Caches                         , only : Table_Cache_Restore                       , Table_Cache_Store       , Table_Cache_File_Name
+  use :: Tables                               , only : table1D                                   , table1DLogarithmicLinear, table2DLogLogLin
+  use :: Unit_Tests                           , only : Assert                                    , Unit_Tests_Begin_Group  , Unit_Tests_End_Group , Unit_Tests_Finish
   implicit none
-  class           (table1D       ), allocatable                 :: tableStored  , tableRestored, &
-       &                                                           tableMerged  , tableFine
-  type            (rangeLattice  )                              :: latticeNarrow, latticeWide  , &
-       &                                                           latticePartial
-  type            (varying_string)                              :: fileName     , fileNameFiltering, &
-       &                                                           fileName2D
-  type            (table2DLogLogLin)                            :: table2DStored, table2DRestored
-  type            (rangeLattice  )                              :: latticeX2D   , latticeY2D
-  logical                         , allocatable, dimension(:,:) :: isComputed2D
-  double precision                , allocatable, dimension(:,:) :: z2DStored    , z2DRestored
-  logical                         , allocatable, dimension(:  ) :: isComputed
-  double precision                , allocatable, dimension(:  ) :: xStored      , xRestored
-  double precision                , allocatable, dimension(:,:) :: yStored      , yRestored
-  integer                                                       :: status       , i                , &
-       &                                                           j
-  type            (cosmologyParametersSimple                 )  :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda            )  :: cosmologyFunctions_
-  type            (intergalacticMediumStateSimple            )  :: intergalacticMediumState_
-  type            (linearGrowthCollisionlessMatter           )  :: linearGrowth_
-  type            (intergalacticMediumFilteringMassGnedin2000)  :: filteringMass_
-  double precision                                              :: massFilteringLate , massFilteringLateAgain, &
-       &                                                           massFilteringEarly
+  class           (table1D                                   ), allocatable                 :: tableStored              , tableRestored         , &
+       &                                                                                       tableMerged              , tableFine
+  type            (rangeLattice                              )                              :: latticeNarrow            , latticeWide           , &
+       &                                                                                       latticePartial
+  type            (varying_string                            )                              :: fileName                 , fileNameFiltering     , &
+       &                                                                                       fileName2D
+  type            (table2DLogLogLin                          )                              :: table2DStored            , table2DRestored
+  type            (rangeLattice                              )                              :: latticeX2D               , latticeY2D
+  logical                                                     , allocatable, dimension(:,:) :: isComputed2D
+  double precision                                            , allocatable, dimension(:,:) :: z2DStored                , z2DRestored
+  logical                                                     , allocatable, dimension(:  ) :: isComputed
+  double precision                                            , allocatable, dimension(:  ) :: xStored                  , xRestored
+  double precision                                            , allocatable, dimension(:,:) :: yStored                  , yRestored
+  integer                                                                                   :: status                   , i                     , &
+       &                                                                                       j
+  type            (cosmologyParametersSimple                 )                              :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda            )                              :: cosmologyFunctions_
+  type            (intergalacticMediumStateSimple            )                              :: intergalacticMediumState_
+  type            (linearGrowthCollisionlessMatter           )                              :: linearGrowth_
+  type            (intergalacticMediumFilteringMassGnedin2000)                              :: filteringMass_
+  double precision                                                                          :: massFilteringLate        , massFilteringLateAgain, &
+       &                                                                                       massFilteringEarly
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -94,10 +94,10 @@ program Test_Table_Caches
   call Table_Cache_Restore(tableRestored,fileName,status)
   xRestored=tableRestored%xs()
   yRestored=tableRestored%ys()
-  call Assert('a cached tabulation is restored'                ,status                                                                    ,errorStatusSuccess     )
-  call Assert('the restored tabulation is on the same lattice' ,[tableRestored%lattice%indexMinimum,tableRestored%lattice%count]          ,[latticeNarrow%indexMinimum,latticeNarrow%count])
-  call Assert('the restored abscissae are bit-identical'       ,all(xRestored      == xStored      )                                      ,.true.                 )
-  call Assert('the restored values are bit-identical'          ,all(yRestored(:,1) == yStored(:,1) )                                      ,.true.                 )
+  call Assert('a cached tabulation is restored'               ,status                                                          ,errorStatusSuccess                              )
+  call Assert('the restored tabulation is on the same lattice',[tableRestored%lattice%indexMinimum,tableRestored%lattice%count],[latticeNarrow%indexMinimum,latticeNarrow%count])
+  call Assert('the restored abscissae are bit-identical'      ,all(xRestored      == xStored      )                            ,.true.                                          )
+  call Assert('the restored values are bit-identical'         ,all(yRestored(:,1) == yStored(:,1) )                            ,.true.                                          )
 
   ! Extend the restored table downwards, compute the newly added points, and write it back. The cache must then hold the union.
   latticeWide=Range_Pinned(0.05d0,10,gridSchemePerDecade,anchorEvery=5,latticeCurrent=tableRestored%lattice)
@@ -108,7 +108,7 @@ program Test_Table_Caches
   deallocate(tableRestored)
   call Table_Cache_Restore(tableRestored,fileName,status)
   call Assert('the cache grows to the union of the ranges written to it',[tableRestored%lattice%indexMinimum,tableRestored%lattice%count],[latticeWide%indexMinimum,latticeWide%count])
-  call Assert('every value in the grown cache is correct'               ,agrees(tableRestored)                                           ,.true.                 )
+  call Assert('every value in the grown cache is correct'               ,agrees(tableRestored)                                           ,.true.                                      )
 
   ! Reset the cache to the narrow range, then store a tabulation which only partially overlaps it. Storing must merge the two,
   ! leaving both the caller's table and the file holding the union - with the values contributed by the file spliced in exactly.
@@ -148,56 +148,56 @@ program Test_Table_Caches
   call Table_Cache_Restore(table2DRestored,fileName2D,status)
   z2DRestored=table2DRestored%zs()
   call Assert('a cached 2D tabulation is restored'                ,status,errorStatusSuccess)
-  call Assert('the restored 2D tabulation is on the same lattices',                                                                &
+  call Assert('the restored 2D tabulation is on the same lattices',                                                                                        &
        &      [table2DRestored%latticeX%indexMinimum,table2DRestored%latticeX%count,table2DRestored%latticeY%indexMinimum,table2DRestored%latticeY%count], &
-       &      [latticeX2D     %indexMinimum        ,latticeX2D     %count         ,latticeY2D     %indexMinimum         ,latticeY2D     %count         ]  &
+       &      [latticeX2D     %indexMinimum         ,latticeX2D     %count         ,latticeY2D     %indexMinimum         ,latticeY2D     %count         ]  &
        &     )
   call Assert('the restored 2D values are bit-identical'          ,all(z2DRestored == z2DStored),.true.)
 
   ! Exercise a real, persisted tabulation which uses the cache: the Gnedin2000 filtering mass. The key property is that
   ! requesting an earlier epoch, which forces the table to be extended downwards, must not change the value already tabulated at
   ! a later epoch - the previously computed points are reused, not recomputed on a shifted grid.
-  cosmologyParameters_     =cosmologyParametersSimple                (                                                              &
-       &                                                              OmegaMatter               = 0.2750d0                        , &
-       &                                                              OmegaBaryon               = 0.0458d0                        , &
-       &                                                              OmegaDarkEnergy           = 0.7250d0                        , &
-       &                                                              temperatureCMB            = 2.7800d0                        , &
-       &                                                              HubbleConstant            =70.2000d0                          &
+  cosmologyParameters_     =cosmologyParametersSimple                (                                                                 &
+       &                                                              OmegaMatter               = 0.2750d0                           , &
+       &                                                              OmegaBaryon               = 0.0458d0                           , &
+       &                                                              OmegaDarkEnergy           = 0.7250d0                           , &
+       &                                                              temperatureCMB            = 2.7800d0                           , &
+       &                                                              HubbleConstant            =70.2000d0                             &
        &                                                             )
-  cosmologyFunctions_      =cosmologyFunctionsMatterLambda           (                                                              &
-       &                                                              cosmologyParameters_      =cosmologyParameters_               &
+  cosmologyFunctions_      =cosmologyFunctionsMatterLambda           (                                                                 &
+       &                                                              cosmologyParameters_      =cosmologyParameters_                  &
        &                                                             )
-  intergalacticMediumState_=intergalacticMediumStateSimple           (                                                              &
-       &                                                              reionizationRedshift      = 8.00d0                          , &
-       &                                                              reionizationTemperature   = 1.00d4                          , &
-       &                                                              preReionizationTemperature= 1.00d4                          , &
-       &                                                              cosmologyFunctions_       =cosmologyFunctions_              , &
-       &                                                              cosmologyParameters_      =cosmologyParameters_               &
+  intergalacticMediumState_=intergalacticMediumStateSimple           (                                                                 &
+       &                                                              reionizationRedshift      = 8.00d0                             , &
+       &                                                              reionizationTemperature   = 1.00d4                             , &
+       &                                                              preReionizationTemperature= 1.00d4                             , &
+       &                                                              cosmologyFunctions_       =cosmologyFunctions_                 , &
+       &                                                              cosmologyParameters_      =cosmologyParameters_                  &
        &                                                             )
-  linearGrowth_            =linearGrowthCollisionlessMatter          (                                                              &
-       &                                                              cosmologyParameters_      =cosmologyParameters_             , &
-       &                                                              cosmologyFunctions_       =cosmologyFunctions_                &
+  linearGrowth_            =linearGrowthCollisionlessMatter          (                                                                 &
+       &                                                              cosmologyParameters_      =cosmologyParameters_                , &
+       &                                                              cosmologyFunctions_       =cosmologyFunctions_                   &
        &                                                             )
-  filteringMass_           =intergalacticMediumFilteringMassGnedin2000(                                                             &
-       &                                                              timeTooEarlyIsFatal       =.true.                           , &
-       &                                                              cosmologyParameters_      =cosmologyParameters_             , &
-       &                                                              cosmologyFunctions_       =cosmologyFunctions_              , &
-       &                                                              linearGrowth_             =linearGrowth_                    , &
-       &                                                              intergalacticMediumState_ =intergalacticMediumState_          &
+  filteringMass_           =intergalacticMediumFilteringMassGnedin2000(                                                                &
+       &                                                              timeTooEarlyIsFatal       =.true.                              , &
+       &                                                              cosmologyParameters_      =cosmologyParameters_                , &
+       &                                                              cosmologyFunctions_       =cosmologyFunctions_                 , &
+       &                                                              linearGrowth_             =linearGrowth_                       , &
+       &                                                              intergalacticMediumState_ =intergalacticMediumState_             &
        &                                                             )
   ! Discard any tabulation cached by a previous run, so that this test always exercises the cold-cache path.
-  fileNameFiltering=Table_Cache_File_Name(                                                                                          &
-       &                                  subDirectory    ='intergalacticMedium'                                                  , &
-       &                                  objectType      =char(filteringMass_%objectType      (                                 )), &
-       &                                  hashedDescriptor=char(filteringMass_%hashedDescriptor(includeSourceDigest          =.true., &
-       &                                                                                        includeFileModificationTimes=.true.)) &
+  fileNameFiltering=Table_Cache_File_Name(                                                                                             &
+       &                                  subDirectory    ='intergalacticMedium'                                                     , &
+       &                                  objectType      =char(filteringMass_%objectType      (                                   )), &
+       &                                  hashedDescriptor=char(filteringMass_%hashedDescriptor(includeSourceDigest         =.true.  , &
+       &                                                                                        includeFileModificationTimes=.true.))  &
        &                                 )
   if (File_Exists(fileNameFiltering)) call File_Remove(fileNameFiltering)
   massFilteringLate     =filteringMass_%massFiltering(1.0d0)
   massFilteringEarly    =filteringMass_%massFiltering(0.2d0)
   massFilteringLateAgain=filteringMass_%massFiltering(1.0d0)
-  call Assert('the filtering mass is positive'                                    ,massFilteringLate > 0.0d0                ,.true.)
-  call Assert('extending the filtering mass table downwards reaches earlier epochs',massFilteringEarly < massFilteringLate  ,.true.)
+  call Assert('the filtering mass is positive'                                     ,massFilteringLate      >  0.0d0            ,.true.)
+  call Assert('extending the filtering mass table downwards reaches earlier epochs',massFilteringEarly     <  massFilteringLate,.true.)
   call Assert('extending the filtering mass table leaves earlier results unchanged',massFilteringLateAgain == massFilteringLate,.true.)
 
   ! End unit tests.

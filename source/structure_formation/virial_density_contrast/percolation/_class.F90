@@ -53,7 +53,7 @@
    contains
      !![
      <methods docformat="rst">
-       <method description="Tabulate the virial density contrast as a function of mass and time." method="tabulate"    />
+       <method description="Tabulate the virial density contrast as a function of mass and time." method="tabulate"/>
      </methods>
      !!]
      final     ::                                percolationDestructor
@@ -82,8 +82,8 @@
   ! half decades since a whole decade of cosmic time spans most of the history of the universe; the mass axis, which already
   ! spans eleven decades by default, is anchored to whole decades.
   ! Ranges tabulated irrespective of the mass and time requested.
-  double precision           , parameter :: densityContrastTableTimeMinimumDefault = 1.0d-03, densityContrastTableTimeMaximumDefault=2.0d+01
-  double precision           , parameter :: densityContrastTableMassMinimumDefault = 4.0d+05, densityContrastTableMassMaximumDefault=1.0d+16
+  double precision           , parameter :: densityContrastTableTimeMinimumDefault =1.0d-03                                  , densityContrastTableTimeMaximumDefault=2.0d+01
+  double precision           , parameter :: densityContrastTableMassMinimumDefault =4.0d+05                                  , densityContrastTableMassMaximumDefault=1.0d+16
 
   integer                    , parameter :: densityContrastTableTimeAnchorEvery    =densityContrastTableTimePointsPerDecade/2
   integer                    , parameter :: densityContrastTableMassAnchorEvery    =densityContrastTableMassPointsPerDecade
@@ -135,8 +135,8 @@ contains
     Internal constructor for the :galacticus-class:`virialDensityContrastPercolation` dark matter halo virial density contrast class.
     !!}
     use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : operator(//) , char
-    use :: Input_Parameters  , only : inputParameter, inputParameters
+    use :: ISO_Varying_String, only : operator(//)         , char
+    use :: Input_Parameters  , only : inputParameter       , inputParameters
     use :: Table_Caches      , only : Table_Cache_File_Name
     implicit none
     type            (virialDensityContrastPercolation)                        :: self
@@ -150,11 +150,11 @@ contains
     ! Add management to the shared percolationObjects resource.
     self%percolationObjectsManager=resourceManager(percolationObjects_)
     ! File name for tabulation.
-    self%fileName=Table_Cache_File_Name(                                                                                          &
-         &                              subDirectory    ='darkMatterHalos'                                                      , &
-         &                              objectType      =char(self%objectType      (                                          )), &
-         &                              hashedDescriptor=char(self%hashedDescriptor(includeSourceDigest          =.true.        , &
-         &                                                                          includeFileModificationTimes=.true.        ))  &
+    self%fileName=Table_Cache_File_Name(                                                                                   &
+         &                              subDirectory    ='darkMatterHalos'                                               , &
+         &                              objectType      =char(self%objectType      (                                   )), &
+         &                              hashedDescriptor=char(self%hashedDescriptor(includeSourceDigest         =.true.  , &
+         &                                                                          includeFileModificationTimes=.true.))  &
          &                             )
     ! Initialize tabulations.
     self%densityContrastTableTimeMinimum=densityContrastTableTimeMinimumDefault
@@ -203,44 +203,44 @@ contains
     ! Find the ranges of mass and time to tabulate, pinning each axis independently to an absolute lattice so that the
     ! tabulation - and hence every value interpolated from it - is independent of the mass and time at which it was first
     ! requested, and so that the table can be extended without changing or recomputing any previously computed value.
-    latticeMass=Range_Pinned(                                                                              &
-         &                                  mass                                                         , &
-         &                                  densityContrastTableMassPointsPerDecade                      , &
-         &                                  gridSchemePerDecade                                          , &
+    latticeMass=Range_Pinned(                                                                                                &
+         &                                  mass                                                                           , &
+         &                                  densityContrastTableMassPointsPerDecade                                        , &
+         &                                  gridSchemePerDecade                                                            , &
          &                   rangeCurrent  =[densityContrastTableMassMinimumDefault,densityContrastTableMassMaximumDefault], &
-         &                   latticeCurrent=self%densityContrastTable%latticeX                            , &
-         &                   anchorEvery   =densityContrastTableMassAnchorEvery                             &
+         &                   latticeCurrent=self%densityContrastTable%latticeX                                             , &
+         &                   anchorEvery   =densityContrastTableMassAnchorEvery                                              &
          &                  )
-    latticeTime=Range_Pinned(                                                                              &
-         &                                  time                                                         , &
-         &                                  densityContrastTableTimePointsPerDecade                      , &
-         &                                  gridSchemePerDecade                                          , &
+    latticeTime=Range_Pinned(                                                                                                &
+         &                                  time                                                                           , &
+         &                                  densityContrastTableTimePointsPerDecade                                        , &
+         &                                  gridSchemePerDecade                                                            , &
          &                   rangeCurrent  =[densityContrastTableTimeMinimumDefault,densityContrastTableTimeMaximumDefault], &
-         &                   latticeCurrent=self%densityContrastTable%latticeY                            , &
-         &                   anchorEvery   =densityContrastTableTimeAnchorEvery                             &
+         &                   latticeCurrent=self%densityContrastTable%latticeY                                             , &
+         &                   anchorEvery   =densityContrastTableTimeAnchorEvery                                              &
          &                  )
-    if     (                                                          &
-         &   self%densityContrastTable%latticeX%covers(latticeMass)   &
-         &  .and.                                                     &
-         &   self%densityContrastTable%latticeY%covers(latticeTime)   &
+    if     (                                                        &
+         &   self%densityContrastTable%latticeX%covers(latticeMass) &
+         &  .and.                                                   &
+         &   self%densityContrastTable%latticeY%covers(latticeTime) &
          & ) return
     ! Merge in any tabulation already cached on disk, then re-evaluate the ranges required in the light of it.
     call Table_Cache_Restore(self%densityContrastTable,self%fileName,status)
-    latticeMass=Range_Pinned(                                                                              &
-         &                                  mass                                                         , &
-         &                                  densityContrastTableMassPointsPerDecade                      , &
-         &                                  gridSchemePerDecade                                          , &
+    latticeMass=Range_Pinned(                                                                                                &
+         &                                  mass                                                                           , &
+         &                                  densityContrastTableMassPointsPerDecade                                        , &
+         &                                  gridSchemePerDecade                                                            , &
          &                   rangeCurrent  =[densityContrastTableMassMinimumDefault,densityContrastTableMassMaximumDefault], &
-         &                   latticeCurrent=self%densityContrastTable%latticeX                            , &
-         &                   anchorEvery   =densityContrastTableMassAnchorEvery                             &
+         &                   latticeCurrent=self%densityContrastTable%latticeX                                             , &
+         &                   anchorEvery   =densityContrastTableMassAnchorEvery                                              &
          &                  )
-    latticeTime=Range_Pinned(                                                                              &
-         &                                  time                                                         , &
-         &                                  densityContrastTableTimePointsPerDecade                      , &
-         &                                  gridSchemePerDecade                                          , &
+    latticeTime=Range_Pinned(                                                                                                &
+         &                                  time                                                                           , &
+         &                                  densityContrastTableTimePointsPerDecade                                        , &
+         &                                  gridSchemePerDecade                                                            , &
          &                   rangeCurrent  =[densityContrastTableTimeMinimumDefault,densityContrastTableTimeMaximumDefault], &
-         &                   latticeCurrent=self%densityContrastTable%latticeY                            , &
-         &                   anchorEvery   =densityContrastTableTimeAnchorEvery                             &
+         &                   latticeCurrent=self%densityContrastTable%latticeY                                             , &
+         &                   anchorEvery   =densityContrastTableTimeAnchorEvery                                              &
          &                  )
     call self%densityContrastTable%extend(latticeMass,latticeTime,isComputed)
     if (any(.not.isComputed)) then
@@ -416,5 +416,4 @@ contains
     end select
     return
   end subroutine percolationDeepCopy
-
 

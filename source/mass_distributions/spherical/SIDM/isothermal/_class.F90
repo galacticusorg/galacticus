@@ -76,17 +76,17 @@
      A mass distribution implementing the "isothermal" approximation to the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023`.
      !!}
      private
-     double precision                                                :: velocityDispersionCentral     , radiusInteraction_                    , &
-          &                                                             densityInteraction            , massInteraction                       , &
-          &                                                             velocityDispersionInteraction
-     type            (interpolator  ), allocatable                   :: densityCentralDimensionless   , velocityDispersionCentralDimensionless, &
-          &                                                             interpolatorRadiiDimensionless, interpolatorXi
-     double precision                                                :: xiTabulatedMinimum            , xiTabulatedMaximum
-     type            (rangeLattice  )                                :: latticeXi
-     double precision                , allocatable, dimension( : ,:) :: densityProfileDimensionless   , massProfileDimensionless
-     double precision                , allocatable, dimension( :   ) :: radiiDimensionless
-     integer         (c_size_t      )                                :: indexXi
-     double precision                             , dimension(0:1  ) :: factorsXi
+     double precision                                              :: velocityDispersionCentral     , radiusInteraction_                    , &
+          &                                                           densityInteraction            , massInteraction                       , &
+          &                                                           velocityDispersionInteraction
+     type            (interpolator), allocatable                   :: densityCentralDimensionless   , velocityDispersionCentralDimensionless, &
+          &                                                           interpolatorRadiiDimensionless, interpolatorXi
+     double precision                                              :: xiTabulatedMinimum            , xiTabulatedMaximum
+     type            (rangeLattice)                                :: latticeXi
+     double precision              , allocatable, dimension( : ,:) :: densityProfileDimensionless   , massProfileDimensionless
+     double precision              , allocatable, dimension( :   ) :: radiiDimensionless
+     integer         (c_size_t    )                                :: indexXi
+     double precision                           , dimension(0:1  ) :: factorsXi
    contains
      !![
      <methods docformat="rst">
@@ -243,17 +243,16 @@ contains
     !!{RST
     Tabulate solutions for :math:`y_0(\xi)`, :math:`z_0(\xi)`.
     !!}
-    use :: Display                   , only : displayIndent  , displayUnindent    , displayMessage, verbosityLevelWorking, &
-         &                                    displayCounter , displayCounterClear
-    use :: File_Utilities            , only : Directory_Make , File_Exists        , File_Lock     , File_Path            , &
-         &                                    File_Unlock    , lockDescriptor
+    use :: Display                   , only : displayIndent    , displayUnindent     , displayMessage, verbosityLevelWorking, &
+         &                                    displayCounter   , displayCounterClear
+    use :: File_Utilities            , only : Directory_Make   , File_Exists         , File_Lock     , File_Path            , &
+         &                                    File_Unlock      , lockDescriptor
     use :: HDF5_Access               , only : hdf5Access
     use :: IO_HDF5                   , only : hdf5File
     use :: ISO_Varying_String        , only : char
-    use :: Numerical_Ranges          , only : Make_Range     , rangeTypeLinear    , Range_Pinned  , rangeLattice         , &
-         &                                    gridSchemePerUnit                   , Range_Lattice_Extend                 , &
-         &                                    Range_Lattice_Offset
-    use :: Input_Paths               , only : inputPath      , pathTypeDataDynamic
+    use :: Numerical_Ranges          , only : Make_Range       , rangeTypeLinear     , Range_Pinned  , rangeLattice         , &
+         &                                    gridSchemePerUnit, Range_Lattice_Extend                , Range_Lattice_Offset
+    use :: Input_Paths               , only : inputPath        , pathTypeDataDynamic
     use :: Multidimensional_Minimizer, only : multiDMinimizer
     implicit none
     class           (massDistributionSphericalSIDMIsothermal), intent(inout)                             :: self
@@ -293,14 +292,14 @@ contains
     ! from it - is independent of the value of ξ at which it was first requested, and so that the tabulation can be extended
     ! without recomputing any solution already found. Note that the margin is applied at both ends: previously the lower bound
     ! was placed exactly at the requested value, leaving that value sitting on the edge of the table.
-    lattice=Range_Pinned(                                                    &
-         &                              xiRequired                        , &
-         &                              countXiPerUnit                    , &
-         &                              gridSchemePerUnit                 , &
-         &               marginOffset  =xiMargin                          , &
-         &               rangeCurrent  =[xiMinimum,xiMaximum]             , &
-         &               latticeCurrent=self%latticeXi                     , &
-         &               limitMinimum  =xiFloor                             &
+    lattice=Range_Pinned(                                      &
+         &                              xiRequired           , &
+         &                              countXiPerUnit       , &
+         &                              gridSchemePerUnit    , &
+         &               marginOffset  =xiMargin             , &
+         &               rangeCurrent  =[xiMinimum,xiMaximum], &
+         &               latticeCurrent=self%latticeXi       , &
+         &               limitMinimum  =xiFloor                &
          &              )
     if (self%latticeXi%covers(lattice)) return
     ! Discard the interpolators - they are rebuilt below once the tabulation is complete.
@@ -342,13 +341,13 @@ contains
             ! tabulation at all - `covers` is false when either lattice is undefined, so testing it alone would reject the
             ! cache on every first call and leave every halo to recompute and rewrite the entire tabulation.
             if     (                                                 &
-                 &   latticeCached  %isDefined(              )       &
+                 &           latticeCached%isDefined(              ) &
                  &  .and.                                            &
                  &   (                                               &
                  &     .not.                                         &
-                 &      self%latticeXi%isDefined(             )       &
+                 &      self%latticeXi    %isDefined(              ) &
                  &    .or.                                           &
-                 &      latticeCached %covers   (self%latticeXi)      &
+                 &           latticeCached%covers   (self%latticeXi) &
                  &   )                                               &
                  & ) then
                call file%readDataset('xi'                         ,     xi                         )
@@ -377,14 +376,14 @@ contains
     end if
     ! Re-evaluate the range required in the light of anything restored, then extend the tabulation onto it, preserving the
     ! solutions already found.
-    lattice=Range_Pinned(                                                    &
-         &                              xiRequired                        , &
-         &                              countXiPerUnit                    , &
-         &                              gridSchemePerUnit                 , &
-         &               marginOffset  =xiMargin                          , &
-         &               rangeCurrent  =[xiMinimum,xiMaximum]             , &
-         &               latticeCurrent=self%latticeXi                     , &
-         &               limitMinimum  =xiFloor                             &
+    lattice=Range_Pinned(                                      &
+         &                              xiRequired           , &
+         &                              countXiPerUnit       , &
+         &                              gridSchemePerUnit    , &
+         &               marginOffset  =xiMargin             , &
+         &               rangeCurrent  =[xiMinimum,xiMaximum], &
+         &               latticeCurrent=self%latticeXi       , &
+         &               limitMinimum  =xiFloor                &
          &              )
     countXi=lattice%count
     if (.not.allocated(self%radiiDimensionless)) then

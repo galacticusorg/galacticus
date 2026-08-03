@@ -41,16 +41,16 @@
      An implementation of the :cite:t:`gnedin_effect_2000` filtering mass calculation.
      !!}
      private
-     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_      => null()
-     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
-     class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_ => null()
-     class           (linearGrowthClass            ), pointer :: linearGrowth_             => null()
-     logical                                                  :: initialized
-     integer                                                  :: countTimes
-     double precision                                         :: timeMaximum                        , timeMinimum
-     logical                                                  :: timeTooEarlyIsFatal
+     class           (cosmologyParametersClass     ), pointer     :: cosmologyParameters_      => null()
+     class           (cosmologyFunctionsClass      ), pointer     :: cosmologyFunctions_       => null()
+     class           (intergalacticMediumStateClass), pointer     :: intergalacticMediumState_ => null()
+     class           (linearGrowthClass            ), pointer     :: linearGrowth_             => null()
+     logical                                                      :: initialized
+     integer                                                      :: countTimes
+     double precision                                             :: timeMaximum                        , timeMinimum
+     logical                                                      :: timeTooEarlyIsFatal
      class           (table1D                      ), allocatable :: table
-     type            (varying_string               )          :: fileName
+     type            (varying_string               )              :: fileName
    contains
      !![
      <methods docformat="rst">
@@ -147,11 +147,11 @@ contains
     !!]
 
     self%initialized=.false.
-    self%fileName   =Table_Cache_File_Name(                                                                                          &
-         &                                 subDirectory    ='intergalacticMedium'                                                  , &
-         &                                 objectType      =char(self%objectType      (                                          )), &
-         &                                 hashedDescriptor=char(self%hashedDescriptor(includeSourceDigest          =.true.        , &
-         &                                                                             includeFileModificationTimes=.true.        ))  &
+    self%fileName   =Table_Cache_File_Name(                                                                                   &
+         &                                 subDirectory    ='intergalacticMedium'                                           , &
+         &                                 objectType      =char(self%objectType      (                                   )), &
+         &                                 hashedDescriptor=char(self%hashedDescriptor(includeSourceDigest         =.true.  , &
+         &                                                                             includeFileModificationTimes=.true.))  &
          &                                )
     call Directory_Make(File_Path(self%fileName))
     return
@@ -249,20 +249,20 @@ contains
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_ODE_Solvers   , only : odeSolver
-    use :: Numerical_Ranges        , only : Range_Pinned, rangeLattice       , gridSchemePerDecade
-    use :: Table_Caches            , only : Table_Cache_Restore, Table_Cache_Store
+    use :: Numerical_Ranges        , only : Range_Pinned            , rangeLattice     , gridSchemePerDecade
+    use :: Table_Caches            , only : Table_Cache_Restore     , Table_Cache_Store
     use :: Tables                  , only : table1DLogarithmicLinear
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout), target :: self
     double precision                                            , intent(in   )         :: time
-    double precision                                            , parameter             :: redshiftMaximumNaozBarkana=150.0d0 ! Maximum redshift at which fitting function of Naoz & Barkana is valid.
-    double precision                                            , dimension(3)          :: massFiltering                     , massFilteringScales
-    double precision                                            , parameter             :: odeToleranceAbsolute      =1.0d-03, odeToleranceRelative      =1.0d-03
+    double precision                                            , parameter             :: redshiftMaximumNaozBarkana=150.0d+0 ! Maximum redshift at which fitting function of Naoz & Barkana is valid.
+    double precision                                            , dimension(3)          :: massFiltering                      , massFilteringScales
+    double precision                                            , parameter             :: odeToleranceAbsolute      =  1.0d-3, odeToleranceRelative=1.0d-3
     type            (odeSolver                                 )                        :: solver
     type            (rangeLattice                              )                        :: lattice
     logical                                     , allocatable   , dimension(:)          :: isComputed
-    integer                                                                             :: iTime                             , status
-    double precision                                                                    :: timeInitial                       , timeCurrent        , &
+    integer                                                                             :: iTime                              , status
+    double precision                                                                    :: timeInitial                        , timeCurrent                , &
          &                                                                                 timePresent
 
     ! Evaluate a suitable starting time for filtering mass calculations. The fitting function of Naoz & Barkana used to set the
@@ -273,35 +273,35 @@ contains
          &                                                             redshiftMaximumNaozBarkana &
          &                                                            )                           &
          &                                                           )
-    timePresent=self%cosmologyFunctions_ %cosmicTime                 (1.0d0                      )
+    timePresent=self%cosmologyFunctions_ %cosmicTime                 (1.0d0)
     ! Abort if time is too early.
     if (time <= timeInitial .and. self%timeTooEarlyIsFatal) call Error_Report('time is too early'//{introspection:location})
     if (.not.allocated(self%table)) allocate(table1DLogarithmicLinear :: self%table)
     ! Find the range of times to tabulate, pinned to an absolute lattice of points per decade so that the tabulation is
     ! independent of the time at which it was first requested. The table always spans the present epoch, and is never tabulated
     ! beyond it unless a later time is requested.
-    lattice=Range_Pinned(                                                                &
-         &                              time                                           , &
-         &                              tablePointsPerDecade                           , &
-         &                              gridSchemePerDecade                            , &
-         &               rangeCurrent  =[timePresent,timePresent]                      , &
-         &               latticeCurrent=self%table%lattice                             , &
-         &               limitMinimum  =timeInitial                                    , &
-         &               limitMaximum  =max(timePresent,time)                          , &
-         &               anchorEvery   =tableAnchorEvery                                 &
+    lattice=Range_Pinned(                                          &
+         &                              time                     , &
+         &                              tablePointsPerDecade     , &
+         &                              gridSchemePerDecade      , &
+         &               rangeCurrent  =[timePresent,timePresent], &
+         &               latticeCurrent=self%table%lattice       , &
+         &               limitMinimum  =timeInitial              , &
+         &               limitMaximum  =max(timePresent,time)    , &
+         &               anchorEvery   =tableAnchorEvery           &
          &              )
     if (self%table%lattice%covers(lattice)) return
     ! Merge in any tabulation already cached on disk, then re-evaluate the range required in the light of it.
     call Table_Cache_Restore(self%table,self%fileName,status)
-    lattice=Range_Pinned(                                                                &
-         &                              time                                           , &
-         &                              tablePointsPerDecade                           , &
-         &                              gridSchemePerDecade                            , &
-         &               rangeCurrent  =[timePresent,timePresent]                      , &
-         &               latticeCurrent=self%table%lattice                             , &
-         &               limitMinimum  =timeInitial                                    , &
-         &               limitMaximum  =max(timePresent,time)                          , &
-         &               anchorEvery   =tableAnchorEvery                                 &
+    lattice=Range_Pinned(                                          &
+         &                              time                     , &
+         &                              tablePointsPerDecade     , &
+         &                              gridSchemePerDecade      , &
+         &               rangeCurrent  =[timePresent,timePresent], &
+         &               latticeCurrent=self%table%lattice       , &
+         &               limitMinimum  =timeInitial              , &
+         &               limitMaximum  =max(timePresent,time)    , &
+         &               anchorEvery   =tableAnchorEvery           &
          &              )
     call self%table%extend(lattice,isComputed)
     ! Solve the ODE system for those points which are not already known. Note that no lock is held while doing so.
@@ -618,6 +618,3 @@ contains
          &           +rLSSCoefficient3
     return
   end function gnedin2000rLSS
-
-
-

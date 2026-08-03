@@ -54,11 +54,11 @@ program Tests_Spherical_Collapse_Determinism
   type            (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)           :: solverBaryons_
   ! Times, in Gyr, at which the tabulations are triggered. The second lies far outside of the range which will have been
   ! tabulated in response to the first, and so forces the table to be extended.
-  double precision                                                   , parameter :: timeFirst          =10.00d0, &
-       &                                                                            timeSecond         = 5.00d-2
-  integer                                                            , parameter :: pointsPerOctave    =4
-  integer                                                            , parameter :: solverCosmologicalConstant=1, solverDarkEnergy=2, &
-       &                                                                            solverBaryons             =3
+  double precision                                                   , parameter :: timeFirst                    =10.00d+0,                     &
+       &                                                                            timeSecond                   = 5.00d-2
+  integer                                                            , parameter :: pointsPerOctave              = 4
+  integer                                                            , parameter :: solverCosmologicalConstant   = 1      , solverDarkEnergy=2, &
+       &                                                                            solverBaryons                = 3
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -67,37 +67,37 @@ program Tests_Spherical_Collapse_Determinism
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Spherical collapse: determinism of tabulations")
   ! Construct the cosmology.
-  cosmologyParameters_        =cosmologyParametersSimple                       (                                                                &
-       &                                                                        OmegaMatter                = 0.2750d0                         , &
-       &                                                                        OmegaBaryon                = 0.0458d0                         , &
-       &                                                                        OmegaDarkEnergy            = 0.7250d0                         , &
-       &                                                                        temperatureCMB             = 2.7800d0                         , &
-       &                                                                        HubbleConstant             =70.2000d0                           &
+  cosmologyParameters_        =cosmologyParametersSimple                       (                                                                       &
+       &                                                                        OmegaMatter                = 0.2750d0                                , &
+       &                                                                        OmegaBaryon                = 0.0458d0                                , &
+       &                                                                        OmegaDarkEnergy            = 0.7250d0                                , &
+       &                                                                        temperatureCMB             = 2.7800d0                                , &
+       &                                                                        HubbleConstant             =70.2000d0                                  &
        &                                                                       )
-  cosmologyFunctionsLambda_   =cosmologyFunctionsMatterLambda                  (                                                                &
-       &                                                                        cosmologyParameters_       =cosmologyParameters_                &
+  cosmologyFunctionsLambda_   =cosmologyFunctionsMatterLambda                  (                                                                       &
+       &                                                                        cosmologyParameters_       =cosmologyParameters_                       &
        &                                                                       )
-  cosmologyFunctionsDarkEnergy_=cosmologyFunctionsMatterDarkEnergy             (                                                                &
-       &                                                                        cosmologyParameters_       =cosmologyParameters_               , &
-       &                                                                        darkEnergyEquationOfStateW0=-1.0d0                             , &
-       &                                                                        darkEnergyEquationOfStateW1=+0.0d0                               &
+  cosmologyFunctionsDarkEnergy_=cosmologyFunctionsMatterDarkEnergy             (                                                                       &
+       &                                                                        cosmologyParameters_       =cosmologyParameters_                     , &
+       &                                                                        darkEnergyEquationOfStateW0=-1.0d0                                   , &
+       &                                                                        darkEnergyEquationOfStateW1=+0.0d0                                     &
        &                                                                       )
   ! Construct the solvers. Table storage is disabled throughout so that the test neither depends upon, nor perturbs, any
   ! tabulations cached in the dynamic data path by other runs.
-  solverCosmologicalConstant_ =sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt  (                                                               &
-       &                                                                          cosmologyFunctions_ =cosmologyFunctionsLambda_                 &
+  solverCosmologicalConstant_ =sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt  (                                                                     &
+       &                                                                          cosmologyFunctions_      =cosmologyFunctionsLambda_                  &
        &                                                                         )
-  solverDarkEnergy_           =sphericalCollapseSolverCllsnlssMttrDarkEnergy     (                                                               &
-       &                                                                          energyFixedAt       =cllsnlssMttrDarkEnergyFixedAtTurnaround , &
-       &                                                                          cosmologyFunctions_ =cosmologyFunctionsDarkEnergy_             &
+  solverDarkEnergy_           =sphericalCollapseSolverCllsnlssMttrDarkEnergy     (                                                                     &
+       &                                                                          energyFixedAt             =cllsnlssMttrDarkEnergyFixedAtTurnaround , &
+       &                                                                          cosmologyFunctions_       =cosmologyFunctionsDarkEnergy_             &
        &                                                                         )
-  solverBaryons_              =sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(                                                               &
-       &                                                                          baryonsCluster      =.false.                                 , &
-       &                                                                          tablePointsPerOctave=pointsPerOctave                         , &
-       &                                                                          energyFixedAt       =cllsnlssMttrDarkEnergyFixedAtTurnaround , &
-       &                                                                          perturbationSmall   =1.0d-3                                  , &
-       &                                                                          cosmologyParameters_=cosmologyParameters_                    , &
-       &                                                                          cosmologyFunctions_ =cosmologyFunctionsDarkEnergy_             &
+  solverBaryons_              =sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(                                                                     &
+       &                                                                          baryonsCluster            =.false.                                 , &
+       &                                                                          tablePointsPerOctave      =pointsPerOctave                         , &
+       &                                                                          energyFixedAt             =cllsnlssMttrDarkEnergyFixedAtTurnaround , &
+       &                                                                          perturbationSmall         =1.0d-3                                  , &
+       &                                                                          cosmologyParameters_      =cosmologyParameters_                    , &
+       &                                                                          cosmologyFunctions_       =cosmologyFunctionsDarkEnergy_             &
        &                                                                         )
   ! Test each solver in turn. The final argument is the anchor interval, in lattice steps, which each solver pins its bounds to -
   ! the per-decade solvers anchor to half decades (500 of their 1000 points per decade), while the per-octave solver anchors to
@@ -117,25 +117,25 @@ contains
     the abscissae and the values of every previously computed point.
     !!}
     implicit none
-    integer                                   , intent(in   )               :: solver
-    character       (len=*                   ), intent(in   )               :: label
-    type            (enumerationGridSchemeType), intent(in   )              :: scheme
-    integer                                   , intent(in   )               :: anchorEvery
-    class           (table1D                 ), allocatable                 :: table_       , tableRepeat_
-    type            (rangeLattice            )                              :: latticeFirst , latticeSecond
-    double precision                          , allocatable, dimension(:  ) :: xValuesFirst , xValuesSecond, &
-         &                                                                     xValuesRepeat
-    double precision                          , allocatable, dimension(:,:) :: yValuesFirst , yValuesSecond, &
-         &                                                                     yValuesRepeat
-    integer                                                                 :: offset
+    integer                                    , intent(in   )               :: solver
+    character       (len=*                    ), intent(in   )               :: label
+    type            (enumerationGridSchemeType), intent(in   )               :: scheme
+    integer                                    , intent(in   )               :: anchorEvery
+    class           (table1D                  ), allocatable                 :: table_       , tableRepeat_
+    type            (rangeLattice             )                              :: latticeFirst , latticeSecond
+    double precision                           , allocatable, dimension(:  ) :: xValuesFirst , xValuesSecond, &
+         &                                                                      xValuesRepeat
+    double precision                           , allocatable, dimension(:,:) :: yValuesFirst , yValuesSecond, &
+         &                                                                      yValuesRepeat
+    integer                                                                  :: offset
 
     ! Build the table by requesting a single time.
     call getTable(solver,timeFirst ,table_)
     latticeFirst =table_%lattice
     xValuesFirst =table_%xs     ()
     yValuesFirst =table_%ys     ()
-    call Assert(label//': table is built on an absolute lattice'    ,latticeFirst%isDefined()     ,.true.)
-    call Assert(label//': table uses the expected gridding scheme'  ,latticeFirst%scheme == scheme,.true.)
+    call Assert(label//': table is built on an absolute lattice'  ,latticeFirst%isDefined()     ,.true.)
+    call Assert(label//': table uses the expected gridding scheme',latticeFirst%scheme == scheme,.true.)
     ! Since the bounds are pinned, the lattice index of each must be an exact multiple of the anchor interval.
     call Assert(label//': lower bound is pinned to the anchor interval',mod(latticeFirst%indexMinimum  ,anchorEvery),0)
     call Assert(label//': upper bound is pinned to the anchor interval',mod(latticeFirst%indexMaximum(),anchorEvery),0)
@@ -144,19 +144,19 @@ contains
     latticeSecond=table_%lattice
     xValuesSecond=table_%xs     ()
     yValuesSecond=table_%ys     ()
-    call Assert(label//': extended table lies on the same lattice'  ,latticeSecond%covers(latticeFirst)      ,.true.)
-    call Assert(label//': extended table covers a larger range'     ,latticeSecond%count > latticeFirst%count,.true.)
+    call Assert(label//': extended table lies on the same lattice',latticeSecond%covers(latticeFirst)      ,.true.)
+    call Assert(label//': extended table covers a larger range'   ,latticeSecond%count > latticeFirst%count,.true.)
     ! Extension must not have moved any abscissa, nor changed any previously computed value.
     offset=latticeFirst%indexMinimum-latticeSecond%indexMinimum
-    call Assert(                                                                              &
-         &      label//': extension preserves previously tabulated abscissae bit-for-bit'   , &
+    call Assert(                                                                               &
+         &      label//': extension preserves previously tabulated abscissae bit-for-bit'    , &
          &      all(xValuesSecond(offset+1:offset+latticeFirst%count  ) == xValuesFirst     ), &
-         &      .true.                                                                        &
+         &      .true.                                                                         &
          &     )
-    call Assert(                                                                              &
-         &      label//': extension preserves previously tabulated values bit-for-bit'      , &
+    call Assert(                                                                               &
+         &      label//': extension preserves previously tabulated values bit-for-bit'       , &
          &      all(yValuesSecond(offset+1:offset+latticeFirst%count,1) == yValuesFirst(:,1)), &
-         &      .true.                                                                        &
+         &      .true.                                                                         &
          &     )
     ! A table subsequently obtained over the wider range must be identical to the one built by extension.
     call getTable(solver,timeSecond,tableRepeat_)

@@ -42,10 +42,10 @@ module Numerical_Ranges
    :math:`j` and :math:`N` alone it is independent of the range over which any particular table is built, so two tables
    built on the same lattice have identical abscissae wherever their ranges overlap.
    </description>
-   <entry label="undefined" description="No lattice is defined."                                                        />
-   <entry label="perDecade" description="Points are spaced uniformly in :math:`\log_{10} x`, ``pointsPer`` per decade." />
-   <entry label="perOctave" description="Points are spaced uniformly in :math:`\log_{2} x`, ``pointsPer`` per octave."  />
-   <entry label="perUnit"   description="Points are spaced uniformly in :math:`x`, ``pointsPer`` per unit interval."    />
+   <entry label="undefined" description="No lattice is defined."                                                       />
+   <entry label="perDecade" description="Points are spaced uniformly in :math:`\log_{10} x`, ``pointsPer`` per decade."/>
+   <entry label="perOctave" description="Points are spaced uniformly in :math:`\log_{2} x`, ``pointsPer`` per octave." />
+   <entry label="perUnit"   description="Points are spaced uniformly in :math:`x`, ``pointsPer`` per unit interval."   />
   </enumeration>
   !!]
 
@@ -68,15 +68,15 @@ module Numerical_Ranges
    contains
      !![
      <methods docformat="rst">
-       <method description="Return true if this object specifies a usable lattice."                                            method="isDefined"        />
-       <method description="Return the lattice index of the final point."                                                      method="indexMaximum"     />
-       <method description="Return the value of the first point."                                                              method="minimum"          />
-       <method description="Return the value of the final point."                                                              method="maximum"          />
-       <method description="Return the values of all points."                                                                  method="values"           />
-       <method description="Return the natural logarithms of the values of all points (logarithmic gridding schemes only)."     method="valuesLogarithmic"/>
-       <method description="Return the spacing of the points (``perUnit`` gridding scheme only)."                              method="step"             />
-       <method description="Return the spacing of the natural logarithms of the points (logarithmic gridding schemes only)."   method="stepLogarithmic"  />
-       <method description="Return true if ``lattice`` lies on the same lattice as this object, and all of its points are points of this object." method="covers"  />
+       <method description="Return true if this object specifies a usable lattice."                                                               method="isDefined"        />
+       <method description="Return the lattice index of the final point."                                                                         method="indexMaximum"     />
+       <method description="Return the value of the first point."                                                                                 method="minimum"          />
+       <method description="Return the value of the final point."                                                                                 method="maximum"          />
+       <method description="Return the values of all points."                                                                                     method="values"           />
+       <method description="Return the natural logarithms of the values of all points (logarithmic gridding schemes only)."                       method="valuesLogarithmic"/>
+       <method description="Return the spacing of the points (``perUnit`` gridding scheme only)."                                                 method="step"             />
+       <method description="Return the spacing of the natural logarithms of the points (logarithmic gridding schemes only)."                      method="stepLogarithmic"  />
+       <method description="Return true if ``lattice`` lies on the same lattice as this object, and all of its points are points of this object." method="covers"           />
      </methods>
      !!]
      procedure :: isDefined         => rangeLatticeIsDefined
@@ -168,18 +168,20 @@ contains
     type            (rangeLattice             ), intent(in   ), optional               :: latticeCurrent
     double precision                           , intent(in   ), optional, dimension(2) :: rangeCurrent
     integer                                    , intent(in   ), optional               :: anchorEvery
+    double precision                                                    , dimension(1) :: valueTarget_
 
-    lattice=Range_Pinned_Array(                                &
-         &                     [valueTarget]                 , &
-         &                      pointsPer                    , &
-         &                      scheme                       , &
-         &                      marginFactor  =marginFactor  , &
-         &                      marginOffset  =marginOffset  , &
-         &                      latticeCurrent=latticeCurrent, &
-         &                      rangeCurrent  =rangeCurrent  , &
-         &                      limitMinimum  =limitMinimum  , &
-         &                      limitMaximum  =limitMaximum  , &
-         &                      anchorEvery   =anchorEvery     &
+    valueTarget_=valueTarget
+    lattice=Range_Pinned_Array(                               &
+         &                                    valueTarget_  , &
+         &                                    pointsPer     , &
+         &                                    scheme        , &
+         &                     marginFactor  =marginFactor  , &
+         &                     marginOffset  =marginOffset  , &
+         &                     latticeCurrent=latticeCurrent, &
+         &                     rangeCurrent  =rangeCurrent  , &
+         &                     limitMinimum  =limitMinimum  , &
+         &                     limitMaximum  =limitMaximum  , &
+         &                     anchorEvery   =anchorEvery     &
          &                    )
     return
   end function Range_Pinned_Scalar
@@ -236,9 +238,9 @@ contains
     ! Validate the arguments.
     anchorEvery_=pointsPer
     if (present(anchorEvery)) anchorEvery_=anchorEvery
-    if (size(valueTarget) <  1) call Error_Report('no target values were provided'                    //{introspection:location})
-    if (pointsPer         <  1) call Error_Report('number of points per interval must be positive'    //{introspection:location})
-    if (anchorEvery_      <  1) call Error_Report('anchor interval must be at least one lattice step' //{introspection:location})
+    if (size(valueTarget) < 1) call Error_Report('no target values were provided'                    //{introspection:location})
+    if (pointsPer         < 1) call Error_Report('number of points per interval must be positive'    //{introspection:location})
+    if (anchorEvery_      < 1) call Error_Report('anchor interval must be at least one lattice step' //{introspection:location})
     ! Apply the safety margin.
     coordinateMinimum=0.0d0
     coordinateMaximum=0.0d0
@@ -247,15 +249,15 @@ contains
        if (present(marginOffset)      ) call Error_Report('`marginOffset` applies only to the `perUnit` gridding scheme - use `marginFactor`'//{introspection:location})
        marginFactor_=2.0d0
        if (present(marginFactor)      ) marginFactor_=marginFactor
-       if (marginFactor_     <  1.0d0 ) call Error_Report('`marginFactor` must be at least unity'                                           //{introspection:location})
-       if (any(valueTarget   <= 0.0d0)) call Error_Report('target values must be positive for logarithmic gridding schemes'                 //{introspection:location})
+       if (marginFactor_     <  1.0d0 ) call Error_Report('`marginFactor` must be at least unity'                                            //{introspection:location})
+       if (any(valueTarget   <= 0.0d0)) call Error_Report('target values must be positive for logarithmic gridding schemes'                  //{introspection:location})
        coordinateMinimum=Lattice_Coordinate(minval(valueTarget)/marginFactor_,scheme)
        coordinateMaximum=Lattice_Coordinate(maxval(valueTarget)*marginFactor_,scheme)
     case (gridSchemePerUnit  %ID                       )
        if (present(marginFactor)      ) call Error_Report('`marginFactor` applies only to logarithmic gridding schemes - use `marginOffset`' //{introspection:location})
        marginOffset_=1.0d0
        if (present(marginOffset)      ) marginOffset_=marginOffset
-       if (marginOffset_     <  0.0d0 ) call Error_Report('`marginOffset` must be non-negative'                                             //{introspection:location})
+       if (marginOffset_     <  0.0d0 ) call Error_Report('`marginOffset` must be non-negative'                                              //{introspection:location})
        coordinateMinimum=minval(valueTarget)-marginOffset_
        coordinateMaximum=maxval(valueTarget)+marginOffset_
     case default
@@ -314,11 +316,11 @@ contains
 
     Range_Lattice_Offset=0
     if (.not.latticeCurrent%isDefined() .or. .not.latticeNew%isDefined()) &
-         & call Error_Report('the lattices provided are not usable'                                            //{introspection:location})
+         & call Error_Report('the lattices provided are not usable'                                               //{introspection:location})
     if (latticeCurrent%scheme    /= latticeNew%scheme   )                 &
-         & call Error_Report('the lattices provided use different gridding schemes'                            //{introspection:location})
+         & call Error_Report('the lattices provided use different gridding schemes'                               //{introspection:location})
     if (latticeCurrent%pointsPer /= latticeNew%pointsPer)                 &
-         & call Error_Report('the lattices provided use different densities of points'                         //{introspection:location})
+         & call Error_Report('the lattices provided use different densities of points'                            //{introspection:location})
     if (.not.latticeNew%covers(latticeCurrent)          )                 &
          & call Error_Report('the new lattice does not contain the current one - tabulations can only be extended'//{introspection:location})
     Range_Lattice_Offset=latticeCurrent%indexMinimum-latticeNew%indexMinimum
@@ -348,7 +350,7 @@ contains
        offset=Range_Lattice_Offset(latticeCurrent,latticeNew)
        call Move_Alloc(values,valuesPrevious)
        allocate(values(latticeNew%count))
-       values                                    =0.0d0
+       values                                          =0.0d0
        values    (offset+1:offset+size(valuesPrevious))=valuesPrevious
        isComputed(offset+1:offset+size(valuesPrevious))=.true.
     else
@@ -366,7 +368,11 @@ contains
     implicit none
     class(rangeLattice), intent(in   ) :: self
 
-    rangeLatticeIsDefined=self%scheme /= gridSchemeUndefined .and. self%pointsPer > 0 .and. self%count > 1
+    rangeLatticeIsDefined= self%scheme    /= gridSchemeUndefined &
+         &                .and.                                  &
+         &                 self%pointsPer  > 0                   &
+         &                .and.                                  &
+         &                 self%count      > 1
     return
   end function rangeLatticeIsDefined
 
@@ -388,7 +394,7 @@ contains
     implicit none
     class(rangeLattice), intent(in   ) :: self
 
-    rangeLatticeMinimum=Lattice_Value(dble(self%indexMinimum  )/dble(self%pointsPer),self%scheme)
+    rangeLatticeMinimum=Lattice_Value(dble(self%indexMinimum)/dble(self%pointsPer),self%scheme)
     return
   end function rangeLatticeMinimum
 
@@ -411,7 +417,7 @@ contains
     implicit none
     class           (rangeLattice), intent(in   )         :: self
     double precision              , dimension(self%count) :: values
-    integer                                                 :: i
+    integer                                               :: i
 
     do i=1,self%count
        values(i)=Lattice_Value(dble(self%indexMinimum+i-1)/dble(self%pointsPer),self%scheme)
@@ -500,17 +506,17 @@ contains
     class(rangeLattice), intent(in   ) :: self
     type (rangeLattice), intent(in   ) :: lattice
 
-    rangeLatticeCovers=  self   %isDefined   ()                       &
-         &             .and.                                          &
-         &               lattice%isDefined   ()                       &
-         &             .and.                                          &
-         &               self   %scheme        == lattice%scheme      &
-         &             .and.                                          &
-         &               self   %pointsPer     == lattice%pointsPer   &
-         &             .and.                                          &
-         &               self   %indexMinimum  <= lattice%indexMinimum &
-         &             .and.                                          &
-         &               self   %indexMaximum() >= lattice%indexMaximum()
+    rangeLatticeCovers= self   %isDefined   ()                           &
+         &             .and.                                             &
+         &              lattice%isDefined   ()                           &
+         &             .and.                                             &
+         &              self   %scheme         == lattice%scheme         &
+         &             .and.                                             &
+         &              self   %pointsPer      == lattice%pointsPer      &
+         &             .and.                                             &
+         &              self   %indexMinimum   <= lattice%indexMinimum   &
+         &             .and.                                             &
+         &              self   %indexMaximum() >= lattice%indexMaximum()
     return
   end function rangeLatticeCovers
 
@@ -555,7 +561,7 @@ contains
     implicit none
     double precision                           , intent(in   ) :: coordinate
     type            (enumerationGridSchemeType), intent(in   ) :: scheme
-!GCC$ ATTRIBUTES noinline :: Lattice_Value
+    !GCC$ ATTRIBUTES noinline :: Lattice_Value
 
     Lattice_Value=0.0d0
     select case (scheme%ID)

@@ -244,12 +244,12 @@ contains
        select type (table_)
        type is (table1DLogarithmicLinear)
           ! Rebuild the table on the lattice which it was originally built on, so that its abscissae are unchanged.
-          call table_%extend  (                                                                                                                   &
-               &               cachedTables(useCache,calculationType%ID)%lattice                                                                , &
-               &               isComputed                                                                                                         &
+          call table_%extend  (                                                           &
+               &               cachedTables(useCache,calculationType%ID)%lattice        , &
+               &               isComputed                                                 &
                &              )
-          call table_%populate(                                                                                                                   &
-               &               cachedTables(useCache,calculationType%ID)%valueTable(:                                                        ,1)  &
+          call table_%populate(                                                           &
+               &               cachedTables(useCache,calculationType%ID)%valueTable(:,1)  &
                &              )
        end select
     end if
@@ -294,8 +294,8 @@ contains
     end if
     cachedTables(useCache,calculationType%ID)%fileName  =fileName
     cachedTables(useCache,calculationType%ID)%lattice   =table_  %lattice
-    cachedTables(useCache,calculationType%ID)%timeTable =table_  %xs()
-    cachedTables(useCache,calculationType%ID)%valueTable=table_  %ys()
+    cachedTables(useCache,calculationType%ID)%timeTable =table_  %xs     ()
+    cachedTables(useCache,calculationType%ID)%valueTable=table_  %ys     ()
     !$omp end critical(sphrclCllpsCllsnlssMttrCsmlgclCnstntCache)
     return
   end subroutine cllsnlssMttCsmlgclCnstntGetTable
@@ -393,14 +393,14 @@ contains
        ! Find the range of times to tabulate, pinned to an absolute lattice of points per decade. Pinning makes the tabulation -
        ! and therefore every value interpolated from it - independent of the time at which the table was first requested, and
        ! allows the table to be extended without changing (or recomputing) any previously computed value.
-       lattice=Range_Pinned(                                                          &
-            &                              time                                     , &
-            &                              tablePointsPerDecade                     , &
-            &                              gridSchemePerDecade                      , &
-            &               rangeCurrent  =[timeMinimum,timeMaximum]                , &
-            &               latticeCurrent=sphericalCollapse_%lattice                , &
-            &               limitMaximum  =timeLimitMaximum                          , &
-            &               anchorEvery   =tableAnchorEvery                           &
+       lattice=Range_Pinned(                                           &
+            &                              time                      , &
+            &                              tablePointsPerDecade      , &
+            &                              gridSchemePerDecade       , &
+            &               rangeCurrent  =[timeMinimum,timeMaximum] , &
+            &               latticeCurrent=sphericalCollapse_%lattice, &
+            &               limitMaximum  =timeLimitMaximum          , &
+            &               anchorEvery   =tableAnchorEvery            &
             &              )
        call sphericalCollapse_%extend(lattice,isComputed)
        ! Solve ODE to get corresponding overdensities, skipping any point whose value was preserved by the extension.
@@ -1006,8 +1006,8 @@ contains
     type            (hdf5File                                        )                             :: file
     type            (rangeLattice                                    )                             :: lattice
     logical                                                           , allocatable, dimension(:)  :: isComputed
-    double precision                                                  , allocatable, dimension(:)  :: timeTable       , valueTable
-    integer                                                                                        :: gridScheme      , pointsPer  , &
+    double precision                                                  , allocatable, dimension(:)  :: timeTable    , valueTable
+    integer                                                                                        :: gridScheme   , pointsPer , &
          &                                                                                            indexMinimum
     !$GLC attributes unused :: self
 
@@ -1030,12 +1030,12 @@ contains
              lattice=rangeLattice(enumerationGridSchemeType(gridScheme),pointsPer,indexMinimum,size(timeTable))
              ! Guard against a file whose recorded lattice is inconsistent with its stored abscissae - such a file can not be
              ! restored onto the lattice, so treat it as unusable and allow the table to be recomputed.
-             if     (                                                                              &
-                  &   lattice%isDefined()                                                          &
-                  &  .and.                                                                         &
-                  &   Values_Agree(lattice%minimum(),timeTable(1              ),relTol=1.0d-6)     &
-                  &  .and.                                                                         &
-                  &   Values_Agree(lattice%maximum(),timeTable(size(timeTable)),relTol=1.0d-6)     &
+             if     (                                                                          &
+                  &   lattice%isDefined()                                                      &
+                  &  .and.                                                                     &
+                  &   Values_Agree(lattice%minimum(),timeTable(1              ),relTol=1.0d-6) &
+                  &  .and.                                                                     &
+                  &   Values_Agree(lattice%maximum(),timeTable(size(timeTable)),relTol=1.0d-6) &
                   & ) then
                 ! Deallocate table if currently allocated.
                 if (allocated(restoredTable)) then

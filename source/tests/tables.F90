@@ -35,19 +35,19 @@ program Test_Tables
   class           (table           ), allocatable                 :: myTable
   class           (table1D         ), allocatable                 :: myReversedTable
   type            (table2DLogLogLin)                              :: myTable2D
-  type            (rangeLattice    )                              :: latticeNarrow, latticeWide
-  integer                                                         :: i            , j          , &
+  type            (rangeLattice    )                              :: latticeNarrow  , latticeWide
+  integer                                                         :: i              , j            , &
        &                                                             offset
-  double precision                                                :: x            , y          , &
+  double precision                                                :: x              , y            , &
        &                                                             yPrevious
   logical                                                         :: isMonotonic
   logical                           , allocatable, dimension(:  ) :: isComputed
-  double precision                  , allocatable, dimension(:  ) :: xValuesNarrow, xValuesWide, &
+  double precision                  , allocatable, dimension(:  ) :: xValuesNarrow  , xValuesWide  , &
        &                                                             xValuesDirect
-  double precision                  , allocatable, dimension(:,:) :: yValuesNarrow, yValuesWide, &
+  double precision                  , allocatable, dimension(:,:) :: yValuesNarrow  , yValuesWide  , &
        &                                                             yValuesDirect
   type            (table2DLogLogLin)                              :: myTable2DExtend
-  type            (rangeLattice    )                              :: latticeX2D   , latticeY2D
+  type            (rangeLattice    )                              :: latticeX2D     , latticeY2D
   logical                           , allocatable, dimension(:,:) :: isComputed2D
   double precision                  , allocatable, dimension(:,:) :: zValuesNarrow2D, zValuesWide2D
 
@@ -397,7 +397,7 @@ program Test_Tables
   type is (table1DLogarithmicLinear)
      latticeNarrow=Range_Pinned(3.0d0,4,gridSchemePerOctave)
      call myTable%extend(latticeNarrow,isComputed)
-     call Assert('extension of an empty table requires every point to be computed',count(isComputed),0)
+     call Assert('extension of an empty table requires every point to be computed',count(isComputed),0                  )
      call Assert('extension of an empty table gives the lattice point count'      ,myTable%size()   ,latticeNarrow%count)
      do i=1,myTable%size()
         call myTable%populate(myTable%x(i)**2,i)
@@ -408,18 +408,18 @@ program Test_Tables
      latticeWide=Range_Pinned(30.0d0,4,gridSchemePerOctave,latticeCurrent=myTable%lattice)
      call myTable%extend(latticeWide,isComputed)
      offset=latticeNarrow%indexMinimum-latticeWide%indexMinimum
-     call Assert('extension marks precisely the previously computed points as computed',count(isComputed)                    ,latticeNarrow%count)
-     call Assert('extension marks the correct window as computed'                      ,all(isComputed(offset+1:offset+latticeNarrow%count)),.true.)
+     call Assert('extension marks precisely the previously computed points as computed',count(isComputed)                                   ,latticeNarrow%count)
+     call Assert('extension marks the correct window as computed'                      ,all(isComputed(offset+1:offset+latticeNarrow%count)),.true.             )
      xValuesWide=myTable%xs()
      yValuesWide=myTable%ys()
      ! Both abscissae and previously computed values must be preserved bit-for-bit.
-     call Assert('extension preserves abscissae bit-for-bit'                                   , &
-          &      all(xValuesWide(offset+1:offset+latticeNarrow%count  ) == xValuesNarrow     ) , &
-          &      .true.                                                                          &
+     call Assert('extension preserves abscissae bit-for-bit'                                  , &
+          &      all(xValuesWide(offset+1:offset+latticeNarrow%count  ) == xValuesNarrow     ), &
+          &      .true.                                                                         &
           &     )
-     call Assert('extension preserves values bit-for-bit'                                      , &
-          &      all(yValuesWide(offset+1:offset+latticeNarrow%count,1) == yValuesNarrow(:,1)) , &
-          &      .true.                                                                          &
+     call Assert('extension preserves values bit-for-bit'                                     , &
+          &      all(yValuesWide(offset+1:offset+latticeNarrow%count,1) == yValuesNarrow(:,1)), &
+          &      .true.                                                                         &
           &     )
      ! Compute the newly added points.
      do i=1,myTable%size()
@@ -441,7 +441,7 @@ program Test_Tables
      end do
      xValuesDirect=myTable%xs()
      yValuesDirect=myTable%ys()
-     call Assert('a table built directly has abscissae identical to one built by extension',all(xValuesDirect      == xValuesWide      ),.true.)
+     call Assert('a table built directly has abscissae identical to one built by extension',all(xValuesDirect      == xValuesWide     ),.true.)
      call Assert('a table built directly has values identical to one built by extension'   ,all(yValuesDirect(:,1) == yValuesWide(:,1)),.true.)
      call myTable%destroy()
   end select
@@ -465,9 +465,9 @@ program Test_Tables
   call myTable2DExtend%extend(latticeX2D,latticeY2D,isComputed2D)
   call Assert('2D extension preserves precisely the previously computed block',count(isComputed2D),size(zValuesNarrow2D,dim=1)*size(zValuesNarrow2D,dim=2))
   zValuesWide2D=myTable2DExtend%zs()
-  call Assert('2D extension preserves the previously computed values bit-for-bit'                            , &
+  call Assert('2D extension preserves the previously computed values bit-for-bit'                               , &
        &      all(zValuesWide2D(1:size(zValuesNarrow2D,dim=1),1:size(zValuesNarrow2D,dim=2)) == zValuesNarrow2D), &
-       &      .true.                                                                                           &
+       &      .true.                                                                                              &
        &     )
   call myTable2DExtend%destroy()
 

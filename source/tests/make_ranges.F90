@@ -26,11 +26,11 @@ program Test_Make_Ranges
   Tests that numerical range making code works correctly.
   !!}
   use :: Array_Utilities , only : Array_Reverse
-  use :: Display         , only : displayVerbositySet, verbosityLevelStandard
-  use :: Numerical_Ranges, only : Make_Range         , rangeTypeLinear       , rangeTypeLogarithmic, Range_Pinned        , &
-       &                          rangeLattice       , gridSchemePerDecade   , gridSchemePerOctave , gridSchemePerUnit   , &
+  use :: Display         , only : displayVerbositySet , verbosityLevelStandard
+  use :: Numerical_Ranges, only : Make_Range          , rangeTypeLinear       , rangeTypeLogarithmic, Range_Pinned     , &
+       &                          rangeLattice        , gridSchemePerDecade   , gridSchemePerOctave , gridSchemePerUnit, &
        &                          Range_Lattice_Offset, Range_Lattice_Extend
-  use :: Unit_Tests      , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests      , only : Assert              , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                               , dimension(1:11) :: range1
   double precision                               , dimension(0:10) :: range2
@@ -72,9 +72,9 @@ program Test_Make_Ranges
   ! Margin-then-pin, points per decade: a request at x=3 with the default factor-of-2 margin spans [1.5,6], which pins outward to
   ! [10⁰,10¹].
   lattice=Range_Pinned(3.0d0,10,gridSchemePerDecade)
-  call Assert("per-decade: margin then pin to whole decades"   ,[lattice%minimum(),lattice%maximum()],[1.0d0,10.0d0])
-  call Assert("per-decade: exact point count"                  , lattice%count                       ,11            )
-  call Assert("per-decade: lattice index of the lower bound"   , lattice%indexMinimum                , 0            )
+  call Assert("per-decade: margin then pin to whole decades",[lattice%minimum     (),lattice%maximum()],[1.0d0,10.0d0])
+  call Assert("per-decade: exact point count"               , lattice%count                            ,11            )
+  call Assert("per-decade: lattice index of the lower bound", lattice%indexMinimum                     , 0            )
 
   ! Pinning must be applied *after* the margin, so that the requested value is never left sitting at the table edge. A request at
   ! x=9.99 must not pin to [10⁰,10¹].
@@ -85,7 +85,7 @@ program Test_Make_Ranges
   ! 2.9999999999999996 in double precision). Here a unit margin is used so that the bounds are exactly 10³ and 10⁵.
   lattice=Range_Pinned([1.0d3,1.0d5],10,gridSchemePerDecade,marginFactor=1.0d0)
   call Assert("per-decade: exact powers of ten are not shifted by round-off",[lattice%minimum(),lattice%maximum()],[1.0d3,1.0d5])
-  call Assert("per-decade: exact point count across two decades"           , lattice%count                       ,21            )
+  call Assert("per-decade: exact point count across two decades"           , lattice%count                        , 21          )
 
   ! The anchor interval is independent of the grid density. Anchoring every lattice step pins the bounds to the lattice points
   ! themselves; a request at x=3 with the default margin spans [1.5,6], so the bounds pin to 10^0.1 and 10^0.8.
@@ -96,9 +96,9 @@ program Test_Make_Ranges
   ! - whereas anchoring to whole decades gives the far wider [10⁰,10²].
   lattice    =Range_Pinned(15.0d0,10,gridSchemePerDecade,anchorEvery=5)
   latticeWide=Range_Pinned(15.0d0,10,gridSchemePerDecade              )
-  call Assert("per-decade: anchored to half decades" ,[lattice    %indexMinimum,lattice    %indexMaximum(),lattice    %count],[5, 15,11])
-  call Assert("per-decade: anchored to whole decades",[latticeWide%indexMinimum,latticeWide%indexMaximum(),latticeWide%count],[0, 20,21])
-  call Assert("per-decade: half-decade bounds"       ,[lattice%minimum(),lattice%maximum()],[10.0d0**0.5d0,10.0d0**1.5d0],relTol=1.0d-12)
+  call Assert("per-decade: anchored to half decades" ,[lattice    %indexMinimum  ,lattice    %indexMaximum() ,lattice    %count],[5, 15,11])
+  call Assert("per-decade: anchored to whole decades",[latticeWide%indexMinimum  ,latticeWide%indexMaximum() ,latticeWide%count],[0, 20,21])
+  call Assert("per-decade: half-decade bounds"       ,[lattice    %     minimum(),lattice    %     maximum()],[10.0d0**0.5d0,10.0d0**1.5d0],relTol=1.0d-12)
 
   ! Explicitly anchoring every `pointsPer` steps must reproduce the default behavior exactly.
   latticeUnion=Range_Pinned(15.0d0,10,gridSchemePerDecade,anchorEvery=10)
@@ -109,9 +109,9 @@ program Test_Make_Ranges
   values    =lattice    %values()
   valuesWide=latticeWide%values()
   offset    =lattice%indexMinimum-latticeWide%indexMinimum
-  call Assert("per-decade: abscissae are independent of the anchor interval" , &
-       &      all(valuesWide(offset+1:offset+lattice%count) == values)       , &
-       &      .true.                                                           &
+  call Assert("per-decade: abscissae are independent of the anchor interval", &
+       &      all(valuesWide(offset+1:offset+lattice%count) == values)      , &
+       &      .true.                                                          &
        &     )
 
   ! Points per octave. A request at x=3 with the default margin spans [1.5,6], pinning outward to [2⁰,2³].
@@ -140,14 +140,14 @@ program Test_Make_Ranges
   valuesNarrow =latticeNarrow%values()
   valuesWide   =latticeWide  %values()
   offset       =latticeNarrow%indexMinimum-latticeWide%indexMinimum
-  call Assert("per-decade: union with an existing lattice contains it"      ,latticeWide%covers(latticeNarrow),.true.)
-  call Assert("per-decade: abscissae are bit-identical on the overlap"                                               , &
-       &      all(valuesWide(offset+1:offset+latticeNarrow%count) == valuesNarrow)                                   , &
-       &      .true.                                                                                                   &
+  call Assert("per-decade: union with an existing lattice contains it",latticeWide%covers(latticeNarrow),.true.)
+  call Assert("per-decade: abscissae are bit-identical on the overlap"                                          , &
+       &      all(valuesWide(offset+1:offset+latticeNarrow%count) == valuesNarrow)                              , &
+       &      .true.                                                                                              &
        &     )
 
   ! The union of lattices is exact, and independent of the order in which the ranges were requested.
-  latticeUnion=Range_Pinned(3.0d+0,10,gridSchemePerDecade,latticeCurrent=latticeWide)
+  latticeUnion=Range_Pinned(3.0d0,10,gridSchemePerDecade,latticeCurrent=latticeWide)
   call Assert("per-decade: union is independent of request order",[latticeUnion%indexMinimum,latticeUnion%count],[latticeWide%indexMinimum,latticeWide%count])
 
   ! Extension of a tabulation held in a raw array, rather than in a table object.
@@ -160,11 +160,11 @@ program Test_Make_Ranges
   latticeWide=Range_Pinned(1.5d3,10,gridSchemePerDecade,anchorEvery=5,latticeCurrent=latticeNarrow)
   offset     =Range_Lattice_Offset(latticeNarrow,latticeWide)
   call Range_Lattice_Extend(latticeNarrow,latticeWide,valuesRaw,isComputedRaw)
-  call Assert("raw array: extension preserves precisely the previously computed points",count(isComputedRaw)                                 ,latticeNarrow%count)
-  call Assert("raw array: extension marks the correct window as computed"              ,all(isComputedRaw(offset+1:offset+latticeNarrow%count)),.true.           )
-  call Assert("raw array: extension preserves the values bit-for-bit"                                       , &
-       &      all(valuesRaw(offset+1:offset+latticeNarrow%count) == latticeNarrow%values())                 , &
-       &      .true.                                                                                          &
+  call Assert("raw array: extension preserves precisely the previously computed points",count(isComputedRaw)                                   ,latticeNarrow%count)
+  call Assert("raw array: extension marks the correct window as computed"              ,all(isComputedRaw(offset+1:offset+latticeNarrow%count)),.true.             )
+  call Assert("raw array: extension preserves the values bit-for-bit"                      , &
+       &      all(valuesRaw(offset+1:offset+latticeNarrow%count) == latticeNarrow%values()), &
+       &      .true.                                                                         &
        &     )
 
   ! End unit tests.

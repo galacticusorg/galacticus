@@ -96,8 +96,8 @@ contains
     either the parameters of the object or the source code which generates the tabulation changes. Using this function in
     preference to building the name by hand avoids the collisions which arise when a discriminator is accidentally omitted.
     !!}
-    use :: Input_Paths       , only : inputPath   , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : varying_string, operator(//), assignment(=)
+    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : varying_string, operator(//)       , assignment(=)
     implicit none
     type     (varying_string)                          :: fileName
     character(len=*         ), intent(in   )           :: subDirectory    , objectType, &
@@ -179,11 +179,11 @@ contains
     Read a cached tabulation from ``fileName`` into a newly allocated table. The caller is responsible for holding a suitable
     lock on the file.
     !!}
-    use :: Error             , only : errorStatusFail        , errorStatusSuccess
+    use :: Error             , only : errorStatusFail             , errorStatusSuccess
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File
-    use :: Numerical_Ranges  , only : rangeLattice           , enumerationGridSchemeType
-    use :: Tables            , only : table1D                , table1DLinearLinear      , table1DLogarithmicLinear, tableTypeLinearLinear1D, &
+    use :: Numerical_Ranges  , only : rangeLattice                , enumerationGridSchemeType
+    use :: Tables            , only : table1D                     , table1DLinearLinear      , table1DLogarithmicLinear, tableTypeLinearLinear1D, &
          &                            tableTypeLogarithmicLinear1D
     implicit none
     class           (table1D       ), allocatable, intent(  out) :: tableCached
@@ -204,13 +204,13 @@ contains
     if (file%hasAttribute('formatVersion')) then
        call file%readAttribute('formatVersion',formatVersion)
        if (formatVersion == formatVersionCurrent) then
-          call file%readAttribute('tableType'    ,tableType   )
-          call file%readAttribute('gridScheme'   ,gridScheme  )
-          call file%readAttribute('pointsPer'    ,pointsPer   )
-          call file%readAttribute('indexMinimum' ,indexMinimum)
-          call file%readAttribute('count'        ,countPoints )
-          call file%readAttribute('countTables'  ,countTables )
-          call file%readDataset  ('y'            ,valuesCached)
+          call file%readAttribute('tableType'   ,tableType   )
+          call file%readAttribute('gridScheme'  ,gridScheme  )
+          call file%readAttribute('pointsPer'   ,pointsPer   )
+          call file%readAttribute('indexMinimum',indexMinimum)
+          call file%readAttribute('count'       ,countPoints )
+          call file%readAttribute('countTables' ,countTables )
+          call file%readDataset  ('y'           ,valuesCached)
           lattice=rangeLattice(enumerationGridSchemeType(gridScheme),pointsPer,indexMinimum,countPoints)
           if     (                                                &
                &   lattice%isDefined()                            &
@@ -265,15 +265,15 @@ contains
     end select
     !$ call hdf5Access%set()
     file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
-    call file%writeAttribute(formatVersionCurrent        ,'formatVersion')
-    call file%writeAttribute(tableType                   ,'tableType'    )
-    call file%writeAttribute(table_%lattice%scheme%ID    ,'gridScheme'   )
-    call file%writeAttribute(table_%lattice%pointsPer    ,'pointsPer'    )
-    call file%writeAttribute(table_%lattice%indexMinimum ,'indexMinimum' )
-    call file%writeAttribute(table_%lattice%count        ,'count'        )
-    call file%writeAttribute(size(table_%yv,dim=2)       ,'countTables'  )
-    call file%writeDataset  (table_%xs()                 ,'x'            )
-    call file%writeDataset  (table_%yv                   ,'y'            )
+    call file%writeAttribute(formatVersionCurrent       ,'formatVersion')
+    call file%writeAttribute(tableType                  ,'tableType'    )
+    call file%writeAttribute(table_%lattice%scheme%ID   ,'gridScheme'   )
+    call file%writeAttribute(table_%lattice%pointsPer   ,'pointsPer'    )
+    call file%writeAttribute(table_%lattice%indexMinimum,'indexMinimum' )
+    call file%writeAttribute(table_%lattice%count       ,'count'        )
+    call file%writeAttribute(size(table_%yv,dim=2)      ,'countTables'  )
+    call file%writeDataset  (table_%xs()                ,'x'            )
+    call file%writeDataset  (table_%yv                  ,'y'            )
     !$ call hdf5Access%unset()
     return
   end subroutine Table_Cache_Write_1D
@@ -317,10 +317,10 @@ contains
        return
     end if
     ! Ignore a cached tabulation built on an incommensurate lattice.
-    if     (                                                            &
-         &   table_%lattice%scheme    /= tableCached%lattice%scheme     &
-         &  .or.                                                        &
-         &   table_%lattice%pointsPer /= tableCached%lattice%pointsPer   &
+    if     (                                                           &
+         &   table_%lattice%scheme    /= tableCached%lattice%scheme    &
+         &  .or.                                                       &
+         &   table_%lattice%pointsPer /= tableCached%lattice%pointsPer &
          & ) then
        call displayMessage('ignoring a cached tabulation built on an incommensurate lattice',verbosityLevelWorking)
        return
@@ -328,10 +328,10 @@ contains
     ! Nothing to contribute if we already contain everything cached.
     if (table_%lattice%covers(tableCached%lattice)) return
     ! Ignore a cached tabulation which neither overlaps nor abuts our own - the union would contain a gap.
-    if     (                                                                                     &
-         &   tableCached%lattice%indexMinimum   > table_     %lattice%indexMaximum()+1           &
-         &  .or.                                                                                 &
-         &   table_     %lattice%indexMinimum   > tableCached%lattice%indexMaximum()+1           &
+    if     (                                                                           &
+         &   tableCached%lattice%indexMinimum   > table_     %lattice%indexMaximum()+1 &
+         &  .or.                                                                       &
+         &   table_     %lattice%indexMinimum   > tableCached%lattice%indexMaximum()+1 &
          & ) then
        call displayMessage('ignoring a cached tabulation whose range is disjoint from that in memory',verbosityLevelWorking)
        return
@@ -389,7 +389,7 @@ contains
     the duration of the file input/output.
     !!}
     use :: Error             , only : Error_Report  , errorStatusSuccess
-    use :: File_Utilities    , only : Directory_Make, File_Exists       , File_Lock  , File_Path, &
+    use :: File_Utilities    , only : Directory_Make, File_Exists       , File_Lock, File_Path, &
          &                            File_Unlock   , lockDescriptor
     use :: ISO_Varying_String, only : char
     use :: Tables            , only : table2DLogLogLin
@@ -419,25 +419,25 @@ contains
     Read a cached two-dimensional tabulation from ``fileName``. The caller is responsible for holding a suitable lock on the
     file.
     !!}
-    use :: Error           , only : errorStatusFail          , errorStatusSuccess
+    use :: Error           , only : errorStatusFail , errorStatusSuccess
     use :: HDF5_Access     , only : hdf5Access
     use :: IO_HDF5         , only : hdf5File
-    use :: Numerical_Ranges, only : rangeLattice             , enumerationGridSchemeType
-    use :: Tables          , only : table2DLogLogLin         , tableTypeLogLogLin2D
+    use :: Numerical_Ranges, only : rangeLattice    , enumerationGridSchemeType
+    use :: Tables          , only : table2DLogLogLin, tableTypeLogLogLin2D
     implicit none
-    type            (table2DLogLogLin)                             , intent(  out) :: tableCached
-    type            (varying_string  )                             , intent(in   ) :: fileName
-    integer                                                        , intent(  out) :: status
-    type            (hdf5File        )                                             :: file
-    type            (rangeLattice    )                                             :: latticeX     , latticeY
-    logical                           , allocatable, dimension(:,:)                :: isComputed
-    double precision                  , allocatable, dimension(:,:,:)              :: valuesCached
-    integer                                                                        :: formatVersion, tableType   , &
-         &                                                                            gridSchemeX  , pointsPerX  , &
-         &                                                                            indexMinimumX, countX      , &
-         &                                                                            gridSchemeY  , pointsPerY  , &
-         &                                                                            indexMinimumY, countY      , &
-         &                                                                            countTables
+    type            (table2DLogLogLin)                               , intent(  out) :: tableCached
+    type            (varying_string  )                               , intent(in   ) :: fileName
+    integer                                                          , intent(  out) :: status
+    type            (hdf5File        )                                               :: file
+    type            (rangeLattice    )                                               :: latticeX     , latticeY
+    logical                           , allocatable, dimension(:,:  )                :: isComputed
+    double precision                  , allocatable, dimension(:,:,:)                :: valuesCached
+    integer                                                                          :: formatVersion, tableType , &
+         &                                                                              gridSchemeX  , pointsPerX, &
+         &                                                                              indexMinimumX, countX    , &
+         &                                                                              gridSchemeY  , pointsPerY, &
+         &                                                                              indexMinimumY, countY    , &
+         &                                                                              countTables
 
     status=errorStatusFail
     !$ call hdf5Access%set()
@@ -535,29 +535,29 @@ contains
        return
     end if
     ! Ignore a cached tabulation built on incommensurate lattices.
-    if     (                                                              &
-         &   table_%latticeX%scheme    /= tableCached%latticeX%scheme     &
-         &  .or.                                                          &
-         &   table_%latticeY%scheme    /= tableCached%latticeY%scheme     &
-         &  .or.                                                          &
-         &   table_%latticeX%pointsPer /= tableCached%latticeX%pointsPer  &
-         &  .or.                                                          &
-         &   table_%latticeY%pointsPer /= tableCached%latticeY%pointsPer  &
+    if     (                                                             &
+         &   table_%latticeX%scheme    /= tableCached%latticeX%scheme    &
+         &  .or.                                                         &
+         &   table_%latticeY%scheme    /= tableCached%latticeY%scheme    &
+         &  .or.                                                         &
+         &   table_%latticeX%pointsPer /= tableCached%latticeX%pointsPer &
+         &  .or.                                                         &
+         &   table_%latticeY%pointsPer /= tableCached%latticeY%pointsPer &
          & ) then
        call displayMessage('ignoring a cached tabulation built on incommensurate lattices',verbosityLevelWorking)
        return
     end if
     ! Nothing to contribute if we already contain everything cached.
-    if     (                                                &
-         &   table_     %latticeX%covers(tableCached%latticeX) &
-         &  .and.                                           &
-         &   table_     %latticeY%covers(tableCached%latticeY) &
+    if     (                                              &
+         &   table_%latticeX%covers(tableCached%latticeX) &
+         &  .and.                                         &
+         &   table_%latticeY%covers(tableCached%latticeY) &
          & ) return
     ! Adopt the cached tabulation if it contains everything we have.
-    if     (                                                &
-         &   tableCached%latticeX%covers(table_     %latticeX) &
-         &  .and.                                           &
-         &   tableCached%latticeY%covers(table_     %latticeY) &
+    if     (                                              &
+         &   tableCached%latticeX%covers(table_%latticeX) &
+         &  .and.                                         &
+         &   tableCached%latticeY%covers(table_%latticeY) &
          & ) then
        table_=tableCached
        status=errorStatusSuccess
