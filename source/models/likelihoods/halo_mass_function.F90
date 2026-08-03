@@ -116,6 +116,15 @@ contains
       <name>pathSamples</name>
       <description>
       The path into which the sampled mass functions should be written. If ``none``, then samples are not written.
+
+      One file is written per constraint per :term:`MPI` process, holding one record per likelihood evaluation - the
+      simulation step followed by the model mass function. Records are written for every evaluated proposal, not only for
+      accepted states, and the state proposed at a rejected step appears in no other output unless ``[logProposals]`` is
+      set on the simulation.
+
+      Each record carries the chain index alongside the simulation step. Files are named for the :term:`MPI` process
+      which performed the evaluation, which under ``[loadBalance]``\ ``=true`` need not be the process owning the chain,
+      so records must be attributed using the chain index rather than the file name.
       </description>
       <source>parameters</source>
       <defaultValue>var_str('none')</defaultValue>
@@ -294,7 +303,7 @@ contains
     double precision                                                                           :: massIntervalLogarithmic
     type            (matrix                                   )                                :: eigenVectors
     type            (vector                                   )                                :: eigenValues
-    type            (varying_string                           )                                :: sampleFileName
+    type            (varying_string                           )                                :: sampleFileName                    , rankLabel
     !![
     <constructorAssign variables="fileNames, redshifts, pathSamples, appendSamples, binCountMinimum, massRangeMinimum, massRangeMaximum, likelihoodPoisson, varianceFractionalModelDiscrepancy, binAverage, includeCorrelations, allowEmptyMassFunction, report, changeParametersFileNames, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_, *randomNumberGenerator_"/>
     !!]
@@ -468,8 +477,13 @@ contains
           self%sampleFileNames(iRedshift)=self%pathSamples//"/"//File_Name(fileNames(iRedshift))
           self%sampleFileNames(iRedshift)=extract(self%sampleFileNames(iRedshift),1,index(self%sampleFileNames(iRedshift),".hdf5")-1)//"_"//mpiSelf%rankLabel()//".txt"
           if (.not.self%appendSamples) then
+             rankLabel=mpiSelf%rankLabel()
              open(newUnit=unitSample,file=char(self%sampleFileNames(iRedshift)),form='formatted',status='unknown')
-             write (unitSample,'(a,a)') '# Sampled halo mass functions for chain ',char(mpiSelf%rankLabel())
+             write (unitSample,'(a,a)') '# Sampled halo mass functions written by process ',char(rankLabel)
+             write (unitSample,'(a)'  ) '# One row per likelihood evaluation. Columns: simulation step, chain index, then'
+             write (unitSample,'(a)'  ) '# the model mass function at each mass below. The chain index need not equal the'
+             write (unitSample,'(a)'  ) '# process which wrote this file: under [loadBalance] any process may evaluate any'
+             write (unitSample,'(a)'  ) '# chain, so records must be attributed using the chain index, not the file name.'
              write (unitSample,*      ) '# Masses: ',self%mass
              close(unitSample)
           end if
@@ -651,7 +665,7 @@ contains
     if (self%pathSamples /= "none") then
        do iTime=1,size(self%times)
           open(newUnit=unitSample,file=char(self%sampleFileNames(iTime)),form='formatted',status='unknown',position='append')
-          write (unitSample,*) simulationState%count(),massFunction(:,iTime)
+          write (unitSample,*) simulationState%count(),simulationState%chainIndex(),massFunction(:,iTime)
           close(unitSample)
        end do
     end if
