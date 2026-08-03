@@ -43,7 +43,7 @@
 
    .. math::
 
-      \tilde{P}(k) = \int_0^\infty \frac{1}{\sqrt{2 \pi} \sigma} \exp\left[-\frac{1}{2} \left(\frac{\log k - \log k^\prime}{\sigma}\right)^2\right] P(k^\prime) \mathrm{d}k^\prime,
+      \tilde{P}(k) = \int_{-\infty}^\infty \frac{1}{\sqrt{2 \pi} \sigma} \exp\left[-\frac{1}{2} \left(\frac{\log k - \log k^\prime}{\sigma}\right)^2\right] P(k^\prime) \mathrm{d} \log k^\prime,
 
    with the :math:`\log k` terms using natural logarithms, and :math:`\sigma=` ``[powerSpectrumSmoothingWidth]``.
    </description>
@@ -272,7 +272,7 @@ contains
   
   double precision function ETHOSExtendedPowerSpectrumSlopeSmoothed(self,wavenumber,time) result(slope)
     !!{RST
-    Compute the logarithmic derivate of the power spectrum after smoothing.
+    Compute the logarithmic derivative of the power spectrum after smoothing.
     !!}
     use :: Numerical_Ranges     , only : Make_Range, rangeTypeLinear
     use :: Numerical_Integration, only : integrator
