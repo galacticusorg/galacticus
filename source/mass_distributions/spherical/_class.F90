@@ -55,7 +55,7 @@
        <method description="Compute the kinetic energy of the mass distribution."                                                  method="energyKinetic"                      />
        <method description="Compute (numerically) the potential energy of mass distribution."                                      method="energyPotentialNumerical"           />
        <method description="Compute (numerically) the kinetic energy of the mass distribution."                                    method="energyKineticNumerical"             />
-       <method description="Compute (numerically) a radial densitymoment of the mass distribution."                                method="densityRadialMomentNumerical"       />
+       <method description="Compute (numerically) a radial density moment of the mass distribution."                               method="densityRadialMomentNumerical"       />
        <method description="Compute (numerically) the radial density gradient."                                                    method="densityGradientRadialNumerical"     />
        <method description="Compute (numerically) the mass enclosed by a sphere."                                                  method="massEnclosedBySphereNumerical"      />
        <method description="Compute (numerically) the rotation curve."                                                             method="rotationCurveNumerical"             />
