@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785361839818,
+  "lastUpdate": 1785795396752,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.01; γ=1.5)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "f6c72d27e56cc28a924e6b2a47ef8d6d68383317",
-          "message": "feat: Expand the functionality of the analysis script\n\nThe script can now assess and update the range of priors needed to encapsulate the span of \"good\" models. An updated configuration file is output suitable for the next iteration of model optimization.",
-          "timestamp": "2024-08-06T10:15:40-07:00",
-          "tree_id": "d27964c7e2c1b8d9c7db2198b5185a0ae2d272ad",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f6c72d27e56cc28a924e6b2a47ef8d6d68383317"
-        },
-        "date": 1722998460923,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteBoundMass",
-            "value": 57.2101605011752,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": 29.5453576269612,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteVelocityMaximum",
-            "value": 23.0353080339689,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9894,6 +9855,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/6cd4316ed766428efed5b6330b379ec7c155abeb"
         },
         "date": 1785361838758,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": 57.20235542563254,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 29.563494547901943,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 23.037546979505805,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "ae9cc618d0868833023d94cfd8288f42b5cffbe2",
+          "message": "feat(ssps): add fixed stellar spectrum metallicity option for SSP tables\n\nAllows the ionizing stellar spectrum to be held fixed at a chosen\nmetallicity while the HII region gas metallicity continues to vary\nacross the grid, so that the effects of gas-phase abundances can be\nisolated from those of the stellar spectrum. The ionizing photon rate\nper unit stellar mass, the Cloudy normalization, and the validation\ncheck all follow the fixed spectrum, and the requested and adopted\nmetallicities are recorded in the output file.\n\nAlso gives `--abundanceAdjust` an explicit empty-list default, since\n`action='append'` otherwise leaves it as `None`.",
+          "timestamp": "2026-08-03T07:58:19-07:00",
+          "tree_id": "46ce2b23f221f6406a2b99cbf53fad18a17105bf",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ae9cc618d0868833023d94cfd8288f42b5cffbe2"
+        },
+        "date": 1785795395652,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
