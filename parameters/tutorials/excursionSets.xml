@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<!-- Parameters for tutorial on computing solutions to the excursion set problem - https://github.com/galacticusorg/galacticus/wiki/Tutorial%3A-Solving-the-excursion-set-problem -->
+<!-- Parameters for tutorial on computing solutions to the excursion set problem - https://galacticus.readthedocs.io/en/latest/manuals/user-guide/tutorials/excursion-set-problem.html -->
 
 <parameters>
   <formatVersion>2</formatVersion>

@@ -55,7 +55,7 @@ Galaxy luminosities are output in the :term:`AB magnitude` system, such that a l
 Peculiar Velocities
 -------------------
 
-Velocities in Galacticus are always *physical* velocities. When reading merger tree properties (including velocities) from file it is often convenient to store velocities without the Hubble flow contribution, as "peculiar velocities", in the file---see `here <https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group>`_ for how to specify whether or not  the velocities included in the file include the Hubble flow or not.
+Velocities in Galacticus are always *physical* velocities. When reading merger tree properties (including velocities) from file it is often convenient to store velocities without the Hubble flow contribution, as "peculiar velocities", in the file---see the :ref:`forest halos group <forest-halos-group>` for how to specify whether or not  the velocities included in the file include the Hubble flow or not.
 
 If peculiar velocities are stored it is important to use the same definition of peculiar velocity as is used by Galacticus. Defining :math:`t` to be physical time and :math:`\mathbf{x}` to be comoving position, Galacticus uses the conventional definition of peculiar velocity in a cosmological context, namely that it is the deviation of the physical velocity from the Hubble flow. Physical coordinates are given by :math:`\mathbf{r} = a\mathbf{x}`, so the peculiar velocity is
 

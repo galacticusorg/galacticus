@@ -69,6 +69,4 @@ Next steps
   output.
 * :doc:`advanced` — parameter files, output structure, and advanced usage.
 * :doc:`troubleshooting/index` — what to do if something goes wrong.
-* A collection of
-  `tutorials <https://github.com/galacticusorg/galacticus/wiki/Tutorials>`_ is
-  available on the wiki.
+* :doc:`tutorials/index` — a collection of worked examples.

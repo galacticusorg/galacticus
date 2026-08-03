@@ -3,7 +3,7 @@ Run-Time Error Messages
 
 As you are running Galacticus it's quite likely that you'll eventually run into an error. This page lists common types of such run-time errors, along with guidance on what they mean and how to fix them.
 
-For *compile-time* errors (i.e. things that go wrong when you are actually running the compiled executable, ``Galacticus.exe``) you should refer to this `page <https://github.com/galacticusorg/galacticus/wiki/Troubleshooting:-Compile-Time-Error-Messages>`_. For other problems (Galacticus is not performing as you expect, or doing what you want) see the general troubleshooting `page <https://github.com/galacticusorg/galacticus/wiki/Troubleshooting>`_.
+For *compile-time* errors (i.e. things that go wrong when you are building the ``Galacticus.exe`` executable) you should refer to :doc:`compile-time-errors`. For other problems (Galacticus is not performing as you expect, or doing what you want) see the general :doc:`index`.
 
 Error Message Diagnosis and Reporting
 -------------------------------------
@@ -22,20 +22,20 @@ If a Galacticus run fails, this flowchart can help to diagnose a failed Galactic
      DynamicNotExistQ --no--> ParameterEmptyValueQ
      DynamicNotExist(See here)
      style DynamicNotExist fill:#74c7db
-     click DynamicNotExist href "https://github.com/galacticusorg/galacticus/wiki/Troubleshooting:-Run-Time-Error-Messages#dataset-xyz-does-not-exist-in-datasetsdynamic" "dummy"
+     click DynamicNotExist href "#dataset-xyz-does-not-exist-in-datasets-dynamic" "dummy"
      ParameterEmptyValueQ{{"Error message includes the phrase
                        'empty value in parameter [xyz]'?"}}
      ParameterEmptyValueQ --yes--> ParameterEmptyValue
      ParameterEmptyValueQ --no--> RamPressureComponentQ
      ParameterEmptyValue(See here)
      style ParameterEmptyValue fill:#74c7db
-     click ParameterEmptyValue href "https://github.com/galacticusorg/galacticus/wiki/Troubleshooting:-Run-Time-Error-Messages%3A-Run-Time-Error-Messages#empty-value-in-parameter" "dummy"
+     click ParameterEmptyValue href "#empty-value-in-parameter" "dummy"
      RamPressureComponentQ{{"Error message includes the phrase
                        'only ＂xyz＂ components are supported by the ＂abc＂ ramPressureStripping class'?"}}
      RamPressureComponentQ --yes--> RamPressureComponent
      RamPressureComponent(See here)
      style RamPressureComponent fill:#74c7db
-     click RamPressureComponent href "https://github.com/galacticusorg/galacticus/wiki/Troubleshooting%3A-Run-Time-Error-Messages#inconsistent-assumptions-for-ram-pressure-models" "dummy"
+     click RamPressureComponent href "#inconsistent-assumptions-for-ram-pressure-models" "dummy"
      System{{Error message includes the phrase:}}
      System --Floating point exception--> FPE
      System --Segmentation fault--> SegFault
@@ -44,19 +44,19 @@ If a Galacticus run fails, this flowchart can help to diagnose a failed Galactic
      System --Command terminated by signal 9--> Signal9
      FPE(See here)
      style FPE fill:#74c7db
-     click FPE href "https://github.com/galacticusorg/galacticus/wiki/Troubleshooting:-Run-Time-Error-Messages#floating-point-errors-and-segfaults" "dummy"
+     click FPE href "#floating-point-errors-and-segfaults" "dummy"
      SegFault(See here)
      style SegFault fill:#74c7db
-     click SegFault href "https://github.com/galacticusorg/galacticus/wiki/Troubleshooting:-Run-Time-Error-Messages#floating-point-errors-and-segfaults" "dummy"
+     click SegFault href "#floating-point-errors-and-segfaults" "dummy"
      Bus(See here)
      style Bus fill:#74c7db
-     click Bus href "https://github.com/galacticusorg/galacticus/wiki/Troubleshooting%3A-Run-Time-Error-Messages#bus-errors-illegal-instructions-and-signal-9" "dummy"
+     click Bus href "#bus-errors-illegal-instructions-and-signal-9" "dummy"
      Illegal(See here)
      style Illegal fill:#74c7db
-     click Illegal href "https://github.com/galacticusorg/galacticus/wiki/Troubleshooting%3A-Run-Time-Error-Messages#bus-errors-illegal-instructions-and-signal-9" "dummy"
+     click Illegal href "#bus-errors-illegal-instructions-and-signal-9" "dummy"
      Signal9(See here)
      style Signal9 fill:#74c7db
-     click Signal9 href "https://github.com/galacticusorg/galacticus/wiki/Troubleshooting%3A-Run-Time-Error-Messages#bus-errors-illegal-instructions-and-signal-9" "dummy"
+     click Signal9 href "#bus-errors-illegal-instructions-and-signal-9" "dummy"
 
 Floating point errors and Segfaults
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

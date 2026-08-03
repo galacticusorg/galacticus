@@ -14,7 +14,7 @@ that you have merger trees from a cosmological simulation available in
 Galacticus' merger tree file format.
 
 Each such merger tree file can then be run through Galacticus in the
-usual way (see the tutorial on "`Using N-body Merger Trees <https://github.com/galacticusorg/galacticus/wiki/Tutorial:-Using-N-body-Merger-Trees>`_"). Outputs should be requested at every snapshot (up to the largest redshift to be considered), and
+usual way (see the tutorial on :doc:`Using N-body Merger Trees <nbody-merger-trees>`). Outputs should be requested at every snapshot (up to the largest redshift to be considered), and
 the ``lightcone`` filter should be used to cause only those
 galaxies which intersect the lightcone to be output—for example:
 

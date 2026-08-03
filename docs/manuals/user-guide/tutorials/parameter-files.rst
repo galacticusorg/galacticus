@@ -11,7 +11,7 @@ An extremely simple parameter file (taken from the `power spectrum tutorial <htt
 .. code-block:: xml
 
    <?xml version="1.0" encoding="UTF-8"?>
-   <!-- Parameters for tutorial on computing the power spectrum - https://github.com/galacticusorg/galacticus/wiki/Tutorial%3A-Power-spectra -->
+   <!-- Parameters for tutorial on computing the power spectrum - https://galacticus.readthedocs.io/en/latest/manuals/user-guide/tutorials/power-spectra.html -->
    <parameters>
      <formatVersion>2</formatVersion>
      <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03" strict="true"/>
@@ -61,7 +61,7 @@ The first few lines:
 .. code-block:: xml
 
    <?xml version="1.0" encoding="UTF-8"?>
-   <!-- Parameters for tutorial on computing the power spectrum - https://github.com/galacticusorg/galacticus/wiki/Tutorial%3A-Power-spectra -->
+   <!-- Parameters for tutorial on computing the power spectrum - https://galacticus.readthedocs.io/en/latest/manuals/user-guide/tutorials/power-spectra.html -->
    <parameters>
      <formatVersion>2</formatVersion>
      <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03" strict="true"/>

@@ -3,7 +3,7 @@ Dark Matter Subhalo Evolution
 
 In this tutorial we'll use Galacticus to evolve populations of subhalos within a dark matter halo merger tree and output their properties. No baryonic physics (well, almost no baryonic physics) is included in this model.
 
-If you haven't already installed Galacticus, you can find the installation instructions `here <https://github.com/galacticusorg/galacticus/wiki#how-do-i-install-and-use-galacticus>`_.
+If you haven't already installed Galacticus, you can find the installation instructions in :doc:`../installation/index`.
 
 Running the calculation
 -----------------------

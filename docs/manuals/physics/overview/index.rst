@@ -14,10 +14,10 @@ Galacticus evolves halos and galaxies using its "*evolver engine*", which works 
      Components --> Engine
      Operators --> Engine
      Functions --> Operators
-     click Components href "https://github.com/galacticusorg/galacticus/wiki/How-Galacticus-Evolves-Halos-and-Galaxies#components" "Things that make up a galaxy (disk, spheroid, etc.)"
-     click Engine href "https://github.com/galacticusorg/galacticus/wiki/How-Galacticus-Evolves-Halos-and-Galaxies#engine" "Applies operators to components to evolve them forward in time"
-     click Operators href "https://github.com/galacticusorg/galacticus/wiki/How-Galacticus-Evolves-Halos-and-Galaxies#operators" "Processes that act on components"
-     click Functions href "https://github.com/galacticusorg/galacticus/wiki/How-Galacticus-Evolves-Halos-and-Galaxies#functions" "Define the functional forms of processes"
+     click Components href "#components" "Things that make up a galaxy (disk, spheroid, etc.)"
+     click Engine href "#engine" "Applies operators to components to evolve them forward in time"
+     click Operators href "#operators" "Processes that act on components"
+     click Functions href "#functions" "Define the functional forms of processes"
     style Operators fill:#ff02ff
     style Components fill:#ff1212
     style Functions fill:#1212ff,color:#ffffff

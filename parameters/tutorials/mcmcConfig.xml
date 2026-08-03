@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <parameters>
-  <!-- Parameters for tutorial on constraining Galacticus parameters - https://github.com/galacticusorg/galacticus/wiki/Tutorial%3A-Constraining-Galacticus-Parameters -->
+  <!-- Parameters for tutorial on constraining Galacticus parameters - https://galacticus.readthedocs.io/en/latest/manuals/user-guide/tutorials/constraining-parameters.html -->
   <formatVersion>2</formatVersion>
   <lastModified revision="a3e1665914d944c9fa844f662a028072e84740a5" time="2026-07-28T17:29:21"/>
 

@@ -7,7 +7,7 @@ Below is a flowchart indicating the physical components and processes that typic
 
    flowchart LR
        IGM
-       CGM[<a href='https://github.com/galacticusorg/galacticus/wiki/CGM-Physics' style='text-decoration: none'>CGM</a>]
+       CGM[<a href='cgm.html' style='text-decoration: none'>CGM</a>]
        Spheroid
        Disk[Accretion disk]
        SMBH

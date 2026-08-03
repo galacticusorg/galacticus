@@ -191,9 +191,9 @@ contains
        radiusHalfMass=0.0d0
        velocity      =0.
        massGas       =0.0d0
-       call Error_Report(                                                                                                                                                                                                                                        &
-            &            'only "'//displayBlue()//'disk'//displayReset()//'" components are supported by the "'//displayGreen()//'simpleCylindrical'//displayReset()//'" '//displayBlue()//'ramPressureStripping'//displayReset()//' class'//char(10)//          &
-            &            displayGreen()//'HELP:'//displayReset()//' see '//displayMagenta()//'https://github.com/galacticusorg/galacticus/wiki/Troubleshooting:-Component-not-supported-by-ramPressureStripping-class'//displayReset()//{introspection:location} &
+       call Error_Report(                                                                                                                                                                                                                                                                     &
+            &            'only "'//displayBlue()//'disk'//displayReset()//'" components are supported by the "'//displayGreen()//'simpleCylindrical'//displayReset()//'" '//displayBlue()//'ramPressureStripping'//displayReset()//' class'//char(10)//                                       &
+            &            displayGreen()//'HELP:'//displayReset()//' see '//displayMagenta()//'https://galacticus.readthedocs.io/en/latest/manuals/user-guide/troubleshooting/run-time-errors.html#inconsistent-assumptions-for-ram-pressure-models'//displayReset()//{introspection:location} &
             &           )
     end select
     ! Compute the surface densities at the half mass radius.

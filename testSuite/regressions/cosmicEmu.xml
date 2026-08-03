@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<!-- Parameters for tutorial on computing the power spectrum - https://github.com/galacticusorg/galacticus/wiki/Tutorial%3A-Power-spectra -->
+<!-- Parameters for tutorial on computing the power spectrum - https://galacticus.readthedocs.io/en/latest/manuals/user-guide/tutorials/power-spectra.html -->
 
 <parameters>
   <formatVersion>2</formatVersion>
