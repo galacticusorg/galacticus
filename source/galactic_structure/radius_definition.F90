@@ -434,7 +434,7 @@ contains
 
   subroutine radiusDefinitionsSolitonRegister(self)
     !!{RST
-    Register the meta-properties in which the \gls{fdm} soliton radii are stored. These are registered only if some radius
+    Register the meta-properties in which the :term:`FDM` soliton radii are stored. These are registered only if some radius
     definition actually refers to them, so that models with no such definitions do not carry the (unused) meta-properties. Note
     that the meta-properties are registered here with ``isCreator="no"``---whether any class actually creates
     them is not known until all classes have been constructed, and so must be tested when the radii are evaluated, not here.
