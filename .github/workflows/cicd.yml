@@ -1537,7 +1537,8 @@ jobs:
                 test-objectBuilder-recursion-success.py,
                 test-library-interfaces.py,
                 test-merger-tree-read-ties.py,
-                test-node-trajectory.py ]
+                test-node-trajectory.py,
+                test-virial-orbit-loss-cone.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}

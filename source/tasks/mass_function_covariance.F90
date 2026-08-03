@@ -17,6 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson. The fix for issue #1321 was diagnosed and drafted with
+!+    assistance from Claude, and reviewed and verified by Andrew Benson.
+
   use :: Conditional_Mass_Functions, only : conditionalMassFunction, conditionalMassFunctionClass
   use :: Cosmology_Functions       , only : cosmologyFunctions     , cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Biases   , only : darkMatterHaloBias     , darkMatterHaloBiasClass
@@ -1199,7 +1202,7 @@ contains
          &                                                                           taskCount                    , taskTotal
     double precision                                                              :: wavenumberMinimum            , wavenumberMaximum, &
          &                                                                           distanceMaximum
-    type            (integrator                )                                  :: integrator_
+    type            (integrator                )                , allocatable     :: integrator_
 
     countFields=self_%surveyGeometry_%fieldCount()
     !$ call OMP_Set_Max_Active_Levels(OMP_Get_Supported_Active_Levels())
@@ -1221,6 +1224,12 @@ contains
     allocate(selfCopy%timeMinimumJ        (countFields))
     allocate(selfCopy%timeMaximumI        (countFields))
     allocate(selfCopy%timeMaximumJ        (countFields))
+    ! The integrator is declared "allocatable" and allocated here, rather than being a plain variable in the "private" clause
+    ! above, because gfortran does not apply default initialization to the private copy of a derived type which has no
+    ! allocatable components. Its reference-counting "resourceManager" components would therefore start filled with stack
+    ! garbage, and the assignment below (which finalizes the left-hand side) would release that garbage, either blocking forever
+    ! in OMP_Set_Lock() on a bogus lock pointer or writing through a bogus counter pointer (see issue #1321).
+    allocate(integrator_)
     integrator_=integrator(massFunctionCovarianceAngularPowerIntegrand,toleranceRelative=1.0d-2)
     !$omp do schedule (dynamic)
     do i=1,massBinCount
