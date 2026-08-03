@@ -90,6 +90,7 @@
      procedure :: massTotal                         => zhao1996MassTotal
      procedure :: density                           => zhao1996Density
      procedure :: densityGradientRadial             => zhao1996DensityGradientRadial
+     procedure :: densitySlopeLogarithmicCentral    => zhao1996DensitySlopeLogarithmicCentral
      procedure :: densityRadialMoment               => zhao1996DensityRadialMoment
      procedure :: massEnclosedBySphere              => zhao1996MassEnclosedBySphere
      procedure :: velocityRotationCurveMaximum      => zhao1996VelocityRotationCurveMaximum
@@ -443,6 +444,18 @@ contains
          &                                       /coordinates%rSpherical           (           )
     return
   end function zhao1996DensityGradientRadial
+
+  double precision function zhao1996DensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in a :cite:t:`zhao_analytical_1996` mass distribution, which
+    is simply :math:`-\gamma`. The density is evaluable at zero radius only for :math:`\gamma=0`.
+    !!}
+    implicit none
+    class(massDistributionZhao1996), intent(inout) :: self
+
+    slope=-self%gamma
+    return
+  end function zhao1996DensitySlopeLogarithmicCentral
 
   double precision function zhao1996DensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
     !!{RST

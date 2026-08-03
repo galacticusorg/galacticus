@@ -54,12 +54,13 @@
      </methods>
      !!]
      final     ::                           sphericalTruncatedDestructor
-     procedure :: density                => sphericalTruncatedDensity
-     procedure :: densityGradientRadial  => sphericalTruncatedDensityGradientRadial
-     procedure :: massTotal              => sphericalTruncatedMassTotal
-     procedure :: massEnclosedBySphere   => sphericalTruncatedMassEnclosedBySphere
-     procedure :: radiusEnclosingMass    => sphericalTruncatedRadiusEnclosingMass
-     procedure :: truncationFunction     => sphericalTruncatedTruncationFunction
+     procedure :: density                        => sphericalTruncatedDensity
+     procedure :: densitySlopeLogarithmicCentral => sphericalTruncatedDensitySlopeLogarithmicCentral
+     procedure :: densityGradientRadial          => sphericalTruncatedDensityGradientRadial
+     procedure :: massTotal                      => sphericalTruncatedMassTotal
+     procedure :: massEnclosedBySphere           => sphericalTruncatedMassEnclosedBySphere
+     procedure :: radiusEnclosingMass            => sphericalTruncatedRadiusEnclosingMass
+     procedure :: truncationFunction             => sphericalTruncatedTruncationFunction
   end type massDistributionSphericalTruncated
 
   interface massDistributionSphericalTruncated
@@ -223,6 +224,18 @@ contains
          &  *                       multiplier
     return
   end function sphericalTruncatedDensity
+
+  double precision function sphericalTruncatedDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in a truncated spherical mass distribution. Truncation
+    affects only the outer regions of the profile, leaving the central slope that of the untruncated distribution.
+    !!}
+    implicit none
+    class(massDistributionSphericalTruncated), intent(inout) :: self
+
+    slope=self%massDistribution_%densitySlopeLogarithmicCentral()
+    return
+  end function sphericalTruncatedDensitySlopeLogarithmicCentral
 
   double precision function sphericalTruncatedDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{RST

@@ -54,6 +54,7 @@
      procedure :: assumeMonotonicDecreasingSurfaceDensity => cylindricalScalerAssumeMonotonicDecreasingSurfaceDensity
      procedure :: massTotal                               => cylindricalScalerMassTotal
      procedure :: density                                 => cylindricalScalerDensity
+     procedure :: densitySlopeLogarithmicCentral          => cylindricalScalerDensitySlopeLogarithmicCentral
      procedure :: densitySphericalAverage                 => cylindricalScalerDensitySphericalAverage
      procedure :: densityGradientRadial                   => cylindricalScalerDensityGradientRadial
      procedure :: surfaceDensity                          => cylindricalScalerSurfaceDensity
@@ -231,6 +232,18 @@ contains
          &                   /self                  %factorScalingLength**3
     return
   end function cylindricalScalerDensity
+
+  double precision function cylindricalScalerDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in a scaled cylindrical mass distribution. Scaling the length
+    and mass of a distribution leaves its logarithmic slope unchanged.
+    !!}
+    implicit none
+    class(massDistributionCylindricalScaler), intent(inout) :: self
+
+    slope=self%massDistribution_%densitySlopeLogarithmicCentral()
+    return
+  end function cylindricalScalerDensitySlopeLogarithmicCentral
 
   double precision function cylindricalScalerDensityGradientRadial(self,coordinates,logarithmic)
     !!{RST

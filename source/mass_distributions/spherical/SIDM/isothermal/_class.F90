@@ -93,13 +93,14 @@
      </methods>
      !!]
      final     ::                           sphericalSIDMIsothermalDestructor
-     procedure :: computeSolution        => sphericalSIDMIsothermalComputeSolution
-     procedure :: tabulateSolutions      => sphericalSIDMIsothermalTabulateSolutions
-     procedure :: density                => sphericalSIDMIsothermalDensity
-     procedure :: densityGradientRadial  => sphericalSIDMIsothermalDensityGradientRadial
-     procedure :: massEnclosedBySphere   => sphericalSIDMIsothermalMassEnclosedBySphere
-     procedure :: potential              => sphericalSIDMIsothermalPotential
-     procedure :: potentialIsAnalytic    => sphericalSIDMIsothermalPotentialIsAnalytic
+     procedure :: computeSolution                => sphericalSIDMIsothermalComputeSolution
+     procedure :: tabulateSolutions              => sphericalSIDMIsothermalTabulateSolutions
+     procedure :: density                        => sphericalSIDMIsothermalDensity
+     procedure :: densitySlopeLogarithmicCentral => sphericalSIDMIsothermalDensitySlopeLogarithmicCentral
+     procedure :: densityGradientRadial          => sphericalSIDMIsothermalDensityGradientRadial
+     procedure :: massEnclosedBySphere           => sphericalSIDMIsothermalMassEnclosedBySphere
+     procedure :: potential                      => sphericalSIDMIsothermalPotential
+     procedure :: potentialIsAnalytic            => sphericalSIDMIsothermalPotentialIsAnalytic
   end type massDistributionSphericalSIDMIsothermal
 
   interface massDistributionSphericalSIDMIsothermal
@@ -565,6 +566,20 @@ contains
     end if
     return
   end function sphericalSIDMIsothermalDensity
+
+  double precision function sphericalSIDMIsothermalDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in an isothermal Jeans solution self-interacting dark matter
+    mass distribution. Self-interactions establish an isothermal core within the interaction radius, so the density is finite
+    at zero radius.
+    !!}
+    implicit none
+    class(massDistributionSphericalSIDMIsothermal), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    slope=0.0d0
+    return
+  end function sphericalSIDMIsothermalDensitySlopeLogarithmicCentral
 
   double precision function sphericalSIDMIsothermalDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{RST

@@ -60,12 +60,13 @@
        <method description="(Re)initialize the structural properties of the Gaussian ellispoid."                    method="initialize"             />
      </methods>
      !!]
-     procedure :: density                 => gaussianEllipsoidDensity
-     procedure :: densityEllipsoidal      => gaussianEllipsoidDensityEllipsoidal
-     procedure :: acceleration            => gaussianEllipsoidAcceleration
-     procedure :: accelerationTabulate    => gaussianEllipsoidAccelerationTabulate
-     procedure :: accelerationInterpolate => gaussianEllipsoidAccelerationInterpolate
-     procedure :: initialize              => gaussianEllipsoidInitialize
+     procedure :: density                        => gaussianEllipsoidDensity
+     procedure :: densitySlopeLogarithmicCentral => gaussianEllipsoidDensitySlopeLogarithmicCentral
+     procedure :: densityEllipsoidal             => gaussianEllipsoidDensityEllipsoidal
+     procedure :: acceleration                   => gaussianEllipsoidAcceleration
+     procedure :: accelerationTabulate           => gaussianEllipsoidAccelerationTabulate
+     procedure :: accelerationInterpolate        => gaussianEllipsoidAccelerationInterpolate
+     procedure :: initialize                     => gaussianEllipsoidInitialize
   end type massDistributionGaussianEllipsoid
 
   interface massDistributionGaussianEllipsoid
@@ -311,6 +312,19 @@ contains
     gaussianEllipsoidDensity=+self%densityEllipsoidal(mSquared)
     return
   end function gaussianEllipsoidDensity
+
+  double precision function gaussianEllipsoidDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in a Gaussian ellipsoid mass distribution. The density is
+    finite at the center of the ellipsoid, and so is evaluable there.
+    !!}
+    implicit none
+    class(massDistributionGaussianEllipsoid), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    slope=0.0d0
+    return
+  end function gaussianEllipsoidDensitySlopeLogarithmicCentral
 
   double precision function gaussianEllipsoidDensityEllipsoidal(self,mSquared)
     !!{RST
