@@ -83,7 +83,7 @@ contains
     <addMetaProperty component="darkMatterProfile" name="solitonRadiusCore"     id="self%radiusCoreID"     isEvolvable="no"  isCreator="no"/>
     <addMetaProperty component="darkMatterProfile" name="solitonRadiusSoliton"  id="self%radiusSolitonID"  isEvolvable="no"  isCreator="no"/>
     <addMetaProperty component="darkMatterProfile" name="solitonZeta"           id="self%zetaID"           isEvolvable="no"  isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="solitonStatus"         id="self%solitonStatusID" isEvolvable="no" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonStatus"         id="self%solitonStatusID"         type="integer"    isCreator="no"/>
     !!]
     return
   end function solitonConstructorInternal
@@ -130,14 +130,14 @@ contains
         &             0.0d0   &
         &            ]
     class default
-      solitonExtract=[                                                                    &
-       &              darkMatterProfile%floatRank0MetaPropertyGet(self%massCoreNormalID), &
-       &              darkMatterProfile%floatRank0MetaPropertyGet(self%massCoreID      ), &
-       &              darkMatterProfile%floatRank0MetaPropertyGet(self%densityCoreID   ), &
-       &              darkMatterProfile%floatRank0MetaPropertyGet(self%radiusCoreID    ), &
-       &              darkMatterProfile%floatRank0MetaPropertyGet(self%radiusSolitonID ), &
-       &              darkMatterProfile%floatRank0MetaPropertyGet(self%zetaID          ), &
-       &              darkMatterProfile%floatRank0MetaPropertyGet(self%solitonStatusID )  &
+      solitonExtract=[                                                                      &
+       &              darkMatterProfile%floatRank0MetaPropertyGet  (self%massCoreNormalID), &
+       &              darkMatterProfile%floatRank0MetaPropertyGet  (self%massCoreID      ), &
+       &              darkMatterProfile%floatRank0MetaPropertyGet  (self%densityCoreID   ), &
+       &              darkMatterProfile%floatRank0MetaPropertyGet  (self%radiusCoreID    ), &
+       &              darkMatterProfile%floatRank0MetaPropertyGet  (self%radiusSolitonID ), &
+       &              darkMatterProfile%floatRank0MetaPropertyGet  (self%zetaID          ), &
+       &              real(darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID), kind=8)  &
        &             ]    
     end select
     return

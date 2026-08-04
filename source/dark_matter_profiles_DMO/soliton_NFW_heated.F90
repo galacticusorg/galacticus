@@ -250,7 +250,7 @@ contains
     !![
     <constructorAssign variables="nonAnalyticSolver,*darkMatterHaloScale_,*darkMatterParticle_,*darkMatterProfileHeating_,*cosmologyFunctions_,*cosmologyParameters_,*virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,tolerateEnclosedMassIntegrationFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,velocityDispersionApproximate,fractionRadiusFinalSmall,toleranceRelativePotential,scatterFractional"/>
     <addMetaProperty component="darkMatterProfile" name="solitonRandomOffset"   id="self%randomOffsetID"   isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty component="darkMatterProfile" name="solitonStatus"         id="self%statusID"         type="integer"    isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonStatus"         id="self%solitonStatusID"         type="integer"    isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="solitonDensityCore"    id="self%densityCoreID"    isEvolvable="no"  isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="solitonRadiusCore"     id="self%radiusCoreID"     isEvolvable="no"  isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="solitonRadiusSoliton"  id="self%radiusSolitonID"  isEvolvable="no"  isCreator="yes"/>
@@ -391,9 +391,9 @@ contains
     ! Compute properties of the distribution.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
 
-    basic             => node             %basic                    (                    )
-    darkMatterProfile => node             %darkMatterProfile        (                    )
-    solitonStatus     =  darkMatterProfile%floatRank0MetaPropertyGet(self%solitonStatusID)
+    basic             => node             %basic                      (                    )
+    darkMatterProfile => node             %darkMatterProfile          (                    )
+    solitonStatus     =  darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID)
 
     ! Cache the initial halo structure so that the halo remains consistently treated as either a soliton+NFW or an NFW profile throughout its evolution.
     ! solitonStatus = 0  : initial
@@ -427,10 +427,10 @@ contains
     densityScale =self%densityScalePrevious
     massCore     =self%massCorePrevious
 
-    solitonStatus     = darkMatterProfile%floatRank0MetaPropertyGet(self%solitonStatusID)
+    solitonStatus     = darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID)
     
     ! Construct the distribution.
-    if (solitonStatus == +2.0d0) then
+    if (solitonStatus == 2) then
        ! Build a soliton only mass distribution.
        allocate(massDistributionSoliton       :: massDistribution_      )
        allocate(kinematicsDistributionSoliton :: kinematicsDistribution_)
@@ -466,7 +466,7 @@ contains
        !![
        <objectDestructor name="kinematicsDistribution_"/>
        !!]
-    else if (solitonStatus < 0.0d0) then
+    else if (solitonStatus < 0) then
        ! No soliton - build a simple NFW mass distribution.
        allocate(massDistributionNFW :: massDistributionNFW_)
        select type(massDistributionNFW_)
@@ -633,10 +633,10 @@ contains
     darkMatterProfile => node%darkMatterProfile()
     call darkMatterProfile%floatRank0MetaPropertySet(self%radiusSolitonID,-1.0d0)
     call darkMatterProfile%floatRank0MetaPropertySet(self%massCoreID     ,-1.0d0)
-    solitonStatus = darkMatterProfile%integerRank0MetaPropertyGet(self%statusID)
+    solitonStatus = darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID)
     ! Initialize the status on the first call.  If a soliton solution is found, the halo is treated as a soliton+NFW profile thereafter. Otherwise the status is set to -1 and the halo is treated as an NFW profile for all subsequent calls.
     if (solitonStatus == 0) &
-        & call darkMatterProfile%integerRank0MetaPropertySet(self%statusID,-1)
+        & call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,-1)
     ! Extract basic properties of the node.
     expansionFactor=+self             %cosmologyFunctions_% expansionFactor            (basic%time           ())
     redshift       =+self             %cosmologyFunctions_ %redshiftFromExpansionFactor(      expansionFactor  )
@@ -742,19 +742,19 @@ contains
             &                 )
        radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore,status=status)   
        if (status == errorStatusSuccess) then
-           call darkMatterProfile%floatRank0MetaPropertySet(self%randomOffsetID ,randomOffset )
-           call darkMatterProfile%floatRank0MetaPropertySet(self%solitonStatusID,1            )
-           call darkMatterProfile%floatRank0MetaPropertySet(self%radiusSolitonID,radiusSoliton)
-           call darkMatterProfile%floatRank0MetaPropertySet(self%massCoreID     ,massCore     )
-           call darkMatterProfile%floatRank0MetaPropertySet(self%densityCoreID  ,densityCore  )
-           call darkMatterProfile%floatRank0MetaPropertySet(self%radiusCoreID   ,radiusCore   )
+           call darkMatterProfile%floatRank0MetaPropertySet  (self%randomOffsetID ,randomOffset )
+           call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,1            )
+           call darkMatterProfile%floatRank0MetaPropertySet  (self%radiusSolitonID,radiusSoliton)
+           call darkMatterProfile%floatRank0MetaPropertySet  (self%massCoreID     ,massCore     )
+           call darkMatterProfile%floatRank0MetaPropertySet  (self%densityCoreID  ,densityCore  )
+           call darkMatterProfile%floatRank0MetaPropertySet  (self%radiusCoreID   ,radiusCore   )
            exit
        end if
     end do
     call darkMatterProfile%floatRank0MetaPropertySet(self%zetaID             ,zeta_z/zeta_0)
 
     if (status /= errorStatusSuccess) then
-        call darkMatterProfile%floatRank0MetaPropertySet(self%solitonStatusID,-1.0d0       )
+        call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,-1         )
     end if
     
     return
