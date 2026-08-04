@@ -28,7 +28,19 @@
   !![
   <blackHoleCGMHeating name="blackHoleCGMHeatingQuasistatic" docformat="rst">
    <description>
-   A black hole CGM heating class that models quasi-static AGN feedback, in which the rate of energy deposited into the circumgalactic medium depends on how closely the :term:`CGM` is in hydrostatic equilibrium. The overall coupling efficiency is controlled by the ``[efficiencyHeating]`` parameter.
+   A black hole CGM heating class that models quasi-static AGN feedback, in which the rate of energy deposited into the circumgalactic medium depends on how closely the :term:`CGM` is in hydrostatic equilibrium. Specifically, the heating rate is
+
+   .. math::
+
+      \dot{E} = \epsilon_\mathrm{coupling} \epsilon_\mathrm{heat} \dot{M}_\bullet \clight^2,
+
+   where :math:`\dot{M}_\bullet` is the total rest mass accretion rate onto the black hole, :math:`\epsilon_\mathrm{heat}=`\ ``[efficiencyHeating]`` is the overall coupling efficiency, and :math:`\epsilon_\mathrm{coupling}` measures the extent to which the halo is in the slow (quasi-static) cooling regime:
+
+   .. math::
+
+      \epsilon_\mathrm{coupling} = \left\{ \begin{array}{ll} 1 &amp; \hbox{ if } x &lt; 0.9 \\ y(x)^2[2 y(x) - 3]+1 &amp; \hbox{ if } 0.9 \le x \le 1.0 \\ 0 &amp; \hbox{ if } x &gt; 1.0, \end{array} \right.
+
+   where :math:`x = r_\mathrm{cool}/r_\mathrm{virial}` and :math:`y(x)=[x-0.9]/[1.0-0.9]`. Heating therefore switches off smoothly as the cooling radius grows to the virial radius, i.e. as the halo leaves the slow cooling regime (see, for example, :cite:author:`benson_cold_2010` :cite:year:`benson_cold_2010`). No heating occurs for non-positive accretion rates.
    </description>
   </blackHoleCGMHeating>
   !!]

@@ -48,6 +48,14 @@
    <description>
    A node operator class that initializes halo angular momenta using the model of :cite:t:`vitvitska_origin_2002`.
 
+   The angular momenta of halos having no children are drawn at random from the selected spin distribution function (see :galacticus-class:`haloSpinDistributionClass`). For all other halos, the angular momentum is built up from that of the primary progenitor plus the orbital angular momenta of all non-primary progenitors, modulated by a factor which depends on the mass ratio of the merging halos:
+
+   .. math::
+
+      \mathbf{J}^\mathrm{(spin)}_\mathrm{parent} = \mathbf{J}^\mathrm{(spin)}_{1} + \sum_{i=2}^N \left[ \left(1+{m_i \over m_{1}}\right)^{-\alpha} \mathbf{J}^\mathrm{(orbit)}_{i} + \mathbf{J}^\mathrm{(spin)}_{i} \right],
+
+   where :math:`m_1` and :math:`\mathbf{J}^\mathrm{(spin)}_{1}` are the mass and spin angular momentum of the primary progenitor, :math:`\mathbf{J}^\mathrm{(orbit)}_{i}` is the orbital angular momentum of the :math:`i^\mathrm{th}` non-primary progenitor (determined from its orbital parameters, drawn from the selected :galacticus-class:`virialOrbitClass`), and :math:`\alpha=`\ ``[exponentMass]``. The mass ratio factor corrects the orbital angular momentum to the center of mass of the progenitor-primary binary system. Each contribution is weighted by the subsampling weight of the corresponding progenitor, so that the model remains correct when merger tree branches have been subsampled (see :galacticus-class:`nodeOperatorSatelliteSubsampling`).
+
    In addition to the mean angular momentum vector of unresolved accretion accounted for by :cite:t:`benson_random-walk_2020`, an optional stochastic contribution to the angular momentum from unresolved accretion is allowed for. This represents the fact that the angular momentum vector of a halo will diffuse away from zero in a random walk even if the mean angular momentum contributed by unresolved accretion is zero. The three components of the angular momentum vector of unresolved accretion are treated as independent Wiener processes with time-dependent variance. Specifically, each component of the angular momentum vector obeys:
 
    .. math::

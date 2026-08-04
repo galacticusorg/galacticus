@@ -31,7 +31,21 @@
   !![
   <nodeOperator name="nodeOperatorCGMOuterRadiusRamPressureStripping" docformat="rst">
    <description>
-   A node operator class that evolves the :term:`CGM` outer radius in response to ram pressure stripping.
+   A node operator class that evolves the :term:`CGM` outer radius in response to ram pressure stripping. The outer radius is driven toward the ram pressure stripping radius, :math:`r_\mathrm{rp}` (computed by a :galacticus-class:`hotHaloRamPressureStrippingClass` object), on the ram pressure stripping timescale, :math:`\tau_\mathrm{rp}` (computed by a :galacticus-class:`hotHaloRamPressureTimescaleClass` object):
+
+   .. math::
+
+      \dot{r}_\mathrm{hot, outer} = \left\{ \begin{array}{ll} {r_\mathrm{rp} - r_\mathrm{hot, outer} \over \tau_\mathrm{rp}} &amp; \hbox{ if } r_\mathrm{rp} &lt; r_\mathrm{hot, outer} \\ 0 &amp; \hbox{ otherwise.} \end{array} \right.
+
+   That is, the outer radius shrinks when the stripping radius lies inside it, and is otherwise left unchanged---the radius is never allowed to grow back in response to a receding ram pressure. The corresponding rate of change of the :term:`CGM` gas mass is
+
+   .. math::
+
+      \dot{M}_\mathrm{hot} = 4 \pi \rho_\mathrm{hot}(r_\mathrm{hot, outer}) r_\mathrm{hot, outer}^2 \dot{r}_\mathrm{hot, outer},
+
+   which is negative as the radius shrinks, with angular momentum, abundances, and chemicals removed in proportion to the mass. Where outflows from the halo are subject to stripping (see :galacticus-class:`hotHaloOutflowStrippingClass`) an equal and opposite rate is added to the stripped reservoir. Cold-mode gas, if tracked, is treated identically using the cold-mode density profile. Stripping is not applied once the outer radius has shrunk below a small fixed fraction of the virial radius.
+
+   For nodes which are not satellites the outer radius instead tracks the growth of the virial radius.
    </description>
   </nodeOperator>
   !!]

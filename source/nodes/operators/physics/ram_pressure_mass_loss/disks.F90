@@ -26,7 +26,7 @@
   !![
   <nodeOperator name="nodeOperatorRamPressureMassLossDisks" docformat="rst">
    <description>
-   Computes and applies ram pressure stripping of cold gas from satellite galaxy disks, using the Gunn-Gott criterion or similar to determine the stripped gas mass as a function of the satellite's orbital velocity through the host halo ICM.
+   Applies ram pressure stripping of gas from galactic disks. The mass loss rate is computed by the selected :galacticus-class:`ramPressureStrippingClass` object; this operator removes that gas from the disk---together with angular momentum and abundances in proportion---and pipes it into the :term:`CGM` as an outflow.
    </description>
   </nodeOperator>
   !!]

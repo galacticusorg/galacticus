@@ -31,6 +31,22 @@
   <blackHoleAccretionRate name="blackHoleAccretionRateStandard" docformat="rst">
    <description>
    Computes black hole accretion rates via Bondi-Hoyle accretion from spheroid gas, hot halo gas, and nuclear star cluster gas. Enhancement factors above the classical Bondi rate are set independently via ``[bondiHoyleAccretionEnhancementSpheroid]``, ``[bondiHoyleAccretionEnhancementHotHalo]``, and ``[bondiHoyleAccretionEnhancementNuclearStarCluster]``. The gas temperature assumed for each component and whether to restrict hot halo accretion to the hot-mode only are also configurable.
+
+   For accretion from the hot halo the Bondi radius is limited to the outer radius of the hot halo, and the resulting accretion rate is further limited to
+
+   .. math::
+
+      \dot{M}_\mathrm{0,~hot~halo,~maximum} = M_\mathrm{hot}/\tau_\mathrm{sound~crossing},
+
+   where :math:`\tau_\mathrm{sound~crossing}=r_\mathrm{hot~halo~outer}/c_\mathrm{s}`, :math:`r_\mathrm{hot~halo~outer}` is the outer radius of the hot halo, and :math:`c_\mathrm{s}` is the speed of sound in the hot halo.
+
+   If ``[bondiHoyleAccretionHotModeOnly]``\ :math:`=`\ ``true`` then accretion occurs only from that fraction of the hot halo gas which was accreted in the "hot mode". When the cold mode is explicitly tracked by the :term:`CGM` component that fraction is taken to be unity (since the hot and cold reservoirs are then separate). Otherwise, a simple estimate of the hot mode fraction is made by the ``hotModeFraction`` method:
+
+   .. math::
+
+      f_\mathrm{hot} = \left\{ \begin{array}{ll} 1 &amp; \hbox{ if } x &lt; 0.9 \\ y(x)^2[2 y(x) - 3]+1 &amp; \hbox{ if } 0.9 \le x \le 1.0 \\ 0 &amp; \hbox{ if } x &gt; 1.0, \end{array} \right.
+
+   where :math:`x = r_\mathrm{cool}/r_\mathrm{virial}` and :math:`y(x)=[x-0.9]/[1.0-0.9]`. This smoothly switches off accretion from the hot halo as the cooling radius grows to the virial radius (i.e. as the halo leaves the slow cooling regime). The density of hot halo gas at the galactic center is scaled by :math:`f_\mathrm{hot}` before the Bondi-Hoyle rate is evaluated.
    </description>
   </blackHoleAccretionRate>
   !!]
