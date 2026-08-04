@@ -78,14 +78,17 @@
   integer                    , parameter :: densityContrastTableTimePointsPerDecade=5
   integer                    , parameter :: densityContrastTableMassPointsPerDecade=5
 
-  ! Intervals, measured in lattice steps, to which the bounds of each tabulated axis are pinned. The time axis is anchored to
-  ! half decades since a whole decade of cosmic time spans most of the history of the universe; the mass axis, which already
-  ! spans eleven decades by default, is anchored to whole decades.
   ! Ranges tabulated irrespective of the mass and time requested.
   double precision           , parameter :: densityContrastTableTimeMinimumDefault =1.0d-03                                  , densityContrastTableTimeMaximumDefault=2.0d+01
   double precision           , parameter :: densityContrastTableMassMinimumDefault =4.0d+05                                  , densityContrastTableMassMaximumDefault=1.0d+16
 
-  integer                    , parameter :: densityContrastTableTimeAnchorEvery    =densityContrastTableTimePointsPerDecade/2
+  ! Intervals, measured in lattice steps, to which the bounds of each tabulated axis are pinned. The time axis is anchored more
+  ! finely than a whole decade, since a whole decade of cosmic time spans most of the history of the universe. Note that two
+  ! steps is two fifths of a decade, not a half: with five points per decade the lattice has no half-decade point, so this is
+  ! the closest approach to one. It is written as a literal rather than as `densityContrastTableTimePointsPerDecade/2` because
+  ! that division truncates, which is both misleading and a compilation warning. The mass axis, which already spans eleven
+  ! decades by default, is anchored to whole decades.
+  integer                    , parameter :: densityContrastTableTimeAnchorEvery    =2
   integer                    , parameter :: densityContrastTableMassAnchorEvery    =densityContrastTableMassPointsPerDecade
 
   ! Module-scope record of state used when solving for the percolation density contrast.
