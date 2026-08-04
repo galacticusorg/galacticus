@@ -136,6 +136,7 @@ contains
     !![
     <constructorAssign variables="heatSpecificNormalized, coefficientSecondOrder0, coefficientSecondOrder1, coefficientSecondOrder2, correlationVelocityRadius"/>
     !!]
+
     ! Cache the square root of the (non-negative) normalized heating for the second-order term. The
     ! max() guards against heatSpecificNormalized<0 (which marks the heating as everywhere-zero, so the
     ! second-order term is never evaluated) tripping the invalid-operation FPE trap here.
@@ -249,7 +250,7 @@ contains
             &                 +self             %coefficientSecondOrder1*densityLogSlope_   &
             &                 +self             %coefficientSecondOrder2*densityLogSlope_**2
        ! Compute the second order energy perturbation. The factor sqrt(energyPerturbationFirstOrder) is
-       ! sqrt(heatSpecificNormalized*radius**2)=sqrt(heatSpecificNormalized)*abs(radius); we use the cached
+       ! sqrt(heatSpecificNormalized*radius**2)=sqrt(heatSpecificNormalized)*radius; we use the cached
        ! sqrtHeatSpecificNormalized so this hot path (evaluated once per root-finder step of the heated
        ! profile) costs a multiply rather than a square root. Mathematically identical; floating-point
        ! rounding differs in the last bit from the direct sqrt.
@@ -260,7 +261,8 @@ contains
             &                          +1.0d0                                &
             &                          +self%correlationVelocityRadius       &
             &                         )                                      &
-            &                        *self%sqrtHeatSpecificNormalized*abs(radius) &
+            &                        *self%sqrtHeatSpecificNormalized        &
+            &                        *radius                                 &
             &                        *velocityDispersion1D_
     else
        energyPerturbationSecondOrder=+0.0d0
