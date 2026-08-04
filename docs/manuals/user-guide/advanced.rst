@@ -548,21 +548,21 @@ Output is controlled by parameters given within the ``mergerTreeOutput`` section
 .. _manual-sec-nodeDataGroup:
 
 nodeData group
-^^^^^^^^^^^^^^
+""""""""""""""
 
 The ``nodeData`` group contains all data from nodes in all merger trees. The group consists of a collection of datasets each of which lists a property of all nodes in the trees which exist at the output time. Where relevant, each dataset contains an attribute, ``units``, which is a composite HDF5 data-type containing the units of the dataset in the SI system as ``unitsInSI``, a human-readable description of the units as ``description``, an ``astropy.units``-parseable description of the units as ``quantity``, and ``isComoving`` which is ``1`` if the units are in comoving coordinates, and ``0`` otherwise.
 
 .. _manual-sec-mergerTreeDatasets:
 
 mergerTree datasets
-^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""
 
 To allow locating of nodes belonging to a given merger tree in the datasets in the ``nodeData`` group, the ``mergerTreeStartIndex`` and ``mergerTreeCount`` datasets list the starting index of each tree's nodes in the ``nodeData`` datasets, and the number of nodes belonging to each tree respectively. Additionally, the ``mergerTreeWeight`` dataset lists the ``volumeWeight`` property for each tree (see Section :galacticus-ref:`mergerTreeSubgroups`) which gives the weight (in Mpc\ :math:`^{-3}`) which should be assigned to this tree (and all nodes in it) to create a volume-averaged sample (see Section :galacticus-ref:`volumeLimitedSamples`). The ``mergerTreeIndex`` dataset gives the index of each tree stored in the ``nodeData`` datasets. Finally, the ``mergerTreeSeed`` dataset gives the seed used by this tree when generating random numbers.
 
 .. _manual-sec-mergerTreeSubgroups:
 
 mergerTree subgroups
-^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""
 
 These subgroups will be present if the ``[mergerTreeOutputReferences]`` parameter is set to true. Each ``mergerTree`` subgroup contains HDF5 references to all data on a single merger tree. The group consists of a collection of scalar references each of which points to the appropriate region of the corresponding dataset in the ``nodeData`` group. Additionally, the ``volumeWeight`` attribute of this group gives the weight (in Mpc\ :math:`^{-3}`) which should be assigned to this tree (and all nodes in it) to create a volume-averaged sample. (A second attribute, ``units``, gives the units of ``volumeWeight`` in the SI system, along with human-readable, ``astropy.units``-parseable descriptions, and a boolean indicating that these are in comoving coordinates.)
 

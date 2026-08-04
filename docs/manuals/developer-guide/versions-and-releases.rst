@@ -107,6 +107,7 @@ therefore lightweight:
    GitHub release, mirroring the current ``bleeding-edge`` binary and tools
    assets onto it (see `Publishing the Python Package to PyPI`_ below). This is
    what makes ``pip install galacticus`` resolve to the new version.
+
 The publish workflow also pins the run-time data: it records the current
 ``datasets`` ``master`` commit as a ``datasets.ref`` asset on the release and
 notes that commit in the release body, so every install of that version (whether
