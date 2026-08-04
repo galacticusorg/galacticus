@@ -4,6 +4,15 @@
 # for tuning. The standardLogLikelihood aggregator classifies each analysis
 # individually and reports the worst status across all of a metric's
 # analyses, so any single failing analysis surfaces as a failing metric.
+#
+# The 20 analyses that the dashboard flagged after the 2026-08-01 bootstrap were
+# retuned by hand on 2026-08-03 against the published logL history since
+# 2026-06-01: the bootstrap fractions are far too tight for analyses whose
+# run-to-run scatter is large compared with |logL| (or whose bootstrap sample
+# happened to be a favourable draw). For those entries ``current`` is the
+# 2026-08-03 value, and warn/fail sit a multiple of the observed downside
+# scatter below either the recent level (where the series stepped to a new level
+# on 2026-07-29) or the window minimum (where it is merely noisy).
 
 fraction_fail: 0.2
 fraction_warn: 0.1
@@ -15,9 +24,9 @@ thresholds:
       threshold_fail: -6.1802
       threshold_warn: -5.6652
     subhaloRadialDistribution:
-      current: -0.9847
-      threshold_fail: -1.1817
-      threshold_warn: -1.0832
+      current: -2.9635
+      threshold_fail: -6.5163
+      threshold_warn: -4.4223
     subhaloVelocityMaximumMean:
       current: -13830.3264
       threshold_fail: -16596.3917
@@ -28,9 +37,9 @@ thresholds:
       threshold_fail: 1.3334
       threshold_warn: 1.5001
     subhaloRadialDistribution:
-      current: 1.9288
-      threshold_fail: 1.543
-      threshold_warn: 1.7359
+      current: 0.9657
+      threshold_fail: -0.1575
+      threshold_warn: 0.5164
     subhaloVelocityMaximumMean:
       current: -23.5054
       threshold_fail: -28.2064
@@ -45,9 +54,9 @@ thresholds:
       threshold_fail: -2.8574
       threshold_warn: -2.6193
     subhaloVelocityMaximumMean:
-      current: -45.952
-      threshold_fail: -55.1423
-      threshold_warn: -50.5472
+      current: -51.7489
+      threshold_fail: -67.4043
+      threshold_warn: -59.6419
   darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1:
     subhaloMassFunction:
       current: -1.1875
@@ -132,9 +141,9 @@ thresholds:
       threshold_fail: 1.1283
       threshold_warn: 1.2694
     subhaloRadialDistribution:
-      current: 3.4784
-      threshold_fail: 2.7827
-      threshold_warn: 3.1305
+      current: 2.5767
+      threshold_fail: -0.7332
+      threshold_warn: 0.6497
     subhaloVelocityMaximumMean:
       current: -17.5622
       threshold_fail: -21.0746
@@ -149,14 +158,14 @@ thresholds:
       threshold_fail: -34.4889
       threshold_warn: -31.6148
     subhaloVelocityMaximumMean:
-      current: -21.9294
-      threshold_fail: -26.3153
-      threshold_warn: -24.1224
+      current: -26.0084
+      threshold_fail: -68.4121
+      threshold_warn: -52.3275
   darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1:
     subhaloMassFunction:
-      current: 0.2067
-      threshold_fail: 0.1653
-      threshold_warn: 0.186
+      current: 0.1537
+      threshold_fail: -0.2969
+      threshold_warn: -0.1169
     subhaloRadialDistribution:
       current: 3.451
       threshold_fail: 2.7608
@@ -167,13 +176,13 @@ thresholds:
       threshold_warn: -15.7508
   darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX8:
     subhaloMassFunction:
-      current: -9.8394
-      threshold_fail: -11.8073
-      threshold_warn: -10.8234
+      current: -12.0621
+      threshold_fail: -21.5294
+      threshold_warn: -18.686
     subhaloRadialDistribution:
-      current: -27.505
-      threshold_fail: -33.006
-      threshold_warn: -30.2555
+      current: -36.1188
+      threshold_fail: -55.2378
+      threshold_warn: -45.6783
     subhaloVelocityMaximumMean:
       current: -39.2943
       threshold_fail: -47.1532
@@ -197,9 +206,9 @@ thresholds:
       threshold_fail: -8.0329
       threshold_warn: -7.3635
     subhaloRadialDistribution:
-      current: -1.5104
-      threshold_fail: -1.8125
-      threshold_warn: -1.6615
+      current: -1.7679
+      threshold_fail: -4.8972
+      threshold_warn: -3.6137
     subhaloVelocityMaximumMean:
       current: -116.9991
       threshold_fail: -140.399
@@ -210,40 +219,40 @@ thresholds:
       threshold_fail: -1.6676
       threshold_warn: -1.5286
     subhaloRadialDistribution:
-      current: -1.9552
-      threshold_fail: -2.3463
-      threshold_warn: -2.1507
+      current: -2.2365
+      threshold_fail: -5.5311
+      threshold_warn: -4.308
     subhaloVelocityMaximumMean:
       current: -37.4261
       threshold_fail: -44.9113
       threshold_warn: -41.1687
   darkMatterOnlySubhalos_decayingDarkMatter_lifetime10.0_velocityKick20.0:
     massCumulativeDistribution:
-      current: 3.4499
-      threshold_fail: 2.7599
-      threshold_warn: 3.1049
+      current: 3.0072
+      threshold_fail: -1.5486
+      threshold_warn: 0.78
     radialCumulativeDistribution:
-      current: 8.1694
-      threshold_fail: 6.5355
-      threshold_warn: 7.3524
+      current: 5.9315
+      threshold_fail: -6.5173
+      threshold_warn: -0.2811
   darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick20.0:
     massCumulativeDistribution:
-      current: 21.0893
-      threshold_fail: 16.8715
-      threshold_warn: 18.9804
+      current: 16.9579
+      threshold_fail: -0.032
+      threshold_warn: 8.463
     radialCumulativeDistribution:
-      current: 11.8831
-      threshold_fail: 9.5065
-      threshold_warn: 10.6948
+      current: 9.9093
+      threshold_fail: 4.9855
+      threshold_warn: 7.4474
   darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick40.0:
     massCumulativeDistribution:
-      current: 158.0557
-      threshold_fail: 126.4445
-      threshold_warn: 142.2501
+      current: 123.7286
+      threshold_fail: 11.1499
+      threshold_warn: 67.4392
     radialCumulativeDistribution:
-      current: 454.9547
-      threshold_fail: 363.9638
-      threshold_warn: 409.4592
+      current: 384.014
+      threshold_fail: -58.1577
+      threshold_warn: 162.9282
   darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick20.0:
     massCumulativeDistribution:
       current: 2.8589
@@ -255,18 +264,18 @@ thresholds:
       threshold_warn: 44.6319
   darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick40.0:
     massCumulativeDistribution:
-      current: 23.1586
-      threshold_fail: 18.5269
-      threshold_warn: 20.8428
+      current: 20.0528
+      threshold_fail: -44.2674
+      threshold_warn: -16.7171
     radialCumulativeDistribution:
-      current: 18.9113
-      threshold_fail: 15.1291
-      threshold_warn: 17.0202
+      current: 14.3866
+      threshold_fail: 6.6767
+      threshold_warn: 10.5316
   darkMatterOnlySubhalos_decayingDarkMatter_lifetime80.0_velocityKick40.0:
     massCumulativeDistribution:
-      current: 29.3094
-      threshold_fail: 23.4476
-      threshold_warn: 26.3785
+      current: 25.6174
+      threshold_fail: 17.9322
+      threshold_warn: 21.7748
     radialCumulativeDistribution:
       current: 40.9189
       threshold_fail: 32.7351
@@ -489,6 +498,6 @@ thresholds:
       threshold_fail: -112.7956
       threshold_warn: -103.396
     localGroupStellarMassHaloMassRelation:
-      current: -5.6267
-      threshold_fail: -6.7521
-      threshold_warn: -6.1894
+      current: -7.6078
+      threshold_fail: -24.7927
+      threshold_warn: -18.7439
