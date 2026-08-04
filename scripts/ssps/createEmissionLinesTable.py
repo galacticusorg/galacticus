@@ -106,6 +106,20 @@ def establishGridSSP(grid,args):
     grid['wavelength'      ] = wavelength
     grid['energy'          ] = energy
 
+    # If a fixed stellar-spectrum metallicity was requested, find the closest grid point in the (refined) metallicity grid. The
+    # stellar spectrum from this grid point will be used for all Cloudy models (as a function of age), while the HII region gas
+    # metallicity continues to follow the metallicity of each grid point.
+    if args.stellarSpectrumMetallicity is not None:
+        logMetallicitySpectrum           = np.log10(args.stellarSpectrumMetallicity)
+        iMetallicitySpectrum             = int(np.argmin(np.abs(grid['logMetallicities']-logMetallicitySpectrum)))
+        grid['spectrumMetallicityIndex'] = iMetallicitySpectrum
+        print(
+            f"Using a fixed stellar spectrum metallicity: requested Z/Z☉ = {args.stellarSpectrumMetallicity:.4g} "
+            f"(log₁₀ Z/Z☉ = {logMetallicitySpectrum:+.4f}); using closest grid point [{iMetallicitySpectrum}] "
+            f"with Z/Z☉ = {10.0**grid['logMetallicities'][iMetallicitySpectrum]:.4g} "
+            f"(log₁₀ Z/Z☉ = {grid['logMetallicities'][iMetallicitySpectrum]:+.4f})."
+        )
+
     # Evaluate the number of Lyman continuum photons emitted per second for each population (age,metallicity).
     ## Construct the integrand. Spectra are in units of L☉ Hz¯¹. We want to evaluate Qₕ = ∫_Eₕ^∞ dν S_ν/hν = ∫₀^λₕ dλ S_ν / hλ.
     integrand                         = grid['spectra']*deltaWavelength/wavelength*luminositySolar/plancksConstant
@@ -515,6 +529,14 @@ def generateJobSSP(grid,args):
     iMetallicity           = grid['counter'][1]
     iNormalization         = grid['counter'][2]
     iLogHydrogenDensity    = grid['counter'][3]
+    # Determine the metallicity index to use for the stellar spectrum. By default this matches the metallicity of the grid point
+    # (iMetallicity), so that the ionizing spectrum corresponds to the same metallicity as the HII region gas. If a fixed stellar
+    # spectrum metallicity was requested, use the closest grid point instead, while leaving the HII region gas metallicity
+    # (iMetallicity, used to set abundances and depletion) unchanged.
+    if 'spectrumMetallicityIndex' in grid:
+        iMetallicitySpectrum = grid['spectrumMetallicityIndex']
+    else:
+        iMetallicitySpectrum = iMetallicity
     # Do not generate jobs for populations older than the maximum age to be considered.
     if grid['ages'][iAge] > args.ageMaximum:
         return
@@ -535,15 +557,17 @@ def generateJobSSP(grid,args):
     # Normalize the spectrum - this is a convenience only as the normalization will be recomputed by Cloudy.
     if not 'normalized' in grid:
         grid['normalized'] = np.zeros([len(grid['logMetallicities']),len(grid['ages'])],dtype=int)
-    if grid['normalized'][iMetallicity,iAge] != 1: 
-        normalizer = np.max(grid['spectra'][iMetallicity,iAge,:])
-        grid['spectra'   ][iMetallicity,iAge,:] /= normalizer
-        grid['normalized'][iMetallicity,iAge  ]  = 1
-    # Find the logarithmic luminosity in ionizing photons for this model.
+    if grid['normalized'][iMetallicitySpectrum,iAge] != 1:
+        normalizer = np.max(grid['spectra'][iMetallicitySpectrum,iAge,:])
+        grid['spectra'   ][iMetallicitySpectrum,iAge,:] /= normalizer
+        grid['normalized'][iMetallicitySpectrum,iAge  ]  = 1
+    # Find the logarithmic luminosity in ionizing photons for this model. Note that, when a fixed stellar spectrum metallicity is in
+    # use, the ionizing photon rate per unit stellar mass corresponds to that spectrum (i.e. iMetallicitySpectrum), since it is
+    # emitted by the stellar population.
     if args.normalization == "ionizingLuminosity":
         logHydrogenLuminosity = grid['logHydrogenLuminosities'][iNormalization]
     elif args.normalization == "massStellar":
-        logHydrogenLuminosity = grid['logStellarMasses'       ][iNormalization]+np.log10(grid['ionizingLuminosityPerMass'][iMetallicity,iAge])
+        logHydrogenLuminosity = grid['logStellarMasses'       ][iNormalization]+np.log10(grid['ionizingLuminosityPerMass'][iMetallicitySpectrum,iAge])
     else:
         sys.exit("Expected `normalization` of `ionizingLuminosity` or `massStellar`")
     # Get abundances for this metallicity.
@@ -584,6 +608,8 @@ def generateJobSSP(grid,args):
     cloudyScript      = "title emission line job number "+str(jobNumber)+"\n"
     cloudyScript     += "# ["+str(iAge               )+"] age     = "+str(grid['ages'                   ][iAge               ])+"\n"
     cloudyScript     += "# ["+str(iMetallicity       )+"] log Z   = "+str(grid['logMetallicities'       ][iMetallicity       ])+"\n"
+    if iMetallicitySpectrum != iMetallicity:
+        cloudyScript += "# ["+str(iMetallicitySpectrum)+"] log Z_spectrum = "+str(grid['logMetallicities'       ][iMetallicitySpectrum])+"\n"
     cloudyScript     += "# ["+str(iNormalization     )+"] log Q_H = "+str(      logHydrogenLuminosity                         )+"\n"
     if args.normalization == "massStellar":
         cloudyScript += "# ["+str(iNormalization     )+"] log M_* = "+str(grid['logStellarMasses'       ][iNormalization     ])+"\n"
@@ -591,12 +617,12 @@ def generateJobSSP(grid,args):
     ## Set the input spectrum for Cloudy.
     if not 'cloudySpectrum' in grid:
         grid['cloudySpectrum'] = {}
-    if not iAge             in grid['cloudySpectrum']:
+    if not iAge                 in grid['cloudySpectrum']:
         grid['cloudySpectrum'][iAge] = {}
-    if not iMetallicity     in grid['cloudySpectrum'][iAge]:
-        nonZero        = grid['spectra'][iMetallicity,iAge,:] > 0.0
-        energy         =          grid['energy' ][                  :][nonZero]
-        logSpectrum    = np.log10(grid['spectra'][iMetallicity,iAge,:][nonZero])
+    if not iMetallicitySpectrum in grid['cloudySpectrum'][iAge]:
+        nonZero        = grid['spectra'][iMetallicitySpectrum,iAge,:] > 0.0
+        energy         =          grid['energy' ][                          :][nonZero]
+        logSpectrum    = np.log10(grid['spectra'][iMetallicitySpectrum,iAge,:][nonZero])
         counter        = -1
         cloudySpectrum = ""
         for iWavelength in reversed(range(len(energy))):
@@ -608,8 +634,8 @@ def generateJobSSP(grid,args):
                     cloudySpectrum +=  "\ncontinue"
             cloudySpectrum +=  " ("+str(energy[iWavelength])+" "+str(logSpectrum[iWavelength])+")"
         cloudySpectrum += "\n"
-        grid['cloudySpectrum'][iAge][iMetallicity] = cloudySpectrum
-    cloudyScript += grid['cloudySpectrum'][iAge][iMetallicity]
+        grid['cloudySpectrum'][iAge][iMetallicitySpectrum] = cloudySpectrum
+    cloudyScript += grid['cloudySpectrum'][iAge][iMetallicitySpectrum]
     ## Set normalization of the spectrum.
     cloudyScript += "q(h) = "+str(logHydrogenLuminosity)+"\n"
     # Set the chemical composition of the HII region.
@@ -827,8 +853,11 @@ def validateSSP(grid,args):
     elif args.normalization == "massStellar":
         for i in range(ratio.shape[2]):
             for iMetallicity in range(ratio.shape[1]):
+                # When a fixed stellar spectrum metallicity is in use, the ionizing photon rate corresponds to that spectrum, so
+                # match the normalization that was actually applied when the models were run.
+                iMetallicitySpectrum = grid['spectrumMetallicityIndex'] if 'spectrumMetallicityIndex' in grid else iMetallicity
                 for iAge in range(ratio.shape[0]):
-                    logHydrogenLuminosity = grid['logStellarMasses'][i]+np.log10(grid['ionizingLuminosityPerMass'][iMetallicity,iAge])
+                    logHydrogenLuminosity = grid['logStellarMasses'][i]+np.log10(grid['ionizingLuminosityPerMass'][iMetallicitySpectrum,iAge])
                     ratio[iAge,iMetallicity,i,:] /= 10.0**logHydrogenLuminosity
     else:
         sys.exit("Expected `normalization` of `ionizingLuminosity` or `massStellar`")
@@ -1157,6 +1186,11 @@ def outputSSP(grid,args):
     tableFile.attrs['gitRevision'  ] = grid['gitRevision'  ]
     tableFile.attrs['commandLine'  ] = grid['commandLine'  ]
     tableFile.attrs['cloudyVersion'] = grid['cloudyVersion']
+    # If a fixed stellar spectrum metallicity was used, record the requested and (closest grid point) metallicities used for the
+    # stellar spectrum. In this case the HII region gas metallicity still follows the metallicity of each grid point.
+    if 'spectrumMetallicityIndex' in grid:
+        tableFile.attrs['stellarSpectrumMetallicityRequested'] = args.stellarSpectrumMetallicity
+        tableFile.attrs['stellarSpectrumMetallicity'         ] = 10.0**grid['logMetallicities'][grid['spectrumMetallicityIndex']]
     # Write parameter grid points and attributes.
     datasetAge             = tableFile.create_dataset('age'                       ,data=      grid['ages'                   ])
     datasetMetallicity     = tableFile.create_dataset('metallicity'               ,data=10.0**grid['logMetallicities'       ])
@@ -1181,8 +1215,13 @@ def outputSSP(grid,args):
     for iterable in grid['names']:
         tableFile[iterable].attrs['index'] = i
         i += 1
-    # Write table of ionizing rates per unit mass of stars formed.
-    datasetNormalization = tableFile.create_dataset('ionizingLuminosityHydrogenNormalized',data=grid['ionizingLuminosityPerMass'])
+    # Write table of ionizing rates per unit mass of stars formed. When a fixed stellar spectrum metallicity is in use, every grid
+    # point was run using the spectrum from that metallicity, so the ionizing photon rate per unit stellar mass is that of the
+    # fixed spectrum metallicity for all metallicities (still varying with age).
+    ionizingLuminosityPerMass = grid['ionizingLuminosityPerMass']
+    if 'spectrumMetallicityIndex' in grid:
+        ionizingLuminosityPerMass = np.broadcast_to(ionizingLuminosityPerMass[grid['spectrumMetallicityIndex'],:],ionizingLuminosityPerMass.shape)
+    datasetNormalization = tableFile.create_dataset('ionizingLuminosityHydrogenNormalized',data=ionizingLuminosityPerMass)
     datasetNormalization.attrs['description'] = "Hydrogen ionizing photon emission rate per unit mass of stars."
     writeUnitsAttribute(datasetNormalization  , 1.0/massSolar  , description="photons s\u00af\u00b9 M\u2609\u00af\u00b9", quantity="photons s\u00af\u00b9 Msun\u00af\u00b9")
     # Write line data. Note that the grids are transposed for output in order to match the ordering produced by the original
@@ -1257,11 +1296,12 @@ parser.add_argument('--normalization'        ,default='ionizingLuminosity'  ,act
 parser.add_argument('--factorMorphology'     ,default='1.0'                 ,action='store'      ,type=restricted_float,help='set the morphology factor (f=R_{in}/R_{Strömgren}; https://ui.adsabs.harvard.edu/abs/2016A%2526A...594A..37M)'        )
 parser.add_argument('--metallicitySupersample',default='2'                  ,action='store'      ,type=restricted_int  ,help='the factor by which to supersample stellar metallicities)'                                                            )
 parser.add_argument('--ageSubsample'          ,default='1'                  ,action='store'      ,type=restricted_int  ,help='the factor by which to subsample stellar ages)'                                                                       )
+parser.add_argument('--stellarSpectrumMetallicity',default=None            ,action='store'      ,type=restricted_float,help='if set (as a metallicity, Z/Z☉, linear and relative to Solar), use the stellar spectrum from the closest grid point to this metallicity for all Cloudy models (as a function of age), while the HII region gas metallicity still follows the metallicity of each grid point. Applies to SSP models only.')
 #  Dust-to-metals ratio. Defaults to 0.401 corresponding to the dust-to-metals ratio for the reference model of Gutkin, Charlot &
 #  Bruzual (2016; https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G; table 1). This differs slightly from their stated value,
 #  but agrees with our internal calculation of this value from their data.'
 parser.add_argument('--dustToMetalsRatio'    ,default='0.401'               ,action='store'      ,type=restricted_float,help='set the dust-to-metals ratio (ξ; https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G).'                             )
-parser.add_argument('--abundanceAdjust'                                     ,action='append'                           ,help='specify an adjustment to the abundance of an element, e.g. `S:0.2` would increase the abundance of sulfur by 0.2 dex.')
+parser.add_argument('--abundanceAdjust'      ,default=[]                    ,action='append'                           ,help='specify an adjustment to the abundance of an element, e.g. `S:0.2` would increase the abundance of sulfur by 0.2 dex.')
 parser.add_argument('--stopOuterRadius'                                     ,action='store_true'                       ,help='set Cloudy to stop at the cloud outer radius'                                                                         )
 parser.add_argument('--stopElectronFraction' ,default='0.01'                ,action='store'      ,type=restricted_float,help='set the elctron fraction at which to stop the Cloudy models'                                                          )
 parser.add_argument('--stopLymanOpticalDepth',default='10.0'                ,action='store'      ,type=restricted_float,help='set the Lyman optical depth at which to stop the Cloudy models'                                                       )
@@ -1281,6 +1321,10 @@ if args.outputFileName is None:
     sys.exit("An output file name must be specified via the `--outputFileName` option")
 if args.sspFileName is not None and args.agnModel is not None:
     sys.exit("Can not specify both  `--sspFileName` and `--agnModel`")
+if args.stellarSpectrumMetallicity is not None and args.sspFileName is None:
+    sys.exit("`--stellarSpectrumMetallicity` can only be used with SSP models (i.e. with `--sspFileName`)")
+if args.stellarSpectrumMetallicity is not None and args.stellarSpectrumMetallicity <= 0.0:
+    sys.exit("`--stellarSpectrumMetallicity` must be a positive metallicity (Z/Z☉, linear and relative to Solar)")
 if args.sspFileName is not None:
     print("Computing emission line luminosities for stellar populations using file:\n\t"+args.sspFileName)
     establishGrid = establishGridSSP
