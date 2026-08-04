@@ -75,88 +75,11 @@ when galaxies merge, as dictated by the selected
 Component Classes
 -----------------
 
-.. list-table::
-   :header-rows: 1
-   :widths: 20 25 55
-
-   * - Class
-     - Implementation
-     - Notes
-   * - ``basic``
-     - ``standard`` (default)
-     - Node mass, cosmic time, and time last isolated.
-   * - ``blackHole``
-     - ``simple``
-     - Mass only.
-   * -
-     - ``standard`` (default)
-     - Mass, spin, radial position, and triple interaction time.
-   * -
-     - ``nonCentral``
-     - Extends ``standard``, making the radial position evolvable.
-   * - ``darkMatterProfile``
-     - ``scale`` (default)
-     - Density profile scale radius.
-   * -
-     - ``scaleShape``
-     - Extends ``scale``, adding a shape parameter.
-   * -
-     - ``scaleTriaxial``
-     - Extends ``scale``, adding halo axis ratios.
-   * -
-     - ``scaleFree``
-     - Carries no properties; the scale radius is computed on demand.
-   * - ``disk``
-     - ``verySimple``
-     - Gas and stellar masses and abundances, with no structural properties.
-   * -
-     - ``verySimpleSize``
-     - Extends ``verySimple``, adding a radius and velocity.
-   * -
-     - ``standard`` (default)
-     - Adds angular momentum, stellar luminosities, and star formation history.
-   * - ``hotHalo``
-     - ``verySimple``
-     - Mass, abundances, unaccreted mass, and outer radius.
-   * -
-     - ``verySimpleDelayed``
-     - Extends ``verySimple``, adding an outflowed reservoir.
-   * -
-     - ``standard`` (default)
-     - Adds angular momentum, chemicals, and stripped and outflowed reservoirs.
-   * -
-     - ``coldMode``
-     - Extends ``standard``, tracking cold-mode gas separately.
-   * - ``NSC``
-     - ``standard``
-     - Nuclear star cluster; gas and stellar content, size, and luminosities.
-   * - ``position``
-     - ``cartesian``
-     - Position, velocity, and an optional phase-space history.
-   * - ``satellite``
-     - ``mergeTime``
-     - Time of merging only.
-   * -
-     - ``standard`` (default)
-     - Extends ``mergeTime``, adding bound mass and virial orbit.
-   * -
-     - ``preset``
-     - Bound mass and node index histories, set during tree construction.
-   * -
-     - ``orbiting``
-     - Full orbital position and velocity, plus tidal heating quantities.
-   * - ``spheroid``
-     - ``verySimple``
-     - Gas and stellar masses and abundances, plus a radius and velocity.
-   * -
-     - ``standard`` (default)
-     - Adds angular momentum, stellar luminosities, and star formation history.
-   * - ``spin``
-     - ``scalar`` (default)
-     - Halo angular momentum magnitude.
-   * -
-     - ``vector``
-     - Extends ``scalar``, adding the angular momentum vector.
+The full list of component classes, their implementations, and the properties
+and parameters each carries is generated directly from the source and is given
+in the :doc:`/nodeComponents`. The classes currently defined are ``basic``,
+``blackHole``, ``darkMatterProfile``, ``disk``, ``hotHalo``, ``NSC`` (nuclear
+star cluster), ``position``, ``satellite``, ``spheroid``, and ``spin``.
 
 .. note::
 
@@ -167,15 +90,16 @@ Component Classes
    :galacticus-class:`nodeOperatorHaloAngularMomentumRandom` and
    :galacticus-class:`nodeOperatorHaloAngularMomentumVitvitska2002`.
 
+
 Properties and Deferred Rates
 -----------------------------
 
 Each property declared by a component carries attributes controlling whether it
 can be read, written, and evolved as part of the :term:`ODE` system, together
-with its output units and description. The full property list for each
-implementation is defined by the ``<component>`` directives in
-``source/objects/nodes/components/``, from which the ``nodeComponent`` class
-hierarchy is generated at build time (see the developer guide).
+with its output units and description. These are declared by the
+``<component>`` directives in ``source/objects/nodes/components/``, from which
+both the ``nodeComponent`` class hierarchy (see the developer guide) and the
+:doc:`/nodeComponents` are generated at build time.
 
 A few properties are *virtual* and have *deferred* rate functions. These act as
 connection points between components: one component (or a node operator) pushes

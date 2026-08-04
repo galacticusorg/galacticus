@@ -9,6 +9,9 @@ Sphinx documentation tree:
   a section per implementation class, its description, and the input parameters
   declared in the same source file.
 * ``<out>/physics/index.rst``      — a toctree of all family pages.
+* ``<out>/nodeComponents.rst``     — the node component reference, one section
+  per ``<component>`` class and a subsection per implementation, with its
+  properties and the input parameters declared in the same source file.
 * ``<out>/glossary.rst``           — the glossary, from ``docs/Glossary.tex``.
 * ``<out>/references.rst``         — a single project-wide bibliography.
 
@@ -108,6 +111,48 @@ def _extract_methods(block: str) -> list[dict]:
                             for a in _ARG_RE.findall(inner)],
         })
     return methods
+
+
+# A ``<property>`` inside a ``<component>`` directive's ``<properties>`` block.
+_PROPERTY_RE = re.compile(r'<property>(.*?)</property>', re.DOTALL)
+_ATTRIBUTES_RE = re.compile(r'<attributes\b([^>]*?)/?>')
+_PROP_OUTPUT_RE = re.compile(r'<output\b([^>]*?)/?>')
+
+
+def _extract_component_properties(block: str) -> list[dict]:
+    """Extract the properties a ``<component>`` directive declares.
+
+    Only the ``<properties>`` block is considered, so the ``<output>`` element
+    that may appear at component level (``<output instances="first"/>``) is not
+    mistaken for a property's output specification.
+    """
+    props: list[dict] = []
+    pm = re.search(r'<properties>(.*?)</properties>', block, re.DOTALL)
+    if not pm:
+        return props
+    for m in _PROPERTY_RE.finditer(pm.group(1)):
+        body = m.group(1)
+        name = _child(body, 'name')
+        if not name:
+            continue
+        am = _ATTRIBUTES_RE.search(body)
+        attrs = am.group(1) if am else ''
+        om = _PROP_OUTPUT_RE.search(body)
+        oattrs = om.group(1) if om else None
+        props.append({
+            'name':        name,
+            'type':        _child(body, 'type'),
+            'rank':        _child(body, 'rank'),
+            'isSettable':  _attr(attrs, 'isSettable') == 'true',
+            'isGettable':  _attr(attrs, 'isGettable') == 'true',
+            'isEvolvable': _attr(attrs, 'isEvolvable') == 'true',
+            'isVirtual':   _attr(attrs, 'isVirtual') == 'true',
+            'isDeferred':  _attr(attrs, 'isDeferred'),
+            'isOutput':    oattrs is not None,
+            'units':       _attr(oattrs, 'unitsDescription') if oattrs else None,
+            'comment':     _attr(oattrs, 'comment') if oattrs else None,
+        })
+    return props
 
 
 # A ``<methods>`` block of type-bound procedures (one per implementation), each
@@ -224,6 +269,8 @@ def scan_source(source_dir: str):
     * ``modules``: ``[{name, file, description, classRef}, …]`` — one per
       documented module (``classRef`` links class modules to their page).
     * ``workarounds``: ``[{type, pr, url, description, seeAlso, file}, …]``.
+    * ``components``: ``{class: [{name, description, isDefault, extends,
+      properties, file}, …]}`` — the node component implementations.
     """
     families: dict[str, dict] = {}
     by_root: dict[str, list[dict]] = {}
@@ -232,6 +279,7 @@ def scan_source(source_dir: str):
     enumerations: list[dict] = []
     modules: list[dict] = []
     workarounds: list[dict] = []
+    components: dict[str, list[dict]] = {}
     class_by_file: dict[str, str] = {}
 
     for root, _dirs, files in os.walk(source_dir):
@@ -278,9 +326,13 @@ def scan_source(source_dir: str):
                         continue
                     pdesc = _DESC_RE.search(pbody)
                     params_by_file.setdefault(path, []).append({
-                        'name':        name,
-                        'default':     _child(pbody, 'defaultValue'),
-                        'description': pdesc.group(1) if pdesc else None,
+                        'name':          name,
+                        'default':       _child(pbody, 'defaultValue'),
+                        # Prose gloss on a computed default (e.g. "(I_2/I_3
+                        # where …)"); without it such defaults render as a bare
+                        # Fortran variable name, which tells the reader nothing.
+                        'defaultSource': _child(pbody, 'defaultSource'),
+                        'description':   pdesc.group(1) if pdesc else None,
                     })
                 for wm in _WORKAROUND_RE.finditer(block):
                     wattrs, wbody = wm.group(1), wm.group(2)
@@ -323,6 +375,21 @@ def scan_source(source_dir: str):
                         'methods':         _extract_methods(block),
                     }
                     class_by_file[path] = name
+                elif rtype == 'component':
+                    cls, name = _child(block, 'class'), _child(block, 'name')
+                    if not cls or not name:
+                        continue
+                    # ``<extends>`` nests its own <class>/<name>; read them from
+                    # that sub-block rather than the component's own.
+                    ext = re.search(r'<extends>(.*?)</extends>', block, re.DOTALL)
+                    components.setdefault(cls, []).append({
+                        'name':        name,
+                        'description': desc_raw,
+                        'isDefault':   (_child(block, 'isDefault') or '') == 'true',
+                        'extends':     _child(ext.group(1), 'name') if ext else None,
+                        'properties':  _extract_component_properties(block),
+                        'file':        path,
+                    })
                 elif rtype == 'enumeration':
                     name = _child(block, 'name')
                     if not name:
@@ -366,8 +433,12 @@ def scan_source(source_dir: str):
                 entry['seeAlso'].append(s)
     workarounds = sorted(deduped.values(),
                          key=lambda w: (str(w.get('type')), str(w.get('pr'))))
+    for impls in components.values():
+        impls.sort(key=lambda c: c['name'].lower())
+    # NOTE: ``components`` is returned *before* ``workarounds`` so that callers
+    # unpacking the tail (``*_head, workarounds = scan_source(…)``) keep working.
     return (families, implementations, params_by_file, methods_by_file,
-            enumerations, modules, workarounds)
+            enumerations, modules, components, workarounds)
 
 
 # ---------------------------------------------------------------------------
@@ -416,6 +487,20 @@ def render_parameter(p: dict, glsmap: dict) -> str:
     facets = _parameter_facets(p)
     if facets:
         head += ' (' + '; '.join(facets) + ')'
+    # A ``<defaultSource>`` says where a default came from — usually a bare
+    # citation, sometimes a parenthesised note on how a computed default is
+    # derived.  Label it so both read as a sentence rather than running on from
+    # the description.
+    source = p.get('defaultSource')
+    if source:
+        source = re.sub(r'\s*\n\s*', ' ',
+                        _desc_to_rst(source, glsmap)).strip()
+        if source.startswith('(') and source.endswith(')'):
+            source = source[1:-1].strip()
+        if source:
+            if not source.endswith('.'):
+                source += '.'
+            desc = (desc + ' ' if desc else '') + f'*Default from:* {source}'
     if p.get('inheritedFrom'):
         desc = (desc + ' ' if desc else '') + f'*(inherited from* ``{p["inheritedFrom"]}``\\ *)*'
     return f'* {head} — {desc}' if desc else f'* {head}'
@@ -433,10 +518,13 @@ def _implementation_parameters(impl: dict, params_by_file: dict,
     if catalog is None or impl.get('name') not in catalog.get('implementations', {}):
         return file_params
     raw_description = {p['name']: p.get('description') for p in file_params}
+    raw_source = {p['name']: p.get('defaultSource') for p in file_params}
     resolved = resolved_parameters(catalog, impl['name'])
     for parameter in resolved:
         if raw_description.get(parameter['name']) is not None:
             parameter['description'] = raw_description[parameter['name']]
+        if raw_source.get(parameter['name']) is not None:
+            parameter['defaultSource'] = raw_source[parameter['name']]
     return resolved
 
 
@@ -505,6 +593,85 @@ def render_family(fam: str, families: dict, implementations: dict,
             for p in params:
                 out.append(render_parameter(p, glsmap))
             out.append('')
+    return '\n'.join(out) + '\n'
+
+
+def _property_facets(p: dict) -> str:
+    """Render a component property's attributes as a compact annotation."""
+    facets = []
+    ptype = (p.get('type') or '').strip()
+    rank = (p.get('rank') or '').strip()
+    if ptype:
+        facets.append(f'{ptype} rank-{rank}' if rank and rank != '0' else ptype)
+    access = [k for k, f in (('get', 'isGettable'), ('set', 'isSettable'))
+              if p.get(f)]
+    if access:
+        facets.append('/'.join(access) + 'table')
+    if p.get('isEvolvable'):
+        facets.append('evolvable')
+    if p.get('isVirtual'):
+        facets.append('virtual')
+    if p.get('isDeferred'):
+        facets.append(f'deferred {p["isDeferred"]}')
+    return '; '.join(facets)
+
+
+def render_components(components: dict, params_by_file: dict,
+                      glsmap: dict) -> str:
+    """The node component reference: one section per class, one subsection per
+    implementation, with its description, properties, and input parameters."""
+    out = [_heading('Node Component Reference', '='),
+           'Every node component class and its implementations, generated from '
+           'the ``<component>`` directives in the Galacticus source. Components '
+           'hold the state of a :term:`node`; the physics which evolves that '
+           'state is implemented by :galacticus-class:`nodeOperatorClass` '
+           'objects. See :ref:`manual-sec-Components` for an introduction.\n']
+    for cls in sorted(components, key=str.lower):
+        impls = components[cls]
+        out.append(f'.. _component-{cls}:\n')
+        out.append(_heading(f'``{cls}``', '-'))
+        out.append(
+            f'Selected with the ``[component{cls[:1].upper()}{cls[1:]}]`` '
+            f'parameter; implementation parameters are given inside that '
+            f'element.\n')
+        for impl in impls:
+            name = impl['name']
+            out.append(f'.. _component-{cls}-{name}:\n')
+            out.append(_heading(f'``{name}``', '~'))
+            desc = _desc_to_rst(impl.get('description'), glsmap)
+            if desc:
+                out.append(desc + '\n')
+            notes = []
+            if impl.get('isDefault'):
+                notes.append('**(Default implementation)**')
+            if impl.get('extends'):
+                notes.append(
+                    f'Extends :ref:`{impl["extends"]} '
+                    f'<component-{cls}-{impl["extends"]}>`.')
+            if notes:
+                out.append(' '.join(notes) + '\n')
+            props = impl.get('properties') or []
+            if props:
+                out.append('**Properties**\n')
+                for p in props:
+                    facets = _property_facets(p)
+                    head = f'* ``{p["name"]}``'
+                    if facets:
+                        head += f' ({facets})'
+                    comment = (p.get('comment') or '').strip()
+                    if comment:
+                        head += f' — {html.unescape(comment)}'
+                        units = (p.get('units') or '').strip()
+                        if units:
+                            head += f' [{units}]'
+                    out.append(head)
+                out.append('')
+            params = params_by_file.get(impl.get('file', ''), [])
+            if params:
+                out.append('**Parameters**\n')
+                for p in params:
+                    out.append(render_parameter(p, glsmap))
+                out.append('')
     return '\n'.join(out) + '\n'
 
 
@@ -730,7 +897,7 @@ def main() -> int:
     glsmap = glossary_display_map(glossary)
 
     (families, implementations, params_by_file, methods_by_file, enumerations,
-     modules, workarounds) = scan_source(source_dir)
+     modules, components, workarounds) = scan_source(source_dir)
 
     # Build the parameter catalog to enrich parameter docs (type, allowed values,
     # ranges, inherited parameters); degrades gracefully to None.
@@ -749,6 +916,10 @@ def main() -> int:
     with open(os.path.join(physics_dir, 'index.rst'), 'w',
               encoding='utf-8') as fh:
         fh.write(render_physics_index(families, implementations))
+
+    with open(os.path.join(out_dir, 'nodeComponents.rst'), 'w',
+              encoding='utf-8') as fh:
+        fh.write(render_components(components, params_by_file, glsmap))
 
     with open(os.path.join(out_dir, 'glossary.rst'), 'w',
               encoding='utf-8') as fh:
@@ -790,8 +961,10 @@ def main() -> int:
     n_meth = sum(len(f.get('methods') or []) for f in families.values())
     impl_files = {i.get('file') for v in implementations.values() for i in v}
     n_tmeth = sum(len(m) for f, m in methods_by_file.items() if f in impl_files)
+    n_comp = sum(len(v) for v in components.values())
     print(f'Wrote {len(implementations)} physics pages ({n_impl} '
           f'implementations, {n_meth} interface + {n_tmeth} type methods), '
+          f'{len(components)} component classes ({n_comp} implementations), '
           f'{len(enumerations)} enumerations, {len(modules)} modules, '
           f'{len(workarounds)} workarounds, {len(constants)} constants, glossary '
           f'({len(glossary)} entries), references, '

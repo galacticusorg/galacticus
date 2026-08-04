@@ -17,6 +17,9 @@
       <xs:all>
 	<xs:element name="class"      type="xs:string" minOccurs="1"/>
 	<xs:element name="name"       type="xs:string" minOccurs="1"/>
+	<!-- Prose description of this implementation, used to generate its
+	     entry in the node component reference documentation. -->
+	<xs:element name="description" type="xs:string" minOccurs="0"/>
 	<xs:element name="isDefault"                   minOccurs="0" >
 	  <xs:simpleType>
 	    <xs:restriction base="xs:string">
@@ -138,6 +141,9 @@
 	</xs:element>	
 	<xs:element name="functions"   type="xs:string" minOccurs="0"/>
       </xs:all>
+      <!-- Format of the embedded documentation; "rst" marks the description as
+	   reStructuredText, as consumed by scripts/doc/extractDocsRST.py. -->
+      <xs:attribute name="docformat" type="xs:string"/>
     </xs:complexType>
   </xs:element>
 

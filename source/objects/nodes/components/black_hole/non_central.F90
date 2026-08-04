@@ -29,9 +29,12 @@ module Node_Component_Black_Hole_Noncentral
   private
 
   !![
-  <component>
+  <component docformat="rst">
    <class>blackHole</class>
    <name>nonCentral</name>
+   <description>
+   Extends the ``standard`` black hole implementation by making the radial position an evolvable property, so that off-center black holes can migrate inward through the host galaxy under dynamical friction (see :galacticus-class:`nodeOperatorBlackHolesRadialMigration`).
+   </description>
    <extends>
     <class>blackHole</class>
     <name>standard</name>

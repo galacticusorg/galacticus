@@ -30,9 +30,12 @@ module Node_Component_Hot_Halo_VS_Delayed
   public :: Node_Component_Hot_Halo_VS_Delayed_Initialize, Node_Component_Hot_Halo_VS_Delayed_Scale_Set
 
   !![
-  <component>
+  <component docformat="rst">
    <class>hotHalo</class>
    <name>verySimpleDelayed</name>
+   <description>
+   Extends the ``verySimple`` hot halo by adding a reservoir of outflowed gas, from which the hot halo is gradually replenished. Outflows are directed into this reservoir rather than directly into the hot phase, delaying their return and thereby suppressing star formation in low mass halos.
+   </description>
    <extends>
     <class>hotHalo</class>
     <name>verySimple</name>

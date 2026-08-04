@@ -33,9 +33,12 @@ module Node_Component_Black_Hole_Simple
        &    Node_Component_Black_Hole_Simple_Scale_Set 
 
   !![
-  <component>
+  <component docformat="rst">
    <class>blackHole</class>
    <name>simple</name>
+   <description>
+   A single central black hole described by its mass alone. Suitable for models in which black holes are grown by a simple scaling with the host spheroid and no spin or positional information is required. Black holes are not initialized---they are created as needed, seeded by :galacticus-class:`nodeOperatorBlackHolesSeed`.
+   </description>
    <isDefault>false</isDefault>
    <properties>
     <property>

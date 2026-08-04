@@ -30,9 +30,12 @@ module Node_Component_Dark_Matter_Profile_Scale_Triaxial
   public :: Node_Component_Dark_Matter_Profile_Scale_Triaxial_Scale_Set
 
   !![
-  <component>
+  <component docformat="rst">
    <class>darkMatterProfile</class>
    <name>scaleTriaxial</name>
+   <description>
+   Extends the ``scale`` implementation by adding the axis ratios of a triaxial dark matter halo, allowing non-spherical halo shapes to be tracked (see :galacticus-class:`nodeOperatorHaloAxisRatiosInterpolate`).
+   </description>
    <isDefault>false</isDefault>
    <extends>
     <class>darkMatterProfile</class>

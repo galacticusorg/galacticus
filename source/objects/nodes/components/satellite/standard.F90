@@ -30,9 +30,12 @@ module Node_Component_Satellite_Standard
        &    Node_Component_Satellite_Standard_Thread_Uninitialize
 
   !![
-  <component>
+  <component docformat="rst">
    <class>satellite</class>
    <name>standard</name>
+   <description>
+   Extends the ``mergeTime`` implementation by adding the remaining bound mass of the satellite and its orbit at the point of virial radius crossing (a ``keplerOrbit`` object). Suitable for models which need to follow tidal mass loss without integrating the orbit explicitly.
+   </description>
    <extends>
      <class>satellite</class>
      <name>mergeTime</name>

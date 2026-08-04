@@ -72,3 +72,108 @@ def test_all_workarounds_in_a_block_are_extracted(tmp_path):
     assert sorted(w["pr"] for w in workarounds) == ["110547", "110548"], (
         "every <workaround> in a block must be emitted, not just the first"
     )
+
+
+# A component directive exercising the features the reference page renders:
+# an `extends` block (whose nested <class>/<name> must not be mistaken for the
+# component's own), a component-level `<output instances=…/>` (which must not be
+# read as a property's output spec), and properties with varied attributes.
+_COMPONENT_FIXTURE = """\
+module Test_Component
+  !![
+  <component docformat="rst">
+   <class>disk</class>
+   <name>fancy</name>
+   <description>
+   A fancy disk.
+   </description>
+   <isDefault>true</isDefault>
+   <output instances="first"/>
+   <extends>
+    <class>disk</class>
+    <name>plain</name>
+   </extends>
+   <properties>
+    <property>
+      <name>massGas</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" comment="Mass of gas."/>
+    </property>
+    <property>
+      <name>outflowingMass</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
+    </property>
+   </properties>
+  </component>
+  !!]
+end module Test_Component
+"""
+
+
+def _scan_component(tmp_path):
+    (tmp_path / "testComponent.F90").write_text(_COMPONENT_FIXTURE)
+    return extractDocsRST.scan_source(str(tmp_path))
+
+
+def test_component_directives_are_extracted(tmp_path):
+    *_head, components, _workarounds = _scan_component(tmp_path)
+    assert list(components) == ["disk"]
+    (impl,) = components["disk"]
+    assert impl["name"] == "fancy"
+    assert impl["isDefault"] is True
+    assert impl["description"].strip() == "A fancy disk."
+    # The <extends> block nests its own <class>/<name>; the component's own name
+    # must win, and the extended implementation must be read from that block.
+    assert impl["extends"] == "plain"
+
+
+def test_component_properties_carry_their_attributes(tmp_path):
+    *_head, components, _workarounds = _scan_component(tmp_path)
+    props = {p["name"]: p for p in components["disk"][0]["properties"]}
+    assert set(props) == {"massGas", "outflowingMass"}
+    # A property's <output> spec must be picked up ...
+    assert props["massGas"]["isOutput"] is True
+    assert props["massGas"]["comment"] == "Mass of gas."
+    assert props["massGas"]["units"] == "Solar masses"
+    # ... while the component-level <output instances="first"/> must not be
+    # mistaken for one belonging to a property.
+    assert props["outflowingMass"]["isOutput"] is False
+    assert props["outflowingMass"]["isVirtual"] is True
+    assert props["outflowingMass"]["isDeferred"] == "rate"
+    assert props["outflowingMass"]["isGettable"] is False
+
+
+def test_components_without_rst_docformat_are_ignored(tmp_path):
+    (tmp_path / "legacy.F90").write_text(
+        _COMPONENT_FIXTURE.replace(' docformat="rst"', ""))
+    *_head, components, _workarounds = extractDocsRST.scan_source(str(tmp_path))
+    assert components == {}, (
+        "only components opting in with docformat=\"rst\" are documented"
+    )
+
+
+def test_default_source_is_extracted_for_computed_defaults(tmp_path):
+    (tmp_path / "computed.F90").write_text("""\
+module Test_Computed
+  !![
+  <inputParameter docformat="rst">
+    <name>ratio</name>
+    <defaultValue>ratioDefault</defaultValue>
+    <defaultSource>(:math:`I_1/I_2` for the profile.)</defaultSource>
+    <description>A ratio.</description>
+    <source>parameters</source>
+  </inputParameter>
+  !!]
+end module Test_Computed
+""")
+    _fam, _impl, params_by_file, *_rest = extractDocsRST.scan_source(str(tmp_path))
+    (param,) = params_by_file[str(tmp_path / "computed.F90")]
+    assert param["defaultSource"] == "(:math:`I_1/I_2` for the profile.)"
+    # A computed default renders as a bare Fortran symbol; the gloss must be
+    # carried into the rendered text so the reader learns what it means.
+    rendered = extractDocsRST.render_parameter(param, {})
+    assert "I_1/I_2" in rendered
