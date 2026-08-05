@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785795373672,
+  "lastUpdate": 1785934523869,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 6.5keV resolutionX8)": [
@@ -3029,6 +3029,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 26.008436634025106,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "ab14075604f5713e98ac599a6c718606383c49dc",
+          "message": "docs(physics): document mass distributions and potential zero points\n\nReplace the outdated \"galactic structure functions\" description with an\naccount of the `massDistribution` interface which replaced it, covering\ncomponent/mass type selection, the dark matter mass convention, and the\nfact that potential zero points are now set per mass distribution rather\nthan globally offset to the virial radius.",
+          "timestamp": "2026-08-03T18:26:15-07:00",
+          "tree_id": "28f74df2ad5bef46d25cae998246d165cc0306a0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ab14075604f5713e98ac599a6c718606383c49dc"
+        },
+        "date": 1785934522621,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X8 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 7.509488556611704,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X8 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 8.0006540507169,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 16.800979084798104,
             "unit": "-logℒ"
           }
         ]
