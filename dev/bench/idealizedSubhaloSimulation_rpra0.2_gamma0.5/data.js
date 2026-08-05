@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785795421125,
+  "lastUpdate": 1785934572391,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.5)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "2126b138dd20a2484b72ab08a81613f3078ea2ee",
-          "message": "Merge pull request #655 from galacticusorg/fixTreeReadScaleSet\n\nAvoid thread conflicts when setting dark matter profile scales read from merger tree files",
-          "timestamp": "2024-07-27T15:51:33Z",
-          "tree_id": "77dc12e85bea9b59c59ec8713a21b195d3a0e623",
-          "url": "https://github.com/galacticusorg/galacticus/commit/2126b138dd20a2484b72ab08a81613f3078ea2ee"
-        },
-        "date": 1722118030868,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteBoundMass",
-            "value": 40.968096778357,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": 22.3962458005683,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteVelocityMaximum",
-            "value": 20.3906768426422,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9900,6 +9861,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/ae9cc618d0868833023d94cfd8288f42b5cffbe2"
         },
         "date": 1785795419863,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": 40.84989649368697,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 22.3981853004161,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 20.390863317883465,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "ab14075604f5713e98ac599a6c718606383c49dc",
+          "message": "docs(physics): document mass distributions and potential zero points\n\nReplace the outdated \"galactic structure functions\" description with an\naccount of the `massDistribution` interface which replaced it, covering\ncomponent/mass type selection, the dark matter mass convention, and the\nfact that potential zero points are now set per mass distribution rather\nthan globally offset to the virial radius.",
+          "timestamp": "2026-08-03T18:26:15-07:00",
+          "tree_id": "28f74df2ad5bef46d25cae998246d165cc0306a0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ab14075604f5713e98ac599a6c718606383c49dc"
+        },
+        "date": 1785934570983,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
