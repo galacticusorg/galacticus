@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785795462172,
+  "lastUpdate": 1785934614490,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=40 km/s)": [
@@ -6057,6 +6057,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": 14.38655646204402,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "ab14075604f5713e98ac599a6c718606383c49dc",
+          "message": "docs(physics): document mass distributions and potential zero points\n\nReplace the outdated \"galactic structure functions\" description with an\naccount of the `massDistribution` interface which replaced it, covering\ncomponent/mass type selection, the dark matter mass convention, and the\nfact that potential zero points are now set per mass distribution rather\nthan globally offset to the virial radius.",
+          "timestamp": "2026-08-03T18:26:15-07:00",
+          "tree_id": "28f74df2ad5bef46d25cae998246d165cc0306a0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ab14075604f5713e98ac599a6c718606383c49dc"
+        },
+        "date": 1785934613063,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": 20.43992970987922,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": 17.381433442168362,
             "unit": "-logℒ"
           }
         ]
