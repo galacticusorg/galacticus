@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "ae9cc618d0868833023d94cfd8288f42b5cffbe2",
-        "message": "feat(ssps): add fixed stellar spectrum metallicity option for SSP tables\n\nAllows the ionizing stellar spectrum to be held fixed at a chosen\nmetallicity while the HII region gas metallicity continues to vary\nacross the grid, so that the effects of gas-phase abundances can be\nisolated from those of the stellar spectrum. The ionizing photon rate\nper unit stellar mass, the Cloudy normalization, and the validation\ncheck all follow the fixed spectrum, and the requested and adopted\nmetallicities are recorded in the output file.\n\nAlso gives `--abundanceAdjust` an explicit empty-list default, since\n`action='append'` otherwise leaves it as `None`.\n",
-        "timestamp": "2026-08-03 07:58:19-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/ae9cc618d0868833023d94cfd8288f42b5cffbe2"
+        "id": "ab14075604f5713e98ac599a6c718606383c49dc",
+        "message": "docs(physics): document mass distributions and potential zero points\n\nReplace the outdated \"galactic structure functions\" description with an\naccount of the `massDistribution` interface which replaced it, covering\ncomponent/mass type selection, the dark matter mass convention, and the\nfact that potential zero points are now set per mass distribution rather\nthan globally offset to the virial radius.\n",
+        "timestamp": "2026-08-03 18:26:15-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/ab14075604f5713e98ac599a6c718606383c49dc"
     },
     "results": [
         {
@@ -185,7 +185,7 @@ window.ANALYSES_DATA = {
         {
             "attributes": {
                 "name": "MDPL HugeMDPL CDM resolutionX1 z=0.987",
-                "logLikelihood": "-155.11047405669444",
+                "logLikelihood": "-155.11043826238623",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -210,36 +210,36 @@ window.ANALYSES_DATA = {
                     8912509381337491.0
                 ],
                 "yDataset": [
-                    2.293576296251328e-05,
-                    1.1188505969038172e-05,
-                    5.091897415733763e-06,
-                    2.0846728070474434e-06,
-                    7.167946128933957e-07,
-                    1.9312149065082169e-07,
-                    3.718669292843925e-08,
-                    4.4758242592258176e-09,
-                    2.7730659318661866e-10,
-                    6.651582307145222e-12,
-                    7.691969691541417e-14,
-                    2.9799699152541625e-15,
-                    3.1578003537505754e-17,
-                    2.396650878114171e-21
+                    2.2935753641257897e-05,
+                    1.1188499928483133e-05,
+                    5.091893806129009e-06,
+                    2.0846708765018564e-06,
+                    7.167937457918142e-07,
+                    1.9312118478684578e-07,
+                    3.7186615546427393e-08,
+                    4.4758119657386814e-09,
+                    2.7730558195313494e-10,
+                    6.651549845202361e-12,
+                    7.691919190785069e-14,
+                    2.9799469650424324e-15,
+                    3.1577717025751946e-17,
+                    2.3966205738088047e-21
                 ],
                 "yError": [
-                    2.0338113682603077e-06,
-                    9.95173032607551e-07,
-                    4.5452791310916665e-07,
-                    1.8749520547626738e-07,
-                    6.530640211885752e-08,
-                    1.7980212076388896e-08,
-                    3.611605021889648e-09,
-                    4.976283939565066e-10,
-                    6.159244857535518e-11,
-                    8.414892617496143e-12,
-                    1.2746450658506617e-12,
-                    2.508792861768019e-13,
-                    1.8261470394613263e-14,
-                    2.2498874046649227e-16
+                    2.033810551515733e-06,
+                    9.951725019186448e-07,
+                    4.5452759509701544e-07,
+                    1.874950344347082e-07,
+                    6.5306324526892e-08,
+                    1.7980184242415164e-08,
+                    3.611597777854819e-09,
+                    4.976271821218215e-10,
+                    6.159231165654327e-11,
+                    8.41487192391923e-12,
+                    1.2746408813418873e-12,
+                    2.5087832010056534e-13,
+                    1.826138754995202e-14,
+                    2.249873180338154e-16
                 ],
                 "yDatasetTarget": [
                     2.4846612984732556e-05,
@@ -262,7 +262,7 @@ window.ANALYSES_DATA = {
         {
             "attributes": {
                 "name": "MDPL HugeMDPL CDM resolutionX1 z=3.037",
-                "logLikelihood": "-43.31999183356231",
+                "logLikelihood": "-43.320022821473785",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -287,36 +287,36 @@ window.ANALYSES_DATA = {
                     8912509381337491.0
                 ],
                 "yDataset": [
-                    1.3749511218720252e-07,
-                    2.3029348516661076e-08,
-                    2.7448468557864075e-09,
-                    2.0465339016296628e-10,
-                    7.700771572894467e-12,
-                    1.1356669732990755e-13,
-                    4.643344436872623e-16,
-                    3.151495179067866e-19,
-                    1.6488881105546284e-23,
-                    2.0995270584728152e-29,
-                    2.2023619612150005e-37,
-                    9.286245494437666e-43,
-                    1.7167592916770556e-49,
-                    3.0246964456213717e-66
+                    1.3749539858721585e-07,
+                    2.302940873906293e-08,
+                    2.744855853418657e-09,
+                    2.0465423165829365e-10,
+                    7.700811509439762e-12,
+                    1.1356744602096691e-13,
+                    4.643383722142937e-16,
+                    3.151529789179385e-19,
+                    1.6489119196407347e-23,
+                    2.0995674691529764e-29,
+                    2.20241930081056e-37,
+                    9.286528268628767e-43,
+                    1.716820644896508e-49,
+                    3.0248468158343584e-66
                 ],
                 "yError": [
-                    1.2971870419603e-08,
-                    2.269690107144303e-09,
-                    3.210950584420075e-10,
-                    5.1101313574763604e-11,
-                    9.057161094775445e-12,
-                    1.0952159318848209e-12,
-                    7.002594623067578e-14,
-                    1.824322955640303e-15,
-                    1.3195899294563327e-17,
-                    1.4890323645151856e-20,
-                    2.1567645959489873e-24,
-                    4.42872259001201e-27,
-                    1.346474405718111e-30,
-                    7.992806425684819e-39
+                    1.2971896866623023e-08,
+                    2.2696958022161695e-09,
+                    3.210959496640331e-10,
+                    5.1101436143519215e-11,
+                    9.057184777333525e-12,
+                    1.0952195425007448e-12,
+                    7.002624245941352e-14,
+                    1.8243329730834574e-15,
+                    1.3195994565178233e-17,
+                    1.4890466945331882e-20,
+                    2.1567926719889157e-24,
+                    4.428790018711546e-27,
+                    1.3464984655272043e-30,
+                    7.993005101004633e-39
                 ],
                 "yDatasetTarget": [
                     1.5554643459409667e-07,

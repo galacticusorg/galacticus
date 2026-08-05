@@ -4,18 +4,18 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "ae9cc618d0868833023d94cfd8288f42b5cffbe2",
-        "message": "feat(ssps): add fixed stellar spectrum metallicity option for SSP tables\n\nAllows the ionizing stellar spectrum to be held fixed at a chosen\nmetallicity while the HII region gas metallicity continues to vary\nacross the grid, so that the effects of gas-phase abundances can be\nisolated from those of the stellar spectrum. The ionizing photon rate\nper unit stellar mass, the Cloudy normalization, and the validation\ncheck all follow the fixed spectrum, and the requested and adopted\nmetallicities are recorded in the output file.\n\nAlso gives `--abundanceAdjust` an explicit empty-list default, since\n`action='append'` otherwise leaves it as `None`.\n",
-        "timestamp": "2026-08-03 07:58:19-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/ae9cc618d0868833023d94cfd8288f42b5cffbe2"
+        "id": "ab14075604f5713e98ac599a6c718606383c49dc",
+        "message": "docs(physics): document mass distributions and potential zero points\n\nReplace the outdated \"galactic structure functions\" description with an\naccount of the `massDistribution` interface which replaced it, covering\ncomponent/mass type selection, the dark matter mass convention, and the\nfact that potential zero points are now set per mass distribution rather\nthan globally offset to the virial radius.\n",
+        "timestamp": "2026-08-03 18:26:15-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/ab14075604f5713e98ac599a6c718606383c49dc"
     },
     "results": [
         {
             "attributes": {
                 "name": "Symphony MilkyWay CDM resolutionX1 z=3.984 (47 realizations)",
-                "logLikelihood": "-2732.723439540756",
+                "logLikelihood": "-2732.7234030740565",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -39,34 +39,34 @@ window.ANALYSES_DATA = {
                     22387211385.68341
                 ],
                 "yDataset": [
-                    5.149715703930112,
-                    3.341946499280331,
-                    2.156165215621441,
-                    1.3837602581001025,
-                    0.9809567428497588,
-                    0.781067080909304,
-                    0.5603825298716936,
-                    0.34946767233034914,
-                    0.21688025080245232,
-                    0.13227731807145796,
-                    0.0813565045294623,
-                    0.046445278977691684,
-                    0.039022198866679084
+                    5.149714723271927,
+                    3.341946297491625,
+                    2.156165405951339,
+                    1.3837605272150302,
+                    0.9809569459398757,
+                    0.7810672370911547,
+                    0.5603826802864549,
+                    0.34946772025759415,
+                    0.21688025088187096,
+                    0.13227731812751864,
+                    0.08135650456901077,
+                    0.04644527900442361,
+                    0.039022198887229076
                 ],
                 "yError": [
-                    0.08009193367109357,
-                    0.05414976886740916,
-                    0.03700182977925222,
-                    0.026062596465215592,
-                    0.02858652526589113,
-                    0.024372746423557582,
-                    0.013893253103682831,
-                    0.010950301020317105,
-                    0.008904647733164635,
-                    0.007193365623520167,
-                    0.007019233278906676,
-                    0.006791854791772173,
-                    0.020936422008312396
+                    0.08009190974698893,
+                    0.05414976381134502,
+                    0.03700183408503098,
+                    0.026062602665396003,
+                    0.028586531946541736,
+                    0.02437275158269604,
+                    0.013893256720336108,
+                    0.010950302381423287,
+                    0.00890464773506605,
+                    0.007193365625221122,
+                    0.007019233280749145,
+                    0.006791854793829774,
+                    0.020936422014117984
                 ],
                 "yDatasetTarget": [
                     4.936256110146047,
