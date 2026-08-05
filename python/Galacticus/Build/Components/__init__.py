@@ -28,7 +28,12 @@ import re
 logger = logging.getLogger(__name__)
 
 
+from XML.Utils                           import xml_escape
 from Galacticus.Build.FileChanges        import update as file_changes_update
+from Galacticus.Build.SourceTree.Parse.Signatures import (
+    return_type_to_rst,
+    split_arguments,
+)
 from Galacticus.Build.Components import Utils
 from Galacticus.Build.Components.CodeGeneration import (
     function_arguments,
@@ -488,11 +493,8 @@ def bound_function_table(object_name, bindings):
     description       = ""
     method_count      = 0
     for _, binding in enriched:
-        text = None
-        if 'descriptor' in binding:
-            text = binding['descriptor'].get('description')
-        elif 'description' in binding:
-            text = binding['description']
+        source = binding['descriptor'] if 'descriptor' in binding else binding
+        text = source.get('description')
         if text is None:
             continue
         method_count += 1
@@ -500,10 +502,23 @@ def bound_function_table(object_name, bindings):
             method_name = binding['descriptor']['methodName']
         else:
             method_name = binding.get('name', '')
-        description += (
-            f"      <method method=\"{method_name}\" "
-            f"description=\"{text}\"/>\n"
-        )
+        # Return type and arguments, where the binding carries them: the
+        # documentation renders a method's signature alongside its description.
+        return_type = return_type_to_rst(source.get('returnType'))
+        arguments   = split_arguments(source.get('arguments'))
+        opening     = (f"      <method method=\"{method_name}\" "
+                       f"description=\"{xml_escape(text)}\"")
+        if return_type is None and not arguments:
+            description += opening + "/>\n"
+            continue
+        description += opening + ">\n"
+        if return_type is not None:
+            description += f"       <type>{xml_escape(return_type)}</type>\n"
+        for argument in arguments:
+            description += (
+                f"       <argument>{xml_escape(argument)}</argument>\n"
+            )
+        description += "      </method>\n"
 
     out = ""
     if method_count >= 1:

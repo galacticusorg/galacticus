@@ -150,7 +150,7 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'timeStep',
         'function':    'Tree_Node_Time_Step',
         'description': "Return the time-step last used by this node.",
-        'returnType':  r"``double``",
+        'returnType':  r"``double precision``",
         'arguments':   "",
     },
     {
@@ -159,14 +159,14 @@ _BASE_BOUND_FUNCTIONS = [
         'function':    'Tree_Node_Time_Step_Set',
         'description': "Set the time-step used by this node.",
         'returnType':  r"``void``",
-        'arguments':   r"``double`` timeStep [in]",
+        'arguments':   r"``double precision`` timeStep [in]",
     },
     {
         'type':        'procedure',
         'name':        'subsamplingWeight',
         'function':    'Tree_Node_Subsampling_Weight',
         'description': "Return the subsampling weight of this node.",
-        'returnType':  r"``double``",
+        'returnType':  r"``double precision``",
         'arguments':   "",
     },
     {
@@ -175,7 +175,7 @@ _BASE_BOUND_FUNCTIONS = [
         'function':    'Tree_Node_Subsampling_Weight_Set',
         'description': "Set the subsampling weight of this node.",
         'returnType':  r"``void``",
-        'arguments':   r"``double`` subsamplingWeight [in]",
+        'arguments':   r"``double precision`` subsamplingWeight [in]",
     },
     {
         'type':        'procedure',

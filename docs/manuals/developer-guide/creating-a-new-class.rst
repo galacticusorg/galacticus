@@ -564,6 +564,18 @@ The methods section then begins with descriptions of any methods unique to this 
 
 Most implementations won't have any unique methods, in which case this section can be omitted. The descriptions are placed with a ``methods`` XML section, in which each method is defined by a ``method`` element, with two attributes, ``method`` which gives the name of the method, and ``description`` that describes what that method does. These descriptions are incorporated into the ReadTheDocs documentation.
 
+The documentation also reports what each method takes and returns. You do not have to write that out: the documentation build follows each method to the function it is bound to and reads the signature from its declarations. A method's arguments are rendered as a type spec, the argument name, ``(optional)`` for an optional argument, and the direction of the argument:
+
+.. code-block:: rst
+
+   ``timescale`` → ``double precision``
+      Return the timescale.
+
+      * ``type(treeNode) node`` [inout]
+      * ``double precision factor`` (optional) [in]
+
+The object the method is bound to is not listed — it is the object whose method this is, not an argument to it. A method whose binding cannot be followed (one implemented by generated code, say) is still documented, with just its name and description. If you want to state a signature explicitly instead, give the ``method`` element ``type`` and ``argument`` child elements, as a ``functionClass`` method does; those are then used as written.
+
 After this we define the methods - in general this just connect the name of the method to the function that provides the functionality:
 
 .. code-block:: fortran

@@ -25,7 +25,7 @@ import xml.etree.ElementTree as ET
 
 from List.ExtraUtils                                         import as_array
 from Sort.Topo                                               import sort as topo_sort
-from XML.Utils                                               import xml_to_dict
+from XML.Utils                                               import xml_to_dict, xml_escape
 from Galacticus.Build.StateStorables                         import (
     function_class_names    as _shared_function_class_names,
     function_class_instances as _shared_function_class_instances,
@@ -42,6 +42,7 @@ from Galacticus.Build.SourceTree.Parse.Declarations          import (
     parse_declaration, build_declarations,
 )
 from Galacticus.Build.SourceTree.Parse.ModuleUses            import add_uses, _as_entry_list
+from Galacticus.Build.SourceTree.Parse.Signatures            import arguments_to_rst
 from Galacticus.Build.SourceTree.Parse.Visibilities          import update_visibilities
 from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import (
     class_dependencies,
@@ -115,13 +116,7 @@ def _short_name(full_name, directive_name):
 
 def _xml_escape(s):
     """Escape `&`, `<`, `>`, `"` for XML attribute / text contexts."""
-    return (
-        str(s)
-        .replace('&', '&amp;')
-        .replace('<', '&lt;')
-        .replace('>', '&gt;')
-        .replace('"', '&quot;')
-    )
+    return xml_escape(s)
 
 
 # Module-level caches.  The helpers take the state explicitly as
@@ -2769,6 +2764,19 @@ def _generate_type_definition(directive, methods, pre, node):
         for line in description.split('\n'):
             pre['content'] += '       ' + _xml_escape(line) + '\n'
         pre['content'] += '      </description>\n'
+        # Return type and arguments: the documentation renders these alongside
+        # the description, so emit them rather than letting them stop here.
+        # `void` is how a directive spells "this method is a subroutine": it
+        # names no return type, so emit none.
+        return_type = (method.get('type') or '').strip()
+        if return_type and return_type != 'void':
+            pre['content'] += (
+                f'      <type>{_xml_escape(return_type)}</type>\n'
+            )
+        for argument in argument_list:
+            pre['content'] += (
+                f'      <argument>{_xml_escape(argument)}</argument>\n'
+            )
         pre['content'] += '     </method>\n'
 
         for generic in as_array(directive.get('generic')):
@@ -2777,13 +2785,12 @@ def _generate_type_definition(directive, methods, pre, node):
             generic_methods = list(as_array(generic.get('method')))
             if method_name in generic_methods:
                 g_entry = generics.setdefault(generic['name'], {
-                    'name':         generic['name'],
-                    'description':  [],
-                    'argumentList': [],
+                    'name':        generic['name'],
+                    'description': [],
+                    'type':        [],
                 })
-                g_entry['type'] = method.get('type')
                 g_entry['description'].append(description)
-                g_entry['argumentList'].append(argument_list)
+                g_entry['type'].append((method.get('type') or '').strip())
 
     for gname in sorted(generics):
         g = generics[gname]
@@ -2791,6 +2798,14 @@ def _generate_type_definition(directive, methods, pre, node):
         pre['content'] += '       <description>\n'
         pre['content'] += '        ' + ' | '.join(g['description']) + '\n'
         pre['content'] += '       </description>\n'
+        # A generic binding covers several specific procedures: its return type
+        # is emitted only where they all agree, and no argument list is emitted
+        # at all — the signatures differ, which is the point of the binding.
+        return_types = set(g['type'])
+        if len(return_types) == 1 and next(iter(return_types)) not in ('', 'void'):
+            pre['content'] += (
+                f'       <type>{_xml_escape(next(iter(return_types)))}</type>\n'
+            )
         pre['content'] += '    </method>\n'
 
     pre['content'] += '    </methods>\n'
@@ -2852,40 +2867,14 @@ def _generate_type_definition(directive, methods, pre, node):
 
 
 def _method_arguments_to_rst(method):
-    """Render each of a method's argument declarations to the reStructuredText
-    notation FunctionClass embeds into the <methods>/<description>
-    metadata: an inline-literal type spec, the argument name, and an
-    `[in]`/`[out]`/`[inout]` direction marker.  We lean on our existing
-    `parse_declaration` rather than indexing into INTRINSIC_DECLARATIONS
-    directly.
+    """Render a method's argument declarations in the documentation's argument
+    notation, one entry per argument.
+
+    The notation itself lives in `Parse.Signatures`, which the documentation
+    extractor renders with too — the two must agree, since this metadata is
+    what it renders.
     """
-    args = list(as_array(method.get('argument') or []))
-    if not args:
-        return ''
-    parts = []
-    for arg in args:
-        decl = parse_declaration(arg)
-        if decl is None:
-            continue
-        intrinsic = decl['intrinsic']
-        type_val  = decl.get('type')
-        attrs     = decl.get('attributes') or []
-        for variable in decl.get('variables') or []:
-            # Inline literals are verbatim, so the type spec and the
-            # variable name need no escaping.
-            piece = '``' + intrinsic
-            if type_val is not None:
-                piece += type_val
-            piece += '`` ' + variable
-            for attr in attrs:
-                if attr == 'intent(in)':
-                    piece += r' [in]'
-                elif attr == 'intent(out)':
-                    piece += r' [out]'
-                elif attr == 'intent(inout)':
-                    piece += r' [inout]'
-            parts.append(piece)
-    return ','.join(parts)
+    return arguments_to_rst(as_array(method.get('argument') or []))
 
 
 def _generate_constructor(directive, classes_ordered, non_abstract_classes,
