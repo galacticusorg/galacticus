@@ -42,9 +42,12 @@ module Node_Component_NSC_Standard
        &    Node_Component_NSC_Standard_Thread_Initialize                     
 
   !![
-  <component>
+  <component docformat="rst">
    <class>NSC</class>
    <name>standard</name>
+   <description>
+   A nuclear star cluster at the center of a galaxy, with gas and stellar masses and abundances, angular momentum, a radial scale length and circular velocity, stellar luminosities, and a star formation history. ``isCollapsed`` records whether the cluster has undergone collapse, which is a channel for seeding a central black hole. Gas may be removed through the virtual ``massGasSink`` property.
+   </description>
    <isDefault>false</isDefault>
    <properties>
     <property>

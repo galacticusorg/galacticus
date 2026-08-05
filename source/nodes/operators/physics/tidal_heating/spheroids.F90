@@ -27,7 +27,13 @@
   !![
   <nodeOperator name="nodeOperatorTidalHeatingSpheroids" docformat="rst">
    <description>
-   Computes tidal heating of satellite galaxy spheroids by the tidal field of the host halo, injecting energy into the stellar component that causes spheroid puffing-up and can drive mass loss from tidally heated satellite galaxies.
+   Computes tidal heating of satellite galaxy spheroids by the tidal field of the host halo. The heating is applied as a torque which increases the (pseudo-)angular momentum of the spheroid, and so causes it to expand:
+
+   .. math::
+
+      \dot{J}_\mathrm{spheroid} = |\mathcal{T}| ( M_\mathrm{spheroid, gas} + M_\mathrm{spheroid, stars} ) r_\mathrm{spheroid}^2,
+
+   where :math:`\mathcal{T}` is the radial tidal tensor evaluated at pericenter (see :galacticus-class:`satelliteTidalFieldClass`), and :math:`r_\mathrm{spheroid}` is the scale radius of the spheroid. No heating is applied if the spheroid has non-positive mass or radius, if its radius already exceeds the virial radius of the halo, or if its angular momentum already exceeds :math:`(M_\mathrm{spheroid, gas} + M_\mathrm{spheroid, stars}) r_\mathrm{virial} V_\mathrm{virial}`.
    </description>
   </nodeOperator>
   !!]

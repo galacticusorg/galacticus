@@ -29,9 +29,12 @@ module Node_Component_Satellite_Merge_Time
   private
 
   !![
-  <component>
+  <component docformat="rst">
    <class>satellite</class>
    <name>mergeTime</name>
+   <description>
+   A satellite described only by the cosmological time at which it will merge with its host, assigned from the orbital parameters at infall (see :galacticus-class:`nodeOperatorSatelliteMergingTime`).
+   </description>
    <isDefault>false</isDefault>
    <properties>
     <property>

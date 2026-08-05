@@ -33,9 +33,12 @@ module Node_Component_Disk_Very_Simple_Size
        &    Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize
 
   !![
-  <component>
+  <component docformat="rst">
    <class>disk</class>
    <name>verySimpleSize</name>
+   <description>
+   Extends the ``verySimple`` disk by adding a radius and circular velocity, and participates in the galactic structure solver. No assumption is made about the shape of the mass distribution beyond this single length scale.
+   </description>
    <extends>
     <class>disk</class>
     <name>verySimple</name>

@@ -33,9 +33,12 @@ module Node_Component_Halo_Angular_Momentum_Scalar
        &    Node_Component_Halo_Angular_Momentum_Scalar_State_Restore
 
   !![
-  <component>
+  <component docformat="rst">
    <class>spin</class>
    <name>scalar</name>
+   <description>
+   The magnitude of the angular momentum of a dark matter halo. Note that this component tracks *angular momentum*, not the dimensionless spin parameter. Angular momenta are assigned, and interpolated along branches, by node operators (see :galacticus-class:`nodeOperatorHaloAngularMomentumRandom` and :galacticus-class:`nodeOperatorHaloAngularMomentumInterpolate`).
+   </description>
    <isDefault>true</isDefault>
    <properties>
     <property>

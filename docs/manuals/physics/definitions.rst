@@ -13,7 +13,7 @@ The exact way in which masses within Galacticus are defined and used in specifie
 Masses in the Basic Component
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``basic`` component (see Section :galacticus-ref:`ComponentBasicProperties`) tracks the mass of each halo as defined in the merger tree. As such, it should be considered to be the mass which the halo would have if baryonic matter behaved just as dark matter. Note that these masses are inclusive of subhalos---that is, the mass of a host halo includes the mass of all of its subhalos.
+The ``basic`` component (see :ref:`manual-sec-ComponentClasses`) tracks the mass of each halo as defined in the merger tree. As such, it should be considered to be the mass which the halo would have if baryonic matter behaved just as dark matter. Note that these masses are inclusive of subhalos---that is, the mass of a host halo includes the mass of all of its subhalos.
 
 Dark Matter Profiles
 ~~~~~~~~~~~~~~~~~~~~

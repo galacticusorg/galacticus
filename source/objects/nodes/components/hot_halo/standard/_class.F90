@@ -47,9 +47,12 @@ module Node_Component_Hot_Halo_Standard
        &    Node_Component_Hot_Halo_Standard_Thread_Uninitialize, Node_Component_Hot_Halo_Standard_State_Store
 
   !![
-  <component>
+  <component docformat="rst">
    <class>hotHalo</class>
    <name>standard</name>
+   <description>
+   The circumgalactic medium of a halo: a hot gaseous atmosphere with mass, abundances, chemical species, and angular momentum, bounded by an outer radius. Separate reservoirs track gas which has been ejected by feedback (``outflowed*``), gas which has been stripped from the halo (``stripped*``), and gas which failed to accrete from the intergalactic medium in the first place (``unaccreted*``). Virtual, deferred-rate properties provide connection points for other components: ``outflowing*`` receives outflows from galactic components, and ``massSink`` removes gas with proportionate angular momentum and elements.
+   </description>
    <isDefault>true</isDefault>
    <properties>
     <property>

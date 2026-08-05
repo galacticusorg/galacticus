@@ -35,9 +35,12 @@ module Node_Component_Position_Cartesian
   ! system-aware position should assign these into a `coordinateCartesian` object, which then converts to
   ! other systems automatically on assignment. See the convention documented in the `Coordinates` module.
   !![
-  <component>
+  <component docformat="rst">
    <class>position</class>
    <name>cartesian</name>
+   <description>
+   The three-dimensional position and velocity of a node in Cartesian coordinates, optionally accompanied by a history of its position in six-dimensional phase space---most often used for satellite nodes. Positions and velocities do not evolve for a given node: they are assigned during merger tree construction or by node operators (see :galacticus-class:`nodeOperatorPositionDiscrete` and :galacticus-class:`nodeOperatorPositionTraceDarkMatter`). When output, if a phase space history is available the entry closest to the output time is used, since no simple interpolation can correctly capture satellite orbital dynamics. See :ref:`manual-sec-GalacticusVelocityDefinitions` for important notes on velocity definitions.
+   </description>
    <isDefault>false</isDefault>
    <properties>
     <property>

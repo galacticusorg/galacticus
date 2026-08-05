@@ -29,7 +29,21 @@
   !![
   <nodeOperator name="nodeOperatorSatelliteOrbit" docformat="rst">
    <description>
-   A node operator class that integrates the orbital motion of satellite halos through the potential of their host halo, updating position and velocity at each ODE timestep via the equations of motion in the host potential. ``trackPreInfallOrbit`` enables approximate orbit integration before formal infall, which is useful for modeling pre-infall tidal effects and environmental processes.
+   A node operator class that integrates the orbital motion of satellite halos through the potential of their host halo. The position, :math:`\mathbf{r}`, and velocity, :math:`\mathbf{v}`, of the satellite relative to the center of its host are evolved as
+
+   .. math::
+
+      \dot{\mathbf{r}} = \mathbf{v},
+
+   and
+
+   .. math::
+
+      \dot{\mathbf{v}} = \mathbf{a}_\mathrm{host}(\mathbf{r}) \left( 1 + {M_\mathrm{sat}(&lt;r) \over M_\mathrm{host}(&lt;r)} \right),
+
+   where :math:`\mathbf{a}_\mathrm{host}` is the gravitational acceleration due to the host mass distribution. The factor :math:`(1+M_\mathrm{sat}/M_\mathrm{host})=M_\mathrm{sat}/\mu` (where :math:`\mu` is the reduced mass) converts from the two-body problem of satellite and host orbiting their common center of mass to the equivalent one-body problem, since the motion is solved for relative to the center of the host, which is held fixed. The mass ratio is clamped to a limited range for numerical stability, and the enclosed satellite mass is limited to its bound mass. Further accelerations---dynamical friction, for example---are contributed by other node operators (see :galacticus-class:`nodeOperatorSatelliteDynamicalFriction`).
+
+   ``trackPreInfallOrbit`` enables approximate orbit integration before formal infall, which is useful for modeling pre-infall tidal effects and environmental processes; in this case a kick-drift approach is used, so the velocity remains constant between kicks. ``acceptUnboundOrbits`` controls whether unbound virial orbits are accepted or rejected, and ``initializeOnly`` allows orbits to be initialized but not evolved.
    </description>
   </nodeOperator>
   !!]

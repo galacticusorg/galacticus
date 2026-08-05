@@ -37,9 +37,12 @@ module Node_Component_Disk_Very_Simple
        &    Node_Component_Disk_Very_Simple_State_Store , Node_Component_Disk_Very_Simple_State_Restore
 
   !![
-  <component>
+  <component docformat="rst">
    <class>disk</class>
    <name>verySimple</name>
+   <description>
+   A galactic disk with no structural properties, consisting only of gas and stellar masses and their abundances. Intended for fast models in which disk sizes---and therefore surface densities, rotation curves, and any physics depending on them---are not required.
+   </description>
    <isDefault>false</isDefault>
    <properties>
     <property>
