@@ -27,6 +27,7 @@
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
   use :: Linear_Growth      , only : linearGrowth      , linearGrowthClass
   use :: ISO_Varying_String , only : varying_string
+  use :: Numerical_Ranges   , only : rangeLattice
 
   !![
   <sphericalCollapseSolver name="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt" docformat="rst">
@@ -89,6 +90,13 @@
   ! Resolution of tabulated solutions.
   integer         , parameter :: tablePointsPerDecade=1000
 
+  ! Interval, measured in lattice steps, to which the bounds of the tabulated range are pinned. Half decades are used here rather
+  ! than whole decades: a whole decade of cosmic time spans most of the history of the universe, so anchoring to one would
+  ! tabulate far beyond any plausible request, and in a dark energy dominated cosmology would reach epochs at which the spherical
+  ! collapse solution becomes numerically inaccessible. This choice affects only how far beyond the requested range the solution
+  ! is tabulated - the tabulation points themselves, and hence the determinism and reuse properties of the table, are unaffected.
+  integer         , parameter :: tableAnchorEvery    =tablePointsPerDecade/2
+
   ! Variables used in root finding.
   double precision            :: OmegaDarkEnergyEpochal, OmegaMatterEpochal, &
        &                         amplitudePerturbation , hubbleTimeEpochal , &
@@ -104,6 +112,7 @@
   ! Cached copies of tabulated solutions. These are used to avoid re-reading from file if the same solution is requested multiple times.
   type :: cachedTable
      type            (varying_string)                              :: fileName
+     type            (rangeLattice  )                              :: lattice
      double precision                , allocatable, dimension(:  ) :: timeTable
      double precision                , allocatable, dimension(:,:) :: valueTable
   end type cachedTable
@@ -211,6 +220,7 @@ contains
     integer                                                                                        :: status
     type            (lockDescriptor                                  )                             :: fileLock
     integer                                                                                        :: useCache       , i
+    logical                                                           , allocatable, dimension(:)  :: isComputed
 
     !$omp critical(sphrclCllpsCllsnlssMttrCsmlgclCnstntCache)
     useCache=0
@@ -236,13 +246,13 @@ contains
        allocate(table1DLogarithmicLinear :: table_)
        select type (table_)
        type is (table1DLogarithmicLinear)
-          call table_%create  (                                                                                                                   &
-               &               cachedTables(useCache,calculationType%ID)%timeTable (1                                                          ), &
-               &               cachedTables(useCache,calculationType%ID)%timeTable (size(cachedTables(useCache,calculationType%ID)%timeTable)  ), &
-               &                                                                    size(cachedTables(useCache,calculationType%ID)%timeTable)     &
+          ! Rebuild the table on the lattice which it was originally built on, so that its abscissae are unchanged.
+          call table_%extend  (                                                           &
+               &               cachedTables(useCache,calculationType%ID)%lattice        , &
+               &               isComputed                                                 &
                &              )
-          call table_%populate(                                                                                                                   &
-               &               cachedTables(useCache,calculationType%ID)%valueTable(:                                                        ,1)  &
+          call table_%populate(                                                           &
+               &               cachedTables(useCache,calculationType%ID)%valueTable(:,1)  &
                &              )
        end select
     end if
@@ -286,8 +296,9 @@ contains
        deallocate(cachedTables(useCache,calculationType%ID)%valueTable)
     end if
     cachedTables(useCache,calculationType%ID)%fileName  =fileName
-    cachedTables(useCache,calculationType%ID)%timeTable =table_  %xs() 
-    cachedTables(useCache,calculationType%ID)%valueTable=table_  %ys()
+    cachedTables(useCache,calculationType%ID)%lattice   =table_  %lattice
+    cachedTables(useCache,calculationType%ID)%timeTable =table_  %xs     ()
+    cachedTables(useCache,calculationType%ID)%valueTable=table_  %ys     ()
     !$omp end critical(sphrclCllpsCllsnlssMttrCsmlgclCnstntCache)
     return
   end subroutine cllsnlssMttCsmlgclCnstntGetTable
@@ -342,6 +353,7 @@ contains
     use :: Error              , only : Error_Report
     use :: Kind_Numbers       , only : kind_dble
     use :: Linear_Growth      , only : normalizeMatterDominated
+    use :: Numerical_Ranges   , only : Range_Pinned                  , rangeLattice                 , gridSchemePerDecade
     use :: Root_Finder        , only : rangeExpandMultiplicative     , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     use :: Tables             , only : table1DLogarithmicLinear
     implicit none
@@ -353,49 +365,50 @@ contains
     type            (rootFinder                                      ), save                       :: finder
     logical                                                           , save                       :: finderConstructed         =.false.
     !$omp threadprivate(finder,finderConstructed)
-    integer                                                                                        :: countTimes                        , i
+    integer                                                                                        :: i
+    logical                                                           , allocatable, dimension(:)  :: isComputed
+    type            (rangeLattice                                    )                             :: lattice
     double precision                                                                               :: expansionFactor                   , epsilonPerturbation              , &
          &                                                                                            epsilonPerturbationMaximum        , epsilonPerturbationMinimum       , &
          &                                                                                            eta                               , normalization                    , &
          &                                                                                            radiiRatio                        , radiusMaximum                    , &
          &                                                                                            timeBigCrunch                     , timeMinimum                      , &
-         &                                                                                            timeMaximum
+         &                                                                                            timeMaximum                       , timeLimitMaximum
     double complex                                                                                 :: a                                 , b                                , &
          &                                                                                            c                                 , d                                , &
          &                                                                                            Delta
 
-    ! Find minimum and maximum times to tabulate.
-    if (allocated(sphericalCollapse_)) then
-       ! Use currently tabulated range as the starting point.
-       timeMinimum=sphericalCollapse_%x(+1)
-       timeMaximum=sphericalCollapse_%x(-1)
-    else
-       ! Specify an initial default range.
-       timeMinimum= 1.0d0
-       timeMaximum=20.0d0
-    end if
-    ! Expand the range to ensure the requested time is included.
-    timeMinimum=min(timeMinimum,time/2.0d0)
-    timeMaximum=max(timeMaximum,time*2.0d0)
-    timeBigCrunch=self%cosmologyFunctions_%timeBigCrunch()
+    ! Determine the default range of times to tabulate. This is the range which is tabulated irrespective of the requested time,
+    ! and is expanded below to include the requested time.
+    timeMinimum     = 1.0d0
+    timeMaximum     =20.0d0
+    timeLimitMaximum=huge(0.0d0)
+    timeBigCrunch   =self%cosmologyFunctions_%timeBigCrunch()
     ! If a Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
     if (timeBigCrunch > 0.0d0) then
-       if (timeMinimum > timeBigCrunch) timeMinimum= 0.5d0                                *timeBigCrunch
-       if (timeMaximum > timeBigCrunch) timeMaximum=(1.0d0-timeToleranceRelativeBigCrunch)*timeBigCrunch
+       timeLimitMaximum=(1.0d0-timeToleranceRelativeBigCrunch)*timeBigCrunch
+       timeMinimum     =min(timeMinimum,0.5d0           *timeBigCrunch)
+       timeMaximum     =min(timeMaximum,timeLimitMaximum               )
     end if
-    ! Determine number of points to tabulate.
-    countTimes=int(log10(timeMaximum/timeMinimum)*dble(tablePointsPerDecade))
-    ! Deallocate table if currently allocated.
-    if (allocated(sphericalCollapse_)) then
-       call sphericalCollapse_%destroy()
-       deallocate(sphericalCollapse_)
-    end if
-    allocate(table1DLogarithmicLinear :: sphericalCollapse_)
+    if (.not.allocated(sphericalCollapse_)) allocate(table1DLogarithmicLinear :: sphericalCollapse_)
     select type (sphericalCollapse_)
     type is (table1DLogarithmicLinear)
-       call sphericalCollapse_%create(timeMinimum,timeMaximum,countTimes)
-       ! Solve ODE to get corresponding overdensities.
-       do i=1,countTimes
+       ! Find the range of times to tabulate, pinned to an absolute lattice of points per decade. Pinning makes the tabulation -
+       ! and therefore every value interpolated from it - independent of the time at which the table was first requested, and
+       ! allows the table to be extended without changing (or recomputing) any previously computed value.
+       lattice=Range_Pinned(                                           &
+            &                              time                      , &
+            &                              tablePointsPerDecade      , &
+            &                              gridSchemePerDecade       , &
+            &               rangeCurrent  =[timeMinimum,timeMaximum] , &
+            &               latticeCurrent=sphericalCollapse_%lattice, &
+            &               limitMaximum  =timeLimitMaximum          , &
+            &               anchorEvery   =tableAnchorEvery            &
+            &              )
+       call sphericalCollapse_%extend(lattice,isComputed)
+       ! Solve ODE to get corresponding overdensities, skipping any point whose value was preserved by the extension.
+       do i=1,lattice%count
+          if (isComputed(i)) cycle
           time_=sphericalCollapse_%x(i)
           ! Get the current expansion factor.
           expansionFactor=self%cosmologyFunctions_%expansionFactor(time_)
@@ -983,14 +996,18 @@ contains
 
   subroutine cllsnlssMttCsmlgclCnstntRestoreTable(self,time,restoredTable,fileName,tableStore,status)
     !!{RST
-    Attempt to restore a table from file.
+    Attempt to restore a table from file. The table is rebuilt on the absolute lattice recorded in the file, so that its
+    abscissae are identical to those of the table which was stored. Files which do not record a lattice (i.e. those written by
+    earlier versions of this code) are rejected, causing the table to be recomputed and stored afresh.
     !!}
-    use :: Error             , only : errorStatusFail, errorStatusSuccess
-    use :: File_Utilities    , only : File_Exists
-    use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5File
-    use :: ISO_Varying_String, only : char           , varying_string
-    use :: Tables            , only : table1D        , table1DLogarithmicLinear
+    use :: Error               , only : errorStatusFail, errorStatusSuccess
+    use :: File_Utilities      , only : File_Exists
+    use :: HDF5_Access         , only : hdf5Access
+    use :: IO_HDF5             , only : hdf5File
+    use :: ISO_Varying_String  , only : char           , varying_string
+    use :: Numerical_Comparison, only : Values_Agree
+    use :: Numerical_Ranges    , only : rangeLattice   , enumerationGridSchemeType
+    use :: Tables              , only : table1D        , table1DLogarithmicLinear
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
     double precision                                                               , intent(in   ) :: time
@@ -999,7 +1016,11 @@ contains
     logical                                                                        , intent(in   ) :: tableStore
     integer                                                                        , intent(  out) :: status
     type            (hdf5File                                        )                             :: file
+    type            (rangeLattice                                    )                             :: lattice
+    logical                                                           , allocatable, dimension(:)  :: isComputed
     double precision                                                  , allocatable, dimension(:)  :: timeTable    , valueTable
+    integer                                                                                        :: gridScheme   , pointsPer , &
+         &                                                                                            indexMinimum
     !$GLC attributes unused :: self
 
     status=errorStatusFail
@@ -1007,25 +1028,41 @@ contains
     if (File_Exists(fileName)) then
        !$ call hdf5Access%set()
        file=hdf5File(fileName,readOnly=.true.)
-       call file%readDataset('time',timeTable)
-       if     (                                    &
-            &   timeTable(1              ) <= time &
-            &  .and.                               &
-            &   timeTable(size(timeTable)) >= time &
-            & ) then
-          call file%readDataset('value',valueTable)
-          ! Deallocate table if currently allocated.
-          if (allocated(restoredTable)) then
-             call restoredTable%destroy()
-             deallocate(restoredTable)
+       if (file%hasAttribute('gridScheme')) then
+          call file%readDataset('time',timeTable)
+          if     (                                    &
+               &   timeTable(1              ) <= time &
+               &  .and.                               &
+               &   timeTable(size(timeTable)) >= time &
+               & ) then
+             call file%readAttribute('gridScheme'  ,gridScheme  )
+             call file%readAttribute('pointsPer'   ,pointsPer   )
+             call file%readAttribute('indexMinimum',indexMinimum)
+             call file%readDataset  ('value'       ,valueTable  )
+             lattice=rangeLattice(enumerationGridSchemeType(gridScheme),pointsPer,indexMinimum,size(timeTable))
+             ! Guard against a file whose recorded lattice is inconsistent with its stored abscissae - such a file can not be
+             ! restored onto the lattice, so treat it as unusable and allow the table to be recomputed.
+             if     (                                                                          &
+                  &   lattice%isDefined()                                                      &
+                  &  .and.                                                                     &
+                  &   Values_Agree(lattice%minimum(),timeTable(1              ),relTol=1.0d-6) &
+                  &  .and.                                                                     &
+                  &   Values_Agree(lattice%maximum(),timeTable(size(timeTable)),relTol=1.0d-6) &
+                  & ) then
+                ! Deallocate table if currently allocated.
+                if (allocated(restoredTable)) then
+                   call restoredTable%destroy()
+                   deallocate(restoredTable)
+                end if
+                allocate(table1DLogarithmicLinear :: restoredTable)
+                select type (restoredTable)
+                type is (table1DLogarithmicLinear)
+                   call restoredTable%extend  (lattice,isComputed)
+                   call restoredTable%populate(valueTable        )
+                end select
+                status=errorStatusSuccess
+             end if
           end if
-          allocate(table1DLogarithmicLinear :: restoredTable)
-          select type (restoredTable)
-          type is (table1DLogarithmicLinear)
-             call restoredTable%create  (timeTable (1),timeTable(size(timeTable)),size(timeTable))
-             call restoredTable%populate(valueTable                                              )
-          end select
-          status=errorStatusSuccess
        end if
        !$ call hdf5Access%unset()
     end if
@@ -1034,8 +1071,10 @@ contains
 
   subroutine cllsnlssMttCsmlgclCnstntStoreTable(self,storeTable,fileName,tableStore)
     !!{RST
-    Store a table to file.
+    Store a table to file, recording the absolute lattice on which it was built so that it can be restored onto exactly the same
+    abscissae.
     !!}
+    use :: Error             , only : Error_Report
     use :: File_Utilities    , only : Directory_Make, File_Path
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File
@@ -1050,11 +1089,15 @@ contains
     !$GLC attributes unused :: self
 
     if (.not.tableStore) return
+    if (.not.storeTable%lattice%isDefined()) call Error_Report('table was not built on an absolute lattice'//{introspection:location})
     call Directory_Make(File_Path(fileName))
     !$ call hdf5Access%set()
     file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
-    call file%writeDataset(        storeTable%xs()                     ,'time' )
-    call file%writeDataset(reshape(storeTable%ys(),[storeTable%size()]),'value')
+    call file%writeDataset  (        storeTable%xs()                     ,'time'        )
+    call file%writeDataset  (reshape(storeTable%ys(),[storeTable%size()]),'value'       )
+    call file%writeAttribute(storeTable%lattice%scheme%ID                ,'gridScheme'  )
+    call file%writeAttribute(storeTable%lattice%pointsPer                ,'pointsPer'   )
+    call file%writeAttribute(storeTable%lattice%indexMinimum             ,'indexMinimum')
     !$ call hdf5Access%unset()
     return
   end subroutine cllsnlssMttCsmlgclCnstntStoreTable

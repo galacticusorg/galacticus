@@ -151,12 +151,13 @@ contains
     !!{RST
     Tabulate spherical collapse solutions for :math:`\delta_\mathrm{crit}`, :math:`\Delta_\mathrm{vir}`, or :math:`R_\mathrm{ta}/R_\mathrm{vir}` vs. time.
     !!}
-    use :: Display      , only : displayCounter           , displayCounterClear          , displayIndent                , displayUnindent, &
-          &                      verbosityLevelWorking
-    use :: Error        , only : Error_Report
-    use :: Linear_Growth, only : normalizeMatterDominated
-    use :: Root_Finder  , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
-    use :: Tables       , only : table1DLogarithmicLinear
+    use :: Display         , only : displayCounter           , displayCounterClear          , displayIndent                , displayUnindent, &
+          &                         verbosityLevelWorking
+    use :: Error           , only : Error_Report
+    use :: Linear_Growth   , only : normalizeMatterDominated
+    use :: Numerical_Ranges, only : Range_Pinned             , rangeLattice                 , gridSchemePerDecade
+    use :: Root_Finder     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Tables          , only : table1DLogarithmicLinear
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrDarkEnergy)             , intent(inout) :: self
     double precision                                                            , intent(in   ) :: time
@@ -169,7 +170,9 @@ contains
     logical                                                                                     :: finderAmplitudeConstructed     =  .false., finderExpansionConstructed     =.false.
     !$omp threadprivate(finderAmplitudePerturbation,finderExpansionMaximum,finderAmplitudeConstructed,finderExpansionConstructed)
     integer                                                                                     :: countTimes                               , iTime                                  , &
-         &                                                                                         iCount
+         &                                                                                         iCount                                   , countTimesEffective
+    logical                                                        , allocatable, dimension(:)  :: isComputed
+    type            (rangeLattice                                 )                             :: lattice
     double precision                                                                            :: expansionFactor                          , epsilonPerturbation                    , &
          &                                                                                         epsilonPerturbationMaximum               , epsilonPerturbationMinimum             , &
          &                                                                                         densityContrastExpansionMaximum          , expansionFactorExpansionMaximum        , &
@@ -185,31 +188,28 @@ contains
 
     ! Validate.
     if (calculationType == cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity .and. .not.associated(self%linearGrowth_)) call Error_Report('linearGrowth object was not provided'//{introspection:location})
-    ! Find minimum and maximum times to tabulate.
-    if (allocated(sphericalCollapse_)) then
-       ! Use currently tabulated range as the starting point.
-       timeMinimum=sphericalCollapse_%x(+1)
-       timeMaximum=sphericalCollapse_%x(-1)
-    else
-       ! Specify an initial default range.
-       timeMinimum= 0.1d0
-       timeMaximum=20.0d0
-    end if
-    ! Expand the range to ensure the requested time is included.
-    timeMinimum=min(timeMinimum,time/2.0d0)
-    timeMaximum=max(timeMaximum,time*2.0d0)
-    ! Determine number of points to tabulate.
-    countTimes=int(log10(timeMaximum/timeMinimum)*dble(tablePointsPerDecade))
-    ! Deallocate table if currently allocated.
-    if (allocated(sphericalCollapse_)) then
-       call sphericalCollapse_%destroy()
-       deallocate(sphericalCollapse_)
-    end if
-    allocate(table1DLogarithmicLinear :: sphericalCollapse_)
+    ! Specify the default range of times to tabulate - this range is tabulated irrespective of the requested time.
+    timeMinimum= 0.1d0
+    timeMaximum=20.0d0
+    if (.not.allocated(sphericalCollapse_)) allocate(table1DLogarithmicLinear :: sphericalCollapse_)
     select type (sphericalCollapse_)
     type is (table1DLogarithmicLinear)
-       ! Create the table.
-       call sphericalCollapse_%create(timeMinimum,timeMaximum,countTimes)
+       ! Find the range of times to tabulate, pinned to an absolute lattice of points per decade. Pinning makes the tabulation -
+       ! and therefore every value interpolated from it - independent of the time at which the table was first requested, and
+       ! allows the table to be extended without changing (or recomputing) any previously computed value.
+       lattice=Range_Pinned(                                           &
+            &                              time                      , &
+            &                              tablePointsPerDecade      , &
+            &                              gridSchemePerDecade       , &
+            &               rangeCurrent  =[timeMinimum,timeMaximum] , &
+            &               latticeCurrent=sphericalCollapse_%lattice, &
+            &               anchorEvery   =tableAnchorEvery            &
+            &              )
+       call sphericalCollapse_%extend(lattice,isComputed)
+       countTimes         =lattice%count
+       countTimesEffective=count(.not.isComputed)
+       timeMinimum        =lattice%minimum()
+       timeMaximum        =lattice%maximum()
        ! Solve ODE to get corresponding overdensities.
        message="Solving spherical collapse model for dark energy universe for "
        write (label,'(e12.6)') timeMinimum
@@ -245,23 +245,29 @@ contains
        !$omp barrier
        !$omp do schedule(dynamic)
        do iTime=1,countTimes
-          call displayCounter(                                                        &
-               &                        int(100.0d0*dble(iCount-1)/dble(countTimes)), &
-               &              isNew    =.false.                                     , &
-               &              verbosity=verbosityLevelWorking                         &
+          ! Skip any point whose value was preserved when the table was extended.
+          if (isComputed(iTime)) cycle
+          call displayCounter(                                                                 &
+               &                        int(100.0d0*dble(iCount-1)/dble(countTimesEffective)), &
+               &              isNew    =.false.                                              , &
+               &              verbosity=verbosityLevelWorking                                  &
                &             )
           ! Get the current expansion factor.
           expansionFactor=cosmologyFunctions_%expansionFactor(sphericalCollapse_%x(iTime))
           ! In the case of dark energy we cannot (easily) determine the largest (i.e. least negative) value of ε for which a
           ! perturbation can collapse. So, use no perturbation.
           epsilonPerturbationMaximum=  0.0d0
-          ! Estimate a suitably negative minimum value for ε.
-          epsilonPerturbationMinimum=-10.0d0
           ! Evaluate cosmological parameters at the present time.
           OmegaMatterEpochal    =cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
           OmegaDarkEnergyEpochal=cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
           hubbleTimeEpochal     =cosmologyFunctions_%expansionRate         (                expansionFactor)
-          time_                 =sphericalCollapse_ %x                     (                iTime          )
+          ! Estimate a suitably negative minimum value for ε. The initial expansion rate of the perturbation is proportional to
+          ! √(Ωₘ/aᵢ+ε) (see `cllsnlssMttrDarkEnergyPerturbationDynamicsSolver`), so ε can not be more negative than -Ωₘ/aᵢ - at
+          ! precisely that value the perturbation begins at rest, and so collapses at the earliest possible epoch. At late times
+          ! in a dark energy dominated universe Ωₘ→0, so this physical bound can be much less negative than the nominal value of
+          ! -10 used at earlier epochs.
+          epsilonPerturbationMinimum=max(-10.0d0,-OmegaMatterEpochal/expansionFactorInitialFraction)
+          time_                     =sphericalCollapse_ %x(iTime)
           ! Check dark energy equation of state is within acceptable range.
           if (cosmologyFunctions_%equationOfStateDarkEnergy(time=time_) >= -1.0d0/3.0d0) &
                & call Error_Report('ω<-⅓ required'//{introspection:location})
@@ -445,12 +451,18 @@ contains
          &              )**(2.0d0/3.0d0)
     ! Find the perturbation radius at this early time. This is, by construction, just the initial expansion factor.
     perturbationRadiusInitial=+expansionFactorInitial
-    ! Find the perturbation expansion rate at early time (Percival, 2005, A&A, 443, 819, eqn. 22).
-    expansionRatePerturbationInitial=+hubbleTimeEpochal            &
-         &                           *sqrt(                        &
-         &                                 +OmegaMatterEpochal     &
-         &                                 /expansionFactorInitial &
-         &                                 +epsilonPerturbation    &
+    ! Find the perturbation expansion rate at early time (Percival, 2005, A&A, 443, 819, eqn. 22). The argument of the square
+    ! root is non-negative for any physically-valid ε (see where the root finding range is set in
+    ! `cllsnlssMttrDarkEnergyTabulate`), but is clamped here to guard against it evaluating to a very small negative value due
+    ! to round-off when ε lies at the extreme of that range.
+    expansionRatePerturbationInitial=+hubbleTimeEpochal                 &
+         &                           *sqrt(                             &
+         &                                 max(                         &
+         &                                     +0.0d0                 , &
+         &                                     +OmegaMatterEpochal      &
+         &                                     /expansionFactorInitial  &
+         &                                     +epsilonPerturbation     &
+         &                                    )                         &
          &                                )
     ! Set initial conditions.
     propertyValues=[                                  &

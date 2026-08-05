@@ -24,6 +24,7 @@
   use, intrinsic :: ISO_C_Binding          , only : c_size_t
   use            :: Numerical_Interpolation, only : interpolator
   use            :: Numerical_ODE_Solvers  , only : odeSolver
+  use            :: Numerical_Ranges       , only : rangeLattice
 
   !![
   <massDistribution name="massDistributionSphericalSIDMIsothermal" docformat="rst">
@@ -75,16 +76,17 @@
      A mass distribution implementing the "isothermal" approximation to the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023`.
      !!}
      private
-     double precision                                                :: velocityDispersionCentral     , radiusInteraction_                    , &
-          &                                                             densityInteraction            , massInteraction                       , &
-          &                                                             velocityDispersionInteraction
-     type            (interpolator  ), allocatable                   :: densityCentralDimensionless   , velocityDispersionCentralDimensionless, &
-          &                                                             interpolatorRadiiDimensionless, interpolatorXi
-     double precision                                                :: xiTabulatedMinimum            , xiTabulatedMaximum
-     double precision                , allocatable, dimension( : ,:) :: densityProfileDimensionless   , massProfileDimensionless
-     double precision                , allocatable, dimension( :   ) :: radiiDimensionless
-     integer         (c_size_t      )                                :: indexXi
-     double precision                             , dimension(0:1  ) :: factorsXi
+     double precision                                              :: velocityDispersionCentral     , radiusInteraction_                    , &
+          &                                                           densityInteraction            , massInteraction                       , &
+          &                                                           velocityDispersionInteraction
+     type            (interpolator), allocatable                   :: densityCentralDimensionless   , velocityDispersionCentralDimensionless, &
+          &                                                           interpolatorRadiiDimensionless, interpolatorXi
+     double precision                                              :: xiTabulatedMinimum            , xiTabulatedMaximum
+     type            (rangeLattice)                                :: latticeXi
+     double precision              , allocatable, dimension( : ,:) :: densityProfileDimensionless   , massProfileDimensionless
+     double precision              , allocatable, dimension( :   ) :: radiiDimensionless
+     integer         (c_size_t    )                                :: indexXi
+     double precision                           , dimension(0:1  ) :: factorsXi
    contains
      !![
      <methods docformat="rst">
@@ -242,14 +244,16 @@ contains
     !!{RST
     Tabulate solutions for :math:`y_0(\xi)`, :math:`z_0(\xi)`.
     !!}
-    use :: Display                   , only : displayIndent  , displayUnindent    , displayMessage, verbosityLevelWorking, &
-         &                                    displayCounter , displayCounterClear
-    use :: File_Utilities            , only : Directory_Make , File_Exists        , File_Lock     , File_Path            , &
-         &                                    File_Unlock    , lockDescriptor
-    use :: Input_Paths               , only : inputPath      , pathTypeDataDynamic
+    use :: Display                   , only : displayIndent    , displayUnindent     , displayMessage, verbosityLevelWorking, &
+         &                                    displayCounter   , displayCounterClear
+    use :: File_Utilities            , only : Directory_Make   , File_Exists         , File_Lock     , File_Path            , &
+         &                                    File_Unlock      , lockDescriptor
     use :: HDF5_Access               , only : hdf5Access
     use :: IO_HDF5                   , only : hdf5File
-    use :: Numerical_Ranges          , only : Make_Range     , rangeTypeLinear
+    use :: ISO_Varying_String        , only : char
+    use :: Numerical_Ranges          , only : Make_Range       , rangeTypeLinear     , Range_Pinned  , rangeLattice         , &
+         &                                    gridSchemePerUnit, Range_Lattice_Extend                , Range_Lattice_Offset
+    use :: Input_Paths               , only : inputPath        , pathTypeDataDynamic
     use :: Multidimensional_Minimizer, only : multiDMinimizer
     implicit none
     class           (massDistributionSphericalSIDMIsothermal), intent(inout)                             :: self
@@ -259,6 +263,11 @@ contains
     double precision                                         , parameter                                 :: Y0Minimum           =1.0d+0, Y0Maximum           =1.0d+6
     double precision                                         , parameter                                 :: Z0Minimum           =0.1d+0, Z0Maximum           =3.0d+0
     double precision                                         , parameter                                 :: xiMinimum           =1.1d+0, xiMaximum           =1.0d+1
+    ! ξ is fixed by M₁=ξ(4π/3)ρ₁r₁³; for a power-law profile ρ∝r^α inside r₁ this gives ξ=1/(1+α/3), and α=0 is the largest
+    ! physically-allowed slope. ξ can therefore never be less than unity, which provides a hard lower limit on the range which
+    ! can be tabulated. It is unbounded above, since ξ→∞ as α→-3.
+    double precision                                         , parameter                                 :: xiFloor             =1.0d+0
+    double precision                                         , parameter                                 :: xiMargin            =1.0d-1
     double precision                                         , parameter                                 :: x1                  =1.0d+0
     double precision                                         , parameter                                 :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-9
     double precision                                         , dimension(propertyCount+1  )              :: properties                 , propertyScales
@@ -271,85 +280,144 @@ contains
     integer                                                                                              :: countXi                    , count
     integer         (c_size_t                               )                                            :: i                          , j                          , &
          &                                                                                                  iteration
-    logical                                                                                              :: converged                  , retabulate
+    logical                                                                                              :: converged
+    logical                                                  , dimension(              :  ), allocatable :: isComputed
+    type            (rangeLattice                           )                                            :: lattice
+    double precision                                         , dimension(              :,:), allocatable :: densityPrevious            , massPrevious
+    integer                                                                                              :: offset
     type            (varying_string                         )                                            :: fileName
     type            (lockDescriptor                         )                                            :: fileLock
     character       (len=16                                 )                                            :: labelXiMinimum             , labelXiMaximum
  
-    ! Return immediately if solutions have been tabulated with sufficient extent already.
-    if     (                                       &
-         &   xiRequired >= self%xiTabulatedMinimum &
-         &  .and.                                  &
-         &   xiRequired <= self%xiTabulatedMaximum &
-         & ) return
-    ! Deallocate existing table if necessary.
-    if (allocated(self%radiiDimensionless                    )) deallocate(self%radiiDimensionless                    )
-    if (allocated(self%densityProfileDimensionless           )) deallocate(self%densityProfileDimensionless           )
-    if (allocated(self%massProfileDimensionless              )) deallocate(self%massProfileDimensionless              )
+    ! Find the range of ξ to tabulate, pinned to an absolute lattice so that the tabulation - and hence every value interpolated
+    ! from it - is independent of the value of ξ at which it was first requested, and so that the tabulation can be extended
+    ! without recomputing any solution already found. Note that the margin is applied at both ends: previously the lower bound
+    ! was placed exactly at the requested value, leaving that value sitting on the edge of the table.
+    lattice=Range_Pinned(                                      &
+         &                              xiRequired           , &
+         &                              countXiPerUnit       , &
+         &                              gridSchemePerUnit    , &
+         &               marginOffset  =xiMargin             , &
+         &               rangeCurrent  =[xiMinimum,xiMaximum], &
+         &               latticeCurrent=self%latticeXi       , &
+         &               limitMinimum  =xiFloor                &
+         &              )
+    if (self%latticeXi%covers(lattice)) return
+    ! Discard the interpolators - they are rebuilt below once the tabulation is complete.
     if (allocated(self%interpolatorXi                        )) deallocate(self%interpolatorXi                        )
     if (allocated(self%interpolatorRadiiDimensionless        )) deallocate(self%interpolatorRadiiDimensionless        )
     if (allocated(self%densityCentralDimensionless           )) deallocate(self%densityCentralDimensionless           )
     if (allocated(self%velocityDispersionCentralDimensionless)) deallocate(self%velocityDispersionCentralDimensionless)
-    ! By default assume that we do need to retabulate.
-    retabulate=.true.
-    ! Construct a file name for the table.
+    ! Construct a file name for the table. Note that this deliberately carries no descriptor of the parameters of this object:
+    ! the tabulated solutions y₀(ξ) and z₀(ξ), and the dimensionless profiles, depend on ξ alone and so are common to every
+    ! halo. Objects of this class are constructed per halo, so including a descriptor here would give each halo its own
+    ! multi-megabyte copy of an identical tabulation. Only the extent in ξ differs between users, and that is handled by
+    ! extending and merging the tabulation rather than by separating it into distinct files.
     fileName=inputPath(pathTypeDataDynamic)// &
          &   'darkMatter/'                 // &
          &   self%objectType()             // &
          &   '.hdf5'
     call Directory_Make(File_Path(fileName))
+    ! Merge in any tabulation already cached on disk. Since the tabulation lies on an absolute lattice the cached and in-memory
+    ! solutions share abscissae wherever they overlap, so the cache is adopted when it spans everything we hold, rather than
+    ! being discarded - and, unlike previously, it never overwrites a wider range already held in memory.
     if (File_Exists(fileName)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(fileName,fileLock,lockIsShared=.true.)
-       ! Restore tables from file.
        !$ call hdf5Access%set()
        hdf5FileScope: block
-         type(hdf5File  ) :: file
-         file=hdf5File(fileName)
-         call file%readDataset('xi'                         ,     xi                         )
-         call file%readDataset('radii'                      ,self%radiiDimensionless         )
-         call file%readDataset('y0'                         ,     y0                         )
-         call file%readDataset('z0'                         ,     z0                         )
-         call file%readDataset('densityProfileDimensionless',self%densityProfileDimensionless)
-         call file%readDataset('massProfileDimensionless'   ,self%massProfileDimensionless   )
+         type   (hdf5File    ) :: file
+         type   (rangeLattice) :: latticeCached
+         integer               :: pointsPerCached, indexMinimumCached, countCached
+         ! Open read-only. Opening read-write would have HDF5 take an exclusive lock on the file - so a second thread reading it
+         ! concurrently fails to open it at all - and would have HDF5 write to the file even though we only read from it.
+         file=hdf5File(fileName,overWrite=.false.,readOnly=.true.)
+         if (file%hasAttribute('pointsPer')) then
+            call file%readAttribute('pointsPer'   ,pointsPerCached   )
+            call file%readAttribute('indexMinimum',indexMinimumCached)
+            call file%readAttribute('count'       ,countCached       )
+            latticeCached=rangeLattice(gridSchemePerUnit,pointsPerCached,indexMinimumCached,countCached)
+            ! Adopt the cached tabulation if we hold nothing yet, or if it spans everything we do hold. Note that the first of
+            ! these is the usual case: objects of this class are constructed per halo, and each therefore begins with no
+            ! tabulation at all - `covers` is false when either lattice is undefined, so testing it alone would reject the
+            ! cache on every first call and leave every halo to recompute and rewrite the entire tabulation.
+            if     (                                                 &
+                 &           latticeCached%isDefined(              ) &
+                 &  .and.                                            &
+                 &   (                                               &
+                 &     .not.                                         &
+                 &      self%latticeXi    %isDefined(              ) &
+                 &    .or.                                           &
+                 &           latticeCached%covers   (self%latticeXi) &
+                 &   )                                               &
+                 & ) then
+               call file%readDataset('xi'                         ,     xi                         )
+               call file%readDataset('radii'                      ,self%radiiDimensionless         )
+               call file%readDataset('y0'                         ,     y0                         )
+               call file%readDataset('z0'                         ,     z0                         )
+               call file%readDataset('densityProfileDimensionless',self%densityProfileDimensionless)
+               call file%readDataset('massProfileDimensionless'   ,self%massProfileDimensionless   )
+               if (size(xi) == latticeCached%count) then
+                  self%latticeXi=latticeCached
+               else
+                  ! The datasets do not match the lattice recorded alongside them, so the file is not self-consistent. Discard
+                  ! everything read from it rather than leave a partially-restored tabulation behind, and retabulate.
+                  if (allocated(     xi                         )) deallocate(     xi                         )
+                  if (allocated(     y0                         )) deallocate(     y0                         )
+                  if (allocated(     z0                         )) deallocate(     z0                         )
+                  if (allocated(self%radiiDimensionless         )) deallocate(self%radiiDimensionless         )
+                  if (allocated(self%densityProfileDimensionless)) deallocate(self%densityProfileDimensionless)
+                  if (allocated(self%massProfileDimensionless   )) deallocate(self%massProfileDimensionless   )
+               end if
+            end if
+         end if
        end block hdf5FileScope
        !$ call hdf5Access%unset()
-       self%xiTabulatedMinimum=xi(      1 )
-       self%xiTabulatedMaximum=xi(size(xi))
-       ! Check if the table is sufficient.
-       retabulate= xiRequired < self%xiTabulatedMinimum &
-            &     .or.                                  &
-            &      xiRequired > self%xiTabulatedMaximum
        call File_Unlock(fileLock)
     end if
-    ! Retabulate now if necessary.
-    if (retabulate) then
-       if (allocated(     xi                         )) deallocate(     xi                         )
-       if (allocated(     y0                         )) deallocate(     y0                         )
-       if (allocated(     z0                         )) deallocate(     z0                         )
-       if (allocated(self%radiiDimensionless         )) deallocate(self%radiiDimensionless         )
-       if (allocated(self%densityProfileDimensionless)) deallocate(self%densityProfileDimensionless)
-       if (allocated(self%massProfileDimensionless   )) deallocate(self%massProfileDimensionless   )
-       ! Set extent for tabulation.
-       self%xiTabulatedMinimum=min(1.0d0*xiRequired,xiMinimum)
-       self%xiTabulatedMaximum=max(1.1d0*xiRequired,xiMaximum)
+    ! Re-evaluate the range required in the light of anything restored, then extend the tabulation onto it, preserving the
+    ! solutions already found.
+    lattice=Range_Pinned(                                      &
+         &                              xiRequired           , &
+         &                              countXiPerUnit       , &
+         &                              gridSchemePerUnit    , &
+         &               marginOffset  =xiMargin             , &
+         &               rangeCurrent  =[xiMinimum,xiMaximum], &
+         &               latticeCurrent=self%latticeXi       , &
+         &               limitMinimum  =xiFloor                &
+         &              )
+    countXi=lattice%count
+    if (.not.allocated(self%radiiDimensionless)) then
+       allocate(self%radiiDimensionless(countRadii))
+       self%radiiDimensionless=Make_Range(0.0d0,1.0d0,countRadii,rangeTypeLinear)
+    end if
+    ! Extend the rank-1 tabulations, and the ξ dimension (the trailing one) of the profile tabulations.
+    call Range_Lattice_Extend(self%latticeXi,lattice,y0,isComputed)
+    call Range_Lattice_Extend(self%latticeXi,lattice,z0,isComputed)
+    if (allocated(xi)) deallocate(xi)
+    allocate(xi(countXi))
+    xi=lattice%values()
+    offset=0
+    if (self%latticeXi%isDefined()) offset=Range_Lattice_Offset(self%latticeXi,lattice)
+    if (allocated(self%densityProfileDimensionless)) call Move_Alloc(self%densityProfileDimensionless,densityPrevious)
+    if (allocated(self%massProfileDimensionless   )) call Move_Alloc(self%massProfileDimensionless   ,massPrevious   )
+    allocate(self%densityProfileDimensionless(countRadii,countXi))
+    allocate(self%massProfileDimensionless   (countRadii,countXi))
+    self%densityProfileDimensionless=0.0d0
+    self%massProfileDimensionless   =0.0d0
+    if (allocated(densityPrevious)) self%densityProfileDimensionless(:,offset+1:offset+size(densityPrevious,dim=2))=densityPrevious
+    if (allocated(massPrevious   )) self%massProfileDimensionless   (:,offset+1:offset+size(massPrevious   ,dim=2))=massPrevious
+    self%latticeXi         =lattice
+    self%xiTabulatedMinimum=lattice%minimum()
+    self%xiTabulatedMaximum=lattice%maximum()
+    if (any(.not.isComputed)) then
        write (labelXiMinimum,'(f5.2)') self%xiTabulatedMinimum
        write (labelXiMaximum,'(f5.2)') self%xiTabulatedMaximum
        call displayIndent ('tabulating isothermal SIDM density profile solutions'                                ,verbosityLevelWorking)
        call displayMessage('range: '//trim(adjustl(labelXiMinimum))//' < ξ < '//trim(adjustl(labelXiMaximum))//'',verbosityLevelWorking)
-       ! Construct ranges of the parameter ξ to span.
-       countXi=int((self%xiTabulatedMaximum-self%xiTabulatedMinimum)*dble(countXiPerUnit))+1
-       allocate(     xi                         (           countXi))
-       allocate(     y0                         (           countXi))
-       allocate(     z0                         (           countXi))
-       allocate(self%radiiDimensionless         (countRadii        ))
-       allocate(self%densityProfileDimensionless(countRadii,countXi))
-       allocate(self%massProfileDimensionless   (countRadii,countXi))
-       xi                     =Make_Range(self%xiTabulatedMinimum,self%xiTabulatedMaximum,countXi   ,rangeTypeLinear)
-       self%radiiDimensionless=Make_Range(     0.0d0             ,     1.0d0             ,countRadii,rangeTypeLinear)
        ! Set absolute property scales for ODE solving.
        propertyScales=1.0d0
-       ! Start parallel region to solve for halo structure at each value of ξ.
+       ! Start parallel region to solve for halo structure at each value of ξ which is not already known.
        count=0
        call displayCounter(count,isNew=.true.,verbosity=verbosityLevelWorking)
        !$omp parallel private(i,j,x,properties,locationMinimum,iteration,converged)
@@ -360,6 +428,7 @@ contains
        minimizer_=multiDMinimizer(propertyCount  ,sphericalSIDMIsothermalDimensionlessFitMetric                                                                                                   )
        !$omp do schedule(dynamic)
        do i=1,countXi
+          if (isComputed(i)) cycle
           xi_=xi(i)
           ! Seek the low-density solution.
           call minimizer_%set(x=[0.0d0,1.0d0],stepSize=[0.01d0,0.01d0])
@@ -394,18 +463,21 @@ contains
        deallocate(odeSolver_)
        deallocate(minimizer_)
        !$omp end parallel
-       ! Write the data to file.
+       ! Write the data to file, recording the lattice so that it can be restored onto exactly these abscissae.
        call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
        !$ call hdf5Access%set()
        hdf5FileScopeWrite: block
          type(hdf5File  ) :: file
          file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
-         call file%writeDataset(     xi                          ,'xi'                         )
-         call file%writeDataset(self%radiiDimensionless          ,'radii'                      )
-         call file%writeDataset(     y0                          ,'y0'                         )
-         call file%writeDataset(     z0                          ,'z0'                         )
-         call file%writeDataset(self%densityProfileDimensionless ,'densityProfileDimensionless')
-         call file%writeDataset(self%massProfileDimensionless    ,'massProfileDimensionless'   )
+         call file%writeDataset  (     xi                          ,'xi'                         )
+         call file%writeDataset  (self%radiiDimensionless          ,'radii'                      )
+         call file%writeDataset  (     y0                          ,'y0'                         )
+         call file%writeDataset  (     z0                          ,'z0'                         )
+         call file%writeDataset  (self%densityProfileDimensionless ,'densityProfileDimensionless')
+         call file%writeDataset  (self%massProfileDimensionless    ,'massProfileDimensionless'   )
+         call file%writeAttribute(self%latticeXi%pointsPer         ,'pointsPer'                  )
+         call file%writeAttribute(self%latticeXi%indexMinimum      ,'indexMinimum'               )
+         call file%writeAttribute(self%latticeXi%count             ,'count'                      )
        end block hdf5FileScopeWrite
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
