@@ -17,6 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson. The fixes for issue #1321 were diagnosed and drafted with
+!+    assistance from Claude, and reviewed and verified by Andrew Benson.
+
   !!{RST
   An implementation of virial orbits using a loss cone model.
   !!}
@@ -727,7 +730,13 @@ contains
     double precision                                , parameter                       :: radiusTableMinimum                    =1.0d-2
     double precision                                , parameter                       :: radiusTableMaximum                    =1.0d+3
     integer                                         , parameter                       :: radiusTablePointsPerDecade            =20
-    integer                                         , parameter                       :: overdensityLimitLower                 =-10.0d0
+    double precision                                , parameter                       :: overdensityLimitLower                 =-10.0d0
+    ! The lower limit of the environmental overdensity integrals below is nominally "overdensityLimitLower" standard deviations
+    ! of the environmental density field. That can reach beyond the range over which the halo environment class is able to map
+    ! linear to nonlinear overdensity (which is tabulated by its spherical collapse solver over a fixed range of linear
+    ! overdensity), so the limit is clamped to the minimum of that range. Since the integrands are weighted by the (Gaussian)
+    ! environmental PDF, the truncated tail contributes negligibly, and the same factor appears in the normalizing integral.
+    double precision                                , parameter                       :: overdensityLinearMinimumMap           = -5.0d0
     integer                                                                           :: iHost                                          , iSatellite                                , &
          &                                                                               countProgress                                  , countTotal                                , &
          &                                                                               countMasses                                    , countVelocities                           , &
@@ -750,9 +759,10 @@ contains
          &                                                                               radiusInfallTerm2                              , factorEnvironmental                       , &
          &                                                                               massEnvironment                                , radiusEnvironment                         , &
          &                                                                               jacobianFactor                                 , jacobianSign                              , &
-         &                                                                               radiusEvaluateLagrangian
-    type            (interpolator                  )                                  :: interpolatorVelocityDispersionLinear
-    type            (integrator                    )                                  :: integratorEnvironment                          , integratorEnvironmentNormalizer
+         &                                                                               radiusEvaluateLagrangian                       , overdensityEnvironmentMinimum             , &
+         &                                                                               energyOrbitDoubled
+    type            (interpolator                  )                    , allocatable :: interpolatorVelocityDispersionLinear
+    type            (integrator                    )                    , allocatable :: integratorEnvironment                          , integratorEnvironmentNormalizer
     
     ! Read in any existing tabulation from file.
     call self%restoreTable()
@@ -785,10 +795,11 @@ contains
          &  .and.                                      &
          &   basicSatellite%mass() <= self%massMaximum &
          & ) return
-    ! Free existing tabulations.
+    ! Free existing tabulations. Note that "velocity" and "interpolatorVelocity" are *not* freed here---they are built once, by
+    ! the constructor, from parameters that do not change between tabulations, and are used (via "countVelocities" below, and by
+    ! the interpolants) throughout this and subsequent tabulations.
     if (allocated(self%mass)) then
        deallocate(self%mass                                )
-       deallocate(self%velocity                            )
        deallocate(self%velocityRadialMeanVirial            )
        deallocate(self%velocityRadialDispersionVirial      )
        deallocate(self%velocityTangentialMeanVirial        )
@@ -799,7 +810,6 @@ contains
        deallocate(self%velocityTotalRMS                    )
        deallocate(self%velocityDistributionPeak            )
        deallocate(self%interpolatorMass                    )
-       deallocate(self%interpolatorVelocity                )
     end if
     ! Set time for this tabulation.
     self%time=basicHost%time()
@@ -835,7 +845,7 @@ contains
     ! Iterate over host masses.
     countTotal   =(countMasses*(countMasses+1))/2
     countProgress=0
-    !$omp parallel private(iHost,iSatellite,massHost,massSatellite,tree,nodeHost,nodeSatellite,basicHost,basicSatellite,radiusVirialHost,velocityVirialHost,velocityDispersionLinear,indexVelocityRadial,indexVelocityTangential,velocityRadialVirial,velocityTangentialVirial,countVelocityRadialInfall,indexVelocityRadialInfall,velocityRadialInfall,radiusInfallTerm1,radiusInfallTerm2,radiiEvaluation,iEvaluate,radiusEvaluateVirial,timeEvaluate,radiusApocenterVirial,radiusPericenterVirial,timeOfFlightVirial,timeOfFlight,radiusEvaluate,radiusEvaluateComoving,velocityDispersionEvaluate,velocityRadialMeanEvaluate,velocityDispersionRadialEvaluateVirial,velocityDispersionTangentialEvaluateVirial,velocityMeanRadialEvaluateVirial,velocityTangentialInfall,jacobianFactor,jacobianDeterminant,distributionFunction,interpolatorVelocityDispersionLinear,integratorEnvironment,integratorEnvironmentNormalizer,factorEnvironmental,massEnvironment,radiusEnvironment)
+    !$omp parallel private(iHost,iSatellite,massHost,massSatellite,tree,nodeHost,nodeSatellite,basicHost,basicSatellite,radiusVirialHost,velocityVirialHost,velocityDispersionLinear,indexVelocityRadial,indexVelocityTangential,velocityRadialVirial,velocityTangentialVirial,countVelocityRadialInfall,indexVelocityRadialInfall,velocityRadialInfall,radiusInfallTerm1,radiusInfallTerm2,radiiEvaluation,iEvaluate,radiusEvaluateVirial,timeEvaluate,radiusApocenterVirial,radiusPericenterVirial,timeOfFlightVirial,timeOfFlight,radiusEvaluate,radiusEvaluateComoving,velocityDispersionEvaluate,velocityRadialMeanEvaluate,velocityDispersionRadialEvaluateVirial,velocityDispersionTangentialEvaluateVirial,velocityMeanRadialEvaluateVirial,velocityTangentialInfall,jacobianFactor,jacobianDeterminant,distributionFunction,interpolatorVelocityDispersionLinear,integratorEnvironment,integratorEnvironmentNormalizer,factorEnvironmental,massEnvironment,radiusEnvironment,overdensityEnvironmentMinimum,energyOrbitDoubled)
     allocate(tree                                                                          )
     allocate(     cosmologyFunctions_            ,mold=self%cosmologyFunctions_            )
     allocate(     cosmologyParameters_           ,mold=self%cosmologyParameters_           )
@@ -925,8 +935,26 @@ contains
      </constructor>
     </referenceConstruct>
     !!]
+    ! Allocate the per-thread integrators and interpolator. These are declared "allocatable" and allocated here---rather than
+    ! being plain (non-allocatable) variables in the "private" clause above---because gfortran does not apply default
+    ! initialization to the private copy of a derived type, contrary to OpenMP, which requires the new list item to be
+    ! initialized as if it had been locally declared without an initializer. Their reference-counting "resourceManager"
+    ! components would therefore start filled with stack garbage, and the first assignment to them (which finalizes the
+    ! left-hand side) would release that garbage: either blocking forever in OMP_Set_Lock() on a bogus lock pointer, or
+    ! writing through a bogus counter pointer (issue #1321). OpenMP *does* guarantee that private copies of allocatables begin
+    ! unallocated, and ALLOCATE applies default initialization, so this route is safe.
+    allocate(integratorEnvironment               )
+    allocate(integratorEnvironmentNormalizer     )
+    allocate(interpolatorVelocityDispersionLinear)
     integratorEnvironment          =integrator(integrand=integrandEnvironment             ,toleranceRelative=1.0d-3)
     integratorEnvironmentNormalizer=integrator(integrand=integrandEnvironmentNormalization,toleranceRelative=1.0d-3)
+    ! Find the lower limit for the integrals over environmental overdensity, clamped to the range over which the halo environment
+    ! is able to map linear to nonlinear overdensity (see "overdensityLinearMinimumMap" above).
+    overdensityEnvironmentMinimum=max(                                                                              &
+         &                            +overdensityLimitLower                                                        &
+         &                            *cosmologicalMassVariance_%rootVariance(mass=massEnvironment,time=self%time), &
+         &                            +overdensityLinearMinimumMap                                                  &
+         &                           )
     do iHost=1,countMasses
        ! Build host node.
        massHost           =  self%mass     (            iHost)
@@ -944,9 +972,9 @@ contains
        radiusVirialHost  =darkMatterHaloScale_%radiusVirial  (nodeHost)
        velocityVirialHost=darkMatterHaloScale_%velocityVirial(nodeHost)
        ! Compute the environmental boost factor for velocity dispersion.
-       timeEvaluate_      =+                                                                                                                                 self%time
-       factorEnvironmental=+integratorEnvironment          %integrate(overdensityLimitLower*cosmologicalMassVariance_%rootVariance(mass=massEnvironment,time=self%time),haloEnvironment_%overdensityLinearMaximum()) &
-            &              /integratorEnvironmentNormalizer%integrate(overdensityLimitLower*cosmologicalMassVariance_%rootVariance(mass=massEnvironment,time=self%time),haloEnvironment_%overdensityLinearMaximum())
+       timeEvaluate_      =+self                           %time
+       factorEnvironmental=+integratorEnvironment          %integrate(overdensityEnvironmentMinimum,haloEnvironment_%overdensityLinearMaximum()) &
+            &              /integratorEnvironmentNormalizer%integrate(overdensityEnvironmentMinimum,haloEnvironment_%overdensityLinearMaximum())
        ! Iterate over satellite masses.
        do iSatellite=1,countMasses          
           ! Only consider satellites less (or equally) massive than their host.
@@ -1015,10 +1043,15 @@ contains
                         &            +  velocityRadialVirial    **2 &
                         &            +  velocityTangentialVirial**2 &
                         &            -  velocityRadialInfall    **2
+                   !! Skip cases where the roots are complex, or where the quadratic is degenerate. Note that
+                   !! "radiusInfallTerm1" must be excluded when it is exactly zero (not merely when it is negative): that is the
+                   !! tangency at which the two roots coincide, and the determinant of the Jacobian evaluated below diverges
+                   !! there as 1/√(radiusInfallTerm1). This is an integrable singularity of measure zero in the integral over
+                   !! infall radial velocity, so neighboring steps of that integral capture its contribution.
                     if     (                            &
-                        &   radiusInfallTerm1 <  0.0d0 &
-                        &  .or.                        &
-                        &   radiusInfallTerm2 == 0.0d0 &
+                        &    radiusInfallTerm1 <= 0.0d0 &
+                        &   .or.                        &
+                        &    radiusInfallTerm2 == 0.0d0 &
                         & ) cycle
                    !! Evaluate both roots of the equation to give the radii at which the current radial velocity is achieved.
                    radiiEvaluation(1)=(-2.0d0-sqrt(radiusInfallTerm1))/2.0d0/radiusInfallTerm2
@@ -1032,21 +1065,32 @@ contains
                       ! field at that lookback time.                         
                       !! Compute the apocenter of the orbit. For unbound orbits the apocentric radius will be negative - this
                       !! is acceptable and is handled correctly by the function which evaluates the time of flight.
-                      radiusApocenterVirial =+(                                                                                                            &
-                           &                   -2.0d0                                                                                                      &
-                           &                   -sqrt(4.0d0+4.0d0*velocityTangentialVirial**2*(-2.0d0+velocityRadialVirial**2+velocityTangentialVirial**2)) &
-                           &                  )                                                                                                            &
-                           &                 /  2.0d0                                                                                                      &
-                           &                 /                                               (-2.0d0+velocityRadialVirial**2+velocityTangentialVirial**2)
-                      radiusPericenterVirial=+(                                                                                                            &
-                           &                   -2.0d0                                                                                                      &
-                           &                   +sqrt(4.0d0+4.0d0*velocityTangentialVirial**2*(-2.0d0+velocityRadialVirial**2+velocityTangentialVirial**2)) &
-                           &                  )                                                                                                            &
-                           &                 /  2.0d0                                                                                                      &
-                           &                 /                                               (-2.0d0+velocityRadialVirial**2+velocityTangentialVirial**2)
-                      timeOfFlightVirial   =+abs(                                                                                                            &
-                           &                     +timeAlongOrbit(radiusEvaluateVirial,radiusApocenterVirial,radiusPericenterVirial,velocityTangentialVirial) &
-                           &                     -timeAlongOrbit(1.0d0               ,radiusApocenterVirial,radiusPericenterVirial,velocityTangentialVirial) &
+                      !! Twice the specific energy of the orbit. The turning points are the roots of "2 E r² + 2 r - v_θ² = 0",
+                      !! so this is also the coefficient which vanishes for a marginally bound (parabolic) orbit, for which the
+                      !! quadratic degenerates to a linear equation with the single root r = v_θ²/2 and no apocenter.
+                      energyOrbitDoubled=-2.0d0+velocityRadialVirial**2+velocityTangentialVirial**2
+                      if (energyOrbitDoubled == 0.0d0) then
+                         radiusPericenterVirial=+0.5d0*velocityTangentialVirial**2
+                         !! There is no apocenter; retain the convention that a negative apocentric radius denotes an unbound
+                         !! orbit. The value is never used, as timeAlongOrbit() branches on the energy before reaching it.
+                         radiusApocenterVirial =-huge(0.0d0)
+                      else
+                         radiusApocenterVirial =+(                                                                  &
+                              &                   -2.0d0                                                            &
+                              &                   -sqrt(4.0d0+4.0d0*velocityTangentialVirial**2*energyOrbitDoubled) &
+                              &                  )                                                                  &
+                              &                 /  2.0d0                                                            &
+                              &                 /                                               energyOrbitDoubled
+                         radiusPericenterVirial=+(                                                                  &
+                              &                   -2.0d0                                                            &
+                              &                   +sqrt(4.0d0+4.0d0*velocityTangentialVirial**2*energyOrbitDoubled) &
+                              &                  )                                                                  &
+                              &                 /  2.0d0                                                            &
+                              &                 /                                               energyOrbitDoubled
+                      end if
+                      timeOfFlightVirial   =+abs(                                                                                                                               &
+                           &                     +timeAlongOrbit(radiusEvaluateVirial,radiusApocenterVirial,radiusPericenterVirial,velocityTangentialVirial,energyOrbitDoubled) &
+                           &                     -timeAlongOrbit(1.0d0               ,radiusApocenterVirial,radiusPericenterVirial,velocityTangentialVirial,energyOrbitDoubled) &
                            &                    )
                       timeOfFlight=+                     timeOfFlightVirial           &
                            &       *darkMatterHaloScale_%timescaleDynamical(nodeHost)
@@ -1349,9 +1393,35 @@ contains
     
   end subroutine lossConeTabulate
 
-  double precision function timeAlongOrbit(radius,radiusApocenter,radiusPericenter,velocityTangentialVirial)
+  double precision function timeAlongOrbit(radius,radiusApocenter,radiusPericenter,velocityTangentialVirial,energyDoubled)
     !!{RST
-    Compute the time taken along the orbit specified by the pericenter radius, ``radiusPericenter``, and the tangential velocity at the virial radius, ``velocityTangentialVirial``, to travel from the pericenter to the given radius, ``radius``. All quantities are in virial units. Writing
+    Compute the time taken along the orbit specified by the pericenter radius, ``radiusPericenter``, and the tangential velocity at the virial radius, ``velocityTangentialVirial``, to travel from the pericenter to the given radius, ``radius``. All quantities are in virial units. The argument ``energyDoubled`` is twice the specific orbital energy, :math:`2 E = -2 + v_\mathrm{r}^2 + v_\theta^2`, which selects between the bound, marginally bound, and unbound forms below.
+
+    The general expression given below is singular in two limits which are, in general, sampled by the tabulation grid, and which are therefore treated separately using their (elementary) closed forms:
+
+    * **Radial orbits** (:math:`v_\theta=0`). The pericentric radius is then zero---the orbit plunges to the origin---and the general expression diverges since it divides by :math:`r_\mathrm{p}`. The radial Kepler problem instead gives, for :math:`a` the semi-major axis,
+
+      .. math::
+
+         r = a (1-\cos \eta),  \,\,\, t = a^{3/2} (\eta - \sin \eta)
+
+      when bound (:math:`a = -1/2E`), and
+
+      .. math::
+
+         r = a (\cosh \eta - 1),  \,\,\, t = a^{3/2} (\sinh \eta - \eta)
+
+      when unbound (:math:`a = +1/2E`).
+
+    * **Marginally bound (parabolic) orbits** (:math:`E=0`). Here :math:`2 r_\mathrm{p} - v_\theta^2 = -2 E r_\mathrm{p}^2 = 0`, so the general expression divides by zero. Barker's equation instead gives
+
+      .. math::
+
+         t(r) = \sqrt{2 r_\mathrm{p}^3} \left( D + D^3/3 \right), \,\,\, D = \sqrt{r/r_\mathrm{p} - 1},
+
+      which reduces to the radial, marginally bound result :math:`t = \sqrt{2} r^{3/2}/3` as :math:`r_\mathrm{p} \rightarrow 0`.
+
+    Writing
 
     .. math::
 
@@ -1378,12 +1448,38 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: radiusApocenter          , velocityTangentialVirial , &
-         &                             radiusPericenter         , radius
+         &                             radiusPericenter         , radius                   , &
+         &                             energyDoubled
     double precision, parameter     :: timeInfinite     =1.0d100
+    double precision                :: semiMajorAxis            , anomaly
     double complex                  :: radiusPericenter_        , velocityTangentialVirial_, &
          &                             timeAlongOrbit_          , radius_
-    
-    if (radius == radiusPericenter) then
+
+    if      (velocityTangentialVirial == 0.0d0) then
+       ! A purely radial orbit. The pericentric radius is zero, so the general expression below---which divides by it---is
+       ! singular. Use instead the elementary solution of the radial Kepler problem.
+       if      (energyDoubled <  0.0d0) then
+          ! Bound.
+          semiMajorAxis =-1.0d0/energyDoubled
+          !! Clamp the argument of the arccosine, which can exceed unity in magnitude by a rounding error when the radius
+          !! reaches the apocenter.
+          anomaly       =acos(max(-1.0d0,min(+1.0d0,1.0d0-radius/semiMajorAxis)))
+          timeAlongOrbit=semiMajorAxis**1.5d0*(anomaly-sin(anomaly))
+       else if (energyDoubled         == 0.0d0) then
+          ! Marginally bound.
+          timeAlongOrbit=sqrt(2.0d0)*radius**1.5d0/3.0d0
+       else
+          ! Unbound.
+          semiMajorAxis =+1.0d0/energyDoubled
+          anomaly       =acosh(1.0d0+radius/semiMajorAxis)
+          timeAlongOrbit=semiMajorAxis**1.5d0*(sinh(anomaly)-anomaly)
+       end if
+    else if (energyDoubled            == 0.0d0) then
+       ! A marginally bound (parabolic) orbit with non-zero angular momentum. Here 2 rₚ - v_θ² = -2 E rₚ² vanishes, so the general
+       ! expression below divides by zero. Use Barker's equation instead.
+       anomaly       =sqrt(max(0.0d0,radius/radiusPericenter-1.0d0))
+       timeAlongOrbit=sqrt(2.0d0*radiusPericenter**3)*(anomaly+anomaly**3/3.0d0)
+    else if (radius == radiusPericenter) then
        ! The time at the pericenter is zero by construction.
        timeAlongOrbit=0.0d0
     else if (radiusApocenter > 0.0d0 .and. radius >= radiusApocenter) then
@@ -1442,9 +1538,10 @@ contains
     if (.not.self%fileRead.and.File_Exists(self%fileName)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
+       ! As in tabulate(), "velocity" and "interpolatorVelocity" are constructor-built and are not restored from file, so they
+       ! must not be freed here.
        if (allocated(self%mass)) then
           deallocate(self%mass                                )
-          deallocate(self%velocity                            )
           deallocate(self%velocityRadialMeanVirial            )
           deallocate(self%velocityRadialDispersionVirial      )
           deallocate(self%velocityTangentialMeanVirial        )
@@ -1472,7 +1569,11 @@ contains
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
        self%fileRead=.true.
-       ! Rebuild interpolator.
+       ! Rebuild interpolator. It must be allocated first: "interpolator" has a defined assignment, so assigning to it does not
+       ! cause automatic allocation, and its assignment finalizes the left-hand side---which, if unallocated, means finalizing
+       ! garbage. On this path the interpolator is always unallocated: it is either freed above, or was never built, since it is
+       ! constructed only by tabulate().
+       if (.not.allocated(self%interpolatorMass)) allocate(self%interpolatorMass)
        self%interpolatorMass=interpolator(log(self%mass))
     end if
     return

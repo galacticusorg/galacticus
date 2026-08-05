@@ -17,6 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson. The fix for issue #1321 was diagnosed and drafted with
+!+    assistance from Claude, and reviewed and verified by Andrew Benson.
+
   !!{RST
   A spherical collapse solver class for universes consisting of collisionless matter and a cosmological constant.
   !!}
@@ -686,7 +689,6 @@ contains
          &                                                                                             iOverdensityLinear                    , iOverdensity                      , &
          &                                                                                             iTime
     type            (lockDescriptor                                  )                              :: fileLock
-    type            (hdf5File                                        )                              :: file
 
     ! Check that we have a linear growth object.
     if (.not.associated(self%linearGrowth_)) call Error_Report('no linearGrowth object was supplied'//{introspection:location})
@@ -704,12 +706,18 @@ contains
           ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
           call File_Lock(self%fileNameNonLinearMap,fileLock,lockIsShared=.true.)
           !$ call hdf5Access%set()
-          file=hdf5File(self%fileNameNonLinearMap)
-          call file%readDataset('time'               ,times               )
-          call file%readDataset('overdensitiesLinear',overdensitiesLinear )
-          call file%readDataset('linearNonlinearMap' ,linearNonlinearMap__)
+          ! The file object is scoped to this block so that it is finalized---and so the file closed---before the file lock is
+          ! released. Otherwise the file remains open within this process after the lock is dropped, and a subsequent attempt to
+          ! (re)create it, here or in another thread, fails with "unable to truncate a file which is already open".
+          hdf5ReadScope: block
+            type(hdf5File) :: file
+            file=hdf5File(self%fileNameNonLinearMap)
+            call file%readDataset('time'               ,times               )
+            call file%readDataset('overdensitiesLinear',overdensitiesLinear )
+            call file%readDataset('linearNonlinearMap' ,linearNonlinearMap__)
+          end block hdf5ReadScope
           !$ call hdf5Access%unset()
-          call File_Unlock(fileLock)       
+          call File_Unlock(fileLock)
           ! Test if map has sufficient extent.
           if     (                           &
                &   time < times(         1 ) &
@@ -915,12 +923,16 @@ contains
           ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
           call File_Lock(self%fileNameNonLinearMap,fileLock,lockIsShared=.false.)
           !$ call hdf5Access%set()
-          file=hdf5File(self%fileNameNonLinearMap,overWrite=.true.,readOnly=.false.)
-          call file%writeDataset(times               ,'time'               )
-          call file%writeDataset(overdensitiesLinear ,'overdensitiesLinear')
-          call file%writeDataset(linearNonlinearMap__,'linearNonlinearMap' )
+          ! As for the read above, the file object is scoped to this block so that the file is closed before the lock is released.
+          hdf5WriteScope: block
+            type(hdf5File) :: file
+            file=hdf5File(self%fileNameNonLinearMap,overWrite=.true.,readOnly=.false.)
+            call file%writeDataset(times               ,'time'               )
+            call file%writeDataset(overdensitiesLinear ,'overdensitiesLinear')
+            call file%writeDataset(linearNonlinearMap__,'linearNonlinearMap' )
+          end block hdf5WriteScope
           !$ call hdf5Access%unset()
-          call File_Unlock(fileLock)       
+          call File_Unlock(fileLock)
        end if
        ! Cache a copy of the map.
        !$omp critical(sphrclCllpsCllsnlssMttrCsmlgclCnstntNonLinCache)
