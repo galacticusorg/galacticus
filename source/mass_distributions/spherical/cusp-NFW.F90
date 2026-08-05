@@ -42,14 +42,15 @@
      double precision :: densityNormalization, radiusScale, &
           &              y
    contains
-     procedure :: describe              => cuspNFWDescribe
-     procedure :: density               => cuspNFWDensity
-     procedure :: densityGradientRadial => cuspNFWDensityGradientRadial
-     procedure :: massEnclosedBySphere  => cuspNFWMassEnclosedBySphere
-     procedure :: parameters            => cuspNFWParameters
-     procedure :: factoryTabulation     => cuspNFWFactoryTabulation
-     procedure :: descriptor            => cuspNFWDescriptor
-     procedure :: suffix                => cuspNFWSuffix
+     procedure :: describe                       => cuspNFWDescribe
+     procedure :: density                        => cuspNFWDensity
+     procedure :: densityGradientRadial          => cuspNFWDensityGradientRadial
+     procedure :: densitySlopeLogarithmicCentral => cuspNFWDensitySlopeLogarithmicCentral
+     procedure :: massEnclosedBySphere           => cuspNFWMassEnclosedBySphere
+     procedure :: parameters                     => cuspNFWParameters
+     procedure :: factoryTabulation              => cuspNFWFactoryTabulation
+     procedure :: descriptor                     => cuspNFWDescriptor
+     procedure :: suffix                         => cuspNFWSuffix
   end type massDistributionCuspNFW
   
   interface massDistributionCuspNFW
@@ -322,6 +323,24 @@ contains
          &                 /     radiusScaleFree
     return
   end function cuspNFWDensityGradientRadial
+
+  double precision function cuspNFWDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in a cusp-NFW mass distribution. The profile scales as
+    :math:`\rho \propto \sqrt{y^2+r/r_\mathrm{s}}\, (r/r_\mathrm{s})^{-3/2}` at small radii, giving a slope of :math:`-3/2`
+    for a non-zero cusp parameter, :math:`y`, and :math:`-1` (the :term:`NFW` limit) when it is zero. The profile is cuspy in
+    either case, so the density is not evaluable at zero radius.
+    !!}
+    implicit none
+    class(massDistributionCuspNFW), intent(inout) :: self
+
+    if (self%y > 0.0d0) then
+       slope=-1.5d0
+    else
+       slope=-1.0d0
+    end if
+    return
+  end function cuspNFWDensitySlopeLogarithmicCentral
 
   double precision function cuspNFWMassEnclosedBySphere(self,radius) result(mass)
     !!{RST

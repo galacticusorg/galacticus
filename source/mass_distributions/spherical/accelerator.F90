@@ -39,9 +39,10 @@
      double precision             :: toleranceRelative, factorRadiusMaximum, factorRadiusLogarithmicMaximum
    contains
      final     ::                         sphericalAcceleratorDestructor
-     procedure :: density              => sphericalAcceleratorDensity
-     procedure :: massEnclosedBySphere => sphericalAcceleratorMassEnclosedBySphere
-     procedure :: useUndecorated       => sphericalAcceleratorUseUndecorated
+     procedure :: density                        => sphericalAcceleratorDensity
+     procedure :: densitySlopeLogarithmicCentral => sphericalAcceleratorDensitySlopeLogarithmicCentral
+     procedure :: massEnclosedBySphere           => sphericalAcceleratorMassEnclosedBySphere
+     procedure :: useUndecorated                 => sphericalAcceleratorUseUndecorated
   end type massDistributionSphericalAccelerator
 
   interface massDistributionSphericalAccelerator
@@ -179,6 +180,18 @@ contains
     density=self%massDistribution_%density(coordinates)
     return
   end function sphericalAcceleratorDensity
+
+  double precision function sphericalAcceleratorDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in an accelerated mass distribution. Acceleration tabulates
+    the results of the undecorated distribution without changing them, so its central slope is unchanged.
+    !!}
+    implicit none
+    class(massDistributionSphericalAccelerator), intent(inout) :: self
+
+    slope=self%massDistribution_%densitySlopeLogarithmicCentral()
+    return
+  end function sphericalAcceleratorDensitySlopeLogarithmicCentral
 
   double precision function sphericalAcceleratorMassEnclosedBySphere(self,radius) result(mass)
     !!{RST

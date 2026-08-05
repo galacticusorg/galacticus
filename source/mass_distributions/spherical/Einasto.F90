@@ -65,6 +65,7 @@
      procedure :: massTotal                         => einastoMassTotal
      procedure :: density                           => einastoDensity
      procedure :: densityGradientRadial             => einastoDensityGradientRadial
+     procedure :: densitySlopeLogarithmicCentral    => einastoDensitySlopeLogarithmicCentral
      procedure :: densityRadialMoment               => einastoDensityRadialMoment
      procedure :: massEnclosedBySphere              => einastoMassEnclosedBySphere
      procedure :: radiusEnclosingMass               => einastoRadiusEnclosingMass
@@ -335,6 +336,21 @@ contains
     end if
     return
   end function einastoDensityGradientRadial
+
+  double precision function einastoDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in an Einasto mass distribution. The profile has a finite
+    central density, so the density is evaluable at zero radius.
+    !!}
+    use :: Coordinates, only : coordinateSpherical, assignment(=)
+    implicit none
+    class(massDistributionEinasto), intent(inout) :: self
+    type (coordinateSpherical    )                :: coordinates
+
+    coordinates=[0.0d0,0.0d0,0.0d0]
+    slope      =self%densityGradientRadial(coordinates,logarithmic=.true.)
+    return
+  end function einastoDensitySlopeLogarithmicCentral
 
   double precision function einastoDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
     !!{RST

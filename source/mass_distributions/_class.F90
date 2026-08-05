@@ -212,6 +212,25 @@ module Mass_Distributions
     <argument>class  (coordinate), intent(in   )           :: coordinates</argument>
     <argument>logical            , intent(in   ), optional :: logarithmic</argument>
    </method>
+   <method name="densitySlopeLogarithmicCentral" >
+    <description>
+    Return the logarithmic slope of the density profile, :math:`\mathrm{d}\ln\rho/\mathrm{d}\ln r`, in the limit :math:`r
+    \rightarrow 0`. The sign convention matches that of the ``densityGradientRadial`` method---an :term:`NFW` profile returns
+    :math:`-1`, a profile with a constant density core returns :math:`0`.
+
+    The default implementation returns ``-huge(0.0d0)``, indicating that the central slope is *unknown* for this
+    distribution. Since the slope is used to decide whether a quantity can be evaluated at zero radius---the density is finite
+    there only if the slope is non-negative, and the surface density only if it exceeds :math:`-1`---an unknown slope behaves
+    as an infinitely steep one, and so is rejected by any such test. Consumers must therefore only *compare* the returned
+    value, never perform arithmetic on it.
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+     massDistributionDensitySlopeLogarithmicCentral=-huge(0.0d0)
+    </code>
+   </method>
    <method name="potential" >
     <description>
     Return the gravitational potential of the distribution at the given coordinates.

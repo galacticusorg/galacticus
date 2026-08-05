@@ -57,12 +57,13 @@
      procedure :: massEnclosedBySphere                         => sphericalDecoratorMassEnclosedBySphere
      procedure :: radiusEnclosingMass                          => sphericalDecoratorRadiusEnclosingMass
      procedure :: densityGradientRadial                        => sphericalDecoratorDensityGradientRadial
+     procedure :: densitySlopeLogarithmicCentral               => sphericalDecoratorDensitySlopeLogarithmicCentral
      procedure :: densityRadialMoment                          => sphericalDecoratorDensityRadialMoment
      procedure :: radiusEnclosingDensity                       => sphericalDecoratorRadiusEnclosingDensity
      procedure :: radiusFromSpecificAngularMomentum            => sphericalDecoratorRadiusFromSpecificAngularMomentum
      procedure :: fourierTransform                             => sphericalDecoratorFourierTransform
      procedure :: radiusFreefall                               => sphericalDecoratorRadiusFreefall
-     procedure :: radiusFreefallIncreaseRate                   => sphericalDecoratorRadiusFreefallIncreaseRate 
+     procedure :: radiusFreefallIncreaseRate                   => sphericalDecoratorRadiusFreefallIncreaseRate
      procedure :: potentialIsAnalytic                          => sphericalDecoratorPotentialIsAnalytic
      procedure :: potential                                    => sphericalDecoratorPotential
      procedure :: energy                                       => sphericalDecoratorEnergy
@@ -76,7 +77,7 @@
      procedure :: radiusFromSpecificAngularMomentumNonAnalytic => sphericalDecoratorRadiusFromSpecificAngularMomentumNonAnalytic
      procedure :: fourierTransformNonAnalytic                  => sphericalDecoratorFourierTransformNonAnalytic
      procedure :: radiusFreefallNonAnalytic                    => sphericalDecoratorRadiusFreefallNonAnalytic
-     procedure :: radiusFreefallIncreaseRateNonAnalytic        => sphericalDecoratorRadiusFreefallIncreaseRateNonAnalytic 
+     procedure :: radiusFreefallIncreaseRateNonAnalytic        => sphericalDecoratorRadiusFreefallIncreaseRateNonAnalytic
      procedure :: potentialNonAnalytic                         => sphericalDecoratorPotentialNonAnalytic
      procedure :: energyNonAnalytic                            => sphericalDecoratorEnergyNonAnalytic
      procedure :: energyPotentialNonAnalytic                   => sphericalDecoratorEnergyPotentialNonAnalytic
@@ -154,6 +155,24 @@ contains
     end if 
     return
   end function sphericalDecoratorDensityGradientRadialNonAnalytic
+
+  double precision function sphericalDecoratorDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in a decorator spherical mass distribution. The decoration
+    may reshape the profile at the center, so the slope of the undecorated distribution can be used only where the decoration
+    is not applied. Decorators which are known to leave the central slope unchanged should override this method to always
+    delegate to the undecorated distribution.
+    !!}
+    implicit none
+    class(massDistributionSphericalDecorator), intent(inout) :: self
+
+    if (self%useUndecorated()) then
+       slope=self%massDistribution_%densitySlopeLogarithmicCentral()
+    else
+       slope=-huge(0.0d0)
+    end if
+    return
+  end function sphericalDecoratorDensitySlopeLogarithmicCentral
   
   double precision function sphericalDecoratorRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
     !!{RST

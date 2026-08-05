@@ -153,6 +153,7 @@ program Test_Dark_Matter_Profiles_Projected
      &amp;                                radiusSpecifiers                    =radiusSpecifiers     , &amp;
      &amp;                                includeRadii                        =.false.              , &amp;
      &amp;                                tolerateIntegrationFailures         =.false.              , &amp;
+     &amp;                                zeroRadiusIsFatal                   =.true.               , &amp;
      &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_   &amp;
      &amp;                               )
    </constructor>

@@ -35,13 +35,14 @@
      private
      double precision :: scaleHeight, densityCentral
    contains
-     procedure :: density                    => gaussianSlabDensity
-     procedure :: densitySphericalAverage    => gaussianSlabDensitySphericalAverage
-     procedure :: rotationCurve              => gaussianSlabRotationCurve
-     procedure :: rotationCurveGradient      => gaussianSlabRotationCurveGradient
-     procedure :: surfaceDensity             => gaussianSlabSurfaceDensity
-     procedure :: surfaceDensityRadialMoment => gaussianSlabSurfaceDensityRadialMoment
-     procedure :: radiusHalfMass             => gaussianSlabRadiusHalfMass
+     procedure :: density                        => gaussianSlabDensity
+     procedure :: densitySlopeLogarithmicCentral => gaussianSlabDensitySlopeLogarithmicCentral
+     procedure :: densitySphericalAverage        => gaussianSlabDensitySphericalAverage
+     procedure :: rotationCurve                  => gaussianSlabRotationCurve
+     procedure :: rotationCurveGradient          => gaussianSlabRotationCurveGradient
+     procedure :: surfaceDensity                 => gaussianSlabSurfaceDensity
+     procedure :: surfaceDensityRadialMoment     => gaussianSlabSurfaceDensityRadialMoment
+     procedure :: radiusHalfMass                 => gaussianSlabRadiusHalfMass
    end type massDistributionGaussianSlab
 
   interface massDistributionGaussianSlab
@@ -185,6 +186,19 @@ contains
     gaussianSlabDensity=self%densityCentral*exp(-0.5d0*z**2)
     return
   end function gaussianSlabDensity
+
+  double precision function gaussianSlabDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in a Gaussian slab mass distribution. The density is finite
+    at the center of the slab, and so is evaluable there.
+    !!}
+    implicit none
+    class(massDistributionGaussianSlab), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    slope=0.0d0
+    return
+  end function gaussianSlabDensitySlopeLogarithmicCentral
 
   double precision function gaussianSlabDensitySphericalAverage(self,radius)
     !!{RST

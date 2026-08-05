@@ -54,6 +54,7 @@
      procedure :: massTotal                         => sphericalScalerMassTotal
      procedure :: density                           => sphericalScalerDensity
      procedure :: densityGradientRadial             => sphericalScalerDensityGradientRadial
+     procedure :: densitySlopeLogarithmicCentral    => sphericalScalerDensitySlopeLogarithmicCentral
      procedure :: densityRadialMoment               => sphericalScalerDensityRadialMoment
      procedure :: massEnclosedBySphere              => sphericalScalerMassEnclosedBySphere
      procedure :: massEnclosedByCylinder            => sphericalScalerMassEnclosedByCylinder
@@ -243,6 +244,23 @@ contains
          &                                      /self%factorScalingLength**4
     return
   end function sphericalScalerDensityGradientRadial
+
+  double precision function sphericalScalerDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in a scaled spherical mass distribution. Scaling the length
+    and mass of a distribution leaves its logarithmic slope unchanged.
+    !!}
+    implicit none
+    class(massDistributionSphericalScaler), intent(inout) :: self
+
+    if (self%factorScalingMass > 0.0d0) then
+       slope=self%massDistribution_%densitySlopeLogarithmicCentral()
+    else
+       ! The distribution has zero mass, and so zero density everywhere.
+       slope=0.0d0
+    end if
+    return
+  end function sphericalScalerDensitySlopeLogarithmicCentral
 
   double precision function sphericalScalerMassEnclosedBySphere(self,radius)
     !!{RST
