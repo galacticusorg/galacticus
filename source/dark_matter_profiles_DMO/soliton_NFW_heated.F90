@@ -250,7 +250,7 @@ contains
     !![
     <constructorAssign variables="nonAnalyticSolver,*darkMatterHaloScale_,*darkMatterParticle_,*darkMatterProfileHeating_,*cosmologyFunctions_,*cosmologyParameters_,*virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,tolerateEnclosedMassIntegrationFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,velocityDispersionApproximate,fractionRadiusFinalSmall,toleranceRelativePotential,scatterFractional"/>
     <addMetaProperty component="darkMatterProfile" name="solitonRandomOffset"   id="self%randomOffsetID"   isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty component="darkMatterProfile" name="solitonStatus"         id="self%solitonStatusID"         type="integer"    isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonStatus"         id="self%solitonStatusID"  type="integer"    isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="solitonDensityCore"    id="self%densityCoreID"    isEvolvable="no"  isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="solitonRadiusCore"     id="self%radiusCoreID"     isEvolvable="no"  isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="solitonRadiusSoliton"  id="self%radiusSolitonID"  isEvolvable="no"  isCreator="yes"/>
@@ -395,10 +395,11 @@ contains
     darkMatterProfile => node             %darkMatterProfile          (                    )
     solitonStatus     =  darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID)
 
-    ! Cache the initial halo structure so that the halo remains consistently treated as either a soliton+NFW or an NFW profile throughout its evolution.
-    ! solitonStatus = 0  : initial
-    ! solitonStatus = +1 : solitonNFWHeated
-    ! solitonStatus = +2 : soliton only
+    ! Cache the initial halo structure and record the halo state. A halo initialized as soliton+NFW may evolve into either soliton-only or NFW.
+    ! Once the halo is in soliton-only or NFW state, the status remains fixed.
+    ! solitonStatus =  0 : uninitialized
+    ! solitonStatus = +1 : soliton+NFW
+    ! solitonStatus = +2 : soliton-only
     ! solitonStatus = -1 : NFW
     if (solitonStatus == 2) then
         call solitonComputeProperties(self,node,radiusCore,densityCore)
@@ -620,10 +621,10 @@ contains
     double precision                                                                :: massHalo                         , expansionFactor           , &
          &                                                                             redshift                         , concentration             , &
          &                                                                             randomOffset                     , massCoreNormal            , &
-         &                                                                             zeta_0                           , zeta_z                    , &
-         &                                                                             solitonStatus
+         &                                                                             zeta_0                           , zeta_z
     integer                                                                         :: sampleCountMaximum       =50
-    integer                                                                         :: status                           , sampleCount
+    integer                                                                         :: status                           , sampleCount               , &
+         &                                                                             solitonStatus
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -754,6 +755,7 @@ contains
     call darkMatterProfile%floatRank0MetaPropertySet(self%zetaID             ,zeta_z/zeta_0)
 
     if (status /= errorStatusSuccess) then
+        ! No valid solitonic solution was found. Treat the halo as an NFW halo.
         call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,-1         )
     end if
     

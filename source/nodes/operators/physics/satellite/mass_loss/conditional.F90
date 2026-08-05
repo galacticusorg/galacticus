@@ -26,7 +26,7 @@
   !![
   <nodeOperator name="nodeOperatorSatelliteConditionalMassLoss" docformat="rst">
    <description>
-   A node operator class that strips dark matter from orbiting satellite halos at each ODE timestep, using a :galacticus-class:`satelliteTidalStrippingClass` to compute the tidal mass loss rate. The bound mass of the satellite is evolved as an ODE variable.
+   A node operator class that applies conditional tidal mass loss to orbiting satellite halos at each ODE timestep for use with the :galacticus-class:`darkMatterProfileDMOSolitonNFWHeated` dark matter profile. Depending on the halo state, it evolves either the outer halo or the solitonic core using a :galacticus-class:`satelliteTidalStrippingClass`. If no solitonic solution exists, the halo is treated as an NFW halo and tidal stripping is applied using the NFW model throughout its evolution. The satellite bound mass and, where applicable, the solitonic core mass are evolved as ODE variables.
    </description>
   </nodeOperator>
   !!]
@@ -36,7 +36,7 @@
      !!}
      private
      integer :: massCoreID, solitonStatusID, massCoreNormalID
-     class  (satelliteTidalStrippingClass), pointer :: satelliteTidalStrippingOuter_ => null(), satelliteTidalStrippingCore_ => null(), satelliteTidalStrippingNFW_ => null()
+     class  (satelliteTidalStrippingClass), pointer :: satelliteTidalStrippingOuter_ => null(), satelliteTidalStrippingCore_ => null()
    contains
      final     ::                          satelliteConditionalStrippingDestructor
      procedure :: differentialEvolution => satelliteConditionalStrippingDifferentialEvolution
@@ -67,8 +67,8 @@ contains
     class  (satelliteTidalStrippingClass            ), pointer       :: satelliteTidalStrippingOuter_, satelliteTidalStrippingCore_
     
     !![
-    <objectBuilder   class="satelliteTidalStripping" name="satelliteTidalStrippingOuter_" source="parameters"        parameterName="satelliteTidalStrippingOuter"  />
-    <objectBuilder   class="satelliteTidalStripping" name="satelliteTidalStrippingCore_"  source="parameters"        parameterName="satelliteTidalStrippingCore"  />
+    <objectBuilder   class="satelliteTidalStripping" name="satelliteTidalStrippingOuter_" source="parameters"   parameterName="satelliteTidalStrippingOuter"  />
+    <objectBuilder   class="satelliteTidalStripping" name="satelliteTidalStrippingCore_"  source="parameters"   parameterName="satelliteTidalStrippingCore"  />
     !!]
     self=nodeOperatorSatelliteConditionalMassLoss(satelliteTidalStrippingOuter_,satelliteTidalStrippingCore_)
     !![
@@ -89,9 +89,9 @@ contains
     
     !![ 
     <constructorAssign variables="*satelliteTidalStrippingOuter_, *satelliteTidalStrippingCore_"/>
-    <addMetaProperty   component="darkMatterProfile"              name="solitonMassCore"           id="self%massCoreID"      isEvolvable="no" isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="solitonStatus"         id="self%solitonStatusID"         type="integer"    isCreator="no"/>
     <addMetaProperty component="darkMatterProfile" name="solitonMassCoreNormal" id="self%massCoreNormalID" isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonMassCore"       id="self%massCoreID"       isEvolvable="no"  isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonStatus"         id="self%solitonStatusID"  type="integer"    isCreator="no"/>
     !!]
 
     return
@@ -125,8 +125,8 @@ contains
     class    (nodeComponentSatellite                  )               , pointer :: satellite
     class    (nodeComponentDarkMatterProfile          ), pointer                :: darkMatterProfile
     double precision                                                            :: massLossRateOuter, massLossRateCore, &
-              &                                                                    solitonStatus
-    double precision                                                            :: massSatellite, massCore
+              &                                                                    massSatellite    , massCore
+    integer                                                                     :: solitonStatus
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
     if (.not.node%isSatellite()) return
@@ -137,6 +137,11 @@ contains
     massCore          =  darkMatterProfile%floatRank0MetaPropertyGet  (self%massCoreID)
     solitonStatus     =  darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID)
     
+    ! Apply tidal mass loss according to the halo state:
+    !  - solitonStatus = 1: soliton+NFW phase; strip only the outer NFW component until the bound mass reaches 4*massCore.
+    !  - solitonStatus = 2: soliton-only phase; evolve both the bound mass and the solitonic core mass, and destroy the satellite if the core mass becomes non-positive.
+    !  - otherwise: no solitonic solution exists, so treat the halo as a pure NFW halo and evolve the NFW mass loss.
+
     if (solitonStatus == 1) then
         if (massSatellite > 0.0d0 .and. massSatellite < 4.0d0*massCore) then
             ! Destruction criterion met - trigger an interrupt.
@@ -145,10 +150,12 @@ contains
             self_             => self
             return
         else
+            ! The halo is in the soliton+NFW phase. Strip only the outer NFW component.
             massLossRateOuter=+self%satelliteTidalStrippingOuter_%massLossRate(node)
             call satellite%boundMassRate(massLossRateOuter)
         end if
     else if (solitonStatus == 2) then
+        ! The halo is soliton-only. Evolve the bound mass and core mass together.
         massLossRateCore =+self%satelliteTidalStrippingCore_%massLossRate(node)
         call satellite        %boundMassRate             (massLossRateCore    )
         call darkMatterProfile%floatRank0MetaPropertyRate(                       &
@@ -156,7 +163,17 @@ contains
                 &                                         +0.25d0                &
                 &                                         *massLossRateCore      &
                 &                                        )
+        ! Check if the evolved core mass has become negative.
+        massCore = darkMatterProfile%floatRank0MetaPropertyGet(self%massCoreID)
+        if (massCore <= 0.0d0) then
+            ! Destruction criterion met - trigger an interrupt.
+            interrupt         =  .true.
+            functionInterrupt => destructionTrigger
+            self_             => self
+            return
+        end if
     else
+        ! No solitonic solution exists. Treat the halo as a pure NFW halo.
         massLossRateOuter=+self%satelliteTidalStrippingOuter_%massLossRate(node)
         call satellite%boundMassRate(massLossRateOuter)
     end if
@@ -173,19 +190,24 @@ contains
     double precision                                , intent(in   ), optional :: timeEnd
     class           (nodeComponentSatellite        ), pointer                 :: satellite
     class           (nodeComponentDarkMatterProfile), pointer                 :: darkMatterProfile
-    double precision                                                          :: massSatellite, massCore
+    double precision                                                          :: massSatellite    , massCore
     !$GLC attributes unused :: timeEnd
     
-    satellite         => node     %satellite()
-    massSatellite     =  satellite%boundMass()
-    darkMatterProfile => node     %darkMatterProfile()
+    satellite         => node            %satellite                (                )
+    massSatellite     =  satellite       %boundMass                (                )
+    darkMatterProfile => node            %darkMatterProfile        (                )
     massCore          = darkMatterProfile%floatRank0MetaPropertyGet(self_%massCoreID)
+    ! Transition to the soliton-only phase.
     if     (                                  &
          &   massSatellite > 0.0d0            &
          &  .and.                             &
          &   massSatellite < 4.0d0*massCore   &
          & ) then
         call darkMatterProfile%integerRank0MetaPropertySet(self_%solitonStatusID,2)
+    end if
+    ! Destroy the satellite once the solitonic core has fully dissolved.
+    if    (massCore <= 0.0d0) then
+        call satellite%destructionTimeSet(0.0d0)
     end if
     return
   end subroutine destructionTrigger

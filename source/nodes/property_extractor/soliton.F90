@@ -59,8 +59,8 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(nodePropertyExtractorSoliton)                :: self
-    type(inputParameters             ), intent(inout) :: parameters
+    type         (nodePropertyExtractorSoliton)                :: self
+    type         (inputParameters             ), intent(inout) :: parameters
 
     self=nodePropertyExtractorSoliton()
     !![
@@ -74,7 +74,7 @@ contains
     Internal constructor for the :galacticus-class:`nodePropertyExtractorSoliton` property extractor class.
     !!}
     implicit none
-    type(nodePropertyExtractorSoliton) :: self
+    type         (nodePropertyExtractorSoliton) :: self
     
     !![
     <addMetaProperty component="darkMatterProfile" name="solitonMassCoreNormal" id="self%massCoreNormalID" isEvolvable="yes" isCreator="no"/>
@@ -83,7 +83,7 @@ contains
     <addMetaProperty component="darkMatterProfile" name="solitonRadiusCore"     id="self%radiusCoreID"     isEvolvable="no"  isCreator="no"/>
     <addMetaProperty component="darkMatterProfile" name="solitonRadiusSoliton"  id="self%radiusSolitonID"  isEvolvable="no"  isCreator="no"/>
     <addMetaProperty component="darkMatterProfile" name="solitonZeta"           id="self%zetaID"           isEvolvable="no"  isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="solitonStatus"         id="self%solitonStatusID"         type="integer"    isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonStatus"         id="self%solitonStatusID"  type="integer"    isCreator="no"/>
     !!]
     return
   end function solitonConstructorInternal
@@ -107,12 +107,12 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
-    double precision                     , dimension(: ), allocatable :: solitonExtract
-    class(nodePropertyExtractorSoliton  ), intent(inout), target      :: self
-    type (treeNode                      ), intent(inout), target      :: node
-    double precision                     , intent(in   )              :: time
-    type (multiCounter                  ), intent(inout), optional    :: instance
-    class(nodeComponentDarkMatterProfile)               , pointer     :: darkMatterProfile
+    double precision                                , dimension(: ), allocatable :: solitonExtract
+    class           (nodePropertyExtractorSoliton  ), intent(inout), target      :: self
+    type            (treeNode                      ), intent(inout), target      :: node
+    double precision                                , intent(in   )              :: time
+    type            (multiCounter                  ), intent(inout), optional    :: instance
+    class           (nodeComponentDarkMatterProfile)               , pointer     :: darkMatterProfile
     !$GLC attributes unused :: time, instance
 
     allocate(solitonExtract(7))
@@ -137,7 +137,7 @@ contains
        &              darkMatterProfile%floatRank0MetaPropertyGet  (self%radiusCoreID    ), &
        &              darkMatterProfile%floatRank0MetaPropertyGet  (self%radiusSolitonID ), &
        &              darkMatterProfile%floatRank0MetaPropertyGet  (self%zetaID          ), &
-       &              real(darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID), kind=8)  &
+       &         real(darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID ), kind=8)  &
        &             ]    
     end select
     return
@@ -148,9 +148,9 @@ contains
     Return the names of the ``soliton`` property.
     !!}
     implicit none
-    class(nodePropertyExtractorSoliton), intent(inout)                             :: self
-    double precision                   , intent(in   )                             :: time
-    type            (varying_string   ), intent(inout), dimension(:) , allocatable :: names
+    class           (nodePropertyExtractorSoliton), intent(inout)                             :: self
+    double precision                              , intent(in   )                             :: time
+    type            (varying_string              ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
 
     allocate(names(7))
@@ -169,9 +169,9 @@ contains
     Return the descriptions of the ``soliton`` property.
     !!}
     implicit none
-    class(nodePropertyExtractorSoliton), intent(inout)                             :: self
-    double precision                   , intent(in   )                             :: time
-    type            (varying_string   ), intent(inout), dimension(:) , allocatable :: descriptions
+    class           (nodePropertyExtractorSoliton), intent(inout)                             :: self
+    double precision                              , intent(in   )                             :: time
+    type            (varying_string              ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
     allocate(descriptions(7))
@@ -181,7 +181,7 @@ contains
     descriptions(4)=var_str('The soliton core radius of the FDM halo, in units of Mpc.'                 )
     descriptions(5)=var_str('The soliton transition radius of the FDM halo, in units of Mpc.'           )
     descriptions(6)=var_str('The ratio of density contrast at redshift z and 0, dimensionless.'         )
-    descriptions(7)=var_str('If the solitonic core solution can be found.')
+    descriptions(7)=var_str('The halo state: uninitialized, soliton+NFW, soliton-only, or NFW.'         )
     return
   end subroutine solitonDescriptions
 
@@ -191,9 +191,9 @@ contains
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
-    double precision                   , allocatable  , dimension(:) :: solitonUnitsInSI
-    class(nodePropertyExtractorSoliton), intent(inout)               :: self
-    double precision                   , intent(in   )               :: time
+    double precision                              , allocatable  , dimension(:) :: solitonUnitsInSI
+    class           (nodePropertyExtractorSoliton), intent(inout)               :: self
+    double precision                              , intent(in   )               :: time
     !$GLC attributes unused :: self, time
 
     allocate(solitonUnitsInSI(7))

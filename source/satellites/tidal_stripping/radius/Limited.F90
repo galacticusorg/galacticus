@@ -20,25 +20,19 @@
 !+    Contributions to this file made by:  Yu Zhao.
 
   !!{RST
-  Implementation of a satellite tidal radius class which follows the method of :cite:t:`king_structure_1962`.
+    Implementation of a satellite tidal radius class which limits the tidal radius to be no smaller than the soliton radius for soliton+NFW halos.
   !!}
   
   !![
   <satelliteTidalStrippingRadius name="satelliteTidalStrippingRadiusLimited" docformat="rst">
    <description>
-   A satellite tidal radius class which uses the method of :cite:t:`king_structure_1962`:
-
-   .. math::
-
-      r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\gamma_\mathrm{c} \omega^2-d^2\Phi/dr^2}\right)^{1/3},
-
-   where :math:`\omega` is the orbital angular velocity of the satellite, :math:`\Phi(r)` is the gravitational potential due to the host, and :math:`\gamma_\mathrm{c}=`\ ``[efficiencyCentrifugal]`` is the a model parameter that controls the efficiency of centrifugal force. The calculation is based on the dark matter only density profile of the satellite---no accounting is made for the baryonic components.
+   A satellite tidal radius class which computes the tidal radius for satellite halos. For :galacticus-class:`darkMatterProfileSolitonNFWHeated` profiles, the tidal radius used for outer-halo stripping is limited to be no smaller than the soliton radius. For other dark matter profiles, the tidal radius is returned unchanged.
    </description>
   </satelliteTidalStrippingRadius>
   !!]
   type, extends(satelliteTidalStrippingRadiusClass) :: satelliteTidalStrippingRadiusLimited
      !!{RST
-     Implementation of a satellite tidal radius class which follows the method of :cite:t:`king_structure_1962`.
+     Implementation of a satellite tidal radius class for computing the tidal radius of satellite halos.
      !!}
      private
      class  (satelliteTidalStrippingRadiusClass), pointer :: satelliteTidalStrippingRadius_ => null()
@@ -98,7 +92,7 @@ contains
     Destructor for the :galacticus-class:`satelliteTidalStrippingRadiusLimited` satellite tidal stripping class.
     !!}
     implicit none
-    type(satelliteTidalStrippingRadiusLimited), intent(inout) :: self
+    type            (satelliteTidalStrippingRadiusLimited), intent(inout)      :: self
 
     !![
     <objectDestructor name="self%satelliteTidalStrippingRadius_"/>
@@ -108,7 +102,7 @@ contains
 
   double precision function limitedRadius(self,node)
     !!{RST
-    Return the tidal radius using the formulation of :cite:t:`king_structure_1962`.
+    Return the tidal radius, limiting it to the soliton radius for :galacticus-class:`massDistributionSolitonNFWHeated` profiles.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile, treeNode
     use :: Mass_Distributions              , only : massDistributionClass         , massDistributionSolitonNFWHeated
@@ -122,13 +116,16 @@ contains
     massDistribution_  => node%massDistribution()
     darkMatterProfile  => node%darkMatterProfile()
 
+    ! Compute the tidal radius using the wrapped tidal-radius model.
     radiusTidal        =  self%satelliteTidalStrippingRadius_%radius(node)
 
     select type (massDistribution_)
         type is (massDistributionSolitonNFWHeated)
+            ! Prevent the outer-halo stripping radius from entering the solitonic core.
             radiusSoliton = darkMatterProfile%floatRank0MetaPropertyGet(self%radiusSolitonID)
             limitedRadius = max(radiusTidal, radiusSoliton)
     class default
+        ! Other dark matter profiles are unaffected.
        limitedRadius = radiusTidal
     end select
 

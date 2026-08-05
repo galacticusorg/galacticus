@@ -35,8 +35,7 @@
      A node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of :cite:t:`du_tidal_2018`.
      !!}
      private
-     integer :: massCoreID, solitonStatusID, &
-          &     densityCoreID
+     integer :: massCoreID, densityCoreID
    contains
      final     ::                 du2018Destructor
      procedure :: massLossRate => du2018MassLossRate
@@ -182,20 +181,12 @@ contains
     ! Set the soliton core mass evolution rate following Du et al. (2018). From Eq. (17), the core mass obeys (1/M_c) dM_c/dt =
     ! (1/2) Im(E), where Im(E) is given by the fitting formula in Eq. (7). Here we set dM_c/dt = (1/2) Im(E) M_c for time
     ! integration.
-    
-    
-    ! coreMassLossRate =+0.5d0    &
-    !        &          *energyIm &
-    !        &          *massCore
 
-    ! massSoliton ~ 4*massCore
-    ! boundMassLossRate ~ 4*coreMassLossRate
-
+    ! In the soliton-only phase, assume M_bound ≈ 4*M_core. Therefore, evolve the bound mass using dM_bound/dt = 4*dM_c/dt.
     
     du2018MassLossRate=+4.0d0    &
             &          *0.5d0    &
             &          *energyIm &
             &          *massCore
-    
     return
   end function du2018MassLossRate

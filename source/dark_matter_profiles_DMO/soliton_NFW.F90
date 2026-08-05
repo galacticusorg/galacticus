@@ -166,7 +166,7 @@ contains
     !![
     <constructorAssign variables="*darkMatterHaloScale_, *darkMatterParticle_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, scatterFractional"/>
     <addMetaProperty component="darkMatterProfile" name="solitonRandomOffset"   id="self%randomOffsetID"   isEvolvable="no"  isCreator="yes"/>
-    <addMetaProperty component="darkMatterProfile" name="solitonStatus"         id="self%solitonStatusID"         type="integer"    isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonStatus"         id="self%solitonStatusID"  type="integer"    isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="solitonDensityCore"    id="self%densityCoreID"    isEvolvable="no"  isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="solitonRadiusCore"     id="self%radiusCoreID"     isEvolvable="no"  isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="solitonRadiusSoliton"  id="self%radiusSolitonID"  isEvolvable="no"  isCreator="yes"/>
@@ -287,6 +287,9 @@ contains
     solitonStatus     = darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID)
 
     ! Cache the initial halo structure so that the halo remains consistently treated as either a soliton+NFW or an NFW profile throughout its evolution.
+    ! solitonStatus =  0 : uninitialized
+    ! solitonStatus = +1 : soliton+NFW
+    ! solitonStatus = -1 : NFW
     if (solitonStatus >= 0) then
        if (self%radiusCorePrevious < 0.0d0) then
            call self%computeProperties(node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massCore)
@@ -504,6 +507,7 @@ contains
     call darkMatterProfile%floatRank0MetaPropertySet(self%zetaID       ,zeta_z  /zeta_0)
 
     if (status /= errorStatusSuccess) then
+        ! No valid solitonic solution was found. Treat the halo as an NFW halo.
         call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,-1     )
     end if
     
