@@ -26,7 +26,7 @@
   !![
   <nodeOperator name="nodeOperatorSatelliteDynamicalFriction" docformat="rst">
    <description>
-   Applies the Chandrasekhar dynamical friction force to satellite halos orbiting in their host potential, decelerating satellites and driving orbital decay toward the halo center, ultimately leading to satellite merging on a dynamical friction timescale.
+   A node operator class that applies dynamical friction to orbiting satellite halos, decelerating them and so driving orbital decay toward the center of the host. The deceleration is computed by a :galacticus-class:`satelliteDynamicalFrictionClass` object and added to the rate of change of the satellite's velocity, alongside the gravitational acceleration applied by :galacticus-class:`nodeOperatorSatelliteOrbit`.
    </description>
   </nodeOperator>
   !!]

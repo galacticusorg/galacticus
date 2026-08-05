@@ -319,7 +319,7 @@ contains
        class is (massDistributionSpherical)
           ! The spheroid mass distribution must have spherical symmetry. So, this is acceptable.        
        class default
-          call Error_Report('only spehrically symmetric mass distributions are allowed'//{introspection:location})
+          call Error_Report('only spherically symmetric mass distributions are allowed'//{introspection:location})
        end select
        if (.not.massDistributionStellar_%isDimensionless()) call Error_Report('spheroid mass distribution must be dimensionless'//{introspection:location})
        ! Duplicate the dimensionless mass distribution to use for the gas component, and set component and mass types in both.

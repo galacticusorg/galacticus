@@ -27,7 +27,11 @@
   !![
   <nodeOperator name="nodeOperatorBlackHolesAccretion" docformat="rst">
    <description>
-   Evolves supermassive black hole masses by computing gas accretion rates (including Bondi and feedback-regulated modes) and integrating them over each timestep, driving AGN feedback that regulates star formation in massive galaxies.
+   A node operator class that grows black holes by accretion. The rate at which gas is accreted from the spheroid, the :term:`CGM`, and any nuclear star cluster is computed by a :galacticus-class:`blackHoleAccretionRateClass` object, and is removed from each of those components. The radiative and jet efficiencies of the resulting accretion flow, together with the rate at which it spins the black hole up, are computed by a :galacticus-class:`accretionDisksClass` object; the black hole grows at the rest mass accretion rate reduced by those two efficiencies,
+
+   .. math::
+
+      \dot{M}_\bullet = (1-\epsilon_\mathrm{radiation}-\epsilon_\mathrm{jet}) \dot{M}_0.
    </description>
   </nodeOperator>
   !!]
