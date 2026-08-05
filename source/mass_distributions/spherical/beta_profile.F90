@@ -42,15 +42,16 @@
        <method method="initialize" description="(Re)initialize the parameters of the :math:`\beta`-profile mass distribution."/>
      </methods>
      !!]
-     procedure :: initialize            => betaProfileInitialize
-     procedure :: density               => betaProfileDensity
-     procedure :: densityGradientRadial => betaProfileDensityGradientRadial
-     procedure :: densityRadialMoment   => betaProfileDensityRadialMoment
-     procedure :: densitySquareIntegral => betaProfileDensitySquareIntegral
-     procedure :: massEnclosedBySphere  => betaProfileMassEnclosedBySphere
-     procedure :: potentialIsAnalytic   => betaProfilePotentialIsAnalytic
-     procedure :: potential             => betaProfilePotential
-     procedure :: descriptor            => betaProfileDescriptor
+     procedure :: initialize                     => betaProfileInitialize
+     procedure :: density                        => betaProfileDensity
+     procedure :: densityGradientRadial          => betaProfileDensityGradientRadial
+     procedure :: densitySlopeLogarithmicCentral => betaProfileDensitySlopeLogarithmicCentral
+     procedure :: densityRadialMoment            => betaProfileDensityRadialMoment
+     procedure :: densitySquareIntegral          => betaProfileDensitySquareIntegral
+     procedure :: massEnclosedBySphere           => betaProfileMassEnclosedBySphere
+     procedure :: potentialIsAnalytic            => betaProfilePotentialIsAnalytic
+     procedure :: potential                      => betaProfilePotential
+     procedure :: descriptor                     => betaProfileDescriptor
   end type massDistributionBetaProfile
 
   interface massDistributionBetaProfile
@@ -359,6 +360,19 @@ contains
     end if
     return
   end function betaProfileDensityGradientRadial
+
+  double precision function betaProfileDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in a :math:`\beta`-profile mass distribution. The profile has
+    a constant density core, so the density is evaluable at zero radius.
+    !!}
+    implicit none
+    class(massDistributionBetaProfile), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    slope=0.0d0
+    return
+  end function betaProfileDensitySlopeLogarithmicCentral
 
   double precision function betaProfileMassEnclosedBySphere(self,radius)
     !!{RST

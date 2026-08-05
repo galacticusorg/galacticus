@@ -74,6 +74,7 @@
      procedure :: massTotal                               => exponentialDiskMassTotal
      procedure :: density                                 => exponentialDiskDensity
      procedure :: densityGradientRadial                   => exponentialDensityGradientRadial
+     procedure :: densitySlopeLogarithmicCentral          => exponentialDiskDensitySlopeLogarithmicCentral
      procedure :: densitySphericalAverage                 => exponentialDiskDensitySphericalAverage
      procedure :: surfaceDensity                          => exponentialDiskSurfaceDensity
      procedure :: massEnclosedBySphere                    => exponentialDiskMassEnclosedBySphere
@@ -410,6 +411,19 @@ contains
          &                                  /position%rSpherical                      (           )
     return
   end function exponentialDensityGradientRadial
+
+  double precision function exponentialDiskDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in an exponential disk mass distribution. The density is
+    finite at the center of the disk, and so is evaluable there.
+    !!}
+    implicit none
+    class(massDistributionExponentialDisk), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    slope=0.0d0
+    return
+  end function exponentialDiskDensitySlopeLogarithmicCentral
   
   double precision function exponentialDiskDensitySphericalAverage(self,radius)
     !!{RST

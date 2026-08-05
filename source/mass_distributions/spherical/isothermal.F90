@@ -43,6 +43,7 @@
      procedure :: massTotal                         => isothermalMassTotal
      procedure :: density                           => isothermalDensity
      procedure :: densityGradientRadial             => isothermalDensityGradientRadial
+     procedure :: densitySlopeLogarithmicCentral    => isothermalDensitySlopeLogarithmicCentral
      procedure :: densityRadialMoment               => isothermalDensityRadialMoment
      procedure :: massEnclosedBySphere              => isothermalMassEnclosedBySphere
      procedure :: rotationCurve                     => isothermalRotationCurve
@@ -269,6 +270,19 @@ contains
     end if
     return
   end function isothermalDensityGradientRadial
+
+  double precision function isothermalDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in an isothermal mass distribution. The profile is cuspy,
+    :math:`\rho \propto r^{-2}`, so the density is not evaluable at zero radius.
+    !!}
+    implicit none
+    class(massDistributionIsothermal), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    slope=-2.0d0
+    return
+  end function isothermalDensitySlopeLogarithmicCentral
 
   double precision function isothermalMassEnclosedBySphere(self,radius)
     !!{RST

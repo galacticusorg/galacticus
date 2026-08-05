@@ -30,9 +30,12 @@ module Node_Component_Dark_Matter_Profile_Scale_Shape
   public :: Node_Component_Dark_Matter_Profile_Scale_Shape_Scale_Set
 
   !![
-  <component>
+  <component docformat="rst">
    <class>darkMatterProfile</class>
    <name>scaleShape</name>
+   <description>
+   Extends the ``scale`` implementation by adding a shape parameter describing the dark matter density profile, for profile families---such as the Einasto profile---which require one in addition to a scale radius. The shape parameter is assigned and interpolated by node operators (see :galacticus-class:`nodeOperatorDarkMatterProfileShapeSet` and :galacticus-class:`nodeOperatorDarkMatterProfileShapeInterpolate`).
+   </description>
    <isDefault>false</isDefault>
    <extends>
     <class>darkMatterProfile</class>

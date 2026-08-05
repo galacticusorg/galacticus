@@ -27,6 +27,8 @@
   <nodePropertyExtractor name="nodePropertyExtractorDensityProfile" docformat="rst">
    <description>
    A property extractor that returns the mass density profile (in :math:`\mathrm{M}_\odot \, \mathrm{Mpc}^{-3}`) of a galaxy or halo component at a user-specified set of radii. The ``radiusSpecifiers`` parameter provides a list of radius definitions (e.g. multiples of the virial radius, disk radius, or half-mass radius), supporting both galactic structural radii and fixed physical radii. If ``includeRadii`` is ``true``, the corresponding radii (in Mpc) are also written to the output file as a second column alongside the density values.
+
+   A radius specifier can evaluate to zero---most often because the component on which it is based is absent or empty in the node in question. The density is then finite only if the mass distribution being evaluated has a finite central density; where it does not, the requested property does not exist. By default this is reported as a fatal error naming the offending specifier; setting ``zeroRadiusIsFatal`` to ``false`` instead writes the undefined-value sentinel in place of the density.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -37,7 +39,7 @@
      private
      class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_ => null()
      integer                                                      :: radiiCount                    , elementCount_
-     logical                                                      :: includeRadii
+     logical                                                      :: includeRadii                  , zeroRadiusIsFatal
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusDefinitions       )                            :: radii
    contains
@@ -72,7 +74,7 @@ contains
     type   (inputParameters                    ), intent(inout)               :: parameters
     type   (varying_string                     ), allocatable  , dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass           ), pointer                     :: darkMatterHaloScale_
-    logical                                                                   :: includeRadii
+    logical                                                                   :: includeRadii        , zeroRadiusIsFatal
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
     !![
@@ -91,9 +93,19 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>zeroRadiusIsFatal</name>
+      <defaultValue>.true.</defaultValue>
+      <description>
+      Specifies whether a radius specifier which evaluates to zero, in a node in which the density diverges at zero radius,
+      should be reported as a fatal error. If ``false``, the undefined-value sentinel is written in place of the density
+      instead.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorDensityProfile(radiusSpecifiers,includeRadii,darkMatterHaloScale_)
+    self=nodePropertyExtractorDensityProfile(radiusSpecifiers,includeRadii,zeroRadiusIsFatal,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"/>
@@ -101,7 +113,7 @@ contains
     return
   end function densityProfileConstructorParameters
 
-  function densityProfileConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
+  function densityProfileConstructorInternal(radiusSpecifiers,includeRadii,zeroRadiusIsFatal,darkMatterHaloScale_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorDensityProfile` property extractor class.
     !!}
@@ -109,9 +121,9 @@ contains
     type   (nodePropertyExtractorDensityProfile)                              :: self
     type   (varying_string                     ), intent(in   ), dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass           ), intent(in   ), target       :: darkMatterHaloScale_
-    logical                                     , intent(in   )               :: includeRadii
+    logical                                     , intent(in   )               :: includeRadii        , zeroRadiusIsFatal
     !![
-    <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_"/>
+    <constructorAssign variables="radiusSpecifiers, includeRadii, zeroRadiusIsFatal, *darkMatterHaloScale_"/>
     !!]
 
     if (includeRadii) then
@@ -197,16 +209,33 @@ contains
                & densityProfileExtract(i,2)=radiusUndefined
           cycle
        end if
+       massDistribution_ => node%massDistribution(                                                  &
+            &                                     componentType=self%radii%specifiers(i)%component, &
+            &                                     massType     =self%radii%specifiers(i)%mass       &
+            &                                    )
+       if     (                                                             &
+            &   radius                                             <= 0.0d0 &
+            &  .and.                                                        &
+            &   massDistribution_%densitySlopeLogarithmicCentral() <  0.0d0 &
+            & ) then
+          ! The radius is zero, but the density of this mass distribution diverges at the center (or its central slope is
+          ! unknown), so the density can not be evaluated here.
+          if (self%zeroRadiusIsFatal)                                                                                               &
+               & call resolver%reportZeroRadius(i,'densityProfile','the density of this mass distribution diverges at zero radius')
+          densityProfileExtract       (i,1)=radiusUndefined
+          if (self%includeRadii)                            &
+               & densityProfileExtract(i,2)=radius
+          !![
+          <objectDestructor name="massDistribution_"/>
+          !!]
+          cycle
+       end if
        coordinates                       =  [radius,Pi/2.0d0,0.0d0]
-       massDistribution_                 => node             %massDistribution(                                                  &
-            &                                                                  componentType=self%radii%specifiers(i)%component, &
-            &                                                                  massType     =self%radii%specifiers(i)%mass       &
-            &                                                                 )
-       densityProfileExtract       (i,1) =  massDistribution_%density         (                                                  &
-            &                                                                  coordinates=                coordinates           &
-            &                                                                 )
-       if (self%includeRadii)                                                                                                    &
-            & densityProfileExtract(i,2) =                                                                 radius
+       densityProfileExtract       (i,1) =  massDistribution_%density(                        &
+            &                                                         coordinates=coordinates &
+            &                                                        )
+       if (self%includeRadii)                                                                 &
+            & densityProfileExtract(i,2) =                                        radius
        !![
        <objectDestructor name="massDistribution_"/>
        !!]

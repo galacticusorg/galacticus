@@ -48,11 +48,12 @@
      </methods>
      !!]
      final     ::                         sphericalDecayingDestructor
-     procedure :: decayingFactor       => sphericalDecayingDecayingFactor
-     procedure :: density              => sphericalDecayingDensity
-     procedure :: massEnclosedBySphere => sphericalDecayingMassEnclosedBySphere
-     procedure :: radiusEnclosingMass  => sphericalDecayingRadiusEnclosingMass
-     procedure :: useUndecorated       => sphericalDecayingUseUndecorated
+     procedure :: decayingFactor                 => sphericalDecayingDecayingFactor
+     procedure :: density                        => sphericalDecayingDensity
+     procedure :: densitySlopeLogarithmicCentral => sphericalDecayingDensitySlopeLogarithmicCentral
+     procedure :: massEnclosedBySphere           => sphericalDecayingMassEnclosedBySphere
+     procedure :: radiusEnclosingMass            => sphericalDecayingRadiusEnclosingMass
+     procedure :: useUndecorated                 => sphericalDecayingUseUndecorated
   end type massDistributionSphericalDecaying
 
   interface massDistributionSphericalDecaying
@@ -308,6 +309,19 @@ contains
          &  *self                  %decayingFactor(coordinates%rSpherical())
     return
   end function sphericalDecayingDensity
+
+  double precision function sphericalDecayingDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in a decaying dark matter mass distribution. The depletion
+    factor tends to a constant as :math:`r \rightarrow 0`---it is unity throughout the undepleted region at the center of the
+    halo---so the central slope is that of the undecayed distribution.
+    !!}
+    implicit none
+    class(massDistributionSphericalDecaying), intent(inout) :: self
+
+    slope=self%massDistribution_%densitySlopeLogarithmicCentral()
+    return
+  end function sphericalDecayingDensitySlopeLogarithmicCentral
 
   double precision function sphericalDecayingMassEnclosedBySphere(self,radius) result(mass)
     !!{RST

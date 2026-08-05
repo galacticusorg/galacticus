@@ -36,15 +36,16 @@
      double precision :: densityNormalization, mass, &
           &              scaleLength
    contains
-     procedure :: massTotal              => hernquistMassTotal
-     procedure :: density                => hernquistDensity
-     procedure :: densityGradientRadial  => hernquistDensityGradientRadial
-     procedure :: densityRadialMoment    => hernquistDensityRadialMoment
-     procedure :: massEnclosedBySphere   => hernquistMassEnclosedBySphere
-     procedure :: massEnclosedByCylinder => hernquistMassEnclosedByCylinder
-     procedure :: potentialIsAnalytic    => hernquistPotentialIsAnalytic
-     procedure :: potential              => hernquistPotential
-     procedure :: radiusHalfMass         => hernquistRadiusHalfMass
+     procedure :: massTotal                      => hernquistMassTotal
+     procedure :: density                        => hernquistDensity
+     procedure :: densityGradientRadial          => hernquistDensityGradientRadial
+     procedure :: densitySlopeLogarithmicCentral => hernquistDensitySlopeLogarithmicCentral
+     procedure :: densityRadialMoment            => hernquistDensityRadialMoment
+     procedure :: massEnclosedBySphere           => hernquistMassEnclosedBySphere
+     procedure :: massEnclosedByCylinder         => hernquistMassEnclosedByCylinder
+     procedure :: potentialIsAnalytic            => hernquistPotentialIsAnalytic
+     procedure :: potential                      => hernquistPotential
+     procedure :: radiusHalfMass                 => hernquistRadiusHalfMass
   end type massDistributionHernquist
 
   interface massDistributionHernquist
@@ -248,6 +249,20 @@ contains
     end if
     return
   end function hernquistDensityGradientRadial
+
+  double precision function hernquistDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in a Hernquist :cite:p:`hernquist_analytical_1990` mass
+    distribution. The profile is cuspy, :math:`\rho \propto r^{-1}` as :math:`r \rightarrow 0`, so the density is not
+    evaluable at zero radius.
+    !!}
+    implicit none
+    class(massDistributionHernquist), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    slope=-1.0d0
+    return
+  end function hernquistDensitySlopeLogarithmicCentral
   
   double precision function hernquistDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !!{RST

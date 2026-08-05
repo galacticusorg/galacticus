@@ -36,9 +36,12 @@ module Node_Component_Spheroid_Very_Simple
        &    Node_Component_Spheroid_Very_Simple_State_Store               , Node_Component_Spheroid_Very_Simple_State_Restore
 
   !![
-  <component>
+  <component docformat="rst">
    <class>spheroid</class>
    <name>verySimple</name>
+   <description>
+   A galactic spheroid consisting of gas and stellar masses and their abundances, plus a radius and circular velocity, with no further assumption made about the mass distribution.
+   </description>
    <isDefault>false</isDefault>
    <properties>
     <property>

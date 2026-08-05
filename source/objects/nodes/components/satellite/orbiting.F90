@@ -41,9 +41,12 @@ module Node_Component_Satellite_Orbiting
   ! system-aware position should assign these into a `coordinateCartesian` object, which then converts to
   ! other systems automatically on assignment. See the convention documented in the `Coordinates` module.
   !![
-  <component>
+  <component docformat="rst">
    <class>satellite</class>
    <name>orbiting</name>
+   <description>
+   A satellite whose orbit within its host is integrated explicitly. Tracks the three-dimensional position and velocity relative to the host, the remaining bound mass, the virial orbit at infall, and the tidal quantities needed to model heating: the time integral of the tidal tensor along the orbit, and the tidal heating energy per unit radius squared. The equations of motion, dynamical friction, tidal heating and stripping, and the criteria for merging and destruction are all supplied by node operators (see :galacticus-class:`nodeOperatorSatelliteOrbit`).
+   </description>
    <isDefault>false</isDefault>
    <properties>
     <property>

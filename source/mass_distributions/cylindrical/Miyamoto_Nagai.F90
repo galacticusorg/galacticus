@@ -47,18 +47,19 @@
        <method description="Initialize the enclosed mass tabulation."   method="massEnclosedTabulate"  />
      </methods>
      !!]
-     procedure :: density                    => miyamotoNagaiDensity
-     procedure :: densitySphericalAverage    => miyamotoNagaiDensitySphericalAverage
-     procedure :: surfaceDensity             => miyamotoNagaiSurfaceDensity
-     procedure :: surfaceDensityTabulate     => miyamotoNagaiSurfaceDensityTabulate
-     procedure :: surfaceDensityRadialMoment => miyamotoNagaiSurfaceDensityRadialMoment
-     procedure :: massEnclosedBySphere       => miyamotoNagaiMassEnclosedBySphere
-     procedure :: massEnclosedTabulate       => miyamotoNagaiMassEnclosedTabulate
-     procedure :: potentialIsAnalytic        => miyamotoNagaiPotentialIsAnalytic
-     procedure :: potential                  => miyamotoNagaiPotential
-     procedure :: rotationCurve              => miyamotoNagaiRotationCurve
-     procedure :: rotationCurveGradient      => miyamotoNagaiRotationCurveGradient
-     procedure :: radiusHalfMass             => miyamotoNagaiRadiusHalfMass
+     procedure :: density                        => miyamotoNagaiDensity
+     procedure :: densitySlopeLogarithmicCentral => miyamotoNagaiDensitySlopeLogarithmicCentral
+     procedure :: densitySphericalAverage        => miyamotoNagaiDensitySphericalAverage
+     procedure :: surfaceDensity                 => miyamotoNagaiSurfaceDensity
+     procedure :: surfaceDensityTabulate         => miyamotoNagaiSurfaceDensityTabulate
+     procedure :: surfaceDensityRadialMoment     => miyamotoNagaiSurfaceDensityRadialMoment
+     procedure :: massEnclosedBySphere           => miyamotoNagaiMassEnclosedBySphere
+     procedure :: massEnclosedTabulate           => miyamotoNagaiMassEnclosedTabulate
+     procedure :: potentialIsAnalytic            => miyamotoNagaiPotentialIsAnalytic
+     procedure :: potential                      => miyamotoNagaiPotential
+     procedure :: rotationCurve                  => miyamotoNagaiRotationCurve
+     procedure :: rotationCurveGradient          => miyamotoNagaiRotationCurveGradient
+     procedure :: radiusHalfMass                 => miyamotoNagaiRadiusHalfMass
   end type massDistributionMiyamotoNagai
 
   interface massDistributionMiyamotoNagai
@@ -258,6 +259,19 @@ contains
          &                )**1.5d0
     return
   end function miyamotoNagaiDensity
+
+  double precision function miyamotoNagaiDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in a :cite:p:`miyamoto_three-dimensional_1975` disk mass
+    distribution. The density is finite at the center of the disk, and so is evaluable there.
+    !!}
+    implicit none
+    class(massDistributionMiyamotoNagai), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    slope=0.0d0
+    return
+  end function miyamotoNagaiDensitySlopeLogarithmicCentral
 
   double precision function miyamotoNagaiDensitySphericalAverage(self,radius)
     !!{RST

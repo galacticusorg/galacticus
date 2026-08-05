@@ -32,9 +32,12 @@ module Node_Component_Satellite_Preset
   public :: Node_Component_Satellite_Preset_Thread_Initialize, Node_Component_Satellite_Preset_Thread_Uninitialize
 
   !![
-  <component>
+  <component docformat="rst">
    <class>satellite</class>
    <name>preset</name>
+   <description>
+   A satellite whose properties are read from the merger tree rather than computed. Bound mass and host node index are stored as time-series histories, from which the instantaneous values are interpolated, and the time of merging is likewise preset. ``isOrphan`` records whether the satellite has outlived its tracked history. Intended for use with merger trees read from N-body simulations, where the subhalo trajectory is already known.
+   </description>
    <isDefault>false</isDefault>
    <properties>
     <property>

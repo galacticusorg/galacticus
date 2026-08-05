@@ -127,6 +127,8 @@ The next line:
 
 declares that all content of this module is private by default - it cannot be exported to other parts of the code unless explicitly made public. Setting this default is also good practice - it prevents the rest of the code from accessing module content that it shouldn't. Of course, our module needs to export *something* in order to be useful! Galacticus knows that it needs to exploit that class that we are about to create in this module, and will do so automatically.
 
+.. _new-class-the-class:
+
 The class!
 ^^^^^^^^^^
 
@@ -464,6 +466,8 @@ This is in XML format (because it's inside a ``!![`` ``!!]`` section). The openi
 
 The remainder of this section is a ``description`` element, which should give a detailed description of this implementation - the physics it implements, any relevant equations and references. This should be in reStructuredText format, as it will be incorporated into the ReadTheDocs documentation.
 
+.. _new-class-implementation-type:
+
 The implementation ``type``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -594,6 +598,8 @@ Last, we close the type:
 
      end type starFormationTimescaleHaloScaling
 
+.. _new-class-list-of-constructors:
+
 List of constructors
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -636,7 +642,7 @@ indicates that we've reached the end of this, and are ready to start the actual 
 Constructors
 ^^^^^^^^^^^^
 
-The first functions we define are constructors. `Above <#list-of-constructors>`_, in our list of constructors, we named two constructor functions. Each of these must return as its result an object of our implementation type, ``starFormationTimescaleHaloScaling``, fully initialized so that it is ready to use. Constructor functions are named by starting with the non-class part of our implementation name (so, take ``starFormationTimescaleHaloScaling``, remove the ``starFormationTimescale``, leaving just ``haloScaling``).
+The first functions we define are constructors. :ref:`Above <new-class-list-of-constructors>`, in our list of constructors, we named two constructor functions. Each of these must return as its result an object of our implementation type, ``starFormationTimescaleHaloScaling``, fully initialized so that it is ready to use. Constructor functions are named by starting with the non-class part of our implementation name (so, take ``starFormationTimescaleHaloScaling``, remove the ``starFormationTimescale``, leaving just ``haloScaling``).
 
 Two constructors is typical, but only the first is actually required. In our example, the two constructor functions are:
 
@@ -729,7 +735,7 @@ The ``implicit none`` just enforces that we must explicitly declare all variable
 
 The first of these lines defines our ``self`` object - the thing we will construct. It must be defined as a ``type()`` of our implementation type, ``starFormationTimescaleHaloScaling``. The second line defines the argument - for this constructor that is always the ``parameters`` argument and *must* have the form given above.
 
-After these, we typically have any variables that we need to get from the parameter file so that we can build our object. These will include any pointers to other classes (e.g. ``cosmologyFunctions_`` here), and parameters to be read from the parameter file. Note that the names of these should match the name of the corresponding entry in the `implementation type <#the-implementation-type>`_.
+After these, we typically have any variables that we need to get from the parameter file so that we can build our object. These will include any pointers to other classes (e.g. ``cosmologyFunctions_`` here), and parameters to be read from the parameter file. Note that the names of these should match the name of the corresponding entry in the :ref:`implementation type <new-class-implementation-type>`.
 
 .. note::
 
@@ -880,6 +886,8 @@ We then just return our constructed object and finish the function.
        return
      end function haloScalingConstructorInternal
 
+.. _new-class-autohook:
+
 The ``autoHook`` method
 ^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -905,7 +913,7 @@ It takes a single argument, ``self``, which must be declared with:
 
        class(starFormationTimescaleHaloScaling), intent(inout) :: self
 
-This is the object that was created/copied. In this example, we're using the ``autoHook`` method to attach our object to the ``calculationReset`` event. We won't go into detail about this event (or events in general) here, but, briefly, the ``calculationReset`` event is called every time Galacticus updates a node in a merger tree. Since our implementation uses memoization to store and re-use results of its calculations it needs to know when those stored results are no longer valid. The ``calculationReset`` event lets it know that. We tell the ``calculationReset`` event to call our function `haloScalingCalculationReset <#other-functions>`_ as needed.
+This is the object that was created/copied. In this example, we're using the ``autoHook`` method to attach our object to the ``calculationReset`` event. We won't go into detail about this event (or events in general) here, but, briefly, the ``calculationReset`` event is called every time Galacticus updates a node in a merger tree. Since our implementation uses memoization to store and re-use results of its calculations it needs to know when those stored results are no longer valid. The ``calculationReset`` event lets it know that. We tell the ``calculationReset`` event to call our function :ref:`haloScalingCalculationReset <new-class-other-functions>` as needed.
 
 Destructor
 ^^^^^^^^^^
@@ -938,7 +946,7 @@ Destructors have a single ``self`` argument, declared as:
 
 In our example, there are two things we need to do in our destructor:
 
-#. Detach from the ``calculationReset`` event (that we attached to in via the `autoHook <#the-autohook-method>`_ method);
+#. Detach from the ``calculationReset`` event (that we attached to in via the :ref:`autoHook <new-class-autohook>` method);
 #. Destroy any objects that we kept pointers to in our object. This is done using the ``objectDestructor`` directive. For example:
 
 .. code-block:: xml
@@ -947,10 +955,12 @@ In our example, there are two things we need to do in our destructor:
 
 tells Galacticus that we are done with the object pointed to by ``self%cosmologyFunctions_``. It will update the reference count to this object, and, if it decides the object is no longer in use anywhere, it will destroy it.
 
+.. _new-class-other-functions:
+
 Other functions
 ^^^^^^^^^^^^^^^
 
-In our example implementation we also have a function ``haloScalingCalculationReset`` that will be called by the ``calculationReset`` event (see `above <#the-autohook-method>`_ for details). We won't go into details about this function, but note that it simply resets the state of our implementation's memoization variables, forcing them to be recomputed as needed.
+In our example implementation we also have a function ``haloScalingCalculationReset`` that will be called by the ``calculationReset`` event (see :ref:`above <new-class-autohook>` for details). We won't go into details about this function, but note that it simply resets the state of our implementation's memoization variables, forcing them to be recomputed as needed.
 
 The physics!
 ^^^^^^^^^^^^
@@ -1009,13 +1019,13 @@ We start by opening the function:
 
      double precision function haloScalingTimescale(self,component) result(timescale)
 
-The type of the function (``double precision``) and the names of the arguments *must* match precisely with those defined in our `class <#the-class>`_. The name of the ``result`` can be whatever you want, but typically it makes sense to set this to match the method name, i.e. ``result(timescale)`` in this example. The declarations of the ``self`` argument must be:
+The type of the function (``double precision``) and the names of the arguments *must* match precisely with those defined in our :ref:`class <new-class-the-class>`. The name of the ``result`` can be whatever you want, but typically it makes sense to set this to match the method name, i.e. ``result(timescale)`` in this example. The declarations of the ``self`` argument must be:
 
 .. code-block:: fortran
 
        class           (starFormationTimescaleHaloScaling), intent(inout) :: self
 
-and other arguments must match their definitions in our `class <#the-class>`_:
+and other arguments must match their definitions in our :ref:`class <new-class-the-class>`:
 
 .. code-block:: fortran
 

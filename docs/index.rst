@@ -24,6 +24,7 @@ generated directly from the documentation embedded in the source code.
    :caption: Reference
 
    physics/index
+   nodeComponents
    modules
    enumerations
    constants

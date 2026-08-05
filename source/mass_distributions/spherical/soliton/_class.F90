@@ -40,6 +40,7 @@
      procedure :: massEnclosedBySphere            => solitonMassEnclosedBySphere
      procedure :: density                         => solitonDensity
      procedure :: densityGradientRadial           => solitonDensityGradientRadial
+     procedure :: densitySlopeLogarithmicCentral  => solitonDensitySlopeLogarithmicCentral
      procedure :: radiusEnclosingDensity          => solitonRadiusEnclosingDensity
      procedure :: radiusEnclosingDensityNumerical => solitonRadiusEnclosingDensityNumerical
      procedure :: parameters                      => solitonParameters
@@ -304,7 +305,22 @@
      end if
      return
    end function solitonDensityGradientRadial
-   
+
+   double precision function solitonDensitySlopeLogarithmicCentral(self) result(slope)
+     !!{RST
+     Return the central logarithmic slope of the density profile in a soliton mass distribution. The soliton has a flat core,
+     so the density is evaluable at zero radius.
+     !!}
+     use :: Coordinates, only : coordinateSpherical, assignment(=)
+     implicit none
+     class(massDistributionSoliton), intent(inout) :: self
+     type (coordinateSpherical    )                :: coordinates
+
+     coordinates=[0.0d0,0.0d0,0.0d0]
+     slope      =self%densityGradientRadial(coordinates,logarithmic=.true.)
+     return
+   end function solitonDensitySlopeLogarithmicCentral
+
    double precision function solitonRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
      !!{RST
      Computes the radius enclosing a given mean density for soliton mass distributions.

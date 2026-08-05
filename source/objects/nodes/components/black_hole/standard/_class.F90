@@ -39,9 +39,12 @@ module Node_Component_Black_Hole_Standard
        &    Node_Component_Black_Hole_Standard_Scale_Set  
 
   !![
-  <component>
+  <component docformat="rst">
    <class>blackHole</class>
    <name>standard</name>
+   <description>
+   A black hole described by its mass, spin, and radial position within the host galaxy. Multiple instances may exist within a single node: instance 1 is the central black hole, while further instances represent holes brought in by galaxy mergers which have yet to reach the center. ``tripleInteractionTime`` records when a hole last underwent a triple interaction, so that each may do so at most once per host (see :galacticus-class:`nodeOperatorBlackHolesTripleInteraction`). Only the first instance is written to the main output. Growth, spin evolution, radial migration, and feedback are all driven by node operators.
+   </description>
    <isDefault>true</isDefault>
    <output instances="first"/>
    <properties>

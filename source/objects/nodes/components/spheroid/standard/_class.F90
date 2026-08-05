@@ -41,9 +41,12 @@ module Node_Component_Spheroid_Standard
        &    Node_Component_Spheroid_Standard_Radius_Solver
 
   !![
-  <component>
+  <component docformat="rst">
    <class>spheroid</class>
    <name>standard</name>
+   <description>
+   A galactic spheroid whose density profile is described by a single length scale, and in which stars trace gas. In addition to gas and stellar masses and abundances it tracks a pseudo-angular momentum---effectively the angular momentum the spheroid would have were it rotationally supported rather than pressure supported---a scale radius and circular velocity, stellar luminosities, the total mass of stars ever formed, and a star formation history. Virtual, deferred-rate properties allow gas to be removed (``massGasSink``) and energy to be injected (``energyGasInput``), the latter driving an outflow. The density profile is supplied by a dimensionless :galacticus-class:`massDistributionClass` object, which must be spherically symmetric.
+   </description>
    <isDefault>true</isDefault>
    <properties>
     <property>
@@ -316,7 +319,7 @@ contains
        class is (massDistributionSpherical)
           ! The spheroid mass distribution must have spherical symmetry. So, this is acceptable.        
        class default
-          call Error_Report('only spehrically symmetric mass distributions are allowed'//{introspection:location})
+          call Error_Report('only spherically symmetric mass distributions are allowed'//{introspection:location})
        end select
        if (.not.massDistributionStellar_%isDimensionless()) call Error_Report('spheroid mass distribution must be dimensionless'//{introspection:location})
        ! Duplicate the dimensionless mass distribution to use for the gas component, and set component and mass types in both.

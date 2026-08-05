@@ -81,7 +81,7 @@ Extending Components
 
 It is possible to create a component which extends an existing component (see the discussion of the ``extends`` element in Section :galacticus-ref:`ComponentDefinition`). This capability is intended to allow new properties to be added to a component without having to create a whole new copy of the component. It is *not* intended to allow changes in the way in which the component is evolved through the halo hierarchy. (With the exception that rules to describe how the newly added properties will evolve through the halo hierarchy can be added of course.)
 
-A simple example of this extension capability can be found in the :ref:`scaleShape <manual-sec-darkmatterprofilescaleshape>` dark matter profile component, which extends the :ref:`scale <manual-sec-darkmatterprofilescale>` dark matter profile component. In this case, the ``scaleShape`` component adds a new property, ``shape``, and specifies how it is to be initialized, evolved, output, and change by node promotion events. It *does not* affect how the ``scale`` property, inherited from the ``scale`` dark matter profile component, is evolved.
+A simple example of this extension capability can be found in the ``scaleShape`` dark matter profile component, which extends the ``scale`` dark matter profile component (see :ref:`manual-sec-ComponentClasses`). In this case, the ``scaleShape`` component adds a new property, ``shape``, and specifies how it is to be initialized, output, and changed by node promotion events. It *does not* affect how the ``scale`` property, inherited from the ``scale`` dark matter profile component, is evolved.
 
 .. _manual-sec-ComponentImplement:
 

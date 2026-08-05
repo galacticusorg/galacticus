@@ -35,12 +35,13 @@
      double precision :: mass    , radius       , &
           &              density_, radiusSquared
    contains
-     procedure :: density               => constantDensityCloudDensity
-     procedure :: densityGradientRadial => constantDensityCloudDensityGradientRadial
-     procedure :: densityRadialMoment   => constantDensityCloudDensityRadialMoment
-     procedure :: massEnclosedBySphere  => constantDensityCloudMassEnclosedBySphere
-     procedure :: potentialIsAnalytic   => constantDensityCloudPotentialIsAnalytic
-    procedure :: potential              => constantDensityCloudPotential
+     procedure :: density                        => constantDensityCloudDensity
+     procedure :: densityGradientRadial          => constantDensityCloudDensityGradientRadial
+     procedure :: densitySlopeLogarithmicCentral => constantDensityCloudDensitySlopeLogarithmicCentral
+     procedure :: densityRadialMoment            => constantDensityCloudDensityRadialMoment
+     procedure :: massEnclosedBySphere           => constantDensityCloudMassEnclosedBySphere
+     procedure :: potentialIsAnalytic            => constantDensityCloudPotentialIsAnalytic
+     procedure :: potential                      => constantDensityCloudPotential
   end type massDistributionConstantDensityCloud
 
   interface massDistributionConstantDensityCloud
@@ -157,6 +158,19 @@ contains
     constantDensityCloudDensityGradientRadial=0.0d0
     return
   end function constantDensityCloudDensityGradientRadial
+
+  double precision function constantDensityCloudDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in a constant density cloud mass distribution. The density is
+    uniform, and so is evaluable at zero radius.
+    !!}
+    implicit none
+    class(massDistributionConstantDensityCloud), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    slope=0.0d0
+    return
+  end function constantDensityCloudDensitySlopeLogarithmicCentral
 
   double precision function constantDensityCloudMassEnclosedBySphere(self,radius)
     !!{RST

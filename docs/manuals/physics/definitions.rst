@@ -13,17 +13,65 @@ The exact way in which masses within Galacticus are defined and used in specifie
 Masses in the Basic Component
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``basic`` component (see Section :galacticus-ref:`ComponentBasicProperties`) tracks the mass of each halo as defined in the merger tree. As such, it should be considered to be the mass which the halo would have if baryonic matter behaved just as dark matter. Note that these masses are inclusive of subhalos---that is, the mass of a host halo includes the mass of all of its subhalos.
+The ``basic`` component (see :ref:`manual-sec-ComponentClasses`) tracks the mass of each halo as defined in the merger tree. As such, it should be considered to be the mass which the halo would have if baryonic matter behaved just as dark matter. Note that these masses are inclusive of subhalos---that is, the mass of a host halo includes the mass of all of its subhalos.
 
 Dark Matter Profiles
 ~~~~~~~~~~~~~~~~~~~~
 
 The dark matter profile functions (see :galacticus-class:`darkMatterProfileDMO`) return masses and densities etc. which are normalized to match the mass of the ``basic`` component at the virial radius of the halo. As such, their returned values should be considered to represent the case where baryonic matter behaves as dark matter. This is a convention, and is useful for calculations of large scale structure for example.
 
-Galactic Structure Functions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _manual-sec-massDistributions:
 
-The various galactic structure functions assume that the masses/densities/etc. reported by the dark matter profile functions should be scaled by a factor :math:`(\Omega_\mathrm{M}-\Omega_\mathrm{b})/\Omega_\mathrm{b}` to leave only the dark matter part of the profile. Baryonic contributions to the mass/density/etc. will be provided by the components representing those mass distributions.
+Mass Distributions
+~~~~~~~~~~~~~~~~~~
+
+All structural properties of a node---densities, enclosed masses, gravitational potentials, rotation curves, surface densities, and so on---are obtained from :galacticus-class:`massDistributionClass` objects. A ``massDistribution`` is a fully general description of the spatial distribution of some mass, providing methods such as ``density()``, ``densitySphericalAverage()``, ``massEnclosedBySphere()``, ``massEnclosedByCylinder()``, ``potential()``, ``rotationCurve()``, ``surfaceDensity()``, ``acceleration()``, and ``tidalTensor()``, together with inverse functions such as ``radiusEnclosingMass()`` and ``radiusEnclosingDensity()``. Kinematic properties (e.g. ``velocityDispersion1D()``, obtained by solving the Jeans equation) are provided by an associated ``kinematicsDistribution`` object, retrieved via the ``kinematicsDistribution()`` method.
+
+Each node component which carries mass supplies its own mass distribution, tagged with a *component type* and a *mass type*. For example, the ``standard`` disk component supplies two distributions---one of ``componentTypeDisk``/``massTypeStellar`` and one of ``componentTypeDisk``/``massTypeGaseous``---while the ``scale`` dark matter profile component supplies the dark matter halo distribution.
+
+The mass distribution of an entire node is obtained through the ``massDistribution`` method of ``treeNode``:
+
+.. code-block:: fortran
+
+   class(massDistributionClass), pointer :: massDistribution_
+
+   massDistribution_ => node%massDistribution(componentType,massType)
+
+This returns a :galacticus-class:`massDistributionComposite`---the superposition of the individual component distributions---restricted to those which match the requested ``componentType`` and ``massType``. Both arguments are optional and default to ``componentTypeAll`` and ``massTypeAll`` respectively, so that ``node%massDistribution()`` returns the total mass distribution of the node. (The object returned is reference counted, and so must be released, via ``<objectDestructor>``, once it is no longer needed.) When a component contributes no mass matching the request the result is a :galacticus-class:`massDistributionZero`, so callers need not special-case empty components.
+
+Component and Mass Types
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+The allowed ``componentType`` values are ``all``, ``disk``, ``spheroid``, ``nuclearStarCluster``, ``hotHalo``, ``coldHalo``, ``darkHalo``, ``blackHole``, and ``darkMatterOnly``; the allowed ``massType`` values are ``all``, ``dark``, ``baryonic``, ``galactic``, ``gaseous``, ``stellar``, and ``blackHole``. (These are the same enumerations used by the :ref:`radius specifiers <manual-sec-radiusSpecifiers>`.)
+
+Selection is hierarchical---``massTypeBaryonic`` matches both gaseous and stellar mass, while ``massTypeGalactic`` matches gaseous, stellar, and black hole mass, but only in the disk, spheroid, and black hole components (i.e. it excludes the circumgalactic medium). Thus, for example,
+
+.. code-block:: fortran
+
+   massDistribution_ => node%massDistribution(massType=massTypeStellar)
+
+returns the combined stellar mass distribution of the disk, spheroid, and nuclear star cluster, whereas
+
+.. code-block:: fortran
+
+   massDistribution_ => node%massDistribution(componentTypeDisk,massTypeGaseous)
+
+returns just the gaseous distribution of the disk.
+
+Dark Matter Mass Convention
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The distribution returned for the dark matter halo depends on which component type was requested, and this is where the distinction between "all matter" and "dark matter only" (see above) is made:
+
+* ``componentTypeDarkHalo``---and therefore also ``componentTypeAll``---returns the distribution built by the :galacticus-class:`darkMatterProfile` class. This represents the *dark matter* content of the halo alone. The :galacticus-class:`darkMatterProfileDarkMatterOnly` implementation, for instance, takes the profile supplied by :galacticus-class:`darkMatterProfileDMO` (which, as described above, is normalized to the ``basic`` component mass and so treats baryons as dark matter) and rescales its mass by a factor
+
+  .. math::
+
+     f_\mathrm{DM} = {\Omega_\mathrm{M}-\Omega_\mathrm{b} \over \Omega_\mathrm{M}},
+
+  leaving only the dark matter part of the profile. Baryonic contributions to the mass/density/etc. are then supplied by the mass distributions of the components which represent those baryons (disk, spheroid, hot halo, etc.), so that the composite ``componentTypeAll`` distribution accounts for all of the mass in the node without double counting it. Other implementations of :galacticus-class:`darkMatterProfile`---such as the default, :galacticus-class:`darkMatterProfileAdiabaticGnedin2004`---apply the same rescaling, but additionally modify the *shape* of the profile in response to the baryons (here, via adiabatic contraction).
+
+* ``componentTypeDarkMatterOnly`` returns the unmodified :galacticus-class:`darkMatterProfileDMO` distribution---that is, the profile normalized to the full ``basic`` component mass, with no :math:`f_\mathrm{DM}` rescaling and no baryonic back-reaction. This is the appropriate choice when comparing with dark matter-only N-body simulations, or when a quantity is calibrated against such simulations. Note that this component type is *not* included in ``componentTypeAll``: no other component responds to it, so a ``componentTypeDarkMatterOnly`` request yields a distribution containing only the dark matter-only halo profile.
 
 Satellite Virial Orbits
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,12 +86,12 @@ These functions (see :galacticus-class:`satelliteMergingTimescales`) typically u
 Dynamical Friction
 ~~~~~~~~~~~~~~~~~~
 
-These functions (see :galacticus-class:`satelliteDynamicalFriction`) evaluate densities through the relevant galactic structure function, and so correctly account for the fraction of the ``basic`` component mass which is in the form of dark matter.
+These functions (see :galacticus-class:`satelliteDynamicalFriction`) evaluate densities through the relevant mass distribution, and so correctly account for the fraction of the ``basic`` component mass which is in the form of dark matter.
 
 Galactic Structure Radius Solvers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-These functions :galacticus-class:`galacticStructureSolver`) determine the radii of galactic components (such as disk and spheroid), typically by iteratively seeking a solution in which their angular momenta and radii are consistent (assuming rotational support) with the net gravitational potential of the entire system (galaxy plus dark matter halo).
+These functions (see :galacticus-class:`galacticStructureSolver`) determine the radii of galactic components (such as disk and spheroid), typically by iteratively seeking a solution in which their angular momenta and radii are consistent (assuming rotational support) with the net gravitational potential of the entire system (galaxy plus dark matter halo).
 
 Luminosity Units
 ----------------
@@ -68,12 +116,17 @@ where :math:`\mathrm{d}\eta = \mathrm{d}t/a` is conformal time.
 Gravitational Potentials
 ------------------------
 
-Gravitational potentials are measured in velocity units (i.e. km\ :math:`^2`/s\ :math:`^2`), and the arbitrary constant offset is chosen such that the total gravitational potential in any halo at the virial radius is :math:`\Phi(r_\mathrm{virial})=-V_\mathrm{virial}^2`. This choice is made for two reasons:
+Gravitational potentials are measured in velocity units (i.e. km\ :math:`^2`/s\ :math:`^2`).
 
-#. some mass distributions used have potentials which diverge as :math:`r\rightarrow\infty`, so the usual choice of :math:`\Phi(r) \rightarrow 0` as :math:`r \rightarrow \infty` is not applicable;
-#. this choice is consistent with the potential at the virial radius of the halo considered as a point mass as is used in Keplerian orbit calculations.
+No single, global convention is imposed on the arbitrary constant offset in the potential. Instead, each :galacticus-class:`massDistributionClass` fixes its own zero point. Most adopt the usual choice of :math:`\Phi(r) \rightarrow 0` as :math:`r \rightarrow \infty` (e.g. :galacticus-class:`massDistributionNFW`), but this is not always possible---the potential of :galacticus-class:`massDistributionIsothermal`, for example, diverges as :math:`r \rightarrow \infty` and so is instead measured relative to that distribution's own reference length. The ``potential()`` method of a :galacticus-class:`massDistributionComposite` simply sums the potentials of its constituent distributions, each retaining its own zero point.
 
-Note that the choice of constant offset for the potential of any mass distribution or galactic component is irrelevant---the galactic structure function which computes potential will ensure that the potential is always offset to match the definition given above.
+Absolute potentials are therefore not meaningful to compare between different mass distributions. Physically meaningful quantities should instead be computed from *differences* in the potential, for which the ``potentialDifference()`` method is provided:
+
+.. code-block:: fortran
+
+   potential = massDistribution_%potentialDifference(coordinates1,coordinates2)
+
+Where a particular zero point is required, it is established by the calculation which needs it, rather than by the mass distribution. In particular, ``keplerOrbit`` objects (see :galacticus-class:`virialOrbit`) assume that the potential at the virial radius of the halo is :math:`\Phi(r_\mathrm{virial})=-V_\mathrm{virial}^2`, which is consistent with the potential at the virial radius of the halo considered as a point mass, as is used in Keplerian orbit calculations. That offset is applied by the ``Satellite_Orbits`` module, which evaluates the potential relative to the virial radius using ``potentialDifference()`` and then subtracts :math:`\mathrm{G}M_\mathrm{virial}/r_\mathrm{virial}`.
 
 .. _manual-sec-radiusSpecifiers:
 
@@ -103,6 +156,19 @@ The elements of this colon-separated specifier determine the radius at which a p
 
 ``massType``
    specifies which types of mass should be counted---allowed values are ``all``, ``dark``, ``baryonic``, ``galactic``, ``gaseous``, ``stellar``, and ``blackHole``.
+
+Zero radii
+^^^^^^^^^^
+
+A radius specifier can evaluate to zero---for example ``diskRadius:all:all:1.0`` in a node whose disk has zero radius. This is common: it happens whenever the component on which the radius is based is absent or empty in the node in question, and is quite distinct from an *undefined* radius (see ``solitonRadiusCore`` above), which is reported with a sentinel value instead.
+
+Such a radius is perfectly well defined, but not every property can be evaluated there:
+
+* enclosed masses (:galacticus-class:`nodePropertyExtractorMassProfile`), projected masses (:galacticus-class:`nodePropertyExtractorProjectedMass`), rotation curves, and velocity dispersions all exist at zero radius, and are reported there---note that the enclosed and projected masses are the mass of any central point mass, such as a black hole, and not necessarily zero;
+* densities (:galacticus-class:`nodePropertyExtractorDensityProfile`, :galacticus-class:`nodePropertyExtractorDensityDMOProfile`) exist only if the mass distribution being evaluated has a finite central density---which is true of a disk, but not of an :term:`NFW` halo;
+* projected densities (:galacticus-class:`nodePropertyExtractorProjectedDensity`) are never evaluated at zero radius, as the line of sight integral is performed in the logarithm of radius.
+
+Where the property does not exist, the model stops with an error naming the offending specifier and the node in which it was evaluated. To carry on regardless, set ``zeroRadiusIsFatal`` to ``false`` in the property extractor concerned: the undefined-value sentinel is then written in place of the property, and should be filtered out before analysis. The radius itself is still reported (as zero), since---unlike an undefined radius---it is perfectly well defined.
 
 Half-mode and quarter-mode masses
 ---------------------------------

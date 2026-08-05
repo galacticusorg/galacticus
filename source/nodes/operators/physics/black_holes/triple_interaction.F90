@@ -26,7 +26,49 @@
   !![
   <nodeOperator name="nodeOperatorBlackHolesTripleInteraction" docformat="rst">
    <description>
-   Handles gravitational interactions between three black holes when a third black hole is present in a system already containing a binary, computing hardening of the inner binary and the ejection or capture of the third black hole.
+   A node operator class that implements triple black hole interactions, using conditions similar to those of :cite:t:`volonteri_assembly_2003`.
+
+   When a node contains three or more black holes, the innermost black hole with non-zero mass and radial position is taken to form a binary with the central black hole. A tertiary black hole becomes eligible to interact with that binary once it reaches the hard binary separation
+
+   .. math::
+
+      a_\mathrm{h} = {\mathrm{G} (M_{\bullet,1} + M_{\bullet,2}) \over 4 \sigma^2},
+
+   where :math:`M_{\bullet,1}` and :math:`M_{\bullet,2}` are the masses of the central and binary black holes respectively, and :math:`\sigma` is approximated by the virial velocity of the dark matter halo. Each black hole may undergo at most one triple interaction: the time of the interaction is recorded when it occurs, and is reset---making the black hole eligible once more---only when its host galaxy merges with another.
+
+   Labelling the central black hole :math:`1`, its binary partner :math:`2`, and the tertiary black hole :math:`3`, and defining the intruder mass ratio
+
+   .. math::
+
+      q_3 = {M_{\bullet,3} \over M_{\bullet,1} + M_{\bullet,2}},
+
+   the outcome is determined by three cases. If :math:`q_3 \le 2` and :math:`M_{\bullet,3} \le M_{\bullet,2}` then the binary hardens, :math:`a_2 \rightarrow a_2 / (1 + 0.4 q_3)`, and
+
+   .. math::
+
+      E_\mathrm{bind} = {\mathrm{G} M_{\bullet,3} M_{\bullet,1} \over a_3}, \,\,\,\,\,\, \Delta K = 0.4 q_3 E_\mathrm{bind},
+
+   with black hole :math:`3` ejected and black hole :math:`2` retained as the new binary member. If instead :math:`q_3 \le 2` and :math:`M_{\bullet,3} &gt; M_{\bullet,2}` then :math:`a_3 \rightarrow a_3 / (1 + 0.4 q_3)` and
+
+   .. math::
+
+      E_\mathrm{bind} = {\mathrm{G} M_{\bullet,2} M_{\bullet,1} \over a_2}, \,\,\,\,\,\, \Delta K = 0.4 q_3 E_\mathrm{bind},
+
+   with black hole :math:`2` ejected and black hole :math:`3` retained. Finally, if :math:`q_3 &gt; 2`---a case which may be thought of as a head-on collision---then :math:`a_3 \rightarrow 0.53 a_3`, :math:`E_\mathrm{bind}` is as in the preceding case, :math:`\Delta K = 0.9 q_3 E_\mathrm{bind}`, and once again black hole :math:`2` is ejected and black hole :math:`3` retained.
+
+   Writing :math:`M_\mathrm{ejected}` for the mass of the ejected black hole, and :math:`M_\mathrm{binary}` for the summed mass of the central black hole and its new partner, the imparted velocities are
+
+   .. math::
+
+      V_\mathrm{ejected} = \left[ {2 \Delta K \over (1 + M_\mathrm{ejected}/M_\mathrm{binary} ) M_\mathrm{ejected} } \right]^{1/2},
+
+   and
+
+   .. math::
+
+      V_\mathrm{binary} = \left[ {2 \Delta K \over (1 + M_\mathrm{binary}/M_\mathrm{ejected}) M_\mathrm{binary} } \right]^{1/2}.
+
+   Each system is removed from the node if :math:`\frac{1}{2}V^2` plus the potential difference between its current radius and the virial radius is positive---for the binary, the potential of the central black hole itself is excluded from this comparison. If the binary escapes, the central black hole is replaced by a zero mass, zero spin placeholder.
    </description>
   </nodeOperator>
   !!]

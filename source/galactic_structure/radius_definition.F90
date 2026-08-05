@@ -43,6 +43,11 @@ module Galactic_Structure_Radii_Definitions
   !!}
   double precision, parameter, public :: radiusUndefined=-huge(0.0d0)
 
+  !!{RST
+  Location of the documentation of radius specifier syntax, to which error messages refer the user.
+  !!}
+  character(len=*), parameter :: urlRadiusSpecifiers='https://galacticus.readthedocs.io/en/latest/manuals/physics/definitions.html#manual-sec-radiusspecifiers'
+
   !![
   <enumeration docformat="rst">
    <name>radiusType</name>
@@ -143,10 +148,12 @@ module Galactic_Structure_Radii_Definitions
    contains
      !![
      <methods docformat="rst">
-       <method method="evaluate" description="Evaluate the radius corresponding to a given radius definition in the node to which this resolver is attached, optionally also returning the scale radius on which that radius is based. Returns ``radiusUndefined`` if the radius is undefined in this node."/>
+       <method method="evaluate"         description="Evaluate the radius corresponding to a given radius definition in the node to which this resolver is attached, optionally also returning the scale radius on which that radius is based. Returns ``radiusUndefined`` if the radius is undefined in this node."/>
+       <method method="reportZeroRadius" description="Report a fatal error for a radius definition which evaluates to zero in a node in which the consumer is unable to evaluate its property at zero radius."                                                                                                      />
      </methods>
      !!]
-     procedure :: evaluate => radiusResolverEvaluate
+     procedure :: evaluate         => radiusResolverEvaluate
+     procedure :: reportZeroRadius => radiusResolverReportZeroRadius
   end type radiusResolver
 
   interface radiusResolver
@@ -623,6 +630,46 @@ contains
     return
   end subroutine radiusResolverEvaluate
 
+  subroutine radiusResolverReportZeroRadius(self,indexRadius,consumer,reason)
+    !!{RST
+    Report a fatal error for the ``indexRadius``\ :sup:`th` radius definition, which has evaluated to zero in a node in which
+    the calling ``consumer`` is unable to evaluate its property at zero radius---because the density of the mass distribution
+    being evaluated diverges at the center, for example, as explained by ``reason``. The error names the offending specifier,
+    highlighting the element which gives the radius its scale, along with the node and tree in which it was evaluated.
+
+    A radius of zero is perfectly well defined---it is not reported as ``radiusUndefined``---but a consumer which traps on it
+    would otherwise raise an uninformative floating point exception deep inside the mass distribution.
+    !!}
+    use :: Display           , only : displayGreen, displayReset
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : operator(//), var_str     , assignment(=)
+    use :: String_Handling   , only : operator(//)
+    implicit none
+    class    (radiusResolver ), intent(inout) :: self
+    integer                   , intent(in   ) :: indexRadius
+    character(len=*          ), intent(in   ) :: consumer   , reason
+    type     (radiusSpecifier), pointer       :: specifier_
+    type     (varying_string )                :: message    , cause
+
+    specifier_ => self%definitions_%specifiers(indexRadius)
+    if (specifier_%value <= 0.0d0) then
+       cause=var_str('The multiplier in this specifier is itself zero.')
+    else
+       cause=var_str('The quantity on which this radius is based is zero in this node, which usually means that the corresponding component is absent or empty there.')
+    end if
+    message=var_str('Radius specifier evaluates to a radius of zero:'                                                                                      )//char(10)//char(10)// &
+         &          '   '//specifierHighlighted(specifier_%name,highlight=1)                                                                                //char(10)//char(10)// &
+         &          'The `'//consumer//'` property extractor can not evaluate its property at zero radius here: '//reason//'.'                              //char(10)//char(10)// &
+         &          cause                                                                                                                                   //char(10)//char(10)// &
+         &          'The radius was evaluated in node '//self%node_%index()//' of tree '//self%node_%hostTree%index//'.'                                    //char(10)//char(10)// &
+         &          displayGreen()//'HELP:'//displayReset()//' use a radius which is non-zero in every node---one specified as a fraction of the virial'                        // &
+         &          ' radius, for example---or filter such nodes out of the output. Alternatively, set <zeroRadiusIsFatal value="false"/> in this property'                     // &
+         &          ' extractor to write the undefined-value sentinel in place of the property. See '//urlRadiusSpecifiers//' for an explanation of radius'                     // &
+         &          ' specifier syntax.'
+    call Error_Report(message//{introspection:location})
+    return
+  end subroutine radiusResolverReportZeroRadius
+
   subroutine extractFraction(specifier,radiusDefinition,openAt,fractionDefinition)
     !!{RST
     Parse a fractional radius definition.
@@ -649,22 +696,38 @@ contains
     !!{RST
     Report an error in parsing a radius specifier.
     !!}
-    use :: Display           , only : displayGreen      , displayRed        , displayReset
+    use :: Display           , only : displayGreen, displayReset
     use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : operator(//)      , var_str           , char        , extract, &
-         &                            index
+    use :: ISO_Varying_String, only : operator(//), var_str
+    implicit none
+    type   (varying_string), intent(in   )           :: specifier, message
+    integer                , intent(in   ), optional :: highlight
+    logical                , intent(in   ), optional :: bracketed
+
+    call Error_Report(var_str('Failed to parse radius specifier:')//char(10)//char(10)//'   '//specifierHighlighted(specifier,highlight,bracketed)//char(10)//char(10)//message//char(10)//char(10)//displayGreen()//'HELP:'//displayReset()//' See '//urlRadiusSpecifiers//' for an explanation of radius specifier syntax'//{introspection:location})
+    return
+  end subroutine reportSpecifierError
+
+  function specifierHighlighted(specifier,highlight,bracketed) result(specifier_)
+    !!{RST
+    Return a radius specifier with the ``highlight``\ :sup:`th` of its colon-separated elements colorized, for use in error
+    messages which must draw attention to one element of the specifier. If ``highlight`` is not given the specifier is
+    returned unchanged.
+    !!}
+    use :: Display           , only : displayRed        , displayReset
+    use :: ISO_Varying_String, only : operator(//)      , char              , extract    , index
     use :: String_Handling   , only : String_Count_Words, String_Split_Words, String_Join
     implicit none
-    type   (varying_string), intent(in   )               :: specifier       , message
-    integer                , intent(in   ), optional     :: highlight
-    logical                , intent(in   ), optional     ::  bracketed
-    type   (varying_string)               , dimension(5) :: radiusDefinition
     type   (varying_string)                              :: specifier_
+    type   (varying_string), intent(in   )               :: specifier
+    integer                , intent(in   ), optional     :: highlight
+    logical                , intent(in   ), optional     :: bracketed
+    type   (varying_string)               , dimension(5) :: radiusDefinition
     integer                                              :: countComponents , indexBracket
     !![
     <optionalArgument name="bracketed" defaultsTo=".false."/>
     !!]
-    
+
     if (present(highlight)) then
        countComponents=String_Count_Words(char(specifier),':',bracketing="{}")
        call String_Split_Words(radiusDefinition,char(specifier),':',bracketing="{}")
@@ -682,8 +745,7 @@ contains
     else
        specifier_=specifier
     end if
-    call Error_Report(var_str('Failed to parse radius specifier:')//char(10)//char(10)//'   '//specifier_//char(10)//char(10)//message//char(10)//char(10)//displayGreen()//'HELP:'//displayReset()//' See https://galacticus.readthedocs.io/en/latest/manuals/physics/definitions.html#manual-sec-radiusspecifiers for an explanation of radius specifier syntax'//{introspection:location})    
     return
-  end subroutine reportSpecifierError
-  
+  end function specifierHighlighted
+
 end module Galactic_Structure_Radii_Definitions

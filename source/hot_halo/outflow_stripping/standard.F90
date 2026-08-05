@@ -26,7 +26,13 @@ An implementation of the hot halo outflow stripping class using a simple estimat
   !![
   <hotHaloOutflowStripping name="hotHaloOutflowStrippingStandard" docformat="rst">
    <description>
-   An implementation of the hot halo outflow stripping class using a simple estimate based on the outer radius of the :term:`CGM`.
+   An implementation of the hot halo outflow stripping class using a simple estimate based on the outer radius of the :term:`CGM`, following the approach of :cite:t:`font_colours_2008`. For satellite nodes the fraction of outflowing material which is stripped from the halo is
+
+   .. math::
+
+      f_\mathrm{outflow, stripped} = \epsilon_\mathrm{strip} \left( 1 - {M_\mathrm{hot, outer} \over M_\mathrm{hot, virial}} \right),
+
+   where :math:`\epsilon_\mathrm{strip}=`\ ``[efficiency]``, :math:`M_\mathrm{hot, outer}` is the mass of hot gas contained within the current outer radius of the :term:`CGM`, and :math:`M_\mathrm{hot, virial}` is the mass of hot gas that would be contained within the virial radius (i.e. that which would be present had no stripping occurred). The stripped fraction therefore grows from zero for an unstripped halo toward :math:`\epsilon_\mathrm{strip}` as the halo is stripped down. If :math:`M_\mathrm{hot, virial}` is non-positive the fraction is taken to be :math:`\epsilon_\mathrm{strip}`. For nodes which are not satellites no stripping occurs.
    </description>
   </hotHaloOutflowStripping>
   !!]

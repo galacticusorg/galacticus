@@ -55,6 +55,7 @@
      procedure :: massTotal                         => nfwMassTotal
      procedure :: density                           => nfwDensity
      procedure :: densityGradientRadial             => nfwDensityGradientRadial
+     procedure :: densitySlopeLogarithmicCentral    => nfwDensitySlopeLogarithmicCentral
      procedure :: densityRadialMoment               => nfwDensityRadialMoment
      procedure :: massEnclosedBySphere              => nfwMassEnclosedBySphere
      procedure :: velocityRotationCurveMaximum      => nfwVelocityRotationCurveMaximum
@@ -346,6 +347,21 @@ contains
     end if
     return
   end function nfwDensityGradientRadial
+
+  double precision function nfwDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in an NFW :cite:p:`navarro_structure_1996` mass
+    distribution. The profile is cuspy, so the density is not evaluable at zero radius.
+    !!}
+    use :: Coordinates, only : coordinateSpherical, assignment(=)
+    implicit none
+    class(massDistributionNFW ), intent(inout) :: self
+    type (coordinateSpherical)                 :: coordinates
+
+    coordinates=[0.0d0,0.0d0,0.0d0]
+    slope      =self%densityGradientRadial(coordinates,logarithmic=.true.)
+    return
+  end function nfwDensitySlopeLogarithmicCentral
 
   double precision function nfwDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
     !!{RST

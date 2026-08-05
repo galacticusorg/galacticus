@@ -33,16 +33,17 @@
      A zero mass distribution.
      !!}
    contains
-     procedure :: massTotal             => zeroMassTotal
-     procedure :: density               => zeroDensity
-     procedure :: densityGradientRadial => zeroDensityGradientRadial
-     procedure :: densityRadialMoment   => zeroDensityRadialMoment
-     procedure :: massEnclosedBySphere  => zeroMassEnclosedBySphere
-     procedure :: surfaceDensity        => zeroSurfaceDensity
-     procedure :: rotationCurve         => zeroRotationCurve
-     procedure :: rotationCurveGradient => zeroRotationCurveGradient
-     procedure :: potentialIsAnalytic   => zeroPotentialIsAnalytic
-     procedure :: potential             => zeroPotential
+     procedure :: massTotal                      => zeroMassTotal
+     procedure :: density                        => zeroDensity
+     procedure :: densityGradientRadial          => zeroDensityGradientRadial
+     procedure :: densitySlopeLogarithmicCentral => zeroDensitySlopeLogarithmicCentral
+     procedure :: densityRadialMoment            => zeroDensityRadialMoment
+     procedure :: massEnclosedBySphere           => zeroMassEnclosedBySphere
+     procedure :: surfaceDensity                 => zeroSurfaceDensity
+     procedure :: rotationCurve                  => zeroRotationCurve
+     procedure :: rotationCurveGradient          => zeroRotationCurveGradient
+     procedure :: potentialIsAnalytic            => zeroPotentialIsAnalytic
+     procedure :: potential                      => zeroPotential
   end type massDistributionZero
 
   interface massDistributionZero
@@ -137,6 +138,19 @@ contains
     zeroDensityGradientRadial=0.0d0
     return
   end function zeroDensityGradientRadial
+
+  double precision function zeroDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in a zero mass distribution. The density is zero everywhere,
+    and so is evaluable at zero radius.
+    !!}
+    implicit none
+    class(massDistributionZero), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    slope=0.0d0
+    return
+  end function zeroDensitySlopeLogarithmicCentral
 
   double precision function zeroMassEnclosedBySphere(self,radius)
     !!{RST

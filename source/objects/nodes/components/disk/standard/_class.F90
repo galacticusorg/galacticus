@@ -39,9 +39,12 @@ module Node_Component_Disk_Standard
        &    Node_Component_Disk_Standard_Inactive
 
   !![
-  <component>
+  <component docformat="rst">
    <class>disk</class>
    <name>standard</name>
+   <description>
+   A galactic disk with cylindrical symmetry and a flattened profile in which stars trace gas. In addition to gas and stellar masses and abundances it tracks angular momentum, a radial scale length and circular velocity, stellar luminosities, the total mass of stars ever formed, and a star formation history. ``fractionMassRetained`` records the fraction of mass retained in the disk under transfer to the spheroid by bar instabilities, and is used when solving for stellar luminosities as inactive properties. The density profile is supplied by a dimensionless :galacticus-class:`massDistributionClass` object, which must be cylindrically symmetric.
+   </description>
    <isDefault>true</isDefault>
    <properties>
     <property>
