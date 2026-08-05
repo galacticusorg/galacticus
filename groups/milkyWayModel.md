@@ -10,5 +10,5 @@ Full Milky Way galaxy formation model.
 
 | Metric | Status | Validation | Benchmark | Last commit |
 |--------|--------|------------|-----------|-------------|
-| Local Group satellites | `FAIL`{: .label .label-red } | [plots]({{ '/dev/valid/milkyWayModel/' | relative_url }}) | [trend]({{ '/dev/bench/milkyWayModel/' | relative_url }}) | [`ae9cc61`](https://github.com/galacticusorg/galacticus/commit/ae9cc618d0868833023d94cfd8288f42b5cffbe2) |
+| Local Group satellites | `PASS`{: .label .label-green } | [plots]({{ '/dev/valid/milkyWayModel/' | relative_url }}) | [trend]({{ '/dev/bench/milkyWayModel/' | relative_url }}) | [`ab14075`](https://github.com/galacticusorg/galacticus/commit/ab14075604f5713e98ac599a6c718606383c49dc) |
 
