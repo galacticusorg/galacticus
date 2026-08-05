@@ -1339,11 +1339,11 @@ contains
                      &                               +self%velocity                  (                                     indexVelocityTangential)**2 &
                      &                              )
              end do
-             velocityTotalRMS(iHost,iSatellite)=sqrt(                                                       &
-                  &                                  +    velocityTotalRMS          (iHost,iSatellite    )  &
-                  &                                  /sum(velocityDistributionOrbits(iHost,iSatellite,:,:)) &
-                  &                                 )
           end do
+          velocityTotalRMS(iHost,iSatellite)=sqrt(                                                       &
+               &                                  +    velocityTotalRMS          (iHost,iSatellite    )  &
+               &                                  /sum(velocityDistributionOrbits(iHost,iSatellite,:,:)) &
+               &                                 )
           !$omp end single
           ! Clean up.
           deallocate(nodeSatellite)
