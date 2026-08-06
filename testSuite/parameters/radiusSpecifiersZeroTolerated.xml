@@ -305,10 +305,14 @@
   </mergerTreeOutputter>
 
   <!-- The same zero-valued radius specifier, with the error suppressed. Densities and projected
-       densities at zero radius are reported as the undefined-value sentinel, while enclosed and
-       projected masses - which are simply zero at zero radius - are reported as such. The third
-       density specifier evaluates the density of the hot halo, a beta-profile with a finite
-       central density, at exactly zero radius: that is well defined, and must not be rejected. -->
+       densities of the total mass distribution at zero radius are reported as the undefined-value
+       sentinel - it contains an NFW halo, for which neither exists there - while enclosed and
+       projected masses - which are simply zero at zero radius - are reported as such. The
+       remaining specifiers evaluate the hot halo, a beta-profile with a finite central density,
+       for which both the density and the projected density at zero radius are well defined and
+       must not be rejected. The projected density there is checked against the projected mass
+       within a small, non-zero radius, which must approach the product of the central projected
+       density and the area of the cylinder. -->
   <nodePropertyExtractor value="multi">
     <nodePropertyExtractor value="nodeIndices"/>
     <nodePropertyExtractor value="densityProfile">
@@ -319,7 +323,7 @@
     <nodePropertyExtractor value="projectedDensity">
       <includeRadii      value="true"/>
       <zeroRadiusIsFatal value="false"/>
-      <radiusSpecifiers  value="diskRadius:all:all:1.0  virialRadius:all:all:1.0"/>
+      <radiusSpecifiers  value="diskRadius:all:all:1.0  virialRadius:all:all:1.0  radius:hotHalo:gaseous:0.0  radius:hotHalo:gaseous:1.0e-4"/>
     </nodePropertyExtractor>
     <nodePropertyExtractor value="massProfile">
       <includeRadii value="true"/>
@@ -327,7 +331,7 @@
     </nodePropertyExtractor>
     <nodePropertyExtractor value="projectedMass">
       <includeRadii value="true"/>
-      <radiusSpecifiers value="diskRadius:all:all:1.0  virialRadius:all:all:1.0"/>
+      <radiusSpecifiers value="diskRadius:all:all:1.0  virialRadius:all:all:1.0  radius:hotHalo:gaseous:1.0e-4"/>
     </nodePropertyExtractor>
   </nodePropertyExtractor>
 

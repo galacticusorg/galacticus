@@ -166,7 +166,7 @@ Such a radius is perfectly well defined, but not every property can be evaluated
 
 * enclosed masses (:galacticus-class:`nodePropertyExtractorMassProfile`), projected masses (:galacticus-class:`nodePropertyExtractorProjectedMass`), rotation curves, and velocity dispersions all exist at zero radius, and are reported there---note that the enclosed and projected masses are the mass of any central point mass, such as a black hole, and not necessarily zero;
 * densities (:galacticus-class:`nodePropertyExtractorDensityProfile`, :galacticus-class:`nodePropertyExtractorDensityDMOProfile`) exist only if the mass distribution being evaluated has a finite central density---which is true of a disk, but not of an :term:`NFW` halo;
-* projected densities (:galacticus-class:`nodePropertyExtractorProjectedDensity`) are never evaluated at zero radius, as the line of sight integral is performed in the logarithm of radius.
+* projected densities (:galacticus-class:`nodePropertyExtractorProjectedDensity`) exist only if the central logarithmic slope of the density profile exceeds :math:`-1`---the line of sight integral through the center of an :term:`NFW` halo diverges logarithmically, while that through a cored profile, or through a shallower cusp, converges and is evaluated.
 
 Where the property does not exist, the model stops with an error naming the offending specifier and the node in which it was evaluated. To carry on regardless, set ``zeroRadiusIsFatal`` to ``false`` in the property extractor concerned: the undefined-value sentinel is then written in place of the property, and should be filtered out before analysis. The radius itself is still reported (as zero), since---unlike an undefined radius---it is perfectly well defined.
 

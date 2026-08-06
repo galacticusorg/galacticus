@@ -15,8 +15,12 @@ Two models are run:
     the sentinel appears in the density and projected density exactly where the
     radius is zero (while the radius itself is still reported as zero), that the
     enclosed and projected masses are defined and agree there, and that the
-    density of the beta-profile hot halo - which has a finite central density -
-    is still evaluated at exactly zero radius.
+    density and projected density of the beta-profile hot halo - which has a
+    finite central density, and so also a finite projected density along a line
+    of sight through its center - are still evaluated at exactly zero radius. The
+    central projected density is checked against the projected mass within a
+    small, non-zero radius, which must approach the product of that projected
+    density and the area of the cylinder.
 
 Andrew Benson (03-August-2026)
 """
@@ -99,9 +103,9 @@ if status != 0:
 
 fileName = os.path.join(pathOutputDirectory, "tolerated.hdf5")
 density        , radiiDensity         = gather(fileName, "densityProfile" , 3)
-densityProjected, radiiDensityProjected = gather(fileName, "projectedDensity", 2)
+densityProjected, radiiDensityProjected = gather(fileName, "projectedDensity", 4)
 mass           , radiiMass            = gather(fileName, "massProfile"   , 2)
-massProjected  , radiiMassProjected   = gather(fileName, "projectedMass" , 2)
+massProjected  , radiiMassProjected   = gather(fileName, "projectedMass" , 3)
 
 # The first two radii of the `densityProfile` extractor are the disk radius and the virial radius;
 # the third is the fixed, zero radius in the hot halo.
@@ -121,7 +125,7 @@ check(
 )
 check(
     np.all(densityProjected[radiiDensityProjected[:, 0] == 0.0, 0] == radiusUndefined),
-    "projected density is the sentinel where the radius is zero",
+    "projected density is the sentinel where the radius is zero in a cusped profile",
 )
 
 # Enclosed and projected masses exist at zero radius: both reduce to the mass of any central point
@@ -149,6 +153,65 @@ check(
 check(
     np.all(density[:, 2] >= 0.0) and np.any(density[:, 2] > 0.0),
     "the central density of the hot halo is evaluated at zero radius",
+)
+
+# The line of sight integral through the center of the hot halo converges for the same reason - the
+# central logarithmic slope of a beta-profile is zero, which exceeds the -1 that the integral requires
+# - and so must also be evaluated, rather than rejected as it is for the NFW halo above.
+densityProjectedCentral = densityProjected[:, 2]
+check(
+    np.all(radiiDensityProjected[:, 2] == 0.0),
+    "the fixed hot halo radius is zero in the projected density",
+)
+check(
+    np.all(densityProjectedCentral != radiusUndefined),
+    "the central projected density of the hot halo is evaluated at zero radius",
+)
+check(
+    np.all(densityProjectedCentral >= 0.0) and np.any(densityProjectedCentral > 0.0),
+    "the central projected density of the hot halo is positive",
+)
+
+# The projected mass within a cylinder of radius R approaches pi R^2 times the central projected
+# density as R goes to zero. Evaluated at a radius far inside the core radius of the beta-profile
+# (0.3 of the virial radius), this is an independent check on the value of the central projected
+# density - the two are computed by different extractors, with only the density profile in common.
+# Nodes in which the hot halo is empty, or in which it has been stripped back to inside this radius
+# (so that the projected density has already fallen away there), are excluded.
+inCore = (densityProjectedCentral > 0.0) & (densityProjected[:, 3] > 0.9*densityProjectedCentral)
+check(np.any(inCore), "some node has a hot halo resolved well inside its core radius")
+densityProjectedImplied = (
+    massProjected[inCore, 2]/np.pi/radiiMassProjected[inCore, 2]**2
+)
+check(
+    np.all(np.abs(densityProjectedImplied/densityProjectedCentral[inCore]-1.0) < 5.0e-2),
+    "the central projected density of the hot halo matches the projected mass within a small radius",
+)
+
+# The central projected density of the beta-profile hot halo is also known analytically. With
+# beta = 2/3 (the default), rho(r) = rho_0/[1+(r/r_c)^2], truncated at the outer radius r_o, and
+# normalized such that the mass within that radius is the hot halo mass, M:
+#
+#   Sigma(0) = 2 rho_0 r_c atan(x) = M atan(x)/[2 pi r_c^2 (x - atan x)],   x = r_o/r_c,
+#
+# where the core radius, r_c, is 0.3 of the virial radius here (see `hotHaloMassDistributionCoreRadius`
+# above), and the virial radius is reported as the second radius of the `densityProfile` extractor.
+with h5py.File(fileName, "r") as model:
+    massHotHalo, radiusOuterHotHalo = [], []
+    for output in sorted(model["Outputs"].keys()):
+        nodes = model["Outputs"][output]["nodeData"]
+        massHotHalo       .append(nodes["hotHaloMass"       ][:])
+        radiusOuterHotHalo.append(nodes["hotHaloOuterRadius"][:])
+    massHotHalo        = np.concatenate(massHotHalo       )
+    radiusOuterHotHalo = np.concatenate(radiusOuterHotHalo)
+radiusCore = 0.3*radiiDensity[:, 1]
+x          = radiusOuterHotHalo/radiusCore
+densityProjectedAnalytic = (
+    massHotHalo*np.arctan(x)/(2.0*np.pi*radiusCore**2*(x-np.arctan(x)))
+)
+check(
+    np.all(np.abs(densityProjectedAnalytic[inCore]/densityProjectedCentral[inCore]-1.0) < 1.0e-2),
+    "the central projected density of the hot halo matches the analytic beta-profile result",
 )
 
 print()
