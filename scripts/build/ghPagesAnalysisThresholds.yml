@@ -85,9 +85,9 @@ thresholds:
       threshold_warn: -692.9364
   darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1:
     subhaloMassFunction:
-      current: 0.2926
-      threshold_fail: 0.2341
-      threshold_warn: 0.2633
+      current: -0.2276
+      threshold_fail: -0.4500
+      threshold_warn: -0.5000
     subhaloRadialDistribution:
       current: -3.0242
       threshold_fail: -3.629
@@ -145,9 +145,9 @@ thresholds:
       threshold_fail: -0.7332
       threshold_warn: 0.6497
     subhaloVelocityMaximumMean:
-      current: -17.5622
-      threshold_fail: -21.0746
-      threshold_warn: -19.3184
+      current: -22.000
+      threshold_fail: -24.0000
+      threshold_warn: -23.5000
   darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8:
     subhaloMassFunction:
       current: -10.9047
@@ -167,9 +167,9 @@ thresholds:
       threshold_fail: -0.2969
       threshold_warn: -0.1169
     subhaloRadialDistribution:
-      current: 3.451
-      threshold_fail: 2.7608
-      threshold_warn: 3.1059
+      current: -2.500
+      threshold_fail: -4.000
+      threshold_warn: -3.500
     subhaloVelocityMaximumMean:
       current: -14.3189
       threshold_fail: -17.1827
