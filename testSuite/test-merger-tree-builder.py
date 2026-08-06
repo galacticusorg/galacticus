@@ -5,6 +5,7 @@ import os
 import glob
 import argparse
 import shutil
+import xml.etree.ElementTree as ET
 import h5py
 import numpy as np
 
@@ -76,24 +77,30 @@ launchOptions = f"--launchMethod {args.launchMethod} --threadMaximum {args.threa
 if args.instance:
     launchOptions += f" --instance {args.instance}"
 
-# Build parameterGrid XML and run via launch.py.
-with open("outputs/test-merger-tree-builder.xml", "w") as f:
-    f.write("<parameterGrid>\n")
-    f.write("  <emailReport>no</emailReport>\n")
-    f.write("  <doAnalysis>no</doAnalysis>\n")
-    f.write("  <modelRootDirectory>testSuite/outputs/test-merger-tree-builder</modelRootDirectory>\n")
-    f.write("  <baseParameters>testSuite/parameters/mergerTreeBuilderCole2000_intervalStepTrue.xml</baseParameters>\n")
-    for paramFile in paramFiles:
-        with open(paramFile) as pf:
-            f.write(pf.read())
-    f.write("</parameterGrid>\n")
+# Build the parameterGrid XML and run via launch.py. The parameter files are parsed and their root elements grafted into the
+# document, rather than their text being concatenated into it: each is a document in its own right and so begins with an XML
+# declaration, which is well formed only at the very start of a document. Concatenating them produced a document which
+# launch.py could not parse, so no model ran at all.
+grid = ET.Element("parameterGrid")
+for name, text in (
+        ("emailReport",        "no"                                                                  ),
+        ("doAnalysis",         "no"                                                                  ),
+        ("modelRootDirectory", "testSuite/outputs/test-merger-tree-builder"                          ),
+        ("baseParameters",     "testSuite/parameters/mergerTreeBuilderCole2000_intervalStepTrue.xml" ),
+):
+    ET.SubElement(grid, name).text = text
+for paramFile in paramFiles:
+    grid.append(ET.parse(paramFile).getroot())
+ET.indent(grid)
+ET.ElementTree(grid).write("outputs/test-merger-tree-builder.xml", encoding="UTF-8", xml_declaration=True)
 
 subprocess.run(
     f"cd ..; mkdir -p testSuite/outputs/test-merger-tree-builder; ./scripts/aux/launch.py testSuite/outputs/test-merger-tree-builder.xml {launchOptions}",
     shell=True
 )
 
-# Check for failed models.
+# Check for failed models. Note that a model which never ran leaves no log to grep, so the number of logs found must be checked
+# against the number of models launched - otherwise a failure to launch any model at all reports as a success.
 logFiles = glob.glob("outputs/test-merger-tree-builder/galacticus_*/galacticus.log")
 failures = []
 for logFile in logFiles:
@@ -104,7 +111,9 @@ for logFile in logFiles:
     if result.returncode == 0:
         failures.append(logFile)
 
-if failures:
+if len(logFiles) < len(paramFiles):
+    print(f"FAILED: {len(paramFiles)} models were launched but only {len(logFiles)} produced a log - they did not run")
+elif failures:
     for failure in failures:
         print(f"FAILED: log from {failure}:")
         with open(failure) as f:
@@ -123,6 +132,9 @@ for model in models:
             shutil.copy(tmpName, model["fileName"])
             model["exists"] = True
         else:
+            # Report this: a model which produced no output is silently dropped from the comparisons below, so without this the
+            # remaining models are compared and the run reports as a success.
+            print(f"FAILED: model '{model['type']}' produced no output at {tmpName}")
             model["exists"] = False
             continue
     else:
