@@ -65,16 +65,16 @@ contains
     use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran   , compilerValidate
     use :: System_Which      , only : which
     implicit none
-    type     (varying_string), intent(  out)           :: fspsPath, fspsVersion
+    type     (varying_string), intent(  out)           :: fspsPath      , fspsVersion
     logical                  , intent(in   ), optional :: static
-    integer                                            :: status  , statusUnit
-    type     (varying_string)                          :: lockPath          , execPath        , &
-         &                                                tarPath           , patchPath       , &
-         &                                                url               , command         , &
-         &                                                patch             , escapedToolsPath, &
-         &                                                escapedTarFile    , escapedSrcPath  , &
-         &                                                escapedSrcDir     , escapedFspsPath , &
-         &                                                escapedPatch      , escapedPatchSource
+    integer                                            :: status        , statusUnit
+    type     (varying_string)                          :: lockPath      , execPath          , &
+         &                                                tarPath       , patchPath         , &
+         &                                                url           , command           , &
+         &                                                patch         , escapedToolsPath  , &
+         &                                                escapedTarFile, escapedSrcPath    , &
+         &                                                escapedSrcDir , escapedFspsPath   , &
+         &                                                escapedPatch  , escapedPatchSource
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]

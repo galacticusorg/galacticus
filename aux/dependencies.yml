@@ -1,7 +1,7 @@
 class: 3.3.4
 camb: 2.0.0
 forutils: 1.1.0
-fsps: 3.2
+fsps: 4.0
 cloudy: 25.00
 mangle: 2.3.3
 axioncamb: 891e779cc0bd422e49f97533e6c2fc761149737d
