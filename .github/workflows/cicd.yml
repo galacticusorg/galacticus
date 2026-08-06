@@ -1229,6 +1229,8 @@ jobs:
                       tests.table_caches.exe,
                       tests.interpolation.exe,
                       tests.interpolation.2D.exe,
+                      tests.interpolation.multiD.exe,
+                      tests.dust.attenuation_descriptors.exe,
                       tests.make_ranges.exe,
                       tests.mass_distributions.exe,
                       tests.mass_distributions.tabulated.exe,
