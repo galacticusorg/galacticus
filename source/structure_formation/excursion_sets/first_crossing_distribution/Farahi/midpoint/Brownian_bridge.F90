@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson, Ethan Nadler.
+!+    Contributions to this file made by: Andrew Benson, Ethan Nadler. The separation of the hard upper limit on the tabulated
+!+    variance from the range requested, for the pinning of the first crossing rate tabulation for issue #1317, was drafted with
+!+    assistance from Claude, and reviewed and verified by Andrew Benson.
 
 !!{RST
 Implements an excursion set first crossing statistics class using the algorithm of :cite:t:`benson_dark_2012`, but using a midpoint method to perform the integrations :cite:p:`du_substructure_2017`, and with a Brownian bridge constraint.
@@ -108,12 +110,12 @@ Implements an excursion set first crossing statistics class using the algorithm 
           &                                                       redshiftConstrained
    contains
      final     ::                     farahiMidpointBrownianBridgeDestructor
-     procedure :: rate             => farahiMidpointBrownianBridgeRate
-     procedure :: rateNonCrossing  => farahiMidpointBrownianBridgeRateNonCrossing
-     procedure :: varianceLimit    => farahiMidpointBrownianBridgeVarianceLimit
-     procedure :: varianceResidual => farahiMidpointBrownianBridgeVarianceResidual
-     procedure :: offsetEffective  => farahiMidpointBrownianBridgeOffsetEffective
-     procedure :: fileWrite        => farahiMidpointBrownianBridgeFileWrite
+     procedure :: rate              => farahiMidpointBrownianBridgeRate
+     procedure :: rateNonCrossing   => farahiMidpointBrownianBridgeRateNonCrossing
+     procedure :: varianceLimitHard => farahiMidpointBrownianBridgeVarianceLimitHard
+     procedure :: varianceResidual  => farahiMidpointBrownianBridgeVarianceResidual
+     procedure :: offsetEffective   => farahiMidpointBrownianBridgeOffsetEffective
+     procedure :: fileWrite         => farahiMidpointBrownianBridgeFileWrite
   end type excursionSetFirstCrossingFarahiMidpointBrownianBridge
 
   interface excursionSetFirstCrossingFarahiMidpointBrownianBridge
@@ -342,23 +344,18 @@ contains
     return
   end function farahiMidpointBrownianBridgeRateNonCrossing
   
-  double precision function farahiMidpointBrownianBridgeVarianceLimit(self,varianceProgenitor)
+  double precision function farahiMidpointBrownianBridgeVarianceLimitHard(self)
     !!{RST
-    Return the maximum variance to which to tabulate. For the case of a Brownian bridge the variance must not be allowed to exceed the variance :math:`S_2` at the end of the bridge---all trajectories must have crossed the barrier by this variance by construction.
+    Return a hard upper limit on the variance to which to tabulate. For the case of a Brownian bridge the variance must not be
+    allowed to exceed the variance :math:`S_2` at the end of the bridge---all trajectories must have crossed the barrier by this
+    variance by construction, and the residual variance between two points becomes negative beyond it.
     !!}
     implicit none
-    class           (excursionSetFirstCrossingFarahiMidpointBrownianBridge), intent(inout) :: self
-    double precision                                                       , intent(in   ) :: varianceProgenitor
+    class(excursionSetFirstCrossingFarahiMidpointBrownianBridge), intent(inout) :: self
 
-    farahiMidpointBrownianBridgeVarianceLimit=min(                                     &
-         &                                        max(                                 &
-         &                                                   self%varianceMaximumRate, &
-         &                                             2.0d0*     varianceProgenitor   &
-         &                                            )                              , &
-         &                                                   self%varianceConstrained  &
-         &                                       )
+    farahiMidpointBrownianBridgeVarianceLimitHard=self%varianceConstrained
     return
-  end function farahiMidpointBrownianBridgeVarianceLimit
+  end function farahiMidpointBrownianBridgeVarianceLimitHard
 
   function farahiMidpointBrownianBridgeVarianceResidual(self,time,varianceCurrent,varianceProgenitor,varianceIntermediate,cosmologicalMassVariance_) result(varianceResidual)
     !!{RST
