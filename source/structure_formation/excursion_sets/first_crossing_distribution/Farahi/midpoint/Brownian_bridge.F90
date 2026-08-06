@@ -109,7 +109,7 @@ Implements an excursion set first crossing statistics class using the algorithm 
           &                                                       timeConstrained                         , massConstrained    , &
           &                                                       redshiftConstrained
    contains
-     final     ::                     farahiMidpointBrownianBridgeDestructor
+     final     ::                      farahiMidpointBrownianBridgeDestructor
      procedure :: rate              => farahiMidpointBrownianBridgeRate
      procedure :: rateNonCrossing   => farahiMidpointBrownianBridgeRateNonCrossing
      procedure :: varianceLimitHard => farahiMidpointBrownianBridgeVarianceLimitHard
@@ -386,7 +386,7 @@ contains
     !
     !   S₂ = varianceConstrained
     !   S₁ = varianceCurrent
-    !   S̃ = varianceIntermediate+varianceCurrent
+    !   S̃  = varianceIntermediate+varianceCurrent
     !   S  = varianceProgenitor  +varianceCurrent
     !    
     ! Note that the variables "varianceIntermediate" and "varianceProgenitor" are defined to be the variances in excess of S₁ - which is why they
@@ -444,7 +444,7 @@ contains
     !
     !   S₂ = varianceConstrained
     !   S₁ = varianceCurrent
-    !   S̃ = varianceIntermediate+varianceCurrent
+    !   S̃  = varianceIntermediate+varianceCurrent
     !   S  = varianceProgenitor  +varianceCurrent
     !   δ₂ = criticalOverdensityConstrained
     !   δ₁ = deltaCurrent
