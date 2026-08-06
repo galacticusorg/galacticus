@@ -287,6 +287,7 @@ module Tables
      </methods>
      !!]
      procedure :: create              => Table_Linear_CSpline_1D_Create
+     procedure :: extend              => Table_Linear_CSpline_1D_Extend
      procedure :: destroy             => Table_Linear_CSpline_1D_Destroy
      procedure :: populateArray       => Table_Linear_CSpline_1D_Populate
      procedure :: populateScalar      => Table_Linear_CSpline_1D_Populate_Single
@@ -305,6 +306,7 @@ module Tables
      double precision :: xMinimum       , xMaximum
    contains
      procedure :: create              => Table_Logarithmic_CSpline_1D_Create
+     procedure :: extend              => Table_Logarithmic_CSpline_1D_Extend
      procedure :: interpolate         => Table_Logarithmic_CSpline_1D_Interpolate
      procedure :: interpolateGradient => Table_Logarithmic_CSpline_1D_Interpolate_Gradient
      procedure :: x                   => Table_Logarithmic_CSpline_1D_X
@@ -317,6 +319,7 @@ module Tables
      !!}
    contains
      procedure :: create              => Table_Linear_Monotone_CSpline_1D_Create
+     procedure :: extend              => Table_Linear_Monotone_CSpline_1D_Extend
      procedure :: destroy             => Table_Linear_Monotone_CSpline_1D_Destroy
      procedure :: populateArray       => Table_Linear_Monotone_CSpline_1D_Populate
      procedure :: populateScalar      => Table_Linear_Monotone_CSpline_1D_Populate_Single
@@ -334,6 +337,7 @@ module Tables
      double precision :: xMinimum       , xMaximum
    contains
      procedure :: create              => Table_Logarithmic_Monotone_CSpline_1D_Create
+     procedure :: extend              => Table_Logarithmic_Monotone_CSpline_1D_Extend
      procedure :: interpolate         => Table_Logarithmic_Monotone_CSpline_1D_Interpolate
      procedure :: interpolateGradient => Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient
      procedure :: x                   => Table_Logarithmic_Monotone_CSpline_1D_X
@@ -496,16 +500,19 @@ contains
     return
   end subroutine Table_1D_Extend
 
-  subroutine Table_1D_Extend_Uniform(self,lattice,xValues,deltaX,isComputed,tableCount,extrapolationType)
+  subroutine Table_1D_Extend_Uniform(self,lattice,xValues,isComputed,tableCount,extrapolationType)
     !!{RST
     Worker used to extend 1-D tables which have uniformly-spaced *internal* abscissae. ``xValues`` must be the internal-coordinate
     abscissae of the points of ``lattice``---for example, for a logarithmically-spaced table these are the natural logarithms of
-    the lattice points---and ``deltaX`` their spacing.
+    the lattice points.
 
-    Note that ``deltaX`` is supplied by the caller (from the lattice) rather than evaluated here as ``xValues(2)-xValues(1)``.
-    The difference of two neighbouring lattice points varies in its final bits with position along the lattice, so deriving the
-    interpolation factor from it would change every interpolated value by of order one unit in the last place whenever the lower
-    bound of the table moved - defeating the very reuse which extension exists to provide.
+    This handles only the state held by ``table1D`` itself---the abscissae, the values, the lattice, and the extrapolation
+    type. Each concrete table type must, on return, set its own spacing and reset any cached interpolation state.
+
+    **The spacing must be taken from the lattice**, never evaluated as ``xValues(2)-xValues(1)``: the difference of two
+    neighbouring lattice points varies in its final bits with position along the lattice, so deriving the interpolation factor
+    from it would change every interpolated value by of order one unit in the last place whenever the lower bound of the table
+    moved---defeating the very reuse which extension exists to provide.
 
     Previously computed values are preserved by copying them into the index window which they occupy in the new table---the
     index offset is computed from the integer lattice indices, so no searching or floating-point comparison of abscissae is
@@ -515,10 +522,9 @@ contains
     use :: Numerical_Ranges, only : rangeLattice
     use :: Table_Labels    , only : extrapolationTypeExtrapolate
     implicit none
-    class           (table1DLinearLinear             ), intent(inout)                            :: self
+    class           (table1D                         ), intent(inout)                            :: self
     type            (rangeLattice                    ), intent(in   )                            :: lattice
     double precision                                  , intent(in   )             , dimension(:) :: xValues
-    double precision                                  , intent(in   )                            :: deltaX
     logical                                           , intent(  out), allocatable, dimension(:) :: isComputed
     integer                                           , intent(in   ), optional                  :: tableCount
     type            (enumerationExtrapolationTypeType), intent(in   ), optional   , dimension(2) :: extrapolationType
@@ -565,11 +571,6 @@ contains
     if (allocated(yvPrevious)) self%yv(offset+1:offset+size(yvPrevious,dim=1),:)=yvPrevious
     self%xCount        =lattice%count
     self%lattice       =lattice
-    self%inverseDeltaX =1.0d0/deltaX
-    self%tablePrevious =-1
-    self%dTablePrevious=-1
-    self%xPrevious     =-1.0d0
-    self%dxPrevious    =-1.0d0
     ! Set the extrapolation type if one was specified.
     if (present(extrapolationType)) self%extrapolationType=extrapolationType
     return
@@ -1289,7 +1290,13 @@ contains
     type   (enumerationExtrapolationTypeType), intent(in   ), optional  , dimension(2)  :: extrapolationType
 
     if (lattice%scheme /= gridSchemePerUnit) call Error_Report('a linearly-spaced table requires a `perUnit` gridding scheme'//{introspection:location})
-    call Table_1D_Extend_Uniform(self,lattice,lattice%values(),lattice%step(),isComputed,tableCount,extrapolationType)
+    call Table_1D_Extend_Uniform(self,lattice,lattice%values(),isComputed,tableCount,extrapolationType)
+    ! The spacing comes from the lattice - see `Table_1D_Extend_Uniform`.
+    self%inverseDeltaX =1.0d0/lattice%step()
+    self%tablePrevious =-1
+    self%dTablePrevious=-1
+    self%xPrevious     =-1.0d0
+    self%dxPrevious    =-1.0d0
     return
   end subroutine Table_Linear_1D_Extend
 
@@ -1480,7 +1487,13 @@ contains
          &   lattice%scheme /= gridSchemePerOctave &
          & ) call Error_Report('a logarithmically-spaced table requires a `perDecade` or `perOctave` gridding scheme'//{introspection:location})
     ! The internal abscissae of this table type are the natural logarithms of the tabulation points.
-    call Table_1D_Extend_Uniform(self,lattice,lattice%valuesLogarithmic(),lattice%stepLogarithmic(),isComputed,tableCount,extrapolationType)
+    call Table_1D_Extend_Uniform(self,lattice,lattice%valuesLogarithmic(),isComputed,tableCount,extrapolationType)
+    ! The spacing comes from the lattice - see `Table_1D_Extend_Uniform`.
+    self%inverseDeltaX       =1.0d0/lattice%stepLogarithmic()
+    self%tablePrevious       =-1
+    self%dTablePrevious      =-1
+    self%xPrevious           =-1.0d0
+    self%dxPrevious          =-1.0d0
     self%previousSet         =.false.
     self%xLinearPrevious     =-1.0d0
     self%xLogarithmicPrevious=-1.0d0
@@ -1725,6 +1738,193 @@ contains
     end if
     return
   end subroutine Table_Linear_CSpline_1D_Create
+
+  subroutine Table_1D_CSpline_Extend_Uniform(self,lattice,xValues,deltaX,isComputed,tableCount,extrapolationType)
+    !!{RST
+    Worker used to extend cubic-spline 1-D tables which have uniformly-spaced *internal* abscissae, onto an absolute lattice.
+
+    Note what is and is not preserved here. The tabulated values *are* preserved, and they are the expensive part---this is what
+    makes extension worthwhile. The spline coefficients are **not**: a cubic spline is not local, so every coefficient depends on
+    every tabulated value, and adding points at either end changes the interpolant everywhere. They are therefore discarded and
+    reallocated, to be rebuilt when the table is next populated. The consequence, which callers must accept, is that extending a
+    cubic-spline table preserves its tabulated values exactly but *not* the values it interpolates between them---unlike a
+    linearly-interpolated table, where interpolation is local and extension changes nothing on the overlap.
+    !!}
+    use :: Numerical_Ranges, only : rangeLattice
+    implicit none
+    class           (table1DLinearCSpline            ), intent(inout)                            :: self
+    type            (rangeLattice                    ), intent(in   )                            :: lattice
+    double precision                                  , intent(in   )             , dimension(:) :: xValues
+    double precision                                  , intent(in   )                            :: deltaX
+    logical                                           , intent(  out), allocatable, dimension(:) :: isComputed
+    integer                                           , intent(in   ), optional                  :: tableCount
+    type            (enumerationExtrapolationTypeType), intent(in   ), optional   , dimension(2) :: extrapolationType
+
+    call Table_1D_Extend_Uniform(self,lattice,xValues,isComputed,tableCount,extrapolationType)
+    ! The spacing comes from the lattice - see `Table_1D_Extend_Uniform`. Note that the creator for this type takes it as
+    ! `xv(2)-xv(1)`, which is exactly what must not be done here.
+    self%       deltaX =      deltaX
+    self%inverseDeltaX =1.0d0/deltaX
+    self%tablePrevious =-1
+    self%dTablePrevious=-1
+    self%iPrevious     =-1
+    self%xPrevious     =-1.0d0
+    self%dxPrevious    =-1.0d0
+    return
+  end subroutine Table_1D_CSpline_Extend_Uniform
+
+  subroutine Table_1D_CSpline_Coefficients(self)
+    !!{RST
+    Discard and reallocate the spline coefficients of a cubic-spline table after its range has changed---see
+    ``Table_1D_CSpline_Extend_Uniform`` for why they are not preserved. The shapes here must match those used by the creator of
+    the corresponding table type exactly: ``Table_Linear_Monotone_CSpline_1D_Compute_Spline`` writes to ``av`` one element
+    beyond the number of intervals, so a monotonic table allocates ``av`` with one row *more* than the others, and uses neither
+    ``sv`` nor ``dv``. This is why the monotonic variants have their own allocator below rather than sharing this one.
+    !!}
+    implicit none
+    class  (table1DLinearCSpline), intent(inout) :: self
+    integer                                      :: countPoints, countTables
+
+    countPoints=size(self%yv,dim=1)
+    countTables=size(self%yv,dim=2)
+    if (allocated(self%sv)) deallocate(self%sv)
+    if (allocated(self%av)) deallocate(self%av)
+    if (allocated(self%bv)) deallocate(self%bv)
+    if (allocated(self%cv)) deallocate(self%cv)
+    if (allocated(self%dv)) deallocate(self%dv)
+    allocate(self%sv(countPoints  ,countTables))
+    allocate(self%av(countPoints-1,countTables))
+    allocate(self%bv(countPoints-1,countTables))
+    allocate(self%cv(countPoints-1,countTables))
+    allocate(self%dv(countPoints-1,countTables))
+    return
+  end subroutine Table_1D_CSpline_Coefficients
+
+  subroutine Table_1D_Monotone_CSpline_Coefficients(self)
+    !!{RST
+    As ``Table_1D_CSpline_Coefficients``, but using the array shapes of the monotonic cubic-spline creator: ``av`` carries one
+    entry per point rather than per interval, and ``sv`` and ``dv`` are unused.
+    !!}
+    implicit none
+    class  (table1DLinearMonotoneCSpline), intent(inout) :: self
+    integer                                              :: countPoints, countTables
+
+    countPoints=size(self%yv,dim=1)
+    countTables=size(self%yv,dim=2)
+    if (allocated(self%av)) deallocate(self%av)
+    if (allocated(self%bv)) deallocate(self%bv)
+    if (allocated(self%cv)) deallocate(self%cv)
+    allocate(self%av(countPoints  ,countTables))
+    allocate(self%bv(countPoints-1,countTables))
+    allocate(self%cv(countPoints-1,countTables))
+    return
+  end subroutine Table_1D_Monotone_CSpline_Coefficients
+
+  subroutine Table_Linear_CSpline_1D_Extend(self,lattice,isComputed,tableCount,extrapolationType)
+    !!{RST
+    Extend a 1-D linearly-spaced cubic-spline table onto an absolute lattice. Since the abscissae of such a table are uniformly
+    spaced in :math:`x`, only the ``perUnit`` gridding scheme is applicable.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Numerical_Ranges, only : rangeLattice, gridSchemePerUnit
+    implicit none
+    class  (table1DLinearCSpline            ), intent(inout)                            :: self
+    type   (rangeLattice                    ), intent(in   )                            :: lattice
+    logical                                  , intent(  out), allocatable, dimension(:) :: isComputed
+    integer                                  , intent(in   ), optional                  :: tableCount
+    type   (enumerationExtrapolationTypeType), intent(in   ), optional  , dimension(2)  :: extrapolationType
+
+    if (lattice%scheme /= gridSchemePerUnit) call Error_Report('a linearly-spaced table requires a `perUnit` gridding scheme'//{introspection:location})
+    call Table_1D_CSpline_Extend_Uniform(self,lattice,lattice%values(),lattice%step(),isComputed,tableCount,extrapolationType)
+    call Table_1D_CSpline_Coefficients   (self)
+    return
+  end subroutine Table_Linear_CSpline_1D_Extend
+
+  subroutine Table_Linear_Monotone_CSpline_1D_Extend(self,lattice,isComputed,tableCount,extrapolationType)
+    !!{RST
+    Extend a 1-D linearly-spaced monotonic cubic-spline table onto an absolute lattice. This differs from
+    ``Table_Linear_CSpline_1D_Extend`` only in the shapes of the spline coefficient arrays.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Numerical_Ranges, only : rangeLattice, gridSchemePerUnit
+    implicit none
+    class  (table1DLinearMonotoneCSpline    ), intent(inout)                            :: self
+    type   (rangeLattice                    ), intent(in   )                            :: lattice
+    logical                                  , intent(  out), allocatable, dimension(:) :: isComputed
+    integer                                  , intent(in   ), optional                  :: tableCount
+    type   (enumerationExtrapolationTypeType), intent(in   ), optional  , dimension(2)  :: extrapolationType
+
+    if (lattice%scheme /= gridSchemePerUnit) call Error_Report('a linearly-spaced table requires a `perUnit` gridding scheme'//{introspection:location})
+    call Table_1D_CSpline_Extend_Uniform      (self,lattice,lattice%values(),lattice%step(),isComputed,tableCount,extrapolationType)
+    call Table_1D_Monotone_CSpline_Coefficients(self)
+    return
+  end subroutine Table_Linear_Monotone_CSpline_1D_Extend
+
+  subroutine Table_Logarithmic_CSpline_1D_Extend(self,lattice,isComputed,tableCount,extrapolationType)
+    !!{RST
+    Extend a 1-D logarithmically-spaced cubic-spline table onto an absolute lattice.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Numerical_Ranges, only : rangeLattice, gridSchemePerDecade, gridSchemePerOctave
+    implicit none
+    class  (table1DLogarithmicCSpline       ), intent(inout)                            :: self
+    type   (rangeLattice                    ), intent(in   )                            :: lattice
+    logical                                  , intent(  out), allocatable, dimension(:) :: isComputed
+    integer                                  , intent(in   ), optional                  :: tableCount
+    type   (enumerationExtrapolationTypeType), intent(in   ), optional  , dimension(2)  :: extrapolationType
+
+    if     (                                       &
+         &   lattice%scheme /= gridSchemePerDecade &
+         &  .and.                                  &
+         &   lattice%scheme /= gridSchemePerOctave &
+         & ) call Error_Report('a logarithmically-spaced table requires a `perDecade` or `perOctave` gridding scheme'//{introspection:location})
+    ! The internal abscissae of this table type are the natural logarithms of the tabulation points.
+    call Table_1D_CSpline_Extend_Uniform(self,lattice,lattice%valuesLogarithmic(),lattice%stepLogarithmic(),isComputed,tableCount,extrapolationType)
+    call Table_1D_CSpline_Coefficients   (self)
+    self%previousSet         =.false.
+    self%xLinearPrevious     =-1.0d0
+    self%xLogarithmicPrevious=-1.0d0
+    ! The end points are cached for rapid look-up. They are evaluated from the stored internal abscissae, exactly as the creator
+    ! does, and deliberately *not* from `lattice%minimum()`/`%maximum()`: the internal abscissae of this table type are the
+    ! natural logarithms of the lattice points, so `x(i)` returns exp(xv(i)) for every interior point, and 2**(k/N) is not
+    ! bit-identical to exp((k/N)ln2). Taking the end points from the lattice would make them disagree with the same points seen
+    ! from a table whose range extends past them - which is precisely the invariance extension exists to provide.
+    self%xMinimum            =exp(self%xv(          1))
+    self%xMaximum            =exp(self%xv(self%xCount))
+    return
+  end subroutine Table_Logarithmic_CSpline_1D_Extend
+
+  subroutine Table_Logarithmic_Monotone_CSpline_1D_Extend(self,lattice,isComputed,tableCount,extrapolationType)
+    !!{RST
+    Extend a 1-D logarithmically-spaced monotonic cubic-spline table onto an absolute lattice. This duplicates
+    ``Table_Logarithmic_CSpline_1D_Extend`` because the monotonic variant descends from ``table1DLinearMonotoneCSpline`` rather
+    than from ``table1DLogarithmicCSpline``, exactly as their creators are duplicated for the same reason.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Numerical_Ranges, only : rangeLattice, gridSchemePerDecade, gridSchemePerOctave
+    implicit none
+    class  (table1DLogarithmicMonotoneCSpline), intent(inout)                            :: self
+    type   (rangeLattice                     ), intent(in   )                            :: lattice
+    logical                                   , intent(  out), allocatable, dimension(:) :: isComputed
+    integer                                   , intent(in   ), optional                  :: tableCount
+    type   (enumerationExtrapolationTypeType ), intent(in   ), optional  , dimension(2)  :: extrapolationType
+
+    if     (                                       &
+         &   lattice%scheme /= gridSchemePerDecade &
+         &  .and.                                  &
+         &   lattice%scheme /= gridSchemePerOctave &
+         & ) call Error_Report('a logarithmically-spaced table requires a `perDecade` or `perOctave` gridding scheme'//{introspection:location})
+    ! The internal abscissae of this table type are the natural logarithms of the tabulation points.
+    call Table_1D_CSpline_Extend_Uniform       (self,lattice,lattice%valuesLogarithmic(),lattice%stepLogarithmic(),isComputed,tableCount,extrapolationType)
+    call Table_1D_Monotone_CSpline_Coefficients(self)
+    self%previousSet         =.false.
+    self%xLinearPrevious     =-1.0d0
+    self%xLogarithmicPrevious=-1.0d0
+    ! See `Table_Logarithmic_CSpline_1D_Extend` for why the end points come from the stored abscissae, not from the lattice.
+    self%xMinimum            =exp(self%xv(          1))
+    self%xMaximum            =exp(self%xv(self%xCount))
+    return
+  end subroutine Table_Logarithmic_Monotone_CSpline_1D_Extend
 
   subroutine Table_Linear_CSpline_1D_Destroy(self)
     !!{RST
