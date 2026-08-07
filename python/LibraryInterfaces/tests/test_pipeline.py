@@ -1246,3 +1246,58 @@ def test_fortran_reassignments_list_array_loops_via_get_ptr():
     # because the host only `use`s the List type, not the Class.
     assert 'modelParameterList'  in out[0].fort_modules.get('Model_Parameters', {})
     assert 'modelParameterClass' in out[0].fort_modules.get('Model_Parameters', {})
+
+
+# ---------------------------------------------------------------------------
+# build_fortran_reassignments — home-module resolution for plain derived types
+# ---------------------------------------------------------------------------
+
+def test_fortran_reassignments_derived_type_resolves_use_associated_module():
+    """A plain derived-type argument which the functionClass merely
+    *use-associates* from another module must have its `use ::` line point at
+    that other module.
+
+    Assuming the functionClass's own module instead emits
+    `use :: <functionClass module>, only : <type>`, which fails to compile
+    whenever that module does not re-export the type — and functionClass
+    modules are `private` by default, so it usually does not.  This is what
+    broke `nodePropertyExtractor%recompose`, whose `type(luminosityDecomposition)`
+    argument lives in `Dust_Attenuation_Descriptors`."""
+    arg = ArgSpec(name='decomposition', intrinsic='type',
+                  type_spec='luminosityDecomposition',
+                  ctype='c_void_p', fort_type='type(c_ptr)')
+    out = build_fortran_reassignments(
+        [arg],
+        func_class={
+            'module':     'Node_Property_Extractors',
+            'moduleUses': [{'Dust_Attenuation_Descriptors':
+                            [{'only': {'luminosityDecomposition': 1,
+                                       'decompositionRequest':   1}}]}],
+        },
+        implementation=None, extensions={}, module_uses_impls={},
+        lib_function_classes={},
+    )
+    assert 'type(luminosityDecomposition), pointer :: decomposition_' \
+        in out[0].fort_declarations
+    assert 'call c_f_pointer(decomposition,decomposition_)' \
+        in out[0].fort_reassignment
+    assert 'luminosityDecomposition' \
+        in out[0].fort_modules.get('Dust_Attenuation_Descriptors', {})
+    # The functionClass's own module must NOT be used as the source of the type.
+    assert 'luminosityDecomposition' \
+        not in out[0].fort_modules.get('Node_Property_Extractors', {})
+
+
+def test_fortran_reassignments_derived_type_falls_back_to_own_module():
+    """A derived type which is defined in the functionClass's own module — and
+    so appears in none of its `use`-blocks — still resolves to that module.
+    This is the pre-existing behaviour, preserved."""
+    arg = ArgSpec(name='thing', intrinsic='type', type_spec='localThing',
+                  ctype='c_void_p', fort_type='type(c_ptr)')
+    out = build_fortran_reassignments(
+        [arg],
+        func_class={'module': 'Some_Class_Module', 'moduleUses': []},
+        implementation=None, extensions={}, module_uses_impls={},
+        lib_function_classes={},
+    )
+    assert 'localThing' in out[0].fort_modules.get('Some_Class_Module', {})
