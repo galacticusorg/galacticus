@@ -151,12 +151,12 @@ for model in dataTarget.keys():
     likelihoodMass   = {
         "name" : f' (τ={lifetime} Gyr; vₖ={velocityKick} km/s) - Likelihood - mass function',
         "unit" : "-logℒ"                                                                   ,
-        "value": str(np.abs(logLikelihoodMass  ))
+        "value": str(-logLikelihoodMass  )
     }
     likelihoodRadius = {
         "name" : f' (τ={lifetime} Gyr; vₖ={velocityKick} km/s) - Likelihood - orbital radius function',
         "unit" : "-logℒ"                                                                             ,
-        "value": str(np.abs(logLikelihoodRadius))
+        "value": str(-logLikelihoodRadius)
     }
     likelihoods.append(likelihoodMass  )
     likelihoods.append(likelihoodRadius)
