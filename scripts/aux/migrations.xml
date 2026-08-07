@@ -305,6 +305,11 @@
       <remove/>
     </translation>
   </migration>
+  <migration commit="3d1d472f3d7fccfd1f0b6f047774c01e0ca427eb">
+    <translation xpath="//starFormationRateSurfaceDensityDisks[@value='krumholz2009']/assumeMonotonicSurfaceDensity[@value]">
+      <remove/>
+    </translation>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
