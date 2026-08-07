@@ -927,9 +927,9 @@ contains
     implicit none
     integer, intent(in   ) :: index
 
-    Stellar_Luminosities_Wavelength_Rest_Frame=+Stellar_Luminosities_Wavelength_Effective(index)  &
-         &                                     /(                                               &
-         &                                       +1.0d0                                         &
+    Stellar_Luminosities_Wavelength_Rest_Frame=+Stellar_Luminosities_Wavelength_Effective(index) &
+         &                                     /(                                                &
+         &                                       +1.0d0                                          &
          &                                       +Stellar_Luminosities_Band_Redshift     (index) &
          &                                      )
     return

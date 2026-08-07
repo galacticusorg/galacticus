@@ -33,13 +33,13 @@ program Test_Interpolation_MultiD
   nodes of a function which is *not* multilinear is also checked, since that catches errors in the flattened
   indexing which a smooth test function could mask.
   !!}
-  use            :: Display                      , only : displayVerbositySet, verbosityLevelStandard
-  use, intrinsic :: ISO_C_Binding                , only : c_size_t
-  use            :: Numerical_Interpolation      , only : interpolator
+  use            :: Display                       , only : displayVerbositySet, verbosityLevelStandard
+  use, intrinsic :: ISO_C_Binding                 , only : c_size_t
+  use            :: Numerical_Interpolation       , only : interpolator
   use            :: Numerical_Interpolation_MultiD, only : interpolatorMultiD
-  use            :: Unit_Tests                   , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use            :: Unit_Tests                    , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  type            (interpolatorMultiD)                             :: interpolator2_        , interpolator3_
+  type            (interpolatorMultiD)                             :: interpolator2_                          , interpolator3_
   type            (interpolator      ), dimension(2)               :: interpolators2
   type            (interpolator      ), dimension(3)               :: interpolators3
   double precision                    , dimension(4)               :: x1            =[0.0d0,1.0d0,2.0d0,3.0d0]
@@ -53,7 +53,7 @@ program Test_Interpolation_MultiD
   integer         (c_size_t          ), allocatable, dimension(:)  :: shape_
   integer         (c_size_t          ), dimension(4)               :: indices2
   double precision                    , dimension(4)               :: weights2
-  integer                                                          :: i             , j             , &
+  integer                                                          :: i                                       , j             , &
        &                                                              k
   double precision                                                 :: y
 
@@ -72,21 +72,21 @@ program Test_Interpolation_MultiD
   ! bilinear and so only agrees at the grid nodes.
   do i=1,size(x1)
      do j=1,size(x2)
-        values2    (i,j)=+1.0d0            &
-             &           +2.0d0*x1(i)      &
-             &           +3.0d0*x2(j)      &
+        values2    (i,j)=+1.0d0             &
+             &           +2.0d0*x1(i)       &
+             &           +3.0d0      *x2(j) &
              &           +4.0d0*x1(i)*x2(j)
-        valuesLumpy(i,j)=+dble(i)**3       &
-             &           -dble(j)**2       &
+        valuesLumpy(i,j)=+dble(i  )**3      &
+             &           -dble(  j)**2      &
              &           +dble(i*j)
      end do
   end do
 
   ! Test the reported geometry of the interpolator.
   call Unit_Tests_Begin_Group("geometry")
-  call Assert("dimension count",     interpolator2_%countDimensions(),2    )
-  call Assert("corner count"   ,     interpolator2_%countCorners   (),4    )
-  call Assert("table count"    ,int (interpolator2_%countTable     ()),12  )
+  call Assert("dimension count",     interpolator2_%countDimensions() , 2   )
+  call Assert("corner count"   ,     interpolator2_%countCorners   () , 4   )
+  call Assert("table count"    ,int (interpolator2_%countTable     ()),12   )
   shape_=interpolator2_%shapeTable()
   call Assert("table shape"    ,int (shape_                          ),[4,3])
   call Unit_Tests_End_Group()
@@ -132,13 +132,13 @@ program Test_Interpolation_MultiD
   do i=1,size(y1)
      do j=1,size(y2)
         do k=1,size(y3)
-           values3(i,j,k)=+1.0d0                        &
-                &         +      y1(i)                  &
-                &         +2.0d0*y2(j)                  &
-                &         +3.0d0*y3(k)                  &
-                &         +      y1(i)*y2(j)            &
-                &         +      y1(i)*      y3(k)      &
-                &         +            y2(j)*y3(k)      &
+           values3(i,j,k)=+1.0d0                   &
+                &         +      y1(i)             &
+                &         +2.0d0*y2(j)             &
+                &         +3.0d0*y3(k)             &
+                &         +      y1(i)*y2(j)       &
+                &         +      y1(i)*      y3(k) &
+                &         +            y2(j)*y3(k) &
                 &         +      y1(i)*y2(j)*y3(k)
         end do
      end do

@@ -30,10 +30,10 @@ program Test_Dust_Attenuation_Descriptors
   binning negotiated through a ``decompositionRequest``, and the reduction of an attenuated
   ``luminosityDecomposition`` back into output element values.
   !!}
-  use :: Display                    , only : displayVerbositySet   , verbosityLevelStandard
-  use :: Dust_Attenuation_Descriptors, only : decompositionRequest  , emissionDescriptor  , luminosityDecomposition
-  use :: Galactic_Structure_Options , only : componentTypeUnknown
-  use :: Unit_Tests                 , only : Assert                , Unit_Tests_Begin_Group, Unit_Tests_End_Group   , Unit_Tests_Finish
+  use :: Display                     , only : displayVerbositySet , verbosityLevelStandard
+  use :: Dust_Attenuation_Descriptors, only : decompositionRequest, emissionDescriptor    , luminosityDecomposition
+  use :: Galactic_Structure_Options  , only : componentTypeUnknown
+  use :: Unit_Tests                  , only : Assert              , Unit_Tests_Begin_Group, Unit_Tests_End_Group   , Unit_Tests_Finish
   implicit none
   type            (decompositionRequest   )                            :: request
   type            (luminosityDecomposition)                            :: decomposition
@@ -49,34 +49,34 @@ program Test_Dust_Attenuation_Descriptors
 
   ! An emission descriptor which has not been filled in should describe emission of unknown origin spanning all ages.
   call Unit_Tests_Begin_Group("default emission descriptor")
-  call Assert("wavelength unresolved" ,descriptor%wavelength  < 0.0d0      ,.true.)
-  call Assert("metallicity unresolved",descriptor%metallicity < 0.0d0      ,.true.)
-  call Assert("radius unresolved"     ,descriptor%radius      < 0.0d0      ,.true.)
-  call Assert("age spans all"         ,descriptor%ageMinimum             ,0.0d0     )
-  call Assert("age unbounded above"   ,descriptor%ageMaximum == huge(0.0d0),.true.)
+  call Assert("wavelength unresolved" ,descriptor%wavelength    < 0.0d0                ,.true.)
+  call Assert("metallicity unresolved",descriptor%metallicity   < 0.0d0                ,.true.)
+  call Assert("radius unresolved"     ,descriptor%radius        < 0.0d0                ,.true.)
+  call Assert("age spans all"         ,descriptor%ageMinimum                           ,0.0d0 )
+  call Assert("age unbounded above"   ,descriptor%ageMaximum    == huge(0.0d0)         ,.true.)
   call Assert("component unknown"     ,descriptor%componentType == componentTypeUnknown,.true.)
   call Unit_Tests_End_Group()
 
   ! A request with no age boundaries requests no age resolution at all.
   call Unit_Tests_Begin_Group("age binning: unresolved")
-  call Assert("single bin"      ,request%countAgeBins(       ),1)
-  call Assert("all ages in bin 1 (young)",request%ageBinIndex(0.001d0),1)
-  call Assert("all ages in bin 1 (old)"  ,request%ageBinIndex(1.0d1  ),1)
+  call Assert("single bin"               ,request%countAgeBins(       ),1     )
+  call Assert("all ages in bin 1 (young)",request%ageBinIndex (0.001d0),1     )
+  call Assert("all ages in bin 1 (old)"  ,request%ageBinIndex (1.000d1),1     )
   call request%ageBinRange(1,ageMinimum,ageMaximum)
-  call Assert("bin starts at zero"  ,ageMinimum             ,0.0d0 )
-  call Assert("bin unbounded above" ,ageMaximum == huge(0.0d0),.true.)
+  call Assert("bin starts at zero"       ,ageMinimum                   ,0.0d0 )
+  call Assert("bin unbounded above"      ,ageMaximum == huge(0.0d0)    ,.true.)
   call Unit_Tests_End_Group()
 
   ! A request with two internal boundaries defines three bins. Bins are closed below and open above, so an age
   ! exactly on a boundary falls into the older bin.
   call Unit_Tests_Begin_Group("age binning: two boundaries")
   request%ageBoundaries=[1.0d-2,1.0d-1]
-  call Assert("three bins"             ,request%countAgeBins(        ),3)
-  call Assert("below first boundary"   ,request%ageBinIndex (5.0d-3  ),1)
-  call Assert("on first boundary"      ,request%ageBinIndex (1.0d-2  ),2)
-  call Assert("between boundaries"     ,request%ageBinIndex (5.0d-2  ),2)
-  call Assert("on second boundary"     ,request%ageBinIndex (1.0d-1  ),3)
-  call Assert("above second boundary"  ,request%ageBinIndex (1.0d1   ),3)
+  call Assert("three bins"             ,request%countAgeBins(      ),3)
+  call Assert("below first boundary"   ,request%ageBinIndex (5.0d-3),1)
+  call Assert("on first boundary"      ,request%ageBinIndex (1.0d-2),2)
+  call Assert("between boundaries"     ,request%ageBinIndex (5.0d-2),2)
+  call Assert("on second boundary"     ,request%ageBinIndex (1.0d-1),3)
+  call Assert("above second boundary"  ,request%ageBinIndex (1.0d+1),3)
   call request%ageBinRange(2,ageMinimum,ageMaximum)
   call Assert("middle bin lower bound" ,ageMinimum,1.0d-2)
   call Assert("middle bin upper bound" ,ageMaximum,1.0d-1)
@@ -94,15 +94,15 @@ program Test_Dust_Attenuation_Descriptors
   decomposition%elementIndex=[1    ,1    ,2    ,2    ]
   ! With unit transmission the reduction simply sums the parcels of each element.
   call decomposition%reduce([1.0d0,1.0d0,1.0d0,1.0d0],values)
-  call Assert("unattenuated element 1",values(1),3.0d0,relTol=1.0d-12)
-  call Assert("unattenuated element 2",values(2),7.0d0,relTol=1.0d-12)
+  call Assert("unattenuated element 1",values(1),3.0d+0,relTol=1.0d-12)
+  call Assert("unattenuated element 2",values(2),7.0d+0,relTol=1.0d-12)
   ! With a transmission which differs between parcels of the same element, the parcels are weighted individually.
   call decomposition%reduce([1.0d0,5.0d-1,2.5d-1,0.0d0],values)
-  call Assert("attenuated element 1"  ,values(1),2.0d0 ,relTol=1.0d-12)
+  call Assert("attenuated element 1"  ,values(1),2.0d+0,relTol=1.0d-12)
   call Assert("attenuated element 2"  ,values(2),7.5d-1,relTol=1.0d-12)
   ! Zero transmission extinguishes everything.
   call decomposition%reduce([0.0d0,0.0d0,0.0d0,0.0d0],values)
-  call Assert("fully extinguished"    ,values   ,[0.0d0,0.0d0])
+  call Assert("fully extinguished",values,[0.0d0,0.0d0])
   call Unit_Tests_End_Group()
 
   ! An empty decomposition is legal, and reduces to no elements.

@@ -158,7 +158,7 @@ module Dust_Attenuation_Descriptors
      !![
      <methods docformat="rst">
        <method method="countAgeBins" description="Return the number of age bins requested."                       />
-       <method method="ageBinIndex"  description="Return the index of the age bin containing the given age."       />
+       <method method="ageBinIndex"  description="Return the index of the age bin containing the given age."      />
        <method method="ageBinRange"  description="Return the age range spanned by the age bin of the given index."/>
      </methods>
      !!]
@@ -211,7 +211,7 @@ contains
     Sum the parcel luminosities of a ``luminosityDecomposition``, each multiplied by the corresponding
     ``transmission`` factor, into the output elements to which they contribute. This is the default reduction, and is
     correct for any output which is linear in luminosity. Producers whose output is *not* linear in luminosity---
-    magnitudes, colours, or ratios, for example---must reduce their decomposition themselves.
+    magnitudes, colors, or ratios, for example---must reduce their decomposition themselves.
 
     ``values`` is allocated to ``countElements`` and zeroed before accumulation.
     !!}
@@ -222,17 +222,17 @@ contains
     double precision                         , intent(inout), dimension(:), allocatable :: values
     integer                                                                             :: i
 
-    if (size(transmission) /= self%countTerms())                                                                      &
+    if (size(transmission) /= self%countTerms())                                                                       &
          & call Error_Report('number of transmission factors does not match number of terms'//{introspection:location})
     if (allocated(values)) deallocate(values)
     allocate(values(self%countElements))
     values=0.0d0
     do i=1,self%countTerms()
-       if (self%elementIndex(i) < 1 .or. self%elementIndex(i) > self%countElements)                                   &
-            & call Error_Report('element index out of range'                             //{introspection:location})
+       if (self%elementIndex(i) < 1 .or. self%elementIndex(i) > self%countElements)                                    &
+            & call Error_Report('element index out of range'                               //{introspection:location})
        values(self%elementIndex(i))=+values      (self%elementIndex(i)) &
-            &                       +self        %luminosities    (i)   &
-            &                       *transmission                 (i)
+            &                       +self        %luminosities     (i)  &
+            &                       *transmission                  (i)
     end do
     return
   end subroutine luminosityDecompositionReduce
@@ -289,7 +289,7 @@ contains
        call Error_Report('age bin index out of range'//{introspection:location})
        return
     end if
-    if (indexBin == 1                   ) then
+    if (indexBin == 1                  ) then
        ageMinimum=0.0d0
     else
        ageMinimum=self%ageBoundaries(indexBin-1)

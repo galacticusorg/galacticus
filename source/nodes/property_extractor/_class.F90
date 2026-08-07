@@ -25,10 +25,10 @@ module Node_Property_Extractors
   !!{RST
   Provides a class that implements extraction of properties from nodes.
   !!}
-  use :: Dust_Attenuation_Descriptors, only : decompositionRequest, luminosityDecomposition
-  use :: Galacticus_Nodes       , only : treeNode
-  use :: Multi_Counters         , only : multiCounter
-  use :: Output_Analyses_Options, only : enumerationOutputAnalysisPropertyQuantityType, enumerationOutputAnalysisPropertyTypeType, outputAnalysisPropertyQuantityUnknown, outputAnalysisPropertyTypeLinear
+  use :: Dust_Attenuation_Descriptors, only : decompositionRequest                         , luminosityDecomposition
+  use :: Galacticus_Nodes            , only : treeNode
+  use :: Multi_Counters              , only : multiCounter
+  use :: Output_Analyses_Options     , only : enumerationOutputAnalysisPropertyQuantityType, enumerationOutputAnalysisPropertyTypeType, outputAnalysisPropertyQuantityUnknown, outputAnalysisPropertyTypeLinear
   private
 
   !![

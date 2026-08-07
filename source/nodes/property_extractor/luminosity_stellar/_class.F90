@@ -22,8 +22,8 @@ Implements a stellar mass output analysis property extractor class.
 !!}
 
   use :: Galactic_Structure_Options, only : enumerationComponentTypeType
-  use :: ISO_Varying_String, only : varying_string, var_str
-  use :: Output_Times      , only : outputTimesClass
+  use :: ISO_Varying_String        , only : varying_string              , var_str
+  use :: Output_Times              , only : outputTimesClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellar" docformat="rst">
@@ -69,7 +69,7 @@ contains
     Constructor for the :galacticus-class:`nodePropertyExtractorLuminosityStellar` property extractor class which takes a parameter set as input.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters          , only : inputParameter                , inputParameters
     implicit none
     type            (nodePropertyExtractorLuminosityStellar)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
@@ -158,8 +158,8 @@ contains
     !!}
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Error                         , only : Error_Report
-    use            :: Galactic_Structure_Options     , only : componentTypeAll               , componentTypeDisk    , componentTypeSpheroid, &
-         &                                                    componentTypeNuclearStarCluster, enumerationComponentTypeDecode
+    use            :: Galactic_Structure_Options    , only : componentTypeAll               , componentTypeDisk             , componentTypeSpheroid, &
+         &                                                   componentTypeNuclearStarCluster, enumerationComponentTypeDecode
     use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
     type            (nodePropertyExtractorLuminosityStellar)                                        :: self
@@ -180,12 +180,12 @@ contains
     case (componentTypeAll%ID,componentTypeDisk%ID,componentTypeSpheroid%ID,componentTypeNuclearStarCluster%ID)
        ! These are supported.
     case default
-       call Error_Report(                                                                                          &
-            &            'component "'                                                                          // &
-            &            enumerationComponentTypeDecode(component,includePrefix=.false.)                        // &
-            &            '" can not host a stellar population - use "all", "disk", "spheroid", or'               // &
-            &            ' "nuclearStarCluster"'                                                                 // &
-            &            {introspection:location}                                                                  &
+       call Error_Report(                                                                            &
+            &            'component "'                                                            // &
+            &            enumerationComponentTypeDecode(component,includePrefix=.false.)          // &
+            &            '" can not host a stellar population - use "all", "disk", "spheroid", or'// &
+            &            ' "nuclearStarCluster"'                                                  // &
+            &            {introspection:location}                                                    &
             &           )
     end select
 
@@ -201,10 +201,10 @@ contains
     if (component == componentTypeAll) then
        self%description_="Total stellar luminosity in the "//filterType//"-frame "//filterName//" filter"
     else
-       self%name_       =self%name_       //":"                                                              // &
+       self%name_       =self%name_       //":"                                            // &
             &            enumerationComponentTypeDecode(component,includePrefix=.false.)
-       self%description_="Stellar luminosity of the "                                                        // &
-            &            enumerationComponentTypeDecode(component,includePrefix=.false.)                     // &
+       self%description_="Stellar luminosity of the "                                      // &
+            &            enumerationComponentTypeDecode(component,includePrefix=.false.)   // &
             &            " component in the "//filterType//"-frame "//filterName//" filter"
     end if
     if (present(redshiftBand)) then

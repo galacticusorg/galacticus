@@ -106,10 +106,10 @@ contains
     type   (interpolator      ), intent(in   ), dimension(:) :: interpolators
     integer                                                  :: i
 
-    if (size(interpolators) < 1                     )                                                        &
-         & call Error_Report('at least one dimension is required'          //{introspection:location})
-    if (size(interpolators) > countDimensionsMaximum)                                                        &
-         & call Error_Report('too many dimensions'                         //{introspection:location})
+    if (size(interpolators) < 1                     )                                                     &
+         & call Error_Report('at least one dimension is required'             //{introspection:location})
+    if (size(interpolators) > countDimensionsMaximum)                                                     &
+         & call Error_Report('too many dimensions'                            //{introspection:location})
     self%countDimensions_=size(interpolators)
     self%countCorners_   =2**self%countDimensions_
     allocate(self%dimensions (self%countDimensions_))
@@ -118,7 +118,7 @@ contains
     do i=1,self%countDimensions_
        self%dimensions (i)=interpolators(i)
        self%countPoints(i)=interpolators(i)%count()
-       if (self%countPoints(i) < 2_c_size_t)                                                                 &
+       if (self%countPoints(i) < 2_c_size_t)                                                              &
             & call Error_Report('each dimension requires at least 2 abscissae'//{introspection:location})
     end do
     ! Compute strides for column-major (Fortran) ordering of the flattened table.
@@ -191,11 +191,11 @@ contains
     double precision                    , intent(  out), dimension(:,:) :: weights
     integer                                                             :: i
 
-    if (size(x                ) /= self%countDimensions_)                                                    &
+    if (size(x                ) /= self%countDimensions_)                                  &
          & call Error_Report('coordinate vector has wrong size'//{introspection:location})
-    if (size(indices          ) /= self%countDimensions_)                                                    &
+    if (size(indices          ) /= self%countDimensions_)                                  &
          & call Error_Report('index array has wrong size'      //{introspection:location})
-    if (size(weights,dim=2) /= self%countDimensions_ .or. size(weights,dim=1) /= 2)                          &
+    if (size(weights,dim=2) /= self%countDimensions_ .or. size(weights,dim=1) /= 2)        &
          & call Error_Report('weight array has wrong shape'    //{introspection:location})
     do i=1,self%countDimensions_
        call self%dimensions(i)%linearFactors(x(i),indices(i),weights(:,i))
@@ -214,16 +214,16 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class           (interpolatorMultiD), intent(inout)                                 :: self
-    double precision                    , intent(in   ), dimension(:)                   :: x
-    integer         (c_size_t          ), intent(  out), dimension(:)                   :: indices
-    double precision                    , intent(  out), dimension(:)                   :: weights
-    integer         (c_size_t          ), dimension(    self%countDimensions_)          :: indicesDimension
-    double precision                    , dimension(0:1,self%countDimensions_)          :: weightsDimension
-    integer                                                                             :: corner          , i, &
-         &                                                                                 offset
+    class           (interpolatorMultiD), intent(inout)                        :: self
+    double precision                    , intent(in   ), dimension(:)          :: x
+    integer         (c_size_t          ), intent(  out), dimension(:)          :: indices
+    double precision                    , intent(  out), dimension(:)          :: weights
+    integer         (c_size_t          ), dimension(    self%countDimensions_) :: indicesDimension
+    double precision                    , dimension(0:1,self%countDimensions_) :: weightsDimension
+    integer                                                                    :: corner          , i, &
+         &                                                                        offset
 
-    if (size(indices) /= self%countCorners_ .or. size(weights) /= self%countCorners_)                        &
+    if (size(indices) /= self%countCorners_ .or. size(weights) /= self%countCorners_)   &
          & call Error_Report('corner arrays have wrong size'//{introspection:location})
     call self%factors(x,indicesDimension,weightsDimension)
     ! Enumerate the corners of the hypercube. Bit `i-1` of the corner number selects the lower (0) or upper (1)
@@ -233,14 +233,14 @@ contains
        weights(corner+1)=1.0d0
        do i=1,self%countDimensions_
           offset           =ibits(corner,i-1,1)
-          indices(corner+1)=+indices(corner+1)                    &
-               &            +(                                    &
-               &              +indicesDimension(i)                &
-               &              +int(offset,kind=c_size_t)          &
-               &              -1_c_size_t                         &
-               &             )                                    &
+          indices(corner+1)=+indices(corner+1)            &
+               &            +(                            &
+               &              +indicesDimension(i)        &
+               &              +int(offset,kind=c_size_t)  &
+               &              -1_c_size_t                 &
+               &             )                            &
                &            *self%stride     (i)
-          weights(corner+1)=+weights         (corner+1)           &
+          weights(corner+1)=+weights         (corner+1  ) &
                &            *weightsDimension(offset  ,i)
        end do
     end do
@@ -254,19 +254,19 @@ contains
     ``shapeTable`` method may be passed directly.
     !!}
     implicit none
-    class           (interpolatorMultiD), intent(inout)                        :: self
-    double precision                    , intent(in   ), dimension(*)          :: values
-    double precision                    , intent(in   ), dimension(:)          :: x
-    integer         (c_size_t          ), dimension(self%countCorners_)        :: indices
-    double precision                    , dimension(self%countCorners_)        :: weights
-    integer                                                                    :: corner
+    class           (interpolatorMultiD), intent(inout)                 :: self
+    double precision                    , intent(in   ), dimension(*)   :: values
+    double precision                    , intent(in   ), dimension(:)   :: x
+    integer         (c_size_t          ), dimension(self%countCorners_) :: indices
+    double precision                    , dimension(self%countCorners_) :: weights
+    integer                                                             :: corner
 
     call self%corners(x,indices,weights)
     y=0.0d0
     do corner=1,self%countCorners_
-       y=+y                        &
-         & +weights(corner )       &
-         & *values (indices(corner))
+       y   =+y                        &
+         &  +weights(        corner ) &
+         &  *values (indices(corner))
     end do
     return
   end function interpolatorMultiDInterpolate
