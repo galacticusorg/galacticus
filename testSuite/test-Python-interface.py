@@ -10,9 +10,10 @@ from contextlib import contextmanager
 # Andrew Benson (23-April-2026)
 
 # Constructs various objects and asserts that their methods return results
-# that match expectations.  Writes PASS/FAIL for each test, and exits with a
-# non-zero status if any test failed (so CI catches regressions even if the
-# script is interrupted before the failure summary is printed).
+# that match expectations.  Writes PASS/FAIL for each test, so CI catches
+# regressions even if the script is interrupted before the failure summary
+# is printed.  Always exits with status 0, per project convention: failure
+# is signaled by the "FAIL" markers in the output, not by the exit status.
 
 _failures = 0
 
@@ -980,6 +981,10 @@ with safe_section("merger-tree build/walk/extract"):
     check_eq("construct beyond suite returns None", treeBeyond, None)
     check_eq("finished True beyond suite"         , finished.value, True)
 
-# Final summary and exit code.
+# Final summary. Always exit with status 0 - failure is signaled by "FAIL" in the output.
 print(f"--- {_failures} failure(s) ---")
-sys.exit(1 if _failures else 0)
+if _failures:
+    print(f"FAILED: {_failures} check(s) failed")
+else:
+    print("SUCCESS: all checks passed")
+sys.exit(0)

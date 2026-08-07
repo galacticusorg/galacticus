@@ -42,8 +42,9 @@ pathOutputs    = "outputs/validation/haloMassFunction/"
 
 # Parse arguments.
 if len(sys.argv) < 2 or len(sys.argv) > 3:
-    print("Usage: validate-haloMassFunction.py <group> [workers]")
-    sys.exit(1)
+    print("FAIL: usage: validate-haloMassFunction.py <group> [workers]")
+    # Always exit with status 0 - failure is signaled by "FAIL" in the output above.
+    sys.exit(0)
 group   = sys.argv[1]
 workers = int(sys.argv[2]) if len(sys.argv) == 3 else None
 if workers is None:
@@ -54,7 +55,8 @@ with open(pathParameters+"manifest.json") as file:
     manifest = json.load(file)
 if group not in manifest["groups"]:
     print(f"FAIL: unknown validation group '{group}' - known groups: {', '.join(manifest['groups'])}")
-    sys.exit(1)
+    # Always exit with status 0 - failure is signaled by "FAIL" in the output above.
+    sys.exit(0)
 cases                              = manifest["groups"][group]["cases"]
 varianceFractionalModelDiscrepancy = manifest["varianceFractionalModelDiscrepancy"]
 pathDataStatic                     = os.environ["GALACTICUS_DATA_PATH"]+"/static"
@@ -82,7 +84,8 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
             print(status.stderr[-2000:])
             failed = True
 if failed:
-    sys.exit(1)
+    # Always exit with status 0 - failure is signaled by "FAIL" in the output above.
+    sys.exit(0)
 
 # Evaluate likelihoods, and aggregate cases which differ only in their
 # realization (e.g. different halos of the same suite).
@@ -94,7 +97,8 @@ for case in cases:
     )
     if match is None:
         print("FAIL: unable to parse parameter file name '"+case["parameterFile"]+"'")
-        sys.exit(1)
+        # Always exit with status 0 - failure is signaled by "FAIL" in the output above.
+        sys.exit(0)
     suite, groupName, resolution, simulation, realization, redshift = match.groups()
     model = validateHaloMassFunction.readModel(
         pathOutputs+re.sub(r"^haloMassFunctionBase_(.+)\.xml$", r"haloMassFunction_\g<1>.hdf5", case["parameterFile"])
