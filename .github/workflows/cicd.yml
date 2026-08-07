@@ -1672,6 +1672,7 @@ jobs:
                 testSuite/regressions/mergerTreeBoxSizeWeight.py,
                 testSuite/regressions/satellitePresetBoundMassNonZero.py,
                 testSuite/regressions/cosmicEmu.py,
+                testSuite/regressions/euclidEmulator2.py,
                 testSuite/regressions/bug1053153.xml,
                 testSuite/regressions/bug711424.xml,
                 testSuite/regressions/bug725315.xml,

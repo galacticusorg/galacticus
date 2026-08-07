@@ -3108,6 +3108,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="cosmicEmu"/>
+          <xs:enumeration value="euclidEmulator2"/>
           <xs:enumeration value="linear"/>
           <xs:enumeration value="peacockDodds1996"/>
           <xs:enumeration value="smith2003"/>
