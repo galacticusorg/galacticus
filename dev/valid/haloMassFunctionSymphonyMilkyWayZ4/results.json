@@ -6,16 +6,16 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "ab14075604f5713e98ac599a6c718606383c49dc",
-        "message": "docs(physics): document mass distributions and potential zero points\n\nReplace the outdated \"galactic structure functions\" description with an\naccount of the `massDistribution` interface which replaced it, covering\ncomponent/mass type selection, the dark matter mass convention, and the\nfact that potential zero points are now set per mass distribution rather\nthan globally offset to the virial radius.\n",
-        "timestamp": "2026-08-03 18:26:15-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/ab14075604f5713e98ac599a6c718606383c49dc"
+        "id": "64807e850821afdd9d0516390e1dd5bcecd70943",
+        "message": "chore(ci): update gh-pages analysis thresholds for COZMIC models\n",
+        "timestamp": "2026-08-06 08:10:40-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/64807e850821afdd9d0516390e1dd5bcecd70943"
     },
     "results": [
         {
             "attributes": {
                 "name": "Symphony MilkyWay CDM resolutionX1 z=3.984 (47 realizations)",
-                "logLikelihood": "-2732.7234030740565",
+                "logLikelihood": "-2732.723414722874",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -39,34 +39,34 @@ window.ANALYSES_DATA = {
                     22387211385.68341
                 ],
                 "yDataset": [
-                    5.149714723271927,
-                    3.341946297491625,
-                    2.156165405951339,
-                    1.3837605272150302,
-                    0.9809569459398757,
-                    0.7810672370911547,
-                    0.5603826802864549,
-                    0.34946772025759415,
-                    0.21688025088187096,
-                    0.13227731812751864,
-                    0.08135650456901077,
-                    0.04644527900442361,
-                    0.039022198887229076
+                    5.149715025390874,
+                    3.3419463837640175,
+                    2.1561653843784465,
+                    1.3837604814749933,
+                    0.9809569139464693,
+                    0.781067215053589,
+                    0.560382657839525,
+                    0.34946770994034815,
+                    0.21688024675614348,
+                    0.13227732173468904,
+                    0.08135650803924203,
+                    0.046445281350052575,
+                    0.03902220069041619
                 ],
                 "yError": [
-                    0.08009190974698893,
-                    0.05414976381134502,
-                    0.03700183408503098,
-                    0.026062602665396003,
-                    0.028586531946541736,
-                    0.02437275158269604,
-                    0.013893256720336108,
-                    0.010950302381423287,
-                    0.00890464773506605,
-                    0.007193365625221122,
-                    0.007019233280749145,
-                    0.006791854793829774,
-                    0.020936422014117984
+                    0.0800919122287687,
+                    0.05414976470206138,
+                    0.03700183410357926,
+                    0.026062602410996935,
+                    0.02858653166940667,
+                    0.024372751392971834,
+                    0.013893256530805226,
+                    0.010950302273387834,
+                    0.008904647683526775,
+                    0.007193365739615381,
+                    0.00701923344241902,
+                    0.006791854974376818,
+                    0.02093642252353719
                 ],
                 "yDatasetTarget": [
                     4.936256110146047,

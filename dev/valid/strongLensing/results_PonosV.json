@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "ab14075604f5713e98ac599a6c718606383c49dc",
-        "message": "docs(physics): document mass distributions and potential zero points\n\nReplace the outdated \"galactic structure functions\" description with an\naccount of the `massDistribution` interface which replaced it, covering\ncomponent/mass type selection, the dark matter mass convention, and the\nfact that potential zero points are now set per mass distribution rather\nthan globally offset to the virial radius.\n",
-        "timestamp": "2026-08-03 18:26:15-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/ab14075604f5713e98ac599a6c718606383c49dc"
+        "id": "64807e850821afdd9d0516390e1dd5bcecd70943",
+        "message": "chore(ci): update gh-pages analysis thresholds for COZMIC models\n",
+        "timestamp": "2026-08-06 08:10:40-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/64807e850821afdd9d0516390e1dd5bcecd70943"
     },
     "surfaceDensity": {
         "percentageBelow": 25.0,
@@ -17,8 +17,8 @@ window.PONOSV_DATA = {
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 77.77777777777777,
-        "percentageAbove": 22.22222222222222,
+        "percentageBelow": 73.33333333333333,
+        "percentageAbove": 26.666666666666668,
         "target": 0.85
     }
 }
