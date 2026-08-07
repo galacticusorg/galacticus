@@ -116,7 +116,7 @@ for model in dataTarget.keys():
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo bound mass cumulative distribution function",
                 "description": f'Subhalo bound mass cumulative distribution function (τ={lifetime} Gyr; vₖ={velocityKick} km/s)',
-                "logLikelihood": str(np.abs(logLikelihoodMass  )),
+                "logLikelihood": str(logLikelihoodMass  ),
                 "type": "function1D"
         },
         "data": {
@@ -136,7 +136,7 @@ for model in dataTarget.keys():
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo orbital radius cumulative distribution function",
                 "description": f'Subhalo orbital radius cumulative distribution function (τ={lifetime} Gyr; vₖ={velocityKick} km/s)',
-                "logLikelihood": str(np.abs(logLikelihoodRadius)),
+                "logLikelihood": str(logLikelihoodRadius),
                 "type": "function1D"
         },
         "data": {
