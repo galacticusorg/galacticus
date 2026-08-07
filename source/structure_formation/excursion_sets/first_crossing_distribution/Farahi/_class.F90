@@ -571,7 +571,7 @@ contains
                &                                     gridSchemePerUnit                                                  , &
                &                      marginOffset  =1.0d0/dble(varianceAnchorsPerUnit)                                 , &
                &                      limitMinimum  =0.0d0                                                              , &
-               &                      anchorEvery   =max(1,self%varianceNumberPerUnitProbability/varianceAnchorsPerUnit), &
+               &                      anchorEvery   =farahiAnchorEvery(self%varianceNumberPerUnitProbability,varianceAnchorsPerUnit), &
                &                      latticeCurrent=self%latticeVariance                                                 &
                &                     )
           ! The time axis is logarithmic, with a safety margin of a factor of two at each end - the range this class used before
@@ -593,7 +593,7 @@ contains
                &                                  gridSchemePerDecade              , &
                &                   marginFactor  =2.0d0                            , &
                &                   rangeCurrent  =[timeSeed,timeSeed]              , &
-               &                   anchorEvery   =max(1,self%timeNumberPerDecade/2), &
+               &                   anchorEvery   =farahiAnchorEvery(self%timeNumberPerDecade,2), &
                &                   latticeCurrent=self%latticeTime                   &
                &                  )
           ! Determine whether the solutions already found can be carried over. Each time slice is solved independently, and
@@ -1135,7 +1135,7 @@ contains
                   &                                                 gridSchemePerDecade              ,  &
                   &                                  marginFactor  =2.0d0                            ,  &
                   &                                  rangeCurrent  =timeSeedRate                     ,  &
-                  &                                  anchorEvery   =max(1,self%timeNumberPerDecade/2),  &
+                  &                                  anchorEvery   =farahiAnchorEvery(self%timeNumberPerDecade,2),  &
                   &                                  latticeCurrent=self%latticeTimeRate                &
                   &                                 )
              self%timeMinimumRate=latticeTimeRate%minimum()
@@ -1964,6 +1964,37 @@ contains
     return
   end function farahiVarianceLimit
 
+  integer function farahiAnchorEvery(pointsPer,anchorsPer)
+    !!{RST
+    Return the anchor interval, in lattice steps, which comes as close as possible to ``anchorsPer`` anchor points per unit
+    interval of the lattice coordinate while remaining a **divisor** of ``pointsPer``.
+
+    The divisibility is not tidiness, it is correctness. If the anchor interval does not divide the density of points then the
+    whole numbers of the lattice coordinate are not themselves anchor points, and a bound which falls on one---such as a hard
+    physical limit---cannot be reached: the range is pinned to the nearest anchor below it and stops short. That is not
+    hypothetical. With ``varianceNumberPerUnit=32`` the naive interval ``32/10=3`` does not divide ``32``, so the Brownian
+    bridge's limiting variance of :math:`S_2=200` (lattice index 6400, not a multiple of three) became unreachable and its rate
+    tabulation halted one step below it, at 199.96875, with the rate forced to zero across the gap. The maximum relative error
+    of the tabulated rates against the analytic solution rose by eighteen percent as a result.
+
+    The interval returned is the largest divisor of ``pointsPer`` which does not exceed ``pointsPer``/``anchorsPer``, so the
+    anchoring is never coarser than requested---erring, where it cannot match the request exactly, towards less overshoot
+    rather than more.
+    !!}
+    implicit none
+    integer, intent(in   ) :: pointsPer, anchorsPer
+    integer                :: interval
+
+    do interval=max(1,pointsPer/anchorsPer),1,-1
+       if (mod(pointsPer,interval) == 0) then
+          farahiAnchorEvery=interval
+          return
+       end if
+    end do
+    farahiAnchorEvery=1
+    return
+  end function farahiAnchorEvery
+
   double precision function farahiVarianceLimitHard(self)
     !!{RST
     Return a hard upper limit on the variance to which the rate tabulation may extend, beyond which the solution is not merely
@@ -2008,7 +2039,7 @@ contains
             &               marginOffset  =1.0d0/dble(varianceAnchorsPerUnit)                      , &
             &               limitMinimum  =0.0d0                                                   , &
             &               limitMaximum  =varianceMaximumHard                                     , &
-            &               anchorEvery   =max(1,self%varianceNumberPerUnit/varianceAnchorsPerUnit), &
+            &               anchorEvery   =farahiAnchorEvery(self%varianceNumberPerUnit,varianceAnchorsPerUnit), &
             &               latticeCurrent=self%latticeVarianceCurrentRate                           &
             &              )
     else
@@ -2018,7 +2049,7 @@ contains
             &                              gridSchemePerUnit                                       , &
             &               marginOffset  =1.0d0/dble(varianceAnchorsPerUnit)                      , &
             &               limitMinimum  =0.0d0                                                   , &
-            &               anchorEvery   =max(1,self%varianceNumberPerUnit/varianceAnchorsPerUnit), &
+            &               anchorEvery   =farahiAnchorEvery(self%varianceNumberPerUnit,varianceAnchorsPerUnit), &
             &               latticeCurrent=self%latticeVarianceCurrentRate                           &
             &              )
     end if
