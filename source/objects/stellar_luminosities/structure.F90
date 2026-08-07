@@ -1182,7 +1182,9 @@ contains
        lengthNameMaximum =max(4,max(len(filterName),maxval(len(luminosityFilter))))
        countDigitsMaximum=int(log10(dble(luminosityCount)))+1
     else
-       lengthNameMaximum =4
+       ! The requested filter name is still written into the message, so the column must be wide enough for it even when no
+       ! luminosities are available to list.
+       lengthNameMaximum =max(4,len(filterName))
        countDigitsMaximum=1
     end if
     countCountDigitsMaximum=int(log10(dble(countDigitsMaximum)))+1
