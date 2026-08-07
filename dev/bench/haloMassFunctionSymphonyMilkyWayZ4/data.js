@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785934656061,
+  "lastUpdate": 1786131065485,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (Symphony Milky Way z=4)": [
@@ -144,6 +144,35 @@ window.BENCHMARK_DATA = {
           {
             "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX1 z=3.984 (47 realizations)",
             "value": 2732.7234030740565,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "64807e850821afdd9d0516390e1dd5bcecd70943",
+          "message": "chore(ci): update gh-pages analysis thresholds for COZMIC models",
+          "timestamp": "2026-08-06T08:10:40-07:00",
+          "tree_id": "898a7a3024115bd46f58dd3d6344acfc739439ee",
+          "url": "https://github.com/galacticusorg/galacticus/commit/64807e850821afdd9d0516390e1dd5bcecd70943"
+        },
+        "date": 1786131064482,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX1 z=3.984 (47 realizations)",
+            "value": 2732.723414722874,
             "unit": "-logℒ"
           }
         ]
