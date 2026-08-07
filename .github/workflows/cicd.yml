@@ -1660,6 +1660,20 @@ jobs:
       runPath: ./testSuite
       options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
     secrets: inherit
+  ### Local Group selection function
+  ## Checks that the observational selection function applied to Local Group satellites (the
+  ## `localGroupDetection` weight operator) reproduces an independent recomputation of the detection
+  ## probabilities from the same tabulation. This exercises the tabulated axis units, the node
+  ## properties extracted, and the interpolation.
+  Local-Group-Selection-Function:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-Local-Group-selection-function.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      cacheData: 1
+    secrets: inherit
   ### Regressions
   Regressions:
     needs: Build-Executable-Linux
@@ -2444,6 +2458,7 @@ jobs:
              Merger-Tree-Builder,
              Merger-Tree-Write,
              Model-Integration,
+             Local-Group-Selection-Function,
              Miscellaneous,
              Miscellaneous-Cached,
              Miscellaneous-IRATE,

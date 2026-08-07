@@ -477,6 +477,10 @@ thresholds:
       threshold_fail: 9.2286
       threshold_warn: 10.3821
   milkyWayModel:
+    localGroupLuminosityFunction:
+      current: -64.1709
+      threshold_fail: -77.0051
+      threshold_warn: -70.5880
     localGroupMassMetallicityRelation:
       current: -10.2281
       threshold_fail: -12.2738
@@ -494,9 +498,9 @@ thresholds:
       threshold_fail: -19.7398
       threshold_warn: -18.0948
     localGroupStellarMassFunction:
-      current: -93.9964
-      threshold_fail: -112.7956
-      threshold_warn: -103.396
+      current: -50.3808
+      threshold_fail: -60.4570
+      threshold_warn: -55.4189
     localGroupStellarMassHaloMassRelation:
       current: -7.6078
       threshold_fail: -24.7927

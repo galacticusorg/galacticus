@@ -2686,6 +2686,7 @@
           <xs:enumeration value="formationTimeDistribution"/>
           <xs:enumeration value="galaxySizesSDSS"/>
           <xs:enumeration value="heatedLikelihood"/>
+          <xs:enumeration value="localGroupLuminosityFunction"/>
           <xs:enumeration value="localGroupMassMetallicityRelation"/>
           <xs:enumeration value="localGroupMassSizeRelation"/>
           <xs:enumeration value="localGroupMassVelocityDispersionRelation"/>
@@ -2864,6 +2865,7 @@
           <xs:enumeration value="csmlgyVolume"/>
           <xs:enumeration value="filterHighPass"/>
           <xs:enumeration value="identity"/>
+          <xs:enumeration value="localGroupDetection"/>
           <xs:enumeration value="nbodyMass"/>
           <xs:enumeration value="normal"/>
           <xs:enumeration value="property"/>
