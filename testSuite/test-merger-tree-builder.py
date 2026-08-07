@@ -2,7 +2,6 @@
 import subprocess
 import sys
 import os
-import glob
 import argparse
 import shutil
 import xml.etree.ElementTree as ET
@@ -99,42 +98,61 @@ subprocess.run(
     shell=True
 )
 
-# Check for failed models. Note that a model which never ran leaves no log to grep, so the number of logs found must be checked
-# against the number of models launched - otherwise a failure to launch any model at all reports as a success.
-logFiles = glob.glob("outputs/test-merger-tree-builder/galacticus_*/galacticus.log")
-failures = []
-for logFile in logFiles:
-    result = subprocess.run(
-        f'grep -q -i -e fatal -e aborted -e "Galacticus experienced an error in the GSL library" {logFile}',
-        shell=True
-    )
-    if result.returncode == 0:
-        failures.append(logFile)
+# Identify which models this invocation actually ran. `launch.py` distributes models over instances - CI runs this script four
+# times with `--instance N:4`, so each run launches only one of the four models - and it creates an output directory only for
+# those models it runs. The presence of that directory, not of a log, is therefore what separates a model which ran from one
+# belonging to another instance; a model which ran but died leaves the directory behind, with no log or no output in it.
+modelIndex = -1
+for model in models:
+    if "parameterFile" not in model:
+        continue
+    modelIndex              += 1
+    model["outputDirectory"] = f"outputs/test-merger-tree-builder/galacticus_{modelIndex}:1"
+    model["launched"       ] = os.path.isdir(model["outputDirectory"])
 
-if len(logFiles) < len(paramFiles):
-    print(f"FAILED: {len(paramFiles)} models were launched but only {len(logFiles)} produced a log - they did not run")
-elif failures:
-    for failure in failures:
-        print(f"FAILED: log from {failure}:")
-        with open(failure) as f:
-            print(f.read())
+launched = [model for model in models if model.get("launched")]
+
+# Check for failed models. A model which never ran leaves no log to grep, so an empty set of logs would otherwise yield an empty
+# set of failures and report as a success - hence the check that this invocation ran something at all, and that everything it did
+# run left a log.
+failures = []
+if not launched:
+    print(f"FAILED: none of the {len(paramFiles)} models was launched - no output directory was created")
 else:
-    print("SUCCESS: model run")
+    for model in launched:
+        logFile = f"{model['outputDirectory']}/galacticus.log"
+        if not os.path.exists(logFile):
+            print(f"FAILED: model '{model['type']}' was launched but produced no log at {logFile}")
+            failures.append(logFile)
+            continue
+        result = subprocess.run(
+            f'grep -q -i -e fatal -e aborted -e "Galacticus experienced an error in the GSL library" {logFile}',
+            shell=True
+        )
+        if result.returncode == 0:
+            print(f"FAILED: log from {logFile}:")
+            with open(logFile) as f:
+                print(f.read())
+            failures.append(logFile)
+    if not failures:
+        print(f"SUCCESS: model run ({len(launched)} of {len(paramFiles)} models in this instance)")
 
 # Read test and reference data.
 modelData = {}
-i = -1
 for model in models:
     if "parameterFile" in model:
-        i += 1
-        tmpName = f"outputs/test-merger-tree-builder/galacticus_{i}:1/galacticus.hdf5"
+        if not model["launched"]:
+            # This model belongs to another instance - it is not expected to have run here, and is simply not compared.
+            model["exists"] = False
+            continue
+        tmpName = f"{model['outputDirectory']}/galacticus.hdf5"
         if os.path.exists(tmpName):
             shutil.copy(tmpName, model["fileName"])
             model["exists"] = True
         else:
-            # Report this: a model which produced no output is silently dropped from the comparisons below, so without this the
-            # remaining models are compared and the run reports as a success.
-            print(f"FAILED: model '{model['type']}' produced no output at {tmpName}")
+            # Report this: a model which ran but produced no output would otherwise be silently dropped from the comparisons
+            # below, leaving the run to report as a success.
+            print(f"FAILED: model '{model['type']}' was launched but produced no output at {tmpName}")
             model["exists"] = False
             continue
     else:
