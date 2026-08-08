@@ -27,6 +27,7 @@
   use :: Dark_Matter_Profiles_Shape               , only : darkMatterProfileShapeClass
   use :: Dark_Matter_Profiles_DMO                 , only : darkMatterProfileDMOClass
   use :: Halo_Mass_Functions                      , only : haloMassFunctionClass
+  use :: Dark_Matter_Halo_Splashback_Radii        , only : darkMatterHaloSplashbackRadiusClass
   use :: Linear_Growth                            , only : linearGrowthClass
   use :: Output_Times                             , only : outputTimesClass
   use :: Numerical_Random_Numbers                 , only : randomNumberGeneratorClass
@@ -72,13 +73,14 @@
      class           (darkMatterProfileScaleRadiusClass      ), pointer                   :: darkMatterProfileScaleRadius_       => null()
      class           (darkMatterProfileShapeClass            ), pointer                   :: darkMatterProfileShape_             => null()
      class           (darkMatterHaloMassAccretionHistoryClass), pointer                   :: darkMatterHaloMassAccretionHistory_ => null()
+     class           (darkMatterHaloSplashbackRadiusClass    ), pointer                   :: darkMatterHaloSplashbackRadius_     => null()
      class           (randomNumberGeneratorClass             ), pointer                   :: randomNumberGenerator_              => null()
      double precision                                                                     :: haloMassMinimum                              , haloMassMaximum                     , &
           &                                                                                  pointsPerDecade
      type            (varying_string                         )                            :: outputGroup
      logical                                                                              :: includeUnevolvedSubhaloMassFunction          , includeMassAccretionRate            , &
           &                                                                                  massesRelativeToHalfModeMass                 , nodeComponentsInitialized =  .false., &
-          &                                                                                  errorsAreFatal
+          &                                                                                  errorsAreFatal                               , includeSplashbackRadius
      double precision                                         , allocatable, dimension(:) :: fractionModeMasses
      type            (virialDensityContrastList              ), allocatable, dimension(:) :: virialDensityContrasts
      ! Pointer to the parameters for this task.
@@ -131,6 +133,7 @@ contains
     class           (outputTimesClass                       ), pointer                     :: outputTimes_
     class           (darkMatterProfileScaleRadiusClass      ), pointer                     :: darkMatterProfileScaleRadius_
     class           (darkMatterHaloMassAccretionHistoryClass), pointer                     :: darkMatterHaloMassAccretionHistory_
+    class           (darkMatterHaloSplashbackRadiusClass    ), pointer                     :: darkMatterHaloSplashbackRadius_
     class           (randomNumberGeneratorClass             ), pointer                     :: randomNumberGenerator_
     type            (inputParameters                        ), pointer                     :: parametersRoot
     type            (inputParameters                        ),                             :: parametersMassDefinitions
@@ -141,7 +144,8 @@ contains
     double precision                                                                       :: haloMassMinimum                    , haloMassMaximum           , &
          &                                                                                    pointsPerDecade
     logical                                                                                :: includeUnevolvedSubhaloMassFunction, includeMassAccretionRate  , &
-          &                                                                                   massesRelativeToHalfModeMass       , errorsAreFatal
+          &                                                                                   massesRelativeToHalfModeMass       , errorsAreFatal            , &
+          &                                                                                   includeSplashbackRadius
     integer                                                                                :: i
     
     ! Ensure the nodes objects are initialized.
@@ -208,6 +212,14 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter docformat="rst">
+      <name>includeSplashbackRadius</name>
+      <defaultValue>.false.</defaultValue>
+      <description>
+      If true then also compute and output the splashback radius and mass of the halos.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
       <name>massesRelativeToHalfModeMass</name>
       <defaultValue>.false.</defaultValue>
       <description>
@@ -239,6 +251,7 @@ contains
     <objectBuilder    class="darkMatterProfileScaleRadius"       name="darkMatterProfileScaleRadius_"       source="parameters"                                          />
     <objectBuilder    class="darkMatterProfileShape"             name="darkMatterProfileShape_"             source="parameters"                                          />
     <objectBuilder    class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"                                          />
+    <objectBuilder    class="darkMatterHaloSplashbackRadius"     name="darkMatterHaloSplashbackRadius_"     source="parameters"                                          />
     <objectBuilder    class="randomNumberGenerator"              name="randomNumberGenerator_"              source="parameters"                                          />
     !!]
     if (parameters%isPresent('transferFunctionReference')) then
@@ -297,6 +310,7 @@ contains
          &amp;                    outputGroup                        , &amp;
          &amp;                    includeUnevolvedSubhaloMassFunction, &amp;
          &amp;                    includeMassAccretionRate           , &amp;
+         &amp;                    includeSplashbackRadius            , &amp;
          &amp;                    massesRelativeToHalfModeMass       , &amp;
 	 &amp;                    errorsAreFatal                     , &amp;
 	 &amp;                    fractionModeMasses                 , &amp;
@@ -312,6 +326,7 @@ contains
          &amp;                    darkMatterProfileScaleRadius_      , &amp;
          &amp;                    darkMatterProfileShape_            , &amp;
          &amp;                    darkMatterHaloMassAccretionHistory_, &amp;
+         &amp;                    darkMatterHaloSplashbackRadius_    , &amp;
          &amp;                    cosmologicalMassVariance_          , &amp;
          &amp;                    darkMatterHaloBias_                , &amp;
          &amp;                    transferFunction_                  , &amp;
@@ -342,6 +357,7 @@ contains
     <objectDestructor name="darkMatterProfileScaleRadius_"      />
     <objectDestructor name="darkMatterProfileShape_"            />
     <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
+    <objectDestructor name="darkMatterHaloSplashbackRadius_"    />
     <objectDestructor name="randomNumberGenerator_"             />
     !!]
     if (parameters%isPresent('transferFunctionReference')) then
@@ -371,6 +387,7 @@ contains
        &                                       outputGroup                        , &
        &                                       includeUnevolvedSubhaloMassFunction, &
        &                                       includeMassAccretionRate           , &
+       &                                       includeSplashbackRadius            , &
        &                                       massesRelativeToHalfModeMass       , &
        &                                       errorsAreFatal                     , &
        &                                       fractionModeMasses                 , &
@@ -386,6 +403,7 @@ contains
        &                                       darkMatterProfileScaleRadius_      , &
        &                                       darkMatterProfileShape_            , &
        &                                       darkMatterHaloMassAccretionHistory_, &
+       &                                       darkMatterHaloSplashbackRadius_    , &
        &                                       cosmologicalMassVariance_          , &
        &                                       darkMatterHaloBias_                , &
        &                                       transferFunction_                  , &
@@ -413,6 +431,7 @@ contains
     class           (darkMatterProfileScaleRadiusClass      ), intent(in   ), target                 :: darkMatterProfileScaleRadius_
     class           (darkMatterProfileShapeClass            ), intent(in   ), target                 :: darkMatterProfileShape_
     class           (darkMatterHaloMassAccretionHistoryClass), intent(in   ), target                 :: darkMatterHaloMassAccretionHistory_
+    class           (darkMatterHaloSplashbackRadiusClass    ), intent(in   ), target                 :: darkMatterHaloSplashbackRadius_
     class           (cosmologicalMassVarianceClass          ), intent(in   ), target                 :: cosmologicalMassVariance_
     class           (darkMatterHaloBiasClass                ), intent(in   ), target                 :: darkMatterHaloBias_
     class           (transferFunctionClass                  ), intent(in   ), target                 :: transferFunction_
@@ -424,12 +443,13 @@ contains
     double precision                                         , intent(in   )                         :: haloMassMinimum                    , haloMassMaximum           , &
          &                                                                                              pointsPerDecade
     logical                                                  , intent(in   )                         :: includeUnevolvedSubhaloMassFunction, includeMassAccretionRate  , &
-         &                                                                                              massesRelativeToHalfModeMass       , errorsAreFatal
+         &                                                                                              massesRelativeToHalfModeMass       , errorsAreFatal            , &
+         &                                                                                              includeSplashbackRadius
     double precision                                         , intent(in   ), dimension(:)           :: fractionModeMasses
     type            (inputParameters                        ), intent(in   ), target                 :: parameters
     integer                                                                                          :: i
     !![
-    <constructorAssign variables="haloMassMinimum, haloMassMaximum, pointsPerDecade, outputGroup, includeUnevolvedSubhaloMassFunction, includeMassAccretionRate, massesRelativeToHalfModeMass, errorsAreFatal, fractionModeMasses, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *criticalOverdensity_, *linearGrowth_, *haloMassFunction_, *haloEnvironment_, *unevolvedSubhaloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *darkMatterProfileShape_, *darkMatterHaloMassAccretionHistory_, *cosmologicalMassVariance_, *darkMatterHaloBias_, *transferFunction_, *transferFunctionReference, *transferFunctionRelative, *outputTimes_, *randomNumberGenerator_"/>
+    <constructorAssign variables="haloMassMinimum, haloMassMaximum, pointsPerDecade, outputGroup, includeUnevolvedSubhaloMassFunction, includeMassAccretionRate, includeSplashbackRadius, massesRelativeToHalfModeMass, errorsAreFatal, fractionModeMasses, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *criticalOverdensity_, *linearGrowth_, *haloMassFunction_, *haloEnvironment_, *unevolvedSubhaloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *darkMatterProfileShape_, *darkMatterHaloMassAccretionHistory_, *darkMatterHaloSplashbackRadius_, *cosmologicalMassVariance_, *darkMatterHaloBias_, *transferFunction_, *transferFunctionReference, *transferFunctionRelative, *outputTimes_, *randomNumberGenerator_"/>
     !!]
 
     self%parameters => parameters
@@ -465,6 +485,7 @@ contains
     <objectDestructor name="self%darkMatterProfileScaleRadius_"      />
     <objectDestructor name="self%darkMatterProfileShape_"            />
     <objectDestructor name="self%darkMatterHaloMassAccretionHistory_"/>
+    <objectDestructor name="self%darkMatterHaloSplashbackRadius_"    />
     <objectDestructor name="self%cosmologicalMassVariance_"          />
     <objectDestructor name="self%darkMatterHaloBias_"                />
     <objectDestructor name="self%transferFunction_"                  />
@@ -526,7 +547,8 @@ contains
          &                                                                                              velocityVirial                                         , darkMatterProfileRadiusScale , &
          &                                                                                              velocityMaximum                                        , peakHeightMassFunction       , &
          &                                                                                              densityFieldRootVarianceGradientLogarithmic            , massFunctionCumulativeSubhalo, &
-         &                                                                                              massAccretionRate
+         &                                                                                              massAccretionRate                                      , radiusSplashback             , &
+         &                                                                                              massSplashback
     double precision                                         , allocatable  , dimension(:    )       :: outputCharacteristicMass                               , outputCriticalOverdensities  , &
          &                                                                                              outputExpansionFactors                                 , outputGrowthFactors          , &
          &                                                                                              outputRedshifts                                        , outputTimes                  , &
@@ -554,8 +576,9 @@ contains
     class           (darkMatterProfileScaleRadiusClass      ), pointer                               :: darkMatterProfileScaleRadius_                 => null()
     class           (darkMatterProfileShapeClass            ), pointer                               :: darkMatterProfileShape_                       => null()
     class           (darkMatterHaloMassAccretionHistoryClass), pointer                               :: darkMatterHaloMassAccretionHistory_           => null()
+    class           (darkMatterHaloSplashbackRadiusClass    ), pointer                               :: darkMatterHaloSplashbackRadius_               => null()
     class           (virialDensityContrastClass             ), pointer                               :: virialDensityContrast_                        => null()
-    !$omp threadprivate(haloEnvironment_,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,haloMassFunction_,darkMatterHaloScale_,unevolvedSubhaloMassFunction_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,darkMatterProfileShape_,darkMatterHaloMassAccretionHistory_,virialDensityContrast_,criticalOverdensity_)
+    !$omp threadprivate(haloEnvironment_,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,haloMassFunction_,darkMatterHaloScale_,unevolvedSubhaloMassFunction_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,darkMatterProfileShape_,darkMatterHaloMassAccretionHistory_,darkMatterHaloSplashbackRadius_,virialDensityContrast_,criticalOverdensity_)
     class           (massDistributionClass                  ), pointer                        , save :: massDistribution_                             => null()
     !$omp threadprivate(massDistribution_)
     type            (virialDensityContrastList              ), allocatable   , dimension(:   )       :: virialDensityContrasts
@@ -610,6 +633,8 @@ contains
     allocate(massFunctionCumulativeSubhalo                 (massCount,outputCount))
     allocate(massFunctionMassFraction                      (massCount,outputCount))
     allocate(massAccretionRate                             (massCount,outputCount))
+    allocate(radiusSplashback                              (massCount,outputCount))
+    allocate(massSplashback                                (massCount,outputCount))
     allocate(biasHalo                                      (massCount,outputCount))
     allocate(densityFieldRootVariance                      (massCount,outputCount))
     allocate(densityFieldRootVarianceGradientLogarithmic   (massCount,outputCount))
@@ -716,13 +741,14 @@ contains
     allocate(darkMatterProfileScaleRadius_      ,mold=self%darkMatterProfileScaleRadius_      )
     allocate(darkMatterProfileShape_            ,mold=self%darkMatterProfileShape_            )
     allocate(darkMatterHaloMassAccretionHistory_,mold=self%darkMatterHaloMassAccretionHistory_)
+    allocate(darkMatterHaloSplashbackRadius_    ,mold=self%darkMatterHaloSplashbackRadius_    )
     allocate(virialDensityContrasts(size(self%virialDensityContrasts)))
     do iAlternate=1,size(self%virialDensityContrasts)
        allocate(virialDensityContrasts(iAlternate)%virialDensityContrast_,mold=self%virialDensityContrasts(iAlternate)%virialDensityContrast_)
     end do
     !$omp critical(taskHaloMassFunctionDeepCopy)
     !![
-    <deepCopyReset variables="self%haloEnvironment_ self%cosmologyFunctions_ self%cosmologyParameters_ self%virialDensityContrast_ self%cosmologicalMassVariance_ self%criticalOverdensity_ self%haloMassFunction_ self%darkMatterHaloScale_ self%unevolvedSubhaloMassFunction_ self%darkMatterHaloBias_ self%darkMatterProfileScaleRadius_ self%darkMatterProfileShape_ self%darkMatterHaloMassAccretionHistory_"/>
+    <deepCopyReset variables="self%haloEnvironment_ self%cosmologyFunctions_ self%cosmologyParameters_ self%virialDensityContrast_ self%cosmologicalMassVariance_ self%criticalOverdensity_ self%haloMassFunction_ self%darkMatterHaloScale_ self%unevolvedSubhaloMassFunction_ self%darkMatterHaloBias_ self%darkMatterProfileScaleRadius_ self%darkMatterProfileShape_ self%darkMatterHaloMassAccretionHistory_ self%darkMatterHaloSplashbackRadius_"/>
     <deepCopy source="self%haloEnvironment_                   " destination="haloEnvironment_                   "/>
     <deepCopy source="self%virialDensityContrast_             " destination="virialDensityContrast_             "/>
     <deepCopy source="self%cosmologyParameters_               " destination="cosmologyParameters_               "/>
@@ -736,7 +762,8 @@ contains
     <deepCopy source="self%darkMatterProfileScaleRadius_      " destination="darkMatterProfileScaleRadius_      "/>
     <deepCopy source="self%darkMatterProfileShape_            " destination="darkMatterProfileShape_            "/>
     <deepCopy source="self%darkMatterHaloMassAccretionHistory_" destination="darkMatterHaloMassAccretionHistory_"/>
-    <deepCopyFinalize variables="haloEnvironment_ cosmologyFunctions_ cosmologyParameters_ virialDensityContrast_ cosmologicalMassVariance_ criticalOverdensity_ haloMassFunction_ darkMatterHaloScale_ unevolvedSubhaloMassFunction_ darkMatterHaloBias_ darkMatterProfileScaleRadius_ darkMatterProfileShape_ darkMatterHaloMassAccretionHistory_"/>
+    <deepCopy source="self%darkMatterHaloSplashbackRadius_    " destination="darkMatterHaloSplashbackRadius_    "/>
+    <deepCopyFinalize variables="haloEnvironment_ cosmologyFunctions_ cosmologyParameters_ virialDensityContrast_ cosmologicalMassVariance_ criticalOverdensity_ haloMassFunction_ darkMatterHaloScale_ unevolvedSubhaloMassFunction_ darkMatterHaloBias_ darkMatterProfileScaleRadius_ darkMatterProfileShape_ darkMatterHaloMassAccretionHistory_ darkMatterHaloSplashbackRadius_"/>
     !!]
     do iAlternate=1,size(self%virialDensityContrasts)
        !![
@@ -855,6 +882,10 @@ contains
           darkMatterProfileRadiusScale                  (iMass,iOutput)=darkMatterProfileHalo              %scale                          (                                                                                                                                         )
           if (self%includeMassAccretionRate) &
                & massAccretionRate                      (iMass,iOutput)=darkMatterHaloMassAccretionHistory_%massAccretionRate              (                                                                     time=outputTimes(iOutput),node=tree%nodeBase                        )
+          if (self%includeSplashbackRadius ) then
+             radiusSplashback                           (iMass,iOutput)=darkMatterHaloSplashbackRadius_    %radius                         (                                                                                               node=tree%nodeBase                        )
+             massSplashback                             (iMass,iOutput)=darkMatterHaloSplashbackRadius_    %mass                           (                                                                                               node=tree%nodeBase                        )
+          end if
           ! Compute alternate mass definitions for halos.
           do iAlternate=1,size(self%virialDensityContrasts)
              massAlternate(iAlternate,iMass,iOutput)=Dark_Matter_Profile_Mass_Definition(tree%nodeBase,virialDensityContrasts(iAlternate)%virialDensityContrast_%densityContrast(mass=massHalo(iMass),time=outputTimes(iOutput)),radius=radiusAlternate(iAlternate,iMass,iOutput),cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_,virialDensityContrast_=virialDensityContrast_)
@@ -894,6 +925,7 @@ contains
     <objectDestructor name="darkMatterProfileScaleRadius_      "/>
     <objectDestructor name="darkMatterProfileShape_            "/>
     <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
+    <objectDestructor name="darkMatterHaloSplashbackRadius_"    />
     !!]
     do iAlternate=1,size(self%virialDensityContrasts)
        !![
@@ -1004,6 +1036,12 @@ contains
        if (self%includeMassAccretionRate) then
           call outputGroup%writeDataset  (massAccretionRate                             (:,iOutput),'haloMassAccretionRate'         ,'The mass accretion rate of halos.'                                          ,datasetReturned=dataset)
           call dataset%writeAttribute(unitType(massSolar/gigaYear        ,"M☉/Gyr"    ,"solMass/Gyr"             ),'units')
+       end if
+       if (self%includeSplashbackRadius ) then
+          call outputGroup%writeDataset  (radiusSplashback                              (:,iOutput),'haloSplashbackRadius'          ,'The splashback radius of halos.'                                            ,datasetReturned=dataset)
+          call dataset%writeAttribute(unitType(megaParsec                ,"Mpc"       ,"Mpc"                     ),'units')
+          call outputGroup%writeDataset  (massSplashback                                (:,iOutput),'haloSplashbackMass'            ,'The splashback mass of halos.'                                              ,datasetReturned=dataset)
+          call dataset%writeAttribute(unitType(massSolar                 ,"M☉"        ,"solMass"                 ),'units')
        end if
        call    outputGroup%writeDataset  (biasHalo                                      (:,iOutput),'haloBias'                      ,'The large scale linear bias of halos.'                                                              )
        call    outputGroup%writeDataset  (densityFieldRootVariance                      (:,iOutput),'haloSigma'                     ,'The mass fluctuation on the scale of the halo.'                                                     )

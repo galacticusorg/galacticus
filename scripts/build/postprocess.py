@@ -22,10 +22,10 @@ _first_line = sys.stdin.readline()
 if not _first_line:
     sys.exit(0)
 
-# Detect whether stdout is a terminal (for colour output).
+# Detect whether stdout is a terminal (for color output).
 _have_color = sys.stdout.isatty()
 if _have_color:
-    # ANSI colour codes.
+    # ANSI color codes.
     _BRIGHT_MAGENTA_BOLD = '\033[1;35m'
     _BRIGHT_GREEN_BOLD   = '\033[1;32m'
     _BOLD                = '\033[1m'
@@ -337,7 +337,7 @@ for line in itertools.chain([_first_line], sys.stdin):
     if re.match(r'^note:', line) and last_dropped:
         drop_buffer = True
 
-    # Apply colour highlighting if interactive.
+    # Apply color highlighting if interactive.
     if _have_color:
         if re.match(r'^Warning:\s', line):
             line = re.sub(r'^Warning:\s',

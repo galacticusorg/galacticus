@@ -421,8 +421,8 @@ _RES_STYLE = {'resolutionX1': (':', 'o'), 'resolutionX8': ('--', 's'), 'resoluti
 def _plot_suite(runs, suite_runs, title, output_pdf):
     """Model vs. truth median c(M) and lambda(M), one line per resolution.
 
-    Solid/dashed/dotted encodes resolution; model is coloured, truth is gray. The
-    convergence question is whether the coloured (model) lines approach the gray
+    Solid/dashed/dotted encodes resolution; model is colored, truth is gray. The
+    convergence question is whether the colored (model) lines approach the gray
     (truth) lines as resolution goes X1 -> X64, and whether both flatten."""
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.2))
     for (kind, key, ax) in (('concentration', 'concentration', axes[0]),
