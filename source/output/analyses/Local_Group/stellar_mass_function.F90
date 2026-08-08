@@ -39,18 +39,18 @@
      An output analysis class for Local Group satellite galaxy mass functions.
      !!}
      private
-     type            (outputAnalysisVolumeFunction1D), pointer                     :: volumeFunctionSatellites          => null(), volumeFunctionCentrals => null()
+     type            (outputAnalysisVolumeFunction1D), pointer                     :: volumeFunctionSatellites          => null(), volumeFunctionCentrals               => null()
      class           (outputTimesClass              ), pointer                     :: outputTimes_                      => null()
      double precision                                , allocatable, dimension(:  ) :: randomErrorPolynomialCoefficient           , systematicErrorPolynomialCoefficient
-     double precision                                , allocatable, dimension(:  ) :: masses                                     , massFunction                        , &
+     double precision                                , allocatable, dimension(:  ) :: masses                                     , massFunction                                  , &
           &                                                                           massFunctionTarget
      double precision                                , allocatable, dimension(:,:) :: covariance
      logical                                                                       :: finalized
      integer                                                                       :: covarianceBinomialBinsPerDecade
-     double precision                                                              :: covarianceBinomialMassHaloMinimum          , covarianceBinomialMassHaloMaximum   , &
-          &                                                                           randomErrorMinimum                         , randomErrorMaximum                  , &
-          &                                                                           negativeBinomialScatterFractional          , logLikelihoodZero                   , &
-          &                                                                           countFailures
+     double precision                                                              :: covarianceBinomialMassHaloMinimum          , covarianceBinomialMassHaloMaximum             , &
+          &                                                                           randomErrorMinimum                         , randomErrorMaximum                            , &
+          &                                                                           negativeBinomialScatterFractional          , logLikelihoodZero                             , &
+          &                                                                           countFailures                              , radiusHalfLightRatio
      type            (enumerationPositionTypeType   )                              :: positionType
    contains
      !![
@@ -93,6 +93,7 @@ contains
     double precision                                                                           :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
          &                                                                                        randomErrorMinimum               , randomErrorMaximum                  , &
          &                                                                                        negativeBinomialScatterFractional, logLikelihoodZero
+    double precision                                                                           :: radiusHalfLightRatio
     type            (varying_string                             )                              :: positionType
 
     ! Check and read parameters.
@@ -182,11 +183,24 @@ contains
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
+      <name>radiusHalfLightRatio</name>
+      <source>parameters</source>
+      <defaultValue>0.75d0</defaultValue>
+      <defaultSource>
+      Appropriate for a Plummer profile, for which the projected half-light radius is :math:`0.766` times the three-dimensional
+      half-mass radius.
+      </defaultSource>
+      <description>
+      The ratio of the projected, azimuthally-averaged half-light radius to the three-dimensional stellar half-mass radius, used
+      when evaluating the observational selection function.
+      </description>
+    </inputParameter>
+    <inputParameter docformat="rst">
       <name>positionType</name>
       <source>parameters</source>
       <defaultValue>var_str('orbital')</defaultValue>
       <description>
-      The type of position to use in survey geometry filters.
+      The type of position to use when determining the galactocentric radius of a satellite.
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
@@ -199,7 +213,7 @@ contains
     </inputParameter>
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
-    self=outputAnalysisLocalGroupStellarMassFunction(outputTimes_,enumerationPositionTypeEncode(positionType,includesPrefix=.false.),negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,logLikelihoodZero)
+    self=outputAnalysisLocalGroupStellarMassFunction(outputTimes_,enumerationPositionTypeEncode(positionType,includesPrefix=.false.),radiusHalfLightRatio,negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,logLikelihoodZero)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="outputTimes_"/>
@@ -207,14 +221,14 @@ contains
     return
   end function localGroupStellarMassFunctionConstructorParameters
 
-  function localGroupStellarMassFunctionConstructorInternal(outputTimes_,positionType,negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,logLikelihoodZero) result (self)
+  function localGroupStellarMassFunctionConstructorInternal(outputTimes_,positionType,radiusHalfLightRatio,negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,logLikelihoodZero) result (self)
     !!{RST
     Constructor for the :galacticus-class:`outputAnalysisLocalGroupStellarMassFunction` output analysis class for internal use.
     !!}
+    use :: Display                                 , only : displayMessage                                     , verbosityLevelStandard
     use :: Galactic_Filters                        , only : filterList                                         , galacticFilterAll                  , galacticFilterHaloIsolated            , galacticFilterHaloNotIsolated                  , &
-          &                                                 galacticFilterHostMassRange                        , galacticFilterSurveyGeometry       , enumerationPositionTypeType
-    use :: Geometry_Surveys                        , only : surveyGeometryCombined                             , surveyGeometryList                 , surveyGeometryLocalGroupClassical     , surveyGeometryLocalGroupDES                    , &
-          &                                                 surveyGeometryLocalGroupSDSS
+          &                                                 galacticFilterHostMassRange                        , enumerationPositionTypeType
+    use :: Input_Paths                             , only : inputPath                                          , pathTypeDataStatic
     use :: Interface_Local_Group_DB                , only : comparisonEquals                                   , comparisonLessThan                 , localGroupDB                          , setOperatorIntersection                        , &
           &                                                 setOperatorRelativeComplement                      , setOperatorUnion
     use :: Node_Property_Extractors                , only : nodePropertyExtractorMassStellar
@@ -226,7 +240,7 @@ contains
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRandomErrorPlynml
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSystmtcPolynomial, &
           &                                                 propertyOperatorList
-    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorSubsampling
+    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorSubsampling            , outputAnalysisWeightOperatorLocalGroupDetection, outputAnalysisWeightOperatorSequence   , weightOperatorList
     use :: Output_Times                            , only : outputTimesClass
     implicit none
     type            (outputAnalysisLocalGroupStellarMassFunction        )                                :: self
@@ -234,6 +248,7 @@ contains
     double precision                                                     , intent(in   )                 :: covarianceBinomialMassHaloMinimum                         , covarianceBinomialMassHaloMaximum              , &
          &                                                                                                  negativeBinomialScatterFractional                         , logLikelihoodZero
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                        , randomErrorMaximum
+    double precision                                                     , intent(in   )                 :: radiusHalfLightRatio
     double precision                                                     , intent(in   ), dimension(:  ) :: randomErrorPolynomialCoefficient                          , systematicErrorPolynomialCoefficient
     type            (enumerationPositionTypeType                        ), intent(in   )                 :: positionType
     class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
@@ -242,35 +257,33 @@ contains
     type            (outputAnalysisPropertyOperatorLog10                )               , pointer        :: outputAnalysisPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorSequence             )               , pointer        :: outputAnalysisPropertyOperator_
     type            (outputAnalysisPropertyOperatorAntiLog10            )               , pointer        :: outputAnalysisPropertyUnoperator_
-    type            (outputAnalysisWeightOperatorSubsampling            )               , pointer        :: outputAnalysisWeightOperator_
+    type            (outputAnalysisWeightOperatorSubsampling            )               , pointer        :: outputAnalysisWeightOperatorSubsampling_
+    type            (outputAnalysisWeightOperatorLocalGroupDetection    )               , pointer        :: outputAnalysisWeightOperatorDetection_
+    type            (outputAnalysisWeightOperatorSequence               )               , pointer        :: outputAnalysisWeightOperatorSatellites_
+    type            (weightOperatorList                                 )               , pointer        :: weightOperators_
     type            (outputAnalysisDistributionNormalizerIdentity       )               , pointer        :: outputAnalysisDistributionNormalizerCentrals_             , outputAnalysisDistributionNormalizerSatellites_
     type            (outputAnalysisDistributionOperatorRandomErrorPlynml)               , pointer        :: outputAnalysisDistributionOperator_
-    type            (surveyGeometryLocalGroupClassical                  )               , pointer        :: surveyGeometryClassical_
-    type            (surveyGeometryLocalGroupSDSS                       )               , pointer        :: surveyGeometrySDSS_
-    type            (surveyGeometryLocalGroupDES                        )               , pointer        :: surveyGeometryDES_
-    type            (surveyGeometryCombined                             )               , pointer        :: surveyGeometry_
-    type            (surveyGeometryList                                 )               , pointer        :: surveyGeometryList_
     type            (galacticFilterHaloIsolated                         )               , pointer        :: galacticFilterHaloIsolated_
     type            (galacticFilterHaloNotIsolated                      )               , pointer        :: galacticFilterHaloNotIsolated_
     type            (galacticFilterHostMassRange                        )               , pointer        :: galacticFilterHostMassRange_
-    type            (galacticFilterSurveyGeometry                       )               , pointer        :: galacticFilterSurveyGeometry_
     type            (galacticFilterAll                                  )               , pointer        :: galacticFilterSatellites_                                 , galacticFilterCentrals_
     type            (filterList                                         )               , pointer        :: filtersSatellites_                                        , filtersCentrals_
     type            (propertyOperatorList                               )               , pointer        :: operators_
     double precision                                                     , allocatable  , dimension(:  ) :: massesSatellites                                          , massesCentrals                                             , &
          &                                                                                                  massesTarget
+    logical                                                              , allocatable  , dimension(:  ) :: isPresentTarget
     double precision                                                     , allocatable  , dimension(:,:) :: outputWeightSatellites                                    , outputWeightCentrals
     double precision                                                     , parameter                     :: bufferWidthLogarithmic                         =3.0d+0    , errorZeroPoint                                  =10.0d0
     integer         (c_size_t                                           ), parameter                     :: binCountSatellites                             =9_c_size_t, binCountCentrals                                =2_c_size_t, &
          &                                                                                                  bufferCountMinimum                             =5_c_size_t, bufferCountCentrals                             =0_c_size_t
     double precision                                                     , parameter                     :: massSatelliteMinimum                           =1.0d+2    , massSatelliteMaximum                            =1.0d10    , &
          &                                                                                                  massCentralMinimum                             =1.0d+0    , massCentralMaximum                              =1.0d20    , &
-         &                                                                                                  radiusOuter                                    =3.0d-1    , massThresholdClassical                          =1.0d05
+         &                                                                                                  radiusOuter                                    =3.0d-1
     integer         (c_size_t                                           )                                :: i                                                         , j                                                          , &
          &                                                                                                  bufferCountSatellites
     type            (localGroupDB                                       )                                :: localGroupDB_
     !![
-    <constructorAssign variables="*outputTimes_, positionType, negativeBinomialScatterFractional, randomErrorMinimum, randomErrorMaximum, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, logLikelihoodZero"/>
+    <constructorAssign variables="*outputTimes_, positionType, radiusHalfLightRatio, negativeBinomialScatterFractional, randomErrorMinimum, randomErrorMaximum, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, logLikelihoodZero"/>
     !!]
 
     ! Initialize.
@@ -283,20 +296,31 @@ contains
     massesSatellites=Make_Range(log10(massSatelliteMinimum),log10(massSatelliteMaximum),int(binCountSatellites),rangeTypeLinear)
     massesCentrals  =Make_Range(log10(massCentralMinimum  ),log10(massCentralMaximum  ),int(binCountCentrals  ),rangeTypeLinear)
     ! Construct the target distribution.
-    !! Select Classical, SDSS, and DES Local Group galaxies, within 300 kpc of the Milky Way, and excluding the Milky Way itself,
-    !! then retrieve stellar masses for the selected galaxies.
+    !! Select galaxies belonging to the DELVE Milky Way Census I, within 300 kpc of the Milky Way, and excluding the Milky Way
+    !! itself, then retrieve stellar masses for the selected galaxies. The census defines the sample of satellites recovered
+    !! above a uniform detection threshold across the combined DES, DELVE, and Pan-STARRS footprints, for which the
+    !! observational selection function applied to the model (see the `localGroupDetection` weight operator constructed below)
+    !! is defined.
+    !! Note that membership of the census is additionally intersected with this database's own classification of each system as
+    !! a galaxy. The census classifies a small number of systems as (probable) dwarf galaxies which are classified here as star
+    !! clusters or tidal streams---since the model predicts galaxies, this database's classification is taken to be
+    !! authoritative.
     localGroupDB_=localGroupDB()
-    call localGroupDB_%select     ('discoverySurvey' ,var_str('classical' ),comparisonEquals  ,setOperatorUnion             )
-    call localGroupDB_%select     ('discoverySurvey' ,var_str('SDSS'      ),comparisonEquals  ,setOperatorUnion             )
-    call localGroupDB_%select     ('discoverySurvey' ,var_str('DES'       ),comparisonEquals  ,setOperatorUnion             )
-    call localGroupDB_%select     ('classification'  ,var_str('galaxy'    ),comparisonEquals  ,setOperatorIntersection      )
-    call localGroupDB_%select     ('distanceMilkyWay',         radiusOuter ,comparisonLessThan,setOperatorIntersection      )
-    call localGroupDB_%select     ('name'            ,var_str('The Galaxy'),comparisonEquals  ,setOperatorRelativeComplement)
-    call localGroupDB_%getProperty('massStellar'     ,massesTarget                                                          )
+    call localGroupDB_%select     ('census'          ,var_str('DELVE-MW-I'),comparisonEquals  ,setOperatorUnion             ,propertyRequired=.false.)
+    call localGroupDB_%select     ('classification'  ,var_str('galaxy'    ),comparisonEquals  ,setOperatorIntersection                               )
+    call localGroupDB_%select     ('distanceMilkyWay',         radiusOuter ,comparisonLessThan,setOperatorIntersection                               )
+    call localGroupDB_%select     ('name'            ,var_str('The Galaxy'),comparisonEquals  ,setOperatorRelativeComplement                         )
+    call localGroupDB_%getProperty('massStellar'     ,massesTarget                            ,isPresentTarget                                       )
     allocate(self%massFunctionTarget(binCountSatellites))
     self%massFunctionTarget=0.0d0
-    massesTarget      =log10(massesTarget)
     do i=1,size(massesTarget)
+       !! A small number of census members have no measured stellar mass in the database, and so can not be included in the
+       !! target mass function.
+       if (.not.isPresentTarget(i)) then
+          call displayMessage('localGroupStellarMassFunction: excluding a census galaxy which has no measured stellar mass',verbosityLevelStandard)
+          cycle
+       end if
+       massesTarget(i)=log10(massesTarget(i))
        j=int((massesTarget(i)-log10(massSatelliteMinimum))/(massesSatellites(2)-massesSatellites(1))+0.5d0,kind=c_size_t)+1_c_size_t
        if (j > 0 .and. j <= binCountSatellites) self%massFunctionTarget(j)=self%massFunctionTarget(j)+1.0d0
     end do
@@ -326,10 +350,35 @@ contains
     !![
     <referenceConstruct object="outputAnalysisPropertyUnoperator_"                constructor="outputAnalysisPropertyOperatorAntiLog10        (                                                   )"/>
     !!]
-    ! Create an identity weight operator.
-    allocate(outputAnalysisWeightOperator_                   )
+    ! Create a weight operator which corrects for subsampling of merger tree branches, and then applies the observational
+    ! selection function of the census against which this analysis compares.
+    allocate(outputAnalysisWeightOperatorSubsampling_        )
     !![
-    <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorSubsampling        (                                                   )"/>
+    <referenceConstruct object="outputAnalysisWeightOperatorSubsampling_"         constructor="outputAnalysisWeightOperatorSubsampling        (                                                   )"/>
+    !!]
+    allocate(outputAnalysisWeightOperatorDetection_          )
+    !![
+    <referenceConstruct object="outputAnalysisWeightOperatorDetection_">
+     <constructor>
+      outputAnalysisWeightOperatorLocalGroupDetection(                                                                                                &amp;
+       &amp;                                          inputPath(pathTypeDataStatic)//'observations/localGroup/localGroupSelectionFunctionDELVE.hdf5', &amp;
+       &amp;                                          var_str('Buser_V')                                                                            , &amp;
+       &amp;                                          var_str('rest'   )                                                                            , &amp;
+       &amp;                                          0.0d0                                                                                         , &amp;
+       &amp;                                          radiusHalfLightRatio                                                                          , &amp;
+       &amp;                                          radiusOuter                                                                                   , &amp;
+       &amp;                                          positionType                                                                                    &amp;
+       &amp;                                         )
+     </constructor>
+    </referenceConstruct>
+    !!]
+    allocate(weightOperators_     )
+    allocate(weightOperators_%next)
+    weightOperators_     %operator_ => outputAnalysisWeightOperatorSubsampling_
+    weightOperators_%next%operator_ => outputAnalysisWeightOperatorDetection_
+    allocate(outputAnalysisWeightOperatorSatellites_          )
+    !![
+    <referenceConstruct object="outputAnalysisWeightOperatorSatellites_"          constructor="outputAnalysisWeightOperatorSequence           (weightOperators_                                   )"/>
     !!]
     ! Build a random error distribution operator.
     allocate(outputAnalysisDistributionOperator_             )
@@ -345,33 +394,9 @@ contains
      </constructor>
     </referenceConstruct>
     !!]
-    ! Build survey geometry.
-    !! For classical satellites use the corresponding geometry (which excludes the Zone of Avoidance) and assume they are detected out to the outer radius considered (300 kpc).
-    allocate(surveyGeometryClassical_               )
-    !![
-    <referenceConstruct object="surveyGeometryClassical_"       constructor="surveyGeometryLocalGroupClassical(radiusOuter       ,massThresholdClassical)"/>
-    !!]
-    !! For SDSS satellites use the corresponding geometry and assume they are detected out to at most the outer radius considered (300 kpc).
-    allocate(surveyGeometrySDSS_                    )
-    !![
-    <referenceConstruct object="surveyGeometrySDSS_"            constructor="surveyGeometryLocalGroupSDSS     (radiusOuter                              )"/>
-    !!]
-    allocate(surveyGeometryDES_                     )
-    !![
-    <referenceConstruct object="surveyGeometryDES_"             constructor="surveyGeometryLocalGroupDES      (radiusOuter                              )"/>
-    !!]
-    !! Combine the survey geometries.
-    allocate(surveyGeometryList_            )
-    allocate(surveyGeometryList_  %next     )
-    allocate(surveyGeometryList_  %next%next)
-    surveyGeometryList_          %surveyGeometry_ => surveyGeometryClassical_
-    surveyGeometryList_%next     %surveyGeometry_ => surveyGeometrySDSS_
-    surveyGeometryList_%next%next%surveyGeometry_ => surveyGeometryDES_
-    allocate(surveyGeometry_                )
-    !![
-    <referenceConstruct object="surveyGeometry_"                constructor="surveyGeometryCombined           (surveyGeometryList_                       )"/>
-    !!]
-    ! Build filters which select satellites/centrals in a specified range of host halo mass, and applies a survey geometry.
+    ! Build filters which select satellites/centrals in a specified range of host halo mass. Detectability of satellites is
+    ! imposed not by a filter, but by the weight operator constructed above, which weights each satellite by the probability
+    ! that it would be detected in the census.
     allocate(galacticFilterHaloIsolated_   )
     !![
     <referenceConstruct object="galacticFilterHaloIsolated_"    constructor="galacticFilterHaloIsolated       (                                          )"/>
@@ -379,10 +404,6 @@ contains
     allocate(galacticFilterHaloNotIsolated_)
     !![
     <referenceConstruct object="galacticFilterHaloNotIsolated_" constructor="galacticFilterHaloNotIsolated    (                                          )"/>
-    !!]
-    allocate(galacticFilterSurveyGeometry_ )
-    !![
-    <referenceConstruct object="galacticFilterSurveyGeometry_"  constructor="galacticFilterSurveyGeometry     (positionType,surveyGeometry_              )"/>
     !!]
     allocate(galacticFilterHostMassRange_  )
     !![
@@ -406,10 +427,8 @@ contains
     !!]
     allocate(filtersSatellites_          )
     allocate(filtersSatellites_%next     )
-    allocate(filtersSatellites_%next%next)
     filtersSatellites_          %filter_ => galacticFilterHaloNotIsolated_
     filtersSatellites_%next     %filter_ => galacticFilterHostMassRange_
-    filtersSatellites_%next%next%filter_ => galacticFilterSurveyGeometry_
     allocate(galacticFilterSatellites_)
     !![
     <referenceConstruct object="galacticFilterSatellites_" constructor="galacticFilterAll(filtersSatellites_)"/>
@@ -465,7 +484,7 @@ contains
        &amp;                         nodePropertyExtractor_                                 , &amp;
        &amp;                         outputAnalysisPropertyOperator_                        , &amp;
        &amp;                         outputAnalysisPropertyUnoperator_                      , &amp;
-       &amp;                         outputAnalysisWeightOperator_                          , &amp;
+       &amp;                         outputAnalysisWeightOperatorSatellites_                , &amp;
        &amp;                         outputAnalysisDistributionOperator_                    , &amp;
        &amp;                         outputAnalysisDistributionNormalizerSatellites_        , &amp;
        &amp;                         galacticFilterSatellites_                              , &amp;
@@ -500,7 +519,7 @@ contains
        &amp;                         nodePropertyExtractor_                                , &amp;
        &amp;                         outputAnalysisPropertyOperator_                       , &amp;
        &amp;                         outputAnalysisPropertyUnoperator_                     , &amp;
-       &amp;                         outputAnalysisWeightOperator_                         , &amp;
+       &amp;                         outputAnalysisWeightOperatorSubsampling_              , &amp;
        &amp;                         outputAnalysisDistributionOperator_                   , &amp;
        &amp;                         outputAnalysisDistributionNormalizerCentrals_         , &amp;
        &amp;                         galacticFilterCentrals_                               , &amp;
@@ -517,25 +536,22 @@ contains
     <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
     <objectDestructor name="outputAnalysisPropertyOperatorSystmtcPolynomial_"/>
     <objectDestructor name="outputAnalysisPropertyUnoperator_"               />
-    <objectDestructor name="outputAnalysisWeightOperator_"                   />
+    <objectDestructor name="outputAnalysisWeightOperatorSatellites_"         />
+    <objectDestructor name="outputAnalysisWeightOperatorSubsampling_"        />
+    <objectDestructor name="outputAnalysisWeightOperatorDetection_"          />
     <objectDestructor name="outputAnalysisDistributionOperator_"             />
     <objectDestructor name="galacticFilterHaloIsolated_"                     />
     <objectDestructor name="galacticFilterHaloNotIsolated_"                  />
     <objectDestructor name="galacticFilterHostMassRange_"                    />
     <objectDestructor name="galacticFilterCentrals_"                         />
     <objectDestructor name="galacticFilterSatellites_"                       />
-    <objectDestructor name="galacticFilterSurveyGeometry_"                   />
     <objectDestructor name="outputAnalysisDistributionNormalizerSatellites_" />
     <objectDestructor name="outputAnalysisDistributionNormalizerCentrals_"   />
-    <objectDestructor name="surveyGeometryClassical_"                        />
-    <objectDestructor name="surveyGeometrySDSS_"                             />
-    <objectDestructor name="surveyGeometryDES_"                              />
-    <objectDestructor name="surveyGeometry_"                                 />
     !!]
-    nullify(filtersSatellites_ )
-    nullify(filtersCentrals_   )
-    nullify(operators_         )
-    nullify(surveyGeometryList_)
+    nullify(weightOperators_  )
+    nullify(filtersSatellites_)
+    nullify(filtersCentrals_  )
+    nullify(operators_        )
     return
   end function localGroupStellarMassFunctionConstructorInternal
 

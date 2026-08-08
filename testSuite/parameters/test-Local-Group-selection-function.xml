@@ -1,5 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<!-- Parameters for validation of a Milky Way model. -->
+<!-- Parameters for testing the observational selection function applied to Local Group satellites. -->
+<!-- A deliberately small, low-resolution model: this tests the machinery which applies the selection    -->
+<!-- function, not the physics of the satellite population.                                             -->
 
 <parameters>
   <formatVersion>2</formatVersion>
@@ -33,14 +35,14 @@
     <!-- The value used is the median estimate at r=262kpc from Slizewski et al. (2022; https://ui.adsabs.harvard.edu/abs/2022ApJ...924..131S) -->
     <massTree   value="1.520e12"/>
     <radiusTree value="0.262e00"/>
-    <treeCount  value="24"      />
+    <treeCount  value="4"       />
   </mergerTreeBuildMasses>
 
   <!-- Halo mass resolution -->
   <mergerTreeMassResolution value="fixed">
     <!-- All trees are set to have the same halo mass resolution. -->
     <!-- A relatively coarse mass resolution is used to allow the model to run in reasonable time. -->
-    <massResolution value="8.0e7"/>
+    <massResolution value="3.0e8"/>
   </mergerTreeMassResolution>
 
   <!-- Output epochs -->
@@ -56,37 +58,33 @@
   <luminosityRedshift value="0.0"    />
 
   <!-- Analyses -->
-  <mergerTreeOutputter value="analyzer"/>
-  <outputAnalysis      value="multi" >
-    <outputAnalysis      value="localGroupStellarMassFunction"          >
-      <!-- Set the log-likelihood for empty bins to zero - these are inevitable given the coarse mass resolution. -->
-      <positionType      value="orbital"/>
-      <logLikelihoodZero value="0.0"    />
-    </outputAnalysis>
-    <outputAnalysis      value="localGroupLuminosityFunction"            >
-      <!-- Set the log-likelihood for empty bins to zero - these are inevitable given the coarse mass resolution. -->
-      <positionType      value="orbital"/>
-      <logLikelihoodZero value="0.0"    />
-    </outputAnalysis>
-    <outputAnalysis      value="localGroupMassMetallicityRelation"       >
-      <positionType      value="orbital"/>
-    </outputAnalysis>
-    <outputAnalysis      value="localGroupMassSizeRelation"              >
-      <positionType      value="orbital"/>
-    </outputAnalysis>
-    <outputAnalysis      value="localGroupMassVelocityDispersionRelation">
-      <positionType      value="orbital"/>
-    </outputAnalysis>
-    <outputAnalysis      value="localGroupStellarMassHaloMassRelation"   >
-      <positionType      value="orbital"/>
-    </outputAnalysis>
-    <outputAnalysis      value="localGroupOccupationFraction"            >
-      <positionType      value="orbital"/>
-    </outputAnalysis>
+  <mergerTreeOutputter value="multi">
+    <mergerTreeOutputter value="analyzer"/>
+    <mergerTreeOutputter value="standard">
+      <!-- The properties used by the `localGroupDetection` weight operator, so that the detection -->
+      <!-- probabilities it applies can be recomputed independently.                              -->
+      <nodePropertyExtractor value="multi">
+        <nodePropertyExtractor value="nodeIndices"          />
+        <nodePropertyExtractor value="radiusOrbital"        />
+        <nodePropertyExtractor value="radiusHalfMassStellar"/>
+        <nodePropertyExtractor value="treeWeight"           />
+        <nodePropertyExtractor value="luminosityStellar"     >
+          <filterName value="Buser_V"/>
+          <filterType value="rest"   />
+        </nodePropertyExtractor>
+      </nodePropertyExtractor>
+    </mergerTreeOutputter>
+  </mergerTreeOutputter>
+  <outputAnalysis      value="localGroupLuminosityFunction">
+    <positionType                     value="orbital"/>
+    <logLikelihoodZero                value="0.0"    />
+    <randomErrorMinimum               value="1.0e-6" />
+    <randomErrorMaximum               value="1.0e-6" />
+    <randomErrorPolynomialCoefficient value="0.0"    />
   </outputAnalysis>
   <elementsToTrack value="Fe"/>
 
   <!-- Output file -->
-  <outputFileName value="testSuite/outputs/validate_milkyWay.hdf5"/>
+  <outputFileName value="testSuite/outputs/test-Local-Group-selection-function.hdf5"/>
 
 </parameters>
