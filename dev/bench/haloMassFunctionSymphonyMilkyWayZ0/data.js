@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786131054709,
+  "lastUpdate": 1786200382684,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (Symphony Milky Way z=0)": [
@@ -193,6 +193,40 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/64807e850821afdd9d0516390e1dd5bcecd70943"
         },
         "date": 1786131053977,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX1 z=0.000 (47 realizations)",
+            "value": 4183.3751949939015,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX64 z=0.000",
+            "value": 179.99708600146892,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6703a1e9545f194745f78ccd1e4dc9384ac1ce3d",
+          "message": "Merge pull request #1335 from galacticusorg/pr/farahi-pinning\n\nfeat(excursionSets): pin and reuse the Farahi first crossing tabulations",
+          "timestamp": "2026-08-08T05:00:47Z",
+          "tree_id": "657368afa0a13bcd1b1ffa9d85374a28c66839d4",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6703a1e9545f194745f78ccd1e4dc9384ac1ce3d"
+        },
+        "date": 1786200381941,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
