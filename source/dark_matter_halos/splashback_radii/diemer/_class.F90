@@ -68,7 +68,7 @@
 
   type, public :: diemerScatterParameters
      !!{RST
-     Coefficients of the fitting function for the 68\% scatter in :math:`R_\mathrm{sp}/R_\mathrm{200m}` or
+     Coefficients of the fitting function for the 68% scatter in :math:`R_\mathrm{sp}/R_\mathrm{200m}` or
      :math:`M_\mathrm{sp}/M_\mathrm{200m}` in the :cite:t:`diemer_splashback_2017` and
      :cite:t:`diemer_splashback_2020` models.
      !!}
@@ -481,7 +481,7 @@ contains
 
   double precision function diemerRadiusScatter(self,node,massDistribution_) result(scatter)
     !!{RST
-    Return the 68\% scatter in :math:`\log_{10}(R_\mathrm{sp}/R_\mathrm{200m})` for the halo in ``node``.
+    Return the 68% scatter in :math:`\log_{10}(R_\mathrm{sp}/R_\mathrm{200m})` for the halo in ``node``.
     !!}
     implicit none
     class           (darkMatterHaloSplashbackRadiusDiemer), intent(inout)           :: self
@@ -498,7 +498,7 @@ contains
 
   double precision function diemerMassScatter(self,node,massDistribution_) result(scatter)
     !!{RST
-    Return the 68\% scatter in :math:`\log_{10}(M_\mathrm{sp}/M_\mathrm{200m})` for the halo in ``node``.
+    Return the 68% scatter in :math:`\log_{10}(M_\mathrm{sp}/M_\mathrm{200m})` for the halo in ``node``.
     !!}
     implicit none
     class           (darkMatterHaloSplashbackRadiusDiemer), intent(inout)           :: self
@@ -609,7 +609,7 @@ contains
 
   double precision function diemerScatter(parameters_,p,gamma,peakHeight) result(scatter)
     !!{RST
-    Evaluate the 68\% scatter,
+    Evaluate the 68% scatter,
 
     .. math::
 

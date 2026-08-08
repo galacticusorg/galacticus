@@ -104,7 +104,7 @@ module Dark_Matter_Halo_Splashback_Radii
    </method>
    <method name="radiusScatter" >
     <description>
-    Returns the 68\% scatter in :math:`\log_{10}(R_\mathrm{sp}/R_\mathrm{200m})` for halos matching those in ``node``. An
+    Returns the 68% scatter in :math:`\log_{10}(R_\mathrm{sp}/R_\mathrm{200m})` for halos matching those in ``node``. An
     error is reported by models which do not predict this scatter.
     </description>
     <type>double precision</type>
@@ -120,7 +120,7 @@ module Dark_Matter_Halo_Splashback_Radii
    </method>
    <method name="massScatter" >
     <description>
-    Returns the 68\% scatter in :math:`\log_{10}(M_\mathrm{sp}/M_\mathrm{200m})` for halos matching those in ``node``. An
+    Returns the 68% scatter in :math:`\log_{10}(M_\mathrm{sp}/M_\mathrm{200m})` for halos matching those in ``node``. An
     error is reported by models which do not predict this scatter.
     </description>
     <type>double precision</type>
