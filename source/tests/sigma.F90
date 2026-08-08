@@ -40,11 +40,19 @@ program Tests_Sigma
   double precision                                          , parameter            :: massMaximum                           =1.0d15, massMinimum                              =1.0d6
   double precision                                          , dimension(massCount) :: mass                                         , massFromSigma                                  , &
        &                                                                              sigma
+  ! Masses at which σ(M) is tested for invariance under extension of the tabulation. Each is a whole decade, and so is a point
+  ! of the absolute lattice to which the tabulation is pinned - the tabulated values are what extension preserves exactly, so it
+  ! is at the tabulated points that invariance is asserted. (Between them the cubic spline interpolant is not preserved: every
+  ! one of its coefficients depends on every tabulated value, so adding points at either end changes it everywhere.)
+  integer                                                   , parameter                     :: massCountExtension               =3
+  double precision                                          , parameter                     :: massExtension(massCountExtension)=[1.0d11,1.0d12,1.0d13]
+  double precision                                          , dimension(massCountExtension) :: sigmaNarrow                              , sigmaExtended
   type            (darkMatterParticleCDM                   )                       :: darkMatterParticleCDM_
   type            (cosmologyParametersSimple               )                       :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda          )                       :: cosmologyFunctions_
   type            (linearGrowthCollisionlessMatter         )                       :: linearGrowth_
-  type            (cosmologicalMassVarianceFilteredPower   )                       :: cosmologicalMassVarianceLCDM_                , cosmologicalMassVarianceFilteredPower_
+  type            (cosmologicalMassVarianceFilteredPower   )                       :: cosmologicalMassVarianceLCDM_                , cosmologicalMassVarianceFilteredPower_         , &
+       &                                                                              cosmologicalMassVarianceExtension_
   type            (powerSpectrumWindowFunctionSharpKSpace  )                       :: powerSpectrumWindowFunctionSharpKSpace_
   type            (powerSpectrumWindowFunctionTopHat       )                       :: powerSpectrumWindowFunctionLCDM_
   type            (powerSpectrumPrimordialPowerLaw         )                       :: powerSpectrumPrimordialLCDM_                 , powerSpectrumPrimordialPowerLaw_
@@ -53,7 +61,7 @@ program Tests_Sigma
   type            (powerSpectrumPrimordialTransferredSimple)                       :: powerSpectrumPrimordialTransferredLCDM_      , powerSpectrumPrimordialTransferredSimple_
   integer                                                                          :: iMass
   double precision                                                                 :: mass8                                        , radius8                                        , &
-       &                                                                              sigma8
+       &                                                                              sigma8                                       , sigmaForce
 
   ! Initialize error handling.
   call Error_Handler_Register()
@@ -214,6 +222,42 @@ program Tests_Sigma
        &                                                                            )
   sigma8=cosmologicalMassVarianceFilteredPower_%rootVariance(mass8,cosmologyFunctions_%cosmicTime(1.0d0))
   call Assert('σ(M₈) amplitude with sharp k-space window function',sigma8,(sqrt(2.0d0)*Pi/3.0d0)**(1.0d0/3.0d0),relTol=1.0d-4)
+  ! Check that σ(M) at a tabulated mass is unchanged when the tabulation is subsequently extended in either direction. The
+  ! tabulation is pinned to an absolute lattice, so extending it moves no abscissa which it already contains and recomputes no
+  ! value tabulated at one - which is what makes σ(M), and everything derived from it, independent of the order and extent of
+  ! the requests which happen to have driven the tabulation. Before the tabulation was pinned the grid was laid out afresh
+  ! across whatever range was then required, and these values moved by of order a part in a thousand.
+  !
+  ! This object exists solely for this test, and differs from that above only in σ₈: the tabulations are cached in memory under a
+  ! name derived from the parameters of the object, so an object identical to one already used would simply adopt the tabulation
+  ! built for it - already spanning the full range - and never extend anything. Storage to file is disabled for the same reason.
+  cosmologicalMassVarianceExtension_       =cosmologicalMassVarianceFilteredPower   (                                                                                    &
+       &                                                                             sigma8                                  =0.9000d+0                                , &
+       &                                                                             tolerance                               =1.0000d-4                                , &
+       &                                                                             toleranceTopHat                         =1.0000d-4                                , &
+       &                                                                             rootVarianceLogarithmicGradientTolerance=1.0d-9                                   , &
+       &                                                                             integrationFailureIsFatal               =.true.                                   , &
+       &                                                                             storeTabulations                        =.false.                                  , &
+       &                                                                             nonMonotonicIsFatal                     =.true.                                   , &
+       &                                                                             monotonicInterpolation                  =.false.                                  , &
+       &                                                                             truncateAtParticleHorizon               =.false.                                  , &
+       &                                                                             cosmologyParameters_                    =cosmologyParameters_                     , &
+       &                                                                             cosmologyFunctions_                     =cosmologyFunctions_                      , &
+       &                                                                             linearGrowth_                           =linearGrowth_                            , &
+       &                                                                             powerSpectrumPrimordialTransferred_     =powerSpectrumPrimordialTransferredLCDM_  , &
+       &                                                                             powerSpectrumWindowFunction_            =powerSpectrumWindowFunctionLCDM_           &
+       &                                                                            )
+  ! Tabulate over a narrow range of mass, and record σ(M) across it.
+  do iMass=1,massCountExtension
+     sigmaNarrow  (iMass)=cosmologicalMassVarianceExtension_%rootVariance(massExtension(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
+  end do
+  ! Force the tabulation to be extended, upward in mass and then downward.
+  sigmaForce=cosmologicalMassVarianceExtension_%rootVariance(1.0d14,cosmologyFunctions_%cosmicTime(1.0d0))
+  sigmaForce=cosmologicalMassVarianceExtension_%rootVariance(1.0d08,cosmologyFunctions_%cosmicTime(1.0d0))
+  do iMass=1,massCountExtension
+     sigmaExtended(iMass)=cosmologicalMassVarianceExtension_%rootVariance(massExtension(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
+  end do
+  call Assert('σ(M) at tabulated masses is unchanged by extension of the tabulation',sigmaNarrow,sigmaExtended,relTol=1.0d-6)
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
