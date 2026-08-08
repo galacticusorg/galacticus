@@ -1478,6 +1478,45 @@ def vitvitska_subresolution_method_enum(input_doc, parameters, is_grid):
 # Dispatch table for special migration functions
 # ---------------------------------------------------------------------------
 
+def splashback_radius_accretion_flow(input_doc, parameters, is_grid):
+    """Special handling for the introduction of the `darkMatterHaloSplashbackRadius` class.
+
+    The `accretionFlowDiemerKravtsov2014` and `accretionFlowShi2016` dark matter profile classes
+    previously computed the radius at which the profile transitions from the virialized halo to
+    the accretion flow using the truncation radius of Diemer & Kravtsov (2014). They now obtain
+    that radius from a `darkMatterHaloSplashbackRadius` object, which defaults to the (physically
+    preferable) `diemer2020` model. To retain the original behavior of existing parameter files we
+    therefore insert an explicit `diemerKravtsov2014` splashback radius into these classes.
+
+    Note that this restores the original *model*, but not precisely the original results: the
+    `diemerKravtsov2014` class evaluates the peak height using M₂₀₀ₘ (as Diemer & Kravtsov do),
+    whereas the previous, inlined implementation used the virial mass of the halo.
+    """
+    for node in parameters.xpath(
+        ".//darkMatterProfileDMO[@value='accretionFlowDiemerKravtsov2014' or @value='accretionFlowShi2016']"
+    ):
+        # Do not override a splashback radius which has already been specified.
+        if len(node.xpath("./darkMatterHaloSplashbackRadius[@value]")) > 0:
+            continue
+        print("   insert special 'darkMatterHaloSplashbackRadius' into '" + node.get("value") + "'")
+        splashback_node = etree.Element("darkMatterHaloSplashbackRadius")
+        splashback_node.set("value", "diemerKravtsov2014")
+        if is_grid:
+            splashback_node.set("iterable", "no")
+        # Append as the final child, preserving the indentation of the existing children.
+        children = list(node)
+        if children:
+            splashback_node.tail = children[-1].tail
+            children[-1].tail = node.text
+        else:
+            # The indentation of this node is carried by the whitespace which precedes it.
+            previous = node.getprevious()
+            indentation = (previous.tail if previous is not None else node.getparent().text) or "\n  "
+            splashback_node.tail = indentation
+            node.text = indentation + "  "
+        node.append(splashback_node)
+
+
 SPECIAL_FUNCTIONS = {
     "radiation_field_intergalactic_background_cmb": radiation_field_intergalactic_background_cmb,
     "black_hole_seed_mass": black_hole_seed_mass,
@@ -1498,6 +1537,7 @@ SPECIAL_FUNCTIONS = {
     "vitvitska_subresolution_method": vitvitska_subresolution_method,
     "vitvitska_subresolution_method_enum": vitvitska_subresolution_method_enum,
     "johnson2021_mass_function_slope": johnson2021_mass_function_slope,
+    "splashback_radius_accretion_flow": splashback_radius_accretion_flow,
     "johnson2021_correlated_branches": johnson2021_correlated_branches,
     "chandrasekhar_suppress_extended_mass": chandrasekhar_suppress_extended_mass,
 }

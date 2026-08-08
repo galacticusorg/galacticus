@@ -728,6 +728,25 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="darkMatterHaloSplashbackRadius">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="diemer"/>
+          <xs:enumeration value="diemer2017"/>
+          <xs:enumeration value="diemer2020"/>
+          <xs:enumeration value="diemerKravtsov2014"/>
+          <xs:enumeration value="shi2016"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="darkMatterParticle">
    <xs:complexType mixed="true">
     <xs:sequence>
