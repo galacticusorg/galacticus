@@ -305,6 +305,21 @@
       <remove/>
     </translation>
   </migration>
+  <migration commit="9664f0bc59ca51e262b671cf24853d3ca6213b9c">
+    <!-- The `accretionFlowShi2016` dark matter profile class no longer makes use of critical  -->
+    <!-- overdensity or cosmological mass variance objects - the peak height which it required -->
+    <!-- them for is now evaluated by the `darkMatterHaloSplashbackRadius` class instead.      -->
+    <translation xpath="//darkMatterProfileDMO[@value='accretionFlowShi2016']/criticalOverdensity[@value]">
+      <remove/>
+    </translation>
+    <translation xpath="//darkMatterProfileDMO[@value='accretionFlowShi2016']/cosmologicalMassVariance[@value]">
+      <remove/>
+    </translation>
+    <!-- Both accretion flow classes now take their transition radius from a splashback radius  -->
+    <!-- object which defaults to `diemer2020`. Pin the previous model to retain the original   -->
+    <!-- behavior of existing parameter files.                                                  -->
+    <translation function="splashback_radius_accretion_flow"/>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
