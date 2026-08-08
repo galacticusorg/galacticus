@@ -4,18 +4,18 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "64807e850821afdd9d0516390e1dd5bcecd70943",
-        "message": "chore(ci): update gh-pages analysis thresholds for COZMIC models\n",
-        "timestamp": "2026-08-06 08:10:40-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/64807e850821afdd9d0516390e1dd5bcecd70943"
+        "id": "6703a1e9545f194745f78ccd1e4dc9384ac1ce3d",
+        "message": "Merge pull request #1335 from galacticusorg/pr/farahi-pinning\n\nfeat(excursionSets): pin and reuse the Farahi first crossing tabulations\n",
+        "timestamp": "2026-08-08 05:00:47+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/6703a1e9545f194745f78ccd1e4dc9384ac1ce3d"
     },
     "results": [
         {
             "attributes": {
                 "name": "Symphony MilkyWay CDM resolutionX1 z=3.984 (47 realizations)",
-                "logLikelihood": "-2732.723414722874",
+                "logLikelihood": "-2732.7233675055454",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -39,31 +39,31 @@ window.ANALYSES_DATA = {
                     22387211385.68341
                 ],
                 "yDataset": [
-                    5.149715025390874,
-                    3.3419463837640175,
-                    2.1561653843784465,
-                    1.3837604814749933,
-                    0.9809569139464693,
-                    0.781067215053589,
-                    0.560382657839525,
-                    0.34946770994034815,
-                    0.21688024675614348,
-                    0.13227732173468904,
+                    5.149715072076854,
+                    3.341946396617748,
+                    2.15616537823694,
+                    1.383760470066549,
+                    0.9809569047811579,
+                    0.7810672077229457,
+                    0.560382650214779,
+                    0.34946770494347373,
+                    0.21688024338731515,
+                    0.1322773208218072,
                     0.08135650803924203,
                     0.046445281350052575,
                     0.03902220069041619
                 ],
                 "yError": [
-                    0.0800919122287687,
-                    0.05414976470206138,
-                    0.03700183410357926,
-                    0.026062602410996935,
-                    0.02858653166940667,
-                    0.024372751392971834,
-                    0.013893256530805226,
-                    0.010950302273387834,
-                    0.008904647683526775,
-                    0.007193365739615381,
+                    0.08009191286212305,
+                    0.05414976486037465,
+                    0.03700183400183722,
+                    0.02606260223860348,
+                    0.028586531469936404,
+                    0.024372751230995648,
+                    0.013893256406425164,
+                    0.010950302178251041,
+                    0.0089046476051061,
+                    0.007193365713721554,
                     0.00701923344241902,
                     0.006791854974376818,
                     0.02093642252353719
