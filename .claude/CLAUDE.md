@@ -124,6 +124,19 @@ change that.
   `ODE integration failed`, `unrecognized parameter`). A test "passes" when none
   of those appear — so when triaging a test, read its log, don't just trust the
   exit code.
+- **Test scripts must exit `0` even when the test fails.** Failure is signaled
+  *in the output*, not in the exit status: print a line containing `FAILED`
+  (conventionally `FAILED: <what went wrong>`, with `SUCCESS: <what passed>` on
+  the happy path) and then `sys.exit(0)`. The harness
+  (`testSuite/test-all.py:42`) and the CI workflows judge each test with
+  `grep -q -e FAIL -e FAILED` over the captured log and ignore the return code
+  entirely, so a script that exits non-zero on failure is still recorded as a
+  *pass* if it never printed the marker. Two corollaries:
+  - Guard early-exit paths the same way — a missing input file or a failed model
+    run must `print("FAILED: …")` before exiting, or the test silently vanishes.
+  - The grep matches `FAIL` as a *substring anywhere* in the log, so never emit
+    it in a passing context (no `"0 FAILures"`, no echoing a parameter named
+    `...FAIL...`); that alone turns a green test red.
 
 ## Editing Fortran source
 
@@ -136,6 +149,19 @@ change that.
   surrounding style. (See
   [`docs/manuals/developer-guide/editor-setup.rst`](../docs/manuals/developer-guide/editor-setup.rst)
   and [`coding.rst`](../docs/manuals/developer-guide/coding.rst).)
+
+## Spelling
+
+- **Use US English spelling throughout** — source code (identifiers, variable
+  and procedure names), comments, embedded `!![ … !!]`/`!!{ … !!}` directive
+  blocks, documentation, and commit messages. So `color`, `normalization`,
+  `analyze`, `center`, `behavior` — not `colour`, `normalisation`, `analyse`,
+  `centre`, `behaviour`. This matches the existing API (e.g. `...Normalization`
+  class names and parameters), so a British spelling in an identifier is not
+  merely a style slip — it breaks consistency with names users write in their
+  parameter files. The documentation build enforces this: `docs/conf.py` sets
+  `spelling_lang = 'en_US'`, and the *Spell-Check-RST* CI job reports
+  misspellings on PRs (add legitimate new words to `aux/words.dict`).
 
 ## Developer tools (`galacticusDevTools`)
 
