@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Arya Farahi, Andrew Benson, Christoph Behrens, Xiaolong Du.
+!+    Contributions to this file made by: Arya Farahi, Andrew Benson, Christoph Behrens, Xiaolong Du. The pinning of the first
+!+    crossing probability and rate tabulations to absolute lattices for issue #1317 was drafted with assistance from Claude, and
+!+    reviewed and verified by Andrew Benson.
 
 !!{RST
 Implements a excursion set first crossing statistics class using the algorithm of :cite:t:`benson_dark_2012`.
@@ -27,6 +29,7 @@ Implements a excursion set first crossing statistics class using the algorithm o
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Excursion_Sets_Barriers   , only : excursionSetBarrierClass
   use :: Numerical_Interpolation   , only : interpolator
+  use :: Numerical_Ranges          , only : rangeLattice
 
   !![
   <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahi" docformat="rst">
@@ -197,6 +200,9 @@ Implements a excursion set first crossing statistics class using the algorithm o
      double precision                                                               :: timeMaximum                                , timeMinimum                               , &
           &                                                                            varianceMaximum
      integer                                                                        :: countTime                                  , countVariance
+     ! Lattices to which the probability tabulation is pinned. These are the source of truth for its extent: the limits and
+     ! counts above are kept in step with them, since they are read in many places.
+     type            (rangeLattice                 )                                :: latticeVariance                            , latticeTime
      double precision                               , allocatable, dimension(:,:)   :: firstCrossingProbability
      double precision                               , allocatable, dimension(:  )   :: time                                       , variance
      double precision                                                               :: varianceStep
@@ -208,6 +214,14 @@ Implements a excursion set first crossing statistics class using the algorithm o
           &                                                                            varianceMaximumRate                        , massMinimumRateNonCrossing
      integer                                                                        :: countTimeRate                              , countVarianceProgenitorRate               , &
           &                                                                            countVarianceCurrentRate                   , countVarianceCurrentRateNonCrossing
+     ! Lattices to which the rate tabulation is pinned. As for the probability tabulation these are the source of truth for its
+     ! extent. Only two of its four axes lie on a lattice: `varianceCurrentRate`, which is linear in variance, and `timeRate`,
+     ! which is logarithmic in time. The remaining two axes are built by `varianceRange` with a spacing which varies smoothly
+     ! from logarithmic to linear, so that every interior point moves when either bound moves and no lattice can represent
+     ! them. They are made deterministic instead by pinning the bounds which generate them: the upper bound is shared with
+     ! `latticeVarianceCurrentRate`, while `latticeVarianceMinimumRate` exists solely to pin the lower bound.
+     type            (rangeLattice                 )                                :: latticeVarianceCurrentRate                 , latticeTimeRate                           , &
+          &                                                                            latticeVarianceMinimumRate
      double precision                               , allocatable, dimension(:,:,:) :: firstCrossingRate
      double precision                               , allocatable, dimension(:,:  ) :: nonCrossingRate
      double precision                               , allocatable, dimension(:    ) :: timeRate                                   , varianceProgenitorRate                    , &
@@ -236,6 +250,8 @@ Implements a excursion set first crossing statistics class using the algorithm o
        <method description="Tabulate excursion set barrier crossing rates ensuring that they span the given progenitor variance and time." method="rateTabulate"              />
        <method description="Build a range of variances at which to tabulate the excursion set solutions."                                  method="varianceRange"             />
        <method description="Return the maximum variance to which to tabulate."                                                             method="varianceLimit"             />
+       <method description="Return a hard upper limit on the variance to which to tabulate, or `huge(0)` if there is none."                method="varianceLimitHard"         />
+       <method description="Return the lattice on which the variance of the current halo is tabulated for barrier crossing rates."         method="rateVarianceLattice"       />
        <method description="Compute the residual variance between two points."                                                             method="varianceResidual"          />
        <method description="Compute the effective offset between two points."                                                              method="offsetEffective"           />
        <method description="Read excursion set solutions from file."                                                                       method="fileRead"                  />
@@ -255,6 +271,8 @@ Implements a excursion set first crossing statistics class using the algorithm o
      procedure :: fileNameInitialize         => farahiFileNameInitialize
      procedure :: varianceRange              => farahiVarianceRange
      procedure :: varianceLimit              => farahiVarianceLimit
+     procedure :: varianceLimitHard          => farahiVarianceLimitHard
+     procedure :: rateVarianceLattice        => farahiRateVarianceLattice
      procedure :: varianceResidual           => farahiVarianceResidual
      procedure :: offsetEffective            => farahiOffsetEffective
   end type excursionSetFirstCrossingFarahi
@@ -268,7 +286,20 @@ Implements a excursion set first crossing statistics class using the algorithm o
   end interface excursionSetFirstCrossingFarahi
 
   ! Parameters controlling tabulation range
-  double precision, parameter :: redshiftMaximum=30.0d0 , redshiftMinimum=0.0d0
+  double precision, parameter :: redshiftMaximum       =30.0d0     , redshiftMinimum=0.0d0
+  ! The number of anchor points per unit of variance to which the pinned variance axes are aligned. The solution for the first
+  ! crossing distribution is a recursion over variance, so its cost grows as the square of the number of points tabulated, and
+  ! the variance requested is often of order unity - anchoring to whole units could therefore double the work for no gain in
+  ! accuracy. Tenths of a unit bound the overshoot to ten percent of a unit while leaving the set of possible ranges coarse.
+  integer         , parameter :: varianceAnchorsPerUnit=10
+  ! The lattice on which the lower bound of the transition-spaced variance axes of the rate tabulation is pinned. This lattice
+  ! carries no tabulated points - it exists only to make that one bound reproducible - so its density is simply its anchor
+  ! interval. Tenths of a decade are chosen because the bound is not a request, but a quantity derived from the barrier and from
+  ! σ(M): the tabulation of the latter is not itself pinned, so the bound can move in its final bits from run to run, and
+  ! anchoring is what keeps such a movement from shifting every point of both axes. Whole decades would do that too, but the
+  ! progenitor variance axis is tabulated at `varianceNumberPerDecade` points per decade - four hundred by default - and its
+  ! solution is a recursion whose cost grows as the square of its length, so lowering the bound by a whole decade is expensive.
+  integer         , parameter :: varianceMinimumAnchorsPerDecade=10
 
 contains
 
@@ -442,31 +473,38 @@ contains
     !!{RST
     Return the excursion set barrier at the given variance and time.
     !!}
-    use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
+    use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent    , displayMessage     , &
           &                         displayUnindent             , verbosityLevelWorking
     use :: Error_Functions , only : Error_Function_Complementary
-    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor      , File_Exists
+    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor   , File_Exists
     use :: Kind_Numbers    , only : kind_dble                   , kind_quad
     use :: MPI_Utilities   , only : mpiBarrier                  , mpiSelf
-    use :: Numerical_Ranges, only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
+    use :: Numerical_Ranges, only : Range_Pinned                , Range_Lattice_Offset , gridSchemePerUnit, gridSchemePerDecade
     use :: Table_Labels    , only : extrapolationTypeFix
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)                 :: self
-    double precision                                 , intent(in   )                 :: variance                        , time
+    double precision                                 , intent(in   )                 :: variance                               , time
     type            (treeNode                       ), intent(inout)                 :: node
-    double precision                                 ,                dimension(0:1) :: hTime                           , hVariance
-    double precision                                 , parameter                     :: toleranceRelativeVariance=1.0d-6
+    double precision                                 ,                dimension(0:1) :: hTime                                  , hVariance
+    double precision                                 , parameter                     :: toleranceRelativeVariance       =1.0d-6
+    type            (rangeLattice                   )                                :: latticeVariance                        , latticeTime
+    double precision                                                                 :: timeSeed
+    double precision                                 , allocatable  , dimension(:,:) :: firstCrossingProbabilityPrevious
+    integer                                                                          :: offsetVariance                         , offsetTime       , &
+         &                                                                              countVariancePrevious                  , countTimePrevious
+    logical                                                                          :: reuseSolutions
     class           (excursionSetBarrierClass       ), pointer                       :: excursionSetBarrier_
     class           (cosmologicalMassVarianceClass  ), pointer                       :: cosmologicalMassVariance_
     double precision                                 , allocatable  , dimension( : ) :: barrier
     double precision                                                                 :: barrierTest
     logical                                                                          :: makeTable
-    integer         (c_size_t                       )                                :: iTime                           , iVariance       , &
-         &                                                                              loopCount                       , loopCountTotal  , &
-         &                                                                              i                               , j               , &
-         &                                                                              jTime                           , jVariance
+    integer         (c_size_t                       )                                :: iTime                                  , iVariance       , &
+         &                                                                              loopCount                              , loopCountTotal  , &
+         &                                                                              i                                      , j               , &
+         &                                                                              jTime                                  , jVariance       , &
+         &                                                                              iVarianceStart
     double precision                                                                 :: probabilityCrossingPrior
-    real            (kind_quad                      )                                :: offsetEffective                 , varianceResidual
+    real            (kind_quad                      )                                :: offsetEffective                        , varianceResidual
     character       (len=6                          )                                :: label
     type            (varying_string                 )                                :: message
     type            (lockDescriptor                 )                                :: fileLock
@@ -513,27 +551,93 @@ contains
        end if
        makeTable=.not.self%tableInitialized.or.(variance > self%varianceMaximum*(1.0d0+toleranceRelativeVariance)).or.(time < self%timeMinimum).or.(time > self%timeMaximum)
        if (makeTable) then
-          ! Construct the table of variance on which we will solve for the first crossing distribution.
+          ! Construct the lattices on which we will solve for the first crossing distribution, pinning both axes to absolute
+          ! lattices so that the tabulation - and hence every value interpolated from it - is independent of the variance and
+          ! time at which it happened to be first requested, and so that it can be extended without recomputing solutions
+          ! already found.
+          !
+          ! The variance axis is linear and must always begin at zero, since the solution is a recursion which starts from
+          ! f(S=0)=0. Zero is therefore included among the target values, so that the range is built to cover it rather than
+          ! merely as a window about the requested variance, and is imposed as a hard lower limit as well, so that the safety
+          ! margin cannot carry the range below it. No seed is needed: every range begins at lattice index zero, so any two of
+          ! them overlap and one always contains the other. It is anchored to tenths of a unit rather than to whole units: the
+          ! solution is a recursion over variance, so its cost grows as the square of the number of points, and the variance
+          ! requested can be of order unity, where anchoring to a whole unit could double the work. The margin is one anchor
+          ! interval, which also guarantees that the requested variance lies strictly below the final tabulated point - a point
+          ! which is forced to zero as a boundary condition (see below) and so is not a solution.
+          latticeVariance=Range_Pinned(                                                                                   &
+               &                                     [0.0d0,variance]                                                   , &
+               &                                     self%varianceNumberPerUnitProbability                              , &
+               &                                     gridSchemePerUnit                                                  , &
+               &                      marginOffset  =1.0d0/dble(varianceAnchorsPerUnit)                                 , &
+               &                      limitMinimum  =0.0d0                                                              , &
+               &                      anchorEvery   =farahiAnchorEvery(self%varianceNumberPerUnitProbability,varianceAnchorsPerUnit), &
+               &                      latticeCurrent=self%latticeVariance                                                 &
+               &                     )
+          ! The time axis is logarithmic, with a safety margin of a factor of two at each end - the range this class used before
+          ! being pinned. It is anchored to half decades: a whole decade of cosmic time spans most of the history of the
+          ! universe.
+          !
+          ! The axis is seeded at its upper end only, with twice the present age of the universe, which is exactly the bound the
+          ! unpinned code imposed. Seeding only one end is enough to keep any two tabulations mergeable: both then reach at least
+          ! that time, so both contain a common upper region and must overlap. The seed is supplied through `rangeCurrent`, which
+          ! is applied after the safety margin, so it is not itself inflated by that factor. Note that this is a degenerate range
+          ! - the same value at both ends - precisely so that it can raise the upper bound without ever lowering the lower one.
+          ! Seeding the lower end as well, over the whole redshift range used by the rate tabulation, was measured to take this
+          ! tabulation from seven epochs to thirty-one and to roughly double the cost of `tests.excursion_sets`, for no benefit
+          ! in a model, which requests times spanning that range in any case.
+          timeSeed    =+2.0d0*self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0)
+          latticeTime=Range_Pinned(                                                  &
+               &                                  [time]                           , &
+               &                                  self%timeNumberPerDecade         , &
+               &                                  gridSchemePerDecade              , &
+               &                   marginFactor  =2.0d0                            , &
+               &                   rangeCurrent  =[timeSeed,timeSeed]              , &
+               &                   anchorEvery   =farahiAnchorEvery(self%timeNumberPerDecade,2), &
+               &                   latticeCurrent=self%latticeTime                   &
+               &                  )
+          ! Determine whether the solutions already found can be carried over. Each time slice is solved independently, and
+          ! within a slice the solution is a recursion in which f(Sᵢ) depends only on the barrier and on f(S₍<ᵢ₎), so a solution
+          ! remains valid wherever the axes are extended around it. The one exception is the final point of the variance axis,
+          ! which is forced to zero as a boundary condition rather than solved; when the variance axis grows it must be solved
+          ! for like any other point, so it is deliberately excluded from what is carried over.
+          reuseSolutions=           self%tableInitialized                      &
+               &         .and.                                                 &
+               &                    self%latticeVariance         %isDefined()  &
+               &         .and.                                                 &
+               &                    self%latticeTime             %isDefined()  &
+               &         .and.                                                 &
+               &          allocated(self%firstCrossingProbability            )
+          countVariancePrevious=0
+          countTimePrevious    =0
+          offsetVariance       =0
+          offsetTime           =0
+          if (reuseSolutions) then
+             countVariancePrevious=self%latticeVariance%count-1
+             countTimePrevious    =self%latticeTime    %count
+             offsetVariance       =Range_Lattice_Offset(self%latticeVariance,latticeVariance)
+             offsetTime           =Range_Lattice_Offset(self%latticeTime    ,latticeTime    )
+             call move_alloc(self%firstCrossingProbability,firstCrossingProbabilityPrevious)
+          end if
           if (allocated(self%variance                )) deallocate(self%variance                )
           if (allocated(self%time                    )) deallocate(self%time                    )
           if (allocated(self%firstCrossingProbability)) deallocate(self%firstCrossingProbability)
-          self%varianceMaximum   =max(self%varianceMaximum,variance)
-          self%countVariance=int(self%varianceMaximum*dble(self%varianceNumberPerUnitProbability))
-          if (self%tableInitialized) then
-             self%timeMinimum=min(      self%timeMinimum                                          ,0.5d0*time)
-             self%timeMaximum=max(      self%timeMaximum                                          ,2.0d0*time)
-          else
-             self%timeMinimum=                                                                     0.5d0*time
-             self%timeMaximum=max(2.0d0*self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0),2.0d0*time)
-          end if
-          self%countTime=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(self%timeNumberPerDecade))+1)
+          self%latticeVariance=latticeVariance
+          self%latticeTime    =latticeTime
+          self%countVariance  =latticeVariance%count-1
+          self%countTime      =latticeTime    %count
+          self%varianceMaximum=latticeVariance%maximum()
+          self%timeMinimum    =latticeTime    %minimum()
+          self%timeMaximum    =latticeTime    %maximum()
           allocate(self%variance                (0:self%countVariance               ))
           allocate(self%time                    (                     self%countTime))
           allocate(self%firstCrossingProbability(0:self%countVariance,self%countTime))
-          self%time        =Make_Range(self%timeMinimum,self%timeMaximum    ,self%countTime      ,rangeType=rangeTypeLogarithmic)
-          self%variance    =Make_Range(0.0d0           ,self%varianceMaximum,self%countVariance+1,rangeType=rangeTypeLinear     )
-          self%varianceStep=+self%variance(1) &
-               &            -self%variance(0)
+          ! Take the abscissae from the lattices rather than by subdividing the ranges, so that they are bit-identical to those
+          ! of any other tabulation built on the same lattices. Note that the step in variance likewise comes from the lattice:
+          ! taking it as the difference of two neighbouring points is not invariant under a shift of the range.
+          self%time        =latticeTime    %values()
+          self%variance    =latticeVariance%values()
+          self%varianceStep=latticeVariance%step  ()
           ! Loop through the table and solve for the first crossing distribution.
 #ifdef USEMPI
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
@@ -565,12 +669,22 @@ contains
 #ifdef USEMPI
           if (self%coordinatedMPI_) self%firstCrossingProbability=0.0d0
 #endif
+          ! Carry over the solutions already found. The variance axis always begins at lattice index zero, so it is extended
+          ! only upwards and the surviving solutions are offset along the time axis alone. The final point of the previous
+          ! variance axis is excluded: it was forced to zero as a boundary condition rather than solved, and must now be solved
+          ! for like any other point.
+          if (reuseSolutions) then
+             if (countVariancePrevious >= 1)                                                                                    &
+                  & self%firstCrossingProbability        (0:countVariancePrevious-1,offsetTime+1:offsetTime+countTimePrevious)= &
+                  &      firstCrossingProbabilityPrevious(0:countVariancePrevious-1,           1:           countTimePrevious)
+             deallocate(firstCrossingProbabilityPrevious)
+          end if
           ! Make a call to the barrier function at maximum variance for the minimum and maximum times so that the barrier function
           ! is initialized and covers the whole range in which we are interested.
           barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMinimum,node,rateCompute=.false.)
           barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMaximum,node,rateCompute=.false.)
           ! Enter an OpenMP parallel region. Each thread will solve for the first crossing distribution at a different epoch.
-          !$omp parallel private(iTime,i,j,probabilityCrossingPrior,excursionSetBarrier_,cosmologicalMassVariance_,barrier,offsetEffective,varianceResidual) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
+          !$omp parallel private(iTime,i,j,iVarianceStart,probabilityCrossingPrior,excursionSetBarrier_,cosmologicalMassVariance_,barrier,offsetEffective,varianceResidual) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
           ! Create threadprivate copies of the barrier and mas variance objects.
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
@@ -589,25 +703,34 @@ contains
 #ifdef USEMPI
              if (self%coordinatedMPI_ .and. mod(iTime-1,mpiSelf%count()) /= mpiSelf%rank()) cycle
 #endif
-             ! Construct a table of barrier values as a function of variance.
+             ! Construct a table of barrier values as a function of variance. The whole table is needed even where solutions are
+             ! carried over, since the recursion below sums over every Sⱼ < Sᵢ.
              do i=0,self%countVariance
                 barrier(i)=excursionSetBarrier_%barrier(self%variance(i),self%time(iTime),node,rateCompute=.false.)
              end do
-             ! Compute the first-crossing rate at the first entry in the table of variances.
-             offsetEffective                       =+self%offsetEffective (self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),0.0_kind_quad,0.0_kind_quad,real(barrier(1),kind_quad),0.0_kind_quad,cosmologicalMassVariance_)
-             varianceResidual                      =+self%varianceResidual(self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),0.0_kind_quad                                                       ,cosmologicalMassVariance_)
-             self%firstCrossingProbability(0,iTime)=+0.0d0
-             self%firstCrossingProbability(1,iTime)=+2.0d0                                                                    &
-                  &                                 *real(                                                                    &
-                  &                                       Error_Function_Complementary(                                       &
-                  &                                                                    +offsetEffective                       &
-                  &                                                                    /sqrt(2.0_kind_quad*varianceResidual)  &
-                  &                                                                   )                                     , &
-                  &                                        kind=kind_dble                                                     &
-                  &                                       )                                                                   &
-                  &                                 /self%varianceStep
+             ! Determine where the solution for this epoch must begin. Where the whole epoch was carried over, only those points
+             ! above the previous variance axis - together with its final point, which was never solved for - remain to be
+             ! found; the first two points are boundary conditions which were carried over with the rest.
+             if (reuseSolutions .and. iTime > int(offsetTime,kind=c_size_t) .and. iTime <= int(offsetTime+countTimePrevious,kind=c_size_t)) then
+                iVarianceStart=max(2_c_size_t,int(countVariancePrevious,kind=c_size_t))
+             else
+                iVarianceStart=2_c_size_t
+                ! Compute the first-crossing rate at the first entry in the table of variances.
+                offsetEffective                       =+self%offsetEffective (self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),0.0_kind_quad,0.0_kind_quad,real(barrier(1),kind_quad),0.0_kind_quad,cosmologicalMassVariance_)
+                varianceResidual                      =+self%varianceResidual(self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),0.0_kind_quad                                                       ,cosmologicalMassVariance_)
+                self%firstCrossingProbability(0,iTime)=+0.0d0
+                self%firstCrossingProbability(1,iTime)=+2.0d0                                                                    &
+                     &                                 *real(                                                                    &
+                     &                                       Error_Function_Complementary(                                       &
+                     &                                                                    +offsetEffective                       &
+                     &                                                                    /sqrt(2.0_kind_quad*varianceResidual)  &
+                     &                                                                   )                                     , &
+                     &                                        kind=kind_dble                                                     &
+                     &                                       )                                                                   &
+                     &                                 /self%varianceStep
+             end if
              ! Iterate over variance, computing the first crossing distribution at each value.
-             do i=2,self%countVariance
+             do i=iVarianceStart,self%countVariance
                 ! Coordinate MPI processes.
 #ifdef USEMPI
                 if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
@@ -887,43 +1010,51 @@ contains
     !!{RST
     Tabulate the excursion set crossing rate.
     !!}
-    use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
+    use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent      , displayMessage, &
           &                         displayUnindent             , verbosityLevelWorking
     use :: Error_Functions , only : Error_Function_Complementary
-    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor      , File_Exists
+    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor     , File_Exists
     use :: Kind_Numbers    , only : kind_dble                   , kind_quad
     use :: MPI_Utilities   , only : mpiBarrier                  , mpiSelf
-    use :: Numerical_Ranges, only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
+    use :: Numerical_Ranges, only : Range_Pinned                , Range_Lattice_Offset , gridSchemePerDecade
     use :: Table_Labels    , only : extrapolationTypeFix
     implicit none
-    class           (excursionSetFirstCrossingFarahi), intent(inout)               :: self
-    double precision                                 , intent(in   )               :: time                             , varianceProgenitor
-    type            (treeNode                       ), intent(inout)               :: node
-    double precision                                 , parameter                   :: varianceMinimumDefault    =1.0d-2
-    double precision                                 , parameter                   :: varianceTolerance         =1.0d-6
-    double precision                                 , parameter                   :: massLarge                 =1.0d16
-    real            (kind=kind_quad                 ), allocatable  , dimension(:) :: firstCrossingRateQuad            , varianceCurrentRateQuad   , &
-         &                                                                            varianceProgenitorRateQuad       , barrierRateQuad
-    double precision                                                               :: barrierRateTest
-    class           (excursionSetBarrierClass       ), pointer                     :: excursionSetBarrier_
-    class           (cosmologicalMassVarianceClass  ), pointer                     :: cosmologicalMassVariance_
+    class           (excursionSetFirstCrossingFarahi), intent(inout)                   :: self
+    double precision                                 , intent(in   )                   :: time                             , varianceProgenitor
+    type            (treeNode                       ), intent(inout)                   :: node
+    double precision                                 , parameter                       :: varianceMinimumDefault    =1.0d-2
+    double precision                                 , parameter                       :: varianceTolerance         =1.0d-6
+    double precision                                 , parameter                       :: massLarge                 =1.0d16
+    real            (kind=kind_quad                 ), allocatable  , dimension(:    ) :: firstCrossingRateQuad            , varianceCurrentRateQuad       , &
+         &                                                                                varianceProgenitorRateQuad       , barrierRateQuad
+    type            (rangeLattice                   )                                  :: latticeVarianceCurrentRate       , latticeTimeRate               , &
+         &                                                                                latticeVarianceMinimumRate
+    double precision                                 , allocatable  , dimension(:,:,:) :: firstCrossingRatePrevious
+    double precision                                 , allocatable  , dimension(:,:  ) :: nonCrossingRatePrevious
+    integer                                                                            :: offsetTimeRate                   , countTimeRatePrevious         , &
+         &                                                                                countTimeRateSolved              , countTimeRateSolvedNonCrossing
+    logical                                                                            :: reuseSolutions                   , reuseSolutionsNonCrossing
+    double precision                                                                   :: barrierRateTest
+    class           (excursionSetBarrierClass       ), pointer                         :: excursionSetBarrier_
+    class           (cosmologicalMassVarianceClass  ), pointer                         :: cosmologicalMassVariance_
 #ifdef USEMPI
-    integer                                                                        :: taskCount
+    integer                                                                            :: taskCount
 #endif
-    logical                                                                        :: makeTable
-    integer         (c_size_t                       )                              :: loopCount                        , loopCountTotal
-    integer                                                                        :: i                                , iTime                     , &
-         &                                                                            iVariance                        , j                         , &
-         &                                                                            iCompute                         , countVarianceCurrentRate
-    double precision                                                               :: timeProgenitor                   , varianceMinimumRate       , &
-         &                                                                            massProgenitor                   , varianceMaximumRateLimit
-    character       (len=64                         )                              :: label
-    type            (varying_string                 )                              :: message
-    type            (lockDescriptor                 )                              :: fileLock
-    real            (kind=kind_quad                 )                              :: crossingFraction                 , barrierProgenitorEffective, &
-         &                                                                            probabilityCrossingPrior         , varianceStepRate          , &
-         &                                                                            barrier                          , growthFactorEffective     , &
-         &                                                                            varianceResidual                 , offsetEffective
+    logical                                                                            :: makeTable
+    integer         (c_size_t                       )                                  :: loopCount                        , loopCountTotal
+    integer                                                                            :: i                                , iTime                         , &
+         &                                                                                iVariance                        , j                             , &
+         &                                                                                iCompute                         , countVarianceCurrentRate
+    double precision                                                                   :: timeProgenitor                   , varianceMinimumRate           , &
+         &                                                                                massProgenitor                   , varianceMaximumRateLimit
+    double precision                                                , dimension(2    ) :: timeSeedRate
+    character       (len=64                         )                                  :: label
+    type            (varying_string                 )                                  :: message
+    type            (lockDescriptor                 )                                  :: fileLock
+    real            (kind=kind_quad                 )                                  :: crossingFraction                 , barrierProgenitorEffective    , &
+         &                                                                                probabilityCrossingPrior         , varianceStepRate              , &
+         &                                                                                barrier                          , growthFactorEffective         , &
+         &                                                                                varianceResidual                 , offsetEffective
 
     ! Note that this solver follows the convention used through Galacticus that σ(M) grows following linear theory. That is:
     !
@@ -981,23 +1112,34 @@ contains
        end if
        makeTable=.not.self%tableInitializedRate.or.(varianceProgenitor > self%varianceMaximumRate*(1.0d0+varianceTolerance)).or.(time < self%timeMinimumRate).or.(time > self%timeMaximumRate)
        if (makeTable.or.self%retabulateRateNonCrossing) then
+          reuseSolutions           =.false.
+          reuseSolutionsNonCrossing=.false.
+          countTimeRatePrevious    =0
+          offsetTimeRate           =0
           if (makeTable) then
-             if (allocated(self%varianceProgenitorRate        )) deallocate(self%varianceProgenitorRate        )
-             if (allocated(self%varianceCurrentRate           )) deallocate(self%varianceCurrentRate           )
-             if (allocated(self%varianceCurrentRateNonCrossing)) deallocate(self%varianceCurrentRateNonCrossing)
-             if (allocated(self%timeRate                      )) deallocate(self%timeRate                      )
-             if (allocated(self%firstCrossingRate             )) deallocate(self%firstCrossingRate             )
-             if (self%tableInitializedRate) then
-                self%timeMinimumRate=min(self%timeMinimumRate,0.5d0*time)
-                self%timeMaximumRate=max(self%timeMaximumRate,2.0d0*time)
-                self%countTimeRate  =int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(self%timeNumberPerDecade))+1
-             else
-                self%timeMinimumRate=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
-                self%timeMaximumRate=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
-                self%timeMinimumRate=min(self%timeMinimumRate,0.5d0*time)
-                self%timeMaximumRate=max(self%timeMaximumRate,2.0d0*time)
-                self%countTimeRate  =max(int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(self%timeNumberPerDecade))+1,2)
-             end if
+             ! Construct the lattices on which the rate tabulation is built, pinning both of the axes which can be pinned so
+             ! that the tabulation - and hence every rate interpolated from it - is independent of the variance and time at
+             ! which it happened to be first requested. The variance axis of the current halo is built by `rateVarianceLattice`,
+             ! which is shared with the subclasses which solve for rates.
+             latticeVarianceCurrentRate=self%rateVarianceLattice(varianceProgenitor)
+             self%varianceMaximumRate  =latticeVarianceCurrentRate%maximum()
+             ! The time axis is logarithmic, with the factor of two safety margin at each end which this class used before being
+             ! pinned, and is anchored to half decades - a whole decade of cosmic time spanning most of the history of the
+             ! universe. Unlike the probability tabulation it is seeded at both ends, over the full range of redshifts, since
+             ! the unpinned code seeded it that way already and so there is no additional cost to weigh.
+             timeSeedRate(1)           =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
+             timeSeedRate(2)           =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
+             latticeTimeRate           =Range_Pinned(                                                   &
+                  &                                                 [time]                           ,  &
+                  &                                                 self%timeNumberPerDecade         ,  &
+                  &                                                 gridSchemePerDecade              ,  &
+                  &                                  marginFactor  =2.0d0                            ,  &
+                  &                                  rangeCurrent  =timeSeedRate                     ,  &
+                  &                                  anchorEvery   =farahiAnchorEvery(self%timeNumberPerDecade,2),  &
+                  &                                  latticeCurrent=self%latticeTimeRate                &
+                  &                                 )
+             self%timeMinimumRate=latticeTimeRate%minimum()
+             self%timeMaximumRate=latticeTimeRate%maximum()
              ! Set the default minimum variance.
              varianceMinimumRate=varianceMinimumDefault
              ! Next reduce the variance if necessary such that the typical amplitude of fluctuations is less (by a factor of 10) than
@@ -1029,23 +1171,70 @@ contains
              <objectDestructor name="excursionSetBarrier_"     />
              <objectDestructor name="cosmologicalMassVariance_"/>
              !!]
-             self%varianceMaximumRate                =self%varianceLimit(varianceProgenitor)
+             ! Pin the minimum variance. It is not a request but a quantity derived from the barrier and from σ(M) at the
+             ! maximum time, so - the maximum time now being pinned - it is already deterministic in exact arithmetic. It is
+             ! pinned nonetheless because the tabulation of σ(M) is not itself pinned, so the value above can move in its final
+             ! bits between runs; both of the axes generated from it are spaced by a rule under which every interior point moves
+             ! when either bound does, so an unpinned bound would leave those axes reproducible only to within that movement.
+             ! The maximum variance is passed alongside it purely to guarantee a range of at least two points, and the safety
+             ! margin is suppressed since the bound is not approached from below by anything.
+             latticeVarianceMinimumRate=Range_Pinned(                                                               &
+                  &                                                 [varianceMinimumRate,self%varianceMaximumRate], &
+                  &                                                 varianceMinimumAnchorsPerDecade               , &
+                  &                                                 gridSchemePerDecade                           , &
+                  &                                  marginFactor  =1.0d0                                         , &
+                  &                                  anchorEvery   =1                                             , &
+                  &                                  latticeCurrent=self%latticeVarianceMinimumRate                 &
+                  &                                 )
+             varianceMinimumRate=latticeVarianceMinimumRate%minimum()
+             ! Determine whether the solutions already found can be carried over. Reuse is possible only where the tabulation is
+             ! extended in time alone: the two transition-spaced variance axes are generated from the pinned bounds above, and
+             ! every one of their interior points moves if either bound moves, so nothing survives a change in either. Where they
+             ! do not move, each epoch is solved independently of every other, and so whole time slices carry over.
+             reuseSolutions=      self%tableInitializedRate                                                               &
+                  &         .and. self%latticeTimeRate           %isDefined  ()                                           &
+                  &         .and. self%latticeVarianceCurrentRate%isDefined  ()                                           &
+                  &         .and. self%latticeVarianceMinimumRate%isDefined  ()                                           &
+                  &         .and. self%latticeVarianceCurrentRate%indexMinimum == latticeVarianceCurrentRate%indexMinimum &
+                  &         .and. self%latticeVarianceCurrentRate%count        == latticeVarianceCurrentRate%count        &
+                  &         .and. self%latticeVarianceMinimumRate%indexMinimum == latticeVarianceMinimumRate%indexMinimum
+             ! The non-crossing rates are tabulated on a different variance axis, but on the same time axis, and so carry over
+             ! under the same conditions - unless the minimum mass at which they are evaluated has changed, which invalidates
+             ! every one of them.
+             reuseSolutionsNonCrossing=reuseSolutions .and. .not.self%retabulateRateNonCrossing
+             if (reuseSolutions) then
+                countTimeRatePrevious=self%latticeTimeRate%count
+                offsetTimeRate       =Range_Lattice_Offset(self%latticeTimeRate,latticeTimeRate)
+                                               call move_alloc(self%firstCrossingRate,firstCrossingRatePrevious)
+                if (reuseSolutionsNonCrossing) call move_alloc(self%nonCrossingRate  ,nonCrossingRatePrevious  )
+             end if
+             if (allocated(self%varianceProgenitorRate        )) deallocate(self%varianceProgenitorRate        )
+             if (allocated(self%varianceCurrentRate           )) deallocate(self%varianceCurrentRate           )
+             if (allocated(self%varianceCurrentRateNonCrossing)) deallocate(self%varianceCurrentRateNonCrossing)
+             if (allocated(self%timeRate                      )) deallocate(self%timeRate                      )
+             if (allocated(self%firstCrossingRate             )) deallocate(self%firstCrossingRate             )
+             self%latticeVarianceCurrentRate         =latticeVarianceCurrentRate
+             self%latticeTimeRate                    =latticeTimeRate
+             self%latticeVarianceMinimumRate         =latticeVarianceMinimumRate
+             self%countTimeRate                      =latticeTimeRate           %count
+             self%countVarianceCurrentRate           =latticeVarianceCurrentRate%count-1
              self%countVarianceProgenitorRate        =int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(self%varianceNumberPerDecade           ))+1
-             self%countVarianceCurrentRate           =int(self%varianceMaximumRate*dble(self%varianceNumberPerUnit))
              self%countVarianceCurrentRateNonCrossing=int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(self%varianceNumberPerDecadeNonCrossing))+1
              allocate(self%varianceProgenitorRate        (0:self%countVarianceProgenitorRate                                                              ))
              allocate(self%varianceCurrentRate           (                                   0:self%countVarianceCurrentRate                              ))
              allocate(self%varianceCurrentRateNonCrossing(                                   0:self%countVarianceCurrentRateNonCrossing                   ))
              allocate(self%timeRate                      (                                                                              self%countTimeRate))
              allocate(self%firstCrossingRate             (0:self%countVarianceProgenitorRate,0:self%countVarianceCurrentRate           ,self%countTimeRate))
-             ! For the variance table, the zeroth point is always zero, higher points are distributed uniformly in variance.
+             ! For the variance table, the zeroth point is always zero, higher points are distributed uniformly in variance. The
+             ! abscissae of the two axes which lie on lattices are taken from those lattices rather than by subdividing their
+             ! ranges, so that they are bit-identical to those of any other tabulation built on the same lattices.
              self%varianceProgenitorRate        (0                                         )=0.0d0
-             self%varianceProgenitorRate        (1:self%countVarianceProgenitorRate        )=self%varianceRange(varianceMinimumRate ,self%varianceMaximumRate,self%countVarianceProgenitorRate          ,exponent =1.0d0              )
-             self%varianceCurrentRate           (0:self%countVarianceCurrentRate           )=Make_Range        (0.0d0               ,self%varianceMaximumRate,self%countVarianceCurrentRate           +1,rangeType=rangeTypeLinear    )
+             self%varianceProgenitorRate        (1:self%countVarianceProgenitorRate        )=self%varianceRange(varianceMinimumRate,self%varianceMaximumRate,self%countVarianceProgenitorRate        ,exponent=1.0d0)
+             self%varianceCurrentRate           (0:self%countVarianceCurrentRate           )=latticeVarianceCurrentRate%values()
              self%varianceCurrentRateNonCrossing(0                                         )=0.0d0
-             self%varianceCurrentRateNonCrossing(1:self%countVarianceCurrentRateNonCrossing)=self%varianceRange(varianceMinimumRate ,self%varianceMaximumRate,self%countVarianceCurrentRateNonCrossing  ,exponent =1.0d0              )
+             self%varianceCurrentRateNonCrossing(1:self%countVarianceCurrentRateNonCrossing)=self%varianceRange(varianceMinimumRate,self%varianceMaximumRate,self%countVarianceCurrentRateNonCrossing,exponent=1.0d0)
              ! The time table is logarithmically distributed in time.
-             self%timeRate                                                                  =Make_Range        (self%timeMinimumRate,self%timeMaximumRate   ,self%countTimeRate                        ,rangeType=rangeTypeLogarithmic)
+             self%timeRate                                                                  =latticeTimeRate           %values()
           end if
           if (allocated(self%nonCrossingRate)) deallocate(self%nonCrossingRate)
           allocate(self%nonCrossingRate(0:self%countVarianceCurrentRateNonCrossing,self%countTimeRate))
@@ -1070,10 +1259,16 @@ contains
 #ifdef USEMPI
           end if
 #endif
-          loopCountTotal   =+int(self%countTimeRate,kind=c_size_t)*int(self%countVarianceCurrentRateNonCrossing+1,kind=c_size_t)
+          ! Count only those epochs which must actually be solved for - those carried over from the previous tabulation are
+          ! skipped below, and counting them would leave the progress report stuck short of completion.
+          countTimeRateSolved           =self%countTimeRate
+          countTimeRateSolvedNonCrossing=self%countTimeRate
+          if (reuseSolutions           ) countTimeRateSolved           =countTimeRateSolved           -countTimeRatePrevious
+          if (reuseSolutionsNonCrossing) countTimeRateSolvedNonCrossing=countTimeRateSolvedNonCrossing-countTimeRatePrevious
+          loopCountTotal   =+int(countTimeRateSolvedNonCrossing,kind=c_size_t)*int(self%countVarianceCurrentRateNonCrossing+1,kind=c_size_t)
           if (makeTable) then
-             loopCountTotal=+loopCountTotal                                                                                      &
-                  &         +int(self%countTimeRate,kind=c_size_t)*int(self%countVarianceCurrentRate           +1,kind=c_size_t)
+             loopCountTotal=+loopCountTotal                                                                                                  &
+                  &         +int(countTimeRateSolved           ,kind=c_size_t)*int(self%countVarianceCurrentRate           +1,kind=c_size_t)
           end if
 #ifdef USEMPI
           if (mpiSelf%isMaster() .and. self%coordinatedMPI_) then
@@ -1123,6 +1318,14 @@ contains
                 allocate(varianceCurrentRateQuad(0:self%countVarianceCurrentRateNonCrossing))
              end if
              do iTime=1,self%countTimeRate
+                ! Skip those epochs whose solutions are carried over from the previous tabulation. The test involves no
+                ! thread-private state, so every thread of the team takes the same branch and the `!$omp do` below is reached by
+                ! all of them or by none.
+                if     (                                                                    &
+                     &        iTime >  offsetTimeRate                                       &
+                     &  .and. iTime <= offsetTimeRate+countTimeRatePrevious                 &
+                     &  .and. merge(reuseSolutions,reuseSolutionsNonCrossing,iCompute == 1) &
+                     & ) cycle
                 if (.not.allocated(firstCrossingRateQuad)) allocate(firstCrossingRateQuad(0:self%countVarianceProgenitorRate))
                 ! Compute a suitable progenitor time.
                 timeProgenitor=self%timeRate(iTime)*(1.0d0-self%fractionalTimeStep)
@@ -1285,6 +1488,17 @@ contains
              self%nonCrossingRate=mpiSelf%sum(self%nonCrossingRate)
           end if
 #endif
+          ! Carry over the solutions already found, into the epochs skipped above. This is done after the reduction over MPI
+          ! processes rather than before the solution: under coordinated MPI each process holds only the epochs it solved for
+          ! and the reduction is a sum over processes, which would otherwise count a carried-over epoch once per process.
+          if (reuseSolutions           ) then
+             self%firstCrossingRate(:,:,offsetTimeRate+1:offsetTimeRate+countTimeRatePrevious)=firstCrossingRatePrevious
+             deallocate(firstCrossingRatePrevious)
+          end if
+          if (reuseSolutionsNonCrossing) then
+             self%nonCrossingRate  (  :,offsetTimeRate+1:offsetTimeRate+countTimeRatePrevious)=nonCrossingRatePrevious
+             deallocate(nonCrossingRatePrevious  )
+          end if
           ! Build the interpolators.
           if (allocated(self%interpolatorVarianceRate                  )) deallocate(self%interpolatorVarianceRate                  )
           if (allocated(self%interpolatorVarianceCurrentRate           )) deallocate(self%interpolatorVarianceCurrentRate           )
@@ -1326,20 +1540,21 @@ contains
     !!{RST
     Read tabulated data on excursion set first crossing probabilities from file.
     !!}
-    use :: Display           , only : displayIndent       , displayMessage  , displayUnindent, verbosityLevelWorking
+    use :: Display           , only : displayIndent       , displayMessage     , displayUnindent, verbosityLevelWorking
     use :: File_Utilities    , only : File_Exists         , File_Name_Expand
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File            , hdf5Group
-    use :: ISO_Varying_String, only : operator(//)        , var_str         , varying_string
+    use :: ISO_Varying_String, only : operator(//)        , var_str            , varying_string
+    use :: Numerical_Ranges  , only : gridSchemePerUnit   , gridSchemePerDecade
     use :: String_Handling   , only : operator(//)
     use :: Table_Labels      , only : extrapolationTypeFix
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)                   :: self
-    double precision                                 , allocatable  , dimension(:    ) :: varianceCurrentTmp           , varianceTmp    , &
+    double precision                                 , allocatable  , dimension(:    ) :: varianceCurrentTmp           , varianceTmp        , &
          &                                                                                varianceCurrentNonCrossingTmp
     double precision                                 , allocatable  , dimension(:,:  ) :: firstCrossingProbabilityTmp  , nonCrossingRate
     double precision                                 , allocatable  , dimension(:,:,:) :: firstCrossingRateTmp
-    double precision                                                                   :: massMinimumRateNonCrossing
+    double precision                                                                   :: massMinimumRateNonCrossing   , varianceMinimumRate
     type            (varying_string                 )                                  :: message
     character       (len=32                         )                                  :: label
 
@@ -1374,13 +1589,29 @@ contains
          self%firstCrossingProbability         (0:self%countVariance,:)=firstCrossingProbabilityTmp(1:self%countVariance+1,:)
          deallocate(varianceTmp                )
          deallocate(firstCrossingProbabilityTmp)
-         ! Set table limits.
-         self%timeMinimum     =+self%time    (                 1)
-         self%timeMaximum     =+self%time    (self%    countTime)
-         self%varianceMaximum =+self%variance(self%countVariance)
-         self%varianceStep    =+self%variance(                 1) &
-              &                -self%variance(                 0)
-         self%tableInitialized=.true.
+         ! Place the restored tabulation on its lattices, and take the abscissae from them rather than from the file so that
+         ! they are bit-identical to those of any other tabulation built on the same lattices. A file which does not record
+         ! lattices, or whose lattices do not match the datasets stored alongside them or the grid densities this object would
+         ! use, is not usable: everything read from it is discarded and the tabulation is rebuilt, rather than leaving a
+         ! partially restored tabulation behind which could neither be extended nor trusted.
+         call farahiLatticeRead(dataGroup,'variance',gridSchemePerUnit  ,self%varianceNumberPerUnitProbability,self%countVariance+1,self%latticeVariance)
+         call farahiLatticeRead(dataGroup,'time'    ,gridSchemePerDecade,self%timeNumberPerDecade             ,self%countTime      ,self%latticeTime    )
+         if (self%latticeVariance%isDefined() .and. self%latticeTime%isDefined()) then
+            self%variance        =self%latticeVariance%values ()
+            self%time            =self%latticeTime    %values ()
+            self%varianceStep    =self%latticeVariance%step   ()
+            self%timeMinimum     =self%latticeTime    %minimum()
+            self%timeMaximum     =self%latticeTime    %maximum()
+            self%varianceMaximum =self%latticeVariance%maximum()
+            self%tableInitialized=.true.
+         else
+            deallocate(self%variance                )
+            deallocate(self%time                    )
+            deallocate(self%firstCrossingProbability)
+            self%tableInitialized=.false.
+         end if
+      end if
+      if (self%tableInitialized) then
          ! Build the interpolators.
          if (allocated(self%interpolatorVariance)) deallocate(self%interpolatorVariance)
          if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )
@@ -1447,11 +1678,43 @@ contains
          deallocate(varianceTmp                  )
          deallocate(varianceCurrentTmp           )
          deallocate(varianceCurrentNonCrossingTmp)
-         ! Set table limits.
-         self%varianceMaximumRate =self%varianceProgenitorRate(self%countVarianceProgenitorRate)
-         self%timeMinimumRate     =self%timeRate              (                               1)
-         self%timeMaximumRate     =self%timeRate              (self%countTimeRate              )
-         self%tableInitializedRate=.true.
+         ! Place the restored tabulation on its lattices, taking the abscissae of the two axes which lie on lattices from those
+         ! lattices rather than from the file, so that they are bit-identical to those of any other tabulation built on the same
+         ! lattices. As for the probability tabulation, a file which does not record the lattices, or whose lattices do not match
+         ! the datasets stored alongside them or the grid densities this object would use, is not usable and everything read from
+         ! it is discarded. The two transition-spaced axes carry no lattice of their own, so they are checked instead against the
+         ! lengths which the pinned bounds imply: were they to disagree, the tabulation could not be extended without moving
+         ! points which the stored solutions were computed at.
+         call farahiLatticeRead(dataGroup,'varianceCurrent',gridSchemePerUnit  ,self%varianceNumberPerUnit     ,self%countVarianceCurrentRate+1,self%latticeVarianceCurrentRate)
+         call farahiLatticeRead(dataGroup,'time'           ,gridSchemePerDecade,self%timeNumberPerDecade       ,self%countTimeRate             ,self%latticeTimeRate           )
+         call farahiLatticeRead(dataGroup,'varianceMinimum',gridSchemePerDecade,varianceMinimumAnchorsPerDecade,lattice=self%latticeVarianceMinimumRate                        )
+         if     (                                                  &
+              &        self%latticeVarianceCurrentRate%isDefined() &
+              &  .and. self%latticeTimeRate           %isDefined() &
+              &  .and. self%latticeVarianceMinimumRate%isDefined() &
+              & ) then
+            self%varianceMaximumRate=self%latticeVarianceCurrentRate%maximum()
+            varianceMinimumRate     =self%latticeVarianceMinimumRate%minimum()
+            self%tableInitializedRate=       self%countVarianceProgenitorRate         == int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(self%varianceNumberPerDecade           ))+1 &
+                 &                    .and.  self%countVarianceCurrentRateNonCrossing == int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(self%varianceNumberPerDecadeNonCrossing))+1
+         else
+            self%tableInitializedRate=.false.
+         end if
+         if (self%tableInitializedRate) then
+            self%varianceCurrentRate=self%latticeVarianceCurrentRate%values ()
+            self%timeRate           =self%latticeTimeRate           %values ()
+            self%timeMinimumRate    =self%latticeTimeRate           %minimum()
+            self%timeMaximumRate    =self%latticeTimeRate           %maximum()
+         else
+            deallocate(self%varianceProgenitorRate        )
+            deallocate(self%varianceCurrentRate           )
+            deallocate(self%varianceCurrentRateNonCrossing)
+            deallocate(self%timeRate                      )
+            deallocate(self%firstCrossingRate             )
+            deallocate(self%nonCrossingRate               )
+         end if
+      end if
+      if (self%tableInitializedRate) then
          ! Build the interpolators.
          if (allocated(self%interpolatorVarianceRate                  )) deallocate(self%interpolatorVarianceRate                  )
          if (allocated(self%interpolatorVarianceCurrentRate           )) deallocate(self%interpolatorVarianceCurrentRate           )
@@ -1520,6 +1783,10 @@ contains
          call dataGroup%writeDataset(self%variance                ,'variance'                ,'The variance at which results are tabulated.'                         )
          call dataGroup%writeDataset(self%time                    ,'time'                    ,'The cosmic times at which results are tabulated.'                     )
          call dataGroup%writeDataset(self%firstCrossingProbability,'firstCrossingProbability','The probability of first crossing as a function of variance and time.')
+         ! Record the lattices alongside the tabulation. The bounds follow from the lattice, but the converse does not, and it
+         ! is the lattice which determines whether what is read back can be extended to cover a new range without recomputation.
+         call farahiLatticeWrite(dataGroup,'variance',self%latticeVariance)
+         call farahiLatticeWrite(dataGroup,'time'    ,self%latticeTime    )
          ! Report.
          message=var_str('write excursion set first crossing probability to: ')//self%fileName
          call displayIndent  (message,verbosityLevelWorking)
@@ -1548,6 +1815,12 @@ contains
          call dataGroup%writeDataset  (self%firstCrossingRate             ,'firstCrossingRate'         ,'The probability rate of first crossing as a function of variances and time.')
          call dataGroup%writeDataset  (self%nonCrossingRate               ,'nonCrossingRate'           ,'The probability rate of non crossing as a function of variance and time.'   )
          call dataGroup%writeAttribute(self%massMinimumRateNonCrossing    ,'massMinimumRateNonCrossing'                                                                              )
+         ! Record the lattices alongside the tabulation. Only two of the four axes lie on a lattice; the third lattice carries no
+         ! tabulated points at all, and records the pinned lower bound from which the remaining two axes are generated. All three
+         ! are needed to establish whether what is read back can be extended without recomputation.
+         call farahiLatticeWrite(dataGroup,'varianceCurrent',self%latticeVarianceCurrentRate)
+         call farahiLatticeWrite(dataGroup,'time'           ,self%latticeTimeRate           )
+         call farahiLatticeWrite(dataGroup,'varianceMinimum',self%latticeVarianceMinimumRate)
          ! Report.
          message=var_str('wrote excursion set first crossing rates to: ')//self%fileName
          call displayIndent  (message,verbosityLevelWorking)
@@ -1571,6 +1844,72 @@ contains
     !$ call hdf5Access%unset()
     return
   end subroutine farahiFileWrite
+
+  subroutine farahiLatticeWrite(dataGroup,axisName,lattice)
+    !!{RST
+    Record the ``rangeLattice`` on which an axis of a stored tabulation is built, as attributes named for that axis.
+    !!}
+    use :: IO_HDF5, only : hdf5Group
+    implicit none
+    type     (hdf5Group   ), intent(inout) :: dataGroup
+    character(len=*       ), intent(in   ) :: axisName
+    type     (rangeLattice), intent(in   ) :: lattice
+
+    call dataGroup%writeAttribute(lattice%scheme%ID   ,axisName//'GridScheme'  )
+    call dataGroup%writeAttribute(lattice%pointsPer   ,axisName//'PointsPer'   )
+    call dataGroup%writeAttribute(lattice%indexMinimum,axisName//'IndexMinimum')
+    call dataGroup%writeAttribute(lattice%count       ,axisName//'Count'       )
+    return
+  end subroutine farahiLatticeWrite
+
+  subroutine farahiLatticeRead(dataGroup,axisName,scheme,pointsPer,countExpected,lattice)
+    !!{RST
+    Restore the ``rangeLattice`` on which an axis of a stored tabulation was built. The lattice is returned undefined---which
+    the caller must treat as the tabulation being unusable---unless the file records one, and that lattice is self-consistent,
+    uses the gridding scheme and density of points which this object would use, and has the same number of points as the
+    datasets stored alongside it. Older files, written before the lattices were recorded, therefore report an undefined lattice
+    rather than being misread.
+
+    ``countExpected`` is omitted for a lattice which carries no tabulated points---one recorded solely to pin a bound---since
+    there is then no dataset whose length it should match.
+    !!}
+    use :: IO_HDF5         , only : hdf5Group
+    use :: Numerical_Ranges, only : enumerationGridSchemeType
+    implicit none
+    type     (hdf5Group                ), intent(inout)           :: dataGroup
+    character(len=*                    ), intent(in   )           :: axisName
+    type     (enumerationGridSchemeType), intent(in   )           :: scheme
+    integer                             , intent(in   )           :: pointsPer
+    integer                             , intent(in   ), optional :: countExpected
+    type     (rangeLattice             ), intent(  out)           :: lattice
+    integer                                                       :: schemeStored , pointsPerStored, &
+         &                                                           indexMinimum , count_
+
+    lattice=rangeLattice()
+    if     (                                                       &
+         &   .not.dataGroup%hasAttribute(axisName//'GridScheme'  ) &
+         &  .or.                                                   &
+         &   .not.dataGroup%hasAttribute(axisName//'PointsPer'   ) &
+         &  .or.                                                   &
+         &   .not.dataGroup%hasAttribute(axisName//'IndexMinimum') &
+         &  .or.                                                   &
+         &   .not.dataGroup%hasAttribute(axisName//'Count'       ) &
+         & ) return
+    call dataGroup%readAttribute(axisName//'GridScheme'  ,schemeStored   )
+    call dataGroup%readAttribute(axisName//'PointsPer'   ,pointsPerStored)
+    call dataGroup%readAttribute(axisName//'IndexMinimum',indexMinimum   )
+    call dataGroup%readAttribute(axisName//'Count'       ,count_         )
+    ! Comparing the stored scheme against the one expected is stronger than merely checking that it is a valid member of the
+    ! enumeration, so no separate validity test is needed.
+    if (enumerationGridSchemeType(schemeStored) /= scheme       ) return
+    if (pointsPerStored                         /= pointsPer    ) return
+    if (present(countExpected)) then
+       if (count_                               /= countExpected) return
+    end if
+    lattice=rangeLattice(enumerationGridSchemeType(schemeStored),pointsPerStored,indexMinimum,count_)
+    if (.not.lattice%isDefined()) lattice=rangeLattice()
+    return
+  end subroutine farahiLatticeRead
 
   function farahiVarianceRange(self,rangeMinimum,rangeMaximum,rangeNumber,exponent) result (rangeValues)
     !!{RST
@@ -1606,19 +1945,116 @@ contains
 
   double precision function farahiVarianceLimit(self,varianceProgenitor)
     !!{RST
-    Return the maximum variance to which to tabulate.
+    Return the maximum variance which the rate tabulation is required to reach for the given progenitor variance.
+
+    Note that this is the variance *requested*, and takes no account of the variance already tabulated: the union with the
+    range in use is taken on the lattice itself, in exact integer arithmetic. Folding it in here instead would apply the
+    safety margin to a bound which had already been given one, so that the tabulated range crept upwards on every retabulation
+    and no solution already found could ever be reused.
     !!}
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout) :: self
     double precision                                 , intent(in   ) :: varianceProgenitor
 
     if (self%varianceIsUnlimited) then
-       farahiVarianceLimit=max(self%varianceMaximumRate,2.0d0*varianceProgenitor)
+       farahiVarianceLimit=2.0d0*varianceProgenitor
     else
-       farahiVarianceLimit=max(self%varianceMaximumRate,      varianceProgenitor)
+       farahiVarianceLimit=      varianceProgenitor
     end if
     return
   end function farahiVarianceLimit
+
+  integer function farahiAnchorEvery(pointsPer,anchorsPer)
+    !!{RST
+    Return the anchor interval, in lattice steps, which comes as close as possible to ``anchorsPer`` anchor points per unit
+    interval of the lattice coordinate while remaining a **divisor** of ``pointsPer``.
+
+    The divisibility is not tidiness, it is correctness. If the anchor interval does not divide the density of points then the
+    whole numbers of the lattice coordinate are not themselves anchor points, and a bound which falls on one---such as a hard
+    physical limit---cannot be reached: the range is pinned to the nearest anchor below it and stops short. That is not
+    hypothetical. With ``varianceNumberPerUnit=32`` the naive interval ``32/10=3`` does not divide ``32``, so the Brownian
+    bridge's limiting variance of :math:`S_2=200` (lattice index 6400, not a multiple of three) became unreachable and its rate
+    tabulation halted one step below it, at 199.96875, with the rate forced to zero across the gap. The maximum relative error
+    of the tabulated rates against the analytic solution rose by eighteen percent as a result.
+
+    The interval returned is the largest divisor of ``pointsPer`` which does not exceed ``pointsPer``/``anchorsPer``, so the
+    anchoring is never coarser than requested---erring, where it cannot match the request exactly, towards less overshoot
+    rather than more.
+    !!}
+    implicit none
+    integer, intent(in   ) :: pointsPer, anchorsPer
+    integer                :: interval
+
+    do interval=max(1,pointsPer/anchorsPer),1,-1
+       if (mod(pointsPer,interval) == 0) then
+          farahiAnchorEvery=interval
+          return
+       end if
+    end do
+    farahiAnchorEvery=1
+    return
+  end function farahiAnchorEvery
+
+  double precision function farahiVarianceLimitHard(self)
+    !!{RST
+    Return a hard upper limit on the variance to which the rate tabulation may extend, beyond which the solution is not merely
+    unnecessary but undefined. There is no such limit for this class, so ``huge(0)`` is returned to indicate its absence---the
+    tabulated range is then bounded only by what is requested, plus the safety margin.
+    !!}
+    implicit none
+    class(excursionSetFirstCrossingFarahi), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    farahiVarianceLimitHard=huge(0.0d0)
+    return
+  end function farahiVarianceLimitHard
+
+  function farahiRateVarianceLattice(self,varianceProgenitor) result(lattice)
+    !!{RST
+    Return the lattice on which the variance of the current halo is tabulated when solving for barrier crossing rates. This
+    axis is linear in variance and begins at zero, so it lies on a ``perUnit`` lattice; zero is included among the target
+    values, and imposed as a hard lower limit as well so that the safety margin cannot carry the range below it. No seed is
+    needed, since every range begins at lattice index zero and so any two of them overlap. The axis is anchored to tenths of a
+    unit for the same reason as the probability tabulation: the progenitor solution at each of its points is a recursion, so
+    the cost is linear in the length of this axis and quadratic in that of the progenitor axis, and whole-unit anchoring on a
+    variance of order unity would be extravagant.
+
+    The maximum variance of this axis sets all three of the variance axes of the rate tabulation, the other two being
+    generated between it and the pinned minimum variance. It is therefore built here, once, rather than separately by each
+    class which solves for rates.
+    !!}
+    use :: Numerical_Ranges, only : Range_Pinned, gridSchemePerUnit
+    implicit none
+    type            (rangeLattice                   )                :: lattice
+    class           (excursionSetFirstCrossingFarahi), intent(inout) :: self
+    double precision                                 , intent(in   ) :: varianceProgenitor
+    double precision                                                 :: varianceMaximumHard
+
+    varianceMaximumHard=self%varianceLimitHard()
+    if (varianceMaximumHard < huge(0.0d0)) then
+       lattice=Range_Pinned(                                                                         &
+            &                              [0.0d0,self%varianceLimit(varianceProgenitor)]          , &
+            &                              self%varianceNumberPerUnit                              , &
+            &                              gridSchemePerUnit                                       , &
+            &               marginOffset  =1.0d0/dble(varianceAnchorsPerUnit)                      , &
+            &               limitMinimum  =0.0d0                                                   , &
+            &               limitMaximum  =varianceMaximumHard                                     , &
+            &               anchorEvery   =farahiAnchorEvery(self%varianceNumberPerUnit,varianceAnchorsPerUnit), &
+            &               latticeCurrent=self%latticeVarianceCurrentRate                           &
+            &              )
+    else
+       lattice=Range_Pinned(                                                                         &
+            &                              [0.0d0,self%varianceLimit(varianceProgenitor)]          , &
+            &                              self%varianceNumberPerUnit                              , &
+            &                              gridSchemePerUnit                                       , &
+            &               marginOffset  =1.0d0/dble(varianceAnchorsPerUnit)                      , &
+            &               limitMinimum  =0.0d0                                                   , &
+            &               anchorEvery   =farahiAnchorEvery(self%varianceNumberPerUnit,varianceAnchorsPerUnit), &
+            &               latticeCurrent=self%latticeVarianceCurrentRate                           &
+            &              )
+    end if
+    return
+  end function farahiRateVarianceLattice
 
   function farahiVarianceResidual(self,time,varianceCurrent,varianceProgenitor,varianceIntermediate,cosmologicalMassVariance_) result(varianceResidual)
     !!{RST
