@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786130986406,
+  "lastUpdate": 1786200320358,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "f6c72d27e56cc28a924e6b2a47ef8d6d68383317",
-          "message": "feat: Expand the functionality of the analysis script\n\nThe script can now assess and update the range of priors needed to encapsulate the span of \"good\" models. An updated configuration file is output suitable for the next iteration of model optimization.",
-          "timestamp": "2024-08-06T10:15:40-07:00",
-          "tree_id": "d27964c7e2c1b8d9c7db2198b5185a0ae2d272ad",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f6c72d27e56cc28a924e6b2a47ef8d6d68383317"
-        },
-        "date": 1722998475937,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
-            "value": 13.9314532875195,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": 6.55374493681816,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
-            "value": 5.00086311282378,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9900,6 +9861,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/64807e850821afdd9d0516390e1dd5bcecd70943"
         },
         "date": 1786130985432,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": 13.931628559877653,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 6.5537414571360415,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": 5.001018626289058,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6703a1e9545f194745f78ccd1e4dc9384ac1ce3d",
+          "message": "Merge pull request #1335 from galacticusorg/pr/farahi-pinning\n\nfeat(excursionSets): pin and reuse the Farahi first crossing tabulations",
+          "timestamp": "2026-08-08T05:00:47Z",
+          "tree_id": "657368afa0a13bcd1b1ffa9d85374a28c66839d4",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6703a1e9545f194745f78ccd1e4dc9384ac1ce3d"
+        },
+        "date": 1786200319776,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
