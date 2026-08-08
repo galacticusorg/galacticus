@@ -522,8 +522,10 @@ contains
              growthFactorDerivativeDarkMatter=(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=2)-transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
              !$ call OMP_Unset_Lock(lockDarkMatter)
              if (self%darkMatterOnlyInitialConditions) then
+                ! Initial conditions are to be taken as those of pure dark matter, so the baryon perturbation begins equal to
+                ! the dark matter perturbation, and grows at the same initial rate.
                 !$ call OMP_Set_Lock  (lockDarkMatter)
-                call self%growthFactor%populate(exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1)),1,j,table=indexDarkMatter)
+                call self%growthFactor%populate(exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1)),1,j,table=indexBaryons   )
                 growthFactorDerivativeBaryons=(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=2)-transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
                 !$ call OMP_Unset_Lock(lockDarkMatter)
              else
@@ -532,9 +534,7 @@ contains
                 growthFactorDerivativeBaryons=(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=2)-transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
                 !$ call OMP_Unset_Lock(lockBaryons   )
              end if
-             ! Take the initial state from the table, exactly as the integration below would have read it back. Note that on the
-             ! `darkMatterOnlyInitialConditions` path the baryon entry is not written above, so that this is zero; that is
-             ! long-standing behaviour and is preserved here deliberately.
+             ! Take the initial state from the table, into which both perturbations have just been written.
              growthFactorODEVariables(1)=self%growthFactor%zv(1,j,indexDarkMatter)
              growthFactorODEVariables(2)=growthFactorDerivativeDarkMatter
              growthFactorODEVariables(3)=self%growthFactor%zv(1,j,indexBaryons   )
