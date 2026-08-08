@@ -2690,6 +2690,10 @@ contains
     allocate(self%xv(xCount                        ))
     allocate(self%yv(yCount                 ))
     allocate(self%zv(xCount,yCount,tableCountActual))
+    ! Initialize the values. A caller is expected to populate every point before interpolating in the table, but a caller which
+    ! omits one - and at least one has - would otherwise read whatever the allocation happened to return, which is not merely
+    ! arbitrary but can differ between one run and the next, and between one point of the table and another.
+    self%zv                  =0.0d0
     self%xv                  =Make_Range(log(xMinimum),log(xMaximum),xCount,rangeType=rangeTypeLinear)
     self%yv                  =Make_Range(log(yMinimum),log(yMaximum),yCount,rangeType=rangeTypeLinear)
     self%inverseDeltaX       =1.0d0/(self%xv(2)-self%xv(1))
