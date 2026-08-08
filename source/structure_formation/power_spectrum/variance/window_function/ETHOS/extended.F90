@@ -278,11 +278,11 @@ contains
     use :: Numerical_Integration, only : integrator
     implicit none
     class           (powerSpectrumWindowFunctionETHOSExtended), intent(inout), target      :: self
-    double precision                                          , intent(in   )              :: wavenumber                    , time
-    double precision                                          , parameter                  :: countPerInterval       =10.0d0
-    double precision                                          , dimension(:) , allocatable :: logWavenumbers                , logPowerSpectra
-    integer                                                                                :: countPoints                   , i
-    double precision                                                                       :: logWavenumberLimitLower       , logWavenumberLimitUpper
+    double precision                                          , intent(in   )              :: wavenumber                   , time
+    double precision                                          , parameter                  :: countPerInterval       =1.0d2
+    double precision                                          , dimension(:) , allocatable :: logWavenumbers               , logPowerSpectra
+    integer                                                                                :: countPoints                  , i
+    double precision                                                                       :: logWavenumberLimitLower      , logWavenumberLimitUpper
     logical                                                                                :: remakeTable
 
     if (.not.allocated(self%powerSpectrumSmoothed) .or. time /= self%timePrevious) then
