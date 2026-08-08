@@ -242,6 +242,7 @@ contains
     use :: Display                                 , only : displayMessage                                     , verbosityLevelStandard
     use :: Galactic_Filters                        , only : filterList                                         , galacticFilterAll                             , galacticFilterHaloIsolated             , galacticFilterHaloNotIsolated                  , &
           &                                                 galacticFilterHostMassRange                        , enumerationPositionTypeType
+    use :: Galactic_Structure_Options              , only : componentTypeAll
     use :: Input_Paths                             , only : inputPath                                          , pathTypeDataStatic
     use :: Interface_Local_Group_DB                , only : comparisonEquals                                   , comparisonLessThan                            , localGroupDB                           , setOperatorIntersection                        , &
           &                                                 setOperatorRelativeComplement                      , setOperatorUnion
@@ -334,7 +335,7 @@ contains
     ! smaller than the uncertainties in these measurements, so no conversion is applied.
     allocate(nodePropertyExtractor_                )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorLuminosityStellar        ('Buser_V','rest',outputTimes_                      )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorLuminosityStellar        ('Buser_V','rest',componentTypeAll,outputTimes_     )"/>
     !!]
     ! Create property operators to convert luminosity to absolute magnitude, and to apply any systematic shift. Since the
     ! binned property is itself the absolute magnitude, the unoperator is the identity.
