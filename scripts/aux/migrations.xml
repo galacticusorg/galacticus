@@ -305,6 +305,11 @@
       <remove/>
     </translation>
   </migration>
+  <migration commit="3d1d472f3d7fccfd1f0b6f047774c01e0ca427eb">
+    <translation xpath="//starFormationRateSurfaceDensityDisks[@value='krumholz2009']/assumeMonotonicSurfaceDensity[@value]">
+      <remove/>
+    </translation>
+  </migration>
   <migration commit="9664f0bc59ca51e262b671cf24853d3ca6213b9c">
     <!-- The `accretionFlowShi2016` dark matter profile class no longer makes use of critical  -->
     <!-- overdensity or cosmological mass variance objects - the peak height which it required -->
