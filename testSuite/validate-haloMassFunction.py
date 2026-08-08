@@ -136,7 +136,7 @@ for key in sorted(aggregates.keys()):
         {
             "name" : "Halo mass function - Likelihood - "+name,
             "unit" : "-logℒ"                                   ,
-            "value": str(np.abs(negativeLogLikelihood))
+            "value": str(negativeLogLikelihood)
         }
     )
     # Stack mass functions over realizations on a common mass grid.
@@ -223,7 +223,7 @@ if group == "SymphonyMilkyWayZ0":
         {
             "name" : "Halo mass function - Likelihood - "+name,
             "unit" : "-logℒ"                                   ,
-            "value": str(np.abs(negativeLogLikelihood))
+            "value": str(negativeLogLikelihood)
         }
     ]
     results     = [
