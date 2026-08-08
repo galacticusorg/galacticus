@@ -241,13 +241,19 @@ def adjustAbundances(abundancesReference,metallicity,dustToMetalsRatio,args):
             abundances[element]['adjustAbundance'](abundances,metallicity*metallicityReference)
     # Apply any adjustments from the command line.
     for adjustment in args.abundanceAdjust:
-        match = re.match('([A-Za-z]+):([\+\-\.0-9]+)',adjustment)
+        match = re.match(r'([A-Za-z]+):([\+\-\.0-9]+)',adjustment)
         if match:
             element =       match.group(1)
             shift   = float(match.group(2))
             abundances[element]['logAbundanceByNumber'] += shift
         else:
             sys.exit(f'can not parse abundance adjustment: {adjustment}')
+    # Apply any shift to the abundances of all α-elements. Like the per-element adjustments above, this is applied prior to the
+    # renormalization that holds the total metallicity fixed, so it shifts the α-elements relative to the other metals (i.e. it
+    # changes the α/Fe-like abundance pattern) at fixed total metallicity.
+    if args.abundanceAdjustAlpha != 0.0:
+        for element in alphaElements:
+            abundances[element]['logAbundanceByNumber'] += args.abundanceAdjustAlpha
     # Renormalize to keep the total metallicity fixed.
     abundancesByMassNew   = np.array(list(map(lambda x: abundances[x]['atomicMass']*10.0**abundances[x]['logAbundanceByNumber'],elements)))
     renormalizationFactor = metallicity*metallicityReference/(1.0-metallicity*metallicityReference)*np.sum(abundancesByMassNew[isNotMetal])/np.sum(abundancesByMassNew[isMetal])
@@ -1302,6 +1308,7 @@ parser.add_argument('--stellarSpectrumMetallicity',default=None            ,acti
 #  but agrees with our internal calculation of this value from their data.'
 parser.add_argument('--dustToMetalsRatio'    ,default='0.401'               ,action='store'      ,type=restricted_float,help='set the dust-to-metals ratio (ξ; https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G).'                             )
 parser.add_argument('--abundanceAdjust'      ,default=[]                    ,action='append'                           ,help='specify an adjustment to the abundance of an element, e.g. `S:0.2` would increase the abundance of sulfur by 0.2 dex.')
+parser.add_argument('--abundanceAdjustAlpha' ,default=0.0                   ,action='store'      ,type=restricted_float,help='specify a shift (in dex) to apply to the abundances of all α-elements (O, Ne, Mg, Si, S, Ar, Ca, Ti), e.g. `0.2` would increase all α-element abundances by 0.2 dex. As for `--abundanceAdjust`, the total metallicity is held fixed, so this changes the α/Fe-like abundance pattern.')
 parser.add_argument('--stopOuterRadius'                                     ,action='store_true'                       ,help='set Cloudy to stop at the cloud outer radius'                                                                         )
 parser.add_argument('--stopElectronFraction' ,default='0.01'                ,action='store'      ,type=restricted_float,help='set the elctron fraction at which to stop the Cloudy models'                                                          )
 parser.add_argument('--stopLymanOpticalDepth',default='10.0'                ,action='store'      ,type=restricted_float,help='set the Lyman optical depth at which to stop the Cloudy models'                                                       )
@@ -1374,6 +1381,10 @@ mega                          = 1.0000000000000e+06
 joulesPerErg                  = 1.0000000000000e-07
 secondsPerGyr                 = 3.1557600000000e-16
 unitsIntensity                = joulesPerErg*hecto**2
+
+# Define the set of α-elements (i.e. those whose most abundant isotopes are built from integer numbers of α-particles). These are
+# the elements whose abundances are shifted together by the `--abundanceAdjustAlpha` option.
+alphaElements = [ "O", "Ne", "Mg", "Si", "S", "Ar", "Ca", "Ti" ]
 
 # Specify abundances and depletion model. This is based upon the work by Gutkin, Charlot & Bruzual (2016;
 # https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G).
