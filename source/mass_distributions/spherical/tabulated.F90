@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson. The pinning of the tabulation ranges to absolute lattices for issue
+  !+    #1317 was drafted with assistance from Claude, and reviewed and verified by Andrew Benson.
+
   !!{RST
   Implementation of an abstract mass distribution class for tabulated spherically symmetric distributions.
   !!}
 
-  use, intrinsic :: ISO_C_Binding, only : c_size_t
+  use, intrinsic :: ISO_C_Binding  , only : c_size_t
+  use            :: Numerical_Ranges, only : rangeLattice
 
   !![
   <massDistribution name="massDistributionSphericalTabulated" abstract="yes" docformat="rst">
@@ -91,18 +95,34 @@
   </enumeration>
   !!]
   
+  ! Every axis of these tabulations is pinned to a lattice of points per *octave*, with its bounds rounded outward to whole
+  ! octaves. The octave is the natural interval here: the tabulated quantities are functions of scale-free radii and of
+  ! dimensionless shape parameters, all of which the tabulation brackets by a factor of two on either side of a request - which
+  ! is exactly one anchor interval, so the pinning costs nothing beyond the margin that was already being applied. It is also
+  ! the interval on which these tabulations were already, in effect, being built: an accumulated cache of
+  ! `SIDM_parametric_profile` tabulations has all four of its axes spanning whole numbers of octaves at exactly six points per
+  ! octave, so pinning to this lattice reproduces those tabulations point for point rather than rebuilding them on a shifted
+  ! grid. Anchoring to whole decades instead would inflate a three-dimensional table of that size fourfold.
   type :: massDistributionTabulation
      !!{RST
      Object used to store individual mass distribution tabulations.
+
+     The extent of a tabulation is specified by the absolute lattices ``latticeRadius`` and ``latticeParameters``: these are
+     the source of truth for it, and the minima, maxima and point counts are derived from them. Since a lattice is fixed by
+     its gridding scheme and density of points alone, two tabulations of the same quantity have identical abscissae wherever
+     they overlap, no matter what sequence of requests built each.
      !!}
      type            (enumerationQuantityType)                                   :: quantity
-     logical                                                                     :: logTransform         , isNegative
-     double precision                                                            :: radiusMinimum        , radiusMaximum    , &
-          &                                                                         radiusInverseStep
-     double precision                          , allocatable, dimension(:      ) :: parametersMinimum    , parametersMaximum, &
-          &                                                                         parametersInverseStep
-     integer         (c_size_t                )                                  :: radiusCountPer       , countRadii
-     integer         (c_size_t                ), allocatable, dimension(:      ) :: parametersCountPer   , countParameters
+     logical                                                                     :: logTransform            =.false.    , isNegative       =.false.
+     double precision                                                            :: radiusMinimum           =0.0d0      , radiusMaximum    =0.0d0
+     double precision                          , allocatable, dimension(:      ) :: parametersMinimum                   , parametersMaximum
+     ! Flags recording, per parameter, that the corresponding bound has reached the hard limit imposed on it, so that a request
+     ! beyond that bound cannot be met by extending the tabulation and must instead be met by extrapolation.
+     logical                                   , allocatable, dimension(:      ) :: parametersAtLimitMinimum            , parametersAtLimitMaximum
+     integer         (c_size_t                )                                  :: radiusCountPer          =0_c_size_t, countRadii       =0_c_size_t
+     integer         (c_size_t                ), allocatable, dimension(:      ) :: parametersCountPer                  , countParameters
+     type            (rangeLattice            )                                  :: latticeRadius
+     type            (rangeLattice            ), allocatable, dimension(:      ) :: latticeParameters
      double precision                          , allocatable, dimension(:,:,:,:) :: table
   end type massDistributionTabulation
 
@@ -113,18 +133,18 @@
      type            (varying_string            ), allocatable, dimension(:) :: nameParameters        , descriptionParameters
      double precision                            , allocatable, dimension(:) :: parametersMinimumLimit, parametersMaximumLimit
      ! Tabulations for individual quantities.
-     type            (massDistributionTabulation)                            :: mass                      =massDistributionTabulation(quantityMass                      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
-     type            (massDistributionTabulation)                            :: radiusEnclosingDensity    =massDistributionTabulation(quantityRadiusEnclosingDensity    ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
-     type            (massDistributionTabulation)                            :: potential                 =massDistributionTabulation(quantityPotential                 ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
-     type            (massDistributionTabulation)                            :: energy                    =massDistributionTabulation(quantityEnergy                    ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
-     type            (massDistributionTabulation)                            :: fourierTransform          =massDistributionTabulation(quantityFourierTransform          ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
-     type            (massDistributionTabulation)                            :: radiusFreefall            =massDistributionTabulation(quantityRadiusFreefall            ,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
-     type            (massDistributionTabulation)                            :: radiusFreefallIncreaseRate=massDistributionTabulation(quantityRadiusFreefallIncreaseRate,.false.,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
-     type            (massDistributionTabulation)                            :: densityRadialMoment0      =massDistributionTabulation(quantityDensityRadialMoment0      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
-     type            (massDistributionTabulation)                            :: densityRadialMoment1      =massDistributionTabulation(quantityDensityRadialMoment1      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
-     type            (massDistributionTabulation)                            :: densityRadialMoment2      =massDistributionTabulation(quantityDensityRadialMoment2      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
-     type            (massDistributionTabulation)                            :: densityRadialMoment3      =massDistributionTabulation(quantityDensityRadialMoment3      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
-     type            (massDistributionTabulation)                            :: velocityDispersion1D      =massDistributionTabulation(quantityVelocityDispersion1D      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
+     type            (massDistributionTabulation)                            :: mass                      =massDistributionTabulation(quantity=quantityMass                      ,logTransform=.true. )
+     type            (massDistributionTabulation)                            :: radiusEnclosingDensity    =massDistributionTabulation(quantity=quantityRadiusEnclosingDensity    ,logTransform=.false.)
+     type            (massDistributionTabulation)                            :: potential                 =massDistributionTabulation(quantity=quantityPotential                 ,logTransform=.false.)
+     type            (massDistributionTabulation)                            :: energy                    =massDistributionTabulation(quantity=quantityEnergy                    ,logTransform=.false.)
+     type            (massDistributionTabulation)                            :: fourierTransform          =massDistributionTabulation(quantity=quantityFourierTransform          ,logTransform=.false.)
+     type            (massDistributionTabulation)                            :: radiusFreefall            =massDistributionTabulation(quantity=quantityRadiusFreefall            ,logTransform=.false.)
+     type            (massDistributionTabulation)                            :: radiusFreefallIncreaseRate=massDistributionTabulation(quantity=quantityRadiusFreefallIncreaseRate,logTransform=.false.)
+     type            (massDistributionTabulation)                            :: densityRadialMoment0      =massDistributionTabulation(quantity=quantityDensityRadialMoment0      ,logTransform=.true. )
+     type            (massDistributionTabulation)                            :: densityRadialMoment1      =massDistributionTabulation(quantity=quantityDensityRadialMoment1      ,logTransform=.true. )
+     type            (massDistributionTabulation)                            :: densityRadialMoment2      =massDistributionTabulation(quantity=quantityDensityRadialMoment2      ,logTransform=.true. )
+     type            (massDistributionTabulation)                            :: densityRadialMoment3      =massDistributionTabulation(quantity=quantityDensityRadialMoment3      ,logTransform=.true. )
+     type            (massDistributionTabulation)                            :: velocityDispersion1D      =massDistributionTabulation(quantity=quantityVelocityDispersion1D      ,logTransform=.true. )
    contains
      !![
      <methods docformat="rst">
@@ -545,27 +565,37 @@ contains
     use :: Display                     , only : displayIndent      , displayUnindent    , displayMessage, verbosityLevelWorking, &
          &                                      displayCounter     , displayCounterClear
     use :: Numerical_Constants_Prefixes, only : siFormat
+    use :: Numerical_Ranges            , only : Range_Lattice_Offset
     implicit none
-    class           (massDistributionSphericalTabulated )                , intent(inout) :: self
-    double precision                                                     , intent(in   ) :: radiusScaled
-    double precision                                     , dimension(:  ), intent(in   ) :: parameters
-    type            (massDistributionContainer          )                , intent(inout) :: container
-    type            (massDistributionTabulation         )                , intent(inout) :: tabulation
-    class           (massDistributionSphericalTabulated ), save          , pointer       :: instance
-    type            (kinematicsDistributionCollisionless), save          , pointer       :: instanceKinematicsDistribution
+    class           (massDistributionSphericalTabulated )                    , intent(inout) :: self
+    double precision                                                         , intent(in   ) :: radiusScaled
+    double precision                                     , dimension(:     ), intent(in   ) :: parameters
+    type            (massDistributionContainer          )                    , intent(inout) :: container
+    type            (massDistributionTabulation         )                    , intent(inout) :: tabulation
+    class           (massDistributionSphericalTabulated ), save              , pointer       :: instance
+    type            (kinematicsDistributionCollisionless), save              , pointer       :: instanceKinematicsDistribution
     !$omp threadprivate(instance,instanceKinematicsDistribution)
-    double precision                                     , dimension(:  ), allocatable   :: parameters_                   , parametersReduced_
-    integer         (c_size_t                           ), dimension(:  ), allocatable   :: iParameters
-    integer         (c_size_t                           )                                :: lengthMaximum                 , iRadius             , &
-         &                                                                                  iterationCount                , iterationCountTotal , &
-         &                                                                                  i
-    double precision                                                                     :: radius_                       , quantity_           , &
-         &                                                                                  time_                         , wavenumber_         , &
-         &                                                                                  radiusOuter_                  , density_
-    logical                                                                              :: workRemains
-    type            (multiCounter                       )                                :: counter
-    character       (len= 8                             )                                :: labelLower                    , labelUpper
-    character       (len=64                             )                                :: labelSize
+    double precision                                     , dimension(:     ), allocatable   :: parameters_                   , parametersReduced_    , &
+         &                                                                                     valuesRadius
+    double precision                                     , dimension(:,:   ), allocatable   :: valuesParameters
+    double precision                                     , dimension(:,:,:,:), allocatable  :: tablePrevious
+    integer         (c_size_t                           ), dimension(:     ), allocatable   :: iParameters
+    type            (rangeLattice                       ), dimension(:     ), allocatable   :: latticeParametersNew
+    type            (rangeLattice                       )                                   :: latticeRadiusNew
+    integer         (c_size_t                           ), dimension(4     )                :: countsNew                     , countsPrevious        , &
+         &                                                                                     offsets                       , iTable
+    integer         (c_size_t                           )                                   :: lengthMaximum                 , iRadius               , &
+         &                                                                                     iterationCount                , iterationCountTotal   , &
+         &                                                                                     i                             , countParameters_      , &
+         &                                                                                     iParameter
+    double precision                                                                        :: radius_                       , quantity_             , &
+         &                                                                                     time_                         , wavenumber_           , &
+         &                                                                                     radiusOuter_                  , density_
+    logical                                                                                 :: workRemains                   , carryOver             , &
+         &                                                                                     carryOverRadiusComplete       , isCarriedParameters
+    type            (multiCounter                       )                                   :: counter
+    character       (len= 8                             )                                   :: labelLower                    , labelUpper
+    character       (len=64                             )                                   :: labelSize
 
     ! Test if within current tabulation range.
     if (retabulate()) then
@@ -594,28 +624,85 @@ contains
             ! Test if within current tabulation range.
             if (retabulate()) then
                call displayIndent("tabulating "//enumerationQuantityDecode(tabulation%quantity)//" profile for '"//char(self%objectType())//"'",verbosityLevelWorking)
-               ! Construct radius and parameter ranges.
-               tabulation%radiusMinimum        =min(tabulation%radiusMinimum    ,0.5d0*radiusScaled)
-               tabulation%radiusMaximum        =max(tabulation%radiusMaximum    ,2.0d0*radiusScaled)
-               tabulation%parametersMinimum    =max(min(tabulation%parametersMinimum,0.5d0*parameters  ),container%parametersMinimumLimit)
-               tabulation%parametersMaximum    =min(max(tabulation%parametersMaximum,2.0d0*parameters  ),container%parametersMaximumLimit)
-               tabulation%countRadii           =int(log10(    tabulation%radiusMaximum/tabulation%    radiusMinimum)*dble(    tabulation%radiusCountPer),kind=c_size_t)+1_c_size_t
-               tabulation%countParameters      =int(log10(tabulation%parametersMaximum/tabulation%parametersMinimum)*dble(tabulation%parametersCountPer),kind=c_size_t)+1_c_size_t
-               tabulation%radiusInverseStep    =dble(tabulation%countRadii     -1_c_size_t)/log(tabulation%    radiusMaximum/tabulation%    radiusMinimum)
-               tabulation%parametersInverseStep=dble(tabulation%countParameters-1_c_size_t)/log(tabulation%parametersMaximum/tabulation%parametersMinimum)
-               if (allocated(tabulation%table)) deallocate(tabulation%table)
-               select case(size(tabulation%countParameters))
-               case (0)
-                  allocate(tabulation%table(tabulation%countRadii,1                            ,1                            ,1                            ))
-               case (1)
-                  allocate(tabulation%table(tabulation%countRadii,tabulation%countParameters(1),1                            ,1                            ))
-               case (2)
-                  allocate(tabulation%table(tabulation%countRadii,tabulation%countParameters(1),tabulation%countParameters(2),1                            ))
-               case (3)
-                  allocate(tabulation%table(tabulation%countRadii,tabulation%countParameters(1),tabulation%countParameters(2),tabulation%countParameters(3)))
-               case default
-                  call Error_Report('rank not supported'//{introspection:location})
-               end select
+               ! Construct the radius and parameter ranges, pinning each to an absolute lattice so that the points evaluated -
+               ! and therefore every value interpolated between them - depend only on which lattice points are spanned, and not
+               ! on the sequence of values which happened to be requested. Each request is passed as the target and the range
+               ! already tabulated is unioned in through `latticeCurrent`; folding the latter into the target instead - as the
+               ! `min`/`max` against the current bounds formerly did - would apply the factor-of-two margin to an already
+               ! margined bound and so ratchet the range outward on every retabulation.
+               countParameters_=size(tabulation%countParameters,kind=c_size_t)
+               if (countParameters_ > 3_c_size_t) call Error_Report('rank not supported'//{introspection:location})
+               latticeRadiusNew=sphericalTabulatedLatticeAxis(radiusScaled,tabulation%radiusCountPer,-huge(0.0d0),+huge(0.0d0),tabulation%latticeRadius)
+               allocate(latticeParametersNew(countParameters_))
+               do i=1,countParameters_
+                  latticeParametersNew(i)=sphericalTabulatedLatticeAxis(                                           &
+                       &                                                parameters                            (i), &
+                       &                                                tabulation%parametersCountPer         (i), &
+                       &                                                container %parametersMinimumLimit     (i), &
+                       &                                                container %parametersMaximumLimit     (i), &
+                       &                                                tabulation%latticeParameters          (i)  &
+                       &                                               )
+               end do
+               ! Record where the tabulation already in hand sits within the extended one, so that the values it holds can be
+               ! carried over. Every offset is found in exact integer arithmetic from the lattice indices, so no abscissa is
+               ! compared.
+               carryOver=allocated(tabulation%table) .and. tabulation%latticeRadius%isDefined()
+               do i=1,countParameters_
+                  carryOver=carryOver .and. tabulation%latticeParameters(i)%isDefined()
+               end do
+               offsets       =0_c_size_t
+               countsPrevious=1_c_size_t
+               countsNew     =1_c_size_t
+               countsNew (1)                   =latticeRadiusNew                      %count
+               countsNew (2:1+countParameters_)=latticeParametersNew(1:countParameters_)%count
+               if (carryOver) then
+                  offsets       (1)                   =int(Range_Lattice_Offset(tabulation%latticeRadius,latticeRadiusNew),kind=c_size_t)
+                  countsPrevious(1)                   =tabulation%latticeRadius%count
+                  do i=1,countParameters_
+                     offsets       (i+1)              =int(Range_Lattice_Offset(tabulation%latticeParameters(i),latticeParametersNew(i)),kind=c_size_t)
+                     countsPrevious(i+1)              =tabulation%latticeParameters(i)%count
+                  end do
+                  call Move_Alloc(tabulation%table,tablePrevious)
+               end if
+               ! Adopt the new lattices, and recover from them every quantity which describes the extent of the tabulation, so
+               ! that a tabulation reached by extension cannot come to be described differently from one built in a single pass.
+               tabulation%latticeRadius              =latticeRadiusNew
+               tabulation%latticeParameters          =latticeParametersNew
+               tabulation%radiusMinimum              =latticeRadiusNew%minimum()
+               tabulation%radiusMaximum              =latticeRadiusNew%maximum()
+               tabulation%countRadii                 =countsNew(1)
+               do i=1,countParameters_
+                  tabulation%parametersMinimum    (i)=latticeParametersNew(i)%minimum()
+                  tabulation%parametersMaximum    (i)=latticeParametersNew(i)%maximum()
+                  tabulation%countParameters      (i)=countsNew(i+1)
+               end do
+               call sphericalTabulatedLimitsFlag(container,tabulation)
+               ! Take the abscissae from the lattices. They must come from there, and never from an exponentiation open-coded
+               ! here: the lattice evaluates them through a single, deliberately un-inlined path, so that a given lattice point
+               ! is bit-identical between one tabulation and another regardless of how many points each spans.
+               valuesRadius=latticeRadiusNew%values()
+               allocate(valuesParameters(maxval(countsNew(2:4)),max(countParameters_,1_c_size_t)))
+               valuesParameters=0.0d0
+               do i=1,countParameters_
+                  valuesParameters(1:countsNew(i+1),i)=latticeParametersNew(i)%values()
+               end do
+               ! Allocate the table, and carry over the block of values already computed. The trailing dimensions of the table
+               ! are of extent 1 where they are unused, in both the previous table and the new one, so the assignment below is
+               ! correct at every rank without a rank-by-rank case.
+               allocate(tabulation%table(countsNew(1),countsNew(2),countsNew(3),countsNew(4)))
+               tabulation%table=0.0d0
+               if (carryOver) then
+                  tabulation%table(                                                       &
+                       &           offsets(1)+1:offsets(1)+countsPrevious(1),              &
+                       &           offsets(2)+1:offsets(2)+countsPrevious(2),              &
+                       &           offsets(3)+1:offsets(3)+countsPrevious(3),              &
+                       &           offsets(4)+1:offsets(4)+countsPrevious(4)               &
+                       &          )=tablePrevious
+                  deallocate(tablePrevious)
+               end if
+               carryOverRadiusComplete= carryOver                                    &
+                    &                  .and. offsets       (1) == 0_c_size_t         &
+                    &                  .and. countsPrevious(1) == countsNew     (1)
                ! Report on tabulation.
                lengthMaximum=max(12,maxval(len(container%nameParameters)))
                write (labelLower,'(e8.2)') tabulation%radiusMinimum
@@ -631,25 +718,49 @@ contains
                labelSize=siFormat(dble(sizeof(tabulation%table)),'f8.2,1x')
                message="tabulation size = "//trim(adjustl(labelSize))//"B"
                call displayMessage(message,verbosityLevelWorking)
-               ! Iterate over parameters.
+               ! Iterate over parameters. Where the whole radius axis is carried over, a parameter state which also lies within
+               ! the carried block does no work at all, and so is not counted here.
                iterationCount     =0_c_size_t
-               iterationCountTotal=product(tabulation%countParameters)
+               if (carryOverRadiusComplete) then
+                  iterationCountTotal=product(countsNew(2:4))-product(countsPrevious(2:4))
+               else
+                  iterationCountTotal=product(countsNew(2:4))
+               end if
+               iterationCountTotal=max(iterationCountTotal,1_c_size_t)
                ! Tabulate in parallel.
-               !$omp parallel private(iRadius,radius_,time_,radiusOuter_,wavenumber_,density_,coordinates,coordinatesZeroPoint,quantity_,iParameters,parameters_,parametersReduced_,workRemains,counter)
+               !$omp parallel private(iRadius,radius_,time_,radiusOuter_,wavenumber_,density_,coordinates,coordinatesZeroPoint,quantity_,iParameters,iParameter,iTable,parameters_,parametersReduced_,workRemains,counter,isCarriedParameters)
                ! This is a new thread, so mark it as tabulating.
                tabulating         =.true.
-               ! Initialize the counter and iterate over parameter states.
+               ! Initialize the counter and iterate over parameter states. Note that the counter is private to each thread but
+               ! is incremented in lockstep by all of them, so that the decision to skip a parameter state below is uniform
+               ! across the team - as it must be, since the loop over radii which follows it is a worksharing construct.
                counter            =multiCounter(tabulation%countParameters)
                do while (.true.)
                   !$omp barrier
                   workRemains=counter%increment()
                   if (.not.workRemains) exit
+                  iParameters   =counter%states()
+                  ! Determine whether this parameter state lies within the block of values carried over from the tabulation
+                  ! already in hand, and skip it entirely if it does and the radius axis was carried over complete.
+                  isCarriedParameters=carryOver
+                  do iParameter=1,countParameters_
+                     isCarriedParameters=      isCarriedParameters                                                                            &
+                          &               .and. iParameters(iParameter) >  offsets(iParameter+1)                                              &
+                          &               .and. iParameters(iParameter) <= offsets(iParameter+1)+countsPrevious(iParameter+1)
+                  end do
+                  if (isCarriedParameters .and. carryOverRadiusComplete) cycle
                   !$omp masked
                   call displayCounter(int(100.0d0*dble(iterationCount)/dble(iterationCountTotal)),iterationCount==0,verbosityLevelWorking)
                   iterationCount=iterationCount+1_c_size_t
                   !$omp end masked
-                  iParameters   =counter%states()
-                  parameters_   =exp(log(tabulation%parametersMinimum)+dble(iParameters-1_c_size_t)/tabulation%parametersInverseStep)
+                  if (.not.allocated(parameters_)) allocate(parameters_(countParameters_))
+                  do iParameter=1,countParameters_
+                     parameters_(iParameter)=valuesParameters(iParameters(iParameter),iParameter)
+                  end do
+                  ! Record the position of this parameter state within the table. The trailing indices are unity where the
+                  ! corresponding dimension is unused.
+                  iTable        =1_c_size_t
+                  iTable(2:1+countParameters_)=iParameters(1:countParameters_)
                   ! Call the factory function in the child class to get an instance built with the current parameters.
                   select case (tabulation%quantity%ID)
                   case (quantityFourierTransform%ID)
@@ -678,7 +789,14 @@ contains
                   ! Iterate over scaled radii.
                   !$omp do schedule(dynamic)
                   do iRadius=1,tabulation%countRadii
-                     radius_             =exp(log(tabulation%radiusMinimum)+dble(iRadius-1_c_size_t)/tabulation%radiusInverseStep)
+                     ! Skip the values carried over from the tabulation already in hand - evaluating them again would merely
+                     ! reproduce them, at the cost of a numerical solution apiece.
+                     if     (                                                                     &
+                          &        isCarriedParameters                                            &
+                          &  .and. iRadius >  offsets(1)                                          &
+                          &  .and. iRadius <= offsets(1)+countsPrevious(1)                        &
+                          & ) cycle
+                     radius_             =valuesRadius(iRadius)
                      time_               = radius_
                      wavenumber_         = radius_
                      density_            = radius_
@@ -721,18 +839,8 @@ contains
                      ! If logarithmic interpolation is requested, log-transform now.
                      if (tabulation%logTransform) quantity_=+log(quantity_)
                      ! Store the quantity.
-                     select case(size(tabulation%countParameters))
-                     case (0)
-                        tabulation%table(iRadius,1             ,1             ,1             )=quantity_
-                     case (1)
-                        tabulation%table(iRadius,iParameters(1),1             ,1             )=quantity_
-                     case (2)
-                        tabulation%table(iRadius,iParameters(1),iParameters(2),1             )=quantity_
-                     case (3)
-                        tabulation%table(iRadius,iParameters(1),iParameters(2),iParameters(3))=quantity_
-                     case default
-                        call Error_Report('rank not supported'//{introspection:location})
-                     end select
+                     iTable(1)=iRadius
+                     tabulation%table(iTable(1),iTable(2),iTable(3),iTable(4))=quantity_
                   end do
                   !$omp end do
                   deallocate(instance)
@@ -759,18 +867,24 @@ contains
     logical function retabulate()
       !!{RST
       Test if the mass profile must be retabulated.
+
+      A request which lies beyond a parameter bound calls for a retabulation only if that bound can actually be moved. A bound
+      which has reached its hard limit cannot: the limit is imposed by snapping the bound *inward* to a lattice point, so the
+      bound stops marginally short of the limit and a request in between would otherwise ask for a retabulation which
+      reproduced exactly the same range - on every evaluation, each taking the file lock and rewriting the stored tabulation.
+      Such requests are met by the flat extrapolation which the interpolation performs beyond the ends of the table.
       !!}
       implicit none
-      
+
       retabulate=.not.allocated(tabulation%table)
-      if (.not.retabulate)                                                                                                                       &
-           &  retabulate=     radiusScaled < tabulation%radiusMinimum                                                                            &
-           &             .or.                                                                                                                    &
-           &                  radiusScaled > tabulation%radiusMaximum                                                                            &
-           &             .or.                                                                                                                    &
-           &              any(parameters   < tabulation%parametersMinimum .and. tabulation%parametersMinimum > container%parametersMinimumLimit) &
-           &             .or.                                                                                                                    &
-           &              any(parameters   > tabulation%parametersMaximum .and. tabulation%parametersMaximum < container%parametersMaximumLimit)
+      if (.not.retabulate)                                                                                       &
+           &  retabulate=     radiusScaled < tabulation%radiusMinimum                                            &
+           &             .or.                                                                                    &
+           &                  radiusScaled > tabulation%radiusMaximum                                            &
+           &             .or.                                                                                    &
+           &              any(parameters   < tabulation%parametersMinimum .and. .not.tabulation%parametersAtLimitMinimum) &
+           &             .or.                                                                                    &
+           &              any(parameters   > tabulation%parametersMaximum .and. .not.tabulation%parametersAtLimitMaximum)
       return
     end function retabulate
 
@@ -792,20 +906,38 @@ contains
     integer         (c_size_t                          )                                :: iRadius     , jRadius
     type            (multiCounter                      )                                :: counter
 
-    ! Compute interpolating factors. In each dimension the node index is clamped to the interior range [1,count-1] so that the
-    ! pair of nodes spanning the interpolation interval always exists, and the interpolation weight is clamped to [0,1]. For
-    ! points within the tabulated range this performs ordinary linear interpolation (including across the final bin, up to the
-    ! last node); for points outside the range (which can occur for the parameters once the tabulation limits have been
-    ! reached) it performs fixed extrapolation using the edge value. Both behaviors are continuous across the table boundaries,
+    ! Compute interpolating factors. Along each axis the position of the value is found as its coordinate on the absolute
+    ! lattice - a quantity which depends only on the value and on the density of lattice points, never on which part of the
+    ! lattice this particular tabulation happens to span - and is split there into the index of the lattice point below it and
+    ! the fractional position within the interval. Only then is the index of the first tabulated point subtracted, in exact
+    ! integer arithmetic.
+    !
+    ! Doing it in that order is what makes the interpolation invariant under extension of the tabulation. Forming the position
+    ! relative to the first tabulated point *before* taking its fractional part would not be: the subtraction is exact, but the
+    ! fractional part is then extracted from a number whose magnitude depends on where the range begins, and so is rounded to a
+    ! coarser grid the further from the lattice origin that is. Extending the range downward would then perturb every
+    ! interpolated value in the last few bits, which is precisely the sequence dependence this tabulation exists to remove.
+    !
+    ! Beyond the ends of the table - which can happen for a parameter whose bound has reached its hard limit - the index is
+    ! confined to the interior range [1,count-1], so that the pair of nodes spanning the interval always exists, and the weight
+    ! is set to the nearer end, giving fixed extrapolation from the edge value. That is continuous across the table boundary,
     ! which matters for iterative solvers that evaluate the distribution as they converge.
     allocate(hParameters(2,size(parameters)))
     allocate(iParameters(  size(parameters)))
-    hRadius    (2  )=log(radiusScaled/tabulation%radiusMinimum    )*tabulation%radiusInverseStep    +1.0d0
-    hParameters(2,:)=log(parameters  /tabulation%parametersMinimum)*tabulation%parametersInverseStep+1.0d0
-    iRadius         =min(max(int(hRadius    (2  ),kind=c_size_t),1_c_size_t),tabulation%countRadii     -1_c_size_t)
-    iParameters     =min(max(int(hParameters(2,:),kind=c_size_t),1_c_size_t),tabulation%countParameters-1_c_size_t)
-    hRadius    (2  )=min(max(hRadius    (2  )-dble(iRadius    ),0.0d0),1.0d0)
-    hParameters(2,:)=min(max(hParameters(2,:)-dble(iParameters),0.0d0),1.0d0)
+    hRadius    (2  )=log(radiusScaled)/log(2.0d0)*dble(tabulation%radiusCountPer    )
+    hParameters(2,:)=log(parameters  )/log(2.0d0)*dble(tabulation%parametersCountPer)
+    iRadius         =floor(hRadius    (2  ),kind=c_size_t)
+    iParameters     =floor(hParameters(2,:),kind=c_size_t)
+    hRadius    (2  )=hRadius    (2  )-dble(iRadius    )
+    hParameters(2,:)=hParameters(2,:)-dble(iParameters)
+    iRadius         =iRadius    -int(tabulation%latticeRadius    %indexMinimum,kind=c_size_t)+1_c_size_t
+    iParameters     =iParameters-int(tabulation%latticeParameters%indexMinimum,kind=c_size_t)+1_c_size_t
+    if (iRadius <  1_c_size_t                          ) hRadius(2  )=0.0d0
+    if (iRadius > tabulation%countRadii     -1_c_size_t) hRadius(2  )=1.0d0
+    where (iParameters <  1_c_size_t                          ) hParameters(2,:)=0.0d0
+    where (iParameters > tabulation%countParameters-1_c_size_t) hParameters(2,:)=1.0d0
+    iRadius         =min(max(iRadius    ,1_c_size_t),tabulation%countRadii     -1_c_size_t)
+    iParameters     =min(max(iParameters,1_c_size_t),tabulation%countParameters-1_c_size_t)
     hRadius    (1  )=1.0d0-hRadius    (2  )
     hParameters(1,:)=1.0d0-hParameters(2,:)
     ! Perform the interpolation.
@@ -916,47 +1048,92 @@ contains
   subroutine sphericalTabulatedFileRead(self,fileName,quantityName,container,tabulation)
     !!{RST
     Read tabulated data from file.
+
+    The stored tabulation is adopted only if the file records, for every axis, a lattice which is self-consistent and which
+    uses the density of points that this object would use, and if the array stored alongside those lattices has the extent
+    they imply. A file written before the lattices were recorded, or with a different grid density, therefore leaves the
+    tabulation already in hand untouched rather than being misread.
     !!}
     use :: HDF5_Access    , only : hdf5Access
     use :: IO_HDF5        , only : hdf5File
     use :: String_Handling, only : String_Upper_Case_First
     use :: Display        , only : displayMessage         , verbosityLevelWorking
     implicit none
-    class  (massDistributionSphericalTabulated), intent(inout) :: self
-    type   (varying_string                    ), intent(in   ) :: fileName  , quantityName
-    type   (massDistributionContainer         ), intent(inout) :: container
-    type   (massDistributionTabulation        ), intent(inout) :: tabulation
-    type   (hdf5File                          )                :: file
-    integer(c_size_t                          )                :: i
+    class           (massDistributionSphericalTabulated)                              , intent(inout) :: self
+    type            (varying_string                    )                              , intent(in   ) :: fileName    , quantityName
+    type            (massDistributionContainer         )                              , intent(inout) :: container
+    type            (massDistributionTabulation        )                              , intent(inout) :: tabulation
+    type            (hdf5File                          )                                              :: file
+    type            (rangeLattice                      )                                              :: latticeRadius
+    type            (rangeLattice                      ), allocatable  , dimension(:      )           :: latticeParameters
+    double precision                                    , allocatable  , dimension(:,:,:,:)           :: table
+    integer         (c_size_t                          )                                              :: i           , countParameters_
+    logical                                                                                           :: isUsable
 
-    if (allocated(tabulation%table)) deallocate(tabulation%table)
     call displayMessage("reading tabulated "//enumerationQuantityDecode(tabulation%quantity)//" profile from '"//char(fileName)//"'",verbosityLevelWorking)
-    if (.not.allocated(tabulation%parametersMinimum    )) allocate(tabulation%parametersMinimum    (container%countParameters(tabulation)))
-    if (.not.allocated(tabulation%parametersMaximum    )) allocate(tabulation%parametersMaximum    (container%countParameters(tabulation)))
-    if (.not.allocated(tabulation%parametersInverseStep)) allocate(tabulation%parametersInverseStep(container%countParameters(tabulation)))
-    if (.not.allocated(tabulation%countParameters      )) allocate(tabulation%countParameters      (container%countParameters(tabulation)))
+    countParameters_=container%countParameters(tabulation)
+    if (.not.allocated(tabulation%parametersMinimum       )) allocate(tabulation%parametersMinimum       (countParameters_))
+    if (.not.allocated(tabulation%parametersMaximum       )) allocate(tabulation%parametersMaximum       (countParameters_))
+    if (.not.allocated(tabulation%parametersAtLimitMinimum)) allocate(tabulation%parametersAtLimitMinimum(countParameters_))
+    if (.not.allocated(tabulation%parametersAtLimitMaximum)) allocate(tabulation%parametersAtLimitMaximum(countParameters_))
+    if (.not.allocated(tabulation%countParameters         )) allocate(tabulation%countParameters         (countParameters_))
+    if (.not.allocated(tabulation%latticeParameters       )) allocate(tabulation%latticeParameters       (countParameters_))
+    allocate(latticeParameters(countParameters_))
     !$ call hdf5Access%set()
     file=hdf5File(fileName,readOnly=.true.)
-    call    file%readAttribute(char(quantityName)//'RadiusMinimum'                                                                    ,tabulation%radiusMinimum           )
-    call    file%readAttribute(char(quantityName)//'RadiusMaximum'                                                                    ,tabulation%radiusMaximum           )
-    call    file%readAttribute(char(quantityName)//'RadiusInverseStep'                                                                ,tabulation%radiusInverseStep       )
-    do i=1,container%countParameters(tabulation)
-       call file%readAttribute(char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation)))//'Minimum'    ,tabulation%parametersMinimum    (i))
-       call file%readAttribute(char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation)))//'Maximum'    ,tabulation%parametersMaximum    (i))
-       call file%readAttribute(char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation)))//'InverseStep',tabulation%parametersInverseStep(i))
+    ! Recover the lattices on which the stored tabulation was built.
+    call    sphericalTabulatedLatticeRead(file,char(quantityName)//'Radius'                                                            ,tabulation%radiusCountPer    ,latticeRadius       )
+    isUsable=latticeRadius%isDefined()
+    do i=1,countParameters_
+       call sphericalTabulatedLatticeRead(file,char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation))),tabulation%parametersCountPer(i),latticeParameters(i))
+       isUsable=isUsable .and. latticeParameters(i)%isDefined()
     end do
-    call    file%readDataset  (char(quantityName)                                                                                     ,tabulation%table                   )
+    if (isUsable) call file%readDataset(char(quantityName),table)
     !$ call hdf5Access%unset()
-    tabulation   %countRadii        =size(tabulation%table,dim=  1)
-    do i=1,container%countParameters(tabulation)
-       tabulation%countParameters(i)=size(tabulation%table,dim=i+1)
+    ! Check that the array stored alongside the lattices has the extent which they imply - including that the dimensions which
+    ! are unused, this tabulation having fewer than three parameters, are of extent unity.
+    if (isUsable) then
+       isUsable=size(table,dim=1,kind=c_size_t) == int(latticeRadius%count,kind=c_size_t)
+       do i=1,countParameters_
+          isUsable=isUsable .and. size(table,dim=int(i)+1,kind=c_size_t) == int(latticeParameters(i)%count,kind=c_size_t)
+       end do
+       do i=countParameters_+1,3_c_size_t
+          isUsable=isUsable .and. size(table,dim=int(i)+1,kind=c_size_t) ==                          1_c_size_t
+       end do
+    end if
+    ! Decline a stored tabulation which does not contain the one already in hand: since this is called only when the latter has
+    ! been found insufficient, adopting a narrower tabulation in its place would discard values which must then be computed
+    ! again. The range in hand is extended in its place, and the file rewritten from it.
+    if (isUsable .and. allocated(tabulation%table)) then
+       if (tabulation%latticeRadius%isDefined()) then
+          isUsable=latticeRadius%covers(tabulation%latticeRadius)
+          do i=1,countParameters_
+             isUsable=isUsable .and. latticeParameters(i)%covers(tabulation%latticeParameters(i))
+          end do
+       end if
+    end if
+    if (.not.isUsable) return
+    ! Adopt the stored tabulation, recovering every quantity which describes its extent from the lattices rather than reading
+    ! them from the file, so that a restored tabulation cannot come to be described differently from a freshly built one.
+    if (allocated(tabulation%table)) deallocate(tabulation%table)
+    call Move_Alloc(table,tabulation%table)
+    tabulation   %latticeRadius        =latticeRadius
+    tabulation   %latticeParameters    =latticeParameters
+    tabulation   %radiusMinimum        =latticeRadius%minimum()
+    tabulation   %radiusMaximum        =latticeRadius%maximum()
+    tabulation   %countRadii           =latticeRadius%count
+    do i=1,countParameters_
+       tabulation%parametersMinimum(i) =latticeParameters(i)%minimum()
+       tabulation%parametersMaximum(i) =latticeParameters(i)%maximum()
+       tabulation%countParameters  (i) =latticeParameters(i)%count
     end do
+    call sphericalTabulatedLimitsFlag(container,tabulation)
     return
   end subroutine sphericalTabulatedFileRead
 
   subroutine sphericalTabulatedFileWrite(self,fileName,quantityName,container,tabulation)
     !!{RST
-    Read tabulated data from file.
+    Write tabulated data to file.
     !!}
     use :: HDF5_Access    , only : hdf5Access
     use :: IO_HDF5        , only : hdf5File
@@ -972,19 +1149,142 @@ contains
 
     call displayMessage("writing tabulated "//char(quantityName)//" profile to '"//char(fileName)//"'",verbosityLevelWorking)
     !$ call hdf5Access%set()
-   file=hdf5File(fileName,overWrite=.true.)
-    call    file%writeAttribute(tabulation%radiusMinimum           ,char(quantityName)//'RadiusMinimum'                                                                                                                  )
-    call    file%writeAttribute(tabulation%radiusMaximum           ,char(quantityName)//'RadiusMaximum'                                                                                                                  )
-    call    file%writeAttribute(tabulation%radiusInverseStep       ,char(quantityName)//'RadiusInverseStep'                                                                                                              )
+    file=hdf5File(fileName,overWrite=.true.)
+    ! Record the lattices on which the axes are built. The limits and inverse steps formerly stored alongside them are not:
+    ! each is a function of the lattices, and is recovered from them when the file is read.
+    call    sphericalTabulatedLatticeWrite(file,char(quantityName)//'Radius'                                                            ,tabulation%latticeRadius       )
     do i=1,container%countParameters(tabulation)
-       call file%writeAttribute(tabulation%parametersMinimum    (i),char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation)))//'Minimum'                                                  )
-       call file%writeAttribute(tabulation%parametersMaximum    (i),char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation)))//'Maximum'                                                  )
-       call file%writeAttribute(tabulation%parametersInverseStep(i),char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation)))//'InverseStep'                                              )
+       call sphericalTabulatedLatticeWrite(file,char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation))),tabulation%latticeParameters(i))
     end do
     call    file%writeDataset  (tabulation%table                   ,char(quantityName)                                                                                     ,'Tabulated '//char(quantityName)//' profile.')
     !$ call hdf5Access%unset()
     return
   end subroutine sphericalTabulatedFileWrite
+
+  function sphericalTabulatedLatticeAxis(valueTarget,countPer,limitMinimum,limitMaximum,latticeCurrent) result(lattice)
+    !!{RST
+    Return the pinned ``rangeLattice`` covering ``valueTarget`` for a single axis of a tabulation, taking the union with the
+    lattice ``latticeCurrent`` on which that axis is currently built.
+
+    A hard lower limit is imposed only where it is positive: a logarithmic lattice cannot express a limit of zero or below, and
+    such a limit is in any case inert here since the request is itself always positive and the safety margin is a factor. Note
+    that where the limit *is* imposed the request is first clamped up to it, rather than the limit being added to the set of
+    target values: adding it would make it the smallest target and so would drag the lower bound of every tabulation down to
+    the limit instead of leaving it where the request puts it.
+    !!}
+    use :: Numerical_Ranges, only : Range_Pinned, gridSchemePerOctave
+    implicit none
+    type            (rangeLattice)                :: lattice
+    double precision              , intent(in   ) :: valueTarget , limitMinimum, &
+         &                                           limitMaximum
+    integer         (c_size_t    ), intent(in   ) :: countPer
+    type            (rangeLattice), intent(in   ) :: latticeCurrent
+    double precision                              :: valueTarget_
+    integer                                       :: pointsPer
+
+    pointsPer   =int(countPer)
+    valueTarget_=valueTarget
+    ! The bounds are pinned to whole octaves - the default anchor interval - which is exactly the factor of two by which the
+    ! request is bracketed, so no tabulation is made wider than the margin already made it.
+    if (limitMinimum > 0.0d0) then
+       valueTarget_=max(valueTarget_,limitMinimum)
+       lattice=Range_Pinned(                                        &
+            &                              [valueTarget_ ]        , &
+            &                               pointsPer             , &
+            &                               gridSchemePerOctave   , &
+            &               marginFactor  = 2.0d0                 , &
+            &               limitMinimum  = limitMinimum          , &
+            &               limitMaximum  = limitMaximum          , &
+            &               latticeCurrent= latticeCurrent          &
+            &              )
+    else
+       lattice=Range_Pinned(                                        &
+            &                              [valueTarget_ ]        , &
+            &                               pointsPer             , &
+            &                               gridSchemePerOctave   , &
+            &               marginFactor  = 2.0d0                 , &
+            &               limitMaximum  = limitMaximum          , &
+            &               latticeCurrent= latticeCurrent          &
+            &              )
+    end if
+    return
+  end function sphericalTabulatedLatticeAxis
+
+  subroutine sphericalTabulatedLimitsFlag(container,tabulation)
+    !!{RST
+    Record, for each parameter of ``tabulation``, whether the corresponding bound has reached the hard limit imposed on it -
+    that is, whether the next lattice point beyond that bound would lie outside the limit. Where it has, no retabulation can
+    move that bound, and a request beyond it must be met by extrapolation instead.
+    !!}
+    implicit none
+    type            (massDistributionContainer ), intent(inout) :: container
+    type            (massDistributionTabulation), intent(inout) :: tabulation
+    integer         (c_size_t                  )                :: i
+    double precision                                            :: stepFactor
+
+    do i=1,container%countParameters(tabulation)
+       stepFactor                            = 2.0d0**(1.0d0/dble(tabulation%parametersCountPer(i)))
+       tabulation%parametersAtLimitMinimum(i)=tabulation%parametersMinimum(i)/stepFactor < container%parametersMinimumLimit(i)
+       tabulation%parametersAtLimitMaximum(i)=tabulation%parametersMaximum(i)*stepFactor > container%parametersMaximumLimit(i)
+    end do
+    return
+  end subroutine sphericalTabulatedLimitsFlag
+
+  subroutine sphericalTabulatedLatticeWrite(file,axisName,lattice)
+    !!{RST
+    Record the ``rangeLattice`` on which an axis of a stored tabulation is built, as attributes named for that axis.
+    !!}
+    use :: IO_HDF5, only : hdf5File
+    implicit none
+    type     (hdf5File    ), intent(inout) :: file
+    character(len=*       ), intent(in   ) :: axisName
+    type     (rangeLattice), intent(in   ) :: lattice
+
+    call file%writeAttribute(lattice%scheme%ID   ,axisName//'GridScheme'  )
+    call file%writeAttribute(lattice%pointsPer   ,axisName//'PointsPer'   )
+    call file%writeAttribute(lattice%indexMinimum,axisName//'IndexMinimum')
+    call file%writeAttribute(lattice%count       ,axisName//'Count'       )
+    return
+  end subroutine sphericalTabulatedLatticeWrite
+
+  subroutine sphericalTabulatedLatticeRead(file,axisName,countPer,lattice)
+    !!{RST
+    Restore the ``rangeLattice`` on which an axis of a stored tabulation was built. The lattice is returned
+    undefined---which the caller must treat as the tabulation being unusable---unless the file records one which is
+    self-consistent and which uses the density of points that this object would use.
+    !!}
+    use :: IO_HDF5         , only : hdf5File
+    use :: Numerical_Ranges, only : enumerationGridSchemeType, gridSchemePerOctave
+    implicit none
+    type     (hdf5File    ), intent(inout) :: file
+    character(len=*       ), intent(in   ) :: axisName
+    integer  (c_size_t    ), intent(in   ) :: countPer
+    type     (rangeLattice), intent(  out) :: lattice
+    integer                                :: schemeStored, pointsPerStored, &
+         &                                    indexMinimum, count_
+
+    lattice=rangeLattice()
+    if     (                                                 &
+         &   .not.file%hasAttribute(axisName//'GridScheme'  ) &
+         &  .or.                                              &
+         &   .not.file%hasAttribute(axisName//'PointsPer'   ) &
+         &  .or.                                              &
+         &   .not.file%hasAttribute(axisName//'IndexMinimum') &
+         &  .or.                                              &
+         &   .not.file%hasAttribute(axisName//'Count'       ) &
+         & ) return
+    call file%readAttribute(axisName//'GridScheme'  ,schemeStored   )
+    call file%readAttribute(axisName//'PointsPer'   ,pointsPerStored)
+    call file%readAttribute(axisName//'IndexMinimum',indexMinimum   )
+    call file%readAttribute(axisName//'Count'       ,count_         )
+    ! Comparing the stored scheme against the one expected is stronger than merely checking that it is a valid member of the
+    ! enumeration, so no separate validity test is needed.
+    if (enumerationGridSchemeType(schemeStored) /= gridSchemePerOctave) return
+    if (pointsPerStored                         /= int(countPer)      ) return
+    lattice=rangeLattice(enumerationGridSchemeType(schemeStored),pointsPerStored,indexMinimum,count_)
+    if (.not.lattice%isDefined()) lattice=rangeLattice()
+    return
+  end subroutine sphericalTabulatedLatticeRead
 
   subroutine massDistributionContainerInitialize(self,countParameters)
     !!{RST
@@ -999,108 +1299,49 @@ contains
     allocate(self                           %nameParameters        (countParameters  ))
     allocate(self                           %parametersMinimumLimit(countParameters+1))
     allocate(self                           %parametersMaximumLimit(countParameters+1))
-    allocate(self%mass                      %parametersMinimum     (countParameters  ))
-    allocate(self%mass                      %parametersMaximum     (countParameters  ))
-    allocate(self%mass                      %parametersCountPer    (countParameters  ))
-    allocate(self%mass                      %countParameters       (countParameters  ))
-    allocate(self%radiusEnclosingDensity    %parametersMinimum     (countParameters  ))
-    allocate(self%radiusEnclosingDensity    %parametersMaximum     (countParameters  ))
-    allocate(self%radiusEnclosingDensity    %parametersCountPer    (countParameters  ))
-    allocate(self%radiusEnclosingDensity    %countParameters       (countParameters  ))
-    allocate(self%energy                    %parametersMinimum     (countParameters  ))
-    allocate(self%energy                    %parametersMaximum     (countParameters  ))
-    allocate(self%energy                    %parametersCountPer    (countParameters  ))
-    allocate(self%energy                    %countParameters       (countParameters  ))
-    allocate(self%potential                 %parametersMinimum     (countParameters  ))
-    allocate(self%potential                 %parametersMaximum     (countParameters  ))
-    allocate(self%potential                 %parametersCountPer    (countParameters  ))
-    allocate(self%potential                 %countParameters       (countParameters  ))
-    allocate(self%velocityDispersion1D      %parametersMinimum     (countParameters  ))
-    allocate(self%velocityDispersion1D      %parametersMaximum     (countParameters  ))
-    allocate(self%velocityDispersion1D      %parametersCountPer    (countParameters  ))
-    allocate(self%velocityDispersion1D      %countParameters       (countParameters  ))
-    allocate(self%radiusFreefall            %parametersMinimum     (countParameters  ))
-    allocate(self%radiusFreefall            %parametersMaximum     (countParameters  ))
-    allocate(self%radiusFreefall            %parametersCountPer    (countParameters  ))
-    allocate(self%radiusFreefall            %countParameters       (countParameters  ))
-    allocate(self%radiusFreefallIncreaseRate%parametersMinimum     (countParameters  ))
-    allocate(self%radiusFreefallIncreaseRate%parametersMaximum     (countParameters  ))
-    allocate(self%radiusFreefallIncreaseRate%parametersCountPer    (countParameters  ))
-    allocate(self%radiusFreefallIncreaseRate%countParameters       (countParameters  ))
-    allocate(self%densityRadialMoment0      %parametersMinimum     (countParameters  ))
-    allocate(self%densityRadialMoment0      %parametersMaximum     (countParameters  ))
-    allocate(self%densityRadialMoment0      %parametersCountPer    (countParameters  ))
-    allocate(self%densityRadialMoment0      %countParameters       (countParameters  ))
-    allocate(self%densityRadialMoment1      %parametersMinimum     (countParameters  ))
-    allocate(self%densityRadialMoment1      %parametersMaximum     (countParameters  ))
-    allocate(self%densityRadialMoment1      %parametersCountPer    (countParameters  ))
-    allocate(self%densityRadialMoment1      %countParameters       (countParameters  ))
-    allocate(self%densityRadialMoment2      %parametersMinimum     (countParameters  ))
-    allocate(self%densityRadialMoment2      %parametersMaximum     (countParameters  ))
-    allocate(self%densityRadialMoment2      %parametersCountPer    (countParameters  ))
-    allocate(self%densityRadialMoment2      %countParameters       (countParameters  ))
-    allocate(self%densityRadialMoment3      %parametersMinimum     (countParameters  ))
-    allocate(self%densityRadialMoment3      %parametersMaximum     (countParameters  ))
-    allocate(self%densityRadialMoment3      %parametersCountPer    (countParameters  ))
-    allocate(self%densityRadialMoment3      %countParameters       (countParameters  ))
-    allocate(self%fourierTransform          %parametersMinimum     (countParameters+1))
-    allocate(self%fourierTransform          %parametersMaximum     (countParameters+1))
-    allocate(self%fourierTransform          %parametersCountPer    (countParameters+1))
-    allocate(self%fourierTransform          %countParameters       (countParameters+1))
-    ! Initialize minima/maxima of tabulation ranges. These are chosen to ensure that the first tabulation will force these to
-    ! be reset.
+    ! Initialize each tabulation. The Fourier transform tabulation carries the scaled outer radius as an extra parameter.
+    call massDistributionTabulationInitialize(self%mass                      ,countParameters  )
+    call massDistributionTabulationInitialize(self%radiusEnclosingDensity    ,countParameters  )
+    call massDistributionTabulationInitialize(self%energy                    ,countParameters  )
+    call massDistributionTabulationInitialize(self%potential                 ,countParameters  )
+    call massDistributionTabulationInitialize(self%velocityDispersion1D      ,countParameters  )
+    call massDistributionTabulationInitialize(self%radiusFreefall            ,countParameters  )
+    call massDistributionTabulationInitialize(self%radiusFreefallIncreaseRate,countParameters  )
+    call massDistributionTabulationInitialize(self%densityRadialMoment0      ,countParameters  )
+    call massDistributionTabulationInitialize(self%densityRadialMoment1      ,countParameters  )
+    call massDistributionTabulationInitialize(self%densityRadialMoment2      ,countParameters  )
+    call massDistributionTabulationInitialize(self%densityRadialMoment3      ,countParameters  )
+    call massDistributionTabulationInitialize(self%fourierTransform          ,countParameters+1)
+    ! Initialize limits on the parameters. By default no limit is imposed.
     self                           %parametersMinimumLimit=-huge(0.0d0)
     self                           %parametersMaximumLimit=+huge(0.0d0)
-    self%mass                      %radiusMinimum         =+huge(0.0d0)
-    self%mass                      %radiusMaximum         =-huge(0.0d0)
-    self%radiusEnclosingDensity    %radiusMinimum         =+huge(0.0d0)
-    self%radiusEnclosingDensity    %radiusMaximum         =-huge(0.0d0)
-    self%energy                    %radiusMinimum         =+huge(0.0d0)
-    self%energy                    %radiusMaximum         =-huge(0.0d0)
-    self%potential                 %radiusMinimum         =+huge(0.0d0)
-    self%potential                 %radiusMaximum         =-huge(0.0d0)
-    self%velocityDispersion1D      %radiusMinimum         =+huge(0.0d0)
-    self%velocityDispersion1D      %radiusMaximum         =-huge(0.0d0)
-    self%radiusFreefall            %radiusMinimum         =+huge(0.0d0)
-    self%radiusFreefall            %radiusMaximum         =-huge(0.0d0)
-    self%radiusFreefallIncreaseRate%radiusMinimum         =+huge(0.0d0)
-    self%radiusFreefallIncreaseRate%radiusMaximum         =-huge(0.0d0)
-    self%densityRadialMoment0      %radiusMinimum         =+huge(0.0d0)
-    self%densityRadialMoment0      %radiusMaximum         =-huge(0.0d0)
-    self%densityRadialMoment1      %radiusMinimum         =+huge(0.0d0)
-    self%densityRadialMoment1      %radiusMaximum         =-huge(0.0d0)
-    self%densityRadialMoment2      %radiusMinimum         =+huge(0.0d0)
-    self%densityRadialMoment2      %radiusMaximum         =-huge(0.0d0)
-    self%densityRadialMoment3      %radiusMinimum         =+huge(0.0d0)
-    self%densityRadialMoment3      %radiusMaximum         =-huge(0.0d0)
-    self%fourierTransform          %radiusMinimum         =+huge(0.0d0)
-    self%fourierTransform          %radiusMaximum         =-huge(0.0d0)
-    self%mass                      %parametersMinimum     =+huge(0.0d0)
-    self%mass                      %parametersMaximum     =-huge(0.0d0)
-    self%radiusEnclosingDensity    %parametersMinimum     =+huge(0.0d0)
-    self%radiusEnclosingDensity    %parametersMaximum     =-huge(0.0d0)
-    self%energy                    %parametersMinimum     =+huge(0.0d0)
-    self%energy                    %parametersMaximum     =-huge(0.0d0)
-    self%potential                 %parametersMinimum     =+huge(0.0d0)
-    self%potential                 %parametersMaximum     =-huge(0.0d0)
-    self%velocityDispersion1D      %parametersMinimum     =+huge(0.0d0)
-    self%velocityDispersion1D      %parametersMaximum     =-huge(0.0d0)
-    self%radiusFreefall            %parametersMinimum     =+huge(0.0d0)
-    self%radiusFreefall            %parametersMaximum     =-huge(0.0d0)
-    self%radiusFreefallIncreaseRate%parametersMinimum     =+huge(0.0d0)
-    self%radiusFreefallIncreaseRate%parametersMaximum     =-huge(0.0d0)
-    self%densityRadialMoment0      %parametersMinimum     =+huge(0.0d0)
-    self%densityRadialMoment0      %parametersMaximum     =-huge(0.0d0)
-    self%densityRadialMoment1      %parametersMinimum     =+huge(0.0d0)
-    self%densityRadialMoment1      %parametersMaximum     =-huge(0.0d0)
-    self%densityRadialMoment2      %parametersMinimum     =+huge(0.0d0)
-    self%densityRadialMoment2      %parametersMaximum     =-huge(0.0d0)
-    self%densityRadialMoment3      %parametersMinimum     =+huge(0.0d0)
-    self%densityRadialMoment3      %parametersMaximum     =-huge(0.0d0)
-    self%fourierTransform          %parametersMinimum     =+huge(0.0d0)
-    self%fourierTransform          %parametersMaximum     =-huge(0.0d0)
     return
   end subroutine massDistributionContainerInitialize
+
+  subroutine massDistributionTabulationInitialize(tabulation,countParameters)
+    !!{RST
+    Initialize a single tabulation to the specified number of parameters. The minima and maxima of the tabulation ranges are
+    chosen to ensure that the first tabulation will force them to be reset.
+    !!}
+    implicit none
+    type   (massDistributionTabulation), intent(inout) :: tabulation
+    integer                            , intent(in   ) :: countParameters
+
+    allocate(tabulation%parametersMinimum       (countParameters))
+    allocate(tabulation%parametersMaximum       (countParameters))
+    allocate(tabulation%parametersAtLimitMinimum(countParameters))
+    allocate(tabulation%parametersAtLimitMaximum(countParameters))
+    allocate(tabulation%parametersCountPer      (countParameters))
+    allocate(tabulation%countParameters         (countParameters))
+    allocate(tabulation%latticeParameters       (countParameters))
+    tabulation%radiusMinimum           =+huge(0.0d0)
+    tabulation%radiusMaximum           =-huge(0.0d0)
+    tabulation%parametersMinimum       =+huge(0.0d0)
+    tabulation%parametersMaximum       =-huge(0.0d0)
+    tabulation%parametersAtLimitMinimum=.false.
+    tabulation%parametersAtLimitMaximum=.false.
+    return
+  end subroutine massDistributionTabulationInitialize
 
   function massDistributionContainerNameParameter(self,indexParameter,tabulation) result(nameParameter)
     !!{RST
