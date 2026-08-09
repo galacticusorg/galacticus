@@ -328,6 +328,7 @@ with safe_section("distributionFunction1DNonCentralChiDegree3"):
 with safe_section("supernovaeTypeIaPowerLawDTDDifferential"):
     sn1a = galacticus.supernovaeTypeIaPowerLawDTDDifferential(
         timeMinimum=0.04, exponent=-1.0, normalization=2.0e-3,
+        fileName='%DATASTATICPATH%/stellarAstrophysics/Supernovae_Type_Ia_Yields.xml',
     )
     check_eq("yield_ method exposed" , hasattr(sn1a, 'yield_'), True)
     check_eq("'yield' not exposed"   , hasattr(sn1a, 'yield' ), False)
