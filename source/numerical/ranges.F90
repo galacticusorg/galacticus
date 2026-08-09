@@ -27,7 +27,7 @@ module Numerical_Ranges
   !!}
   implicit none
   private
-  public :: Make_Range, Range_Pinned, Range_Lattice_Offset, Range_Lattice_Extend
+  public :: Make_Range, Range_Pinned, Range_Lattice_Offset, Range_Lattice_Extend, Range_Lattice_Extend_2D
 
   ! Parameters to specify type of range required.
   integer, parameter, public :: rangeTypeLinear=0, rangeTypeLogarithmic=1, rangeTypeUndefined=-1
@@ -360,6 +360,49 @@ contains
     end if
     return
   end subroutine Range_Lattice_Extend
+
+  subroutine Range_Lattice_Extend_2D(latticeCurrentX,latticeNewX,latticeCurrentY,latticeNewY,values,isComputed)
+    !!{RST
+    Extend the rank-2 array ``values``, tabulated on ``latticeCurrentX`` × ``latticeCurrentY``, onto ``latticeNewX`` ×
+    ``latticeNewY``, preserving the values already computed. On return ``isComputed`` is true for those points whose values were
+    preserved, and false for those which the caller must now evaluate. If ``values`` is unallocated, or either current lattice is
+    undefined, it is simply allocated to the new lattices with ``isComputed`` false throughout.
+
+    Both axes are extended at once because the block preserved is the *rectangle* common to the two tabulations: extending one
+    axis at a time would require an intermediate array of the mixed extent.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    type            (rangeLattice), intent(in   )                              :: latticeCurrentX, latticeNewX, &
+         &                                                                        latticeCurrentY, latticeNewY
+    double precision              , intent(inout), allocatable, dimension(:,:) :: values
+    logical                       , intent(  out), allocatable, dimension(:,:) :: isComputed
+    double precision              ,                allocatable, dimension(:,:) :: valuesPrevious
+    integer                                                                    :: offsetX        , offsetY
+
+    if (.not.latticeNewX%isDefined() .or. .not.latticeNewY%isDefined()) call Error_Report('the lattices provided are not usable'//{introspection:location})
+    allocate(isComputed(latticeNewX%count,latticeNewY%count))
+    isComputed=.false.
+    if (allocated(values) .and. latticeCurrentX%isDefined() .and. latticeCurrentY%isDefined()) then
+       if     (                                             &
+            &   size(values,dim=1) /= latticeCurrentX%count &
+            &  .or.                                         &
+            &   size(values,dim=2) /= latticeCurrentY%count &
+            & ) call Error_Report('array does not match the lattices on which it is tabulated'//{introspection:location})
+       offsetX=Range_Lattice_Offset(latticeCurrentX,latticeNewX)
+       offsetY=Range_Lattice_Offset(latticeCurrentY,latticeNewY)
+       call Move_Alloc(values,valuesPrevious)
+       allocate(values(latticeNewX%count,latticeNewY%count))
+       values                                                                                                        =0.0d0
+       values    (offsetX+1:offsetX+size(valuesPrevious,dim=1),offsetY+1:offsetY+size(valuesPrevious,dim=2))=valuesPrevious
+       isComputed(offsetX+1:offsetX+size(valuesPrevious,dim=1),offsetY+1:offsetY+size(valuesPrevious,dim=2))=.true.
+    else
+       if (allocated(values)) deallocate(values)
+       allocate(values(latticeNewX%count,latticeNewY%count))
+       values=0.0d0
+    end if
+    return
+  end subroutine Range_Lattice_Extend_2D
 
   logical function rangeLatticeIsDefined(self)
     !!{RST
