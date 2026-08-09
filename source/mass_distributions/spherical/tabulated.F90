@@ -1054,10 +1054,12 @@ contains
     they imply. A file written before the lattices were recorded, or with a different grid density, therefore leaves the
     tabulation already in hand untouched rather than being misread.
     !!}
-    use :: HDF5_Access    , only : hdf5Access
-    use :: IO_HDF5        , only : hdf5File
-    use :: String_Handling, only : String_Upper_Case_First
-    use :: Display        , only : displayMessage         , verbosityLevelWorking
+    use :: HDF5_Access     , only : hdf5Access
+    use :: IO_HDF5         , only : hdf5File
+    use :: String_Handling , only : String_Upper_Case_First
+    use :: Display         , only : displayMessage          , verbosityLevelWorking
+    use :: Numerical_Ranges, only : gridSchemePerOctave
+    use :: Table_Caches    , only : Table_Cache_Lattice_Read
     implicit none
     class           (massDistributionSphericalTabulated)                              , intent(inout) :: self
     type            (varying_string                    )                              , intent(in   ) :: fileName    , quantityName
@@ -1082,10 +1084,10 @@ contains
     !$ call hdf5Access%set()
     file=hdf5File(fileName,readOnly=.true.)
     ! Recover the lattices on which the stored tabulation was built.
-    call    sphericalTabulatedLatticeRead(file,char(quantityName)//'Radius'                                                            ,tabulation%radiusCountPer    ,latticeRadius       )
+    call    Table_Cache_Lattice_Read(file,char(quantityName)//'Radius'                                                            ,gridSchemePerOctave,int(tabulation%radiusCountPer       ),latticeRadius       )
     isUsable=latticeRadius%isDefined()
     do i=1,countParameters_
-       call sphericalTabulatedLatticeRead(file,char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation))),tabulation%parametersCountPer(i),latticeParameters(i))
+       call Table_Cache_Lattice_Read(file,char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation))),gridSchemePerOctave,int(tabulation%parametersCountPer(i)),latticeParameters(i))
        isUsable=isUsable .and. latticeParameters(i)%isDefined()
     end do
     if (isUsable) call file%readDataset(char(quantityName),table)
@@ -1138,7 +1140,8 @@ contains
     use :: HDF5_Access    , only : hdf5Access
     use :: IO_HDF5        , only : hdf5File
     use :: String_Handling, only : String_Upper_Case_First
-    use :: Display        , only : displayMessage         , verbosityLevelWorking
+    use :: Display        , only : displayMessage           , verbosityLevelWorking
+    use :: Table_Caches   , only : Table_Cache_Lattice_Write
     implicit none
     class  (massDistributionSphericalTabulated), intent(inout) :: self
     type   (varying_string                    ), intent(in   ) :: fileName  , quantityName
@@ -1152,9 +1155,9 @@ contains
     file=hdf5File(fileName,overWrite=.true.)
     ! Record the lattices on which the axes are built. The limits and inverse steps formerly stored alongside them are not:
     ! each is a function of the lattices, and is recovered from them when the file is read.
-    call    sphericalTabulatedLatticeWrite(file,char(quantityName)//'Radius'                                                            ,tabulation%latticeRadius       )
+    call    Table_Cache_Lattice_Write(file,char(quantityName)//'Radius'                                                            ,tabulation%latticeRadius       )
     do i=1,container%countParameters(tabulation)
-       call sphericalTabulatedLatticeWrite(file,char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation))),tabulation%latticeParameters(i))
+       call Table_Cache_Lattice_Write(file,char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation))),tabulation%latticeParameters(i))
     end do
     call    file%writeDataset  (tabulation%table                   ,char(quantityName)                                                                                     ,'Tabulated '//char(quantityName)//' profile.')
     !$ call hdf5Access%unset()
@@ -1230,61 +1233,6 @@ contains
     return
   end subroutine sphericalTabulatedLimitsFlag
 
-  subroutine sphericalTabulatedLatticeWrite(file,axisName,lattice)
-    !!{RST
-    Record the ``rangeLattice`` on which an axis of a stored tabulation is built, as attributes named for that axis.
-    !!}
-    use :: IO_HDF5, only : hdf5File
-    implicit none
-    type     (hdf5File    ), intent(inout) :: file
-    character(len=*       ), intent(in   ) :: axisName
-    type     (rangeLattice), intent(in   ) :: lattice
-
-    call file%writeAttribute(lattice%scheme%ID   ,axisName//'GridScheme'  )
-    call file%writeAttribute(lattice%pointsPer   ,axisName//'PointsPer'   )
-    call file%writeAttribute(lattice%indexMinimum,axisName//'IndexMinimum')
-    call file%writeAttribute(lattice%count       ,axisName//'Count'       )
-    return
-  end subroutine sphericalTabulatedLatticeWrite
-
-  subroutine sphericalTabulatedLatticeRead(file,axisName,countPer,lattice)
-    !!{RST
-    Restore the ``rangeLattice`` on which an axis of a stored tabulation was built. The lattice is returned
-    undefined---which the caller must treat as the tabulation being unusable---unless the file records one which is
-    self-consistent and which uses the density of points that this object would use.
-    !!}
-    use :: IO_HDF5         , only : hdf5File
-    use :: Numerical_Ranges, only : enumerationGridSchemeType, gridSchemePerOctave
-    implicit none
-    type     (hdf5File    ), intent(inout) :: file
-    character(len=*       ), intent(in   ) :: axisName
-    integer  (c_size_t    ), intent(in   ) :: countPer
-    type     (rangeLattice), intent(  out) :: lattice
-    integer                                :: schemeStored, pointsPerStored, &
-         &                                    indexMinimum, count_
-
-    lattice=rangeLattice()
-    if     (                                                 &
-         &   .not.file%hasAttribute(axisName//'GridScheme'  ) &
-         &  .or.                                              &
-         &   .not.file%hasAttribute(axisName//'PointsPer'   ) &
-         &  .or.                                              &
-         &   .not.file%hasAttribute(axisName//'IndexMinimum') &
-         &  .or.                                              &
-         &   .not.file%hasAttribute(axisName//'Count'       ) &
-         & ) return
-    call file%readAttribute(axisName//'GridScheme'  ,schemeStored   )
-    call file%readAttribute(axisName//'PointsPer'   ,pointsPerStored)
-    call file%readAttribute(axisName//'IndexMinimum',indexMinimum   )
-    call file%readAttribute(axisName//'Count'       ,count_         )
-    ! Comparing the stored scheme against the one expected is stronger than merely checking that it is a valid member of the
-    ! enumeration, so no separate validity test is needed.
-    if (enumerationGridSchemeType(schemeStored) /= gridSchemePerOctave) return
-    if (pointsPerStored                         /= int(countPer)      ) return
-    lattice=rangeLattice(enumerationGridSchemeType(schemeStored),pointsPerStored,indexMinimum,count_)
-    if (.not.lattice%isDefined()) lattice=rangeLattice()
-    return
-  end subroutine sphericalTabulatedLatticeRead
 
   subroutine massDistributionContainerInitialize(self,countParameters)
     !!{RST

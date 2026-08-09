@@ -84,7 +84,7 @@
           &                                                                                  sigma8Value                                   , sigmaNormalization                                   , &
           &                                                                                  massMinimum                                   , massMaximum                                          , &
           &                                                                                  timeMinimum                                   , timeMaximum                                          , &
-          &                                                                                  timeMinimumLogarithmic                        , timeLogarithmicDeltaInverse                          , &
+          &                                                                                  timeLogarithmicDeltaInverse                                                                          , &
           &                                                                                  wavenumberReference                           , wavenumberHalfMode                                   , &
           &                                                                                  rootVarianceLogarithmicGradientTolerance      , amplitudeScalar
      double precision                                         , allocatable, dimension(:) :: times
@@ -935,7 +935,6 @@ contains
              rootVarianceTimeCount           =1
              self%timeMinimum                =self%cosmologyFunctions_%cosmicTime(1.0d0)
              self%timeMaximum                =self%timeMinimum
-             self%timeMinimumLogarithmic     =0.0d0
              self%timeLogarithmicDeltaInverse=0.0d0
           end if
           ! Establish the epochs at which σ(M) is to be tabulated. The abscissae are taken from the lattice rather than by
@@ -948,7 +947,6 @@ contains
              self%times                      =latticeTime%values()
              self%timeMinimum                =self%times(                    1)
              self%timeMaximum                =self%times(rootVarianceTimeCount)
-             self%timeMinimumLogarithmic     =log  (self%times(1)           )
              self%timeLogarithmicDeltaInverse=1.0d0/latticeTime%stepLogarithmic()
           else
              self%times                      =self%timeMinimum
@@ -1457,6 +1455,16 @@ contains
   subroutine filteredPowerInterpolantsTime(self,time,i,h)
     !!{RST
     Compute interpolants in time.
+
+    The position of the epoch along the axis is found as its coordinate on the *absolute* lattice---a quantity which depends
+    only on the epoch and on the density of lattice points, never on which part of the lattice this particular tabulation
+    spans---and is split there into the index of the lattice point below it and the fraction of the interval above that. Only
+    then is the index of the first tabulated epoch subtracted, in exact integer arithmetic.
+
+    The order matters. Forming the position relative to the first tabulated epoch *first* is exact in the subtraction, but the
+    fractional part is then extracted from a number whose magnitude is the index within the tabulation, and so is rounded on a
+    grid which coarsens as the tabulation grows: extending it would perturb every interpolated value in its last bits, which is
+    exactly the dependence on the sequence of requests that pinning the range exists to remove.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -1464,15 +1472,23 @@ contains
     double precision                                       , intent(in   ) :: time
     integer                                                , intent(  out) :: i
     double precision                                       , intent(  out) :: h
+    double precision                                                       :: coordinate
 
-    h=(log(time)-self%timeMinimumLogarithmic)*self%timeLogarithmicDeltaInverse+1.0d0
-    i=  int (h)
-    h=h-dble(i)
-    if (i == size(self%times)) then
+    coordinate=log10(time)*dble(self%latticeTime%pointsPer)
+    i         =floor(coordinate)
+    h         =coordinate-dble(i)
+    i         =i-self%latticeTime%indexMinimum+1
+    if      (i == size(self%times)                        ) then
        ! Requested time must exactly equal the maximum tabulated time.
        i=size(self%times)-1
        h=1.0d0
-    else if (i < 1) then
+    else if (i == 0                .and. h > 1.0d0-1.0d-6) then
+       ! Requested time is the minimum tabulated time. The lattice coordinate of a lattice point need not evaluate to exactly
+       ! its integer index, so the point which defines the lower bound of the tabulation can place itself a fraction of a step
+       ! below it.
+       i=1
+       h=0.0d0
+    else if (i <  1                                       ) then
        call Error_Report('interpolant out of range'//{introspection:location})
     end if
     return
@@ -1633,12 +1649,10 @@ contains
     if (self%growthIsMassDependent_) then
        self%timeMinimum                =self%times(                 1)
        self%timeMaximum                =self%times(size(self%times)  )
-       self%timeMinimumLogarithmic     =log  (self%times(1)           )
        self%timeLogarithmicDeltaInverse=1.0d0/latticeTime%stepLogarithmic()
     else
        self%timeMinimum                =self%times(1)
        self%timeMaximum                =self%times(1)
-       self%timeMinimumLogarithmic     =0.0d0
        self%timeLogarithmicDeltaInverse=0.0d0
     end if
     self%initialized=.true.

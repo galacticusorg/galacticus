@@ -114,13 +114,10 @@
      logical                                                                 :: tableInitialized
      double precision                                                        :: coefficientFactorBoostMinimum                         , coefficientFactorBoostMaximum                      , &
           &                                                                     coefficientFactorBoostStellarMinimum                  , coefficientFactorBoostStellarMaximum               , &
-          &                                                                     radiusScaleFreeMinimum                                , radiusScaleFreeMaximum                             , &
-          &                                                                     coefficientFactorBoostLogarithmicStepInverse          , coefficientFactorBoostStellarLogarithmicStepInverse, &
-          &                                                                     radiusScaleFreeLogarithmicStepInverse                 , radiusScaleFreeLogarithmicOffset                   , &
-          &                                                                     coefficientFactorBoostLogarithmicOffset               , coefficientFactorBoostStellarLogarithmicOffset
-     ! Lattices to which the three axes of the tabulation are pinned. These are the source of truth for its extent: the limits,
-     ! offsets and inverse steps above are all derived from them, and are retained because they are what the interpolation
-     ! reads.
+          &                                                                     radiusScaleFreeMinimum                                , radiusScaleFreeMaximum
+     ! Lattices to which the three axes of the tabulation are pinned. These are the source of truth for its extent: the limits
+     ! above are derived from them, and so are the offset and inverse step which the interpolation uses, which are therefore no
+     ! longer held on the object.
      type            (rangeLattice          )                                :: latticeFactorBoost                                    , latticeFactorBoostStellar                          , &
           &                                                                     latticeRadiusScaleFree
      type            (varying_string        )                                :: filenameTable
@@ -954,6 +951,7 @@ contains
       use :: File_Utilities       , only : File_Exists    , File_Lock            , File_Unlock  , lockDescriptor, &
            &                               Directory_Make , File_Path
       use :: Numerical_Ranges     , only : Range_Pinned   , Range_Lattice_Offset , gridSchemePerDecade
+      use :: Table_Caches         , only : Table_Cache_Lattice_Read, Table_Cache_Lattice_Write
       implicit none
       double precision                , intent(in   ) :: radiusScaleFree
       double precision                , parameter     :: toleranceRelative                    =1.0d-6
@@ -970,7 +968,9 @@ contains
            &                                             hi                                          , hj                                                 , &
            &                                             hk                                          , hhi                                                , &
            &                                             hhj                                         , hhk                                                , &
-           &                                             radiusMinimum                               , radiusMaximum
+           &                                             radiusMinimum                               , radiusMaximum                                      , &
+           &                                             coordinateFactorBoost                       , coordinateFactorBoostStellar                       , &
+           &                                             coordinateRadiusScaleFree
       type            (rangeLattice  )                :: latticeFactorBoost                          , latticeFactorBoostStellar                          , &
            &                                             latticeRadiusScaleFree
       double precision                , allocatable, dimension(:    ) :: valuesFactorBoost           , valuesFactorBoostStellar                           , &
@@ -1003,9 +1003,9 @@ contains
               file=hdf5File(self%filenameTable,readOnly=.true.)
               ! Recover the lattices on which the stored tabulation was built. A file which records none, or which records
               ! lattices this object would not use, is ignored rather than misread.
-              call blitz2006LatticeRead(file,'coefficientFactorBoost'       ,pointsPerDecadeFactorBoost       ,self%latticeFactorBoost       )
-              call blitz2006LatticeRead(file,'coefficientFactorBoostStellar',pointsPerDecadeFactorBoostStellar,self%latticeFactorBoostStellar)
-              call blitz2006LatticeRead(file,'radiusScaleFree'              ,pointsPerDecadeRadius            ,self%latticeRadiusScaleFree   )
+              call Table_Cache_Lattice_Read(file,'coefficientFactorBoost'       ,gridSchemePerDecade,pointsPerDecadeFactorBoost       ,self%latticeFactorBoost       )
+              call Table_Cache_Lattice_Read(file,'coefficientFactorBoostStellar',gridSchemePerDecade,pointsPerDecadeFactorBoostStellar,self%latticeFactorBoostStellar)
+              call Table_Cache_Lattice_Read(file,'radiusScaleFree'              ,gridSchemePerDecade,pointsPerDecadeRadius            ,self%latticeRadiusScaleFree   )
               if     (                                             &
                    &   self%latticeFactorBoost       %isDefined()  &
                    &  .and.                                        &
@@ -1032,20 +1032,14 @@ contains
                     &  .and.                                                                                             &
                     &   size(self%integralPartiallyMolecularTable,dim=3) == self%latticeRadiusScaleFree   %count          &
                     & ) then
-                  ! Recover the limits, offsets and inverse steps from the lattices rather than reading them from the file, so
-                  ! that a restored tabulation cannot come to be described differently from a freshly built one.
+                  ! Recover the limits from the lattices rather than reading them from the file, so that a restored tabulation
+                  ! cannot come to be described differently from a freshly built one.
                   self%coefficientFactorBoostMinimum                      =      self%latticeFactorBoost       %minimum     ()
                   self%coefficientFactorBoostMaximum                      =      self%latticeFactorBoost       %maximum     ()
                   self%coefficientFactorBoostStellarMinimum               =      self%latticeFactorBoostStellar%minimum     ()
                   self%coefficientFactorBoostStellarMaximum               =      self%latticeFactorBoostStellar%maximum     ()
                   self%radiusScaleFreeMinimum                             =      self%latticeRadiusScaleFree   %minimum     ()
                   self%radiusScaleFreeMaximum                             =      self%latticeRadiusScaleFree   %maximum     ()
-                  self%coefficientFactorBoostLogarithmicOffset            =dble(self%latticeFactorBoost       %indexMinimum)/dble(pointsPerDecadeFactorBoost       )
-                  self%coefficientFactorBoostStellarLogarithmicOffset     =dble(self%latticeFactorBoostStellar%indexMinimum)/dble(pointsPerDecadeFactorBoostStellar)
-                  self%radiusScaleFreeLogarithmicOffset                   =dble(self%latticeRadiusScaleFree   %indexMinimum)/dble(pointsPerDecadeRadius            )
-                  self%coefficientFactorBoostLogarithmicStepInverse       =dble(                                                 pointsPerDecadeFactorBoost       )
-                  self%coefficientFactorBoostStellarLogarithmicStepInverse=dble(                                                 pointsPerDecadeFactorBoostStellar)
-                  self%radiusScaleFreeLogarithmicStepInverse              =dble(                                                 pointsPerDecadeRadius            )
                   self%tableInitialized                                   =.true.
                end if
             end if
@@ -1132,21 +1126,14 @@ contains
          valuesFactorBoost       =latticeFactorBoost       %values()
          valuesFactorBoostStellar=latticeFactorBoostStellar%values()
          valuesRadiusScaleFree   =latticeRadiusScaleFree   %values()
-         ! Record the limits, and the offsets and inverse steps which the interpolation reads. The inverse step is now exactly
-         ! the number of points per decade, and the offset exactly the lattice index divided by it, rather than quantities
-         ! derived from the extent of this particular range - so both are invariant under extension of that range.
+         ! Record the limits. The offset and inverse step which the interpolation uses are not recorded: both are functions of
+         ! the lattice, and are taken from it where they are used.
          self%coefficientFactorBoostMinimum                      =      latticeFactorBoost       %minimum     ()
          self%coefficientFactorBoostMaximum                      =      latticeFactorBoost       %maximum     ()
          self%coefficientFactorBoostStellarMinimum               =      latticeFactorBoostStellar%minimum     ()
          self%coefficientFactorBoostStellarMaximum               =      latticeFactorBoostStellar%maximum     ()
          self%radiusScaleFreeMinimum                             =      latticeRadiusScaleFree   %minimum     ()
          self%radiusScaleFreeMaximum                             =      latticeRadiusScaleFree   %maximum     ()
-         self%coefficientFactorBoostLogarithmicOffset            =dble(latticeFactorBoost       %indexMinimum)/dble(pointsPerDecadeFactorBoost       )
-         self%coefficientFactorBoostStellarLogarithmicOffset     =dble(latticeFactorBoostStellar%indexMinimum)/dble(pointsPerDecadeFactorBoostStellar)
-         self%radiusScaleFreeLogarithmicOffset                   =dble(latticeRadiusScaleFree   %indexMinimum)/dble(pointsPerDecadeRadius            )
-         self%coefficientFactorBoostLogarithmicStepInverse       =dble(                                            pointsPerDecadeFactorBoost       )
-         self%coefficientFactorBoostStellarLogarithmicStepInverse=dble(                                            pointsPerDecadeFactorBoostStellar)
-         self%radiusScaleFreeLogarithmicStepInverse              =dble(                                            pointsPerDecadeRadius            )
          !! Allocate the table, and carry over the block of solutions already found.
          allocate(self%integralPartiallyMolecularTable(countFactorBoost,countFactorBoostStellar,countRadii))
          self%integralPartiallyMolecularTable=0.0d0
@@ -1235,9 +1222,9 @@ contains
            file=hdf5File(self%filenameTable,overWrite=.true.,readOnly=.false.)
            ! Record the lattices on which the three axes are built. The limits, offsets and inverse steps formerly stored
            ! alongside them are not: each is a function of the lattices, and is recovered from them when the file is read.
-           call blitz2006LatticeWrite(file,'coefficientFactorBoost'       ,self%latticeFactorBoost       )
-           call blitz2006LatticeWrite(file,'coefficientFactorBoostStellar',self%latticeFactorBoostStellar)
-           call blitz2006LatticeWrite(file,'radiusScaleFree'              ,self%latticeRadiusScaleFree   )
+           call Table_Cache_Lattice_Write(file,'coefficientFactorBoost'       ,self%latticeFactorBoost       )
+           call Table_Cache_Lattice_Write(file,'coefficientFactorBoostStellar',self%latticeFactorBoostStellar)
+           call Table_Cache_Lattice_Write(file,'radiusScaleFree'              ,self%latticeRadiusScaleFree   )
            call file%writeDataset  (self%integralPartiallyMolecularTable                     ,'integral'                                           )
          end block hdf5FileScopeWrite
          !$ call hdf5Access%unset()
@@ -1250,16 +1237,39 @@ contains
       integralAnalyticPartiallyMolecularGeneric=0.0d0
       coefficientFactorBoost_            =max(coefficientFactorBoost       ,coefficientFactorBoostTiny       )
       coefficientFactorBoostStellar_     =max(coefficientFactorBoostStellar,coefficientFactorBoostStellarTiny)
-      i                                  =int((log10(coefficientFactorBoost_       )-self%coefficientFactorBoostLogarithmicOffset       )*self%coefficientFactorBoostLogarithmicStepInverse       )+1
-      j                                  =int((log10(coefficientFactorBoostStellar_)-self%coefficientFactorBoostStellarLogarithmicOffset)*self%coefficientFactorBoostStellarLogarithmicStepInverse)+1
-      hi                                 =    (log10(coefficientFactorBoost_       )-self%coefficientFactorBoostLogarithmicOffset       )*self%coefficientFactorBoostLogarithmicStepInverse        +1.0d0-dble(i)
-      hj                                 =    (log10(coefficientFactorBoostStellar_)-self%coefficientFactorBoostStellarLogarithmicOffset)*self%coefficientFactorBoostStellarLogarithmicStepInverse +1.0d0-dble(j)
-      k                                  =int((log10(radiusScaleFree               )-self%radiusScaleFreeLogarithmicOffset              )*self%radiusScaleFreeLogarithmicStepInverse              )+1
-      hk                                 =    (log10(radiusScaleFree               )-self%radiusScaleFreeLogarithmicOffset              )*self%radiusScaleFreeLogarithmicStepInverse               +1.0d0-dble(k)
-      ! Confine the indices to the table. Each is guaranteed to lie within it by the test which decided that the table need not be
-      ! extended, but only up to rounding: a value which sits within an ulp of a bound can index one point beyond it, and the
-      ! interpolation below reads the *next* point along every axis. The interpolating factors are deliberately left alone, so
-      ! that where an index is moved the interpolation simply continues the last interval rather than jumping.
+      ! Find the position of each value along its axis. This is done as the coordinate of the value on the *absolute* lattice -
+      ! a quantity which depends only on the value and on the density of lattice points, never on which part of the lattice this
+      ! particular table happens to span - split there into the index of the lattice point below it and the fraction of the
+      ! interval above that, with the index of the first tabulated point subtracted only afterwards, in exact integer
+      ! arithmetic.
+      !
+      ! The order matters. Forming the position relative to the first tabulated point *first* is exact in the subtraction, but
+      ! the fractional part is then extracted from a number whose magnitude is the index within the table, and so is rounded on
+      ! a grid which coarsens as the table grows: extending the table would perturb every interpolated value in its last bits,
+      ! which is exactly the dependence on the sequence of requests that pinning the ranges exists to remove.
+      coordinateFactorBoost              =log10(coefficientFactorBoost_       )*dble(pointsPerDecadeFactorBoost       )
+      coordinateFactorBoostStellar       =log10(coefficientFactorBoostStellar_)*dble(pointsPerDecadeFactorBoostStellar)
+      coordinateRadiusScaleFree          =log10(radiusScaleFree               )*dble(pointsPerDecadeRadius            )
+      i                                  =floor(coordinateFactorBoost       )
+      j                                  =floor(coordinateFactorBoostStellar)
+      k                                  =floor(coordinateRadiusScaleFree   )
+      hi                                 =coordinateFactorBoost       -dble(i)
+      hj                                 =coordinateFactorBoostStellar-dble(j)
+      hk                                 =coordinateRadiusScaleFree   -dble(k)
+      i                                  =i-self%latticeFactorBoost       %indexMinimum+1
+      j                                  =j-self%latticeFactorBoostStellar%indexMinimum+1
+      k                                  =k-self%latticeRadiusScaleFree   %indexMinimum+1
+      ! Confine the indices to the table. Each is guaranteed to lie within it by the test which decided that the table need not
+      ! be extended, but only up to rounding: a value which sits within an ulp of a bound can index one point beyond it, and the
+      ! interpolation below reads the *next* point along every axis. Where an index is moved the interpolating factor is moved
+      ! with it, to the end of the interval nearest the value, so that the interpolation returns the value at the edge of the
+      ! table. Moving the index alone - as this formerly did - shifts the result by a whole interval at the bounds.
+      if (i <                                                        1) hi=0.0d0
+      if (i > size(self%integralPartiallyMolecularTable,dim=1)-1      ) hi=1.0d0
+      if (j <                                                        1) hj=0.0d0
+      if (j > size(self%integralPartiallyMolecularTable,dim=2)-1      ) hj=1.0d0
+      if (k <                                                        1) hk=0.0d0
+      if (k > size(self%integralPartiallyMolecularTable,dim=3)-1      ) hk=1.0d0
       i=min(max(i,1),size(self%integralPartiallyMolecularTable,dim=1)-1)
       j=min(max(j,1),size(self%integralPartiallyMolecularTable,dim=2)-1)
       k=min(max(k,1),size(self%integralPartiallyMolecularTable,dim=3)-1)
@@ -1426,59 +1436,3 @@ contains
     return
   end function blitz2006PressureRatio
 
-  subroutine blitz2006LatticeWrite(file,axisName,lattice)
-    !!{RST
-    Record the ``rangeLattice`` on which an axis of the stored tabulation is built, as attributes named for that axis.
-    !!}
-    use :: IO_HDF5, only : hdf5File
-    implicit none
-    type     (hdf5File    ), intent(inout) :: file
-    character(len=*       ), intent(in   ) :: axisName
-    type     (rangeLattice), intent(in   ) :: lattice
-
-    call file%writeAttribute(lattice%scheme%ID   ,axisName//'GridScheme'  )
-    call file%writeAttribute(lattice%pointsPer   ,axisName//'PointsPer'   )
-    call file%writeAttribute(lattice%indexMinimum,axisName//'IndexMinimum')
-    call file%writeAttribute(lattice%count       ,axisName//'Count'       )
-    return
-  end subroutine blitz2006LatticeWrite
-
-  subroutine blitz2006LatticeRead(file,axisName,pointsPer,lattice)
-    !!{RST
-    Restore the ``rangeLattice`` on which an axis of the stored tabulation was built. The lattice is returned undefined---which
-    the caller must treat as the tabulation being unusable---unless the file records one which is self-consistent and which uses
-    the density of points that this object would use, so that a file written before the lattices were recorded, or with a
-    different grid density, reports an undefined lattice rather than being misread.
-    !!}
-    use :: IO_HDF5         , only : hdf5File
-    use :: Numerical_Ranges, only : enumerationGridSchemeType, gridSchemePerDecade
-    implicit none
-    type     (hdf5File    ), intent(inout) :: file
-    character(len=*       ), intent(in   ) :: axisName
-    integer                , intent(in   ) :: pointsPer
-    type     (rangeLattice), intent(  out) :: lattice
-    integer                                :: schemeStored, pointsPerStored, &
-         &                                    indexMinimum, count_
-
-    lattice=rangeLattice()
-    if     (                                                  &
-         &   .not.file%hasAttribute(axisName//'GridScheme'  ) &
-         &  .or.                                              &
-         &   .not.file%hasAttribute(axisName//'PointsPer'   ) &
-         &  .or.                                              &
-         &   .not.file%hasAttribute(axisName//'IndexMinimum') &
-         &  .or.                                              &
-         &   .not.file%hasAttribute(axisName//'Count'       ) &
-         & ) return
-    call file%readAttribute(axisName//'GridScheme'  ,schemeStored   )
-    call file%readAttribute(axisName//'PointsPer'   ,pointsPerStored)
-    call file%readAttribute(axisName//'IndexMinimum',indexMinimum   )
-    call file%readAttribute(axisName//'Count'       ,count_         )
-    ! Comparing the stored scheme against the one expected is stronger than merely checking that it is a valid member of the
-    ! enumeration, so no separate validity test is needed.
-    if (enumerationGridSchemeType(schemeStored) /= gridSchemePerDecade) return
-    if (pointsPerStored                         /= pointsPer          ) return
-    lattice=rangeLattice(enumerationGridSchemeType(schemeStored),pointsPerStored,indexMinimum,count_)
-    if (.not.lattice%isDefined()) lattice=rangeLattice()
-    return
-  end subroutine blitz2006LatticeRead
