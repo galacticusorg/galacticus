@@ -1518,6 +1518,7 @@ jobs:
                 test-checkpointing.py,
                 test-stellar-mass-weighted-ages.py,
                 test-supernovae-type-Ia-yields-file.py,
+                test-supernovae-type-Ia-yields-metallicity.py,
                 test-stellar-properties-LimongiChieffi2018.py,
                 test-tidalTracks.py,
                 test-transferFunctionHalfModeSlope.py,
