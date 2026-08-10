@@ -333,9 +333,58 @@ contains
           self%yieldElementRangeMetallicity(:,self%atomIndexMap(iElement))=[minval(self%yieldElementMetallicity(1:self%countYieldElement(iElement),self%atomIndexMap(iElement))),maxval(self%yieldElementMetallicity(1:self%countYieldElement(iElement),self%atomIndexMap(iElement)))]
        end if
     end do
+    ! Check that every tabulated property spans a range of metallicity. A property tabulated at a single
+    ! metallicity cannot be interpolated in the (mass, metallicity) plane, and requesting it at any other
+    ! metallicity silently returns nonsense rather than failing, so it is caught here instead.
+    call fileValidateMetallicities(self%fileName,'stellar lifetimes'   ,self%lifetimeMetallicity   )
+    call fileValidateMetallicities(self%fileName,'ejected masses'      ,self%massEjectedMetallicity)
+    call fileValidateMetallicities(self%fileName,'the total metal yield',self%yieldMetalsMetallicity)
+    do iElement=1,size(self%countYieldElement)
+       if (self%atomIndexMap(iElement) > 0)                                                                          &
+            & call fileValidateMetallicities(                                                                        &
+            &                                self%fileName                                                         , &
+            &                                'the yield of '//trim(Atomic_Short_Label(iElement))                    , &
+            &                                self%yieldElementMetallicity(1:self%countYieldElement(iElement),self%atomIndexMap(iElement)) &
+            &                               )
+    end do
     self%readDone=.true.
     return
   end subroutine fileRead
+
+  subroutine fileValidateMetallicities(fileName,label,metallicities)
+    !!{RST
+    Report a property which is tabulated at only a single metallicity.
+
+    Such a property cannot be interpolated: the tabulated points are collinear in the (mass, metallicity) plane,
+    so interpolation there is not defined and any request at another metallicity is an extrapolation. The
+    failure is silent---the interpolation returns a value, just not a meaningful one, and has been observed to
+    return an order of magnitude too much, or zero, or values which send the integration over the initial mass
+    function into an unbounded subdivision---so it is caught here rather than left to be discovered downstream.
+    !!}
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : char
+    implicit none
+    type            (varying_string), intent(in   )               :: fileName
+    character       (len=*         ), intent(in   )               :: label
+    double precision                , intent(in   ), dimension(:) :: metallicities
+    character       (len=24        )                              :: metallicityLabel
+
+    if (size(metallicities) <= 1                       ) return
+    if (maxval(metallicities) > minval(metallicities)  ) return
+    write (metallicityLabel,'(e12.6)') metallicities(1)
+    call Error_Report(                                                                                                &
+         &            'stellar properties file "'//char(fileName)//'" tabulates '//trim(label)//                       &
+         &            ' at a single metallicity (Z='//trim(adjustl(metallicityLabel))//')'//char(10)//                  &
+         &            '   => such a property can not be interpolated in the (mass, metallicity) plane, and a request'// &
+         &            ' at any other metallicity would be extrapolated, returning a value which is not meaningful'//    &
+         &            char(10)//                                                                                       &
+         &            '   => if the property genuinely does not depend on metallicity, tabulate it at two'//            &
+         &            ' metallicities which bracket the range of interest, giving it the same value at both; the'//     &
+         &            ' Sukhbold et al. (2016) files are written this way'//                                            &
+         &            {introspection:location}                                                                         &
+         &           )
+    return
+  end subroutine fileValidateMetallicities
 
   double precision function fileMassInitial(self,lifetime,metallicity)
     !!{RST
