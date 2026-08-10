@@ -63,6 +63,11 @@
 # level). The bimodal-window exception was needed once more, for decaying dark
 # matter (tau=40 Gyr, vk=40 km/s) massCumulativeDistribution, whose two 2026-07-14
 # and 2026-07-21 excursions to -5.0 and -1.6 inflate sd fourfold.
+#
+# The same pass also fixed COZMIC WDM 4keV X1 subhaloMassFunction, whose warn
+# (-0.50) sat *below* its fail (-0.45). That ordering left the warn band empty, so
+# the entry could only ever report ok or fail, skipping the warning stage
+# entirely; it was re-anchored on its history rather than merely reordered.
 
 fraction_fail: 0.2
 fraction_warn: 0.1
@@ -135,9 +140,9 @@ thresholds:
       threshold_warn: -692.9364
   darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1:
     subhaloMassFunction:
-      current: -0.2276
-      threshold_fail: -0.4500
-      threshold_warn: -0.5000
+      current: 0.3532
+      threshold_fail: -0.3449
+      threshold_warn: -0.1007
     subhaloRadialDistribution:
       current: -3.0242
       threshold_fail: -3.629
