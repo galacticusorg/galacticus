@@ -626,6 +626,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="matterDarkEnergy"/>
+          <xs:enumeration value="matterDarkEnergyCPL"/>
           <xs:enumeration value="matterLambda"/>
           <xs:enumeration value="staticUniverse"/>
          </xs:restriction>
@@ -3128,6 +3129,7 @@
        <xs:attribute name="value" use="optional">
         <xs:simpleType>
          <xs:restriction base="xs:string">
+          <xs:enumeration value="NGenHalofit"/>
           <xs:enumeration value="cosmicEmu"/>
           <xs:enumeration value="euclidEmulator2"/>
           <xs:enumeration value="linear"/>

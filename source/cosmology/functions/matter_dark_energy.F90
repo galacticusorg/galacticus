@@ -52,8 +52,9 @@
    contains
      !![
      <methods docformat="rst">
-       <method description="Set a module-scope pointer to ``self``."                         method="targetSelf"                  />
-       <method description="Return the derivative of the dark energy exponent with respect to expansion factor." method="exponentDarkEnergyDerivative"/>
+       <method description="Set a module-scope pointer to ``self``."                                                        method="targetSelf"                  />
+       <method description="Return the derivative of the dark energy exponent with respect to expansion factor."            method="exponentDarkEnergyDerivative"/>
+       <method description="Initialize the state of the object, including the root finders and the expansion factor table." method="initialize"                  />
      </methods>
      !!]
      procedure :: cosmicTime                    => matterDarkEnergyCosmicTime
@@ -70,6 +71,7 @@
      procedure :: distanceComovingConvert       => matterDarkEnergyDistanceComovingConvert
      procedure :: expansionFactorTabulate       => matterDarkEnergyMakeExpansionFactorTable
      procedure :: targetSelf                    => matterDarkEnergyTargetSelf
+     procedure :: initialize                    => matterDarkEnergyInitialize
   end type cosmologyFunctionsMatterDarkEnergy
 
   ! Module scope pointer to the current object.
@@ -134,17 +136,31 @@ contains
     Constructor for the matter plus dark energy cosmological functions class.
     !!}
     use :: Cosmology_Parameters, only : cosmologyParametersClass
-    use :: Root_Finder         , only : rangeExpandMultiplicative
     implicit none
     type            (cosmologyFunctionsMatterDarkEnergy)                        :: self
     class           (cosmologyParametersClass          ), intent(in   ), target :: cosmologyParameters_
     double precision                                    , intent(in   )         :: darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1
-    double precision                                                            :: rangeExpandDownward        , rangeExpandUpward          , &
-         &                                                                         darkEnergyExponentCurrent
     !![
     <constructorAssign variables="*cosmologyParameters_, darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1"/>
     !!]
-    
+
+    call self%initialize()
+    return
+  end function matterDarkEnergyConstructorInternal
+
+  subroutine matterDarkEnergyInitialize(self)
+    !!{RST
+    Initialize the state of a matter plus dark energy cosmological functions object. This is called from the constructors of
+    this class and of any class which extends it. As ``self`` is declared to be polymorphic here, any dark energy equation of
+    state functions overridden by an extending class are correctly used when initializing the root finders and the expansion
+    factor table.
+    !!}
+    use :: Root_Finder, only : rangeExpandMultiplicative
+    implicit none
+    class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
+    double precision                                                    :: rangeExpandDownward      , rangeExpandUpward, &
+         &                                                                 darkEnergyExponentCurrent
+
     self%collapsingUniverse                  =.false.
     self%enableRangeChecks                   =.true.
     self%expansionFactorMaximum              =0.0d0
@@ -194,8 +210,8 @@ contains
          &                        )
     ! Force a build of the expansion factor table, which will determine if this Universe collapses.
     call self%expansionFactorTabulate()
-   return
-  end function matterDarkEnergyConstructorInternal
+    return
+  end subroutine matterDarkEnergyInitialize
 
   double precision function matterDarkEnergyCosmicTime(self,expansionFactor,collapsingPhase)
     !!{RST
@@ -448,10 +464,9 @@ contains
     implicit none
     double precision, intent(in   ) :: expansionFactor
 
-    matterDarkEnergyDomination=                                                                                                 &
-         &                      self_%cosmologyParameters_%OmegaMatter    ()                               &
-         &                     /expansionFactor**3                                                                              &
-         &                     -factorDominateCurrent                                                           &
+    matterDarkEnergyDomination=+self_%cosmologyParameters_%OmegaMatter    ()                               &
+         &                     /expansionFactor**3                                                         &
+         &                     -factorDominateCurrent                                                      &
          &                     *self_%cosmologyParameters_%OmegaDarkEnergy()                               &
          &                     *expansionFactor**self_%exponentDarkEnergy(expansionFactor=expansionFactor)
     return
