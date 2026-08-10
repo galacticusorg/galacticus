@@ -110,8 +110,7 @@ contains
     !!{RST
     Internal constructor for the mass accretion history merger tree operator class.
     !!}
-    use :: Error           , only : Component_List      , Error_Report
-    use :: Galacticus_Nodes, only : defaultSpinComponent
+    use :: Error, only : Error_Report
     implicit none
     type     (mergerTreeOperatorMassAccretionHistory)                        :: self
     character(len=*                                 ), intent(in   )         :: outputGroupName
@@ -122,26 +121,16 @@ contains
     <constructorAssign variables="outputGroupName, includeSpin, includeSpinVector, *cosmologyFunctions_, *darkMatterHaloScale_"/>
     !!]
 
-    if (self%includeSpin      .and..not.defaultSpinComponent%angularMomentumIsGettable      ())                 &
-         & call Error_Report                                                                                    &
-         &  (                                                                                                   &
-         &   'the angularMomentum property of the spin component must be gettable.'                          // &
-         &   Component_List(                                                                                    &
-         &                  'spin'                                                                            , &
-         &                   defaultSpinComponent%angularMomentumAttributeMatch      (requireGettable=.true.)   &
-         &                 )                                                                                 // &
-         &   {introspection:location}                                                                           &
-         &  )
-    if (self%includeSpinVector.and..not.defaultSpinComponent%angularMomentumVectorIsGettable())                 &
-         & call Error_Report                                                                                    &
-         &  (                                                                                                   &
-         &   'the angularMomentumVector property of the spin component must be gettable.'                    // &
-         &   Component_List(                                                                                    &
-         &                  'spin'                                                                            , &
-         &                   defaultSpinComponent%angularMomentumVectorAttributeMatch(requireGettable=.true.)   &
-         &                 )                                                                                 // &
-         &   {introspection:location}                                                                           &
-         &  )
+    if (self%includeSpin      ) then
+       !![
+       <componentPropertyAssert class="spin" properties="angularMomentum"       require="gettable"/>
+       !!]
+    end if
+    if (self%includeSpinVector) then
+       !![
+       <componentPropertyAssert class="spin" properties="angularMomentumVector" require="gettable"/>
+       !!]
+    end if
     return
   end function massAccretionHistoryConstructorInternal
 

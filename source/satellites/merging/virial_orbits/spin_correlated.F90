@@ -103,8 +103,7 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`virialOrbitSpinCorrelated` virial orbits class.
     !!}
-    use            :: Error               , only : Component_List      , Error_Report
-    use            :: Galacticus_Nodes    , only : defaultSpinComponent
+    use :: Error, only : Error_Report
     implicit none
     type            (virialOrbitSpinCorrelated)                        :: self
     double precision                           , intent(in   )         :: alpha
@@ -115,16 +114,9 @@ contains
     <constructorAssign variables="alpha, *virialOrbit_, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
     !!]
 
-    if (.not.defaultSpinComponent%angularMomentumVectorIsGettable())                                                             &
-            & call Error_Report                                                                                                  &
-            &      (                                                                                                             &
-            &       'spin-correlated orbits require that the angularMomentumVector property of the spin component be gettable'// &
-            &       Component_List(                                                                                              &
-            &                      'spin'                                                                                     ,  &
-            &                       defaultSpinComponent%angularMomentumVectorAttributeMatch(requireGettable=.true.)             &
-            &                     )                                                                                           // &
-            &       {introspection:location}                                                                                     &
-            &      )
+    !![
+    <componentPropertyAssert class="spin" properties="angularMomentumVector" require="gettable"/>
+    !!]
     return
   end function spinCorrelatedConstructorInternal
 

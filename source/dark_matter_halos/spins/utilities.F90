@@ -38,24 +38,15 @@ contains
     !!{RST
     Assert that properties required for spin calculations are gettable.
     !!}
-    use :: Error             , only : Component_List       , Error_Report
-    use :: Galacticus_Nodes  , only : defaultBasicComponent
     use :: ISO_Varying_String, only : operator(//)
     implicit none
 
     if (.not.propertiesAsserted) then
        !$omp critical(darkMatterHaloSpinsAssertions)
        if (.not.propertiesAsserted) then
-          if (.not.defaultBasicComponent%massIsGettable())                                               &
-               & call Error_Report                                                                       &
-               &      (                                                                                  &
-               &       'mass property of basic component must be gettable.'//                            &
-               &       Component_List(                                                                   &
-               &                      'basic'                                                         ,  &
-               &                      defaultBasicComponent%massAttributeMatch(requireGettable=.true.)   &
-               &                     )                                                                // &
-               &       {introspection:location}                                                          &
-               &      )
+          !![
+          <componentPropertyAssert class="basic" properties="mass" require="gettable"/>
+          !!]
           ! Record that the module is now initialized.
           propertiesAsserted=.true.
        end if
@@ -71,7 +62,6 @@ contains
     use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
     use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
     use :: Galacticus_Nodes                , only : nodeComponentBasic            , treeNode
-    use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Mass_Distributions              , only : massDistributionClass
     use :: Galactic_Structure_Options      , only : componentTypeDarkMatterOnly   , massTypeDark
@@ -82,7 +72,7 @@ contains
     logical                           , intent(in   ), optional :: useBullockDefinition
     class  (nodeComponentBasic       ), pointer                 :: basic
     class  (massDistributionClass    ), pointer                 :: massDistribution_
-   !![
+    !![
     <optionalArgument name="useBullockDefinition" defaultsTo=".false." />
     !!]
     
