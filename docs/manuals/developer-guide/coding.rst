@@ -384,6 +384,51 @@ A common requirement in object constructors is to assign the values of arguments
 
 will cause the value of the ``massThreshold`` argument to ``stellarMassConstructorInternal%massThreshold``. If an argument name is prefixed with ``*`` in the variables list, pointer assignment is used instead of standard assignment.
 
+.. _manual-sec-componentPropertyAssert:
+
+Component Property Assertions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Many classes work only if the active node component implementations provide certain properties with certain attributes---for example, a dark matter profile that needs a gettable ``scale`` property of the ``darkMatterProfile`` component. Since which implementations are active is chosen at run time from the parameter file, such requirements must be asserted at run time, and the resulting error message should tell the user which implementations *would* satisfy the requirement. The ``componentPropertyAssert`` directive generates that assertion:
+
+.. code-block:: none
+
+     !![
+     <componentPropertyAssert class="spheroid" properties="massStellar massGas halfMassRadius angularMomentum" require="gettable"/>
+     !!]
+
+This expands to a test that every listed property is gettable, and, if not, a call to ``Error_Report`` whose message is appended with a ``Component_List`` naming the implementations of the ``spheroid`` class that do provide all of those properties as gettable. The ``use`` statements required by the generated code are added automatically. The attributes are:
+
+``class``
+   The name of the component class, e.g. ``spheroid``. This is used both to build the name of the default component object (``defaultSpheroidComponent``) and as the class name reported in the error message---writing it once removes the risk of the two disagreeing.
+
+``properties``
+   A whitespace- and/or comma-separated list of property names of that class.
+
+``require``
+   A whitespace- and/or comma-separated list of the required attributes; any of ``gettable``, ``settable``, and ``evolvable``. Every requirement is applied to every listed property.
+
+``message``
+   Optional. Replaces the generated diagnostic. Use this where the requirement needs context that cannot be inferred from the class and property names---the location of the assertion is reported automatically, so there is no need to name the enclosing class or function.
+
+Occasionally the test must be made in one place and reported in another---typically when the test is made once in a constructor and cached, but the error is raised later at the point of use, inside a ``select type`` over component implementations. The ``assignTo`` and ``condition`` attributes split the directive across those two places:
+
+.. code-block:: none
+
+     ! In the constructor:
+     !![
+     <componentPropertyAssert class="disk" properties="radius velocity" require="gettable" assignTo="self%diskSupported"/>
+     !!]
+
+     ! At the point of use:
+     !![
+     <componentPropertyAssert class="disk" properties="radius velocity" require="gettable" condition="self%diskSupported"/>
+     !!]
+
+``assignTo`` generates only the test, assigning its result to the named ``logical`` variable (which must be declared as usual). ``condition`` generates only the error report, guarded by the supplied expression. The two attributes are mutually exclusive.
+
+Note that property names are not validated by the preprocessor: a misspelled property generates a reference to a non-existent ``%<property>IsGettable()`` binding, which the compiler rejects.
+
 .. _manual-sec-metaProperties:
 
 Meta-Properties
