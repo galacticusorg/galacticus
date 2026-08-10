@@ -40,6 +40,15 @@
      logical                                                 :: tableInitialized             =  .false.
      double precision                                        :: tableTimeMinimum                       , tableTimeMaximum, &
           &                                                     normalizationMatterDominated
+     ! Lattice to which the tabulated epochs are pinned, and the state in which the integration of the growth factor was left at
+     ! the latest of them. The growth factor is integrated forward from an initial condition imposed at the earliest tabulated
+     ! epoch, so it is not a function of its abscissa alone: retaining that state is what allows the tabulation to be extended to
+     ! later epochs by resuming the integration rather than repeating it. It is retained *unnormalized*, along with the factor by
+     ! which the tabulation was normalized, because what the table holds is the normalized solution, from which the state of the
+     ! integration could not be recovered exactly.
+     type            (rangeLattice            )              :: latticeTime
+     double precision                                        :: growthFactorFinal                      , growthFactorDerivativeFinal, &
+          &                                                     normalizationFactor
      class           (table1D                 ), allocatable :: growthFactor
      class           (cosmologyParametersClass), pointer     :: cosmologyParameters_         => null()
      class           (cosmologyFunctionsClass ), pointer     :: cosmologyFunctions_          => null()
@@ -67,6 +76,9 @@
 
   ! Tolerance parameter used to ensure times do not exceed that at the Big Crunch.
   double precision, parameter :: timeToleranceRelative=1.0d-4
+  ! Seed range of epochs to tabulate. Any two tabulations therefore contain this range, and so always overlap - which is what
+  ! makes their shared lattice points reusable no matter which epochs each was asked for.
+  double precision, parameter :: timeTableSeedMinimum = 1.0d0, timeTableSeedMaximum=20.0d0
 
 contains
 
@@ -143,22 +155,28 @@ contains
     !!}
     use :: Interface_GSL        , only : GSL_Success
     use :: Numerical_ODE_Solvers, only : odeSolver
+    use :: Numerical_Ranges     , only : Range_Pinned, gridSchemePerDecade
     use :: Tables               , only : table1DLogarithmicLinear
     implicit none
     class           (linearGrowthNonClusteringBaryonsDarkMatter), intent(inout) :: self
     double precision                                            , intent(in   ) :: time
     double precision                                            , parameter     :: dominateFactor               =   1.0d+04
     double precision                                            , parameter     :: odeToleranceAbsolute         =   1.0d-10, odeToleranceRelative     =1.0d-10
-    integer                                                     , parameter     :: growthTablePointsPerDecade   =1000
+    ! Density of tabulation points, and the interval - in lattice steps - to which the bounds are pinned. The bounds are pinned
+    ! to the lattice points themselves rather than to whole decades: at a thousand points per decade, and an ordinary differential
+    ! equation solved at each of them, rounding a bound outward to a whole decade would add a thousand epochs for the sake of
+    ! reaching one.
+    integer                                                     , parameter     :: growthTablePointsPerDecade   =1000     , growthTableAnchorEvery=1
     double precision                                            , dimension(2)  :: growthFactorODEVariables
-    logical                                                                     :: remakeTable
-    integer                                                                     :: i
-    double precision                                                            :: expansionFactorMatterDominant           , growthFactorDerivative           , &
-         &                                                                         timeNow                                 , linearGrowthFactorPresent        , &
-         &                                                                         timeMatterDominant                      , timePresent                      , &
-         &                                                                         timeBigCrunch, exponent
-    integer                                                                     :: growthTableNumberPoints
+    logical                                                                     :: remakeTable                            , carryOver
+    integer                                                                     :: i                                      , iStart
+    double precision                                                            :: timeNow                                , timeMatterDominant       , &
+         &                                                                         timePresent                            , timeBigCrunch            , &
+         &                                                                         exponent                               , timeSeedMinimum          , &
+         &                                                                         timeSeedMaximum
     type            (odeSolver                                 )                :: solver
+    type            (rangeLattice                              )                :: latticeTime
+    logical                                                     , allocatable, dimension(:) :: isComputed
 
     ! Check if we need to recompute our table.
     if (self%tableInitialized) then
@@ -172,53 +190,107 @@ contains
     end if
     if (remakeTable) then
        ! Find the present-day epoch.
-       timePresent                 =     self%cosmologyFunctions_%cosmicTime           (                        1.0d0,collapsingPhase=self%cosmologyParameters_%HubbleConstant() < 0.0d0)
-       ! Find epoch of matter-dark energy equality.
-       expansionFactorMatterDominant=min(                                                                               &
-            &                            self%cosmologyFunctions_%expansionFactor      (        self%tableTimeMinimum), &
-            &                            self%cosmologyFunctions_%dominationEpochMatter(               dominateFactor)  &
-            &                           )
-       timeMatterDominant           =    self%cosmologyFunctions_%cosmicTime           (expansionFactorMatterDominant)
-       ! Find minimum and maximum times to tabulate.
-       self%tableTimeMinimum=min(self%tableTimeMinimum,min(timePresent,min(time/2.0,timeMatterDominant)      ))
-       self%tableTimeMaximum=max(self%tableTimeMaximum,max(timePresent,max(time    ,timeMatterDominant)*2.0d0))
-       timeBigCrunch        =self%cosmologyFunctions_%timeBigCrunch()
+       timePresent       =self%cosmologyFunctions_%cosmicTime(1.0d0,collapsingPhase=self%cosmologyParameters_%HubbleConstant() < 0.0d0)
+       ! Find the epoch of matter-dark energy equality. Note that this is a function of the cosmology alone. It was formerly
+       ! limited also by the current lower bound of the tabulation, but that term could never do anything: it takes effect only
+       ! once the bound has already descended below the epoch of equality, and then merely reproduces the bound - which the
+       ! union with the range already tabulated supplies in any case, and which as a *target* would ratchet the range outward on
+       ! every retabulation.
+       timeMatterDominant=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%dominationEpochMatter(dominateFactor))
+       timeBigCrunch     =self%cosmologyFunctions_%timeBigCrunch()
+       timeSeedMinimum   =timeTableSeedMinimum
+       timeSeedMaximum   =timeTableSeedMaximum
        if (timeBigCrunch > 0.0d0) then
           ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
-          if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                       *timeBigCrunch
-          if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-timeToleranceRelative)*timeBigCrunch
+          if (timeSeedMinimum > timeBigCrunch) timeSeedMinimum= 0.5d0                       *timeBigCrunch
+          if (timeSeedMaximum > timeBigCrunch) timeSeedMaximum=(1.0d0-timeToleranceRelative)*timeBigCrunch
        end if
-       ! Determine number of points to tabulate.
-       growthTableNumberPoints=int(log10(self%tableTimeMaximum/self%tableTimeMinimum)*dble(growthTablePointsPerDecade))
-       ! Destroy current table.
-       if (allocated(self%growthFactor)) then
+       ! Find the range of epochs to tabulate, pinning it to an absolute lattice so that the epochs solved for - and therefore
+       ! every value interpolated between them - depend only on which lattice points are spanned, and not on the sequence of
+       ! epochs which happened to be requested. The request is passed as the target and the range already tabulated is unioned in
+       ! through `latticeCurrent`; folding the latter into the target instead - as the `min`/`max` against the current bounds
+       ! formerly did - would apply the safety margin to an already margined bound and so ratchet the range outward on every
+       ! retabulation.
+       if (timeBigCrunch > 0.0d0) then
+          latticeTime=Range_Pinned(                                                             &
+               &                                  [timePresent,time,timeMatterDominant]       , &
+               &                                   growthTablePointsPerDecade                 , &
+               &                                   gridSchemePerDecade                        , &
+               &                   marginFactor  = 2.0d0                                      , &
+               &                   anchorEvery   = growthTableAnchorEvery                     , &
+               &                   rangeCurrent  =[timeSeedMinimum,timeSeedMaximum]           , &
+               &                   limitMaximum  =(1.0d0-timeToleranceRelative)*timeBigCrunch , &
+               &                   latticeCurrent= self%latticeTime                             &
+               &                  )
+       else
+          latticeTime=Range_Pinned(                                                             &
+               &                                  [timePresent,time,timeMatterDominant]       , &
+               &                                   growthTablePointsPerDecade                 , &
+               &                                   gridSchemePerDecade                        , &
+               &                   marginFactor  = 2.0d0                                      , &
+               &                   anchorEvery   = growthTableAnchorEvery                     , &
+               &                   rangeCurrent  =[timeSeedMinimum,timeSeedMaximum]           , &
+               &                   latticeCurrent= self%latticeTime                             &
+               &                  )
+       end if
+       ! The growth factor is integrated forward from an initial condition imposed at the earliest tabulated epoch, so every
+       ! value depends on where that integration began. The tabulation can therefore be carried over only while the earliest
+       ! epoch is unchanged; where it moves, the tabulation is rebuilt outright, which is arranged by discarding the table so
+       ! that it is extended from an undefined lattice.
+       carryOver=self%tableInitialized .and. self%latticeTime%isDefined() .and. allocated(self%growthFactor)
+       if (carryOver) carryOver=latticeTime%indexMinimum == self%latticeTime%indexMinimum
+       if (.not.carryOver .and. allocated(self%growthFactor)) then
           call self%growthFactor%destroy()
           deallocate(self%growthFactor)
        end if
+       if (.not.allocated(self%growthFactor)) allocate(table1DLogarithmicLinear :: self%growthFactor)
+       iStart=2
+       if (carryOver) iStart=self%latticeTime%count+1
+       self%latticeTime=latticeTime
        ! Compute the exponent of the growth factor during the matter-dominated phase.
        exponent=(sqrt(1.0d0+24.0d0*(self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon())/self%cosmologyParameters_%OmegaMatter())-1.0d0)/6.0d0
-       ! Create table.
-       allocate(table1DLogarithmicLinear :: self%growthFactor)
        select type (growthFactor => self%growthFactor)
        type is (table1DLogarithmicLinear)
-          call growthFactor%create(self%tableTimeMinimum,self%tableTimeMaximum,growthTableNumberPoints)
-          ! Solve ODE to get corresponding expansion factors. Initialize with solution for matter dominated phase. We choose an
-          ! initial growth factor of 1 (this is arbitrary as by definition the growth is linear so we can rescale to any
-          ! value). Perturbations in the matter dominated phase grow as δ ∝ t^p, so the initial growth rate is dδ/dt = p δ/t.
-          call growthFactor%populate(1.0d0,1)
-          growthFactorDerivative=exponent/growthFactor%x(1)
-          solver                =odeSolver(2_c_size_t,growthFactorODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
-          do i=2,growthTableNumberPoints
+          ! Extend the tabulation onto the new lattice, preserving the values already computed. The abscissae come from the
+          ! lattice, so a given epoch is bit-identical between one tabulation and another however many each spans.
+          call growthFactor%extend(latticeTime,isComputed)
+          ! Solve the ODE for the epochs not already solved for. The state of the integration is carried in the solution vector
+          ! rather than read back from the table between steps: where the integration is resumed the table holds *normalized*
+          ! values, which are not the state the equations were left in. For a tabulation built afresh this is behaviour
+          ! preserving, since reading `y(i-1)` back returned exactly what the previous step populated.
+          if (carryOver) then
+             growthFactorODEVariables(1)=self%growthFactorFinal
+             growthFactorODEVariables(2)=self%growthFactorDerivativeFinal
+          else
+             ! Initialize with the solution for the matter dominated phase. We choose an initial growth factor of 1 (this is
+             ! arbitrary as by definition the growth is linear so we can rescale to any value). Perturbations in the matter
+             ! dominated phase grow as δ ∝ t^p, so the initial growth rate is dδ/dt = p δ/t.
+             growthFactorODEVariables(1)=1.0d0
+             growthFactorODEVariables(2)=exponent/growthFactor%x(1)
+             call growthFactor%populate(growthFactorODEVariables(1),1)
+          end if
+          solver=odeSolver(2_c_size_t,growthFactorODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)
+          do i=iStart,latticeTime%count
              timeNow                    =growthFactor          %x(i-1)
-             growthFactorODEVariables(1)=growthFactor          %y(i-1)
-             growthFactorODEVariables(2)=growthFactorDerivative
              call solver      %solve   (timeNow,growthFactor%x(i),growthFactorODEVariables     )
              call growthFactor%populate(                          growthFactorODEVariables(1),i)
-             growthFactorDerivative=growthFactorODEVariables(2)
           end do
-          ! Normalize to growth factor of unity at present day.
-          linearGrowthFactorPresent=growthFactor%interpolate(timePresent)
-          call growthFactor%populate(reshape(growthFactor%ys(),[growthTableNumberPoints])/linearGrowthFactorPresent)
+          ! Retain the state in which the integration was left, so that a later extension to later epochs can resume from it.
+          self%growthFactorFinal          =growthFactorODEVariables(1)
+          self%growthFactorDerivativeFinal=growthFactorODEVariables(2)
+          ! Normalize to growth factor of unity at present day. The normalization is fixed at the present day, which lies within
+          ! any block carried over - it is always among the targets of the pinned range - so it cannot have changed: where the
+          ! tabulation was carried over the retained factor is applied to the newly solved epochs alone.
+          if (carryOver) then
+             do i=iStart,latticeTime%count
+                call growthFactor%populate(growthFactor%y(i)/self%normalizationFactor,i)
+             end do
+          else
+             self%normalizationFactor=growthFactor%interpolate(timePresent)
+             call growthFactor%populate(reshape(growthFactor%ys(),[latticeTime%count])/self%normalizationFactor)
+          end if
+          self%tableTimeMinimum=latticeTime%minimum()
+          self%tableTimeMaximum=latticeTime%maximum()
           ! Compute relative normalization factor such that growth factor behaves as expansion factor at early times.
           self%normalizationMatterDominated=+(                                                                &
                &                              +9.0d0                                                          &

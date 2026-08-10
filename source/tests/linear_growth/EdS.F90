@@ -34,6 +34,10 @@ program Tests_Linear_Growth_EdS
   character       (len=1024                       )                          :: message
   integer                                                                    :: iExpansion
   double precision                                                           :: expansionFactor                                                               , linearGrowthFactor
+  ! An epoch beyond any reached above, used to force the tabulation to be extended.
+  double precision                                             , parameter   :: expansionFactorExtension=4.0d0
+  double precision                                 , dimension(8)            :: linearGrowthFactorBefore                                                      , linearGrowthFactorAfter
+  logical                                                                    :: unchangedByExtension
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -74,6 +78,24 @@ program Tests_Linear_Growth_EdS
      write (message,'(a,f6.1,a)') "dark matter linear growth factor [z=",redshift(iExpansion),"]"
      call Assert(trim(message),linearGrowthFactor,expansionFactor,relTol=1.0d-3)
   end do
+  ! Check that extending the tabulation leaves the values it already held unchanged. The tabulated epochs lie on an absolute
+  ! lattice, so a request beyond the latest of them adds points to the tabulation and resumes the integration of the growth
+  ! factor from the state in which it was left, rather than laying a fresh grid across the enlarged range and integrating it
+  ! again from the start - so the growth factor at every epoch already tabulated must be reproduced bit for bit. The values are
+  ! recorded only after the loop above, so that the comparison is across the extension alone: the tabulation reaches its final
+  ! range during that loop, and a request for an epoch *earlier* than any tabulated does rebuild it - the growth factor is
+  ! integrated forward from the earliest tabulated epoch, so moving that epoch necessarily changes every value.
+  do iExpansion=1,size(redshift)
+     expansionFactor=cosmologyFunctions_%expansionFactorFromRedshift(redshift(iExpansion))
+     linearGrowthFactorBefore(iExpansion)=linearGrowth_%value(expansionFactor=expansionFactor,component=componentDarkMatter)
+  end do
+  linearGrowthFactor=linearGrowth_%value(expansionFactor=expansionFactorExtension,component=componentDarkMatter)
+  do iExpansion=1,size(redshift)
+     expansionFactor=cosmologyFunctions_%expansionFactorFromRedshift(redshift(iExpansion))
+     linearGrowthFactorAfter(iExpansion)=linearGrowth_%value(expansionFactor=expansionFactor,component=componentDarkMatter)
+  end do
+  unchangedByExtension=all(linearGrowthFactorAfter == linearGrowthFactorBefore)
+  call Assert("dark matter linear growth factor is unchanged by extension of the tabulation",unchangedByExtension,.true.)
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
