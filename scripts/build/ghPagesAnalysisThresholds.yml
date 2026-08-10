@@ -68,6 +68,17 @@
 # (-0.50) sat *below* its fail (-0.45). That ordering left the warn band empty, so
 # the entry could only ever report ok or fail, skipping the warning stage
 # entirely; it was re-anchored on its history rather than merely reordered.
+#
+# COZMIC WDM 3keV X8 subhaloMassFunction had the same problem for a different
+# reason: the 2026-08-01 bootstrap read a run in which that analysis returned
+# logImpossible, and scaling that sentinel by the bootstrap fractions put both
+# thresholds below it, so no finite likelihood could ever fail. It is re-anchored
+# here on the 15 finite values published since 2026-06-01, which run from -49.1 to
+# -43.6 with one excursion to -37.2. Those values are provisional: the model built
+# only 8 trees and returned an impossible likelihood on every run since
+# 2026-07-29, and its tree count is being raised to 128, so this entry should be
+# re-anchored once a few post-change runs have been published. The bootstrap
+# script no longer derives thresholds from an impossible likelihood.
 
 fraction_fail: 0.2
 fraction_warn: 0.1
@@ -127,9 +138,9 @@ thresholds:
       threshold_warn: -16.6427
   darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8:
     subhaloMassFunction:
-      current: -1.7976931348623154e+302
-      threshold_fail: -2.1572317618347786e+302
-      threshold_warn: -1.977462448348547e+302
+      current: -48.1525
+      threshold_fail: -60.8856
+      threshold_warn: -53.8111
     subhaloRadialDistribution:
       current: -68.4185
       threshold_fail: -82.1022
