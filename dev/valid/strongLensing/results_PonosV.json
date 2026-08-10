@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "6703a1e9545f194745f78ccd1e4dc9384ac1ce3d",
-        "message": "Merge pull request #1335 from galacticusorg/pr/farahi-pinning\n\nfeat(excursionSets): pin and reuse the Farahi first crossing tabulations\n",
-        "timestamp": "2026-08-08 05:00:47+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/6703a1e9545f194745f78ccd1e4dc9384ac1ce3d"
+        "id": "9e04f6f256cbf0ca9dcb567b478c773848082e61",
+        "message": "Merge pull request #1347 from galacticusorg/fix/ethos-extended-slope-analytic-derivative\n\nfix(powerSpectrum): evaluate the ETHOS extended slope analytically\n",
+        "timestamp": "2026-08-09 21:58:23+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/9e04f6f256cbf0ca9dcb567b478c773848082e61"
     },
     "surfaceDensity": {
-        "percentageBelow": 25.0,
-        "percentageAbove": 75.0,
+        "percentageBelow": 35.71428571428571,
+        "percentageAbove": 64.28571428571429,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 73.33333333333333,
-        "percentageAbove": 26.666666666666668,
+        "percentageBelow": 69.23076923076923,
+        "percentageAbove": 30.76923076923077,
         "target": 0.85
     }
 }
