@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786200220234,
+  "lastUpdate": 1786334701012,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "ab0b8bbbb169cc0e0f79078b2e57eb9c43233e4d",
-          "message": "Merge pull request #852 from galacticusorg/fixSphericalChandrasekharIntegral\n\nReduce the Chandrasekhar integral (for dynamical friction) in spherical systems to account for the finite size of the perturber",
-          "timestamp": "2025-05-27T15:04:54Z",
-          "tree_id": "c617b9c338d143fd7f616f8669c15c2bb393a9c1",
-          "url": "https://github.com/galacticusorg/galacticus/commit/ab0b8bbbb169cc0e0f79078b2e57eb9c43233e4d"
-        },
-        "date": 1748381919174,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 60.236,
-            "unit": "seconds",
-            "range": 0.093874384152861
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8784,6 +8754,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 11897.60988202487,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9e04f6f256cbf0ca9dcb567b478c773848082e61",
+          "message": "Merge pull request #1347 from galacticusorg/fix/ethos-extended-slope-analytic-derivative\n\nfix(powerSpectrum): evaluate the ETHOS extended slope analytically",
+          "timestamp": "2026-08-09T21:58:23Z",
+          "tree_id": "00edc85b0c464f692594354d58b57a99179054be",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9e04f6f256cbf0ca9dcb567b478c773848082e61"
+        },
+        "date": 1786334696214,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 33.25600000000001,
+            "range": "0.14582318059897054",
+            "unit": "seconds"
           }
         ]
       }
