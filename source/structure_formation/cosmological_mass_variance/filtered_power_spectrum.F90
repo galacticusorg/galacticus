@@ -148,6 +148,16 @@
   ! discrete set of ranges which can result.
   integer                         , parameter :: anchorEveryMass=pointsPerDecade, anchorEveryTime    =  1
 
+  ! Seed range of masses to tabulate. Every tabulation contains this range, so any two which are never asked for a mass outside
+  ! it span *exactly* the same range - which matters here beyond the usual guarantee that two ranges overlap and so can be
+  ! merged. σ(M) is interpolated with a cubic spline, every coefficient of which depends on every tabulated value, so σ at a
+  ! given mass is not a function of that mass alone: it depends on the range over which the tabulation was built. Since
+  ! tabulations are cached to file and merged across runs and across models sharing the same parameters, a model which extended
+  ! the range would otherwise obtain a different σ(M) from one which ran before it and did not - making results depend on what
+  ! else had run, which is the dependence this pinning exists to remove. The range spans the halo masses which models
+  ! plausibly reach; a mass outside it still extends the tabulation, and the dependence returns for models which straddle it.
+  double precision                , parameter :: massTableSeedMinimum=1.0d6     , massTableSeedMaximum=1.0d18
+
   ! Module-scope time used in integrals.
   double precision                            :: time__
   !$omp threadprivate(time__)
@@ -879,24 +889,25 @@ contains
           ! into the target would apply the safety margin to an already-margined bound and ratchet the range upward on every
           ! retabulation.
           if      (present(mass)               ) then
-             latticeMass=Range_Pinned(                                      &
-                  &                                   [mass]              , &
-                  &                                    pointsPerDecade    , &
-                  &                                    gridSchemePerDecade, &
-                  &                   anchorEvery   =  anchorEveryMass    , &
-                  &                   latticeCurrent=self%latticeMass       &
+             latticeMass=Range_Pinned(                                                            &
+                  &                                   [mass]                                    , &
+                  &                                    pointsPerDecade                          , &
+                  &                                    gridSchemePerDecade                      , &
+                  &                   anchorEvery   =  anchorEveryMass                          , &
+                  &                   rangeCurrent  = [massTableSeedMinimum,massTableSeedMaximum], &
+                  &                   latticeCurrent=self%latticeMass                             &
                   &                  )
           else if (self%latticeMass%isDefined()) then
              latticeMass=self%latticeMass
           else
-             ! No mass was given, and there is no tabulation to retain. Must provide some mass range - the default range is
-             ! already a whole number of decades, and so is taken as the target with no safety margin.
-             latticeMass=Range_Pinned(                                      &
-                  &                                   [1.0d10,1.0d15]     , &
-                  &                                    pointsPerDecade    , &
-                  &                                    gridSchemePerDecade, &
-                  &                   marginFactor  =  1.0d0              , &
-                  &                   anchorEvery   =  anchorEveryMass      &
+             ! No mass was given, and there is no tabulation to retain. The seed range serves as the target; it is already a whole
+             ! number of decades, and so is taken with no safety margin.
+             latticeMass=Range_Pinned(                                                            &
+                  &                                   [massTableSeedMinimum,massTableSeedMaximum], &
+                  &                                    pointsPerDecade                          , &
+                  &                                    gridSchemePerDecade                      , &
+                  &                   marginFactor  =  1.0d0                                    , &
+                  &                   anchorEvery   =  anchorEveryMass                            &
                   &                  )
           end if
           rootVarianceTableCount=latticeMass%count
