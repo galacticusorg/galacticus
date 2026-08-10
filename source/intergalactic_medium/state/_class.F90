@@ -27,6 +27,7 @@ module Intergalactic_Medium_State
   !!}
   use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
+  use :: Numerical_Ranges    , only : rangeLattice
   use :: Tables              , only : table              , table1DGeneric          , table1DLogarithmicLinear
   private
 
@@ -161,10 +162,12 @@ module Intergalactic_Medium_State
         &amp;                  )
      assumeFullyIonizedActual=.false.
      if (present(assumeFullyIonized)) assumeFullyIonizedActual=assumeFullyIonized
+     ! The tabulations are made against time in units of the present age of the universe - see
+     ! `intergalacticMediumStateElectronScatteringTabulate`.
      if (assumeFullyIonizedActual) then
-        intergalacticMediumStateElectronScatteringOpticalDepth=-self%electronScatteringFullyIonized%interpolate(time)
+        intergalacticMediumStateElectronScatteringOpticalDepth=-self%electronScatteringFullyIonized%interpolate(time/self%electronScatteringTableTimeMaximum)
      else
-        intergalacticMediumStateElectronScatteringOpticalDepth=-self%electronScattering            %interpolate(time)
+        intergalacticMediumStateElectronScatteringOpticalDepth=-self%electronScattering            %interpolate(time/self%electronScatteringTableTimeMaximum)
      end if
     </code>
    </method>
@@ -207,12 +210,13 @@ module Intergalactic_Medium_State
    <data scope="self"  >class           (cosmologyParametersClass), pointer   :: cosmologyParameters_                   => null()                                  </data>
    <data scope="self"  >class           (cosmologyFunctionsClass ), pointer   :: cosmologyFunctions_                    => null()                                  </data>
    <!-- Electron scattering optical depth tables. -->
-   <data scope="module">integer                                   , parameter :: electronScatteringTablePointsPerDecade =  100                                     </data>
-   <data scope="self"  >logical                                               :: electronScatteringTableInitialized     =  .false.                                 </data>
-   <data scope="self"  >integer                                               :: electronScatteringTableNumberPoints                                               </data>
-   <data scope="self"  >double precision                                      :: electronScatteringTableTimeMaximum            , electronScatteringTableTimeMinimum</data>
-   <data scope="self"  >type            (table1DLogarithmicLinear)            :: electronScattering                            , electronScatteringFullyIonized    </data>
-   <data scope="self"  >type            (table1DGeneric          )            :: electronScatteringFullyIonizedInverse         , electronScatteringInverse         </data>
+   <data scope="module">integer                                   , parameter :: electronScatteringTablePointsPerDecade =  100                                 </data>
+   <data scope="self"  >logical                                               :: electronScatteringTableInitialized     =  .false.                             </data>
+   <data scope="self"  >double precision                                      :: electronScatteringTableTimeMaximum                                            </data>
+   <!-- Lattice to which the tabulated times are pinned. This is the source of truth for the extent of the tabulation. -->
+   <data scope="self"  >type            (rangeLattice            )            :: electronScatteringTableLattice                                                </data>
+   <data scope="self"  >type            (table1DLogarithmicLinear)            :: electronScattering                        , electronScatteringFullyIonized    </data>
+   <data scope="self"  >type            (table1DGeneric          )            :: electronScatteringFullyIonizedInverse     , electronScatteringInverse         </data>
   </functionClass>
   !!]
 
@@ -221,62 +225,111 @@ contains
   subroutine intergalacticMediumStateElectronScatteringTabulate(self,time)
     !!{RST
     Construct a table of electron scattering optical depth as a function of cosmological time.
+
+    The optical depths are tabulated against time *in units of the present age of the universe*, and that axis is pinned to an
+    absolute lattice, so that the times at which the optical depth is evaluated---and therefore every value interpolated between
+    them---depend only on which lattice points are spanned, and not on the sequence of times which happened to be requested. In
+    those units the present day is exactly the lattice point of index zero, which is what allows the axis to be pinned while
+    still ending exactly at the present day: that is the upper limit of every integral performed here, the epoch at which the
+    optical depth is exactly zero, and the largest time for which this tabulation is ever asked. On an axis of absolute time no
+    lattice point coincides with it, and pinning would necessarily either fall short of it or run beyond it.
     !!}
     use :: Error                , only : Error_Report
     use :: Numerical_Integration, only : integrator
+    use :: Numerical_Ranges     , only : Range_Pinned                    , gridSchemePerDecade
     implicit none
     class           (intergalacticMediumStateClass), intent(inout), target      :: self
     double precision                               , intent(in   )              :: time
-    double precision                               , dimension(:) , allocatable :: time_                     , opticalDepth  , &
+    double precision                               , dimension(:) , allocatable :: time_                     , opticalDepth              , &
          &                                                                         opticalDepthFullyIonized
+    logical                                        , dimension(:) , allocatable :: isComputed                , isComputedFullyIonized
     type            (integrator                   )                             :: integrator_
-    integer                                                                     :: iTime                     , iTimeMonotonic, &
+    type            (rangeLattice                 )                             :: latticeTime
+    integer                                                                     :: iTime                     , iTimeMonotonic            , &
          &                                                                         iTimeMonotonicFullyIonized
-    logical                                                                     :: fullyIonized
+    double precision                                                            :: timeRelative
+    logical                                                                     :: fullyIonized              , makeTable
 
-    if (.not.self%electronScatteringTableInitialized.or.time < self%electronScatteringTableTimeMinimum) then
+    ! Discard any previous tabulation which has been marked as invalid - the reionization history on which it was built may have
+    ! changed, in which case no value in it may be carried over into the new tabulation.
+    if (.not.self%electronScatteringTableInitialized) then
        ! Validate cosmological parameters.
        if (self%cosmologyParameters_%OmegaBaryon() <= 0.0d0) call Error_Report('can not compute electron scattering optical depths in a universe with no baryons'//{introspection:location})
-       ! Find minimum and maximum times to tabulate.
-       self%electronScatteringTableTimeMaximum=    self%cosmologyFunctions_%cosmicTime(1.0d0)
-       self%electronScatteringTableTimeMinimum=min(self%cosmologyFunctions_%cosmicTime(1.0d0),time)/2.0d0
-       ! Decide how many points to tabulate and allocate table arrays.
-       self%electronScatteringTableNumberPoints=int(log10(self%electronScatteringTableTimeMaximum/self%electronScatteringTableTimeMinimum)&
-            &*dble(electronScatteringTablePointsPerDecade))+1
-       allocate(time_                   (self%electronScatteringTableNumberPoints))
-       allocate(opticalDepth            (self%electronScatteringTableNumberPoints))
-       allocate(opticalDepthFullyIonized(self%electronScatteringTableNumberPoints))
-       ! Create the tables.
-       call self%electronScattering                   %destroy()
-       call self%electronScatteringFullyIonized       %destroy()
-       call self%electronScatteringInverse            %destroy()
-       call self%electronScatteringFullyIonizedInverse%destroy()
-       call self%electronScattering                   %create (                                          &
-            &                                                  self%electronScatteringTableTimeMinimum , &
-            &                                                  self%electronScatteringTableTimeMaximum , &
-            &                                                  self%electronScatteringTableNumberPoints  &
-            &                                                 )
-       call self%electronScatteringFullyIonized       %create (                                          &
-            &                                                  self%electronScatteringTableTimeMinimum , &
-            &                                                  self%electronScatteringTableTimeMaximum , &
-            &                                                  self%electronScatteringTableNumberPoints  &
-            &                                                 )
-       time_=self%electronScattering%xs()
-       ! Loop over times and populate tables.
+       call self%electronScattering            %destroy()
+       call self%electronScatteringFullyIonized%destroy()
+       self%electronScatteringTableLattice    =rangeLattice()
+       self%electronScatteringTableTimeMaximum=self%cosmologyFunctions_%cosmicTime(1.0d0)
+    end if
+    ! Find the range of times to tabulate. The request is passed as the target and the range already tabulated is unioned in
+    ! through `latticeCurrent`; folding the latter into the target instead would apply the safety margin to an already margined
+    ! bound and so ratchet the range outward on every retabulation. The margin is a factor of two below the request, which is the
+    ! margin applied before this tabulation was pinned. The bounds are anchored to half decades rather than to whole decades
+    ! because this is a cosmic time axis on which a whole decade is a large fraction of the history of the universe, and each
+    ! additional point costs an integration over the whole span to the present day.
+    !
+    ! Every tabulation runs to the present day, whatever was requested of it: that is the upper limit of every integral performed
+    ! here, so a tabulation which stopped short of it would be a table of integrals to some other epoch. It is imposed through
+    ! `rangeCurrent`, which is applied after the safety margin and so raises the upper bound without also lowering the lower one,
+    ! while `limitMaximum` stops the margin carrying the range beyond the present day when the time requested is close to it.
+    timeRelative=min(time,self%electronScatteringTableTimeMaximum)/self%electronScatteringTableTimeMaximum
+    latticeTime =Range_Pinned(                                                             &
+         &                                  [timeRelative]                               , &
+         &                                   electronScatteringTablePointsPerDecade       , &
+         &                                   gridSchemePerDecade                          , &
+         &                   marginFactor  = 2.0d0                                        , &
+         &                   rangeCurrent  =[1.0d0,1.0d0]                                 , &
+         &                   limitMaximum  = 1.0d0                                        , &
+         &                   anchorEvery   = electronScatteringTablePointsPerDecade/2     , &
+         &                   latticeCurrent= self%electronScatteringTableLattice            &
+         &                  )
+    ! Decide whether the tabulation must be built or extended. The decision is taken from the pinned lattice rather than from the
+    ! bounds directly: the safety margin is applied to the request, so testing the request against the bound would apply that
+    ! margin only when the request happened to arrive while it was the earliest seen. The range reached would then depend on the
+    ! order in which times were asked for - which is precisely the dependence that pinning the lattice exists to remove.
+    makeTable=.not.self%electronScatteringTableInitialized
+    if (.not.makeTable) makeTable=.not.self%electronScatteringTableLattice%covers(latticeTime)
+    if (makeTable) then
+       ! Extend the tabulations onto the new lattice, preserving the optical depths already computed. Each is the integral from
+       ! its own time to the present day, neither limit of which moves when the range is extended, so a preserved value is
+       ! precisely the value which would have been computed afresh.
+       call self%electronScattering            %extend(latticeTime,isComputed            )
+       call self%electronScatteringFullyIonized%extend(latticeTime,isComputedFullyIonized)
+       ! Take the times to tabulate from the abscissae of the table itself, so that the limits of the integrals performed here
+       ! are precisely the times at which interpolation will later be made.
+       time_=self%electronScatteringTableTimeMaximum*self%electronScattering%xs()
+       allocate(opticalDepth            (latticeTime%count))
+       allocate(opticalDepthFullyIonized(latticeTime%count))
+       ! Loop over times, carrying over the optical depths already computed and evaluating only those which are new. Also find
+       ! where the optical depth last decreases: only the monotonic tail beyond that point can be inverted.
        integrator_               =integrator(intergalacticMediumStateElectronScatteringIntegrand,toleranceRelative=1.0d-6)
        iTimeMonotonic            =1
        iTimeMonotonicFullyIonized=1
-       do iTime=1,self%electronScatteringTableNumberPoints-1
-          fullyIonized=.false.
-          opticalDepth            (iTime)=-integrator_%integrate(                                                  &
-               &                                                 time_                                    (iTime), &
-               &                                                 self%electronScatteringTableTimeMaximum           &
-               &                                                )
-          fullyIonized=.true.
-          opticalDepthFullyIonized(iTime)=-integrator_%integrate(                                                  &
-               &                                                 time_                                    (iTime), &
-               &                                                 self%electronScatteringTableTimeMaximum           &
-               &                                                )
+       do iTime=1,latticeTime%count
+          if      (isComputed            (iTime)        ) then
+             opticalDepth            (iTime)=self%electronScattering            %y(iTime)
+          else if (latticeTime%indexMinimum+iTime-1 == 0) then
+             ! This point is the present day - the lattice point of index zero - at which the optical depth is zero by
+             ! definition. Testing the lattice index rather than the position in the table means that a range which did not reach
+             ! the present day would simply integrate every one of its points, rather than silently setting its last to zero.
+             opticalDepth            (iTime)=0.0d0
+          else
+             fullyIonized                   =.false.
+             opticalDepth            (iTime)=-integrator_%integrate(                                                  &
+                  &                                                 time_                                    (iTime), &
+                  &                                                 self%electronScatteringTableTimeMaximum           &
+                  &                                                )
+          end if
+          if      (isComputedFullyIonized(iTime)        ) then
+             opticalDepthFullyIonized(iTime)=self%electronScatteringFullyIonized%y(iTime)
+          else if (latticeTime%indexMinimum+iTime-1 == 0) then
+             opticalDepthFullyIonized(iTime)=0.0d0
+          else
+             fullyIonized                   =.true.
+             opticalDepthFullyIonized(iTime)=-integrator_%integrate(                                                  &
+                  &                                                 time_                                    (iTime), &
+                  &                                                 self%electronScatteringTableTimeMaximum           &
+                  &                                                )
+          end if
           if (iTime > 1) then
              if (opticalDepth            (iTime) < opticalDepth            (iTime-1)) &
                   & iTimeMonotonic            =iTime
@@ -284,15 +337,19 @@ contains
                   & iTimeMonotonicFullyIonized=iTime
           end if
        end do
-       opticalDepth            (self%electronScatteringTableNumberPoints)=0.0d0
-       opticalDepthFullyIonized(self%electronScatteringTableNumberPoints)=0.0d0
-       call self%electronScatteringInverse            %create  (opticalDepth            (iTimeMonotonic            :self%electronScatteringTableNumberPoints))
-       call self%electronScatteringFullyIonizedInverse%create  (opticalDepthFullyIonized(iTimeMonotonicFullyIonized:self%electronScatteringTableNumberPoints))
-       call self%electronScattering                   %populate(opticalDepth                                                                                 )
-       call self%electronScatteringFullyIonized       %populate(opticalDepthFullyIonized                                                                     )
-       call self%electronScatteringInverse            %populate(time_                   (iTimeMonotonic            :self%electronScatteringTableNumberPoints))
-       call self%electronScatteringFullyIonizedInverse%populate(time_                   (iTimeMonotonicFullyIonized:self%electronScatteringTableNumberPoints))
+       call self%electronScattering                   %populate(opticalDepth            )
+       call self%electronScatteringFullyIonized       %populate(opticalDepthFullyIonized)
+       ! Build the inverse tables, which are used to find the time at which a given optical depth is reached. Their abscissae are
+       ! optical depths, which lie on no lattice - but they are now a function of the lattice points spanned alone, as the forward
+       ! tabulation is.
+       call self%electronScatteringInverse            %destroy ()
+       call self%electronScatteringFullyIonizedInverse%destroy ()
+       call self%electronScatteringInverse            %create  (opticalDepth            (iTimeMonotonic            :latticeTime%count))
+       call self%electronScatteringFullyIonizedInverse%create  (opticalDepthFullyIonized(iTimeMonotonicFullyIonized:latticeTime%count))
+       call self%electronScatteringInverse            %populate(time_                   (iTimeMonotonic            :latticeTime%count))
+       call self%electronScatteringFullyIonizedInverse%populate(time_                   (iTimeMonotonicFullyIonized:latticeTime%count))
        ! Specify that tabulation has been made.
+       self%electronScatteringTableLattice    =latticeTime
        self%electronScatteringTableInitialized=.true.
     end if
     return
