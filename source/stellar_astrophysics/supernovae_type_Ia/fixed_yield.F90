@@ -24,7 +24,9 @@
   !![
   <supernovaeTypeIa name="supernovaeTypeIaFixedYield" abstract="yes" docformat="rst">
    <description>
-   A supernovae type Ia class in which the yield is independent of progenitor mass. The yields are read from an XML file, which may optionally tabulate them at several metallicities, in which case they are interpolated linearly in metallicity (and held constant beyond the tabulated range). The file should have the following structure:
+   A supernovae type Ia class in which the yield is independent of progenitor mass. The yields are read from an XML file, which
+   may optionally tabulate them at several metallicities, in which case they are interpolated linearly in metallicity (and held
+   constant beyond the tabulated range). The file should have the following structure:
 
    .. code-block:: none
 
@@ -40,7 +42,9 @@
         .
        &lt;/supernovaeYields&gt;
 
-   Only metals should be included---the total metal yield is formed by summing over every isotope present in the file. To make the yields depend on metallicity, wrap each set of isotopes in a ``yieldsMetallicity`` element carrying the metallicity at which that set applies:
+   Only metals should be included---the total metal yield is formed by summing over every isotope present in the file. To make the
+   yields depend on metallicity, wrap each set of isotopes in a ``yieldsMetallicity`` element carrying the metallicity at which
+   that set applies:
 
    .. code-block:: none
 
@@ -67,17 +71,17 @@
      !!}
      private
      type            (varying_string)              :: fileName
-     double precision, allocatable, dimension(:  ) :: totalYield          , metallicity
+     double precision, allocatable, dimension(:  ) :: totalYield  , metallicity
      double precision, allocatable, dimension(:,:) :: elementYield
-     logical                                       :: initialized         , metallicityDependent
+     logical                                       :: initialized , metallicityDependent
    contains
      !![
      <methods docformat="rst">
        <method method="initialize" description="Initialize yield data."/>
      </methods>
      !!]
-     procedure :: yield            => fixedYieldYield
-     procedure :: initialize       => fixedYieldInitialize
+     procedure :: yield      => fixedYieldYield
+     procedure :: initialize => fixedYieldInitialize
   end type supernovaeTypeIaFixedYield
 
 contains
@@ -95,13 +99,13 @@ contains
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     implicit none
     class           (supernovaeTypeIaFixedYield), intent(inout)               :: self
-    type            (node                      ), pointer                     :: doc         , atom            , &
-         &                                                                       isotope     , yield           , &
-         &                                                                       metallicity , yieldsContainer
-    type            (xmlNodeList               ), allocatable  , dimension(:) :: isotopesList, metallicitiesList
-    integer                                                                   :: atomicIndex , atomicNumber    , &
-         &                                                                       iIsotope    , ioErr           , &
-         &                                                                       iMetallicity, countMetallicity
+    type            (node                      ), pointer                     :: doc          , atom             , &
+         &                                                                       isotope      , yield            , &
+         &                                                                       metallicity  , yieldsContainer
+    type            (xmlNodeList               ), allocatable  , dimension(:) :: isotopesList , metallicitiesList
+    integer                                                                   :: atomicIndex  , atomicNumber     , &
+         &                                                                       iIsotope     , ioErr            , &
+         &                                                                       iMetallicity , countMetallicity
     double precision                                                          :: isotopeYield
     double precision                            , allocatable, dimension(:  ) :: metallicities
     double precision                            , allocatable, dimension(:,:) :: elementYields
@@ -116,7 +120,7 @@ contains
     ! Determine whether yields are tabulated as a function of metallicity. If no `yieldsMetallicity` elements are
     ! present the file carries a single, metallicity-independent set of yields.
     call XML_Get_Elements_By_Tag_Name(doc,"yieldsMetallicity",metallicitiesList)
-    self%metallicityDependent=size(metallicitiesList) > 0
+    self%metallicityDependent=    size(metallicitiesList) > 0
     countMetallicity         =max(size(metallicitiesList),1)
     allocate(metallicities(                          countMetallicity))
     allocate(totalYields  (                          countMetallicity))
@@ -227,7 +231,7 @@ contains
        yield=fixedYieldInterpolate(self%metallicity,self%elementYield(atomIndex,:),metallicity)
     else
        ! No atomic index given, therefore return total metal yield.
-       yield=fixedYieldInterpolate(self%metallicity,self%totalYield              ,metallicity)
+       yield=fixedYieldInterpolate(self%metallicity,self%totalYield               ,metallicity)
     end if
     yield=self%number(initialMassFunction_,initialMass,age,metallicity)*yield
     return

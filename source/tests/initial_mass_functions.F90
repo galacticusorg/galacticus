@@ -165,8 +165,8 @@ program Test_Initial_Mass_Functions
   call Unit_Tests_End_Group()
   call Unit_Tests_Begin_Group('Type Ia SNe')
   call Unit_Tests_Begin_Group('Nagashima et al. (2005)')
-  stellarAstrophysics_           =  stellarAstrophysicsFile      ('%DATASTATICPATH%/stellarAstrophysics/stellarPropertiesPortinariChiosiBressan1998.xml')
-  supernovaeTypeIaNagashima2005_ =  supernovaeTypeIaNagashima2005(stellarAstrophysics_,'%DATASTATICPATH%/stellarAstrophysics/Supernovae_Type_Ia_Yields.xml')
+  stellarAstrophysics_           =  stellarAstrophysicsFile      (                     '%DATASTATICPATH%/stellarAstrophysics/stellarPropertiesPortinariChiosiBressan1998.xml')
+  supernovaeTypeIaNagashima2005_ =  supernovaeTypeIaNagashima2005(stellarAstrophysics_,'%DATASTATICPATH%/stellarAstrophysics/Supernovae_Type_Ia_Yields.xml'                  )
   supernovaeTypeIa_              => supernovaeTypeIaNagashima2005_
   call integrator_%toleranceSet(1.0d-6,1.0d-6)
   call integrator_%integrandSet(numberTypeIaSNeIntegrand)

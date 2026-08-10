@@ -83,8 +83,8 @@ contains
     !!}
     implicit none
     type            (interpolator2DIrregular)                               , intent(inout)           :: workspace
-    double precision                         , dimension(:)                 , intent(in   )           :: dataX        , dataY       , &
-         &                                                                                               dataZ        , interpolateX, &
+    double precision                         , dimension(:)                 , intent(in   )           :: dataX              , dataY           , &
+         &                                                                                               dataZ              , interpolateX    , &
          &                                                                                               interpolateY
     integer                                                                 , intent(in   ), optional :: numberComputePoints
     logical                                                                 , intent(inout), optional :: reset
@@ -103,9 +103,9 @@ contains
 
     ! Determine whether the caller guarantees that its data are unchanged since the previous call.
     if (present(dataStatic)) then
-       dataStaticActual = dataStatic
+       dataStaticActual=dataStatic
     else
-       dataStaticActual = .false.
+       dataStaticActual=.false.
     end if
 
     ! Decide how many neighbours to use for partial derivative estimation.
@@ -122,12 +122,11 @@ contains
        ! Reuse triangulation and closest-neighbour indices; re-estimate partial derivatives in case the Z values
        ! have changed since the previous call.
        workspace%zData = dataZ
-       call estimateDerivatives(workspace%nData, workspace%xData, workspace%yData, &
-            &                   workspace%zData, workspace%nNeighbors,              &
-            &                   workspace%ipc, workspace%pd)
+       call estimateDerivatives(workspace%nData, workspace%xData     , workspace%yData, &
+            &                   workspace%zData, workspace%nNeighbors,                  &
+            &                   workspace%ipc  , workspace%pd)
     end if
     ! Otherwise the caller has guaranteed that nothing has changed, and the workspace is used as it stands.
-
     do i = 1, size(interpolateX)
        zi(i) = interpolateOne(workspace, interpolateX(i), interpolateY(i))
     end do

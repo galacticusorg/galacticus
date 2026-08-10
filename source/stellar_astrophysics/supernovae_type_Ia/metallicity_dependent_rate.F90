@@ -24,19 +24,28 @@
   !![
   <supernovaeTypeIa name="supernovaeTypeIaMetallicityDependentRate" docformat="rst">
    <description>
-   A supernovae type Ia class which takes the rate of Type Ia supernovae from another ``supernovaeTypeIa`` class and multiplies it by a power of the metallicity,
+   A supernovae type Ia class which takes the rate of Type Ia supernovae from another ``supernovaeTypeIa`` class and multiplies it
+   by a power of the metallicity,
 
    .. math::
 
       f(Z) = \left( \frac{\max(Z,Z_\mathrm{min})}{\mathrm{Z}_\odot} \right)^\beta,
 
-   where :math:`\beta=` ``[exponent]`` and :math:`Z_\mathrm{min}=` ``[metallicityMinimum]``. Both the number of events and the yields are scaled, the latter being proportional to the former.
+   where :math:`\beta=` ``[exponent]`` and :math:`Z_\mathrm{min}=` ``[metallicityMinimum]``. Both the number of events and the
+   yields are scaled, the latter being proportional to the former.
 
-   :cite:t:`johnson_binaries_2023` argue that the anti-correlation of the close binary fraction with metallicity should enhance the Type Ia supernova rate at low metallicity, and find that a scaling of approximately :math:`Z^{-1/2}` on top of the differing star formation histories accounts for the high specific rates observed in dwarf galaxies. That is the default adopted here.
+   :cite:t:`johnson_binaries_2023` argue that the anti-correlation of the close binary fraction with metallicity should enhance
+   the Type Ia supernova rate at low metallicity, and find that a scaling of approximately :math:`Z^{-1/2}` on top of the
+   differing star formation histories accounts for the high specific rates observed in dwarf galaxies. That is the default adopted
+   here.
 
-   The scaling is unity at :math:`Z=\mathrm{Z}_\odot`, so the normalization of the wrapped class retains its usual meaning as the rate at Solar metallicity. Because the scaling diverges as :math:`Z \rightarrow 0` for negative :math:`\beta`, the metallicity is floored at ``[metallicityMinimum]``; with the default values this caps the enhancement at a factor of ten. The floor should be chosen with the range over which the adopted scaling was calibrated in mind---it is not itself a physical statement.
+   The scaling is unity at :math:`Z=\mathrm{Z}_\odot`, so the normalization of the wrapped class retains its usual meaning as the
+   rate at Solar metallicity. Because the scaling diverges as :math:`Z \rightarrow 0` for negative :math:`\beta`, the metallicity
+   is floored at ``[metallicityMinimum]``; with the default values this caps the enhancement at a factor of ten. The floor should
+   be chosen with the range over which the adopted scaling was calibrated in mind---it is not itself a physical statement.
 
-   Separating the metallicity dependence of the rate from the shape of the delay time distribution in this way means it can be applied to any of the other ``supernovaeTypeIa`` classes.
+   Separating the metallicity dependence of the rate from the shape of the delay time distribution in this way means it can be
+   applied to any of the other ``supernovaeTypeIa`` classes.
    </description>
   </supernovaeTypeIa>
   !!]
@@ -85,7 +94,8 @@ contains
       :cite:p:`johnson_binaries_2023`
       </defaultSource>
       <description>
-      The exponent :math:`\beta` in the scaling of the Type Ia supernova rate with metallicity, :math:`f(Z) \propto Z^\beta`; the default value of :math:`-1/2` follows :cite:t:`johnson_binaries_2023`.
+      The exponent :math:`\beta` in the scaling of the Type Ia supernova rate with metallicity, :math:`f(Z) \propto Z^\beta`; the
+      default value of :math:`-1/2` follows :cite:t:`johnson_binaries_2023`.
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
@@ -93,7 +103,9 @@ contains
       <source>parameters</source>
       <defaultValue>1.0d-2*metallicitySolar</defaultValue>
       <description>
-      The metallicity below which the scaling of the Type Ia supernova rate with metallicity is held constant. This is required because the scaling diverges as :math:`Z \rightarrow 0` for negative ``[exponent]``; with the default values it caps the enhancement of the rate at a factor of ten.
+      The metallicity below which the scaling of the Type Ia supernova rate with metallicity is held constant. This is required
+      because the scaling diverges as :math:`Z \rightarrow 0` for negative ``[exponent]``; with the default values it caps the
+      enhancement of the rate at a factor of ten.
       </description>
     </inputParameter>
     <objectBuilder class="supernovaeTypeIa" name="supernovaeTypeIa_" source="parameters"/>
@@ -173,8 +185,8 @@ contains
     double precision                                          , intent(in   )         :: age                 , initialMass, &
          &                                                                               metallicity
 
-    number=+metallicityDependentRateFactor(self,metallicity)                                          &
-         & *self%supernovaeTypeIa_%number  (initialMassFunction_,initialMass,age,metallicity)
+    number=+metallicityDependentRateFactor(self,metallicity)                                 &
+         & *self%supernovaeTypeIa_%number (initialMassFunction_,initialMass,age,metallicity)
     return
   end function metallicityDependentRateNumber
 
@@ -189,7 +201,7 @@ contains
          &                                                                                 metallicity
     integer                                                   , intent(in   ), optional :: atomIndex
 
-    yield=+metallicityDependentRateFactor(self,metallicity)                                                     &
-         & *self%supernovaeTypeIa_%yield  (initialMassFunction_,initialMass,age,metallicity,atomIndex)
+    yield=+metallicityDependentRateFactor(self,metallicity)                                           &
+         & *self%supernovaeTypeIa_%yield (initialMassFunction_,initialMass,age,metallicity,atomIndex)
     return
   end function metallicityDependentRateYield
