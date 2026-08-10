@@ -1321,6 +1321,7 @@ jobs:
                       tests.recombination_computed.exe,
                       tests.recombination_cooling.Hummer.exe,
                       tests.intergalactic_medium_state.exe,
+                      tests.radiation_fields.exe,
                       tests.locks.exe,
                       tests.initial_mass_functions.exe,
                       tests.stellar_populations.exe,
