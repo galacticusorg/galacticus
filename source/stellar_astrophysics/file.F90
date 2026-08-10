@@ -75,10 +75,15 @@
      integer                                  , allocatable, dimension(:  ) :: atomIndexMap                     , countYieldElement
      integer                                                                :: countElement
      type            (interpolator2DIrregular)                              :: interpolationWorkspaceMassInitial, interpolationWorkspaceLifetime , &
-          &                                                                    interpolationWorkspaceMassEjected, interpolationWorkspaceMassYield
+          &                                                                    interpolationWorkspaceMassEjected
+     ! One interpolation workspace per interpolated yield---the total metal yield in the first element, and each
+     ! element for which yields are available in the remainder. A single shared workspace would be invalidated on
+     ! every call, since each yield is tabulated at the same points but with different values, forcing the partial
+     ! derivatives to be re-estimated each time at a cost which scales with the size of the table.
+     type            (interpolator2DIrregular), allocatable, dimension(:  ) :: interpolationWorkspaceMassYield
+     logical                                  , allocatable, dimension(:  ) :: interpolationResetMassYield
      logical                                                                :: interpolationResetMassInitial    , interpolationResetLifetime     , &
-          &                                                                    interpolationResetMassEjected    , interpolationResetMassYield    , &
-          &                                                                    readDone
+          &                                                                    interpolationResetMassEjected    , readDone
   contains
      !![
      <methods docformat="rst">
@@ -151,7 +156,6 @@ contains
     self%interpolationResetMassInitial=.true.
     self%interpolationResetLifetime   =.true.
     self%interpolationResetMassEjected=.true.
-    self%interpolationResetMassYield  =.true.
     self%readDone                     =.false.
     return
   end function fileConstructorInternal
@@ -248,6 +252,10 @@ contains
     allocate(self%yieldMetalsRangeMetallicity (2                                         ))
     allocate(self%yieldElementRangeMass       (2                       ,self%countElement))
     allocate(self%yieldElementRangeMetallicity(2                       ,self%countElement))
+    ! One workspace per interpolated yield: the total metal yield, plus each element.
+    allocate(self%interpolationWorkspaceMassYield(0:self%countElement))
+    allocate(self%interpolationResetMassYield    (0:self%countElement))
+    self%interpolationResetMassYield=.true.
     ! Loop over stars to process their properties.
     countLifetime         =0
     countMassEjected      =0
@@ -347,6 +355,7 @@ contains
          &                                                            metallicity                      , &
          &                                                       self%interpolationWorkspaceMassInitial, &
          &                                   reset              =self%interpolationResetMassInitial    , &
+         &                                   dataStatic         =.true.                                 , &
          &                                   numberComputePoints=     3                                  &
          &                                  )
     return
@@ -369,7 +378,8 @@ contains
          &                                           massInitial                   , &
          &                                           metallicity                   , &
          &                                      self%interpolationWorkspaceLifetime, &
-         &                                reset=self%interpolationResetLifetime      &
+         &                                reset=self%interpolationResetLifetime     , &
+         &                                dataStatic=.true.                          &
          &                               )
     return
   end function fileLifetime
@@ -392,7 +402,8 @@ contains
          &                                                  massInitial                      , &
          &                                                  metallicity                      , &
          &                                             self%interpolationWorkspaceMassEjected, &
-         &                                       reset=self%interpolationResetMassEjected      &
+         &                                       reset=self%interpolationResetMassEjected     , &
+         &                                       dataStatic=.true.                             &
          &                                      )                                            , &
          &               0.0d0                                                                 &
          &             )
@@ -415,11 +426,14 @@ contains
     if (present(atomIndex)) then
        ! Compute the element mass yield.
        elementIndex =self%atomIndexMap(atomIndex)
-       ! Exclude initial masses outside of the available range of stars.
+       ! Exclude elements for which this compilation provides no yields at all, which are mapped to an index of
+       ! -1, and initial masses outside of the available range of stars.
        if     (                                                           &
-            &   massInitial >= self%yieldElementRangeMass(1,elementIndex) &
+            &   elementIndex > 0                                          &
             &  .and.                                                      &
-            &   massInitial <= self%yieldElementRangeMass(2,elementIndex) &
+            &   massInitial >= self%yieldElementRangeMass(1,max(elementIndex,1)) &
+            &  .and.                                                      &
+            &   massInitial <= self%yieldElementRangeMass(2,max(elementIndex,1)) &
             & ) then
           metallicity_ =min(max(metallicity,self%yieldElementRangeMetallicity(1,elementIndex)),self%yieldElementRangeMetallicity(2,elementIndex))
           fileMassYield=max(                                                                                                                       &
@@ -429,8 +443,9 @@ contains
                &                                           self%yieldElement                   (1:self%countYieldElement(atomIndex),elementIndex), &
                &                                                massInitial                                                                      , &
                &                                                metallicity_                                                                     , &
-               &                                           self%interpolationWorkspaceMassYield                                                  , &
-               &                                     reset=self%interpolationResetMassYield                                                        &
+               &                                           self%interpolationWorkspaceMassYield(elementIndex)                                    , &
+               &                                     reset=self%interpolationResetMassYield    (elementIndex)                                    , &
+               &                                     dataStatic=.true.                                                                    &
                &                                    )                                                                                            , &
                &            0.0d0                                                                                                                  &
                &           )
@@ -453,8 +468,9 @@ contains
                &                                           self%yieldMetals                    , &
                &                                                massInitial                    , &
                &                                                metallicity_                   , &
-               &                                           self%interpolationWorkspaceMassYield, &
-               &                                     reset=self%interpolationResetMassYield      &
+               &                                           self%interpolationWorkspaceMassYield(0), &
+               &                                     reset=self%interpolationResetMassYield    (0), &
+               &                                     dataStatic=.true.                             &
                &                                    )                                          , &
                &             0.0d0                                                               &
                &            )
