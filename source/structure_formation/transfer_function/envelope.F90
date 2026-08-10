@@ -22,6 +22,7 @@
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
+  use :: Numerical_Ranges    , only : rangeLattice
   use :: Tables              , only : table1DMonotoneCSpline
 
   !![
@@ -42,6 +43,11 @@
      class           (transferFunctionClass   ), pointer :: transferFunction_            => null() , transferFunctionReference    => null()
      double precision                                    :: wavenumberMinimum                      , wavenumberMaximum
      logical                                             :: envelopeModeMassesOnly                 , envelopeRatio
+     ! Lattice to which the wavenumbers at which the transfer function is densely sampled are pinned. The envelope itself is
+     ! tabulated at pivot points chosen from that sampling by a geometric construction, so *its* abscissae cannot lie on any
+     ! lattice - but they are determined by the sampling, so pinning the sampling makes the envelope deterministic. For the same
+     ! reason nothing can be carried over when the range grows: the construction is global, and every pivot may move.
+      type            (rangeLattice            )          :: latticeWavenumber
      double precision                                    :: wavenumberMinimumLogarithmic           , wavenumberMaximumLogarithmic           , &
           &                                                 normalization                          , normalizationReference
      integer                                             :: tablePointsPerDecade
@@ -350,11 +356,36 @@ contains
     
   end function envelopeFractionModeMass
   
+  function envelopeLattice(self,wavenumberLogarithmic) result(lattice)
+    !!{RST
+    Return the pinned lattice of wavenumbers at which the transfer function must be sampled in order to construct the envelope
+    at ``wavenumberLogarithmic``, taking the union with the lattice already sampled.
+
+    The safety margin is applied through the target rather than through ``marginFactor`` because it is one-sided: a factor of
+    :math:`\mathrm{e}` below the request, which is the margin of one unit in the natural logarithm of the wavenumber applied
+    before this tabulation was pinned, and none above it.
+    !!}
+    use :: Numerical_Ranges, only : Range_Pinned, gridSchemePerDecade
+    implicit none
+    type            (rangeLattice            )                :: lattice
+    class           (transferFunctionEnvelope), intent(inout) :: self
+    double precision                          , intent(in   ) :: wavenumberLogarithmic
+
+    lattice=Range_Pinned(                                                                            &
+         &                                [exp(wavenumberLogarithmic-1.0d0),exp(wavenumberLogarithmic)], &
+         &                                 self%tablePointsPerDecade                                  , &
+         &                                 gridSchemePerDecade                                        , &
+         &                 marginFactor  = 1.0d0                                                      , &
+         &                 rangeCurrent  =[self%wavenumberMinimum,self%wavenumberMaximum]             , &
+         &                 latticeCurrent= self%latticeWavenumber                                       &
+         &                )
+    return
+  end function envelopeLattice
+
   subroutine envelopeTabulate(self,wavenumberLogarithmic)
     !!{RST
     Tabulate the envelope to the transfer function.
     !!}
-    use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
     class           (transferFunctionEnvelope), intent(inout)               :: self
     double precision                          , intent(in   )               :: wavenumberLogarithmic
@@ -367,21 +398,34 @@ contains
     integer                                   , dimension(:,:), allocatable :: iFail
     double precision                                                        :: transferFunction
     logical                                                                 :: makeTable                       , failing
+    type            (rangeLattice            )                              :: latticeWavenumber
     integer                                                                 :: pointCountDense                 , pointCountSparse           , &
          &                                                                     pointCountSparseNew             , iLastNonZero               , &
          &                                                                     countInflections                , countFail                  , &
          &                                                                     i                               , j                          , &
          &                                                                     k                               , iteration
 
-    makeTable=.not.self%tableInitialized
-    if (.not.makeTable) &
-         & makeTable=wavenumberLogarithmic < self%wavenumberMinimumLogarithmic
+    ! Find the range of wavenumbers over which the transfer function must be sampled, and rebuild the envelope if the range
+    ! already sampled does not contain it. The decision is taken from the pinned lattice rather than from the bounds directly:
+    ! the safety margin is applied below the request, so testing the request against the bound would apply that margin only when
+    ! the request happened to arrive while it was still the smallest seen. The range reached would then depend on the order in
+    ! which wavenumbers were asked for - which is precisely the dependence that pinning the lattice exists to remove.
+    latticeWavenumber=envelopeLattice(self,wavenumberLogarithmic)
+    makeTable        =.not.self%tableInitialized
+    if (.not.makeTable) makeTable=.not.self%latticeWavenumber%covers(latticeWavenumber)
     if (wavenumberLogarithmic > self%wavenumberMaximumLogarithmic .and. self%tableInitialized) &
          & call Error_Report('wavenumber exceeds the maximum for which the envelope was computed'//{introspection:location})
     if (makeTable) then
-       self%wavenumberMinimumLogarithmic=min(self%wavenumberMinimumLogarithmic,wavenumberLogarithmic-1.0d0)
-       self%wavenumberMaximumLogarithmic=max(self%wavenumberMaximumLogarithmic,wavenumberLogarithmic      )
-       pointCountDense=int((self%wavenumberMaximumLogarithmic-self%wavenumberMinimumLogarithmic)*dble(self%tablePointsPerDecade)/log(10.0d0))+1
+       ! Find the range of wavenumbers over which to sample the transfer function, pinning it to an absolute lattice so that the
+       ! wavenumbers sampled - and therefore the pivot points of the envelope constructed from them - depend only on which
+       ! lattice points are spanned, and not on the sequence of wavenumbers which happened to be requested. The request is
+       ! passed as the target and the range already sampled is unioned in through `latticeCurrent`; folding the latter into the
+       ! target instead - as the `min`/`max` against the current bounds formerly did - would apply the safety margin to an
+       ! already margined bound and so ratchet the range outward on every retabulation. The margin is applied through the target
+       ! rather than through `marginFactor` because it is one-sided: a factor of e below the request, which is the margin of one
+       ! unit in the natural logarithm of the wavenumber applied before, and none above it.
+       self%latticeWavenumber=latticeWavenumber
+       pointCountDense       =latticeWavenumber%count
        allocate(wavenumberLogarithmicDense   (pointCountDense  ))
        allocate(transferFunctionDense        (pointCountDense  ))
        allocate(transferFunctionGradientDense(pointCountDense  ))
@@ -389,7 +433,15 @@ contains
        allocate(iFail                        (pointCountDense,2))
        allocate(iPivot                       (pointCountDense  ))
        allocate(iPivotNew                    (pointCountDense  ))
-       wavenumberLogarithmicDense=Make_Range(self%wavenumberMinimumLogarithmic,self%wavenumberMaximumLogarithmic,pointCountDense,rangeType=rangeTypeLinear)
+       ! Take the sampled wavenumbers from the lattice. They must come from there, and never from a range laid out across the
+       ! current extent: the lattice evaluates them from their integer indices, so a given wavenumber is bit-identical between
+       ! one sampling and another however many each spans.
+       wavenumberLogarithmicDense       =latticeWavenumber%valuesLogarithmic()
+       ! Record the bounds actually sampled. These are taken from the sampled wavenumbers themselves rather than from the
+       ! lattice, so that the test above for a wavenumber lying outside the range sampled cannot disagree with the range by a
+       ! fraction of an ulp.
+       self%wavenumberMinimumLogarithmic=wavenumberLogarithmicDense(              1)
+       self%wavenumberMaximumLogarithmic=wavenumberLogarithmicDense(pointCountDense)
        ! Tabulate the transfer function, identifying the last non-zero point. Note that we tabulate the absolute value here - some
        ! oscillatory transfer functions can be negative [since all that is actually used in calculations is T²(k)].
        iLastNonZero=0
@@ -466,6 +518,9 @@ contains
        ! Build the interpolation table.
        wavenumberLogarithmicSparse=wavenumberLogarithmicDense(iPivot(1:pointCountSparse))
        transferFunctionSparse     =     transferFunctionDense(iPivot(1:pointCountSparse))
+       ! Discard any tabulation built previously. The envelope is constructed globally from the sampled transfer function - every
+       ! pivot point may move when the range sampled changes - so nothing can be carried over, and the table is built afresh.
+       if (self%tableInitialized) call self%transferTable%destroy()
        call self%transferTable%create  (    wavenumberLogarithmicSparse(1:pointCountSparse) )
        call self%transferTable%populate(log(     transferFunctionSparse(1:pointCountSparse)))
        ! Begin iteratively improving our envelope function.

@@ -21,7 +21,8 @@
   Implements a transfer function accelerator class which tabulates a transfer function for rapid interpolation.
   !!}
 
-  use :: Tables, only : table1DLinearLinear
+  use :: Numerical_Ranges, only : rangeLattice
+  use :: Tables          , only : table1DLogarithmicLinear
 
   !![
   <transferFunction name="transferFunctionAccelerator" docformat="rst">
@@ -35,11 +36,14 @@
      A transfer function class which accelerates calculations of another transfer function class by tabulation for rapid interpolation.
      !!}
      private
-     type            (table1DLinearLinear  )          :: transferTable
-     class           (transferFunctionClass), pointer :: transferFunction_            => null()
-     double precision                                 :: wavenumberLogarithmicMinimum           , wavenumberLogarithmicMaximum
-     integer                                          :: tablePointsPerDecade
-     logical                                          :: tableInitialized             =  .false.
+     type            (table1DLogarithmicLinear)          :: transferTable
+     class           (transferFunctionClass   ), pointer :: transferFunction_       => null()
+     ! Lattice to which the tabulated wavenumbers are pinned. This is the source of truth for the extent of the tabulation: the
+     ! bounds below are derived from it, and are retained because they are what the test for a sufficient tabulation reads.
+     type            (rangeLattice            )          :: latticeWavenumber
+     double precision                                    :: wavenumberMinimum                  , wavenumberMaximum
+     integer                                             :: tablePointsPerDecade
+     logical                                             :: tableInitialized        =  .false.
    contains
      final     ::                          acceleratorDestructor
      procedure :: value                 => acceleratorValue
@@ -57,6 +61,12 @@
      module procedure acceleratorConstructorParameters
      module procedure acceleratorConstructorInternal
   end interface transferFunctionAccelerator
+
+  ! Seed range of wavenumbers to tabulate. Any two tabulations therefore contain this range, and so always overlap - which is
+  ! what makes their shared lattice points reusable no matter which wavenumbers each was asked for. Note that these are exact
+  ! powers of ten, so on a lattice anchored to whole decades they are themselves anchor points: a tabulation which is never
+  ! asked for a wavenumber outside them spans exactly this range, as it did before being pinned.
+  double precision, parameter :: wavenumberTableSeedMinimum=1.0d-6, wavenumberTableSeedMaximum=1.0d+6
 
 contains
 
@@ -106,8 +116,8 @@ contains
     !!]
 
     self%tableInitialized            =.false.
-    self%wavenumberLogarithmicMinimum=log(1.0d-6)
-    self%wavenumberLogarithmicMaximum=log(1.0d+6)
+    self%wavenumberMinimum           =wavenumberTableSeedMinimum
+    self%wavenumberMaximum           =wavenumberTableSeedMaximum
     return
   end function acceleratorConstructorInternal
 
@@ -133,11 +143,9 @@ contains
     implicit none
     class           (transferFunctionAccelerator), intent(inout) :: self
     double precision                             , intent(in   ) :: wavenumber
-    double precision                                             :: wavenumberLogarithmic
 
-    wavenumberLogarithmic=log(wavenumber)
-    call acceleratorTabulate(self,wavenumberLogarithmic)
-    acceleratorValue=exp(self%transferTable%interpolate(wavenumberLogarithmic))
+    call acceleratorTabulate(self,wavenumber)
+    acceleratorValue=exp(self%transferTable%interpolate(wavenumber))
     return
   end function acceleratorValue
 
@@ -148,11 +156,12 @@ contains
     implicit none
     class           (transferFunctionAccelerator), intent(inout) :: self
     double precision                             , intent(in   ) :: wavenumber
-    double precision                                             :: wavenumberLogarithmic
 
-    wavenumberLogarithmic=log(wavenumber)
-    call acceleratorTabulate(self,wavenumberLogarithmic)
-    acceleratorLogarithmicDerivative=+self%transferTable%interpolateGradient(wavenumberLogarithmic)
+    call acceleratorTabulate(self,wavenumber)
+    ! The tabulation holds the logarithm of the transfer function against wavenumber, so its gradient is d(ln T)/dk; the
+    ! logarithmic derivative sought here is with respect to the logarithm of the wavenumber.
+    acceleratorLogarithmicDerivative=+self%transferTable%interpolateGradient(wavenumber) &
+         &                           *                                       wavenumber
     return
   end function acceleratorLogarithmicDerivative
 
@@ -204,30 +213,52 @@ contains
     return
   end function acceleratorFractionModeMass
 
-  subroutine acceleratorTabulate(self,wavenumberLogarithmic)
+  subroutine acceleratorTabulate(self,wavenumber)
     !!{RST
     Tabulate the transfer function for rapid interpolation.
     !!}
+    use :: Numerical_Ranges, only : Range_Pinned, gridSchemePerDecade
     implicit none
-    class           (transferFunctionAccelerator), intent(inout) :: self
-    double precision                             , intent(in   ) :: wavenumberLogarithmic
-    logical                                                      :: makeTable
-    integer                                                      :: pointCount           , i
+    class           (transferFunctionAccelerator), intent(inout)                            :: self
+    double precision                             , intent(in   )                            :: wavenumber
+    logical                                                                                 :: makeTable
+    integer                                                                                 :: i
+    type            (rangeLattice                )                                          :: latticeWavenumber
+    logical                                                     , allocatable, dimension(:) :: isComputed
 
     makeTable=.not.self%tableInitialized
-    if (.not.makeTable)                                                         &
-         & makeTable= wavenumberLogarithmic < self%wavenumberLogarithmicMinimum &
-         &           .or.                                                       &
-         &            wavenumberLogarithmic > self%wavenumberLogarithmicMaximum
+    if (.not.makeTable)                                        &
+         & makeTable= wavenumber < self%wavenumberMinimum      &
+         &           .or.                                      &
+         &            wavenumber > self%wavenumberMaximum
     if (makeTable) then
-       self%wavenumberLogarithmicMinimum=min(self%wavenumberLogarithmicMinimum,wavenumberLogarithmic-1.0d0)
-       self%wavenumberLogarithmicMaximum=max(self%wavenumberLogarithmicMaximum,wavenumberLogarithmic+1.0d0)
-       pointCount=int((self%wavenumberLogarithmicMaximum-self%wavenumberLogarithmicMinimum)*dble(self%tablePointsPerDecade)/log(10.0d0))+1
-       call self%transferTable%create(self%wavenumberLogarithmicMinimum,self%wavenumberLogarithmicMaximum,pointCount)
-       do i=1,pointCount
-          call self%transferTable%populate(log(self%transferFunction_%value(exp(self%transferTable%x(i)))),i)
+       ! Find the range of wavenumbers to tabulate, pinning it to an absolute lattice so that the wavenumbers evaluated - and
+       ! therefore every value interpolated between them - depend only on which lattice points are spanned, and not on the
+       ! sequence of wavenumbers which happened to be requested. The request is passed as the target and the range already
+       ! tabulated is unioned in through `latticeCurrent`; folding the latter into the target instead - as the `min`/`max`
+       ! against the current bounds formerly did - would apply the safety margin to an already margined bound and so ratchet the
+       ! range outward on every retabulation. The margin is a factor of e, which is the margin of one unit in the natural
+       ! logarithm of the wavenumber that was applied before.
+       latticeWavenumber=Range_Pinned(                                                                 &
+            &                                        [wavenumber]                                    , &
+            &                                         self%tablePointsPerDecade                      , &
+            &                                         gridSchemePerDecade                            , &
+            &                         marginFactor  = exp(1.0d0)                                     , &
+            &                         rangeCurrent  =[wavenumberTableSeedMinimum,wavenumberTableSeedMaximum], &
+            &                         latticeCurrent= self%latticeWavenumber                           &
+            &                        )
+       ! Extend the tabulation onto the new lattice, preserving the values already computed - the transfer function being
+       ! tabulated is expensive to evaluate, which is the entire purpose of this class. The abscissae come from the lattice, so
+       ! a given wavenumber is bit-identical between one tabulation and another however many each spans.
+       call self%transferTable%extend(latticeWavenumber,isComputed)
+       do i=1,latticeWavenumber%count
+          if (isComputed(i)) cycle
+          call self%transferTable%populate(log(self%transferFunction_%value(self%transferTable%x(i))),i)
        end do
-       self%tableInitialized=.true.
+       self%latticeWavenumber=latticeWavenumber
+       self%wavenumberMinimum=latticeWavenumber%minimum()
+       self%wavenumberMaximum=latticeWavenumber%maximum()
+       self%tableInitialized =.true.
     end if
     return
   end subroutine acceleratorTabulate

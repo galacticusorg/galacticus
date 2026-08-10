@@ -34,6 +34,7 @@ program Tests_Transfer_Functions
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
   use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group          , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Transfer_Functions                  , only : transferFunctionAccelerator             , transferFunctionEnvelope
   implicit none
   type            (cosmologyParametersSimple               )                             :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda          )                             :: cosmologyFunctions_
@@ -57,6 +58,14 @@ program Tests_Transfer_Functions
        &                                                                                    transferFunctionValueEH98_                      , transferFunctionValueEH99_
   double precision :: timeNow
   integer                                                                                :: i                                               , j
+  ! Objects and workspace used to check that the tabulations built by the accelerator and envelope transfer functions do not
+  ! depend on the order in which wavenumbers are requested of them.
+  type            (transferFunctionAccelerator             )                             :: transferFunctionAcceleratorAscending_           , transferFunctionAcceleratorDescending_
+  type            (transferFunctionEnvelope                )                             :: transferFunctionEnvelopeAscending_              , transferFunctionEnvelopeDescending_
+  integer                                                   , parameter                  :: wavenumberOrderCount                     =5
+  double precision                                          , parameter, dimension(wavenumberOrderCount) :: wavenumbersOrder=[1.0d-2,1.0d-1,1.0d0,1.0d1,1.0d2]
+  double precision                                          , dimension(wavenumberOrderCount) :: acceleratorAscending                       , acceleratorDescending, &
+       &                                                                                    envelopeAscending                          , envelopeDescending
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -157,6 +166,29 @@ program Tests_Transfer_Functions
   call Assert('Eisenstein-Hu 1998 T(k)'                                           ,transferFunctionLogarithmicDerivativeEH98,transferFunctionLogarithmicDerivativeFiniteDifferenceEH98,relTol=2.0d+0*stepLogarithmic              )
   call Assert('Eisenstein-Hu 1999 T(k) log-derivative with non-zero neutrino mass',transferFunctionLogarithmicDerivativeEH99,transferFunctionLogarithmicDerivativeFiniteDifferenceEH99,relTol=2.0d+0*stepLogarithmic              )
   call Assert('CAMB vs. Eisenstein-Hu T(k) match'                                 ,transferFunctionValueEisensteinHu1999    ,transferFunctionValueCAMB                                ,relTol=4.0d-2                              )
+  ! Check that the tabulations built by the accelerator and envelope transfer functions do not depend on the order in which
+  ! wavenumbers are requested of them. Both build their tabulation on an absolute lattice, so the wavenumbers they evaluate
+  ! depend only on which lattice points are spanned - two objects asked for the same set of wavenumbers must therefore agree
+  ! exactly, whichever order they were asked in. Without pinning the bounds follow the first request, and the two disagree at
+  ! the level of the interpolation error.
+  transferFunctionAcceleratorAscending_ =transferFunctionAccelerator(transferFunctionEisensteinHu1998_,cosmologyParameters_,10)
+  transferFunctionAcceleratorDescending_=transferFunctionAccelerator(transferFunctionEisensteinHu1998_,cosmologyParameters_,10)
+  do i=1,wavenumberOrderCount
+     acceleratorAscending (                     i)=transferFunctionAcceleratorAscending_ %value(wavenumbersOrder(                     i))
+  end do
+  do i=wavenumberOrderCount,1,-1
+     acceleratorDescending(                     i)=transferFunctionAcceleratorDescending_%value(wavenumbersOrder(                     i))
+  end do
+  call Assert('accelerator T(k) is independent of the order in which wavenumbers are requested',acceleratorAscending,acceleratorDescending,absTol=0.0d0)
+  transferFunctionEnvelopeAscending_    =transferFunctionEnvelope   (100,1.0d-2,1.0d2,.false.,.false.,cosmologyParameters_,transferFunctionEisensteinHu1998_)
+  transferFunctionEnvelopeDescending_   =transferFunctionEnvelope   (100,1.0d-2,1.0d2,.false.,.false.,cosmologyParameters_,transferFunctionEisensteinHu1998_)
+  do i=1,wavenumberOrderCount
+     envelopeAscending    (                     i)=transferFunctionEnvelopeAscending_    %value(wavenumbersOrder(                     i))
+  end do
+  do i=wavenumberOrderCount,1,-1
+     envelopeDescending   (                     i)=transferFunctionEnvelopeDescending_   %value(wavenumbersOrder(                     i))
+  end do
+  call Assert('envelope T(k) is independent of the order in which wavenumbers are requested'   ,envelopeAscending   ,envelopeDescending   ,absTol=0.0d0)
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
