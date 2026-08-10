@@ -36,32 +36,32 @@ program Tests_Sigma
   use :: Transfer_Functions                  , only : transferFunctionIdentity                , transferFunctionEisensteinHu1999
   use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group           , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  integer                                                   , parameter            :: massCount                             =10
-  double precision                                          , parameter            :: massMaximum                           =1.0d15, massMinimum                              =1.0d6
-  double precision                                          , dimension(massCount) :: mass                                         , massFromSigma                                  , &
-       &                                                                              sigma
+  integer                                                                                  , parameter :: massCount                              =10
+  double precision                                                                         , parameter :: massMaximum                            =1.0d15                , massMinimum                              =1.0d6
+  double precision                                          , dimension(massCount         )            :: mass                                                          , massFromSigma                                  , &
+       &                                                                                                  sigma
   ! Masses at which σ(M) is tested for invariance under extension of the tabulation. Each is a whole decade, and so is a point
   ! of the absolute lattice to which the tabulation is pinned - the tabulated values are what extension preserves exactly, so it
   ! is at the tabulated points that invariance is asserted. (Between them the cubic spline interpolant is not preserved: every
   ! one of its coefficients depends on every tabulated value, so adding points at either end changes it everywhere.)
-  integer                                                   , parameter                     :: massCountExtension               =3
-  double precision                                          , parameter                     :: massExtension(massCountExtension)=[1.0d11,1.0d12,1.0d13]
-  double precision                                          , dimension(massCountExtension) :: sigmaNarrow                              , sigmaExtended
-  type            (darkMatterParticleCDM                   )                       :: darkMatterParticleCDM_
-  type            (cosmologyParametersSimple               )                       :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda          )                       :: cosmologyFunctions_
-  type            (linearGrowthCollisionlessMatter         )                       :: linearGrowth_
-  type            (cosmologicalMassVarianceFilteredPower   )                       :: cosmologicalMassVarianceLCDM_                , cosmologicalMassVarianceFilteredPower_         , &
-       &                                                                              cosmologicalMassVarianceExtension_
-  type            (powerSpectrumWindowFunctionSharpKSpace  )                       :: powerSpectrumWindowFunctionSharpKSpace_
-  type            (powerSpectrumWindowFunctionTopHat       )                       :: powerSpectrumWindowFunctionLCDM_
-  type            (powerSpectrumPrimordialPowerLaw         )                       :: powerSpectrumPrimordialLCDM_                 , powerSpectrumPrimordialPowerLaw_
-  type            (transferFunctionIdentity                )                       :: transferFunctionIdentity_
-  type            (transferFunctionEisensteinHu1999        )                       :: transferFunctionLCDM_
-  type            (powerSpectrumPrimordialTransferredSimple)                       :: powerSpectrumPrimordialTransferredLCDM_      , powerSpectrumPrimordialTransferredSimple_
-  integer                                                                          :: iMass
-  double precision                                                                 :: mass8                                        , radius8                                        , &
-       &                                                                              sigma8                                       , sigmaForce
+  integer                                                   , parameter                                :: massCountExtension                     =3
+  double precision                                          , dimension(massCountExtension), parameter :: massExtension(massCountExtension)      =[1.0d11,1.0d12,1.0d13]
+  double precision                                          , dimension(massCountExtension)            :: sigmaNarrow                                                   , sigmaExtended
+  type            (darkMatterParticleCDM                   )                                           :: darkMatterParticleCDM_
+  type            (cosmologyParametersSimple               )                                           :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda          )                                           :: cosmologyFunctions_
+  type            (linearGrowthCollisionlessMatter         )                                           :: linearGrowth_
+  type            (cosmologicalMassVarianceFilteredPower   )                                           :: cosmologicalMassVarianceLCDM_                                 , cosmologicalMassVarianceFilteredPower_         , &
+       &                                                                                                  cosmologicalMassVarianceExtension_
+  type            (powerSpectrumWindowFunctionSharpKSpace  )                                           :: powerSpectrumWindowFunctionSharpKSpace_
+  type            (powerSpectrumWindowFunctionTopHat       )                                           :: powerSpectrumWindowFunctionLCDM_
+  type            (powerSpectrumPrimordialPowerLaw         )                                           :: powerSpectrumPrimordialLCDM_                                  , powerSpectrumPrimordialPowerLaw_
+  type            (transferFunctionIdentity                )                                           :: transferFunctionIdentity_
+  type            (transferFunctionEisensteinHu1999        )                                           :: transferFunctionLCDM_
+  type            (powerSpectrumPrimordialTransferredSimple)                                           :: powerSpectrumPrimordialTransferredLCDM_                       , powerSpectrumPrimordialTransferredSimple_
+  integer                                                                                              :: iMass
+  double precision                                                                                     :: mass8                                                         , radius8                                        , &
+       &                                                                                                  sigma8                                                        , sigmaForce
 
   ! Initialize error handling.
   call Error_Handler_Register()

@@ -24,7 +24,7 @@
   Implementation of an abstract mass distribution class for tabulated spherically symmetric distributions.
   !!}
 
-  use, intrinsic :: ISO_C_Binding  , only : c_size_t
+  use, intrinsic :: ISO_C_Binding   , only : c_size_t
   use            :: Numerical_Ranges, only : rangeLattice
 
   !![
@@ -113,14 +113,14 @@
      they overlap, no matter what sequence of requests built each.
      !!}
      type            (enumerationQuantityType)                                   :: quantity
-     logical                                                                     :: logTransform            =.false.    , isNegative       =.false.
-     double precision                                                            :: radiusMinimum           =0.0d0      , radiusMaximum    =0.0d0
-     double precision                          , allocatable, dimension(:      ) :: parametersMinimum                   , parametersMaximum
+     logical                                                                     :: logTransform            =.false.   , isNegative              =.false.
+     double precision                                                            :: radiusMinimum           =0.0d0     , radiusMaximum           =0.0d0
+     double precision                          , allocatable, dimension(:      ) :: parametersMinimum                  , parametersMaximum
      ! Flags recording, per parameter, that the corresponding bound has reached the hard limit imposed on it, so that a request
      ! beyond that bound cannot be met by extending the tabulation and must instead be met by extrapolation.
-     logical                                   , allocatable, dimension(:      ) :: parametersAtLimitMinimum            , parametersAtLimitMaximum
-     integer         (c_size_t                )                                  :: radiusCountPer          =0_c_size_t, countRadii       =0_c_size_t
-     integer         (c_size_t                ), allocatable, dimension(:      ) :: parametersCountPer                  , countParameters
+     logical                                   , allocatable, dimension(:      ) :: parametersAtLimitMinimum           , parametersAtLimitMaximum
+     integer         (c_size_t                )                                  :: radiusCountPer          =0_c_size_t, countRadii              =0_c_size_t
+     integer         (c_size_t                ), allocatable, dimension(:      ) :: parametersCountPer                 , countParameters
      type            (rangeLattice            )                                  :: latticeRadius
      type            (rangeLattice            ), allocatable, dimension(:      ) :: latticeParameters
      double precision                          , allocatable, dimension(:,:,:,:) :: table
@@ -569,33 +569,33 @@ contains
     implicit none
     class           (massDistributionSphericalTabulated )                    , intent(inout) :: self
     double precision                                                         , intent(in   ) :: radiusScaled
-    double precision                                     , dimension(:     ), intent(in   ) :: parameters
+    double precision                                     , dimension(:      ), intent(in   ) :: parameters
     type            (massDistributionContainer          )                    , intent(inout) :: container
     type            (massDistributionTabulation         )                    , intent(inout) :: tabulation
     class           (massDistributionSphericalTabulated ), save              , pointer       :: instance
     type            (kinematicsDistributionCollisionless), save              , pointer       :: instanceKinematicsDistribution
     !$omp threadprivate(instance,instanceKinematicsDistribution)
-    double precision                                     , dimension(:     ), allocatable   :: parameters_                   , parametersReduced_    , &
-         &                                                                                     valuesRadius
-    double precision                                     , dimension(:,:   ), allocatable   :: valuesParameters
-    double precision                                     , dimension(:,:,:,:), allocatable  :: tablePrevious
-    integer         (c_size_t                           ), dimension(:     ), allocatable   :: iParameters
-    type            (rangeLattice                       ), dimension(:     ), allocatable   :: latticeParametersNew
-    type            (rangeLattice                       )                                   :: latticeRadiusNew
-    integer         (c_size_t                           ), dimension(4     )                :: countsNew                     , countsPrevious        , &
-         &                                                                                     offsets                       , iTable
-    integer         (c_size_t                           )                                   :: lengthMaximum                 , iRadius               , &
-         &                                                                                     iterationCount                , iterationCountTotal   , &
-         &                                                                                     i                             , countParameters_      , &
-         &                                                                                     iParameter
-    double precision                                                                        :: radius_                       , quantity_             , &
-         &                                                                                     time_                         , wavenumber_           , &
-         &                                                                                     radiusOuter_                  , density_
-    logical                                                                                 :: workRemains                   , carryOver             , &
-         &                                                                                     carryOverRadiusComplete       , isCarriedParameters
-    type            (multiCounter                       )                                   :: counter
-    character       (len= 8                             )                                   :: labelLower                    , labelUpper
-    character       (len=64                             )                                   :: labelSize
+    double precision                                     , dimension(:      ), allocatable   :: parameters_                   , parametersReduced_    , &
+         &                                                                                      valuesRadius
+    double precision                                     , dimension(:,:    ), allocatable   :: valuesParameters
+    double precision                                     , dimension(:,:,:,:), allocatable   :: tablePrevious
+    integer         (c_size_t                           ), dimension(:      ), allocatable   :: iParameters
+    type            (rangeLattice                       ), dimension(:      ), allocatable   :: latticeParametersNew
+    type            (rangeLattice                       )                                    :: latticeRadiusNew
+    integer         (c_size_t                           ), dimension(4      )                :: countsNew                     , countsPrevious        , &
+         &                                                                                      offsets                       , iTable
+    integer         (c_size_t                           )                                    :: lengthMaximum                 , iRadius               , &
+         &                                                                                      iterationCount                , iterationCountTotal   , &
+         &                                                                                      i                             , countParameters_      , &
+         &                                                                                      iParameter
+    double precision                                                                         :: radius_                       , quantity_             , &
+         &                                                                                      time_                         , wavenumber_           , &
+         &                                                                                      radiusOuter_                  , density_
+    logical                                                                                  :: workRemains                   , carryOver             , &
+         &                                                                                      carryOverRadiusComplete       , isCarriedParameters
+    type            (multiCounter                       )                                    :: counter
+    character       (len= 8                             )                                    :: labelLower                    , labelUpper
+    character       (len=64                             )                                    :: labelSize
 
     ! Test if within current tabulation range.
     if (retabulate()) then
@@ -635,12 +635,12 @@ contains
                latticeRadiusNew=sphericalTabulatedLatticeAxis(radiusScaled,tabulation%radiusCountPer,-huge(0.0d0),+huge(0.0d0),tabulation%latticeRadius)
                allocate(latticeParametersNew(countParameters_))
                do i=1,countParameters_
-                  latticeParametersNew(i)=sphericalTabulatedLatticeAxis(                                           &
-                       &                                                parameters                            (i), &
-                       &                                                tabulation%parametersCountPer         (i), &
-                       &                                                container %parametersMinimumLimit     (i), &
-                       &                                                container %parametersMaximumLimit     (i), &
-                       &                                                tabulation%latticeParameters          (i)  &
+                  latticeParametersNew(i)=sphericalTabulatedLatticeAxis(                                      &
+                       &                                                parameters                       (i), &
+                       &                                                tabulation%parametersCountPer    (i), &
+                       &                                                container %parametersMinimumLimit(i), &
+                       &                                                container %parametersMaximumLimit(i), &
+                       &                                                tabulation%latticeParameters     (i)  &
                        &                                               )
                end do
                ! Record where the tabulation already in hand sits within the extended one, so that the values it holds can be
@@ -650,31 +650,31 @@ contains
                do i=1,countParameters_
                   carryOver=carryOver .and. tabulation%latticeParameters(i)%isDefined()
                end do
-               offsets       =0_c_size_t
-               countsPrevious=1_c_size_t
-               countsNew     =1_c_size_t
-               countsNew (1)                   =latticeRadiusNew                      %count
-               countsNew (2:1+countParameters_)=latticeParametersNew(1:countParameters_)%count
+               offsets                        =0_c_size_t
+               countsPrevious                 =1_c_size_t
+               countsNew                      =1_c_size_t
+               countsNew(1                   )=latticeRadiusNew                        %count
+               countsNew(2:1+countParameters_)=latticeParametersNew(1:countParameters_)%count
                if (carryOver) then
-                  offsets       (1)                   =int(Range_Lattice_Offset(tabulation%latticeRadius,latticeRadiusNew),kind=c_size_t)
-                  countsPrevious(1)                   =tabulation%latticeRadius%count
+                  offsets       (1)     =int(Range_Lattice_Offset(tabulation%latticeRadius       ,latticeRadiusNew       ),kind=c_size_t)
+                  countsPrevious(1)     =tabulation%latticeRadius%count
                   do i=1,countParameters_
-                     offsets       (i+1)              =int(Range_Lattice_Offset(tabulation%latticeParameters(i),latticeParametersNew(i)),kind=c_size_t)
-                     countsPrevious(i+1)              =tabulation%latticeParameters(i)%count
+                     offsets       (i+1)=int(Range_Lattice_Offset(tabulation%latticeParameters(i),latticeParametersNew(i)),kind=c_size_t)
+                     countsPrevious(i+1)=tabulation%latticeParameters(i)%count
                   end do
                   call Move_Alloc(tabulation%table,tablePrevious)
                end if
                ! Adopt the new lattices, and recover from them every quantity which describes the extent of the tabulation, so
                ! that a tabulation reached by extension cannot come to be described differently from one built in a single pass.
-               tabulation%latticeRadius              =latticeRadiusNew
-               tabulation%latticeParameters          =latticeParametersNew
-               tabulation%radiusMinimum              =latticeRadiusNew%minimum()
-               tabulation%radiusMaximum              =latticeRadiusNew%maximum()
-               tabulation%countRadii                 =countsNew(1)
+               tabulation%latticeRadius    =latticeRadiusNew
+               tabulation%latticeParameters=latticeParametersNew
+               tabulation%radiusMinimum    =latticeRadiusNew%minimum()
+               tabulation%radiusMaximum    =latticeRadiusNew%maximum()
+               tabulation%countRadii       =countsNew(1)
                do i=1,countParameters_
-                  tabulation%parametersMinimum    (i)=latticeParametersNew(i)%minimum()
-                  tabulation%parametersMaximum    (i)=latticeParametersNew(i)%maximum()
-                  tabulation%countParameters      (i)=countsNew(i+1)
+                  tabulation%parametersMinimum(i)=latticeParametersNew(i)%minimum()
+                  tabulation%parametersMaximum(i)=latticeParametersNew(i)%maximum()
+                  tabulation%countParameters  (i)=countsNew(i+1)
                end do
                call sphericalTabulatedLimitsFlag(container,tabulation)
                ! Take the abscissae from the lattices. They must come from there, and never from an exponentiation open-coded
@@ -692,17 +692,17 @@ contains
                allocate(tabulation%table(countsNew(1),countsNew(2),countsNew(3),countsNew(4)))
                tabulation%table=0.0d0
                if (carryOver) then
-                  tabulation%table(                                                       &
-                       &           offsets(1)+1:offsets(1)+countsPrevious(1),              &
-                       &           offsets(2)+1:offsets(2)+countsPrevious(2),              &
-                       &           offsets(3)+1:offsets(3)+countsPrevious(3),              &
-                       &           offsets(4)+1:offsets(4)+countsPrevious(4)               &
+                  tabulation%table(                                           &
+                       &           offsets(1)+1:offsets(1)+countsPrevious(1), &
+                       &           offsets(2)+1:offsets(2)+countsPrevious(2), &
+                       &           offsets(3)+1:offsets(3)+countsPrevious(3), &
+                       &           offsets(4)+1:offsets(4)+countsPrevious(4)  &
                        &          )=tablePrevious
                   deallocate(tablePrevious)
                end if
-               carryOverRadiusComplete= carryOver                                    &
-                    &                  .and. offsets       (1) == 0_c_size_t         &
-                    &                  .and. countsPrevious(1) == countsNew     (1)
+               carryOverRadiusComplete= carryOver                               &
+                    &                  .and. offsets       (1) == 0_c_size_t    &
+                    &                  .and. countsPrevious(1) == countsNew (1)
                ! Report on tabulation.
                lengthMaximum=max(12,maxval(len(container%nameParameters)))
                write (labelLower,'(e8.2)') tabulation%radiusMinimum
@@ -730,11 +730,11 @@ contains
                ! Tabulate in parallel.
                !$omp parallel private(iRadius,radius_,time_,radiusOuter_,wavenumber_,density_,coordinates,coordinatesZeroPoint,quantity_,iParameters,iParameter,iTable,parameters_,parametersReduced_,workRemains,counter,isCarriedParameters)
                ! This is a new thread, so mark it as tabulating.
-               tabulating         =.true.
+               tabulating=.true.
                ! Initialize the counter and iterate over parameter states. Note that the counter is private to each thread but
                ! is incremented in lockstep by all of them, so that the decision to skip a parameter state below is uniform
                ! across the team - as it must be, since the loop over radii which follows it is a worksharing construct.
-               counter            =multiCounter(tabulation%countParameters)
+               counter=multiCounter(tabulation%countParameters)
                do while (.true.)
                   !$omp barrier
                   workRemains=counter%increment()
@@ -744,8 +744,8 @@ contains
                   ! already in hand, and skip it entirely if it does and the radius axis was carried over complete.
                   isCarriedParameters=carryOver
                   do iParameter=1,countParameters_
-                     isCarriedParameters=      isCarriedParameters                                                                            &
-                          &               .and. iParameters(iParameter) >  offsets(iParameter+1)                                              &
+                     isCarriedParameters=       isCarriedParameters                                                           &
+                          &               .and. iParameters(iParameter) >  offsets(iParameter+1)                              &
                           &               .and. iParameters(iParameter) <= offsets(iParameter+1)+countsPrevious(iParameter+1)
                   end do
                   if (isCarriedParameters .and. carryOverRadiusComplete) cycle
@@ -791,10 +791,10 @@ contains
                   do iRadius=1,tabulation%countRadii
                      ! Skip the values carried over from the tabulation already in hand - evaluating them again would merely
                      ! reproduce them, at the cost of a numerical solution apiece.
-                     if     (                                                                     &
-                          &        isCarriedParameters                                            &
-                          &  .and. iRadius >  offsets(1)                                          &
-                          &  .and. iRadius <= offsets(1)+countsPrevious(1)                        &
+                     if     (                                              &
+                          &        isCarriedParameters                     &
+                          &  .and. iRadius >  offsets(1)                   &
+                          &  .and. iRadius <= offsets(1)+countsPrevious(1) &
                           & ) cycle
                      radius_             =valuesRadius(iRadius)
                      time_               = radius_
@@ -877,13 +877,13 @@ contains
       implicit none
 
       retabulate=.not.allocated(tabulation%table)
-      if (.not.retabulate)                                                                                       &
-           &  retabulate=     radiusScaled < tabulation%radiusMinimum                                            &
-           &             .or.                                                                                    &
-           &                  radiusScaled > tabulation%radiusMaximum                                            &
-           &             .or.                                                                                    &
+      if (.not.retabulate)                                                                                                &
+           &  retabulate=     radiusScaled < tabulation%radiusMinimum                                                     &
+           &             .or.                                                                                             &
+           &                  radiusScaled > tabulation%radiusMaximum                                                     &
+           &             .or.                                                                                             &
            &              any(parameters   < tabulation%parametersMinimum .and. .not.tabulation%parametersAtLimitMinimum) &
-           &             .or.                                                                                    &
+           &             .or.                                                                                             &
            &              any(parameters   > tabulation%parametersMaximum .and. .not.tabulation%parametersAtLimitMaximum)
       return
     end function retabulate
@@ -1062,14 +1062,14 @@ contains
     use :: Table_Caches    , only : Table_Cache_Lattice_Read
     implicit none
     class           (massDistributionSphericalTabulated)                              , intent(inout) :: self
-    type            (varying_string                    )                              , intent(in   ) :: fileName    , quantityName
+    type            (varying_string                    )                              , intent(in   ) :: fileName         , quantityName
     type            (massDistributionContainer         )                              , intent(inout) :: container
     type            (massDistributionTabulation        )                              , intent(inout) :: tabulation
     type            (hdf5File                          )                                              :: file
     type            (rangeLattice                      )                                              :: latticeRadius
     type            (rangeLattice                      ), allocatable  , dimension(:      )           :: latticeParameters
     double precision                                    , allocatable  , dimension(:,:,:,:)           :: table
-    integer         (c_size_t                          )                                              :: i           , countParameters_
+    integer         (c_size_t                          )                                              :: i                , countParameters_
     logical                                                                                           :: isUsable
 
     call displayMessage("reading tabulated "//enumerationQuantityDecode(tabulation%quantity)//" profile from '"//char(fileName)//"'",verbosityLevelWorking)
@@ -1100,7 +1100,7 @@ contains
           isUsable=isUsable .and. size(table,dim=int(i)+1,kind=c_size_t) == int(latticeParameters(i)%count,kind=c_size_t)
        end do
        do i=countParameters_+1,3_c_size_t
-          isUsable=isUsable .and. size(table,dim=int(i)+1,kind=c_size_t) ==                          1_c_size_t
+          isUsable=isUsable .and. size(table,dim=int(i)+1,kind=c_size_t) == 1_c_size_t
        end do
     end if
     ! Decline a stored tabulation which does not contain the one already in hand: since this is called only when the latter has
@@ -1119,15 +1119,15 @@ contains
     ! them from the file, so that a restored tabulation cannot come to be described differently from a freshly built one.
     if (allocated(tabulation%table)) deallocate(tabulation%table)
     call Move_Alloc(table,tabulation%table)
-    tabulation   %latticeRadius        =latticeRadius
-    tabulation   %latticeParameters    =latticeParameters
-    tabulation   %radiusMinimum        =latticeRadius%minimum()
-    tabulation   %radiusMaximum        =latticeRadius%maximum()
-    tabulation   %countRadii           =latticeRadius%count
+    tabulation%latticeRadius    =latticeRadius
+    tabulation%latticeParameters=latticeParameters
+    tabulation%radiusMinimum    =latticeRadius%minimum()
+    tabulation%radiusMaximum    =latticeRadius%maximum()
+    tabulation%countRadii       =latticeRadius%count
     do i=1,countParameters_
-       tabulation%parametersMinimum(i) =latticeParameters(i)%minimum()
-       tabulation%parametersMaximum(i) =latticeParameters(i)%maximum()
-       tabulation%countParameters  (i) =latticeParameters(i)%count
+       tabulation%parametersMinimum(i)=latticeParameters(i)%minimum()
+       tabulation%parametersMaximum(i)=latticeParameters(i)%maximum()
+       tabulation%countParameters  (i)=latticeParameters(i)%count
     end do
     call sphericalTabulatedLimitsFlag(container,tabulation)
     return
@@ -1159,7 +1159,7 @@ contains
     do i=1,container%countParameters(tabulation)
        call Table_Cache_Lattice_Write(file,char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation))),tabulation%latticeParameters(i))
     end do
-    call    file%writeDataset  (tabulation%table                   ,char(quantityName)                                                                                     ,'Tabulated '//char(quantityName)//' profile.')
+    call file%writeDataset(tabulation%table,char(quantityName),'Tabulated '//char(quantityName)//' profile.')
     !$ call hdf5Access%unset()
     return
   end subroutine sphericalTabulatedFileWrite
@@ -1178,7 +1178,7 @@ contains
     use :: Numerical_Ranges, only : Range_Pinned, gridSchemePerOctave
     implicit none
     type            (rangeLattice)                :: lattice
-    double precision              , intent(in   ) :: valueTarget , limitMinimum, &
+    double precision              , intent(in   ) :: valueTarget   , limitMinimum, &
          &                                           limitMaximum
     integer         (c_size_t    ), intent(in   ) :: countPer
     type            (rangeLattice), intent(in   ) :: latticeCurrent
@@ -1191,23 +1191,23 @@ contains
     ! request is bracketed, so no tabulation is made wider than the margin already made it.
     if (limitMinimum > 0.0d0) then
        valueTarget_=max(valueTarget_,limitMinimum)
-       lattice=Range_Pinned(                                        &
-            &                              [valueTarget_ ]        , &
-            &                               pointsPer             , &
-            &                               gridSchemePerOctave   , &
-            &               marginFactor  = 2.0d0                 , &
-            &               limitMinimum  = limitMinimum          , &
-            &               limitMaximum  = limitMaximum          , &
-            &               latticeCurrent= latticeCurrent          &
+       lattice=Range_Pinned(                                     &
+            &                              [valueTarget_ ]     , &
+            &                               pointsPer          , &
+            &                               gridSchemePerOctave, &
+            &               marginFactor  = 2.0d0              , &
+            &               limitMinimum  = limitMinimum       , &
+            &               limitMaximum  = limitMaximum       , &
+            &               latticeCurrent= latticeCurrent       &
             &              )
     else
-       lattice=Range_Pinned(                                        &
-            &                              [valueTarget_ ]        , &
-            &                               pointsPer             , &
-            &                               gridSchemePerOctave   , &
-            &               marginFactor  = 2.0d0                 , &
-            &               limitMaximum  = limitMaximum          , &
-            &               latticeCurrent= latticeCurrent          &
+       lattice=Range_Pinned(                                     &
+            &                              [valueTarget_ ]     , &
+            &                               pointsPer          , &
+            &                               gridSchemePerOctave, &
+            &               marginFactor  = 2.0d0              , &
+            &               limitMaximum  = limitMaximum       , &
+            &               latticeCurrent= latticeCurrent       &
             &              )
     end if
     return
@@ -1243,10 +1243,10 @@ contains
     integer                           , intent(in   ) :: countParameters
 
     ! Allocate the internal arrays.
-    allocate(self                           %descriptionParameters (countParameters  ))
-    allocate(self                           %nameParameters        (countParameters  ))
-    allocate(self                           %parametersMinimumLimit(countParameters+1))
-    allocate(self                           %parametersMaximumLimit(countParameters+1))
+    allocate(self%descriptionParameters (countParameters  ))
+    allocate(self%nameParameters        (countParameters  ))
+    allocate(self%parametersMinimumLimit(countParameters+1))
+    allocate(self%parametersMaximumLimit(countParameters+1))
     ! Initialize each tabulation. The Fourier transform tabulation carries the scaled outer radius as an extra parameter.
     call massDistributionTabulationInitialize(self%mass                      ,countParameters  )
     call massDistributionTabulationInitialize(self%radiusEnclosingDensity    ,countParameters  )

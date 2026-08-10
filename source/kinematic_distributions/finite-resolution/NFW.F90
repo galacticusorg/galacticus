@@ -198,21 +198,21 @@ contains
     use :: Numerical_Ranges     , only : Range_Pinned, Range_Lattice_Extend, Range_Lattice_Extend_2D, gridSchemePerDecade
     use :: Numerical_Integration, only : integrator
     implicit none
-    class           (kinematicsDistributionFiniteResolutionNFW   ), intent(inout), target :: self
-    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target :: massDistributionEmbedding
-    double precision                                              , intent(in   )         :: radius                           , radiusCore
-    double precision                                              , parameter             :: radiusTiny               =1.0d-2
-    type            (integrator                                  ), save                  :: integrator_
-    logical                                                       , save                  :: initialized              =.false.
+    class           (kinematicsDistributionFiniteResolutionNFW   ), intent(inout), target       :: self
+    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target       :: massDistributionEmbedding
+    double precision                                              , intent(in   )               :: radius                           , radiusCore
+    double precision                                              , parameter                   :: radiusTiny               =1.0d-2
+    type            (integrator                                  ), save                        :: integrator_
+    logical                                                       , save                        :: initialized              =.false.
     !$omp threadprivate(integrator_,initialized)
-    logical                                                                               :: retabulate
-    integer                                                                               :: iLengthResolution                , iRadius              , &
-         &                                                                                   i                                , iRadiusStart
-    double precision                                                                      :: jeansIntegral                    , jeansIntegralPrevious, &
-         &                                                                                   radiusLower                      , radiusUpper          , &
-         &                                                                                   radiusOuter                      , density
-    type            (rangeLattice                                )                        :: latticeRadius                    , latticeLengthResolution
-    type            (rangeLattice                                )                        :: latticeRadiusCurrent
+    logical                                                                                     :: retabulate
+    integer                                                                                     :: iLengthResolution                , iRadius                , &
+         &                                                                                         i                                , iRadiusStart
+    double precision                                                                            :: jeansIntegral                    , jeansIntegralPrevious  , &
+         &                                                                                         radiusLower                      , radiusUpper            , &
+         &                                                                                         radiusOuter                      , density
+    type            (rangeLattice                                )                              :: latticeRadius                    , latticeLengthResolution
+    type            (rangeLattice                                )                              :: latticeRadiusCurrent
     logical                                                       , allocatable, dimension(:,:) :: isComputed
     logical                                                       , allocatable, dimension(:  ) :: isComputedLengthResolution
 
@@ -241,24 +241,24 @@ contains
        ! through `latticeCurrent`; folding the latter into the target instead - as the `min`/`max` against the current bounds
        ! formerly did - would apply the factor-of-two margin to an already-margined bound and so ratchet the range outward on
        ! every retabulation.
-       latticeRadius                                 =Range_Pinned(                                                                       &
-            &                                                                     [radius                                              ], &
-            &                                                                      velocityDispersion1DTableRadiusPointsPerDecade        , &
-            &                                                                      gridSchemePerDecade                                   , &
-            &                                                      marginFactor  = 2.0d0                                                 , &
-            &                                                      anchorEvery   = velocityDispersion1DTableRadiusPointsPerDecade        &
-            &                                                                     /velocityDispersion1DTableAnchorsPerDecade             , &
-            &                                                      latticeCurrent= velocityDispersion1DLatticeRadius                       &
-            &                                                     )
-       latticeLengthResolution                       =Range_Pinned(                                                                       &
-            &                                                                     [radiusCore                                          ], &
-            &                                                                      velocityDispersion1DTableLengthResolutionPointsPerDecade, &
-            &                                                                      gridSchemePerDecade                                   , &
-            &                                                      marginFactor  = 2.0d0                                                 , &
-            &                                                      anchorEvery   = velocityDispersion1DTableLengthResolutionPointsPerDecade &
-            &                                                                     /velocityDispersion1DTableAnchorsPerDecade             , &
-            &                                                      latticeCurrent= velocityDispersion1DLatticeLengthResolution             &
-            &                                                     )
+       latticeRadius          =Range_Pinned(                                                                           &
+            &                                              [radius                                                  ], &
+            &                                               velocityDispersion1DTableRadiusPointsPerDecade           , &
+            &                                               gridSchemePerDecade                                      , &
+            &                               marginFactor  = 2.0d0                                                    , &
+            &                               anchorEvery   =+velocityDispersion1DTableRadiusPointsPerDecade             &
+            &                                              /velocityDispersion1DTableAnchorsPerDecade                , &
+            &                               latticeCurrent= velocityDispersion1DLatticeRadius                          &
+            &                              )
+       latticeLengthResolution=Range_Pinned(                                                                           &
+            &                                              [radiusCore                                              ], &
+            &                                               velocityDispersion1DTableLengthResolutionPointsPerDecade , &
+            &                                               gridSchemePerDecade                                      , &
+            &                               marginFactor  = 2.0d0                                                    , &
+            &                               anchorEvery   =+velocityDispersion1DTableLengthResolutionPointsPerDecade   &
+            &                                              /velocityDispersion1DTableAnchorsPerDecade                , &
+            &                               latticeCurrent= velocityDispersion1DLatticeLengthResolution                &
+            &                              )
        ! The solution at each radius is the integral of the Jeans equation from that radius outward, so it depends on the
        ! solution at every larger radius and on where the outer boundary of the integration lies. It can therefore be carried
        ! over only while the *upper* end of the radius axis is unchanged; if the axis grows outward the whole tabulation must be
@@ -272,8 +272,8 @@ contains
        end if
        ! Extend the table onto the new lattices, carrying over the solutions already found. Every offset is computed in exact
        ! integer arithmetic from the lattice indices, so no abscissa is compared.
-       call Range_Lattice_Extend_2D(latticeRadiusCurrent,latticeRadius,velocityDispersion1DLatticeLengthResolution,latticeLengthResolution,velocityDispersion1DTable,isComputed)
-       call Range_Lattice_Extend   (                                  velocityDispersion1DLatticeLengthResolution,latticeLengthResolution,velocityDispersion1DJeansIntegral,isComputedLengthResolution)
+       call Range_Lattice_Extend_2D(latticeRadiusCurrent,latticeRadius,velocityDispersion1DLatticeLengthResolution,latticeLengthResolution,velocityDispersion1DTable        ,isComputed                )
+       call Range_Lattice_Extend   (                                   velocityDispersion1DLatticeLengthResolution,latticeLengthResolution,velocityDispersion1DJeansIntegral,isComputedLengthResolution)
        velocityDispersion1DLatticeRadius             =latticeRadius
        velocityDispersion1DLatticeLengthResolution   =latticeLengthResolution
        velocityDispersion1DTableRadiusCount          =latticeRadius          %count
@@ -309,9 +309,9 @@ contains
              iRadiusStart=iRadiusStart-1
           end do
           if (iRadiusStart == velocityDispersion1DTableRadiusCount) then
-             jeansIntegralPrevious                                =0.0d0
+             jeansIntegralPrevious=0.0d0
           else
-             jeansIntegralPrevious                                =velocityDispersion1DJeansIntegral(iLengthResolution)
+             jeansIntegralPrevious=velocityDispersion1DJeansIntegral(iLengthResolution)
           end if
           do iRadius=iRadiusStart,1,-1
              ! For radii that are tiny compared to the core radius the velocity dispersion become almost constant. Simply assume this to avoid floating point errors.
@@ -383,12 +383,12 @@ contains
     !!{RST
     Store the tabulated velocity dispersion data to file.
     !!}
-    use :: File_Utilities    , only : File_Lock     , File_Unlock        , lockDescriptor, Directory_Make, &
+    use :: File_Utilities    , only : File_Lock                , File_Unlock        , lockDescriptor, Directory_Make, &
          &                            File_Path
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File
-    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : varying_string, operator(//)       , char
+    use :: Input_Paths       , only : inputPath                , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : varying_string           , operator(//)       , char
     use :: Table_Caches      , only : Table_Cache_Lattice_Write
     implicit none
     class(kinematicsDistributionFiniteResolutionNFW), intent(inout) :: self
@@ -432,21 +432,21 @@ contains
     contains the tabulation already in hand - this being called only when the latter has been found insufficient, so that
     adopting a narrower tabulation in its place would discard solutions which must then be found again.
     !!}
-    use :: File_Utilities    , only : File_Exists   , File_Lock          , File_Unlock, lockDescriptor
+    use :: File_Utilities    , only : File_Exists             , File_Lock          , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File
-    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : varying_string, operator(//)       , char
+    use :: Input_Paths       , only : inputPath               , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : varying_string          , operator(//)       , char
     use :: Numerical_Ranges  , only : gridSchemePerDecade
     use :: Table_Caches      , only : Table_Cache_Lattice_Read
     implicit none
-    class           (kinematicsDistributionFiniteResolutionNFW)                           , intent(inout) :: self
-    type            (lockDescriptor                          )                                           :: fileLock
-    type            (varying_string                          )                                           :: fileName
-    type            (rangeLattice                            )                                           :: latticeRadius, latticeLengthResolution
-    double precision                                          , allocatable, dimension(:,:)              :: tableStored
-    double precision                                          , allocatable, dimension(:  )              :: jeansIntegralStored
-    logical                                                                                              :: isUsable
+    class           (kinematicsDistributionFiniteResolutionNFW), intent(inout)               :: self
+    type            (lockDescriptor                           )                              :: fileLock
+    type            (varying_string                           )                              :: fileName
+    type            (rangeLattice                             )                              :: latticeRadius      , latticeLengthResolution
+    double precision                                           , allocatable, dimension(:,:) :: tableStored
+    double precision                                           , allocatable, dimension(:  ) :: jeansIntegralStored
+    logical                                                                                  :: isUsable
 
     fileName=inputPath(pathTypeDataDynamic)                   // &
          &   'darkMatter/'                                    // &
@@ -473,11 +473,11 @@ contains
     end block hdf5FileScope
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
-    if (isUsable)                                                                 &
+    if (isUsable)                                                                          &
          & isUsable=      size(tableStored        ,dim=1) == latticeRadius          %count &
          &          .and. size(tableStored        ,dim=2) == latticeLengthResolution%count &
-         &          .and. size(jeansIntegralStored       ) == latticeLengthResolution%count
-    if (isUsable .and. velocityDispersion1DTableInitialized)                                                                    &
+         &          .and. size(jeansIntegralStored      ) == latticeLengthResolution%count
+    if (isUsable .and. velocityDispersion1DTableInitialized)                                                                                                              &
          & isUsable=      (.not.velocityDispersion1DLatticeRadius          %isDefined() .or. latticeRadius          %covers(velocityDispersion1DLatticeRadius          )) &
          &          .and. (.not.velocityDispersion1DLatticeLengthResolution%isDefined() .or. latticeLengthResolution%covers(velocityDispersion1DLatticeLengthResolution))
     if (.not.isUsable) return

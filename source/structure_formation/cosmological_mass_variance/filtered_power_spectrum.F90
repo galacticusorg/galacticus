@@ -98,9 +98,9 @@
      type            (lockDescriptor                         )                            :: fileLock
      ! Unique values in the variance table and their corresponding indices.
      type            (uniqueTable                            ), allocatable, dimension(:) :: rootVarianceUniqueTable
-     logical                                                                              :: monotonicInterpolation                             , growthIsMassDependent_                               , &
-          &                                                                                  normalizationSigma8                        =.false., truncateAtParticleHorizon                            , &
-          &                                                                                  storeTabulations                                   , warnedNonIncreasing
+     logical                                                                              :: monotonicInterpolation                        , growthIsMassDependent_                               , &
+          &                                                                                  normalizationSigma8                 =  .false., truncateAtParticleHorizon                            , &
+          &                                                                                  storeTabulations                              , warnedNonIncreasing
    contains
      !![
      <methods docformat="rst">
@@ -138,7 +138,7 @@
   end interface cosmologicalMassVarianceFilteredPower
 
   ! Number of points per decade to use in tabulation of σ(M).
-  integer                         , parameter :: pointsPerDecade=10, timePointsPerDecade=100
+  integer                         , parameter :: pointsPerDecade=10             , timePointsPerDecade=100
 
   ! Intervals, in lattice steps, to which the bounds of the two axes are pinned. The mass axis is pinned to whole decades: a
   ! decade of extra tabulation costs `pointsPerDecade` integrals per epoch, and the ×10 safety margin which this replaces was
@@ -146,7 +146,7 @@
   ! complete σ(M) tabulation, and a whole decade of cosmic time - `timePointsPerDecade` epochs - would be extravagant beyond
   ! any measure of the accuracy it buys. Both choices are equally deterministic; they differ only in the granularity of the
   ! discrete set of ranges which can result.
-  integer                         , parameter :: anchorEveryMass=pointsPerDecade, anchorEveryTime=1
+  integer                         , parameter :: anchorEveryMass=pointsPerDecade, anchorEveryTime    =  1
 
   ! Module-scope time used in integrals.
   double precision                            :: time__
@@ -155,12 +155,12 @@
   ! Cached copies of tabulated solutions. These are used to avoid re-reading from file if the same variance is requested multiple times.
   type :: cachedVariance
      type            (varying_string)                              :: fileName
-     double precision                                              :: sigma8Value           , sigmaNormalization
-     double precision                , dimension(:  ), allocatable :: massTmp               , timesTmp
-     double precision                , dimension(:,:), allocatable :: rootVarianceTmp       , rootVarianceUniqueTmp
+     double precision                                              :: sigma8Value    , sigmaNormalization
+     double precision                , dimension(:  ), allocatable :: massTmp        , timesTmp
+     double precision                , dimension(:,:), allocatable :: rootVarianceTmp, rootVarianceUniqueTmp
      integer                         , dimension(:  ), allocatable :: uniqueSizeTmp
      integer                         , dimension(:,:), allocatable :: indexTmp
-     type            (rangeLattice  )                              :: latticeMass           , latticeTime
+     type            (rangeLattice  )                              :: latticeMass    , latticeTime
   end type cachedVariance
   
   integer                , parameter            :: sizeCache      =25
@@ -808,25 +808,25 @@ contains
     use :: Tables                  , only : table1DLogarithmicCSpline, table1DLogarithmicMonotoneCSpline
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
-    double precision                                       , intent(in   ), optional     :: mass                      , time
+    double precision                                       , intent(in   ), optional     :: mass                           , time
     ! Radius for σ(M) normalization in Mpc/h.
-    double precision                                       , parameter                   :: radiusNormalization =8.0d0
-    integer                                                                              :: i                         , rootVarianceTableCount , &
-         &                                                                                  j                         , rootVarianceUniqueCount, &
-         &                                                                                  rootVarianceTimeCount     , k                      , &
-         &                                                                                  offsetTime                , countTimePrevious      , &
-         &                                                                                  offsetMass                , countMassPrevious      , &
-         &                                                                                  kPrevious                 , iMinimum
-    double precision                                                                     :: sigma                     , smoothingMass          , &
-         &                                                                                  massMinimum               , sigmaMinimum
+    double precision                                       , parameter                   :: radiusNormalization      =8.0d0
+    integer                                                                              :: i                              , rootVarianceTableCount , &
+         &                                                                                  j                              , rootVarianceUniqueCount, &
+         &                                                                                  rootVarianceTimeCount          , k                      , &
+         &                                                                                  offsetTime                     , countTimePrevious      , &
+         &                                                                                  offsetMass                     , countMassPrevious      , &
+         &                                                                                  kPrevious                      , iMinimum
+    double precision                                                                     :: sigma                          , smoothingMass          , &
+         &                                                                                  massMinimum                    , sigmaMinimum
     double precision                                                     , dimension(2) :: timeSeed
-    type            (rangeLattice                         )                              :: latticeMass               , latticeTime
+    type            (rangeLattice                         )                              :: latticeMass                    , latticeTime
     logical                                                                              :: carryOver
-    logical                                                , allocatable  , dimension(:) :: rootVarianceIsUnique      , rootVarianceIsComputed
+    logical                                                , allocatable  , dimension(:) :: rootVarianceIsUnique           , rootVarianceIsComputed
     class           (table1DLinearCSpline                 ), allocatable  , dimension(:) :: rootVarianceTablePrevious
     type            (varying_string                       ), save                        :: message
-    character       (len=12                               )                              :: label                     , labelLow               , &
-         &                                                                                  labelHigh                 , labelTarget
+    character       (len=12                               )                              :: label                          , labelLow               , &
+         &                                                                                  labelHigh                      , labelTarget
     ! The variable "message" is saved (and made threadprivate) as its destructor is expensive, and this function gets called a
     ! lot.
     !$omp threadprivate(message)
@@ -878,52 +878,52 @@ contains
           ! carried over; the request itself is passed as the target, never the current range, since folding the current range
           ! into the target would apply the safety margin to an already-margined bound and ratchet the range upward on every
           ! retabulation.
-          if      (present(mass)                      ) then
-             latticeMass=Range_Pinned(                                          &
-                  &                                   [mass]                  , &
-                  &                                    pointsPerDecade        , &
-                  &                                    gridSchemePerDecade    , &
-                  &                   anchorEvery   =  anchorEveryMass        , &
-                  &                   latticeCurrent=self%latticeMass           &
+          if      (present(mass)               ) then
+             latticeMass=Range_Pinned(                                      &
+                  &                                   [mass]              , &
+                  &                                    pointsPerDecade    , &
+                  &                                    gridSchemePerDecade, &
+                  &                   anchorEvery   =  anchorEveryMass    , &
+                  &                   latticeCurrent=self%latticeMass       &
                   &                  )
-          else if (self%latticeMass%isDefined()       ) then
+          else if (self%latticeMass%isDefined()) then
              latticeMass=self%latticeMass
           else
              ! No mass was given, and there is no tabulation to retain. Must provide some mass range - the default range is
              ! already a whole number of decades, and so is taken as the target with no safety margin.
-             latticeMass=Range_Pinned(                                          &
-                  &                                   [1.0d10,1.0d15]         , &
-                  &                                    pointsPerDecade        , &
-                  &                                    gridSchemePerDecade    , &
-                  &                   marginFactor  =  1.0d0                  , &
-                  &                   anchorEvery   =  anchorEveryMass          &
+             latticeMass=Range_Pinned(                                      &
+                  &                                   [1.0d10,1.0d15]     , &
+                  &                                    pointsPerDecade    , &
+                  &                                    gridSchemePerDecade, &
+                  &                   marginFactor  =  1.0d0              , &
+                  &                   anchorEvery   =  anchorEveryMass      &
                   &                  )
           end if
           rootVarianceTableCount=latticeMass%count
           ! Find suitable range of times to tabulate, pinned to an absolute lattice exactly as the mass range is.
           if (self%growthIsMassDependent_) then
-             if      (present(time)                  ) then
-                latticeTime=Range_Pinned(                                          &
-                     &                                   [time]                  , &
-                     &                                    timePointsPerDecade    , &
-                     &                                    gridSchemePerDecade    , &
-                     &                   anchorEvery   =  anchorEveryTime        , &
-                     &                   latticeCurrent=self%latticeTime           &
+             if      (present(time)               ) then
+                latticeTime=Range_Pinned(                                      &
+                     &                                   [time]              , &
+                     &                                    timePointsPerDecade, &
+                     &                                    gridSchemePerDecade, &
+                     &                   anchorEvery   =  anchorEveryTime    , &
+                     &                   latticeCurrent=self%latticeTime       &
                      &                  )
-             else if (self%latticeTime%isDefined()   ) then
+             else if (self%latticeTime%isDefined()) then
                 latticeTime=self%latticeTime
              else
                 ! No time was given, and there is no tabulation to retain. Must provide some time range.
-                timeSeed   =[                                             &
-                     &       self%cosmologyFunctions_%cosmicTime(0.5d0)  , &
-                     &       self%cosmologyFunctions_%cosmicTime(1.0d0)    &
+                timeSeed   =[                                            &
+                     &       self%cosmologyFunctions_%cosmicTime(0.5d0), &
+                     &       self%cosmologyFunctions_%cosmicTime(1.0d0)  &
                      &      ]
-                latticeTime=Range_Pinned(                                          &
-                     &                                   timeSeed                , &
-                     &                                    timePointsPerDecade    , &
-                     &                                    gridSchemePerDecade    , &
-                     &                   marginFactor  =  1.0d0                  , &
-                     &                   anchorEvery   =  anchorEveryTime          &
+                latticeTime=Range_Pinned(                                      &
+                     &                                   timeSeed            , &
+                     &                                    timePointsPerDecade, &
+                     &                                    gridSchemePerDecade, &
+                     &                   marginFactor  =  1.0d0              , &
+                     &                   anchorEvery   =  anchorEveryTime      &
                      &                  )
              end if
              rootVarianceTimeCount=latticeTime%count
@@ -957,8 +957,8 @@ contains
           ! Along the time axis a table is carried over whole; along the mass axis it is carried over as the block of points
           ! which its lattice occupies in the new one. Both offsets are found in exact integer arithmetic from the lattice
           ! indices, so no abscissa is ever compared or searched for.
-          carryOver        =       allocated  (self%rootVarianceTable)                                &
-               &            .and.  self%latticeMass%isDefined      ()                                 &
+          carryOver        =       allocated  (self%rootVarianceTable)                                       &
+               &            .and.  self%latticeMass%isDefined      ()                                        &
                &            .and. (self%latticeTime%isDefined      () .or. .not.self%growthIsMassDependent_)
           offsetTime       =0
           offsetMass       =0
@@ -1114,7 +1114,7 @@ contains
           ! abscissae, and 10**(k/N) is not bit-identical to exp((k/N)ln10). Taking the limits from the lattice could therefore
           ! place them a fraction of an ulp outside the table, so that a mass which passes the test in `remakeTable` still lies
           ! beyond the range which the table actually spans.
-          self%massMinimum=self%rootVarianceTable(1)%x( 1)
+          self%massMinimum=self%rootVarianceTable(1)%x(+1)
           self%massMaximum=self%rootVarianceTable(1)%x(-1)
           ! Table is now initialized.
           self%initialized=.true.
@@ -1537,16 +1537,16 @@ contains
        end do
     end if
     if (useCache /= 0) then
-       timesTmp                        =cachedVariances(useCache)%timesTmp
-       massTmp                         =cachedVariances(useCache)%massTmp
-       rootVarianceTmp                 =cachedVariances(useCache)%rootVarianceTmp
-       rootVarianceUniqueTmp           =cachedVariances(useCache)%rootVarianceUniqueTmp
-       indexTmp                        =cachedVariances(useCache)%indexTmp
-       uniqueSizeTmp                   =cachedVariances(useCache)%uniqueSizeTmp
-       latticeMass                     =cachedVariances(useCache)%latticeMass
-       latticeTime                     =cachedVariances(useCache)%latticeTime
-       self%sigma8Value                =cachedVariances(useCache)%sigma8Value
-       self%sigmaNormalization         =cachedVariances(useCache)%sigmaNormalization
+       timesTmp               =cachedVariances(useCache)%timesTmp
+       massTmp                =cachedVariances(useCache)%massTmp
+       rootVarianceTmp        =cachedVariances(useCache)%rootVarianceTmp
+       rootVarianceUniqueTmp  =cachedVariances(useCache)%rootVarianceUniqueTmp
+       indexTmp               =cachedVariances(useCache)%indexTmp
+       uniqueSizeTmp          =cachedVariances(useCache)%uniqueSizeTmp
+       latticeMass            =cachedVariances(useCache)%latticeMass
+       latticeTime            =cachedVariances(useCache)%latticeTime
+       self%sigma8Value       =cachedVariances(useCache)%sigma8Value
+       self%sigmaNormalization=cachedVariances(useCache)%sigmaNormalization
     end if
     !$omp end critical(cosmologicalMassVarianceFilteredPowerCache)
     if (useCache == 0) then
@@ -1774,17 +1774,17 @@ contains
        deallocate(cachedVariances(useCache)%uniqueSizeTmp        )
        deallocate(cachedVariances(useCache)%indexTmp             )
     end if
-    cachedVariances(useCache)%fileName                   =self%fileName
-    cachedVariances(useCache)%timesTmp                   =self%times
-    cachedVariances(useCache)%massTmp                    =     massTmp
-    cachedVariances(useCache)%rootVarianceTmp            =     rootVarianceTmp
-    cachedVariances(useCache)%rootVarianceUniqueTmp      =     rootVarianceUniqueTmp
-    cachedVariances(useCache)%indexTmp                   =     indexTmp
-    cachedVariances(useCache)%uniqueSizeTmp              =     uniqueSizeTmp
-    cachedVariances(useCache)%latticeMass                =self%latticeMass
-    cachedVariances(useCache)%latticeTime                =self%latticeTime
-    cachedVariances(useCache)%sigma8Value                =self%sigma8Value
-    cachedVariances(useCache)%sigmaNormalization         =self%sigmaNormalization
+    cachedVariances(useCache)%fileName             =self%fileName
+    cachedVariances(useCache)%timesTmp             =self%times
+    cachedVariances(useCache)%massTmp              =     massTmp
+    cachedVariances(useCache)%rootVarianceTmp      =     rootVarianceTmp
+    cachedVariances(useCache)%rootVarianceUniqueTmp=     rootVarianceUniqueTmp
+    cachedVariances(useCache)%indexTmp             =     indexTmp
+    cachedVariances(useCache)%uniqueSizeTmp        =     uniqueSizeTmp
+    cachedVariances(useCache)%latticeMass          =self%latticeMass
+    cachedVariances(useCache)%latticeTime          =self%latticeTime
+    cachedVariances(useCache)%sigma8Value          =self%sigma8Value
+    cachedVariances(useCache)%sigmaNormalization   =self%sigmaNormalization
     !$omp end critical(cosmologicalMassVarianceFilteredPowerCache)
     ! Store to file if requested.
     if (self%storeTabulations) then
@@ -1794,14 +1794,14 @@ contains
        hdf5WriteScope: block
          type(hdf5File  ) :: dataFile
          dataFile=hdf5File(self%fileName,overWrite=.true.,objectsOverwritable=.true.,chunkSize=100_hsize_t,compressionLevel=9)
-         call dataFile%writeDataset  (self%times                      ,'times'                                                                                                 )
-         call dataFile%writeDataset  (     massTmp                    ,'mass'                                                                                                  )
-         call dataFile%writeDataset  (     rootVarianceTmp            ,'rootVariance'                                                                                          )
-         call dataFile%writeDataset  (     rootVarianceUniqueTmp      ,'rootVarianceUnique'                                                                                    )
-         call dataFile%writeDataset  (     indexTmp                   ,'indexUnique'                                                                                           )
-         call dataFile%writeDataset  (     uniqueSizeTmp              ,'uniqueSize'                                                                                            )
-         call dataFile%writeAttribute(self%sigma8Value                ,'sigma8'                                                                                                )
-         call dataFile%writeAttribute(self%sigmaNormalization         ,'sigmaNormalization'                                                                                    )
+         call dataFile%writeDataset  (self%times                ,'times'             )
+         call dataFile%writeDataset  (     massTmp              ,'mass'              )
+         call dataFile%writeDataset  (     rootVarianceTmp      ,'rootVariance'      )
+         call dataFile%writeDataset  (     rootVarianceUniqueTmp,'rootVarianceUnique')
+         call dataFile%writeDataset  (     indexTmp             ,'indexUnique'       )
+         call dataFile%writeDataset  (     uniqueSizeTmp        ,'uniqueSize'        )
+         call dataFile%writeAttribute(self%sigma8Value          ,'sigma8'            )
+         call dataFile%writeAttribute(self%sigmaNormalization   ,'sigmaNormalization')
          ! Record the lattices on which the two axes are built. The bounds and interpolating factors which were formerly stored
          ! alongside them are not: each is a function of the lattices and of the epochs, and is recomputed when the file is read,
          ! so that a restored tabulation cannot come to be described differently from a freshly built one.

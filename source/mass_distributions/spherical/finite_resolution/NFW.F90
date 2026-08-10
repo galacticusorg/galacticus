@@ -114,12 +114,12 @@
   end interface massDistributionSphericalFiniteResolutionNFW
 
   ! Tabulation resolution parameters.
-  integer                                                       , parameter                   :: radiusEnclosingDensityTableDensityPointsPerDecade         =100
-  integer                                                       , parameter                   :: radiusEnclosingDensityTableLengthResolutionPointsPerDecade=100
-  integer                                                       , parameter                   :: radiusEnclosingMassTableMassPointsPerDecade               =100
-  integer                                                       , parameter                   :: radiusEnclosingMassTableLengthResolutionPointsPerDecade   =100
-  integer                                                       , parameter                   :: energyTableRadiusOuterPointsPerDecade                     =100
-  integer                                                       , parameter                   :: energyTableLengthResolutionPointsPerDecade                =100
+  integer                                                       , parameter                   :: radiusEnclosingDensityTableDensityPointsPerDecade                =100
+  integer                                                       , parameter                   :: radiusEnclosingDensityTableLengthResolutionPointsPerDecade       =100
+  integer                                                       , parameter                   :: radiusEnclosingMassTableMassPointsPerDecade                      =100
+  integer                                                       , parameter                   :: radiusEnclosingMassTableLengthResolutionPointsPerDecade          =100
+  integer                                                       , parameter                   :: energyTableRadiusOuterPointsPerDecade                            =100
+  integer                                                       , parameter                   :: energyTableLengthResolutionPointsPerDecade                       =100
 
   ! Interval, in lattice steps, to which the bounds of every axis of these tabulations are pinned - that is, every bound is
   ! rounded outward to a tenth of a decade. Whole decades are not used because each of these tabulations is two-dimensional and
@@ -127,10 +127,10 @@
   ! accumulated velocity dispersion tabulation actually reached (nine decades of radius by 1.3 decades of length resolution),
   ! whole decades would inflate the number of points by 73%, where tenths of a decade cost 3%. The margin applied to a request
   ! is a factor of two either side, so a tenth of a decade is also small compared with the width of the window being pinned.
-  integer                                                       , parameter                   :: tabulationAnchorsPerDecade                                = 10
+  integer                                                       , parameter                   :: tabulationAnchorsPerDecade                                       = 10
 
   ! Largest radius for precise arctanh() evaluation.
-  double precision                                              , parameter                   :: radiusScaleFreeLargeATanh                                 =1.0d+6
+  double precision                                              , parameter                   :: radiusScaleFreeLargeATanh                                        =1.0d+6
 
   ! Radius-enclosing-density tabulation.
   logical                                                                                     :: radiusEnclosingDensityTableInitialized                           =.false.
@@ -678,14 +678,14 @@ contains
     use :: Numerical_Ranges        , only : Range_Pinned             , Range_Lattice_Extend_2D      , gridSchemePerDecade
     use :: Root_Finder             , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target :: self
-    double precision                                              , intent(in   )         :: mass                   , lengthResolution
-    double precision                                              , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-9
-    logical                                                                               :: retabulate
-    integer                                                                               :: iLengthResolution      , iMass                   , &
-         &                                                                                   i
-    type            (rootFinder                                  )                        :: finder
-    type            (rangeLattice                                )                        :: latticeMass            , latticeLengthResolution
+    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target       :: self
+    double precision                                              , intent(in   )               :: mass                   , lengthResolution
+    double precision                                              , parameter                   :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-9
+    logical                                                                                     :: retabulate
+    integer                                                                                     :: iLengthResolution      , iMass                   , &
+         &                                                                                         i
+    type            (rootFinder                                  )                              :: finder
+    type            (rangeLattice                                )                              :: latticeMass            , latticeLengthResolution
     logical                                                       , allocatable, dimension(:,:) :: isComputed
 
     do i=1,2
@@ -713,21 +713,21 @@ contains
        ! through `latticeCurrent`; folding the latter into the target instead - as the `min`/`max` against the current bounds
        ! formerly did - would apply the factor-of-two margin to an already-margined bound and so ratchet the range outward on
        ! every retabulation.
-       latticeMass                                  =Range_Pinned(                                                                        &
-            &                                                                    [mass                                                  ], &
+       latticeMass                                  =Range_Pinned(                                                                          &
+            &                                                                    [mass                                                   ], &
             &                                                                     radiusEnclosingMassTableMassPointsPerDecade             , &
             &                                                                     gridSchemePerDecade                                     , &
             &                                                     marginFactor  = 2.0d0                                                   , &
-            &                                                     anchorEvery   = radiusEnclosingMassTableMassPointsPerDecade             &
+            &                                                     anchorEvery   =+radiusEnclosingMassTableMassPointsPerDecade               &
             &                                                                    /tabulationAnchorsPerDecade                              , &
             &                                                     latticeCurrent= radiusEnclosingMassLatticeMass                            &
             &                                                    )
-       latticeLengthResolution                      =Range_Pinned(                                                                        &
-            &                                                                    [lengthResolution                                      ], &
+       latticeLengthResolution                      =Range_Pinned(                                                                          &
+            &                                                                    [lengthResolution                                       ], &
             &                                                                     radiusEnclosingMassTableLengthResolutionPointsPerDecade , &
             &                                                                     gridSchemePerDecade                                     , &
             &                                                     marginFactor  = 2.0d0                                                   , &
-            &                                                     anchorEvery   = radiusEnclosingMassTableLengthResolutionPointsPerDecade &
+            &                                                     anchorEvery   =+radiusEnclosingMassTableLengthResolutionPointsPerDecade   &
             &                                                                    /tabulationAnchorsPerDecade                              , &
             &                                                     latticeCurrent= radiusEnclosingMassLatticeLengthResolution                &
             &                                                    )
@@ -808,13 +808,13 @@ contains
     !!{RST
     Store the tabulated radius-enclosing-mass data to file.
     !!}
-    use :: File_Utilities    , only : File_Lock     , File_Unlock        , lockDescriptor, Directory_Make, &
+    use :: File_Utilities    , only : File_Lock                , File_Unlock        , lockDescriptor, Directory_Make, &
          &                            File_Path
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File
     use :: Table_Caches      , only : Table_Cache_Lattice_Write
-    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : varying_string, operator(//)       , char
+    use :: Input_Paths       , only : inputPath                , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : varying_string           , operator(//)       , char
     implicit none
     class(massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self
     type (lockDescriptor                              )                :: fileLock
@@ -853,26 +853,26 @@ contains
     also declined if it does not *contain* the tabulation already in hand: this is called only when the latter has been found
     insufficient, so adopting a narrower tabulation in its place would discard solutions which must then be found again.
     !!}
-    use :: File_Utilities    , only : File_Exists   , File_Lock          , File_Unlock, lockDescriptor
+    use :: File_Utilities    , only : File_Exists             , File_Lock          , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File
-    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : varying_string, operator(//)       , char
+    use :: Input_Paths       , only : inputPath               , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : varying_string          , operator(//)       , char
     use :: Numerical_Ranges  , only : gridSchemePerDecade
     use :: Table_Caches      , only : Table_Cache_Lattice_Read
     implicit none
-    class           (massDistributionSphericalFiniteResolutionNFW)                           , intent(inout) :: self
-    type            (lockDescriptor                              )                                           :: fileLock
-    type            (hdf5File                                    )                                           :: file
-    type            (varying_string                              )                                           :: fileName
-    type            (rangeLattice                                )                                           :: latticeMass, latticeLengthResolution
-    double precision                                              , allocatable, dimension(:,:)              :: tableStored
-    logical                                                                                                  :: isUsable
+    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout)               :: self
+    type            (lockDescriptor                              )                              :: fileLock
+    type            (hdf5File                                    )                              :: file
+    type            (varying_string                              )                              :: fileName
+    type            (rangeLattice                                )                              :: latticeMass, latticeLengthResolution
+    double precision                                              , allocatable, dimension(:,:) :: tableStored
+    logical                                                                                     :: isUsable
 
     fileName=inputPath(pathTypeDataDynamic)// &
          &   'darkMatter/'                 // &
          &   self%objectType(             )// &
-         &   '_mass_'                   // &
+         &   '_mass_'                      // &
          &   self%suffix    (             )// &
          &   '.hdf5'
     if (.not.File_Exists(fileName)) return
@@ -888,35 +888,35 @@ contains
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     if (isUsable)                                                                 &
-         & isUsable=      size(tableStored,dim=1) == latticeMass%count         &
+         & isUsable=      size(tableStored,dim=1) == latticeMass%count            &
          &          .and. size(tableStored,dim=2) == latticeLengthResolution%count
-    if (isUsable .and. radiusEnclosingMassTableInitialized)                                                                     &
-         & isUsable=      (.not.radiusEnclosingMassLatticeMass%isDefined() .or. latticeMass%covers(radiusEnclosingMassLatticeMass))              &
+    if (isUsable .and. radiusEnclosingMassTableInitialized)                                                                                                             &
+         & isUsable=      (.not.radiusEnclosingMassLatticeMass            %isDefined() .or. latticeMass            %covers(radiusEnclosingMassLatticeMass            )) &
          &          .and. (.not.radiusEnclosingMassLatticeLengthResolution%isDefined() .or. latticeLengthResolution%covers(radiusEnclosingMassLatticeLengthResolution))
     if (.not.isUsable) return
     ! Adopt the stored tabulation, recovering everything which describes its extent from the lattices rather than from the
     ! stored abscissae, so that a restored tabulation cannot come to be described differently from a freshly built one.
-    if (allocated(radiusEnclosingMassTableMass )) deallocate(radiusEnclosingMassTableMass )
-    if (allocated(radiusEnclosingMassTableLengthResolution )) deallocate(radiusEnclosingMassTableLengthResolution )
-    if (allocated(radiusEnclosingMassTable)) deallocate(radiusEnclosingMassTable)
+    if (allocated(radiusEnclosingMassTableMass            )) deallocate(radiusEnclosingMassTableMass            )
+    if (allocated(radiusEnclosingMassTableLengthResolution)) deallocate(radiusEnclosingMassTableLengthResolution)
+    if (allocated(radiusEnclosingMassTable                )) deallocate(radiusEnclosingMassTable                )
     call Move_Alloc(tableStored,radiusEnclosingMassTable)
-    radiusEnclosingMassLatticeMass=latticeMass
-    radiusEnclosingMassLatticeLengthResolution=latticeLengthResolution
-    radiusEnclosingMassTableMass=latticeMass%values()
-    radiusEnclosingMassTableLengthResolution=latticeLengthResolution%values()
-    radiusEnclosingMassTableMassCount=latticeMass%count
+    radiusEnclosingMassLatticeMass               =latticeMass
+    radiusEnclosingMassLatticeLengthResolution   =latticeLengthResolution
+    radiusEnclosingMassTableMass                 =latticeMass            %values ()
+    radiusEnclosingMassTableLengthResolution     =latticeLengthResolution%values ()
+    radiusEnclosingMassTableMassCount            =latticeMass            %count
     radiusEnclosingMassTableLengthResolutionCount=latticeLengthResolution%count
-    radiusEnclosingMassMassMinimum=latticeMass%minimum()
-    radiusEnclosingMassMassMaximum=latticeMass%maximum()
-    radiusEnclosingMassLengthResolutionMinimum=latticeLengthResolution%minimum()
-    radiusEnclosingMassLengthResolutionMaximum=latticeLengthResolution%maximum()
+    radiusEnclosingMassMassMinimum               =latticeMass            %minimum()
+    radiusEnclosingMassMassMaximum               =latticeMass            %maximum()
+    radiusEnclosingMassLengthResolutionMinimum   =latticeLengthResolution%minimum()
+    radiusEnclosingMassLengthResolutionMaximum   =latticeLengthResolution%maximum()
     if (allocated(radiusEnclosingMassTableLengthResolutionInterpolator)) deallocate(radiusEnclosingMassTableLengthResolutionInterpolator)
-    if (allocated(radiusEnclosingMassTableMassInterpolator)) deallocate(radiusEnclosingMassTableMassInterpolator)
+    if (allocated(radiusEnclosingMassTableMassInterpolator            )) deallocate(radiusEnclosingMassTableMassInterpolator            )
     allocate(radiusEnclosingMassTableLengthResolutionInterpolator)
-    allocate(radiusEnclosingMassTableMassInterpolator)
+    allocate(radiusEnclosingMassTableMassInterpolator            )
     radiusEnclosingMassTableLengthResolutionInterpolator=interpolator(radiusEnclosingMassTableLengthResolution)
-    radiusEnclosingMassTableMassInterpolator=interpolator(radiusEnclosingMassTableMass)
-    radiusEnclosingMassTableInitialized=.true.
+    radiusEnclosingMassTableMassInterpolator            =interpolator(radiusEnclosingMassTableMass            )
+    radiusEnclosingMassTableInitialized                 =.true.
     return
   end subroutine sphericalFiniteResolutionNFWRestoreMassTable
 
@@ -983,14 +983,14 @@ contains
     use :: Numerical_Ranges        , only : Range_Pinned             , Range_Lattice_Extend_2D      , gridSchemePerDecade
     use :: Root_Finder             , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target :: self
-    double precision                                              , intent(in   )         :: density                , lengthResolution
-    double precision                                              , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-9
-    logical                                                                               :: retabulate
-    integer                                                                               :: iLengthResolution      , iDensity                , &
-         &                                                                                   i
-    type            (rootFinder                                  )                        :: finder
-    type            (rangeLattice                                )                        :: latticeDensity         , latticeLengthResolution
+    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target       :: self
+    double precision                                              , intent(in   )               :: density                , lengthResolution
+    double precision                                              , parameter                   :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-9
+    logical                                                                                     :: retabulate
+    integer                                                                                     :: iLengthResolution      , iDensity                , &
+         &                                                                                         i
+    type            (rootFinder                                  )                              :: finder
+    type            (rangeLattice                                )                              :: latticeDensity         , latticeLengthResolution
     logical                                                       , allocatable, dimension(:,:) :: isComputed
 
     do i=1,2
@@ -1015,21 +1015,21 @@ contains
        ! Find the range to tabulate, pinning each axis to an absolute lattice - see the corresponding comment in
        ! `sphericalFiniteResolutionNFWRadiusEnclosingMassTabulate` for why the request, and not the range already tabulated, is
        ! passed as the target.
-       latticeDensity                                  =Range_Pinned(                                                                           &
-            &                                                                       [density                                                  ], &
+       latticeDensity                                  =Range_Pinned(                                                                             &
+            &                                                                       [density                                                   ], &
             &                                                                        radiusEnclosingDensityTableDensityPointsPerDecade          , &
             &                                                                        gridSchemePerDecade                                        , &
             &                                                        marginFactor  = 2.0d0                                                      , &
-            &                                                        anchorEvery   = radiusEnclosingDensityTableDensityPointsPerDecade          &
+            &                                                        anchorEvery   =+radiusEnclosingDensityTableDensityPointsPerDecade            &
             &                                                                       /tabulationAnchorsPerDecade                                 , &
             &                                                        latticeCurrent= radiusEnclosingDensityLatticeDensity                         &
             &                                                       )
-       latticeLengthResolution                         =Range_Pinned(                                                                           &
-            &                                                                       [lengthResolution                                         ], &
+       latticeLengthResolution                         =Range_Pinned(                                                                             &
+            &                                                                       [lengthResolution                                          ], &
             &                                                                        radiusEnclosingDensityTableLengthResolutionPointsPerDecade , &
             &                                                                        gridSchemePerDecade                                        , &
             &                                                        marginFactor  = 2.0d0                                                      , &
-            &                                                        anchorEvery   = radiusEnclosingDensityTableLengthResolutionPointsPerDecade &
+            &                                                        anchorEvery   =+radiusEnclosingDensityTableLengthResolutionPointsPerDecade   &
             &                                                                       /tabulationAnchorsPerDecade                                 , &
             &                                                        latticeCurrent= radiusEnclosingDensityLatticeLengthResolution                &
             &                                                       )
@@ -1110,13 +1110,13 @@ contains
     !!{RST
     Store the tabulated radius-enclosing-density data to file.
     !!}
-    use :: File_Utilities    , only : File_Lock     , File_Unlock        , lockDescriptor, Directory_Make, &
+    use :: File_Utilities    , only : File_Lock                , File_Unlock        , lockDescriptor, Directory_Make, &
          &                            File_Path
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File
     use :: Table_Caches      , only : Table_Cache_Lattice_Write
-    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : varying_string, operator(//)       , char
+    use :: Input_Paths       , only : inputPath                , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : varying_string           , operator(//)       , char
     implicit none
     class(massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self
     type (lockDescriptor                              )                :: fileLock
@@ -1136,7 +1136,7 @@ contains
     file=hdf5File(fileName,overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     ! Record the lattices on which the two axes are built, so that a restored tabulation is recognized as lying on the
     ! same absolute lattice as one built here.
-    call Table_Cache_Lattice_Write(file,'density',radiusEnclosingDensityLatticeDensity)
+    call Table_Cache_Lattice_Write(file,'density'         ,radiusEnclosingDensityLatticeDensity         )
     call Table_Cache_Lattice_Write(file,'lengthResolution',radiusEnclosingDensityLatticeLengthResolution)
     call file%writeDataset(radiusEnclosingDensityTableLengthResolution,'lengthResolution')
     call file%writeDataset(radiusEnclosingDensityTableDensity         ,'density'         )
@@ -1155,21 +1155,21 @@ contains
     also declined if it does not *contain* the tabulation already in hand: this is called only when the latter has been found
     insufficient, so adopting a narrower tabulation in its place would discard solutions which must then be found again.
     !!}
-    use :: File_Utilities    , only : File_Exists   , File_Lock          , File_Unlock, lockDescriptor
+    use :: File_Utilities    , only : File_Exists             , File_Lock          , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File
-    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : varying_string, operator(//)       , char
+    use :: Input_Paths       , only : inputPath               , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : varying_string          , operator(//)       , char
     use :: Numerical_Ranges  , only : gridSchemePerDecade
     use :: Table_Caches      , only : Table_Cache_Lattice_Read
     implicit none
-    class           (massDistributionSphericalFiniteResolutionNFW)                           , intent(inout) :: self
-    type            (lockDescriptor                              )                                           :: fileLock
-    type            (hdf5File                                    )                                           :: file
-    type            (varying_string                              )                                           :: fileName
-    type            (rangeLattice                                )                                           :: latticeDensity, latticeLengthResolution
-    double precision                                              , allocatable, dimension(:,:)              :: tableStored
-    logical                                                                                                  :: isUsable
+    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout)               :: self
+    type            (lockDescriptor                              )                              :: fileLock
+    type            (hdf5File                                    )                              :: file
+    type            (varying_string                              )                              :: fileName
+    type            (rangeLattice                                )                              :: latticeDensity, latticeLengthResolution
+    double precision                                              , allocatable, dimension(:,:) :: tableStored
+    logical                                                                                     :: isUsable
 
     fileName=inputPath(pathTypeDataDynamic)// &
          &   'darkMatter/'                 // &
@@ -1183,7 +1183,7 @@ contains
     call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
     !$ call hdf5Access%set()
     file=hdf5File(fileName,readOnly=.true.)
-    call Table_Cache_Lattice_Read(file,'density',gridSchemePerDecade,radiusEnclosingDensityTableDensityPointsPerDecade,latticeDensity)
+    call Table_Cache_Lattice_Read(file,'density'         ,gridSchemePerDecade,radiusEnclosingDensityTableDensityPointsPerDecade         ,latticeDensity         )
     call Table_Cache_Lattice_Read(file,'lengthResolution',gridSchemePerDecade,radiusEnclosingDensityTableLengthResolutionPointsPerDecade,latticeLengthResolution)
     isUsable=latticeDensity%isDefined() .and. latticeLengthResolution%isDefined()
     if (isUsable) call file%readDataset('radius',tableStored)
@@ -1192,33 +1192,33 @@ contains
     if (isUsable)                                                                 &
          & isUsable=      size(tableStored,dim=1) == latticeDensity%count         &
          &          .and. size(tableStored,dim=2) == latticeLengthResolution%count
-    if (isUsable .and. radiusEnclosingDensityTableInitialized)                                                                     &
-         & isUsable=      (.not.radiusEnclosingDensityLatticeDensity%isDefined() .or. latticeDensity%covers(radiusEnclosingDensityLatticeDensity))              &
+    if (isUsable .and. radiusEnclosingDensityTableInitialized)                                                                                                                &
+         & isUsable=      (.not.radiusEnclosingDensityLatticeDensity         %isDefined() .or. latticeDensity         %covers(radiusEnclosingDensityLatticeDensity         )) &
          &          .and. (.not.radiusEnclosingDensityLatticeLengthResolution%isDefined() .or. latticeLengthResolution%covers(radiusEnclosingDensityLatticeLengthResolution))
     if (.not.isUsable) return
     ! Adopt the stored tabulation, recovering everything which describes its extent from the lattices rather than from the
     ! stored abscissae, so that a restored tabulation cannot come to be described differently from a freshly built one.
-    if (allocated(radiusEnclosingDensityTableDensity )) deallocate(radiusEnclosingDensityTableDensity )
-    if (allocated(radiusEnclosingDensityTableLengthResolution )) deallocate(radiusEnclosingDensityTableLengthResolution )
-    if (allocated(radiusEnclosingDensityTable)) deallocate(radiusEnclosingDensityTable)
+    if (allocated(radiusEnclosingDensityTableDensity         )) deallocate(radiusEnclosingDensityTableDensity         )
+    if (allocated(radiusEnclosingDensityTableLengthResolution)) deallocate(radiusEnclosingDensityTableLengthResolution)
+    if (allocated(radiusEnclosingDensityTable                )) deallocate(radiusEnclosingDensityTable                )
     call Move_Alloc(tableStored,radiusEnclosingDensityTable)
-    radiusEnclosingDensityLatticeDensity=latticeDensity
-    radiusEnclosingDensityLatticeLengthResolution=latticeLengthResolution
-    radiusEnclosingDensityTableDensity=latticeDensity%values()
-    radiusEnclosingDensityTableLengthResolution=latticeLengthResolution%values()
-    radiusEnclosingDensityTableDensityCount=latticeDensity%count
+    radiusEnclosingDensityLatticeDensity            =latticeDensity
+    radiusEnclosingDensityLatticeLengthResolution   =latticeLengthResolution
+    radiusEnclosingDensityTableDensity              =latticeDensity         %values ()
+    radiusEnclosingDensityTableLengthResolution     =latticeLengthResolution%values ()
+    radiusEnclosingDensityTableDensityCount         =latticeDensity         %count
     radiusEnclosingDensityTableLengthResolutionCount=latticeLengthResolution%count
-    radiusEnclosingDensityDensityMinimum=latticeDensity%minimum()
-    radiusEnclosingDensityDensityMaximum=latticeDensity%maximum()
-    radiusEnclosingDensityLengthResolutionMinimum=latticeLengthResolution%minimum()
-    radiusEnclosingDensityLengthResolutionMaximum=latticeLengthResolution%maximum()
+    radiusEnclosingDensityDensityMinimum            =latticeDensity         %minimum()
+    radiusEnclosingDensityDensityMaximum            =latticeDensity         %maximum()
+    radiusEnclosingDensityLengthResolutionMinimum   =latticeLengthResolution%minimum()
+    radiusEnclosingDensityLengthResolutionMaximum   =latticeLengthResolution%maximum()
     if (allocated(radiusEnclosingDensityTableLengthResolutionInterpolator)) deallocate(radiusEnclosingDensityTableLengthResolutionInterpolator)
-    if (allocated(radiusEnclosingDensityTableDensityInterpolator)) deallocate(radiusEnclosingDensityTableDensityInterpolator)
+    if (allocated(radiusEnclosingDensityTableDensityInterpolator         )) deallocate(radiusEnclosingDensityTableDensityInterpolator         )
     allocate(radiusEnclosingDensityTableLengthResolutionInterpolator)
-    allocate(radiusEnclosingDensityTableDensityInterpolator)
+    allocate(radiusEnclosingDensityTableDensityInterpolator         )
     radiusEnclosingDensityTableLengthResolutionInterpolator=interpolator(radiusEnclosingDensityTableLengthResolution)
-    radiusEnclosingDensityTableDensityInterpolator=interpolator(radiusEnclosingDensityTableDensity)
-    radiusEnclosingDensityTableInitialized=.true.
+    radiusEnclosingDensityTableDensityInterpolator         =interpolator(radiusEnclosingDensityTableDensity         )
+    radiusEnclosingDensityTableInitialized                 =.true.
     return
   end subroutine sphericalFiniteResolutionNFWRestoreDensityTable
 
@@ -1264,17 +1264,17 @@ contains
     use :: Numerical_Integration   , only : integrator
     use :: Numerical_Ranges        , only : Range_Pinned, Range_Lattice_Extend_2D, gridSchemePerDecade
     implicit none
-    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target :: self
-    double precision                                              , intent(in   )         :: radiusOuter                , lengthResolution
-    double precision                                              , parameter             :: multiplierRadius   =100.0d0
-    type            (integrator                                  )                        :: integratorPotential        , integratorKinetic, &
-         &                                                                                   integratorPressure
-    double precision                                                                      :: pseudoPressure             , energyKinetic    , &
-         &                                                                                   energyPotential            , radiusOuter_
-    logical                                                                               :: retabulate
-    integer                                                                               :: iLengthResolution          , iRadiusOuter     , &
-         &                                                                                   i
-    type            (rangeLattice                                )                        :: latticeRadiusOuter         , latticeLengthResolution
+    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target       :: self
+    double precision                                              , intent(in   )               :: radiusOuter                , lengthResolution
+    double precision                                              , parameter                   :: multiplierRadius   =100.0d0
+    type            (integrator                                  )                              :: integratorPotential        , integratorKinetic      , &
+         &                                                                                         integratorPressure
+    double precision                                                                            :: pseudoPressure             , energyKinetic          , &
+         &                                                                                         energyPotential            , radiusOuter_
+    logical                                                                                     :: retabulate
+    integer                                                                                     :: iLengthResolution          , iRadiusOuter           , &
+         &                                                                                         i
+    type            (rangeLattice                                )                              :: latticeRadiusOuter         , latticeLengthResolution
     logical                                                       , allocatable, dimension(:,:) :: isComputed
 
     do i=1,2
@@ -1298,23 +1298,23 @@ contains
     if (retabulate) then
        ! Find the range to tabulate, pinning each axis to an absolute lattice - see the corresponding comment in
        ! `sphericalFiniteResolutionNFWRadiusEnclosingMassTabulate`.
-       latticeRadiusOuter              =Range_Pinned(                                                                &
-            &                                                       [radiusOuter                                  ], &
-            &                                                        energyTableRadiusOuterPointsPerDecade          , &
-            &                                                        gridSchemePerDecade                            , &
-            &                                        marginFactor  = 2.0d0                                          , &
-            &                                        anchorEvery   = energyTableRadiusOuterPointsPerDecade          &
-            &                                                       /tabulationAnchorsPerDecade                      , &
-            &                                        latticeCurrent= energyLatticeRadiusOuter                         &
+       latticeRadiusOuter              =Range_Pinned(                                                             &
+            &                                                       [radiusOuter                               ], &
+            &                                                        energyTableRadiusOuterPointsPerDecade      , &
+            &                                                        gridSchemePerDecade                        , &
+            &                                        marginFactor  = 2.0d0                                      , &
+            &                                        anchorEvery   = energyTableRadiusOuterPointsPerDecade        &
+            &                                                       /tabulationAnchorsPerDecade                 , &
+            &                                        latticeCurrent= energyLatticeRadiusOuter                     &
             &                                       )
-       latticeLengthResolution         =Range_Pinned(                                                                &
-            &                                                       [lengthResolution                             ], &
-            &                                                        energyTableLengthResolutionPointsPerDecade     , &
-            &                                                        gridSchemePerDecade                            , &
-            &                                        marginFactor  = 2.0d0                                          , &
-            &                                        anchorEvery   = energyTableLengthResolutionPointsPerDecade     &
-            &                                                       /tabulationAnchorsPerDecade                      , &
-            &                                        latticeCurrent= energyLatticeLengthResolution                    &
+       latticeLengthResolution         =Range_Pinned(                                                             &
+            &                                                       [lengthResolution                          ], &
+            &                                                        energyTableLengthResolutionPointsPerDecade , &
+            &                                                        gridSchemePerDecade                        , &
+            &                                        marginFactor  = 2.0d0                                      , &
+            &                                        anchorEvery   = energyTableLengthResolutionPointsPerDecade   &
+            &                                                       /tabulationAnchorsPerDecade                 , &
+            &                                        latticeCurrent= energyLatticeLengthResolution                &
             &                                       )
        ! Extend the table onto the new lattices, carrying over the solutions already found.
        call Range_Lattice_Extend_2D(energyLatticeRadiusOuter,latticeRadiusOuter,energyLatticeLengthResolution,latticeLengthResolution,energyTable,isComputed)
@@ -1445,13 +1445,13 @@ contains
     !!{RST
     Store the tabulated energy data to file.
     !!}
-    use :: File_Utilities    , only : File_Lock     , File_Unlock        , lockDescriptor, Directory_Make, &
+    use :: File_Utilities    , only : File_Lock                , File_Unlock        , lockDescriptor, Directory_Make, &
          &                            File_Path
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File
     use :: Table_Caches      , only : Table_Cache_Lattice_Write
-    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : varying_string, operator(//)       , char
+    use :: Input_Paths       , only : inputPath                , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : varying_string           , operator(//)       , char
     implicit none
     class(massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self
     type (lockDescriptor                              )                :: fileLock
@@ -1471,7 +1471,7 @@ contains
     file=hdf5File(fileName,overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     ! Record the lattices on which the two axes are built, so that a restored tabulation is recognized as lying on the
     ! same absolute lattice as one built here.
-    call Table_Cache_Lattice_Write(file,'radiusOuter',energyLatticeRadiusOuter)
+    call Table_Cache_Lattice_Write(file,'radiusOuter'     ,energyLatticeRadiusOuter     )
     call Table_Cache_Lattice_Write(file,'lengthResolution',energyLatticeLengthResolution)
     call file%writeDataset(energyTableLengthResolution,'lengthResolution')
     call file%writeDataset(energyTableRadiusOuter     ,'radiusOuter'     )
@@ -1490,26 +1490,26 @@ contains
     also declined if it does not *contain* the tabulation already in hand: this is called only when the latter has been found
     insufficient, so adopting a narrower tabulation in its place would discard solutions which must then be found again.
     !!}
-    use :: File_Utilities    , only : File_Exists   , File_Lock          , File_Unlock, lockDescriptor
+    use :: File_Utilities    , only : File_Exists             , File_Lock          , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File
-    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : varying_string, operator(//)       , char
+    use :: Input_Paths       , only : inputPath               , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : varying_string          , operator(//)       , char
     use :: Numerical_Ranges  , only : gridSchemePerDecade
     use :: Table_Caches      , only : Table_Cache_Lattice_Read
     implicit none
-    class           (massDistributionSphericalFiniteResolutionNFW)                           , intent(inout) :: self
-    type            (lockDescriptor                              )                                           :: fileLock
-    type            (hdf5File                                    )                                           :: file
-    type            (varying_string                              )                                           :: fileName
-    type            (rangeLattice                                )                                           :: latticeRadiusOuter, latticeLengthResolution
-    double precision                                              , allocatable, dimension(:,:)              :: tableStored
-    logical                                                                                                  :: isUsable
+    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout)               :: self
+    type            (lockDescriptor                              )                              :: fileLock
+    type            (hdf5File                                    )                              :: file
+    type            (varying_string                              )                              :: fileName
+    type            (rangeLattice                                )                              :: latticeRadiusOuter, latticeLengthResolution
+    double precision                                              , allocatable, dimension(:,:) :: tableStored
+    logical                                                                                     :: isUsable
 
     fileName=inputPath(pathTypeDataDynamic)// &
          &   'darkMatter/'                 // &
          &   self%objectType(             )// &
-         &   '_energy_'                   // &
+         &   '_energy_'                    // &
          &   self%suffix    (             )// &
          &   '.hdf5'
     if (.not.File_Exists(fileName)) return
@@ -1524,36 +1524,36 @@ contains
     if (isUsable) call file%readDataset('radius',tableStored)
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
-    if (isUsable)                                                                 &
-         & isUsable=      size(tableStored,dim=1) == latticeRadiusOuter%count         &
+    if (isUsable)                                                                  &
+         & isUsable=      size(tableStored,dim=1) == latticeRadiusOuter     %count &
          &          .and. size(tableStored,dim=2) == latticeLengthResolution%count
-    if (isUsable .and. energyTableInitialized)                                                                     &
-         & isUsable=      (.not.energyLatticeRadiusOuter%isDefined() .or. latticeRadiusOuter%covers(energyLatticeRadiusOuter))              &
+    if (isUsable .and. energyTableInitialized)                                                                                                &
+         & isUsable=      (.not.energyLatticeRadiusOuter      %isDefined() .or. latticeRadiusOuter    %covers(energyLatticeRadiusOuter     )) &
          &          .and. (.not.energyLatticeLengthResolution%isDefined() .or. latticeLengthResolution%covers(energyLatticeLengthResolution))
     if (.not.isUsable) return
     ! Adopt the stored tabulation, recovering everything which describes its extent from the lattices rather than from the
     ! stored abscissae, so that a restored tabulation cannot come to be described differently from a freshly built one.
-    if (allocated(energyTableRadiusOuter )) deallocate(energyTableRadiusOuter )
-    if (allocated(energyTableLengthResolution )) deallocate(energyTableLengthResolution )
-    if (allocated(energyTable)) deallocate(energyTable)
+    if (allocated(energyTableRadiusOuter     )) deallocate(energyTableRadiusOuter     )
+    if (allocated(energyTableLengthResolution)) deallocate(energyTableLengthResolution)
+    if (allocated(energyTable                )) deallocate(energyTable                )
     call Move_Alloc(tableStored,energyTable)
-    energyLatticeRadiusOuter=latticeRadiusOuter
-    energyLatticeLengthResolution=latticeLengthResolution
-    energyTableRadiusOuter=latticeRadiusOuter%values()
-    energyTableLengthResolution=latticeLengthResolution%values()
-    energyTableRadiusOuterCount=latticeRadiusOuter%count
+    energyLatticeRadiusOuter        =latticeRadiusOuter
+    energyLatticeLengthResolution   =latticeLengthResolution
+    energyTableRadiusOuter          =latticeRadiusOuter%     values ()
+    energyTableLengthResolution     =latticeLengthResolution%values ()
+    energyTableRadiusOuterCount     =latticeRadiusOuter     %count
     energyTableLengthResolutionCount=latticeLengthResolution%count
-    energyRadiusOuterMinimum=latticeRadiusOuter%minimum()
-    energyRadiusOuterMaximum=latticeRadiusOuter%maximum()
-    energyLengthResolutionMinimum=latticeLengthResolution%minimum()
-    energyLengthResolutionMaximum=latticeLengthResolution%maximum()
+    energyRadiusOuterMinimum        =latticeRadiusOuter     %minimum()
+    energyRadiusOuterMaximum        =latticeRadiusOuter     %maximum()
+    energyLengthResolutionMinimum   =latticeLengthResolution%minimum()
+    energyLengthResolutionMaximum   =latticeLengthResolution%maximum()
     if (allocated(energyTableLengthResolutionInterpolator)) deallocate(energyTableLengthResolutionInterpolator)
-    if (allocated(energyTableRadiusOuterInterpolator)) deallocate(energyTableRadiusOuterInterpolator)
+    if (allocated(energyTableRadiusOuterInterpolator     )) deallocate(energyTableRadiusOuterInterpolator     )
     allocate(energyTableLengthResolutionInterpolator)
-    allocate(energyTableRadiusOuterInterpolator)
+    allocate(energyTableRadiusOuterInterpolator     )
     energyTableLengthResolutionInterpolator=interpolator(energyTableLengthResolution)
-    energyTableRadiusOuterInterpolator=interpolator(energyTableRadiusOuter)
-    energyTableInitialized=.true.
+    energyTableRadiusOuterInterpolator     =interpolator(energyTableRadiusOuter     )
+    energyTableInitialized                 =.true.
     return
   end subroutine sphericalFiniteResolutionNFWRestoreEnergyTable
 

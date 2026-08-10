@@ -102,10 +102,10 @@ if status != 0:
     sys.exit(1)
 
 fileName = os.path.join(pathOutputDirectory, "tolerated.hdf5")
-density        , radiiDensity         = gather(fileName, "densityProfile" , 3)
+density         , radiiDensity          = gather(fileName, "densityProfile"  , 3)
 densityProjected, radiiDensityProjected = gather(fileName, "projectedDensity", 4)
-mass           , radiiMass            = gather(fileName, "massProfile"   , 2)
-massProjected  , radiiMassProjected   = gather(fileName, "projectedMass" , 3)
+mass            , radiiMass             = gather(fileName, "massProfile"     , 2)
+massProjected   , radiiMassProjected    = gather(fileName, "projectedMass"   , 3)
 
 # The first two radii of the `densityProfile` extractor are the disk radius and the virial radius;
 # the third is the fixed, zero radius in the hot halo.

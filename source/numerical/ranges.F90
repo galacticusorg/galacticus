@@ -393,7 +393,7 @@ contains
        offsetY=Range_Lattice_Offset(latticeCurrentY,latticeNewY)
        call Move_Alloc(values,valuesPrevious)
        allocate(values(latticeNewX%count,latticeNewY%count))
-       values                                                                                                        =0.0d0
+       values                                                                                               =0.0d0
        values    (offsetX+1:offsetX+size(valuesPrevious,dim=1),offsetY+1:offsetY+size(valuesPrevious,dim=2))=valuesPrevious
        isComputed(offsetX+1:offsetX+size(valuesPrevious,dim=1),offsetY+1:offsetY+size(valuesPrevious,dim=2))=.true.
     else
@@ -413,9 +413,9 @@ contains
 
     rangeLatticeIsDefined= self%scheme    /= gridSchemeUndefined &
          &                .and.                                  &
-         &                 self%pointsPer  > 0                   &
+         &                 self%pointsPer > 0                    &
          &                .and.                                  &
-         &                 self%count      > 1
+         &                 self%count     > 1
     return
   end function rangeLatticeIsDefined
 
