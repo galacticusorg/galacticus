@@ -319,9 +319,8 @@ contains
     character       (len=35                       )                                       :: message
     type            (varying_string               ), save                                 :: lockType       
     !$omp threadprivate(lockType)                               
-    logical                                                                               :: anyTreeExistsAtOutputTime                     , hasIntertreeEvent       , &
-         &                                                                                   didEvolve                                     , evolutionFailed         , &
-         &                                                                                   evolutionExiting
+    logical                                                                               :: anyTreeExistsAtOutputTime                     , didEvolve               , &
+         &                                                                                   evolutionFailed                               , evolutionExiting
     logical                                        , save                                 :: interrupted
     !$omp threadprivate(interrupted)
     integer                                        , save                                 :: evolutionPhase                                , evolutionPhaseMaximum
@@ -368,8 +367,8 @@ contains
     anyTreeExistsAtOutputTime =  .false.
     treeDidEvolve             =  .false.
     evolutionExiting          =  .false.
-    call self%initializeTree(tree,timeEnd,treeDidEvolve,anyTreeExistsAtOutputTime,hasInterTreeEvent,initializationLock)
-    if (.not.anyTreeExistsAtOutputTime.and..not.hasInterTreeEvent) then
+    call self%initializeTree(tree,timeEnd,treeDidEvolve,anyTreeExistsAtOutputTime,initializationLock)
+    if (.not.anyTreeExistsAtOutputTime) then
        ! Mark the tree as evolved here, as the only reason that we did not evolve it was the given time target.
        treeDidEvolve=.true.
        return

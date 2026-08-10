@@ -68,13 +68,12 @@ contains
     !!{RST
     Attach to various event hooks.
     !!}
-    use :: Events_Hooks, only : satelliteHostChangeEvent, branchJumpPostProcessEvent, interTreePostProcessEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks, only : satelliteHostChangeEvent, branchJumpPostProcessEvent, openMPThreadBindingAtLevel
     implicit none
     class(nodeOperatorSatelliteOrphanize), intent(inout) :: self
-    
+
     call   satelliteHostChangeEvent%attach(self,satelliteHostChange  ,openMPThreadBindingAtLevel,label='satelliteOrphanize')
     call branchJumpPostProcessEvent%attach(self,branchJumpPostProcess,openMPThreadBindingAtLevel,label='satelliteOrphanize')
-    call  interTreePostProcessEvent%attach(self,branchJumpPostProcess,openMPThreadBindingAtLevel,label='satelliteOrphanize')
    return
   end subroutine satelliteOrphanizeAutoHook
 
@@ -82,13 +81,12 @@ contains
     !!{RST
     Destructor for the :galacticus-class:`nodeOperatorSatelliteOrphanize` node operator class.
     !!}
-    use :: Events_Hooks, only : satelliteHostChangeEvent, branchJumpPostProcessEvent, interTreePostProcessEvent
+    use :: Events_Hooks, only : satelliteHostChangeEvent, branchJumpPostProcessEvent
     implicit none
     type(nodeOperatorSatelliteOrphanize), intent(inout) :: self
 
     if (  satelliteHostChangeEvent%isAttached(self,satelliteHostChange)) call   satelliteHostChangeEvent%detach(self,satelliteHostChange)
     if (branchJumpPostProcessEvent%isAttached(self,satelliteHostChange)) call branchJumpPostProcessEvent%detach(self,satelliteHostChange)
-    if ( interTreePostProcessEvent%isAttached(self,satelliteHostChange)) call  interTreePostProcessEvent%detach(self,satelliteHostChange)
     return
   end subroutine satelliteOrphanizeDestructor
 

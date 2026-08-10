@@ -1499,7 +1499,6 @@ jobs:
                 test-parameter-validation.py,
                 test-python-modules.py,
                 test-reproducibility.py,
-                test-splitForests.py,
                 test-parameters-diff.py,
                 test-parameters-extract.py,
                 test-parameters-changes.py,
