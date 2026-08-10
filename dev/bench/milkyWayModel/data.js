@@ -1,62 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786334706776,
+  "lastUpdate": 1786334798809,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "ab0b8bbbb169cc0e0f79078b2e57eb9c43233e4d",
-          "message": "Merge pull request #852 from galacticusorg/fixSphericalChandrasekharIntegral\n\nReduce the Chandrasekhar integral (for dynamical friction) in spherical systems to account for the finite size of the perturber",
-          "timestamp": "2025-05-27T15:04:54Z",
-          "tree_id": "c617b9c338d143fd7f616f8669c15c2bb393a9c1",
-          "url": "https://github.com/galacticusorg/galacticus/commit/ab0b8bbbb169cc0e0f79078b2e57eb9c43233e4d"
-        },
-        "date": 1748381934049,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
-            "value": "11.214133213531749",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
-            "value": "40.62498258656662",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
-            "value": "4.865620619767344",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
-            "value": "17.012702521103947",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
-            "value": "101.73842682942195",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
-            "value": "14.811217659337771",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10704,6 +10650,65 @@ window.BENCHMARK_DATA = {
             "value": 64.211,
             "range": "0.2232328380861564",
             "unit": "seconds"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9e04f6f256cbf0ca9dcb567b478c773848082e61",
+          "message": "Merge pull request #1347 from galacticusorg/fix/ethos-extended-slope-analytic-derivative\n\nfix(powerSpectrum): evaluate the ETHOS extended slope analytically",
+          "timestamp": "2026-08-09T21:58:23Z",
+          "tree_id": "00edc85b0c464f692594354d58b57a99179054be",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9e04f6f256cbf0ca9dcb567b478c773848082e61"
+        },
+        "date": 1786334797635,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupLuminosityFunction",
+            "value": 59.45658361722461,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 9.726216476209856,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 45.117961063440305,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 3.5419842746632972,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 16.330550184592223,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 46.76879491980654,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 9.672651156161093,
+            "unit": "-logℒ"
           }
         ]
       }
