@@ -21,13 +21,14 @@
 Implements a stellar mass output analysis property extractor class.
 !!}
 
-  use :: ISO_Varying_String, only : varying_string
-  use :: Output_Times      , only : outputTimesClass
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType
+  use :: ISO_Varying_String        , only : varying_string              , var_str
+  use :: Output_Times              , only : outputTimesClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellar" docformat="rst">
    <description>
-   A property extractor that returns the total stellar luminosity of a node in a specified broadband filter, in units of the AB zero-point. The ``filterName`` and ``filterType`` parameters select the photometric band and whether to use rest-frame or observer-frame luminosities. The optional ``redshiftBand`` shifts the band to a fixed redshift (for K-corrections), and ``postprocessChain`` applies a named spectral postprocessing chain (e.g.\ :term:`IGM` attenuation) before the photometric integration. Luminosity indices are pre-computed per output time for efficiency.
+   A property extractor that returns the stellar luminosity of a node in a specified broadband filter, in units of the AB zero-point. The ``filterName`` and ``filterType`` parameters select the photometric band and whether to use rest-frame or observer-frame luminosities. The ``component`` parameter selects the galactic component whose luminosity is returned (``all``, the default, sums over all components; ``disk``, ``spheroid``, and ``nuclearStarCluster`` select an individual component---the latter are needed when applying dust attenuation, which cannot meaningfully be applied to a summed luminosity). The optional ``redshiftBand`` shifts the band to a fixed redshift (for K-corrections), and ``postprocessChain`` applies a named spectral postprocessing chain (e.g.\ :term:`IGM` attenuation) before the photometric integration. Luminosity indices are pre-computed per output time for efficiency.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -36,12 +37,13 @@ Implements a stellar mass output analysis property extractor class.
      A stellar luminosity output analysis property extractor class.
      !!}
      private
-     type            (varying_string  )                            :: filterName                , filterType, &
-          &                                                           postprocessChain          , name_     , &
-          &                                                           description_
-     double precision                                              :: redshiftBand
-     integer                           , allocatable, dimension(:) :: luminosityIndex
-     class           (outputTimesClass), pointer                   :: outputTimes_     => null()
+     type            (varying_string              )                            :: filterName                , filterType, &
+          &                                                                       postprocessChain          , name_     , &
+          &                                                                       description_
+     type            (enumerationComponentTypeType)                            :: component
+     double precision                                                          :: redshiftBand
+     integer                                       , allocatable, dimension(:) :: luminosityIndex
+     class           (outputTimesClass            ), pointer                   :: outputTimes_     => null()
    contains
      final     ::                luminosityStellarDestructor
      procedure :: extract     => luminosityStellarExtract
@@ -66,13 +68,14 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`nodePropertyExtractorLuminosityStellar` property extractor class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
+    use :: Input_Parameters          , only : inputParameter                , inputParameters
     implicit none
     type            (nodePropertyExtractorLuminosityStellar)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
     class           (outputTimesClass                      ), pointer       :: outputTimes_
     type            (varying_string                        )                :: filterName           , filterType               , &
-         &                                                                     postprocessChain
+         &                                                                     postprocessChain     , component
     double precision                                                        :: redshiftBand
     logical                                                                 :: redshiftBandIsPresent, postprocessChainIsPresent
 
@@ -91,6 +94,16 @@ contains
       <source>parameters</source>
       <description>
       The filter type (rest or observed) to select.
+      </description>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>component</name>
+      <defaultValue>var_str('all')</defaultValue>
+      <source>parameters</source>
+      <description>
+      The galactic component whose luminosity is to be extracted---one of ``all``, ``disk``, ``spheroid``, or
+      ``nuclearStarCluster``. Note that dust attenuation can not be applied to the ``all`` case, since the components
+      are attenuated differently and so must be attenuated separately before being summed.
       </description>
     </inputParameter>
     !!]
@@ -121,15 +134,15 @@ contains
     !!]
     if (redshiftBandIsPresent) then
        if (postprocessChainIsPresent) then
-          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,redshiftBand=redshiftBand,postprocessChain=char(postprocessChain))
+          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),enumerationComponentTypeEncode(char(component),includesPrefix=.false.),outputTimes_,redshiftBand=redshiftBand,postprocessChain=char(postprocessChain))
        else
-          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,redshiftBand=redshiftBand                                        )
+          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),enumerationComponentTypeEncode(char(component),includesPrefix=.false.),outputTimes_,redshiftBand=redshiftBand                                        )
        end if
     else
        if (postprocessChainIsPresent) then
-          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,                          postprocessChain=char(postprocessChain))
+          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),enumerationComponentTypeEncode(char(component),includesPrefix=.false.),outputTimes_,                          postprocessChain=char(postprocessChain))
        else
-          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_                                                                  )
+          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),enumerationComponentTypeEncode(char(component),includesPrefix=.false.),outputTimes_                                                                  )
        end if
     end if
     !![
@@ -139,15 +152,19 @@ contains
     return
   end function luminosityStellarConstructorParameters
 
-  function luminosityStellarConstructorInternal(filterName,filterType,outputTimes_,redshiftBand,postprocessChain,outputMask) result(self)
+  function luminosityStellarConstructorInternal(filterName,filterType,component,outputTimes_,redshiftBand,postprocessChain,outputMask) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorLuminosityStellar` property extractor class.
     !!}
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
+    use            :: Error                         , only : Error_Report
+    use            :: Galactic_Structure_Options    , only : componentTypeAll               , componentTypeDisk             , componentTypeSpheroid, &
+         &                                                   componentTypeNuclearStarCluster, enumerationComponentTypeDecode
     use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
     type            (nodePropertyExtractorLuminosityStellar)                                        :: self
     character       (len=*                                 ), intent(in   )                         :: filterName      , filterType
+    type            (enumerationComponentTypeType          ), intent(in   )                         :: component
     class           (outputTimesClass                      ), intent(in   ), target                 :: outputTimes_
     character       (len=*                                 ), intent(in   ), optional               :: postprocessChain
     double precision                                        , intent(in   ), optional               :: redshiftBand
@@ -155,8 +172,22 @@ contains
     integer         (c_size_t                              )                                        :: i
     character       (len=7                                 )                                        :: label
     !![
-    <constructorAssign variables="filterName, filterType, redshiftBand, postprocessChain, *outputTimes_"/>
+    <constructorAssign variables="filterName, filterType, component, redshiftBand, postprocessChain, *outputTimes_"/>
     !!]
+
+    ! Validate the component. Only components which can host a stellar population are meaningful here.
+    select case (component%ID)
+    case (componentTypeAll%ID,componentTypeDisk%ID,componentTypeSpheroid%ID,componentTypeNuclearStarCluster%ID)
+       ! These are supported.
+    case default
+       call Error_Report(                                                                            &
+            &            'component "'                                                            // &
+            &            enumerationComponentTypeDecode(component,includePrefix=.false.)          // &
+            &            '" can not host a stellar population - use "all", "disk", "spheroid", or'// &
+            &            ' "nuclearStarCluster"'                                                  // &
+            &            {introspection:location}                                                    &
+            &           )
+    end select
 
     allocate(self%luminosityIndex(self%outputTimes_%count()))
     do i=1,self%outputTimes_%count()
@@ -167,7 +198,15 @@ contains
        end if
     end do
     self%name_       ="luminosityStellar:"//filterName//":"//filterType
-    self%description_="Total stellar luminosity luminosity in the "//filterType//"-frame "//filterName//" filter"
+    if (component == componentTypeAll) then
+       self%description_="Total stellar luminosity in the "//filterType//"-frame "//filterName//" filter"
+    else
+       self%name_       =self%name_       //":"                                            // &
+            &            enumerationComponentTypeDecode(component,includePrefix=.false.)
+       self%description_="Stellar luminosity of the "                                      // &
+            &            enumerationComponentTypeDecode(component,includePrefix=.false.)   // &
+            &            " component in the "//filterType//"-frame "//filterName//" filter"
+    end if
     if (present(redshiftBand)) then
        write (label,'(f7.3)') redshiftBand
        self%name_       =self%name_        //":z"            //trim(adjustl(label))
@@ -210,10 +249,10 @@ contains
     integer(c_size_t                              )                          :: i
     !$GLC attributes unused :: instance
 
-    basic                    => node             %basic           (                                                                                        )
-    i                        =  self%outputTimes_%index           (basic%time(),findClosest=.true.                                                         )
-    massDistribution_        => node             %massDistribution(massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=self%luminosityIndex(i))
-    luminosityStellarExtract =  massDistribution_%massTotal       (                                                                                        )
+    basic                    => node             %basic           (                                                                                                                     )
+    i                        =  self%outputTimes_%index           (basic%time(),findClosest=.true.                                                                                      )
+    massDistribution_        => node             %massDistribution(componentType=self%component,massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=self%luminosityIndex(i))
+    luminosityStellarExtract =  massDistribution_%massTotal       (                                                                                                                     )
     !![
     <objectDestructor name="massDistribution_"/>
     !!]

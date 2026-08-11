@@ -49,10 +49,21 @@
     <redshifts value="0.0"/>
   </outputTimes>
 
+  <!-- Luminosities -->
+  <!-- The V-band luminosity is required by the observational selection function applied to Local Group satellites. -->
+  <luminosityFilter   value="Buser_V"/>
+  <luminosityType     value="rest"   />
+  <luminosityRedshift value="0.0"    />
+
   <!-- Analyses -->
   <mergerTreeOutputter value="analyzer"/>
   <outputAnalysis      value="multi" >
     <outputAnalysis      value="localGroupStellarMassFunction"          >
+      <!-- Set the log-likelihood for empty bins to zero - these are inevitable given the coarse mass resolution. -->
+      <positionType      value="orbital"/>
+      <logLikelihoodZero value="0.0"    />
+    </outputAnalysis>
+    <outputAnalysis      value="localGroupLuminosityFunction"            >
       <!-- Set the log-likelihood for empty bins to zero - these are inevitable given the coarse mass resolution. -->
       <positionType      value="orbital"/>
       <logLikelihoodZero value="0.0"    />

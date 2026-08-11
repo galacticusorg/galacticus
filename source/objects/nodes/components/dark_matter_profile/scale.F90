@@ -37,9 +37,12 @@ module Node_Component_Dark_Matter_Profile_Scale
        &    Node_Component_Dark_Matter_Profile_Scale_Initialize
 
   !![
-  <component>
+  <component docformat="rst">
    <class>darkMatterProfile</class>
    <name>scale</name>
+   <description>
+   The scale radius of the dark matter density profile. The scale radius is assigned, and interpolated along branches, by node operators (see :galacticus-class:`nodeOperatorDarkMatterProfileScaleSet` and :galacticus-class:`nodeOperatorDarkMatterProfileScaleInterpolate`).
+   </description>
    <isDefault>true</isDefault>
    <properties>
     <property>

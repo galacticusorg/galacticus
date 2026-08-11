@@ -46,6 +46,7 @@
      procedure :: massEnclosedBySphere            => solitonNFWMassEnclosedBySphere
      procedure :: density                         => solitonNFWDensity
      procedure :: densityGradientRadial           => solitonNFWDensityGradientRadial
+     procedure :: densitySlopeLogarithmicCentral  => solitonNFWDensitySlopeLogarithmicCentral
      procedure :: radiusEnclosingDensity          => solitonNFWRadiusEnclosingDensity
      procedure :: radiusEnclosingDensityNumerical => solitonNFWRadiusEnclosingDensityNumerical
      procedure :: parameters                      => solitonNFWParameters
@@ -458,7 +459,22 @@
      end if
      return
    end function solitonNFWDensityGradientRadial
-   
+
+   double precision function solitonNFWDensitySlopeLogarithmicCentral(self) result(slope)
+     !!{RST
+     Return the central logarithmic slope of the density profile in a soliton and NFW mass distribution. The soliton core
+     occupies the center of the profile, so the density is evaluable at zero radius.
+     !!}
+     use :: Coordinates, only : coordinateSpherical, assignment(=)
+     implicit none
+     class(massDistributionSolitonNFW), intent(inout) :: self
+     type (coordinateSpherical       )                :: coordinates
+
+     coordinates=[0.0d0,0.0d0,0.0d0]
+     slope      =self%densityGradientRadial(coordinates,logarithmic=.true.)
+     return
+   end function solitonNFWDensitySlopeLogarithmicCentral
+
    double precision function solitonNFWRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
      !!{RST
      Computes the radius enclosing a given mean density for soliton NFW mass distributions.

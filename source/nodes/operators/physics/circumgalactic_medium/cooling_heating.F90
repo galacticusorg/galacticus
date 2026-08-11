@@ -34,7 +34,23 @@
   !![
   <nodeOperator name="nodeOperatorCGMCoolingHeating" docformat="rst">
    <description>
-   A node operator class that drives cooling-driven gas infall from the :term:`CGM` into a galaxy component and, optionally, heating-driven gas expulsion. ``component`` selects the destination (disk or spheroid); ``coolingFrom`` specifies whether angular momentum is computed from ``currentNode`` or ``formationNode``; ``excessHeatDrivesOutflow`` enables AGN/stellar heating to expel gas from the :term:`CGM`; ``rateMaximumExpulsion`` caps the outflow rate. Cooling rates and angular momenta are supplied by :galacticus-class:`coolingRateClass` and :galacticus-class:`coolingSpecificAngularMomentumClass`.
+   A node operator class that drives cooling-driven gas infall from the :term:`CGM` into a galaxy component and, optionally, heating-driven gas expulsion. ``component`` selects the destination (disk or spheroid); ``coolingFrom`` specifies whether angular momentum is computed from ``currentNode`` or ``formationNode``. Cooling rates and angular momenta are supplied by :galacticus-class:`coolingRateClass` and :galacticus-class:`coolingSpecificAngularMomentumClass`.
+
+   Any heating of the :term:`CGM` (supplied by a :galacticus-class:`circumgalacticMediumHeatingClass` object, e.g. from an active galactic nucleus) is converted to an equivalent mass rate
+
+   .. math::
+
+      \dot{M}_\mathrm{heating} = \dot{E}_\mathrm{input} / V_\mathrm{virial}^2,
+
+   where :math:`\dot{E}_\mathrm{input}` is the rate of energy input and :math:`V_\mathrm{virial}` is the virial velocity of the halo. This is subtracted from the cooling rate, and the net cooling rate is never allowed to drop below zero.
+
+   If the mass heating rate exceeds the mass cooling rate and ``[excessHeatDrivesOutflow]``\ :math:`=`\ ``false`` then the excess energy is simply not used, and no gas is expelled. Alternatively, if ``[excessHeatDrivesOutflow]``\ :math:`=`\ ``true`` then gas is expelled from the :term:`CGM` at a rate
+
+   .. math::
+
+      \dot{M}_\mathrm{expelled} = \hbox{min}\left( \dot{M}_\mathrm{heating} - \dot{M}_\mathrm{cooling}, \alpha_\mathrm{expel} M_\mathrm{hot}/\tau_\mathrm{dynamical} \right),
+
+   where :math:`\alpha_\mathrm{expel}=`\ ``[rateMaximumExpulsion]`` limits the maximum rate at which mass can be expelled from the halo in units of the inverse halo dynamical time. Angular momentum, abundances, and chemicals are removed in proportion to the mass. For satellite nodes whose outflows are subject to stripping (see :galacticus-class:`hotHaloOutflowStrippingClass`) the expelled material is instead moved to the stripped reservoir.
    </description>
   </nodeOperator>
   !!]

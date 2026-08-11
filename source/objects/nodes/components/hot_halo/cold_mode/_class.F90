@@ -36,9 +36,12 @@ module Node_Component_Hot_Halo_Cold_Mode
        &    Node_Component_Hot_Halo_Cold_Mode_State_Store
 
   !![
-  <component>
+  <component docformat="rst">
    <class>hotHalo</class>
    <name>coldMode</name>
+   <description>
+   Extends the ``standard`` hot halo by tracking gas accreted in the "cold mode"---that which was never shock heated to the virial temperature---in its own mass, abundance, and angular momentum reservoirs, so that hot and cold accretion may be followed separately (see :galacticus-class:`nodeOperatorCGMColdModeInflow`).
+   </description>
    <extends>
      <class>hotHalo</class>
      <name>standard</name>

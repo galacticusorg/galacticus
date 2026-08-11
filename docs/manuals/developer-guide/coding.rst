@@ -1107,7 +1107,7 @@ Parameterized Derived Types
 Fortran *parameterized derived types* (PDTs)---derived types carrying ``kind`` and/or ``len`` type parameters, for example ``type :: tensor(rank, dimension)`` instantiated as ``type(tensor(2, 3)) :: t``---are **not supported** in the Galacticus source code. The build parser detects both PDT definitions (``type :: name(...)``) and parameterized declarations (``type(name(...)) :: ...``) and aborts the build with an explicit error. This is a deliberate design decision, not an oversight; the reasoning and the (narrow) conditions under which it might be revisited are recorded here so the question has a durable answer.
 
 Why PDTs are not used
-'''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^
 
 * **The build toolchain cannot represent them.** Every source file is parsed by the in-house preprocessor (:galacticus-ref:`sourceTreePreprocessor`), whose type-definition and declaration recognizers do not understand type-parameter lists. A PDT would fail to be recognized as a type and would be *silently* dropped from the generated state-store, deep-copy, source-digest, and module-dependency code---a wrong-behavior failure rather than a compile error. Rather than leave that trap open, the parser rejects PDT syntax loudly (see issue `#114 <https://github.com/galacticusorg/galacticus/issues/114>`_).
 
@@ -1116,12 +1116,12 @@ Why PDTs are not used
 * **Compiler maturity and language direction.** PDTs are among the least-mature features of the supported compiler, and the Fortran standards committee's chosen direction for generic programming is the templates facility of Fortran 2028, not PDTs. Investing in PDTs would be a detour rather than a step along that path; the generic-programming directives are, in effect, a home-grown template mechanism that native templates could eventually replace.
 
 Adding new fixed-size numeric types
-'''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If a family of fixed-size numeric types is ever needed (for example, tensor shapes beyond the existing rank-2, dimension-3, symmetric tensor used for tidal fields), implement it with the generic-programming preprocessor directives (:galacticus-ref:`genericProgramming`), supplying any per-shape packing or contraction conventions as instance attributes---**not** as a PDT.
 
 When to revisit
-'''''''''''''''
+^^^^^^^^^^^^^^^
 
 Reconsider PDT support only if *all* of the following hold: (a) a concrete need arises for a family of fixed-size numeric types differing *only* in a compile-time size or kind within a single intrinsic type; (b) the generic-programming directives are a demonstrably poor fit; (c) the supported ``gfortran`` release has carried mature, bug-quiet PDT support for several releases; and (d) the preprocessor's type-definition and declaration parsers (plus the state-store, deep-copy, and dependency generators) have been extended to represent type parameters. Even then, support should be restricted to ``kind`` parameters---``len``-parameterized PDTs should be considered permanently out of scope on performance and portability grounds.
 Allocations

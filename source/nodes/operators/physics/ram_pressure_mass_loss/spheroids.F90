@@ -26,7 +26,7 @@
   !![
   <nodeOperator name="nodeOperatorRamPressureMassLossSpheroids" docformat="rst">
    <description>
-   Computes and applies ram pressure stripping of gas from the spheroid (bulge) component of satellite galaxies as they orbit through the hot intracluster medium, removing rotationally unsupported gas more readily stripped than disk gas.
+   Applies ram pressure stripping of gas from galactic spheroids. The mass loss rate is computed by the selected :galacticus-class:`ramPressureStrippingClass` object; this operator removes that gas from the spheroid---together with angular momentum and abundances in proportion---and pipes it into the :term:`CGM` as an outflow.
    </description>
   </nodeOperator>
   !!]

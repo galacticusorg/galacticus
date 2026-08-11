@@ -134,6 +134,8 @@ For deeper, catalog-aware checks (valid implementation selectors, accepted param
 
 informing you that a parameter appears multiple times in the file.
 
+.. _parameter-files-warnings:
+
 Warnings
 ~~~~~~~~
 
@@ -156,7 +158,7 @@ Warnings of the type:
 
    multiple copies of parameter [componentDisk] present - only the first will be utilized
 
-indicate that the named parameter ("``componentDisk``" in this case) appears more than once in a section of the parameter file. Most parameters are allowed to appear only once (see `here <#multiple-copies-1>`_ for an explanation of exceptions to this rule). The warning indicates that copies of the parameter after the first are simply being ignored. Often this means that you added a parameter to your file, but forgot to remove the old copy. If the old copy appears first in the file, your new copy will be ignored and you will get unexpected results. The solution is to remove additional copies of the parameter, retaining only the one that you want.
+indicate that the named parameter ("``componentDisk``" in this case) appears more than once in a section of the parameter file. Most parameters are allowed to appear only once (see :ref:`here <parameter-files-multiple-copies>` for an explanation of exceptions to this rule). The warning indicates that copies of the parameter after the first are simply being ignored. Often this means that you added a parameter to your file, but forgot to remove the old copy. If the old copy appears first in the file, your new copy will be ignored and you will get unexpected results. The solution is to remove additional copies of the parameter, retaining only the one that you want.
 
 Empty value
 ^^^^^^^^^^^
@@ -167,7 +169,7 @@ Warnings of the type:
 
    empty value for parameter [cosmologyFunctions]
 
-indicate that the ``value`` element of the named parameter ("``cosmologyFunctions``" in this case) is empty, which is invalid. Either enter a value for the parameter or, if you want the parameter to take its default value (see `here <#cardinality>`_) simply remove the parameter from the file entirely.
+indicate that the ``value`` element of the named parameter ("``cosmologyFunctions``" in this case) is empty, which is invalid. Either enter a value for the parameter or, if you want the parameter to take its default value (see :ref:`here <parameter-files-cardinality>`) simply remove the parameter from the file entirely.
 
 Ambiguous value
 ^^^^^^^^^^^^^^^
@@ -208,6 +210,8 @@ Where to find information about available parameters
 
 The best resource to get information about available parameters, their allowed values, etc. is the `Galacticus Physics <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_ document. Specifically, the section on `Functions <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_ section details the available parameters, their types, cardinality, and default values for all allowed classes.
 
+.. _parameter-files-types:
+
 Types
 ~~~~~
 
@@ -229,6 +233,8 @@ In the `Functions <https://galacticus.readthedocs.io/en/latest/physics/index.htm
    ``[normalization]`` (real; 0,1) {``0.3221836349e0``} The normalization parameter :math:`A` in the Sheth et al. [2001] halo mass function fit.
 
 The word "real" (in the "``(real; 0,1)``") in each of the above parameters indicates that a real type value is expected.
+
+.. _parameter-files-cardinality:
 
 Cardinality
 ~~~~~~~~~~~
@@ -322,10 +328,12 @@ the ``cosmologyFunctions`` object, not finding a helper ``cosmologyParameters`` 
 
 If no helper object is found, a default choice is adopted.
 
+.. _parameter-files-multiple-copies:
+
 Multiple copies
 ~~~~~~~~~~~~~~~
 
-Most parameters allow only one copy of the parameter to appear in any given section of the parameter file (and `warnings <#warnings>`_ will be issued if multiple copies appear). Some parameters, however, allow multiple copies. Most often, these correspond to classes which sum over the results of other classes (e.g. a cooling function class that sums the cooling rates from multiple other cooling function classes), or applies a sequence of multiple operators.
+Most parameters allow only one copy of the parameter to appear in any given section of the parameter file (and :ref:`warnings <parameter-files-warnings>` will be issued if multiple copies appear). Some parameters, however, allow multiple copies. Most often, these correspond to classes which sum over the results of other classes (e.g. a cooling function class that sums the cooling rates from multiple other cooling function classes), or applies a sequence of multiple operators.
 
 A common example of this is the ``nodePropertyExtractor`` class, which is used to determine which properties to output to the output file. Frequently we want to output many different properties. The ``nodePropertyExtractorMulti`` class allows this, for example:
 
@@ -434,7 +442,7 @@ Advanced topics
 Math evaluation
 ~~~~~~~~~~~~~~~
 
-Parameter values of type real and cardinality 1 can be written as equations using basic mathematical operations and referencing other (`type <#types>`_ real, `cardinality <#cardinality>`_ 1) parameters as variables.
+Parameter values of type real and cardinality 1 can be written as equations using basic mathematical operations and referencing other (:ref:`type <parameter-files-types>` real, :ref:`cardinality <parameter-files-cardinality>` 1) parameters as variables.
 
 This functionality is provided via `libmatheval <https://github.com/galacticusorg/libmatheval>`_. This library automatically compiled into the pre-compiled versions of Galacticus. If you compile your own Galacticus then you must have ``libmatheval`` available, otherwise math expressions in the parameter file will cause a run-time error.
 
@@ -516,7 +524,7 @@ Note that, internally in Galacticus, these three instances of the ``cosmological
 Ignoring warnings
 ~~~~~~~~~~~~~~~~~~
 
-As described in the `Warnings <#warnings>`_ section, Galacticus will emit warnings about any potential problems that it finds in a parameter file. In general, the recommendation is to fix these potential problems!
+As described in the :ref:`Warnings <parameter-files-warnings>` section, Galacticus will emit warnings about any potential problems that it finds in a parameter file. In general, the recommendation is to fix these potential problems!
 
 However, if you are 100% sure that the parameter file is correct and doing what you intended, you can silence the warning for any parameter by adding an attribute ``ignoreWarnings="true"``. For example:
 

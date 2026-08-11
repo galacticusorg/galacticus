@@ -30,9 +30,12 @@ module Node_Component_Hot_Halo_Very_Simple
   public :: Node_Component_Hot_Halo_Very_Simple_Initialize, Node_Component_Hot_Halo_Very_Simple_Scale_Set
 
   !![
-  <component>
+  <component docformat="rst">
    <class>hotHalo</class>
    <name>verySimple</name>
+   <description>
+   A hot gaseous halo described by its mass, abundances, and outer radius, together with the mass which failed to accrete. Outflows from galactic components are received through the virtual ``outflowingMass`` and ``outflowingAbundances`` properties.
+   </description>
    <isDefault>false</isDefault>
    <properties>
     <property>

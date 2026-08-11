@@ -9,6 +9,9 @@ Sphinx documentation tree:
   a section per implementation class, its description, and the input parameters
   declared in the same source file.
 * ``<out>/physics/index.rst``      — a toctree of all family pages.
+* ``<out>/nodeComponents.rst``     — the node component reference, one section
+  per ``<component>`` class and a subsection per implementation, with its
+  properties and the input parameters declared in the same source file.
 * ``<out>/glossary.rst``           — the glossary, from ``docs/Glossary.tex``.
 * ``<out>/references.rst``         — a single project-wide bibliography.
 
@@ -43,6 +46,11 @@ from extractContributors import (                              # noqa: E402
     collect_contributor_names, render_contributors_rst,
 )
 from Galacticus.Parameters.query import resolved_parameters    # noqa: E402
+from Galacticus.Build.SourceTree import parse_code, walk_tree  # noqa: E402
+from Galacticus.Build.SourceTree.Parse.Signatures import (     # noqa: E402
+    arguments_to_rst, is_declaration, normalize_argument, procedure_signature,
+    return_type_to_rst,
+)
 
 
 def _build_catalog(source_dir):
@@ -110,26 +118,187 @@ def _extract_methods(block: str) -> list[dict]:
     return methods
 
 
-# A ``<methods>`` block of type-bound procedures (one per implementation), each
-# ``<method method="…" description="…"/>``.  Unlike the functionClass
-# ``<method name=…>`` interface, the description is a still-LaTeX attribute.
+# A ``<property>`` inside a ``<component>`` directive's ``<properties>`` block.
+_PROPERTY_RE = re.compile(r'<property>(.*?)</property>', re.DOTALL)
+_ATTRIBUTES_RE = re.compile(r'<attributes\b([^>]*?)/?>')
+_PROP_OUTPUT_RE = re.compile(r'<output\b([^>]*?)/?>')
+
+
+def _extract_component_properties(block: str) -> list[dict]:
+    """Extract the properties a ``<component>`` directive declares.
+
+    Only the ``<properties>`` block is considered, so the ``<output>`` element
+    that may appear at component level (``<output instances="first"/>``) is not
+    mistaken for a property's output specification.
+    """
+    props: list[dict] = []
+    pm = re.search(r'<properties>(.*?)</properties>', block, re.DOTALL)
+    if not pm:
+        return props
+    for m in _PROPERTY_RE.finditer(pm.group(1)):
+        body = m.group(1)
+        name = _child(body, 'name')
+        if not name:
+            continue
+        am = _ATTRIBUTES_RE.search(body)
+        attrs = am.group(1) if am else ''
+        om = _PROP_OUTPUT_RE.search(body)
+        oattrs = om.group(1) if om else None
+        props.append({
+            'name':        name,
+            'type':        _child(body, 'type'),
+            'rank':        _child(body, 'rank'),
+            'isSettable':  _attr(attrs, 'isSettable') == 'true',
+            'isGettable':  _attr(attrs, 'isGettable') == 'true',
+            'isEvolvable': _attr(attrs, 'isEvolvable') == 'true',
+            'isVirtual':   _attr(attrs, 'isVirtual') == 'true',
+            'isDeferred':  _attr(attrs, 'isDeferred'),
+            'isOutput':    oattrs is not None,
+            'units':       _attr(oattrs, 'unitsDescription') if oattrs else None,
+            'comment':     _attr(oattrs, 'comment') if oattrs else None,
+        })
+    return props
+
+
+# A ``<methods>`` block of type-bound procedures (one per implementation).  Each
+# entry is either the short ``<method method="…" description="…"/>`` form or, in
+# the blocks the code generators emit, a ``<method …>`` element wrapping the
+# description and the method's signature.
 _TYPE_METHODS_RE = re.compile(r'<methods\b[^>]*>(.*?)</methods>', re.DOTALL)
-_TYPE_METHOD_RE = re.compile(r'<method\b([^>]*?)/?>')
+_TYPE_METHOD_RE = re.compile(r'<method\b([^>]*?)(?:/>|>(.*?)</method>)',
+                             re.DOTALL)
 
 
 def _extract_type_methods(text: str) -> list[dict]:
-    """Extract ``<method method="…" description="…"/>`` entries from every
-    ``<methods>`` block in a file — the methods a concrete implementation's
-    derived type declares, beyond the base-class interface."""
+    """Extract the ``<method>`` entries of every ``<methods>`` block in a file —
+    the methods a concrete implementation's derived type declares, beyond the
+    base-class interface.
+
+    Carries the return type and arguments where the block declares them; where
+    it does not, :func:`_derive_type_method_signatures` recovers them from the
+    procedures the methods are bound to.
+    """
     out = []
     for mb in _TYPE_METHODS_RE.finditer(text):
         for m in _TYPE_METHOD_RE.finditer(mb.group(1)):
-            name = _attr(m.group(1), 'method')
+            attrs, inner = m.group(1), m.group(2) or ''
+            name = _attr(attrs, 'method')
             if not name:
                 continue
-            out.append({'name': name,
-                        'description': _attr(m.group(1), 'description')})
+            description = _attr(attrs, 'description')
+            if description is None:
+                dm = _DESC_RE.search(inner)
+                description = dm.group(1).strip() if dm else None
+            out.append({
+                'name':        name,
+                'description': description,
+                'type':        _child(inner, 'type'),
+                'arguments':   [re.sub(r'\s+', ' ', a).strip()
+                                for a in _ARG_RE.findall(inner)],
+            })
     return out
+
+
+# Type-bound procedure bindings, as declared in a derived type's ``contains``
+# section: a plain binding (with or without a ``=> target``), a deferred binding
+# naming its abstract interface, and a generic binding.
+_BINDING_RE = re.compile(
+    r'^[ \t]*procedure\b([^:\n(]*)::[ \t]*([A-Za-z0-9_]+)'
+    r'[ \t]*(?:=>[ \t]*([A-Za-z0-9_]+))?[ \t]*$', re.MULTILINE | re.IGNORECASE)
+_DEFERRED_BINDING_RE = re.compile(
+    r'^[ \t]*procedure[ \t]*\([ \t]*([A-Za-z0-9_]+)[ \t]*\)([^:\n]*)::'
+    r'[ \t]*([A-Za-z0-9_]+)', re.MULTILINE | re.IGNORECASE)
+_GENERIC_BINDING_RE = re.compile(
+    r'^[ \t]*generic\b[^:\n]*::[ \t]*(.+?)[ \t]*=>[ \t]*(.+?)[ \t]*$',
+    re.MULTILINE | re.IGNORECASE)
+# The derived type a ``<methods>`` block documents runs from its ``type``
+# statement to the matching ``end type``.  The negative lookahead keeps a
+# ``type(…) :: …`` declaration from being mistaken for a type definition.
+_TYPE_OPEN_RE = re.compile(r'^[ \t]*type\b(?![ \t]*\()[^\n]*$',
+                           re.MULTILINE | re.IGNORECASE)
+_TYPE_CLOSE_RE = re.compile(r'^[ \t]*end[ \t]+type\b', re.MULTILINE | re.IGNORECASE)
+
+
+def _binding_region(text: str, start: int, end: int) -> str:
+    """Return the derived-type body enclosing the ``<methods>`` block spanning
+    ``start``–``end``, so that only that type's bindings are read."""
+    opens = [m.start() for m in _TYPE_OPEN_RE.finditer(text, 0, start)]
+    close = _TYPE_CLOSE_RE.search(text, end)
+    return text[opens[-1] if opens else start: close.end() if close else len(text)]
+
+
+def _bindings(region: str) -> dict[str, tuple[str, bool]]:
+    """Map each method name in a derived-type body to the procedure it binds to
+    and whether the binding passes the object (``nopass`` bindings do not)."""
+    bindings: dict[str, tuple[str, bool]] = {}
+    for m in _BINDING_RE.finditer(region):
+        attributes, name, target = m.group(1), m.group(2), m.group(3)
+        bindings[name.lower()] = (target or name,
+                                  'nopass' not in attributes.lower())
+    for m in _DEFERRED_BINDING_RE.finditer(region):
+        # A deferred binding names the abstract interface that declares the
+        # signature; that interface stands in for the (absent) procedure.
+        interface, attributes, name = m.group(1), m.group(2), m.group(3)
+        bindings.setdefault(name.lower(),
+                            (interface, 'nopass' not in attributes.lower()))
+    for m in _GENERIC_BINDING_RE.finditer(region):
+        # A generic binding may cover several specific procedures; the first
+        # stands for the signature, which is as much as can be said of a name
+        # that deliberately has more than one.
+        name, targets = m.group(1), m.group(2)
+        first = targets.split(',')[0].strip()
+        resolved = bindings.get(first.lower())
+        bindings.setdefault(name.strip().lower(),
+                            resolved if resolved else (first, True))
+    return bindings
+
+
+def _derive_type_method_signatures(text: str, path: str,
+                                   methods: list[dict]) -> None:
+    """Fill in the return type and arguments of type-bound methods, in place.
+
+    Hand-written ``<methods>`` blocks declare only a name and a description, so
+    the signature is recovered from the procedure each method is bound to: the
+    file is parsed, and each binding followed to its procedure's declarations.
+    Methods whose binding or procedure cannot be found (an abstract class whose
+    procedures are generated at build time, a name assembled by the generic
+    preprocessor) keep just their description.
+
+    A file's ``<methods>`` blocks are treated together, as the extracted methods
+    themselves are: where a file declares several types, a method name they share
+    resolves to the binding of the last of them.
+    """
+    if all(m.get('type') or m.get('arguments') for m in methods):
+        return
+    region = ''
+    for mb in _TYPE_METHODS_RE.finditer(text):
+        region += _binding_region(text, mb.start(), mb.end())
+    bindings = _bindings(region)
+    if not bindings:
+        return
+    try:
+        tree = parse_code(text, name=path, instrument=False)
+    except Exception as exc:                                    # noqa: BLE001
+        print(f'warning: could not parse {path} for method signatures: {exc}',
+              file=sys.stderr)
+        return
+    procedures = {node['name'].lower(): node for node in walk_tree(tree)
+                  if node['type'] in ('function', 'subroutine')
+                  and node.get('name')}
+    for method in methods:
+        if method.get('type') or method.get('arguments'):
+            continue
+        binding = bindings.get(html.unescape(method['name']).lower())
+        if binding is None:
+            continue
+        target, passes_object = binding
+        procedure = procedures.get(target.lower())
+        if procedure is None:
+            continue
+        return_type, arguments = procedure_signature(
+            procedure, skip_passed_object=passes_object)
+        method['type']      = return_type
+        method['arguments'] = arguments
 
 
 def _extract_entries(block: str) -> list[dict]:
@@ -224,6 +393,8 @@ def scan_source(source_dir: str):
     * ``modules``: ``[{name, file, description, classRef}, …]`` — one per
       documented module (``classRef`` links class modules to their page).
     * ``workarounds``: ``[{type, pr, url, description, seeAlso, file}, …]``.
+    * ``components``: ``{class: [{name, description, isDefault, extends,
+      properties, file}, …]}`` — the node component implementations.
     """
     families: dict[str, dict] = {}
     by_root: dict[str, list[dict]] = {}
@@ -232,6 +403,7 @@ def scan_source(source_dir: str):
     enumerations: list[dict] = []
     modules: list[dict] = []
     workarounds: list[dict] = []
+    components: dict[str, list[dict]] = {}
     class_by_file: dict[str, str] = {}
 
     for root, _dirs, files in os.walk(source_dir):
@@ -259,6 +431,7 @@ def scan_source(source_dir: str):
                                     'description': md.group(1).strip()})
             tmeths = _extract_type_methods(text)
             if tmeths:
+                _derive_type_method_signatures(text, path, tmeths)
                 methods_by_file[path] = tmeths
             for bm in _BLOCK_RE.finditer(text):
                 block = bm.group(1)
@@ -278,9 +451,13 @@ def scan_source(source_dir: str):
                         continue
                     pdesc = _DESC_RE.search(pbody)
                     params_by_file.setdefault(path, []).append({
-                        'name':        name,
-                        'default':     _child(pbody, 'defaultValue'),
-                        'description': pdesc.group(1) if pdesc else None,
+                        'name':          name,
+                        'default':       _child(pbody, 'defaultValue'),
+                        # Prose gloss on a computed default (e.g. "(I_2/I_3
+                        # where …)"); without it such defaults render as a bare
+                        # Fortran variable name, which tells the reader nothing.
+                        'defaultSource': _child(pbody, 'defaultSource'),
+                        'description':   pdesc.group(1) if pdesc else None,
                     })
                 for wm in _WORKAROUND_RE.finditer(block):
                     wattrs, wbody = wm.group(1), wm.group(2)
@@ -323,6 +500,21 @@ def scan_source(source_dir: str):
                         'methods':         _extract_methods(block),
                     }
                     class_by_file[path] = name
+                elif rtype == 'component':
+                    cls, name = _child(block, 'class'), _child(block, 'name')
+                    if not cls or not name:
+                        continue
+                    # ``<extends>`` nests its own <class>/<name>; read them from
+                    # that sub-block rather than the component's own.
+                    ext = re.search(r'<extends>(.*?)</extends>', block, re.DOTALL)
+                    components.setdefault(cls, []).append({
+                        'name':        name,
+                        'description': desc_raw,
+                        'isDefault':   (_child(block, 'isDefault') or '') == 'true',
+                        'extends':     _child(ext.group(1), 'name') if ext else None,
+                        'properties':  _extract_component_properties(block),
+                        'file':        path,
+                    })
                 elif rtype == 'enumeration':
                     name = _child(block, 'name')
                     if not name:
@@ -366,8 +558,12 @@ def scan_source(source_dir: str):
                 entry['seeAlso'].append(s)
     workarounds = sorted(deduped.values(),
                          key=lambda w: (str(w.get('type')), str(w.get('pr'))))
+    for impls in components.values():
+        impls.sort(key=lambda c: c['name'].lower())
+    # NOTE: ``components`` is returned *before* ``workarounds`` so that callers
+    # unpacking the tail (``*_head, workarounds = scan_source(…)``) keep working.
     return (families, implementations, params_by_file, methods_by_file,
-            enumerations, modules, workarounds)
+            enumerations, modules, components, workarounds)
 
 
 # ---------------------------------------------------------------------------
@@ -416,6 +612,20 @@ def render_parameter(p: dict, glsmap: dict) -> str:
     facets = _parameter_facets(p)
     if facets:
         head += ' (' + '; '.join(facets) + ')'
+    # A ``<defaultSource>`` says where a default came from — usually a bare
+    # citation, sometimes a parenthesised note on how a computed default is
+    # derived.  Label it so both read as a sentence rather than running on from
+    # the description.
+    source = p.get('defaultSource')
+    if source:
+        source = re.sub(r'\s*\n\s*', ' ',
+                        _desc_to_rst(source, glsmap)).strip()
+        if source.startswith('(') and source.endswith(')'):
+            source = source[1:-1].strip()
+        if source:
+            if not source.endswith('.'):
+                source += '.'
+            desc = (desc + ' ' if desc else '') + f'*Default from:* {source}'
     if p.get('inheritedFrom'):
         desc = (desc + ' ' if desc else '') + f'*(inherited from* ``{p["inheritedFrom"]}``\\ *)*'
     return f'* {head} — {desc}' if desc else f'* {head}'
@@ -433,11 +643,46 @@ def _implementation_parameters(impl: dict, params_by_file: dict,
     if catalog is None or impl.get('name') not in catalog.get('implementations', {}):
         return file_params
     raw_description = {p['name']: p.get('description') for p in file_params}
+    raw_source = {p['name']: p.get('defaultSource') for p in file_params}
     resolved = resolved_parameters(catalog, impl['name'])
     for parameter in resolved:
         if raw_description.get(parameter['name']) is not None:
             parameter['description'] = raw_description[parameter['name']]
+        if raw_source.get(parameter['name']) is not None:
+            parameter['defaultSource'] = raw_source[parameter['name']]
     return resolved
+
+
+def render_method(meth: dict, glsmap: dict) -> list[str]:
+    """Render one method as a definition-list entry: its signature, then its
+    description and one bullet per argument.
+
+    The same rendering serves the class interface and each implementation's own
+    methods, so that a method reads the same wherever it appears.  Both the type
+    and the arguments arrive either as Fortran declarations (hand-written
+    directives) or already in the documentation's argument notation (the
+    generators, and the signatures recovered from source); each is converted
+    only if it needs to be.
+    """
+    signature = f'``{meth["name"]}``'
+    return_type = return_type_to_rst(meth.get('type'))
+    if return_type:
+        signature += f' → {return_type}'
+
+    # The description is already RST (converted in the source); unescape the XML
+    # entities, as for <description> elements.
+    description = re.sub(r'\s*\n\s*', ' ',
+                         _desc_to_rst(meth.get('description'), glsmap)).strip()
+    body = description or '—'
+    arguments = []
+    for argument in meth.get('arguments') or []:
+        arguments.extend(arguments_to_rst([argument]) if is_declaration(argument)
+                         else [normalize_argument(argument)])
+    if arguments:
+        # One bullet per argument, as a single (tight) list: a blank line
+        # between bullets would render the list loosely spaced.
+        body += '\n\n' + '\n'.join(f'* {argument}' for argument in arguments)
+    return [signature, textwrap.indent(body, '   '), '']
 
 
 def render_family(fam: str, families: dict, implementations: dict,
@@ -460,18 +705,7 @@ def render_family(fam: str, families: dict, implementations: dict,
     if methods:
         out.append(_heading('Methods', '-'))
         for meth in methods:
-            sig = f'``{meth["name"]}``'
-            rtype = (meth.get('type') or '').strip()
-            if rtype:
-                sig += f' → ``{rtype}``'
-            mdesc = re.sub(r'\s*\n\s*', ' ',
-                           _desc_to_rst(meth.get('description'), glsmap)).strip()
-            body = mdesc or '—'
-            for arg in meth.get('arguments') or []:
-                body += f'\n\n* ``{arg}``'
-            out.append(sig)
-            out.append(textwrap.indent(body, '   '))
-            out.append('')
+            out.extend(render_method(meth, glsmap))
 
     impls = sorted(implementations.get(fam, []),
                    key=lambda d: str(d.get('name', '')).lower())
@@ -491,20 +725,92 @@ def render_family(fam: str, families: dict, implementations: dict,
         if imethods:
             out.append('**Methods**\n')
             for meth in imethods:
-                # The description attribute is already RST (converted in source);
-                # just unescape the XML entities, as for <description> elements.
-                mdesc = re.sub(
-                    r'\s*\n\s*', ' ',
-                    html.unescape(meth.get('description') or '')).strip()
-                out.append(f'* ``{meth["name"]}`` — {mdesc}' if mdesc
-                           else f'* ``{meth["name"]}``')
-            out.append('')
+                out.extend(render_method(meth, glsmap))
         params = _implementation_parameters(impl, params_by_file, catalog)
         if params:
             out.append('**Parameters**\n')
             for p in params:
                 out.append(render_parameter(p, glsmap))
             out.append('')
+    return '\n'.join(out) + '\n'
+
+
+def _property_facets(p: dict) -> str:
+    """Render a component property's attributes as a compact annotation."""
+    facets = []
+    ptype = (p.get('type') or '').strip()
+    rank = (p.get('rank') or '').strip()
+    if ptype:
+        facets.append(f'{ptype} rank-{rank}' if rank and rank != '0' else ptype)
+    access = [k for k, f in (('get', 'isGettable'), ('set', 'isSettable'))
+              if p.get(f)]
+    if access:
+        facets.append('/'.join(access) + 'table')
+    if p.get('isEvolvable'):
+        facets.append('evolvable')
+    if p.get('isVirtual'):
+        facets.append('virtual')
+    if p.get('isDeferred'):
+        facets.append(f'deferred {p["isDeferred"]}')
+    return '; '.join(facets)
+
+
+def render_components(components: dict, params_by_file: dict,
+                      glsmap: dict) -> str:
+    """The node component reference: one section per class, one subsection per
+    implementation, with its description, properties, and input parameters."""
+    out = [_heading('Node Component Reference', '='),
+           'Every node component class and its implementations, generated from '
+           'the ``<component>`` directives in the Galacticus source. Components '
+           'hold the state of a :term:`node`; the physics which evolves that '
+           'state is implemented by :galacticus-class:`nodeOperatorClass` '
+           'objects. See :ref:`manual-sec-Components` for an introduction.\n']
+    for cls in sorted(components, key=str.lower):
+        impls = components[cls]
+        out.append(f'.. _component-{cls}:\n')
+        out.append(_heading(f'``{cls}``', '-'))
+        out.append(
+            f'Selected with the ``[component{cls[:1].upper()}{cls[1:]}]`` '
+            f'parameter; implementation parameters are given inside that '
+            f'element.\n')
+        for impl in impls:
+            name = impl['name']
+            out.append(f'.. _component-{cls}-{name}:\n')
+            out.append(_heading(f'``{name}``', '~'))
+            desc = _desc_to_rst(impl.get('description'), glsmap)
+            if desc:
+                out.append(desc + '\n')
+            notes = []
+            if impl.get('isDefault'):
+                notes.append('**(Default implementation)**')
+            if impl.get('extends'):
+                notes.append(
+                    f'Extends :ref:`{impl["extends"]} '
+                    f'<component-{cls}-{impl["extends"]}>`.')
+            if notes:
+                out.append(' '.join(notes) + '\n')
+            props = impl.get('properties') or []
+            if props:
+                out.append('**Properties**\n')
+                for p in props:
+                    facets = _property_facets(p)
+                    head = f'* ``{p["name"]}``'
+                    if facets:
+                        head += f' ({facets})'
+                    comment = (p.get('comment') or '').strip()
+                    if comment:
+                        head += f' — {html.unescape(comment)}'
+                        units = (p.get('units') or '').strip()
+                        if units:
+                            head += f' [{units}]'
+                    out.append(head)
+                out.append('')
+            params = params_by_file.get(impl.get('file', ''), [])
+            if params:
+                out.append('**Parameters**\n')
+                for p in params:
+                    out.append(render_parameter(p, glsmap))
+                out.append('')
     return '\n'.join(out) + '\n'
 
 
@@ -730,7 +1036,7 @@ def main() -> int:
     glsmap = glossary_display_map(glossary)
 
     (families, implementations, params_by_file, methods_by_file, enumerations,
-     modules, workarounds) = scan_source(source_dir)
+     modules, components, workarounds) = scan_source(source_dir)
 
     # Build the parameter catalog to enrich parameter docs (type, allowed values,
     # ranges, inherited parameters); degrades gracefully to None.
@@ -749,6 +1055,10 @@ def main() -> int:
     with open(os.path.join(physics_dir, 'index.rst'), 'w',
               encoding='utf-8') as fh:
         fh.write(render_physics_index(families, implementations))
+
+    with open(os.path.join(out_dir, 'nodeComponents.rst'), 'w',
+              encoding='utf-8') as fh:
+        fh.write(render_components(components, params_by_file, glsmap))
 
     with open(os.path.join(out_dir, 'glossary.rst'), 'w',
               encoding='utf-8') as fh:
@@ -790,8 +1100,10 @@ def main() -> int:
     n_meth = sum(len(f.get('methods') or []) for f in families.values())
     impl_files = {i.get('file') for v in implementations.values() for i in v}
     n_tmeth = sum(len(m) for f, m in methods_by_file.items() if f in impl_files)
+    n_comp = sum(len(v) for v in components.values())
     print(f'Wrote {len(implementations)} physics pages ({n_impl} '
           f'implementations, {n_meth} interface + {n_tmeth} type methods), '
+          f'{len(components)} component classes ({n_comp} implementations), '
           f'{len(enumerations)} enumerations, {len(modules)} modules, '
           f'{len(workarounds)} workarounds, {len(constants)} constants, glossary '
           f'({len(glossary)} entries), references, '

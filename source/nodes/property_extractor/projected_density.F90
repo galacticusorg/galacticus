@@ -27,6 +27,8 @@
   <nodePropertyExtractor name="nodePropertyExtractorProjectedDensity" docformat="rst">
    <description>
    A property extractor class for the projected density at a set of radii. The radii and types of projected density to output is specified by the ``radiusSpecifiers`` parameter. This parameter's value can contain multiple entries, each of which should be a valid :ref:`radius specifier &lt;manual-sec-radiusspecifiers&gt;`.
+
+   A radius specifier can evaluate to zero---most often because the component on which it is based is absent or empty in the node in question. The line of sight then passes through the center of the mass distribution, where the projected density is finite only if the central logarithmic slope of the density profile exceeds :math:`-1` (an :term:`NFW` profile, for example, gives a logarithmically divergent integral). Where it is finite it is evaluated, by adding to the numerical integral an analytic estimate of the contribution from within some small radius, assuming that the density there follows the asymptotic central power law, and reducing that radius until the result no longer depends on it. Where it is not finite, a radius of zero is by default reported as a fatal error naming the offending specifier; setting ``zeroRadiusIsFatal`` to ``false`` instead writes the undefined-value sentinel in place of the projected density.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -35,9 +37,10 @@
      A property extractor class for the projected density at a set of radii.
      !!}
      private
-     class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_          => null()
-     integer                                                      :: radiiCount                  , elementCount_
-     logical                                                      :: includeRadii                , tolerateIntegrationFailures
+     class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_ => null()
+     integer                                                      :: radiiCount                    , elementCount_
+     logical                                                      :: includeRadii                  , tolerateIntegrationFailures, &
+          &                                                          zeroRadiusIsFatal
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusDefinitions       )                            :: radii
    contains
@@ -76,7 +79,8 @@ contains
     type   (inputParameters                      ), intent(inout)               :: parameters
     type   (varying_string                       ), allocatable  , dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass             ), pointer                     :: darkMatterHaloScale_
-    logical                                                                     :: includeRadii        , tolerateIntegrationFailures
+    logical                                                                     :: includeRadii        , tolerateIntegrationFailures, &
+         &                                                                         zeroRadiusIsFatal
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
     !![
@@ -103,9 +107,21 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>zeroRadiusIsFatal</name>
+      <defaultValue>.true.</defaultValue>
+      <description>
+      Specifies whether a radius specifier which evaluates to zero, in a node in which the projected density diverges at zero
+      radius---that is, one in which the central logarithmic slope of the density profile is :math:`-1` or steeper---should be
+      reported as a fatal error. If ``false``, the undefined-value sentinel is written in place of the projected density
+      instead. A zero radius in a node in which the projected density is finite is always evaluated, and is unaffected by this
+      parameter.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorProjectedDensity(radiusSpecifiers,includeRadii,tolerateIntegrationFailures,darkMatterHaloScale_)
+    self=nodePropertyExtractorProjectedDensity(radiusSpecifiers,includeRadii,tolerateIntegrationFailures,zeroRadiusIsFatal,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"/>
@@ -113,7 +129,7 @@ contains
     return
   end function projectedDensityConstructorParameters
 
-  function projectedDensityConstructorInternal(radiusSpecifiers,includeRadii,tolerateIntegrationFailures,darkMatterHaloScale_) result(self)
+  function projectedDensityConstructorInternal(radiusSpecifiers,includeRadii,tolerateIntegrationFailures,zeroRadiusIsFatal,darkMatterHaloScale_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorProjectedDensity` property extractor class.
     !!}
@@ -121,9 +137,10 @@ contains
     type   (nodePropertyExtractorProjectedDensity)                              :: self
     type   (varying_string                       ), intent(in   ), dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass             ), intent(in   ), target       :: darkMatterHaloScale_
-    logical                                       , intent(in   )               :: includeRadii        , tolerateIntegrationFailures
+    logical                                       , intent(in   )               :: includeRadii        , tolerateIntegrationFailures, &
+         &                                                                         zeroRadiusIsFatal
     !![
-    <constructorAssign variables="radiusSpecifiers, includeRadii, tolerateIntegrationFailures, *darkMatterHaloScale_"/>
+    <constructorAssign variables="radiusSpecifiers, includeRadii, tolerateIntegrationFailures, zeroRadiusIsFatal, *darkMatterHaloScale_"/>
     !!]
 
     if (includeRadii) then
@@ -194,13 +211,20 @@ contains
     double precision                                       , intent(in   )               :: time
     type            (multiCounter                         ), intent(inout) , optional    :: instance
     class           (massDistributionClass                ), pointer                     :: massDistribution_
-    double precision                                       , parameter                   :: toleranceRelative      =1.0d-2, epsilonSingularity      =1.0d-3
+    double precision                                       , parameter                   :: toleranceRelative        =1.0d-2, epsilonSingularity   =1.0d-3
+    ! Parameters controlling the line of sight integral through the center of the distribution: the radius at which that
+    ! integral begins, as a fraction of the outer radius, the factor by which that radius is reduced at each refinement, and the
+    ! maximum number of such refinements permitted before convergence is declared to have failed.
+    double precision                                       , parameter                   :: radiusInnerFractional    =1.0d-3, factorRadiusInner    =1.0d+1
+    integer                                                , parameter                   :: refinementCountMaximum   =20
     type            (radiusResolver                       )                              :: resolver
     type            (integrator                           )                              :: integrator_
-    integer                                                                              :: i                             , status
-    double precision                                                                     :: radiusVirial                  , radiusOuter                    , &
-         &                                                                                  radiusSingularity             , densityProjectedPrevious       , &
-         &                                                                                  densityProjectedCurrent       , toleranceAbsolute
+    integer                                                                              :: i                               , status                      , &
+         &                                                                                  countRefinements                , countAgreements
+    double precision                                                                     :: radiusVirial                    , radiusOuter                 , &
+         &                                                                                  radiusInner                     , radiusInnerPrevious         , &
+         &                                                                                  densityProjectedPrevious        , densityProjectedInner       , &
+         &                                                                                  densityProjectedNumerical       , toleranceAbsolute
     logical                                                                              :: converged
     type            (coordinateSpherical                  )                              :: coordinates
     !$GLC attributes unused :: time, instance
@@ -215,44 +239,100 @@ contains
           ! The radius is undefined in this node - report the sentinel. Note that this test must precede any arithmetic on the
           ! radius, since the sentinel would overflow (and so trap) under multiplication.
           densityProjected       (i,1)=radiusUndefined
-          if (self%includeRadii)                      &
+          if (self%includeRadii)                       &
                & densityProjected(i,2)=radiusUndefined
           cycle
        end if
-       massDistribution_        => node%massDistribution(self%radii%specifiers(i)%component,self%radii%specifiers(i)%mass)
-       densityProjectedPrevious =  0.0d0
-       radiusOuter              =  max(radius_* 2.0d0                    ,radiusVirial)
-       ! Cut out a small region round the coordinate singularity at the inner radius. This region will be integrated analytically
-       ! assuming a constant density over this region. The region outside of this cut-out will be integrated numerically.
-       radiusSingularity       =min(radius_*(1.0d0+epsilonSingularity),radiusOuter )
-       !! Analytic integral within the cut-out.
-       coordinates=[radius_,0.0d0,0.0d0]
-       densityProjected(i,1)=+2.0d0                                  &
-            &                *sqrt(                                  &
-            &                      +radiusSingularity**2             &
-            &                      -radius_          **2             &
-            &                     )                                  &
-            &                *massDistribution_%density(coordinates)
-       !! Numerical integral outside of the cut-out.
-       if (radiusSingularity < radiusOuter) then
-          ! Set an absolute tolerance scale for projected density convergence that is a small fraction of the mean halo density,
-          ! integrated over a path length of 1 Mpc.
-          toleranceAbsolute=+toleranceRelative                          &
-               &            *self%darkMatterHaloScale_%densityMean(node)
-          converged        =.false.
+       massDistribution_ => node%massDistribution(self%radii%specifiers(i)%component,self%radii%specifiers(i)%mass)
+       if     (                                                              &
+            &   radius_                                            <=  0.0d0 &
+            &  .and.                                                         &
+            &   massDistribution_%densitySlopeLogarithmicCentral() <= -1.0d0 &
+            & ) then
+          ! The radius is zero, so the line of sight passes through the center of the mass distribution. The integral along that
+          ! line of sight converges only if the central logarithmic slope of the density profile exceeds -1, which it does not
+          ! here - an unknown central slope, being the most negative representable value, is rejected by the same test - so the
+          ! projected density does not exist in this node.
+          if (self%zeroRadiusIsFatal) &
+               & call resolver%reportZeroRadius(i,'projectedDensity','the line of sight integral through the center of this mass distribution diverges')
+          densityProjected       (i,1)=radiusUndefined
+          if (self%includeRadii)                       &
+               & densityProjected(i,2)=radius_
+          !![
+          <objectDestructor name="massDistribution_"/>
+          !!]
+          cycle
+       end if
+       radiusOuter              =  max(radius_*2.0d0,radiusVirial)
+       ! Set an absolute tolerance scale for projected density convergence that is a small fraction of the mean halo density,
+       ! integrated over a path length of 1 Mpc.
+       toleranceAbsolute        =  +toleranceRelative                           &
+            &                      *self%darkMatterHaloScale_%densityMean(node)
+       if (radius_ > 0.0d0) then
+          ! Cut out a small region round the coordinate singularity at the inner radius. This region will be integrated
+          ! analytically assuming a constant density over this region. The region outside of this cut-out will be integrated
+          ! numerically.
+          radiusInner=min(radius_*(1.0d0+epsilonSingularity),radiusOuter)
+       else
+          ! The line of sight passes through the center of the distribution. There is no coordinate singularity in this case,
+          ! but the integral is performed in the logarithm of radius and so can not begin at zero radius. Begin it instead at a
+          ! small radius, and add an analytic estimate of the contribution from within that radius. As that radius is
+          ! subsequently reduced until the result no longer depends on it, this initial choice need not resolve the scale radii
+          ! of the distribution---it need only provide a starting point.
+          radiusInner=radiusOuter*radiusInnerFractional
+       end if
+       !! Analytic integral within the innermost radius.
+       densityProjectedInner    =  projectedDensityInner(radiusInner)
+       !! Numerical integral outside of the innermost radius.
+       densityProjectedNumerical  =0.0d0
+       if (radiusInner < radiusOuter) then
+          densityProjectedPrevious=0.0d0
+          converged               =.false.
           do while (.not.converged)
-             densityProjectedCurrent=integrator_%integrate(log(radiusSingularity),log(radiusOuter),status=status)
+             densityProjectedNumerical=integrator_%integrate(log(radiusInner),log(radiusOuter),status=status)
              if (status /= errorStatusSuccess .and. .not.self%tolerateIntegrationFailures) &
                   & call Error_Report('integration of projected density failed'//{introspection:location})
-             converged              =Values_Agree(densityProjectedCurrent,densityProjectedPrevious,relTol=toleranceRelative,absTol=toleranceAbsolute)
+             converged                =Values_Agree(densityProjectedNumerical,densityProjectedPrevious,relTol=toleranceRelative,absTol=toleranceAbsolute)
              if (.not.converged) then
                 radiusOuter             =2.0d0*radiusOuter
-                densityProjectedPrevious=      densityProjectedCurrent
+                densityProjectedPrevious=      densityProjectedNumerical
              end if
           end do
        end if
-       densityProjected(i,1)=+densityProjected       (i,1) &
-            &                +densityProjectedCurrent
+       densityProjected(i,1)=+densityProjectedInner     &
+            &                +densityProjectedNumerical
+       if (radius_ <= 0.0d0 .and. radiusInner > 0.0d0) then
+          ! Reduce the radius at which the numerical integral begins, integrating each newly-exposed shell and re-estimating the
+          ! contribution from within the new innermost radius, until the total is insensitive to that radius. This tests the
+          ! accuracy of the analytic estimate directly, and so requires no knowledge of the scale radii of the distribution: the
+          ! estimate becomes exact as the radius approaches zero, but converges as soon as the density has reached its
+          ! asymptotic, central power law form. Two successive agreements are required, so that the slow variation of a poor
+          ! estimate is not mistaken for convergence.
+          countAgreements =0
+          countRefinements=0
+          do while (countAgreements < 2)
+             radiusInnerPrevious      =                           radiusInner
+             radiusInner              =                           radiusInner/factorRadiusInner
+             densityProjectedNumerical=+densityProjectedNumerical                                                      &
+                  &                    +integrator_%integrate(log(radiusInner),log(radiusInnerPrevious),status=status)
+             if (status /= errorStatusSuccess .and. .not.self%tolerateIntegrationFailures) &
+                  & call Error_Report('integration of projected density failed'//{introspection:location})
+             densityProjectedPrevious =+densityProjected     (i          ,1)
+             densityProjected(i,1)    =+projectedDensityInner(radiusInner   ) &
+                  &                    +densityProjectedNumerical
+             if (Values_Agree(densityProjected(i,1),densityProjectedPrevious,relTol=toleranceRelative,absTol=toleranceAbsolute)) then
+                countAgreements=countAgreements+1
+             else
+                countAgreements=0
+             end if
+             countRefinements=countRefinements+1
+             if (countRefinements >= refinementCountMaximum .and. countAgreements < 2) then
+                if (.not.self%tolerateIntegrationFailures) &
+                     & call Error_Report('projected density at zero radius failed to converge'//{introspection:location})
+                exit
+             end if
+          end do
+       end if
        if (self%includeRadii) densityProjected(i,2)=radius_
        !![
        <objectDestructor name="massDistribution_"/>
@@ -261,6 +341,52 @@ contains
     return
 
   contains
+
+    double precision function projectedDensityInner(radius)
+      !!{RST
+      Return the contribution to the projected density from within the given ``radius``---that is, the part of the line of sight
+      integral which is not evaluated numerically.
+
+      For a line of sight which passes to one side of the center the density is assumed to be constant, at its value at the
+      radius of closest approach, over the small region cut out around the coordinate singularity there.
+
+      For a line of sight which passes through the center there is no singularity to cut out, but the integral can not begin at
+      zero radius. The contribution from within ``radius`` is instead estimated by assuming that the density follows its
+      asymptotic, central power law, :math:`\rho \propto r^\gamma`, there:
+
+      .. math::
+
+         2 \int_0^r \rho(r^\prime) \mathrm{d}r^\prime = \frac{2 r \rho(r)}{1+\gamma},
+
+      which is finite for :math:`\gamma > -1`---precisely the condition under which the full integral converges, and which is
+      guaranteed to hold here as any distribution failing it has already been rejected.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: radius
+
+      if (radius_ > 0.0d0) then
+         coordinates          =[radius_,0.0d0,0.0d0]
+         projectedDensityInner=+2.0d0                                  &
+              &                *sqrt(                                  &
+              &                      +radius **2                       &
+              &                      -radius_**2                       &
+              &                     )                                  &
+              &                *massDistribution_%density(coordinates)
+      else if (radius <= 0.0d0) then
+         ! The distribution has no extent, so there is nothing to integrate.
+         projectedDensityInner=+0.0d0
+      else
+         coordinates          =[radius ,0.0d0,0.0d0]
+         projectedDensityInner=+2.0d0                                                           &
+              &                *radius                                                          &
+              &                *  massDistribution_%density                       (coordinates) &
+              &                /(                                                               &
+              &                  +1.0d0                                                         &
+              &                  +massDistribution_%densitySlopeLogarithmicCentral(           ) &
+              &                 )
+      end if
+      return
+    end function projectedDensityInner
 
     double precision function projectedDensityIntegrand(radiusLogarithmic)
       !!{RST

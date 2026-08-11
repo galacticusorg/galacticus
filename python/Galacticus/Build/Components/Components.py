@@ -86,13 +86,13 @@ def _meta_property_arg_doc(mpt):
     """Return the documentation-only argument string for an `add…MetaProperty`
     method.
     """
-    is_evolvable = r", ``logical`` [isEvolvable]" \
+    is_evolvable = r", ``logical`` isEvolvable (optional)" \
         if (mpt['label'] == 'float' and mpt['rank'] == 0) else ""
     return (
         r"``type(varying_string)`` label, "
         r"``character(len=*)`` name"
         + is_evolvable
-        + r", ``logical`` [isCreator]"
+        + r", ``logical`` isCreator (optional)"
     )
 
 
@@ -149,7 +149,7 @@ _BASE_BOUND_FUNCTIONS = [
         'function':    'Node_Component_Serialize_Null',
         'description': "Serialize the evolvable quantities to an array.",
         'returnType':  r"``void``",
-        'arguments':   r"``double(:)`` array [out], ``integer`` propertyType [in]",
+        'arguments':   r"``double precision(:)`` array [out], ``integer`` propertyType [in]",
     },
     {
         'type':        'procedure',
@@ -173,7 +173,7 @@ _BASE_BOUND_FUNCTIONS = [
         'function':    'Node_Component_Deserialize_Null',
         'description': "Deserialize the evolvable quantities from an array.",
         'returnType':  r"``void``",
-        'arguments':   r"``double(:)`` array [in], ``integer`` propertyType [in]",
+        'arguments':   r"``double precision(:)`` array [in], ``integer`` propertyType [in]",
     },
     {
         'type':        'procedure',
@@ -224,7 +224,7 @@ _BASE_BOUND_FUNCTIONS = [
         'arguments':   (
             r"``integer`` integerPropertyCount [inout], "
             r"``integer`` doublePropertyCount [inout], "
-            r"``double`` time [in], "
+            r"``double precision`` time [in], "
             r"``integer`` instance [in]"
         ),
     },
@@ -239,7 +239,7 @@ _BASE_BOUND_FUNCTIONS = [
             r"``type(outputPropertyInteger)(:)`` integerProperties [inout], "
             r"``integer`` doubleProperty [inout], "
             r"``type(otuputPropertyDouble)(:)`` doubleProperties [inout], "
-            r"``double`` time [in], "
+            r"``double precision`` time [in], "
             r"``integer`` instance [in]"
         ),
     },
@@ -256,7 +256,7 @@ _BASE_BOUND_FUNCTIONS = [
             r"``integer`` doubleProperty [inout], "
             r"``integer`` doubleBufferCount [inout], "
             r"``type(outputPropertyDouble)(:)`` doubleProperties [inout], "
-            r"``double`` time [in], "
+            r"``double precision`` time [in], "
             r"``integer`` instance [in]"
         ),
     },
@@ -267,10 +267,10 @@ _BASE_BOUND_FUNCTIONS = [
         'description': "Return the mass distribution for this component.",
         'returnType':  r"``class(massDistribution)``",
         'arguments':   (
-            r"``type(enumerationComponentTypeType)`` [componentType] [in], "
-            r"``type(enumeratioMassTypeType)`` [massType] [in], "
-            r"``type(enumeratioWeightByType)`` [weightBy] [in], "
-            r"``integer`` [weightIndex] [in]"
+            r"``type(enumerationComponentTypeType)`` componentType (optional) [in], "
+            r"``type(enumeratioMassTypeType)`` massType (optional) [in], "
+            r"``type(enumeratioWeightByType)`` weightBy (optional) [in], "
+            r"``integer`` weightIndex (optional) [in]"
         ),
     },
     {
@@ -278,7 +278,7 @@ _BASE_BOUND_FUNCTIONS = [
         'name':        'massBaryonic',
         'function':    'Node_Component_Mass_Baryonic_Null',
         'description': "Return the total baryonic mass for this component.",
-        'returnType':  r"``double``",
+        'returnType':  r"``double precision``",
         'arguments':   "",
     },
     {
@@ -287,13 +287,13 @@ _BASE_BOUND_FUNCTIONS = [
         'function':    'Node_Component_Density_Null',
         'description': "Compute the density.",
         'mappable':    "summation",
-        'returnType':  r"``double``",
+        'returnType':  r"``double precision``",
         'arguments':   (
-            r"``double(3)`` positionSpherical [in], "
-            r"``enumerationComponentTypeType`` [componentType] [in], "
-            r"``enumerationMassTypeType`` [massType] [in], "
-            r"``enumerationWeightByType`` [weightBy] [in], "
-            r"``integer`` [weightIndex] [in]"
+            r"``double precision(3)`` positionSpherical [in], "
+            r"``enumerationComponentTypeType`` componentType (optional) [in], "
+            r"``enumerationMassTypeType`` massType (optional) [in], "
+            r"``enumerationWeightByType`` weightBy (optional) [in], "
+            r"``integer`` weightIndex (optional) [in]"
         ),
     },
     {
@@ -302,13 +302,13 @@ _BASE_BOUND_FUNCTIONS = [
         'function':    'Node_Component_Density_Spherical_Average_Null',
         'description': "Compute the spherically-averaged density.",
         'mappable':    "summation",
-        'returnType':  r"``double``",
+        'returnType':  r"``double precision``",
         'arguments':   (
-            r"``double`` radius [in], "
-            r"``enumerationComponentTypeType`` [componentType] [in], "
-            r"``enumerationMassTypeType`` [massType] [in], "
-            r"``enumerationWeightByType`` [weightBy] [in], "
-            r"``integer`` [weightIndex] [in]"
+            r"``double precision`` radius [in], "
+            r"``enumerationComponentTypeType`` componentType (optional) [in], "
+            r"``enumerationMassTypeType`` massType (optional) [in], "
+            r"``enumerationWeightByType`` weightBy (optional) [in], "
+            r"``integer`` weightIndex (optional) [in]"
         ),
     },
     {
@@ -317,13 +317,13 @@ _BASE_BOUND_FUNCTIONS = [
         'function':    'Node_Component_Surface_Density_Null',
         'description': "Compute the surface density.",
         'mappable':    "summation",
-        'returnType':  r"``double``",
+        'returnType':  r"``double precision``",
         'arguments':   (
-            r"``double(3)`` positionCylindrical [in], "
-            r"``enumerationComponentTypeType`` [componentType] [in], "
-            r"``enumerationMassTypeType`` [massType] [in], "
-            r"``enumerationWeightByType`` [weightBy] [in], "
-            r"``integer`` [weightIndex] [in]"
+            r"``double precision(3)`` positionCylindrical [in], "
+            r"``enumerationComponentTypeType`` componentType (optional) [in], "
+            r"``enumerationMassTypeType`` massType (optional) [in], "
+            r"``enumerationWeightByType`` weightBy (optional) [in], "
+            r"``integer`` weightIndex (optional) [in]"
         ),
     },
 ]

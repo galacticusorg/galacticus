@@ -41,12 +41,13 @@
      double precision :: densityNormalization, radiusScale        , &
           &              radiusCore          , radiusCoreScaleFree
    contains
-     procedure :: density               => coredNFWDensity
-     procedure :: densityGradientRadial => coredNFWDensityGradientRadial
-     procedure :: parameters            => coredNFWParameters
-     procedure :: factoryTabulation     => coredNFWFactoryTabulation
-     procedure :: descriptor            => coredNFWDescriptor
-     procedure :: suffix                => coredNFWSuffix
+     procedure :: density                        => coredNFWDensity
+     procedure :: densityGradientRadial          => coredNFWDensityGradientRadial
+     procedure :: densitySlopeLogarithmicCentral => coredNFWDensitySlopeLogarithmicCentral
+     procedure :: parameters                     => coredNFWParameters
+     procedure :: factoryTabulation              => coredNFWFactoryTabulation
+     procedure :: descriptor                     => coredNFWDescriptor
+     procedure :: suffix                         => coredNFWSuffix
   end type massDistributionCoredNFW
   
   interface massDistributionCoredNFW
@@ -326,6 +327,22 @@ contains
     end if
     return
   end function coredNFWDensityGradientRadial
+
+  double precision function coredNFWDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in a cored NFW mass distribution. A non-zero core radius
+    gives a finite central density; with a zero core radius the profile reduces to the (cuspy) :term:`NFW` form.
+    !!}
+    implicit none
+    class(massDistributionCoredNFW), intent(inout) :: self
+
+    if (self%radiusCoreScaleFree > 0.0d0) then
+       slope=+0.0d0
+    else
+       slope=-1.0d0
+    end if
+    return
+  end function coredNFWDensitySlopeLogarithmicCentral
 
   subroutine coredNFWParameters(self,densityNormalization,radiusNormalization,parameters,container)
     !!{RST

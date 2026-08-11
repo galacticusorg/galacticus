@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson, Christoph Behrens, Xiaolong Du.
+!+    Contributions to this file made by: Andrew Benson, Christoph Behrens, Xiaolong Du. The pinning of the first crossing
+!+    probability and rate tabulations to absolute lattices for issue #1317 was drafted with assistance from Claude, and reviewed
+!+    and verified by Andrew Benson.
 
 !!{RST
 Implements an excursion set first crossing statistics class using the algorithm of :cite:t:`benson_dark_2012`, but using a midpoint method to perform the integrations :cite:p:`du_substructure_2017`.
@@ -116,33 +118,40 @@ contains
     !!{RST
     Return the excursion set barrier at the given variance and time.
     !!}
-    use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
+    use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent    , displayMessage, &
           &                         displayUnindent             , verbosityLevelWorking
     use :: Error_Functions , only : Error_Function_Complementary
-    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor      , File_Exists
+    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor   , File_Exists
     use :: Kind_Numbers    , only : kind_dble                   , kind_quad
     use :: MPI_Utilities   , only : mpiBarrier                  , mpiSelf
-    use :: Numerical_Ranges, only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
+    use :: Numerical_Ranges, only : Range_Pinned                , Range_Lattice_Offset , gridSchemePerUnit, gridSchemePerDecade, &
+          &                         rangeLattice
     use :: Table_Labels    , only : extrapolationTypeFix
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                 :: self
-    double precision                                         , intent(in   )                 :: variance                       , time
+    double precision                                         , intent(in   )                 :: variance                              , time
     type            (treeNode                               ), intent(inout)                 :: node
-    double precision                                                        , dimension(0:1) :: hTime                          , hVariance
-    double precision                                         , parameter                     :: varianceTolerance       =1.0d-6
-    double precision                                         , allocatable  , dimension( : ) :: varianceMidpoint               , barrier         , &
+    double precision                                                        , dimension(0:1) :: hTime                                 , hVariance
+    double precision                                         , parameter                     :: varianceTolerance              =1.0d-6
+    type            (rangeLattice                           )                                :: latticeVariance                       , latticeTime
+    double precision                                         , allocatable  , dimension(:,:) :: firstCrossingProbabilityPrevious
+    integer                                                                                  :: offsetTime                            , countTimePrevious, &
+         &                                                                                      countVariancePrevious
+    logical                                                                                  :: reuseSolutions
+    double precision                                         , allocatable  , dimension( : ) :: varianceMidpoint                      , barrier          , &
          &                                                                                      barrierMidpoint
     double precision                                                                         :: barrierTest
     class           (excursionSetBarrierClass               ), pointer                       :: excursionSetBarrier_
     class           (cosmologicalMassVarianceClass          ), pointer                       :: cosmologicalMassVariance_
     logical                                                                                  :: makeTable
-    integer         (c_size_t                               )                                :: iTime                          , iVariance       , &
-         &                                                                                      loopCount                      , loopCountTotal  , &
-         &                                                                                      i                              , j               , &
-         &                                                                                      jTime                          , jVariance
+    integer         (c_size_t                               )                                :: iTime                                 , iVariance        , &
+         &                                                                                      loopCount                             , loopCountTotal   , &
+         &                                                                                      i                                     , j                , &
+         &                                                                                      jTime                                 , jVariance        , &
+         &                                                                                      iVarianceStart
     double precision                                                                         :: probabilityCrossingPrior
     double precision                                                                         :: integralKernel
-    real            (kind_quad                              )                                :: offsetEffective                , varianceResidual
+    real            (kind_quad                              )                                :: offsetEffective                       , varianceResidual
     character       (len =9                                 )                                :: label
     type            (varying_string                         )                                :: message
     type            (lockDescriptor                         )                                :: fileLock
@@ -193,28 +202,70 @@ contains
        end if
        makeTable=.not.self%tableInitialized.or.(variance > self%varianceMaximum*(1.0d0+varianceTolerance)).or.(time < self%timeMinimum).or.(time > self%timeMaximum)
        if (makeTable) then
-          ! Construct the table of variance on which we will solve for the first crossing distribution.
+          ! Construct the lattices on which we will solve for the first crossing distribution. The variance axis is treated
+          ! exactly as in the parent class - see the discussion there, in particular why zero appears among the target values
+          ! as well as being imposed as a hard lower limit.
+          latticeVariance=Range_Pinned(                                                                                    &
+               &                                      [0.0d0,variance]                                                   , &
+               &                                      self%varianceNumberPerUnitProbability                              , &
+               &                                      gridSchemePerUnit                                                  , &
+               &                       marginOffset  =1.0d0/dble(varianceAnchorsPerUnit)                                 , &
+               &                       limitMinimum  =0.0d0                                                              , &
+               &                       anchorEvery   =max(1,self%varianceNumberPerUnitProbability/varianceAnchorsPerUnit), &
+               &                       latticeCurrent=self%latticeVariance                                                 &
+               &                      )
+          ! The time axis is treated differently from the parent class. This class deliberately tabulates only a narrow window
+          ! of two lattice steps either side of the requested time, rather than the parent's factor of two, so it is anchored to
+          ! the lattice points themselves: anchoring to half decades as the parent does would widen that window several-fold and
+          ! cost proportionally more epochs to solve. For the same reason no seed range is imposed here. Two tabulations built
+          ! for widely separated times may then fail to overlap, in which case a stored one simply cannot be adopted and the
+          ! table is rebuilt; within a run the union with the current lattice keeps the tabulation growing monotonically, so
+          ! solutions are never lost.
+          latticeTime    =Range_Pinned(                                                               &
+               &                                      [time]                                        , &
+               &                                      self%timeNumberPerDecade                      , &
+               &                                      gridSchemePerDecade                           , &
+               &                       marginFactor  =10.0d0**(2.0d0/dble(self%timeNumberPerDecade)), &
+               &                       anchorEvery   =1                                             , &
+               &                       latticeCurrent=self%latticeTime                                &
+               &                      )
+          ! Determine whether the solutions already found can be carried over - see the parent class for why the final point of
+          ! the previous variance axis is excluded.
+          reuseSolutions=self%tableInitialized .and. self%latticeVariance%isDefined() .and. self%latticeTime%isDefined() .and. allocated(self%firstCrossingProbability)
+          countVariancePrevious=0
+          countTimePrevious    =0
+          offsetTime           =0
+          if (reuseSolutions) then
+             countVariancePrevious=self%latticeVariance%count-1
+             countTimePrevious    =self%latticeTime    %count
+             offsetTime           =Range_Lattice_Offset(self%latticeTime,latticeTime)
+             call move_alloc(self%firstCrossingProbability,firstCrossingProbabilityPrevious)
+          end if
           if (allocated(self%variance                )) deallocate(self%variance                )
           if (allocated(self%time                    )) deallocate(self%time                    )
           if (allocated(self%firstCrossingProbability)) deallocate(self%firstCrossingProbability)
-          self%varianceMaximum=max(self%varianceMaximum,variance)
-          self%countVariance  =int(self%varianceMaximum*dble(self%varianceNumberPerUnitProbability))
-          if (self%tableInitialized) then
-             self%timeMinimum=min(self%timeMinimum,time/10.0d0**(2.0d0/dble(self%timeNumberPerDecade)))
-             self%timeMaximum=max(self%timeMaximum,time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade)))
-          else
-             self%timeMinimum=                     time/10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
-             self%timeMaximum=                     time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
-          end if
-          self%countTime=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(self%timeNumberPerDecade))+1)
+          self%latticeVariance=latticeVariance
+          self%latticeTime    =latticeTime
+          self%countVariance  =latticeVariance%count-1
+          self%countTime      =latticeTime    %count
+          self%varianceMaximum=latticeVariance%maximum()
+          self%timeMinimum    =latticeTime    %minimum()
+          self%timeMaximum    =latticeTime    %maximum()
           allocate(self%variance                (0:self%countVariance               ))
           allocate(self%time                    (                     self%countTime))
           allocate(self%firstCrossingProbability(0:self%countVariance,self%countTime))
           allocate(     varianceMidpoint        (0:self%countVariance               ))
-          self%time        =Make_Range(self%timeMinimum,self%timeMaximum    ,self%countTime      ,rangeType=rangeTypeLogarithmic)
-          self%variance    =Make_Range(0.0d0           ,self%varianceMaximum,self%countVariance+1,rangeType=rangeTypeLinear     )
-          self%varianceStep=+self%variance(1) &
-               &            -self%variance(0)
+          ! Take the abscissae, and the step in variance, from the lattices - see the parent class.
+          self%time        =latticeTime    %values()
+          self%variance    =latticeVariance%values()
+          self%varianceStep=latticeVariance%step  ()
+          ! Carry over the solutions already found.
+          if (reuseSolutions) then
+             if (countVariancePrevious >= 1)                                                                                    &
+                  & self%firstCrossingProbability        (0:countVariancePrevious-1,offsetTime+1:offsetTime+countTimePrevious)= &
+                  &      firstCrossingProbabilityPrevious(0:countVariancePrevious-1,           1:           countTimePrevious)
+             deallocate(firstCrossingProbabilityPrevious)
+          end if
           ! Compute the variance at the mid-points.
           varianceMidpoint(0)=0.0d0
           forall(i=1:self%countVariance)
@@ -256,7 +307,7 @@ contains
           barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMinimum,node,rateCompute=.false.)
           barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMaximum,node,rateCompute=.false.)
           ! Enter an OpenMP parallel region. Each parallel thread will solve for the first crossing distribution at a different epoch.
-          !$omp parallel private(iTime,i,j,probabilityCrossingPrior,integralKernel,excursionSetBarrier_,cosmologicalMassVariance_,barrier,barrierMidpoint,offsetEffective,varianceResidual) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
+          !$omp parallel private(iTime,i,j,iVarianceStart,probabilityCrossingPrior,integralKernel,excursionSetBarrier_,cosmologicalMassVariance_,barrier,barrierMidpoint,offsetEffective,varianceResidual) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
           !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
@@ -280,27 +331,33 @@ contains
                 barrier        (i)=excursionSetBarrier_%barrier(self%variance        (i),self%time(iTime),node,rateCompute=.false.)
                 barrierMidpoint(i)=excursionSetBarrier_%barrier(     varianceMidpoint(i),self%time(iTime),node,rateCompute=.false.)
              end do
-             ! Find the first crossing distribution at the first grid point.
-             offsetEffective                       =+self%offsetEffective (self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),real(varianceMidpoint(1),kind_quad),0.0_kind_quad,real(barrier(1),kind_quad),real(barrierMidpoint(1),kind_quad),cosmologicalMassVariance_)
-             varianceResidual                      =+self%varianceResidual(self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),real(varianceMidpoint(1),kind_quad)                                                                            ,cosmologicalMassVariance_)
-             self%firstCrossingProbability(0,iTime)=+0.0d0
-             integralKernel                        =+real(                                                                    &
-                  &                                       Error_Function_Complementary(                                       &
-                  &                                                                    +offsetEffective                       &
-                  &                                                                    /sqrt(2.0_kind_quad*varianceResidual)  &
-                  &                                                                   )                                     , &
-                  &                                        kind=kind_dble                                                     &
-                  &                                       )
-             offsetEffective                       =+self%offsetEffective (self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),0.0_kind_quad                      ,0.0_kind_quad,real(barrier(1),kind_quad),0.0_kind_quad                      ,cosmologicalMassVariance_)
-             varianceResidual                      =+self%varianceResidual(self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),0.0_kind_quad                                                                                                   ,cosmologicalMassVariance_)
-             self%firstCrossingProbability(1,iTime)=+Error_Function_Complementary(                                   &
-                  &                                                               +barrier(1)                        &
-                  &                                                               /sqrt(2.0d0*self%variance(1)) &
-                  &                                                              )                                   &
-                  &                                 /self%varianceStep                                               &
-                  &                                 /integralKernel
+             ! Determine where the solution for this epoch must begin - see the parent class.
+             if (reuseSolutions .and. iTime > int(offsetTime,kind=c_size_t) .and. iTime <= int(offsetTime+countTimePrevious,kind=c_size_t)) then
+                iVarianceStart=max(2_c_size_t,int(countVariancePrevious,kind=c_size_t))
+             else
+                iVarianceStart=2_c_size_t
+                ! Find the first crossing distribution at the first grid point.
+                offsetEffective                       =+self%offsetEffective (self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),real(varianceMidpoint(1),kind_quad),0.0_kind_quad,real(barrier(1),kind_quad),real(barrierMidpoint(1),kind_quad),cosmologicalMassVariance_)
+                varianceResidual                      =+self%varianceResidual(self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),real(varianceMidpoint(1),kind_quad)                                                                            ,cosmologicalMassVariance_)
+                self%firstCrossingProbability(0,iTime)=+0.0d0
+                integralKernel                        =+real(                                                                    &
+                     &                                       Error_Function_Complementary(                                       &
+                     &                                                                    +offsetEffective                       &
+                     &                                                                    /sqrt(2.0_kind_quad*varianceResidual)  &
+                     &                                                                   )                                     , &
+                     &                                        kind=kind_dble                                                     &
+                     &                                       )
+                offsetEffective                       =+self%offsetEffective (self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),0.0_kind_quad                      ,0.0_kind_quad,real(barrier(1),kind_quad),0.0_kind_quad                      ,cosmologicalMassVariance_)
+                varianceResidual                      =+self%varianceResidual(self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),0.0_kind_quad                                                                                                   ,cosmologicalMassVariance_)
+                self%firstCrossingProbability(1,iTime)=+Error_Function_Complementary(                                   &
+                     &                                                               +barrier(1)                        &
+                     &                                                               /sqrt(2.0d0*self%variance(1)) &
+                     &                                                              )                                   &
+                     &                                 /self%varianceStep                                               &
+                     &                                 /integralKernel
+             end if
              ! Iterate over remaining variance grid points and solve for the first crossing rate.
-             do i=2,self%countVariance
+             do i=iVarianceStart,self%countVariance
 #ifdef USEMPI
                 if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
@@ -429,14 +486,14 @@ contains
     !!{RST
     Tabulate the excursion set crossing rate.
     !!}
-    use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent       , displayMagenta  , &
-          &                         displayMessage              , displayReset         , displayUnindent     , displayVerbosity, &
+    use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent      , displayMagenta  , &
+          &                         displayMessage              , displayReset         , displayUnindent    , displayVerbosity, &
           &                         verbosityLevelWarn          , verbosityLevelWorking
     use :: Error_Functions , only : Error_Function_Complementary
-    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor      , File_Exists
+    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor     , File_Exists
     use :: Kind_Numbers    , only : kind_dble                   , kind_quad
     use :: MPI_Utilities   , only : mpiBarrier                  , mpiSelf
-    use :: Numerical_Ranges, only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
+    use :: Numerical_Ranges, only : Range_Pinned                , Range_Lattice_Offset , gridSchemePerDecade, rangeLattice
     use :: Table_Labels    , only : extrapolationTypeFix
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                   :: self
@@ -445,11 +502,16 @@ contains
     double precision                                         , parameter                       :: varianceMinimumDefault    =1.0d-2
     double precision                                         , parameter                       :: varianceTolerance         =1.0d-6
     double precision                                         , parameter                       :: massLarge                 =1.0d16
-    real            (kind=kind_quad                         ), allocatable  , dimension(:    ) :: firstCrossingRateQuad                        , varianceCurrentRateQuad , &
-         &                                                                                        varianceProgenitorRateQuad                   , varianceMidpointRateQuad, &
+    real            (kind=kind_quad                         ), allocatable  , dimension(:    ) :: firstCrossingRateQuad                        , varianceCurrentRateQuad       , &
+         &                                                                                        varianceProgenitorRateQuad                   , varianceMidpointRateQuad      , &
          &                                                                                        barrierRateQuad                              , barrierMidpointRateQuad
     double precision                                         , allocatable  , dimension(:,:  ) :: nonCrossingRate
     double precision                                         , allocatable  , dimension(:,:,:) :: firstCrossingRate
+    type            (rangeLattice                           )                                  :: latticeVarianceCurrentRate                   , latticeTimeRate               , &
+         &                                                                                        latticeVarianceMinimumRate
+    integer                                                                                    :: offsetTimeRate                               , countTimeRatePrevious         , &
+         &                                                                                        countTimeRateSolved                          , countTimeRateSolvedNonCrossing
+    logical                                                                                    :: reuseSolutions                               , reuseSolutionsNonCrossing
     double precision                                                                           :: barrierRateTest
     class           (excursionSetBarrierClass               ), pointer                         :: excursionSetBarrier_
     class           (cosmologicalMassVarianceClass          ), pointer                         :: cosmologicalMassVariance_
@@ -460,26 +522,22 @@ contains
 #endif
     logical                                                                                    :: makeTable
     integer         (c_size_t                               )                                  :: loopCount                                    , loopCountTotal
-    integer                                                                                    :: i                                            , iTime                   , &
-         &                                                                                        iVariance                                    , j                       , &
-         &                                                                                        countNewLower                                , countNewUpper           , &
-         &                                                                                        countTimeNew                                 , iCompute                , &
-         &                                                                                        countVarianceCurrentRate
-    double precision                                                                           :: timeProgenitor                               , varianceMinimumRate     , &
-         &                                                                                        massProgenitor                               , timeMinimumRate         , &
-         &                                                                                        timeMaximumRate                              , varianceMaximumRateLimit
+    integer                                                                                    :: i                                            , iTime                         , &
+         &                                                                                        iVariance                                    , j                             , &
+         &                                                                                        iCompute                                     , countVarianceCurrentRate
+    double precision                                                                           :: timeProgenitor                               , varianceMinimumRate           , &
+         &                                                                                        massProgenitor                               , varianceMaximumRateLimit
     character       (len=64                                 )                                  :: label
     type            (varying_string                         )                                  :: message                                      , reasonRemake
     type            (lockDescriptor                         )                                  :: fileLock
-    real            (kind=kind_quad                         )                                  :: crossingFraction                             , effectiveBarrierInitial , &
-         &                                                                                        probabilityCrossingPrior                     , varianceStepRate        , &
-         &                                                                                        barrier                                      , integralKernelRate_     , &
-         &                                                                                        growthFactorEffective                        , erfcArgumentNumerator   , &
-         &                                                                                        erfcArgumentDenominator                      , erfcValue               , &
-         &                                                                                        crossingFractionNew                          , varianceResidual        , &
+    real            (kind=kind_quad                         )                                  :: crossingFraction                             , effectiveBarrierInitial       , &
+         &                                                                                        probabilityCrossingPrior                     , varianceStepRate              , &
+         &                                                                                        barrier                                      , integralKernelRate_           , &
+         &                                                                                        growthFactorEffective                        , erfcArgumentNumerator         , &
+         &                                                                                        erfcArgumentDenominator                      , erfcValue                     , &
+         &                                                                                        crossingFractionNew                          , varianceResidual              , &
          &                                                                                        offsetEffective
-    logical                                                                                    :: varianceMaximumChanged
-    
+
     ! Note that this solver follows the convention used through Galacticus that σ(M) grows following linear theory. That is:
     !
     !  • the root-variance of the density field smoothed on a mass scale M is a function of time, σ(M,t) = σ(M,t₀) D(t)/D(t₀),
@@ -554,28 +612,31 @@ contains
              if (                     self%retabulateRateNonCrossing                    ) reasonRemake=reasonRemake//' non-crossing rates need to be retabulated;'
           end if
           ! Construct or expand the range of times to tabulate.
-          countNewLower=0
-          countNewUpper=0
+          reuseSolutions           =.false.
+          reuseSolutionsNonCrossing=.false.
+          countTimeRatePrevious    =0
+          offsetTimeRate           =0
           if (makeTable) then
-             if (self%tableInitializedRate) then
-                varianceMaximumChanged=varianceProgenitor > self%varianceMaximumRate
-                timeMinimumRate=min(time/10.0d0**(2.0d0/dble(self%timeNumberPerDecade)),self%timeMinimumRate)
-                timeMaximumRate=max(time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade)),self%timeMaximumRate)
-                ! Determine how many points the table must be extended by in each direction to span the new required range.
-                if (self%timeMinimumRate > timeMinimumRate) countNewLower=int(+log10(self%timeMinimumRate/timeMinimumRate)*dble(self%timeNumberPerDecade)+1.0d0)
-                if (self%timeMaximumRate < timeMaximumRate) countNewUpper=int(-log10(self%timeMaximumRate/timeMaximumRate)*dble(self%timeNumberPerDecade)+1.0d0)
-                self%countTimeRate=self%countTimeRate+countNewLower+countNewUpper
-                ! Adjust the limits of the table by an integer number of steps.
-                self%timeMinimumRate=self%timeMinimumRate/10.0d0**(dble(countNewLower)/dble(self%timeNumberPerDecade))
-                self%timeMaximumRate=self%timeMaximumRate*10.0d0**(dble(countNewUpper)/dble(self%timeNumberPerDecade))
-             else
-                varianceMaximumChanged=.true.
-                self%timeMinimumRate  =time/10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
-                self%timeMaximumRate  =time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
-                self%countTimeRate    =max(int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(self%timeNumberPerDecade))+2,2)
-                ! Ensure the maximum of the table is precisely an integer number of steps above the minimum.
-                self%timeMaximumRate   =self%timeMinimumRate*10.0d0**(dble(self%countTimeRate-1)/dble(self%timeNumberPerDecade))
-             end if
+             ! Construct the lattices on which the rate tabulation is built. The variance axes are treated exactly as in the
+             ! parent class - the axis of the current halo comes from the shared `rateVarianceLattice`. The time axis, however,
+             ! follows this class' probability tabulation rather than the parent's rate tabulation: it is anchored to the
+             ! lattice points themselves and spans only a narrow window of two lattice steps either side of the requested time,
+             ! which is what the unpinned code here did and is why no seed range is imposed. The bounds were already kept an
+             ! integer number of steps apart for exactly the reason pinning generalizes - so that an extension leaves the
+             ! existing points where they were - but were anchored to the first time ever requested rather than to an absolute
+             ! lattice.
+             latticeVarianceCurrentRate=self%rateVarianceLattice(varianceProgenitor)
+             self%varianceMaximumRate  =latticeVarianceCurrentRate%maximum()
+             latticeTimeRate           =Range_Pinned(                                                               &
+                  &                                                [time]                                        ,  &
+                  &                                                self%timeNumberPerDecade                      ,  &
+                  &                                                gridSchemePerDecade                           ,  &
+                  &                                 marginFactor  =10.0d0**(2.0d0/dble(self%timeNumberPerDecade)),  &
+                  &                                 anchorEvery   =1                                             ,  &
+                  &                                 latticeCurrent=self%latticeTimeRate                             &
+                  &                                )
+             self%timeMinimumRate      =latticeTimeRate           %minimum()
+             self%timeMaximumRate      =latticeTimeRate           %maximum()
              ! Set the default minimum variance.
              varianceMinimumRate=varianceMinimumDefault
              ! Next reduce the variance if necessary such that the typical amplitude of fluctuations is less (by a factor of 10) than
@@ -607,26 +668,46 @@ contains
              <objectDestructor name="excursionSetBarrier_"     />
              <objectDestructor name="cosmologicalMassVariance_"/>
              !!]
-             self%varianceMaximumRate=self%varianceLimit(varianceProgenitor)
+             ! Pin the minimum variance, exactly as in the parent class.
+             latticeVarianceMinimumRate=Range_Pinned(                                                               &
+                  &                                                 [varianceMinimumRate,self%varianceMaximumRate], &
+                  &                                                 varianceMinimumAnchorsPerDecade               , &
+                  &                                                 gridSchemePerDecade                           , &
+                  &                                  marginFactor  =1.0d0                                         , &
+                  &                                  anchorEvery   =1                                             , &
+                  &                                  latticeCurrent=self%latticeVarianceMinimumRate                 &
+                  &                                 )
+             varianceMinimumRate       =latticeVarianceMinimumRate%minimum()
+             ! Determine whether the solutions already found can be carried over - see the parent class for why this requires
+             ! the variance axes to be unchanged and permits reuse only along the time axis.
+             reuseSolutions=      self%tableInitializedRate                                                               &
+                  &         .and. self%latticeTimeRate           %isDefined  ()                                           &
+                  &         .and. self%latticeVarianceCurrentRate%isDefined  ()                                           &
+                  &         .and. self%latticeVarianceMinimumRate%isDefined  ()                                           &
+                  &         .and. self%latticeVarianceCurrentRate%indexMinimum == latticeVarianceCurrentRate%indexMinimum &
+                  &         .and. self%latticeVarianceCurrentRate%count        == latticeVarianceCurrentRate%count        &
+                  &         .and. self%latticeVarianceMinimumRate%indexMinimum == latticeVarianceMinimumRate%indexMinimum
+             reuseSolutionsNonCrossing=reuseSolutions .and. .not.self%retabulateRateNonCrossing
+             if (reuseSolutions) then
+                countTimeRatePrevious=self%latticeTimeRate%count
+                offsetTimeRate       =Range_Lattice_Offset(self%latticeTimeRate,latticeTimeRate)
+             end if
+             self%latticeVarianceCurrentRate         =latticeVarianceCurrentRate
+             self%latticeTimeRate                    =latticeTimeRate
+             self%latticeVarianceMinimumRate         =latticeVarianceMinimumRate
+             self%countTimeRate                      =latticeTimeRate           %count
+             self%countVarianceCurrentRate           =latticeVarianceCurrentRate%count-1
              self%countVarianceProgenitorRate        =int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(self%varianceNumberPerDecade           ))+1
-             self%countVarianceCurrentRate           =int(self%varianceMaximumRate*dble(self%varianceNumberPerUnit))
              self%countVarianceCurrentRateNonCrossing=int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(self%varianceNumberPerDecadeNonCrossing))+1
           else
-             varianceMaximumChanged=.false.
-             ! The progenitor variance table stores the values at the mid-points, thus a factor of two is added.
-             varianceMinimumRate   =2.0d0*self%varianceProgenitorRate(1)
+             ! The tabulation is unchanged in extent, so its lower bound in variance is simply the one already pinned. Note that
+             ! this cannot be recovered from `varianceProgenitorRate` instead, as it could before this axis was pinned: that
+             ! array is overwritten with the variances at the midpoints once the solutions have been found.
+             varianceMinimumRate=self%latticeVarianceMinimumRate%minimum()
           end if
           ! Store copies of the current tables if these will be used later.
-          if (.not.varianceMaximumChanged.and.     makeTable                     ) then
-             call move_alloc(self%firstCrossingRate,firstCrossingRate)
-          else
-             allocate(firstCrossingRate(0,0,0))
-          end if
-          if (.not.varianceMaximumChanged.and..not.self%retabulateRateNonCrossing) then
-             call move_alloc(self%nonCrossingRate  ,nonCrossingRate  )
-          else
-             allocate(  nonCrossingRate(  0,0))
-          end if
+          if (reuseSolutions           ) call move_alloc(self%firstCrossingRate,firstCrossingRate)
+          if (reuseSolutionsNonCrossing) call move_alloc(self%nonCrossingRate  ,nonCrossingRate  )
           if (makeTable) then
              if (allocated(self%firstCrossingRate)) deallocate(self%firstCrossingRate)
              allocate(self%firstCrossingRate(0:self%countVarianceProgenitorRate,0:self%countVarianceCurrentRate,self%countTimeRate))
@@ -641,14 +722,15 @@ contains
           allocate(self%varianceCurrentRateNonCrossing(                                   0:self%countVarianceCurrentRateNonCrossing                   ))
           allocate(self%timeRate                      (                                                                              self%countTimeRate))
           allocate(self%nonCrossingRate               (                                   0:self%countVarianceCurrentRateNonCrossing,self%countTimeRate))
-          ! For the variance table, the zeroth point is always zero, higher points are distributed uniformly in variance.
+          ! For the variance table, the zeroth point is always zero, higher points are distributed uniformly in variance. The
+          ! abscissae of the two axes which lie on lattices are taken from those lattices - see the parent class.
           self%varianceProgenitorRate        (0                                         )=0.0d0
-          self%varianceProgenitorRate        (1:self%countVarianceProgenitorRate        )=self%varianceRange(varianceMinimumRate ,self%varianceMaximumRate,self%countVarianceProgenitorRate          ,exponent =1.0d0               )
-          self%varianceCurrentRate           (0:self%countVarianceCurrentRate           )=Make_Range        (0.0d0               ,self%varianceMaximumRate,self%countVarianceCurrentRate           +1,rangeType=rangeTypeLinear     )
+          self%varianceProgenitorRate        (1:self%countVarianceProgenitorRate        )=self%varianceRange(varianceMinimumRate,self%varianceMaximumRate,self%countVarianceProgenitorRate        ,exponent=1.0d0)
+          self%varianceCurrentRate           (0:self%countVarianceCurrentRate           )=self%latticeVarianceCurrentRate%values()
           self%varianceCurrentRateNonCrossing(0                                         )=0.0d0
-          self%varianceCurrentRateNonCrossing(1:self%countVarianceCurrentRateNonCrossing)=self%varianceRange(varianceMinimumRate ,self%varianceMaximumRate,self%countVarianceCurrentRateNonCrossing  ,exponent =1.0d0               )
+          self%varianceCurrentRateNonCrossing(1:self%countVarianceCurrentRateNonCrossing)=self%varianceRange(varianceMinimumRate,self%varianceMaximumRate,self%countVarianceCurrentRateNonCrossing,exponent=1.0d0)
           ! The time table is logarithmically distributed in time.
-          self%timeRate                                                                  =Make_Range        (self%timeMinimumRate,self%timeMaximumRate    ,self%countTimeRate                        ,rangeType=rangeTypeLogarithmic)
+          self%timeRate                                                                  =self%latticeTimeRate           %values()
           ! Allocate temporary arrays used in quad-precision solver for barrier crossing rates.
           allocate(varianceProgenitorRateQuad(0:self%countVarianceProgenitorRate))
           varianceProgenitorRateQuad=self%varianceProgenitorRate
@@ -678,14 +760,15 @@ contains
 #ifdef USEMPI
           end if
 #endif
-          countTimeNew=self%countTimeRate
-          if (.not.varianceMaximumChanged.and..not.self%retabulateRateNonCrossing) countTimeNew=countNewLower+countNewUpper
-          loopCountTotal   = int(countTimeNew,kind=c_size_t)*int(self%countVarianceCurrentRateNonCrossing+1,kind=c_size_t)
+          ! Count only those epochs which must actually be solved for - those carried over are skipped below.
+          countTimeRateSolved           =self%countTimeRate
+          countTimeRateSolvedNonCrossing=self%countTimeRate
+          if (reuseSolutions           ) countTimeRateSolved           =countTimeRateSolved           -countTimeRatePrevious
+          if (reuseSolutionsNonCrossing) countTimeRateSolvedNonCrossing=countTimeRateSolvedNonCrossing-countTimeRatePrevious
+          loopCountTotal   = int(countTimeRateSolvedNonCrossing,kind=c_size_t)*int(self%countVarianceCurrentRateNonCrossing+1,kind=c_size_t)
           if (makeTable) then
-             countTimeNew=self%countTimeRate
-             if (.not.varianceMaximumChanged) countTimeNew=countNewLower+countNewUpper
-             loopCountTotal=+loopCountTotal                                                                                &
-                  &         +int(countTimeNew,kind=c_size_t)*int(self%countVarianceCurrentRate           +1,kind=c_size_t)
+             loopCountTotal=+loopCountTotal                                                                                                  &
+                  &         +int(countTimeRateSolved           ,kind=c_size_t)*int(self%countVarianceCurrentRate           +1,kind=c_size_t)
           end if
 #ifdef USEMPI
           if (mpiSelf%isMaster() .and. self%coordinatedMPI_) then
@@ -735,12 +818,17 @@ contains
                 allocate(varianceCurrentRateQuad(0:self%countVarianceCurrentRateNonCrossing))
              end if
              do iTime=1,self%countTimeRate
-                ! Skip if this time was already computed.
+                ! Skip those epochs whose solutions are carried over from the previous tabulation. The test involves no
+                ! thread-private state, so every thread of the team takes the same branch and the `!$omp do` below is reached by
+                ! all of them or by none.
+                if     (                                                                    &
+                     &        iTime >  offsetTimeRate                                       &
+                     &  .and. iTime <= offsetTimeRate+countTimeRatePrevious                 &
+                     &  .and. merge(reuseSolutions,reuseSolutionsNonCrossing,iCompute == 1) &
+                     & ) cycle
                 if (iCompute == 1) then
-                   if (.not.varianceMaximumChanged                                        .and.(iTime > countNewLower .and. self%countTimeRate+1-iTime > countNewUpper)) cycle
                    varianceMaximumRateLimit=self%varianceMaximumRate
                 else
-                   if (.not.varianceMaximumChanged.and..not.self%retabulateRateNonCrossing.and.(iTime > countNewLower .and. self%countTimeRate+1-iTime > countNewUpper)) cycle
                    if (self%massMinimumRateNonCrossing > 0.0d0) then
                       varianceMaximumRateLimit=cosmologicalMassVariance_%rootVariance(self%massMinimumRateNonCrossing,self%timeRate(iTime))**2
                    else
@@ -966,16 +1054,15 @@ contains
              self%nonCrossingRate=mpiSelf%sum(self%nonCrossingRate)
           end if
 #endif
-          ! If only times have changed then copy results previously computed to the tables.
-          if (.not.varianceMaximumChanged) then
-             if (makeTable) then
-                self%firstCrossingRate(:,:,countNewLower+1:countNewLower+size(firstCrossingRate,dim=3))=firstCrossingRate
-                deallocate(firstCrossingRate)
-             end if
-             if (.not.self%retabulateRateNonCrossing) then
-                self%nonCrossingRate  (  :,countNewLower+1:countNewLower+size(nonCrossingRate  ,dim=2))=nonCrossingRate
-                deallocate(nonCrossingRate  )
-             end if
+          ! Carry over the solutions already found, into the epochs skipped above - see the parent class for why this is done
+          ! after the reduction over MPI processes rather than before the solution.
+          if (reuseSolutions           ) then
+             self%firstCrossingRate(:,:,offsetTimeRate+1:offsetTimeRate+countTimeRatePrevious)=firstCrossingRate
+             deallocate(firstCrossingRate)
+          end if
+          if (reuseSolutionsNonCrossing) then
+             self%nonCrossingRate  (  :,offsetTimeRate+1:offsetTimeRate+countTimeRatePrevious)=nonCrossingRate
+             deallocate(nonCrossingRate  )
           end if
           ! Build the interpolators.
           if (allocated(self%interpolatorVarianceRate                  )) deallocate(self%interpolatorVarianceRate                  )

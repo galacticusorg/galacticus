@@ -30,7 +30,15 @@
   !![
   <nodeOperator name="nodeOperatorSatelliteTidalHeating" docformat="rst">
    <description>
-   A node operator class that heats the dark matter distribution of orbiting satellite halos through tidal forces, integrating the cumulative tidal tensor along the orbit using a :galacticus-class:`satelliteTidalHeatingRateClass`. ``efficiencyDecay`` scales the rate at which the tidal tensor integral decays between pericentric passages; ``applyPreInfall`` enables tidal heating before the satellite formally enters the host virial radius.
+   A node operator class that heats the dark matter distribution of orbiting satellite halos through tidal forces, integrating the cumulative tidal tensor along the orbit using a :galacticus-class:`satelliteTidalHeatingRateClass`. ``applyPreInfall`` enables tidal heating before the satellite formally enters the host virial radius.
+
+   The time integral of the tidal tensor along the orbit, :math:`G_{ij}`, is evolved as
+
+   .. math::
+
+      \dot{G}_{ij} = g_{ij} - \epsilon_\mathrm{decay} G_{ij}/T_\mathrm{orb},
+
+   where :math:`g_{ij}` is the instantaneous tidal tensor, :math:`T_\mathrm{orb}` is the satellite's orbital period, and :math:`\epsilon_\mathrm{decay}=`\ ``[efficiencyDecay]``. The decay term is introduced artificially so that the integration of :math:`g_{ij}` is effectively over just the previous orbit---that is, over the previous tidal shock---rather than over the entire orbital history. The orbital period is taken to be :math:`2\pi` divided by the larger of the angular and radial orbital frequencies, falling back to the halo dynamical time when that frequency is negligibly small.
    </description>
   </nodeOperator>
   !!]

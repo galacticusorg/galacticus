@@ -60,7 +60,8 @@ def extract(fileName, name, suffix, parameterFileName):
 
         *likelihoods* is a list of dicts, one per analysis, each with keys
         ``"name"``, ``"unit"`` (always ``"-logℒ"``), and ``"value"`` (the
-        string representation of ``|-log ℒ|``).
+        string representation of ``-log ℒ``, so that smaller is better, as the
+        ``customSmallerIsBetter`` benchmark tool expects).
 
         *results* is a list of dicts containing plot-ready x/y data, error
         estimates, and metadata for each analysis that defines a supported
@@ -89,7 +90,7 @@ def extract(fileName, name, suffix, parameterFileName):
             {
         	"name" : name+" - Likelihood - "+analysisName,
         	"unit" : "-logℒ"                            ,
-        	"value": str(np.abs(logLikelihood))
+        	"value": str(-logLikelihood)
             }
             )
         # Skip cases for which we have no "type" specified.
@@ -176,7 +177,7 @@ def write(likelihoods, results, suffix, parameterFileName):
     likelihoods : list[dict]
         A list of dicts, one per analysis, each with keys ``"name"``, ``"unit"``
         (always ``"-logℒ"``), and ``"value"`` (the string representation of
-        ``|-log ℒ|``).
+        ``-log ℒ``).
     results : list[dict]
         A list of dicts containing plot-ready x/y data, error estimates, and
         metadata for each analysis.

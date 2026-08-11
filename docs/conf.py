@@ -120,8 +120,10 @@ templates_path = ['_templates']
 html_static_path = ['_static']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
-# The physics pages are generated; do not fail the build on the occasional
-# duplicate label that can arise from auto-generated cross-reference anchors.
+# ``epub.unknown_project_files``: the epub builder warns about the generated
+# ``_figures`` assets it does not know how to package.  ``misc.highlighting_failure``:
+# some embedded snippets are pseudo-code that Pygments cannot lex.  Neither is
+# actionable, and neither should fail the build.
 suppress_warnings = ['epub.unknown_project_files', 'misc.highlighting_failure']
 
 

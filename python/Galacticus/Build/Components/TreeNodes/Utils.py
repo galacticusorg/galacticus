@@ -116,7 +116,7 @@ def Tree_Node_Copy(build):
         'returnType':  r"``void``",
         'arguments':   (
             r"``class(treeNode)`` "
-            r"targetNode [inout], ``logical`` [skipFormationNode] [in]"
+            r"targetNode [inout], ``logical`` skipFormationNode (optional) [in]"
         ),
     })
 

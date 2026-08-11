@@ -211,6 +211,41 @@ _CALLBACK_PROCEDURE_INTERFACES = {
 }
 
 
+def _resolve_type_module(type_name, implementation, module_uses_impls,
+                         extensions, func_class):
+    """Return the module from which *type_name* should be imported.
+
+    Resolution order:
+
+      0. an explicit override in :data:`_SHARED_TYPE_MODULES` (wins outright —
+         used when the type's home module isn't imported by name anywhere in
+         the class's own ``use``-blocks, e.g. because it is defined in the very
+         module the implementation is included into),
+      1. the implementation's ``use``-blocks, walking up the ``extends`` chain,
+      2. the functionClass file's own ``use``-blocks,
+      3. last resort: the functionClass's own module.
+
+    Step 2 matters for a type which the functionClass merely *use-associates*
+    from elsewhere: falling straight through to step 3 would emit
+    ``use :: <functionClass module>, only : <type>``, which fails to compile
+    whenever that module does not itself re-export the type (the usual case,
+    since functionClass modules are ``private`` by default).
+    """
+    import_module = _SHARED_TYPE_MODULES.get(type_name)
+    if implementation:
+        cls = implementation['name']
+        while cls and not import_module:
+            import_module = _module_for_symbol(
+                module_uses_impls.get(cls, []), type_name)
+            cls = extensions.get(cls)
+    if not import_module:
+        import_module = _module_for_symbol(
+            func_class.get('moduleUses', []), type_name)
+    if not import_module:
+        import_module = func_class.get('module')
+    return import_module
+
+
 def _module_for_symbol(use_blocks, symbol):
     """Return the name of the module whose `use ..., only :` list includes
     `symbol`, or None.
@@ -1722,21 +1757,9 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                 #    type explicitly (e.g. when the enum is defined in the same
                 #    module the impl is included into) so the walk below would
                 #    otherwise miss it.
-                import_module = _SHARED_TYPE_MODULES.get(type_spec_val)
-                # 1. walk implementation's module uses, following the extends chain.
-                if implementation:
-                    cls = implementation['name']
-                    while cls and not import_module:
-                        import_module = _module_for_symbol(
-                            module_uses_impls.get(cls, []), type_spec_val)
-                        cls = extensions.get(cls)
-                # 2. fall back to the functionClass file's own module uses.
-                if not import_module:
-                    import_module = _module_for_symbol(
-                        func_class.get('moduleUses', []), type_spec_val)
-                # 3. last resort: the functionClass's own module.
-                if not import_module:
-                    import_module = func_class.get('module')
+                import_module = _resolve_type_module(
+                    type_spec_val, implementation, module_uses_impls,
+                    extensions, func_class)
                 if import_module:
                     arg.fort_modules.setdefault(import_module, {})[type_spec_val] = 1
 
@@ -1765,7 +1788,13 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                 if type_spec_val == 'inputParameters':
                     arg.fort_modules.setdefault('Input_Parameters', {})['inputParameters'] = 1
                 else:
-                    mod = func_class.get('module', '')
+                    # Resolve the type's home module rather than assuming it is
+                    # the functionClass's own: a type which the functionClass
+                    # only use-associates (and so does not re-export) would
+                    # otherwise produce an uncompilable `use` statement.
+                    mod = _resolve_type_module(
+                        type_spec_val, implementation, module_uses_impls,
+                        extensions, func_class)
                     if mod:
                         arg.fort_modules.setdefault(mod, {})[type_spec_val] = 1
 

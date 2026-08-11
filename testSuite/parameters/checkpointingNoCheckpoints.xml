@@ -557,6 +557,11 @@
       <darkMatterOnly            value="true"    />
     </nodePropertyExtractor>
     <nodePropertyExtractor value="densityProfile">
+      <!-- Radii given as a fraction of the stellar half-mass radius vanish in nodes with no
+           stars. The galactic mass distribution there can be a bare black hole point mass,
+           whose density at zero radius does not exist, so report the undefined-value sentinel
+           rather than stopping. -->
+      <zeroRadiusIsFatal value="false"/>
       <radiusSpecifiers value="virialRadius:darkHalo:dark:0.001 virialRadius:darkHalo:dark:0.003 virialRadius:darkHalo:dark:0.005 virialRadius:darkHalo:dark:0.007 virialRadius:darkHalo:dark:0.009 virialRadius:darkHalo:dark:0.01 virialRadius:darkHalo:dark:0.03 virialRadius:darkHalo:dark:0.05 virialRadius:darkHalo:dark:0.07 virialRadius:darkHalo:dark:0.09 virialRadius:darkHalo:dark:0.1 virialRadius:darkHalo:dark:0.3 virialRadius:darkHalo:dark:0.5 virialRadius:darkHalo:dark:0.7 virialRadius:darkHalo:dark:0.9 virialRadius:darkHalo:dark:1.0 stellarMassFraction{0.5}:all:galactic:0.3 stellarMassFraction{0.5}:all:galactic:0.5 stellarMassFraction{0.5}:all:galactic:0.7 stellarMassFraction{0.5}:all:galactic:1.0 stellarMassFraction{0.5}:all:galactic:2.0 stellarMassFraction{0.5}:all:galactic:3.0"/>
       <includeRadii value="true"/>
     </nodePropertyExtractor>

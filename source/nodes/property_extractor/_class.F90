@@ -25,9 +25,10 @@ module Node_Property_Extractors
   !!{RST
   Provides a class that implements extraction of properties from nodes.
   !!}
-  use :: Galacticus_Nodes       , only : treeNode
-  use :: Multi_Counters         , only : multiCounter
-  use :: Output_Analyses_Options, only : enumerationOutputAnalysisPropertyQuantityType, enumerationOutputAnalysisPropertyTypeType, outputAnalysisPropertyQuantityUnknown, outputAnalysisPropertyTypeLinear
+  use :: Dust_Attenuation_Descriptors, only : decompositionRequest                         , luminosityDecomposition
+  use :: Galacticus_Nodes            , only : treeNode
+  use :: Multi_Counters              , only : multiCounter
+  use :: Output_Analyses_Options     , only : enumerationOutputAnalysisPropertyQuantityType, enumerationOutputAnalysisPropertyTypeType, outputAnalysisPropertyQuantityUnknown, outputAnalysisPropertyTypeLinear
   private
 
   !![
@@ -93,6 +94,65 @@ module Node_Property_Extractors
         nodePropertyExtractorExtractScalar=0.0d0
         call Error_Report('extractScalar requires an extractor of the scalar class'//{introspection:location})
      end select
+    </code>
+   </method>
+   <method name="supportsAttenuation" >
+    <description>
+    Return true if this extractor is able to decompose its output into parcels of emission which can be attenuated by
+    dust---that is, if it implements the ``decompose`` method. Extractors which do not produce a luminosity, and
+    luminosity-producing extractors for which no decomposition has yet been implemented, return false. The
+    ``dustAttenuation`` property extractor uses this to reject unusable children at construction time, rather than
+    failing part way through a run.
+    </description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+     nodePropertyExtractorSupportsAttenuation=.false.
+    </code>
+   </method>
+   <method name="decompose" >
+    <description>
+    Return the luminosity extracted from the given ``node`` at the given ``time``, split into parcels of emission which
+    may each be attenuated differently by dust, at a resolution at least as fine as that specified by ``request``. Each
+    parcel records the output element to which it contributes, so that the parcels can be recombined by the
+    ``recompose`` method once they have been attenuated.
+
+    The default implementation reports an error: only extractors whose ``supportsAttenuation`` method returns true
+    override it. This mirrors the treatment of ``extractScalar``, and is used because Fortran provides no way to mix a
+    decomposition interface into the several rank-specific extractor classes independently.
+    </description>
+    <type>type(luminosityDecomposition)</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <modules>Error</modules>
+    <argument>type            (treeNode            ), intent(inout), target :: node</argument>
+    <argument>double precision                      , intent(in   )         :: time</argument>
+    <argument>type            (decompositionRequest), intent(in   )         :: request</argument>
+    <code>
+     !$GLC attributes unused :: self, node, time, request
+     call nodePropertyExtractorDecompose%initialize(0,0)
+     call Error_Report('this property extractor does not support dust attenuation'//{introspection:location})
+    </code>
+   </method>
+   <method name="recompose" >
+    <description>
+    Recombine the parcels of a ``luminosityDecomposition``, each multiplied by the corresponding ``transmission``
+    factor, into the output element values of this extractor. On return ``values`` has one element per output element
+    of the decomposition, in the same order as the extractor's own ``extract`` method would return them.
+
+    The default implementation simply sums each parcel into the output element which it contributes to, which is
+    correct for any output that is linear in luminosity. Extractors whose output is not linear in luminosity---
+    magnitudes, colours, or ratios, for example---must override this method.
+    </description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>type            (luminosityDecomposition), intent(in   )                            :: decomposition</argument>
+    <argument>double precision                         , intent(in   ), dimension(:)              :: transmission</argument>
+    <argument>double precision                         , intent(inout), dimension(:), allocatable :: values</argument>
+    <code>
+     !$GLC attributes unused :: self
+     call decomposition%reduce(transmission,values)
     </code>
    </method>
   </functionClass>

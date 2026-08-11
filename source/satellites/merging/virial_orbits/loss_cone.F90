@@ -17,6 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson. The fixes for issue #1321, and the pinning of the mass tabulation to an
+!+    absolute lattice for issue #1317, were diagnosed and drafted with assistance from Claude, and reviewed and verified by
+!+    Andrew Benson.
+
   !!{RST
   An implementation of virial orbits using a loss cone model.
   !!}
@@ -33,6 +37,7 @@
   use :: Linear_Growth                  , only : linearGrowthClass
   use :: Virial_Density_Contrast        , only : virialDensityContrastClass
   use :: Numerical_Interpolation        , only : interpolator
+  use :: Numerical_Ranges               , only : rangeLattice
   use :: Correlation_Functions_Two_Point, only : correlationFunctionTwoPointClass
   use :: Galacticus_Nodes               , only : treeNode
   use :: Merger_Tree_Branching          , only : mergerTreeBranchingProbabilityClass
@@ -62,9 +67,9 @@
      class           (correlationFunctionTwoPointClass   ), pointer                         :: correlationFunctionTwoPoint_    => null()
      class           (mergerTreeBranchingProbabilityClass), pointer                         :: mergerTreeBranchingProbability_ => null()
      double precision                                                                       :: velocityMinimum                          , velocityMaximum                     , &
-          &                                                                                    massMinimum                              , massMaximum                         , &
           &                                                                                    time                                     , velocityDispersionMultiplier
      integer                                                                                :: countMassesPerDecade                     , countVelocitiesPerUnit
+     type            (rangeLattice                       )                                  :: latticeMass
      logical                                                                                :: includeInFlightGrowth
      double precision                                     , allocatable, dimension(:      ) :: mass                                     , velocity
      double precision                                     , allocatable, dimension(:,:    ) :: velocityRadialMeanVirial                 , velocityRadialDispersionVirial      , &
@@ -109,6 +114,12 @@
      module procedure lossConeConstructorParameters
      module procedure lossConeConstructorInternal
   end interface virialOrbitLossCone
+
+  ! Default range of halo masses over which to tabulate. This seeds the pinned range: any tabulation, whatever masses prompted
+  ! it, spans at least this range, which guarantees that any two tabulations overlap and so that one can always be extended to
+  ! cover the other. These are whole decades, and so are themselves anchor points of the lattice for any density of points per
+  ! decade.
+  double precision, parameter :: massTableMinimum=1.0d06, massTableMaximum=1.0d15
 
   ! Submodule-scope objects used for OpenMP parallelism.
   class(cosmologyFunctionsClass                    ), pointer :: cosmologyFunctions_
@@ -292,10 +303,9 @@ contains
     <constructorAssign variables="velocityMinimum, velocityMaximum, countVelocitiesPerUnit, countMassesPerDecade, includeInFlightGrowth, haloMassFunctionA, haloMassFunctionP, haloMassFunctionNormalization, velocityDispersionMultiplier, *cosmologyFunctions_, *cosmologyParameters_, *cosmologicalVelocityField_, *linearGrowth_, *darkMatterHaloBias_, *darkMatterHaloScale_, *virialDensityContrast_, *correlationFunctionTwoPoint_, *cosmologicalMassVariance_, *criticalOverdensity_, *mergerTreeBranchingProbability_, *darkMatterProfileDMO_"/>
     !!]
 
-    ! Set an initial mass range, along with an unphysical initial time (so that retabulation will be forced on the first call).
-    self%time       =-huge(0.0d0)
-    self%massMinimum=1.0d06
-    self%massMaximum=1.0d15
+    ! Set an unphysical initial time, so that tabulation is forced on the first call. The range of masses is left undefined here:
+    ! it is established on that first call, seeded with the default range of "massTableMinimum" to "massTableMaximum".
+    self%time=-huge(0.0d0)
     ! Build the velocity array and interpolator.
     countVelocities=int((self%velocityMaximum-self%velocityMinimum)*dble(self%countVelocitiesPerUnit))+1    
     allocate(self%velocity            (countVelocities))
@@ -699,13 +709,14 @@ contains
     !!}
     use :: Cosmological_Density_Field          , only : haloEnvironmentNormal
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Display                             , only : displayCounter                     , displayCounterClear , displayIndent, displayUnindent, &
+    use :: Display                             , only : displayCounter                     , displayCounterClear , displayIndent, displayUnindent     , &
           &                                             verbosityLevelWorking
     use :: Error                               , only : errorStatusSuccess
     use :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic  , treeNode
     use :: Calculations_Resets                 , only : Calculations_Reset
     use :: Numerical_Constants_Math            , only : Pi
-    use :: Numerical_Ranges                    , only : Make_Range                         , rangeTypeLogarithmic
+    use :: Numerical_Ranges                    , only : Make_Range                         , rangeTypeLogarithmic, Range_Pinned , Range_Lattice_Offset, &
+          &                                             gridSchemePerDecade
     use :: Table_Labels                        , only : extrapolationTypeFix
     use :: Numerical_Integration               , only : integrator
     use :: OMP_Lib                             , only : OMP_Get_Thread_Num
@@ -721,13 +732,23 @@ contains
          &                                                                               velocityDistributionPeak                       , velocityTotalRMS
     double precision                                , dimension(:,:,:  ), allocatable :: velocityRadialDistributionOrbits               , velocityTangentialDistributionOrbits
     double precision                                , dimension(:,:,:,:), allocatable :: velocityDistributionOrbits
+    logical                                         , dimension(:,:    ), allocatable :: isComputed
+    type            (rangeLattice                  )                                  :: latticeMass
+    integer                                                                           :: offsetMass                                     , countMassesPrevious
+    logical                                                                           :: reuseSolutions
     double precision                                , dimension(2      )              :: radiiEvaluation
     double precision                                , parameter                       :: velocityRadialInfallMaximum           =6.0000d0
     double precision                                , parameter                       :: velocityRadialInfallStep              =0.0001d0
     double precision                                , parameter                       :: radiusTableMinimum                    =1.0d-2
     double precision                                , parameter                       :: radiusTableMaximum                    =1.0d+3
     integer                                         , parameter                       :: radiusTablePointsPerDecade            =20
-    integer                                         , parameter                       :: overdensityLimitLower                 =-10.0d0
+    double precision                                , parameter                       :: overdensityLimitLower                 =-10.0d0
+    ! The lower limit of the environmental overdensity integrals below is nominally "overdensityLimitLower" standard deviations
+    ! of the environmental density field. That can reach beyond the range over which the halo environment class is able to map
+    ! linear to nonlinear overdensity (which is tabulated by its spherical collapse solver over a fixed range of linear
+    ! overdensity), so the limit is clamped to the minimum of that range. Since the integrands are weighted by the (Gaussian)
+    ! environmental PDF, the truncated tail contributes negligibly, and the same factor appears in the normalizing integral.
+    double precision                                , parameter                       :: overdensityLinearMinimumMap           = -5.0d0
     integer                                                                           :: iHost                                          , iSatellite                                , &
          &                                                                               countProgress                                  , countTotal                                , &
          &                                                                               countMasses                                    , countVelocities                           , &
@@ -750,9 +771,10 @@ contains
          &                                                                               radiusInfallTerm2                              , factorEnvironmental                       , &
          &                                                                               massEnvironment                                , radiusEnvironment                         , &
          &                                                                               jacobianFactor                                 , jacobianSign                              , &
-         &                                                                               radiusEvaluateLagrangian
-    type            (interpolator                  )                                  :: interpolatorVelocityDispersionLinear
-    type            (integrator                    )                                  :: integratorEnvironment                          , integratorEnvironmentNormalizer
+         &                                                                               radiusEvaluateLagrangian                       , overdensityEnvironmentMinimum             , &
+         &                                                                               energyOrbitDoubled
+    type            (interpolator                  )                    , allocatable :: interpolatorVelocityDispersionLinear
+    type            (integrator                    )                    , allocatable :: integratorEnvironment                          , integratorEnvironmentNormalizer
     
     ! Read in any existing tabulation from file.
     call self%restoreTable()
@@ -774,44 +796,57 @@ contains
          &                                                cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
          &                                                virialDensityContrast_=self%virialDensityContrast_                                                                           &
          & )
-    if     (                                           &
-         &   basicHost     %time() == self%time        &
-         &  .and.                                      &
-         &   basicHost     %mass() >= self%massMinimum &
-         &  .and.                                      &
-         &   basicHost     %mass() <= self%massMaximum &
-         &  .and.                                      &
-         &   basicSatellite%mass() >= self%massMinimum &
-         &  .and.                                      &
-         &   basicSatellite%mass() <= self%massMaximum &
+    ! Find the range of masses required, pinned to an absolute lattice so that the tabulation---and hence every value
+    ! interpolated from it---is independent of the masses at which it happened to be first requested, and so that it can be
+    ! extended without recomputing any solution already found. Only the mass axis is pinned: the velocity axis is fixed by the
+    ! parameters of this object and never changes, while the epoch is a key rather than an axis---the tabulation is discarded
+    ! wholesale when it changes, since every tabulated quantity depends on it.
+    !
+    ! Both the raw node masses and those same masses under our own definition of the virial density contrast are covered. The
+    ! latter are the coordinates at which the tables are actually interpolated (see "lossConeInterpolants"), while the former are
+    ! what the range of the tabulation was historically tested against here; the two differ by the mass-definition conversion, so
+    ! covering both leaves the tabulation no narrower than it was before being pinned. The interpolator built below aborts on
+    ! extrapolation, so a mass falling outside the tabulated range is fatal rather than merely inaccurate.
+    latticeMass=Range_Pinned(                                                                                 &
+         &                                   [basicHost%mass(),basicSatellite%mass(),massHost,massSatellite], &
+         &                                    self%countMassesPerDecade                                     , &
+         &                                    gridSchemePerDecade                                           , &
+         &                    rangeCurrent  =[massTableMinimum,massTableMaximum]                            , &
+         &                    latticeCurrent=self%latticeMass                                                 &
+         &                   )
+    if     (                                                   &
+         &   basicHost       %time  (           ) == self%time &
+         &  .and.                                              &
+         &   self%latticeMass%covers(latticeMass)              &
          & ) return
-    ! Free existing tabulations.
-    if (allocated(self%mass)) then
-       deallocate(self%mass                                )
-       deallocate(self%velocity                            )
-       deallocate(self%velocityRadialMeanVirial            )
-       deallocate(self%velocityRadialDispersionVirial      )
-       deallocate(self%velocityTangentialMeanVirial        )
-       deallocate(self%velocityTangentialDispersionVirial  )
-       deallocate(self%velocityRadialDistributionOrbits    )
-       deallocate(self%velocityTangentialDistributionOrbits)
-       deallocate(self%velocityDistributionOrbits          )
-       deallocate(self%velocityTotalRMS                    )
-       deallocate(self%velocityDistributionPeak            )
-       deallocate(self%interpolatorMass                    )
-       deallocate(self%interpolatorVelocity                )
+    ! Determine whether the solutions already found can be carried over into the new tabulation. They can only if the epoch is
+    ! unchanged---every tabulated quantity depends on it---and if there is an existing tabulation, on a known lattice, to carry
+    ! over. Where they can, they occupy a block of the new arrays offset by the difference in the lattices.
+    reuseSolutions=  basicHost       %time     () == self%time &
+         &         .and.                                       &
+         &           self%latticeMass%isDefined()              &
+         &         .and.                                       &
+         &           allocated(self%velocityRadialMeanVirial)
+    countMassesPrevious=0
+    offsetMass         =0
+    if (reuseSolutions) then
+       countMassesPrevious=self%latticeMass%count
+       offsetMass         =Range_Lattice_Offset(self%latticeMass,latticeMass)
     end if
     ! Set time for this tabulation.
     self%time=basicHost%time()
-    ! Get number of velocities to tabulate.
+    ! Get number of velocities to tabulate. Note that "velocity" and "interpolatorVelocity" are built once, by the constructor,
+    ! from parameters that do not change between tabulations, and are deliberately left alone here---they are used below, and by
+    ! the interpolants, throughout this and subsequent tabulations.
     countVelocities=size(self%velocity)
-    ! Build range of masses.
-    self%massMinimum=min(self%massMinimum,0.5d0*min(basicHost%mass(),basicSatellite%mass()))
-    self%massMaximum=max(self%massMaximum,2.0d0*max(basicHost%mass(),basicSatellite%mass()))
-    countMasses     =int(log10(self%massMaximum/self%massMinimum)*dble(self%countMassesPerDecade))+1    
+    ! Build the range of masses. The abscissae are taken from the lattice, rather than by subdividing the range, so that they are
+    ! bit-identical to those of any other tabulation built on the same lattice.
+    countMasses=latticeMass%count
+    if (allocated(self%mass            )) deallocate(self%mass            )
+    if (allocated(self%interpolatorMass)) deallocate(self%interpolatorMass)
     allocate(self%mass            (countMasses))
     allocate(self%interpolatorMass             )
-    self%mass            =Make_Range(self%massMinimum,self%massMaximum,countMasses,rangeTypeLogarithmic)
+    self%mass            =latticeMass%values()
     self%interpolatorMass=interpolator(log(self%mass))
     ! Allocate arrays for results and initialize.
     allocate(velocityRadialMeanVirial            (countMasses,countMasses                                ))
@@ -823,6 +858,7 @@ contains
     allocate(velocityDistributionOrbits          (countMasses,countMasses,countVelocities,countVelocities))
     allocate(velocityTotalRMS                    (countMasses,countMasses                                ))
     allocate(velocityDistributionPeak            (countMasses,countMasses                                ))
+    allocate(isComputed                          (countMasses,countMasses                                ))
     velocityRadialMeanVirial                     =0.0d0
     velocityRadialDispersionVirial               =0.0d0
     velocityTangentialMeanVirial                 =0.0d0
@@ -832,10 +868,31 @@ contains
     velocityDistributionOrbits                   =0.0d0
     velocityTotalRMS                             =0.0d0
     velocityDistributionPeak                     =0.0d0
-    ! Iterate over host masses.
-    countTotal   =(countMasses*(countMasses+1))/2
+    isComputed                                   =.false.
+    ! Carry over the solutions already found. Both mass dimensions of every array are indexed on the same lattice, so the
+    ! surviving solutions form a square block offset equally along both.
+    if (reuseSolutions) then
+       velocityRadialMeanVirial            (offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious    )=self%velocityRadialMeanVirial
+       velocityRadialDispersionVirial      (offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious    )=self%velocityRadialDispersionVirial
+       velocityTangentialMeanVirial        (offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious    )=self%velocityTangentialMeanVirial
+       velocityTangentialDispersionVirial  (offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious    )=self%velocityTangentialDispersionVirial
+       velocityRadialDistributionOrbits    (offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious,:  )=self%velocityRadialDistributionOrbits
+       velocityTangentialDistributionOrbits(offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious,:  )=self%velocityTangentialDistributionOrbits
+       velocityDistributionOrbits          (offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious,:,:)=self%velocityDistributionOrbits
+       velocityTotalRMS                    (offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious    )=self%velocityTotalRMS
+       velocityDistributionPeak            (offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious    )=self%velocityDistributionPeak
+       isComputed                          (offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious    )=.true.
+    end if
+    ! Record the lattice on which this tabulation is built.
+    self%latticeMass=latticeMass
+    ! Iterate over host masses. Only those solutions not carried over need be found, and then only for satellites no more massive
+    ! than their host.
+    countTotal=0
+    do iHost=1,countMasses
+       countTotal=countTotal+count(.not.isComputed(iHost,1:iHost))
+    end do
     countProgress=0
-    !$omp parallel private(iHost,iSatellite,massHost,massSatellite,tree,nodeHost,nodeSatellite,basicHost,basicSatellite,radiusVirialHost,velocityVirialHost,velocityDispersionLinear,indexVelocityRadial,indexVelocityTangential,velocityRadialVirial,velocityTangentialVirial,countVelocityRadialInfall,indexVelocityRadialInfall,velocityRadialInfall,radiusInfallTerm1,radiusInfallTerm2,radiiEvaluation,iEvaluate,radiusEvaluateVirial,timeEvaluate,radiusApocenterVirial,radiusPericenterVirial,timeOfFlightVirial,timeOfFlight,radiusEvaluate,radiusEvaluateComoving,velocityDispersionEvaluate,velocityRadialMeanEvaluate,velocityDispersionRadialEvaluateVirial,velocityDispersionTangentialEvaluateVirial,velocityMeanRadialEvaluateVirial,velocityTangentialInfall,jacobianFactor,jacobianDeterminant,distributionFunction,interpolatorVelocityDispersionLinear,integratorEnvironment,integratorEnvironmentNormalizer,factorEnvironmental,massEnvironment,radiusEnvironment)
+    !$omp parallel private(iHost,iSatellite,massHost,massSatellite,tree,nodeHost,nodeSatellite,basicHost,basicSatellite,radiusVirialHost,velocityVirialHost,velocityDispersionLinear,indexVelocityRadial,indexVelocityTangential,velocityRadialVirial,velocityTangentialVirial,countVelocityRadialInfall,indexVelocityRadialInfall,velocityRadialInfall,radiusInfallTerm1,radiusInfallTerm2,radiiEvaluation,iEvaluate,radiusEvaluateVirial,timeEvaluate,radiusApocenterVirial,radiusPericenterVirial,timeOfFlightVirial,timeOfFlight,radiusEvaluate,radiusEvaluateComoving,velocityDispersionEvaluate,velocityRadialMeanEvaluate,velocityDispersionRadialEvaluateVirial,velocityDispersionTangentialEvaluateVirial,velocityMeanRadialEvaluateVirial,velocityTangentialInfall,jacobianFactor,jacobianDeterminant,distributionFunction,interpolatorVelocityDispersionLinear,integratorEnvironment,integratorEnvironmentNormalizer,factorEnvironmental,massEnvironment,radiusEnvironment,overdensityEnvironmentMinimum,energyOrbitDoubled)
     allocate(tree                                                                          )
     allocate(     cosmologyFunctions_            ,mold=self%cosmologyFunctions_            )
     allocate(     cosmologyParameters_           ,mold=self%cosmologyParameters_           )
@@ -925,9 +982,32 @@ contains
      </constructor>
     </referenceConstruct>
     !!]
+    ! Allocate the per-thread integrators and interpolator. These are declared "allocatable" and allocated here---rather than
+    ! being plain (non-allocatable) variables in the "private" clause above---because gfortran does not apply default
+    ! initialization to the private copy of a derived type, contrary to OpenMP, which requires the new list item to be
+    ! initialized as if it had been locally declared without an initializer. Their reference-counting "resourceManager"
+    ! components would therefore start filled with stack garbage, and the first assignment to them (which finalizes the
+    ! left-hand side) would release that garbage: either blocking forever in OMP_Set_Lock() on a bogus lock pointer, or
+    ! writing through a bogus counter pointer (issue #1321). OpenMP *does* guarantee that private copies of allocatables begin
+    ! unallocated, and ALLOCATE applies default initialization, so this route is safe.
+    allocate(integratorEnvironment               )
+    allocate(integratorEnvironmentNormalizer     )
+    allocate(interpolatorVelocityDispersionLinear)
     integratorEnvironment          =integrator(integrand=integrandEnvironment             ,toleranceRelative=1.0d-3)
     integratorEnvironmentNormalizer=integrator(integrand=integrandEnvironmentNormalization,toleranceRelative=1.0d-3)
+    ! Find the lower limit for the integrals over environmental overdensity, clamped to the range over which the halo environment
+    ! is able to map linear to nonlinear overdensity (see "overdensityLinearMinimumMap" above).
+    overdensityEnvironmentMinimum=max(                                                                              &
+         &                            +overdensityLimitLower                                                        &
+         &                            *cosmologicalMassVariance_%rootVariance(mass=massEnvironment,time=self%time), &
+         &                            +overdensityLinearMinimumMap                                                  &
+         &                           )
     do iHost=1,countMasses
+       ! Skip this host mass entirely if the solution for every satellite mass paired with it was carried over---this avoids
+       ! rebuilding the host node and re-evaluating its environmental boost factor, as well as the orbit distributions
+       ! themselves. Note that "isComputed" is shared, and is not modified anywhere within this parallel region, so every thread
+       ! takes this branch identically and the work-sharing constructs below remain matched across the team.
+       if (all(isComputed(iHost,1:iHost))) cycle
        ! Build host node.
        massHost           =  self%mass     (            iHost)
        massHost_          =  massHost
@@ -944,13 +1024,15 @@ contains
        radiusVirialHost  =darkMatterHaloScale_%radiusVirial  (nodeHost)
        velocityVirialHost=darkMatterHaloScale_%velocityVirial(nodeHost)
        ! Compute the environmental boost factor for velocity dispersion.
-       timeEvaluate_      =+                                                                                                                                 self%time
-       factorEnvironmental=+integratorEnvironment          %integrate(overdensityLimitLower*cosmologicalMassVariance_%rootVariance(mass=massEnvironment,time=self%time),haloEnvironment_%overdensityLinearMaximum()) &
-            &              /integratorEnvironmentNormalizer%integrate(overdensityLimitLower*cosmologicalMassVariance_%rootVariance(mass=massEnvironment,time=self%time),haloEnvironment_%overdensityLinearMaximum())
+       timeEvaluate_      =+self                           %time
+       factorEnvironmental=+integratorEnvironment          %integrate(overdensityEnvironmentMinimum,haloEnvironment_%overdensityLinearMaximum()) &
+            &              /integratorEnvironmentNormalizer%integrate(overdensityEnvironmentMinimum,haloEnvironment_%overdensityLinearMaximum())
        ! Iterate over satellite masses.
        do iSatellite=1,countMasses          
           ! Only consider satellites less (or equally) massive than their host.
-          if (iSatellite > iHost) cycle
+          if (iSatellite > iHost         ) cycle
+          ! Skip solutions carried over from a previous tabulation.
+          if (isComputed(iHost,iSatellite)) cycle
           if (OMP_Get_Thread_Num() == 0) then
              call displayCounter(int(100.0d0*dble(countProgress)/dble(countTotal)),isNew=countProgress==0,verbosity=verbosityLevelWorking)
              countProgress=countProgress+1             
@@ -1015,10 +1097,15 @@ contains
                         &            +  velocityRadialVirial    **2 &
                         &            +  velocityTangentialVirial**2 &
                         &            -  velocityRadialInfall    **2
+                   !! Skip cases where the roots are complex, or where the quadratic is degenerate. Note that
+                   !! "radiusInfallTerm1" must be excluded when it is exactly zero (not merely when it is negative): that is the
+                   !! tangency at which the two roots coincide, and the determinant of the Jacobian evaluated below diverges
+                   !! there as 1/√(radiusInfallTerm1). This is an integrable singularity of measure zero in the integral over
+                   !! infall radial velocity, so neighboring steps of that integral capture its contribution.
                     if     (                            &
-                        &   radiusInfallTerm1 <  0.0d0 &
-                        &  .or.                        &
-                        &   radiusInfallTerm2 == 0.0d0 &
+                        &    radiusInfallTerm1 <= 0.0d0 &
+                        &   .or.                        &
+                        &    radiusInfallTerm2 == 0.0d0 &
                         & ) cycle
                    !! Evaluate both roots of the equation to give the radii at which the current radial velocity is achieved.
                    radiiEvaluation(1)=(-2.0d0-sqrt(radiusInfallTerm1))/2.0d0/radiusInfallTerm2
@@ -1032,21 +1119,32 @@ contains
                       ! field at that lookback time.                         
                       !! Compute the apocenter of the orbit. For unbound orbits the apocentric radius will be negative - this
                       !! is acceptable and is handled correctly by the function which evaluates the time of flight.
-                      radiusApocenterVirial =+(                                                                                                            &
-                           &                   -2.0d0                                                                                                      &
-                           &                   -sqrt(4.0d0+4.0d0*velocityTangentialVirial**2*(-2.0d0+velocityRadialVirial**2+velocityTangentialVirial**2)) &
-                           &                  )                                                                                                            &
-                           &                 /  2.0d0                                                                                                      &
-                           &                 /                                               (-2.0d0+velocityRadialVirial**2+velocityTangentialVirial**2)
-                      radiusPericenterVirial=+(                                                                                                            &
-                           &                   -2.0d0                                                                                                      &
-                           &                   +sqrt(4.0d0+4.0d0*velocityTangentialVirial**2*(-2.0d0+velocityRadialVirial**2+velocityTangentialVirial**2)) &
-                           &                  )                                                                                                            &
-                           &                 /  2.0d0                                                                                                      &
-                           &                 /                                               (-2.0d0+velocityRadialVirial**2+velocityTangentialVirial**2)
-                      timeOfFlightVirial   =+abs(                                                                                                            &
-                           &                     +timeAlongOrbit(radiusEvaluateVirial,radiusApocenterVirial,radiusPericenterVirial,velocityTangentialVirial) &
-                           &                     -timeAlongOrbit(1.0d0               ,radiusApocenterVirial,radiusPericenterVirial,velocityTangentialVirial) &
+                      !! Twice the specific energy of the orbit. The turning points are the roots of "2 E r² + 2 r - v_θ² = 0",
+                      !! so this is also the coefficient which vanishes for a marginally bound (parabolic) orbit, for which the
+                      !! quadratic degenerates to a linear equation with the single root r = v_θ²/2 and no apocenter.
+                      energyOrbitDoubled=-2.0d0+velocityRadialVirial**2+velocityTangentialVirial**2
+                      if (energyOrbitDoubled == 0.0d0) then
+                         radiusPericenterVirial=+0.5d0*velocityTangentialVirial**2
+                         !! There is no apocenter; retain the convention that a negative apocentric radius denotes an unbound
+                         !! orbit. The value is never used, as timeAlongOrbit() branches on the energy before reaching it.
+                         radiusApocenterVirial =-huge(0.0d0)
+                      else
+                         radiusApocenterVirial =+(                                                                  &
+                              &                   -2.0d0                                                            &
+                              &                   -sqrt(4.0d0+4.0d0*velocityTangentialVirial**2*energyOrbitDoubled) &
+                              &                  )                                                                  &
+                              &                 /  2.0d0                                                            &
+                              &                 /                                               energyOrbitDoubled
+                         radiusPericenterVirial=+(                                                                  &
+                              &                   -2.0d0                                                            &
+                              &                   +sqrt(4.0d0+4.0d0*velocityTangentialVirial**2*energyOrbitDoubled) &
+                              &                  )                                                                  &
+                              &                 /  2.0d0                                                            &
+                              &                 /                                               energyOrbitDoubled
+                      end if
+                      timeOfFlightVirial   =+abs(                                                                                                                               &
+                           &                     +timeAlongOrbit(radiusEvaluateVirial,radiusApocenterVirial,radiusPericenterVirial,velocityTangentialVirial,energyOrbitDoubled) &
+                           &                     -timeAlongOrbit(1.0d0               ,radiusApocenterVirial,radiusPericenterVirial,velocityTangentialVirial,energyOrbitDoubled) &
                            &                    )
                       timeOfFlight=+                     timeOfFlightVirial           &
                            &       *darkMatterHaloScale_%timescaleDynamical(nodeHost)
@@ -1241,11 +1339,11 @@ contains
                      &                               +self%velocity                  (                                     indexVelocityTangential)**2 &
                      &                              )
              end do
-             velocityTotalRMS(iHost,iSatellite)=sqrt(                                                       &
-                  &                                  +    velocityTotalRMS          (iHost,iSatellite    )  &
-                  &                                  /sum(velocityDistributionOrbits(iHost,iSatellite,:,:)) &
-                  &                                 )
           end do
+          velocityTotalRMS(iHost,iSatellite)=sqrt(                                                       &
+               &                                  +    velocityTotalRMS          (iHost,iSatellite    )  &
+               &                                  /sum(velocityDistributionOrbits(iHost,iSatellite,:,:)) &
+               &                                 )
           !$omp end single
           ! Clean up.
           deallocate(nodeSatellite)
@@ -1349,9 +1447,35 @@ contains
     
   end subroutine lossConeTabulate
 
-  double precision function timeAlongOrbit(radius,radiusApocenter,radiusPericenter,velocityTangentialVirial)
+  double precision function timeAlongOrbit(radius,radiusApocenter,radiusPericenter,velocityTangentialVirial,energyDoubled)
     !!{RST
-    Compute the time taken along the orbit specified by the pericenter radius, ``radiusPericenter``, and the tangential velocity at the virial radius, ``velocityTangentialVirial``, to travel from the pericenter to the given radius, ``radius``. All quantities are in virial units. Writing
+    Compute the time taken along the orbit specified by the pericenter radius, ``radiusPericenter``, and the tangential velocity at the virial radius, ``velocityTangentialVirial``, to travel from the pericenter to the given radius, ``radius``. All quantities are in virial units. The argument ``energyDoubled`` is twice the specific orbital energy, :math:`2 E = -2 + v_\mathrm{r}^2 + v_\theta^2`, which selects between the bound, marginally bound, and unbound forms below.
+
+    The general expression given below is singular in two limits which are, in general, sampled by the tabulation grid, and which are therefore treated separately using their (elementary) closed forms:
+
+    * **Radial orbits** (:math:`v_\theta=0`). The pericentric radius is then zero---the orbit plunges to the origin---and the general expression diverges since it divides by :math:`r_\mathrm{p}`. The radial Kepler problem instead gives, for :math:`a` the semi-major axis,
+
+      .. math::
+
+         r = a (1-\cos \eta),  \,\,\, t = a^{3/2} (\eta - \sin \eta)
+
+      when bound (:math:`a = -1/2E`), and
+
+      .. math::
+
+         r = a (\cosh \eta - 1),  \,\,\, t = a^{3/2} (\sinh \eta - \eta)
+
+      when unbound (:math:`a = +1/2E`).
+
+    * **Marginally bound (parabolic) orbits** (:math:`E=0`). Here :math:`2 r_\mathrm{p} - v_\theta^2 = -2 E r_\mathrm{p}^2 = 0`, so the general expression divides by zero. Barker's equation instead gives
+
+      .. math::
+
+         t(r) = \sqrt{2 r_\mathrm{p}^3} \left( D + D^3/3 \right), \,\,\, D = \sqrt{r/r_\mathrm{p} - 1},
+
+      which reduces to the radial, marginally bound result :math:`t = \sqrt{2} r^{3/2}/3` as :math:`r_\mathrm{p} \rightarrow 0`.
+
+    Writing
 
     .. math::
 
@@ -1378,12 +1502,38 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: radiusApocenter          , velocityTangentialVirial , &
-         &                             radiusPericenter         , radius
+         &                             radiusPericenter         , radius                   , &
+         &                             energyDoubled
     double precision, parameter     :: timeInfinite     =1.0d100
+    double precision                :: semiMajorAxis            , anomaly
     double complex                  :: radiusPericenter_        , velocityTangentialVirial_, &
          &                             timeAlongOrbit_          , radius_
-    
-    if (radius == radiusPericenter) then
+
+    if      (velocityTangentialVirial == 0.0d0) then
+       ! A purely radial orbit. The pericentric radius is zero, so the general expression below---which divides by it---is
+       ! singular. Use instead the elementary solution of the radial Kepler problem.
+       if      (energyDoubled <  0.0d0) then
+          ! Bound.
+          semiMajorAxis =-1.0d0/energyDoubled
+          !! Clamp the argument of the arccosine, which can exceed unity in magnitude by a rounding error when the radius
+          !! reaches the apocenter.
+          anomaly       =acos(max(-1.0d0,min(+1.0d0,1.0d0-radius/semiMajorAxis)))
+          timeAlongOrbit=semiMajorAxis**1.5d0*(anomaly-sin(anomaly))
+       else if (energyDoubled         == 0.0d0) then
+          ! Marginally bound.
+          timeAlongOrbit=sqrt(2.0d0)*radius**1.5d0/3.0d0
+       else
+          ! Unbound.
+          semiMajorAxis =+1.0d0/energyDoubled
+          anomaly       =acosh(1.0d0+radius/semiMajorAxis)
+          timeAlongOrbit=semiMajorAxis**1.5d0*(sinh(anomaly)-anomaly)
+       end if
+    else if (energyDoubled            == 0.0d0) then
+       ! A marginally bound (parabolic) orbit with non-zero angular momentum. Here 2 rₚ - v_θ² = -2 E rₚ² vanishes, so the general
+       ! expression below divides by zero. Use Barker's equation instead.
+       anomaly       =sqrt(max(0.0d0,radius/radiusPericenter-1.0d0))
+       timeAlongOrbit=sqrt(2.0d0*radiusPericenter**3)*(anomaly+anomaly**3/3.0d0)
+    else if (radius == radiusPericenter) then
        ! The time at the pericenter is zero by construction.
        timeAlongOrbit=0.0d0
     else if (radiusApocenter > 0.0d0 .and. radius >= radiusApocenter) then
@@ -1429,22 +1579,26 @@ contains
     !!{RST
     Attempt to restore a table from file.
     !!}
-    use :: File_Utilities    , only : File_Exists, File_Lock, File_Unlock, lockDescriptor
+    use :: File_Utilities    , only : File_Exists              , File_Lock          , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File
     use :: ISO_Varying_String, only : char
+    use :: Numerical_Ranges  , only : enumerationGridSchemeType, gridSchemePerDecade
     implicit none
-    class           (virialOrbitLossCone)             , intent(inout) :: self
-    type            (hdf5File                                        )                             :: file
-    type            (lockDescriptor                                  )                             :: fileLock
-    !$GLC attributes unused :: self
+    class  (virialOrbitLossCone), intent(inout) :: self
+    type   (hdf5File           )                :: file
+    type   (lockDescriptor     )                :: fileLock
+    type   (rangeLattice       )                :: latticeCached
+    integer                                     :: schemeCached      , pointsPerCached, &
+         &                                         indexMinimumCached, countCached
 
     if (.not.self%fileRead.and.File_Exists(self%fileName)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
+       ! As in tabulate(), "velocity" and "interpolatorVelocity" are constructor-built and are not restored from file, so they
+       ! must not be freed here.
        if (allocated(self%mass)) then
           deallocate(self%mass                                )
-          deallocate(self%velocity                            )
           deallocate(self%velocityRadialMeanVirial            )
           deallocate(self%velocityRadialDispersionVirial      )
           deallocate(self%velocityTangentialMeanVirial        )
@@ -1452,28 +1606,73 @@ contains
           deallocate(self%velocityRadialDistributionOrbits    )
           deallocate(self%velocityTangentialDistributionOrbits)
           deallocate(self%velocityDistributionOrbits          )
+          deallocate(self%velocityTotalRMS                    )
+          deallocate(self%velocityDistributionPeak            )
           deallocate(self%interpolatorMass                    )
        end if
        !$ call hdf5Access%set()
-       file=hdf5File(self%fileName)
-       call file%readAttribute('time'                                ,     self%time                                 )
-       call file%readAttribute('massMinimum'                         ,     self%massMinimum                          )
-       call file%readAttribute('massMaximum'                         ,     self%massMaximum                          )
-       call file%readDataset  ('mass'                                ,     self%mass                                 )
-       call file%readDataset  ('velocityRadialMeanVirial'            ,     self%velocityRadialMeanVirial             )
-       call file%readDataset  ('velocityRadialDispersionVirial'      ,     self%velocityRadialDispersionVirial       )
-       call file%readDataset  ('velocityTangentialMeanVirial'        ,     self%velocityTangentialMeanVirial         )
-       call file%readDataset  ('velocityTangentialDispersionVirial'  ,     self%velocityTangentialDispersionVirial   )
-       call file%readDataset  ('velocityRadialDistributionOrbits'    ,     self%velocityRadialDistributionOrbits     )
-       call file%readDataset  ('velocityTangentialDistributionOrbits',     self%velocityTangentialDistributionOrbits )
-       call file%readDataset  ('velocityDistributionOrbits'          ,     self%velocityDistributionOrbits           )
-       call file%readDataset  ('velocityTotalRMS'                    ,     self%velocityTotalRMS                     )
-       call file%readDataset  ('velocityDistributionPeak'            ,     self%velocityDistributionPeak             )
+       ! Open read-only: opening read-write would have HDF5 take an exclusive lock on the file, so that another process reading
+       ! it concurrently---which the shared file lock taken above explicitly permits---would fail to open it at all.
+       file=hdf5File(self%fileName,overWrite=.false.,readOnly=.true.)
+       call file%readAttribute('time'                                ,     self%time                                )
+       call file%readAttribute('massGridScheme'                      ,     schemeCached                             )
+       call file%readAttribute('massPointsPer'                       ,     pointsPerCached                          )
+       call file%readAttribute('massIndexMinimum'                    ,     indexMinimumCached                       )
+       call file%readAttribute('massCount'                           ,     countCached                              )
+       call file%readDataset  ('mass'                                ,     self%mass                                )
+       call file%readDataset  ('velocityRadialMeanVirial'            ,     self%velocityRadialMeanVirial            )
+       call file%readDataset  ('velocityRadialDispersionVirial'      ,     self%velocityRadialDispersionVirial      )
+       call file%readDataset  ('velocityTangentialMeanVirial'        ,     self%velocityTangentialMeanVirial        )
+       call file%readDataset  ('velocityTangentialDispersionVirial'  ,     self%velocityTangentialDispersionVirial  )
+       call file%readDataset  ('velocityRadialDistributionOrbits'    ,     self%velocityRadialDistributionOrbits    )
+       call file%readDataset  ('velocityTangentialDistributionOrbits',     self%velocityTangentialDistributionOrbits)
+       call file%readDataset  ('velocityDistributionOrbits'          ,     self%velocityDistributionOrbits          )
+       call file%readDataset  ('velocityTotalRMS'                    ,     self%velocityTotalRMS                    )
+       call file%readDataset  ('velocityDistributionPeak'            ,     self%velocityDistributionPeak            )
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
        self%fileRead=.true.
-       ! Rebuild interpolator.
-       self%interpolatorMass=interpolator(log(self%mass))
+       ! Place the restored tabulation on its lattice. If the file is not self-consistent---the datasets not matching the lattice
+       ! recorded alongside them, or that lattice not one which this object could have built---then discard everything read from
+       ! it and retabulate from scratch, rather than leave a partially-restored tabulation behind.
+       latticeCached=rangeLattice(enumerationGridSchemeType(schemeCached),pointsPerCached,indexMinimumCached,countCached)
+       if     (                                                        &
+            &   latticeCached%isDefined  (                 )           &
+            &  .and.                                                   &
+            &   latticeCached%scheme      ==      gridSchemePerDecade  &
+            &  .and.                                                   &
+            &   pointsPerCached           == self%countMassesPerDecade &
+            &  .and.                                                   &
+            &   size(self%mass                      ) == countCached   &
+            &  .and.                                                   &
+            &   size(self%velocityRadialMeanVirial,1) == countCached   &
+            &  .and.                                                   &
+            &   size(self%velocityRadialMeanVirial,2) == countCached   &
+            & ) then
+          self%latticeMass=latticeCached
+          ! Take the abscissae from the lattice rather than from the file, so that they are bit-identical to those of any other
+          ! tabulation built on the same lattice.
+          self%mass       =latticeCached%values()
+          ! Rebuild interpolator. It must be allocated first: "interpolator" has a defined assignment, so assigning to it does
+          ! not cause automatic allocation, and its assignment finalizes the left-hand side---which, if unallocated, means
+          ! finalizing garbage. On this path the interpolator is always unallocated: it is either freed above, or was never
+          ! built, since it is constructed only by tabulate().
+          if (.not.allocated(self%interpolatorMass)) allocate(self%interpolatorMass)
+          self%interpolatorMass=interpolator(log(self%mass))
+       else
+          self%time       =-huge(0.0d0)
+          self%latticeMass= rangeLattice()
+          deallocate(self%mass                                )
+          deallocate(self%velocityRadialMeanVirial            )
+          deallocate(self%velocityRadialDispersionVirial      )
+          deallocate(self%velocityTangentialMeanVirial        )
+          deallocate(self%velocityTangentialDispersionVirial  )
+          deallocate(self%velocityRadialDistributionOrbits    )
+          deallocate(self%velocityTangentialDistributionOrbits)
+          deallocate(self%velocityDistributionOrbits          )
+          deallocate(self%velocityTotalRMS                    )
+          deallocate(self%velocityDistributionPeak            )
+       end if
     end if
     return
   end subroutine lossConeRestoreTable
@@ -1498,8 +1697,12 @@ contains
     !$ call hdf5Access%set()
     file=hdf5File(self%fileName,overWrite=.true.,readOnly=.false.)
     call file%writeAttribute(self%time                                ,'time'                                )
-    call file%writeAttribute(self%massMinimum                         ,'massMinimum'                         )
-    call file%writeAttribute(self%massMaximum                         ,'massMaximum'                         )
+    ! Record the lattice, not the bounds: the bounds follow from the lattice, but the converse does not, and it is the lattice
+    ! which determines whether a tabulation read back later can be extended to cover a new range without recomputation.
+    call file%writeAttribute(self%latticeMass%scheme%ID               ,'massGridScheme'                      )
+    call file%writeAttribute(self%latticeMass%pointsPer               ,'massPointsPer'                       )
+    call file%writeAttribute(self%latticeMass%indexMinimum            ,'massIndexMinimum'                    )
+    call file%writeAttribute(self%latticeMass%count                   ,'massCount'                           )
     call file%writeDataset  (self%mass                                ,'mass'                                )
     call file%writeDataset  (self%velocityRadialMeanVirial            ,'velocityRadialMeanVirial'            )
     call file%writeDataset  (self%velocityRadialDispersionVirial      ,'velocityRadialDispersionVirial'      )

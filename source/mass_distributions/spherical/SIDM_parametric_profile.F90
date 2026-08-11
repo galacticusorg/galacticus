@@ -46,6 +46,7 @@
    contains
      procedure :: density                         => SIDMParametricProfileDensity
      procedure :: densityGradientRadial           => SIDMParametricProfileDensityGradientRadial
+     procedure :: densitySlopeLogarithmicCentral  => SIDMParametricProfileDensitySlopeLogarithmicCentral
      procedure :: radiusEnclosingDensity          => SIDMParametricProfileRadiusEnclosingDensity
      procedure :: radiusEnclosingDensityNumerical => SIDMParametricProfileRadiusEnclosingDensityNumerical
      procedure :: parameters                      => SIDMParametricProfileParameters
@@ -239,6 +240,23 @@ contains
     end if
     return
   end function SIDMParametricProfileDensityGradientRadial
+
+  double precision function SIDMParametricProfileDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in a self-interacting dark matter parametric mass
+    distribution. A non-zero core radius gives a finite central density; with a zero core radius the profile is cuspy,
+    :math:`\rho \propto r^{-1}`.
+    !!}
+    implicit none
+    class(massDistributionSIDMParametricProfile), intent(inout) :: self
+
+    if (self%radiusCore > 0.0d0) then
+       slope=+0.0d0
+    else
+       slope=-1.0d0
+    end if
+    return
+  end function SIDMParametricProfileDensitySlopeLogarithmicCentral
   
   double precision function SIDMParametricProfileRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
     !!{RST

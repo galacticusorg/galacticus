@@ -85,6 +85,7 @@
      procedure :: massTotal                         => burkertMassTotal
      procedure :: density                           => burkertDensity
      procedure :: densityGradientRadial             => burkertDensityGradientRadial
+     procedure :: densitySlopeLogarithmicCentral    => burkertDensitySlopeLogarithmicCentral
      procedure :: densityRadialMoment               => burkertDensityRadialMoment
      procedure :: massEnclosedBySphere              => burkertMassEnclosedBySphere
      procedure :: velocityRotationCurveMaximum      => burkertVelocityRotationCurveMaximum
@@ -310,6 +311,19 @@ contains
          &                                       /coordinates%rSpherical           (           )
     return
   end function burkertDensityGradientRadial
+
+  double precision function burkertDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in a Burkert :cite:p:`burkert_structure_1995` mass
+    distribution. The profile has a constant density core, so the density is evaluable at zero radius.
+    !!}
+    implicit none
+    class(massDistributionBurkert), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    slope=0.0d0
+    return
+  end function burkertDensitySlopeLogarithmicCentral
 
   double precision function burkertDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
     !!{RST

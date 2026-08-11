@@ -1226,8 +1226,11 @@ jobs:
                       tests.SIDM_Kummer_deceleration.exe,
                       tests.differentiation.exe,
                       tests.tables.exe,
+                      tests.table_caches.exe,
                       tests.interpolation.exe,
                       tests.interpolation.2D.exe,
+                      tests.interpolation.multiD.exe,
+                      tests.dust.attenuation_descriptors.exe,
                       tests.make_ranges.exe,
                       tests.mass_distributions.exe,
                       tests.mass_distributions.tabulated.exe,
@@ -1261,6 +1264,7 @@ jobs:
                       tests.spherical_collapse.dark_energy.constantEoSminus0.6.exe,
                       tests.spherical_collapse.dark_energy.constantEoSminus0.8.exe,
                       tests.spherical_collapse.baryons_dark_matter.exe,
+                      tests.spherical_collapse.determinism.exe,
                       tests.spherical_collapse.nonlinear.exe,
                       tests.warm_dark_matter.exe,
                       tests.linear_growth.cosmological_constant.exe,
@@ -1537,7 +1541,8 @@ jobs:
                 test-objectBuilder-recursion-success.py,
                 test-library-interfaces.py,
                 test-merger-tree-read-ties.py,
-                test-node-trajectory.py ]
+                test-node-trajectory.py,
+                test-virial-orbit-loss-cone.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1657,6 +1662,20 @@ jobs:
       runPath: ./testSuite
       options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
     secrets: inherit
+  ### Local Group selection function
+  ## Checks that the observational selection function applied to Local Group satellites (the
+  ## `localGroupDetection` weight operator) reproduces an independent recomputation of the detection
+  ## probabilities from the same tabulation. This exercises the tabulated axis units, the node
+  ## properties extracted, and the interpolation.
+  Local-Group-Selection-Function:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-Local-Group-selection-function.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      cacheData: 1
+    secrets: inherit
   ### Regressions
   Regressions:
     needs: Build-Executable-Linux
@@ -1669,6 +1688,7 @@ jobs:
                 testSuite/regressions/mergerTreeBoxSizeWeight.py,
                 testSuite/regressions/satellitePresetBoundMassNonZero.py,
                 testSuite/regressions/cosmicEmu.py,
+                testSuite/regressions/euclidEmulator2.py,
                 testSuite/regressions/bug1053153.xml,
                 testSuite/regressions/bug711424.xml,
                 testSuite/regressions/bug725315.xml,
@@ -2441,6 +2461,7 @@ jobs:
              Merger-Tree-Builder,
              Merger-Tree-Write,
              Model-Integration,
+             Local-Group-Selection-Function,
              Miscellaneous,
              Miscellaneous-Cached,
              Miscellaneous-IRATE,

@@ -35,9 +35,12 @@ module Node_Component_Dark_Matter_Profile_Scale_Free
        &    Node_Component_Dark_Matter_Profile_Scale_Free_Init
 
   !![
-  <component>
+  <component docformat="rst">
    <class>darkMatterProfile</class>
    <name>scaleFree</name>
+   <description>
+   A dark matter profile implementation which stores no properties at all, but which still provides a mass distribution. Useful for scale-free models, and for calculations in which the profile is fully determined by other node properties so that no per-node state need be carried.
+   </description>
    <isDefault>false</isDefault>
    <bindings>
      <binding method="massDistribution" isDeferred="true" >

@@ -63,6 +63,7 @@
      procedure :: density                                 => compositeDensity
      procedure :: surfaceDensity                          => compositeSurfaceDensity
      procedure :: densityGradientRadial                   => compositeDensityGradientRadial
+     procedure :: densitySlopeLogarithmicCentral          => compositeDensitySlopeLogarithmicCentral
      procedure :: densityRadialMoment                     => compositeDensityRadialMoment
      procedure :: densitySphericalAverage                 => compositeDensitySphericalAverage
      procedure :: densitySquareIntegral                   => compositeDensitySquareIntegral
@@ -643,6 +644,32 @@ contains
     end if
     return
   end function compositeDensityGradientRadial
+
+  double precision function compositeDensitySlopeLogarithmicCentral(self) result(slope)
+    !!{RST
+    Return the central logarithmic slope of the density profile in a composite mass distribution. Since the density of the
+    composite is the sum of the densities of its components, the steepest---that is, the most negative---central slope of any
+    component determines that of the composite. An unknown slope in any component therefore renders that of the composite
+    unknown too, which the minimum gives automatically since the unknown sentinel is the most negative representable value.
+    !!}
+    implicit none
+    class(massDistributionComposite   ), intent(inout) :: self
+    type (massDistributionList        ), pointer       :: massDistribution_
+
+    slope=+0.0d0
+    if (associated(self%massDistributions)) then
+       slope             =  +huge(0.0d0)
+       massDistribution_ =>  self%massDistributions
+       do while (associated(massDistribution_))
+          slope             =  min(                                                                          &
+               &                   +                 slope                                                 , &
+               &                   +massDistribution_%massDistribution_%densitySlopeLogarithmicCentral()     &
+               &                  )
+          massDistribution_ =>  massDistribution_%next
+       end do
+    end if
+    return
+  end function compositeDensitySlopeLogarithmicCentral
 
   double precision function compositeDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !!{RST

@@ -13,7 +13,7 @@ The exact way in which masses within Galacticus are defined and used in specifie
 Masses in the Basic Component
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``basic`` component (see Section :galacticus-ref:`ComponentBasicProperties`) tracks the mass of each halo as defined in the merger tree. As such, it should be considered to be the mass which the halo would have if baryonic matter behaved just as dark matter. Note that these masses are inclusive of subhalos---that is, the mass of a host halo includes the mass of all of its subhalos.
+The ``basic`` component (see :ref:`manual-sec-ComponentClasses`) tracks the mass of each halo as defined in the merger tree. As such, it should be considered to be the mass which the halo would have if baryonic matter behaved just as dark matter. Note that these masses are inclusive of subhalos---that is, the mass of a host halo includes the mass of all of its subhalos.
 
 Dark Matter Profiles
 ~~~~~~~~~~~~~~~~~~~~
@@ -156,6 +156,19 @@ The elements of this colon-separated specifier determine the radius at which a p
 
 ``massType``
    specifies which types of mass should be counted---allowed values are ``all``, ``dark``, ``baryonic``, ``galactic``, ``gaseous``, ``stellar``, and ``blackHole``.
+
+Zero radii
+^^^^^^^^^^
+
+A radius specifier can evaluate to zero---for example ``diskRadius:all:all:1.0`` in a node whose disk has zero radius. This is common: it happens whenever the component on which the radius is based is absent or empty in the node in question, and is quite distinct from an *undefined* radius (see ``solitonRadiusCore`` above), which is reported with a sentinel value instead.
+
+Such a radius is perfectly well defined, but not every property can be evaluated there:
+
+* enclosed masses (:galacticus-class:`nodePropertyExtractorMassProfile`), projected masses (:galacticus-class:`nodePropertyExtractorProjectedMass`), rotation curves, and velocity dispersions all exist at zero radius, and are reported there---note that the enclosed and projected masses are the mass of any central point mass, such as a black hole, and not necessarily zero;
+* densities (:galacticus-class:`nodePropertyExtractorDensityProfile`, :galacticus-class:`nodePropertyExtractorDensityDMOProfile`) exist only if the mass distribution being evaluated has a finite central density---which is true of a disk, but not of an :term:`NFW` halo;
+* projected densities (:galacticus-class:`nodePropertyExtractorProjectedDensity`) exist only if the central logarithmic slope of the density profile exceeds :math:`-1`---the line of sight integral through the center of an :term:`NFW` halo diverges logarithmically, while that through a cored profile, or through a shallower cusp, converges and is evaluated.
+
+Where the property does not exist, the model stops with an error naming the offending specifier and the node in which it was evaluated. To carry on regardless, set ``zeroRadiusIsFatal`` to ``false`` in the property extractor concerned: the undefined-value sentinel is then written in place of the property, and should be filtered out before analysis. The radius itself is still reported (as zero), since---unlike an undefined radius---it is perfectly well defined.
 
 Half-mode and quarter-mode masses
 ---------------------------------

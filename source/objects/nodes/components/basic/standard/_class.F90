@@ -30,9 +30,12 @@ module Node_Component_Basic_Standard
   public :: Node_Component_Basic_Standard_Scale_Set, Node_Component_Basic_Standard_Plausibility
 
   !![
-  <component>
+  <component docformat="rst">
    <class>basic</class>
    <name>standard</name>
+   <description>
+   The total mass of the node and the cosmic time at which it currently exists. The mass is that defined in the merger tree, and so should be considered the mass the halo would have if baryonic matter behaved just as dark matter; it is inclusive of subhalos. ``timeLastIsolated`` records the time at which the node was last an isolated halo, and ``accretionRate`` the rate of growth of the node mass. All properties are set during merger tree construction; their evolution is driven by node operators (see :galacticus-class:`nodeOperatorCosmicTime` and :galacticus-class:`nodeOperatorDarkMatterOnlyMassInterpolate`).
+   </description>
    <isDefault>true</isDefault>
    <properties>
     <property>

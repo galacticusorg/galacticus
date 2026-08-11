@@ -33,9 +33,12 @@ module Node_Component_Halo_Angular_Momentum_Vector
        &    Node_Component_Halo_Angular_Momentum_Vector_State_Store      , Node_Component_Halo_Angular_Momentum_Vector_State_Restore
   
   !![
-  <component>
+  <component docformat="rst">
    <class>spin</class>
    <name>vector</name>
+   <description>
+   Extends the ``scalar`` implementation by adding the full angular momentum vector of the halo, so that the *direction* of the halo spin---and not merely its magnitude---is followed. Required by models which build halo angular momentum from the orbital angular momenta of merging progenitors (see :galacticus-class:`nodeOperatorHaloAngularMomentumVitvitska2002`).
+   </description>
    <extends>
     <class>spin</class>
     <name>scalar</name>

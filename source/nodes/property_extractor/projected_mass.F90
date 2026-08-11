@@ -27,6 +27,8 @@
   <nodePropertyExtractor name="nodePropertyExtractorProjectedMass" docformat="rst">
    <description>
    A property extractor class for the projected mass at a set of radii. The radii and types of projected mass to output is specified by the ``radiusSpecifiers`` parameter. This parameter's value can contain multiple entries, each of which should be a valid :ref:`radius specifier &lt;manual-sec-radiusspecifiers&gt;`.
+
+   A radius specifier can evaluate to zero---most often because the component on which it is based is absent or empty in the node in question. The projected mass is well defined there: the fraction of each spherical shell lying inside the cylinder vanishes in that limit, leaving only the mass of any central point mass, such as a black hole.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -211,6 +213,18 @@ contains
        radiusOuter          =max(radius_*2.0d0,radiusVirial)
        ! Evaluate the integral, then add on the mass of the sphere entirely enclosed inside the cylinder.
        massDistribution_ => node%massDistribution(componentType=self%radii%specifiers(i)%component,massType=self%radii%specifiers(i)%mass)
+       if (radius_ <= 0.0d0) then
+          ! The radius is zero. The fraction of each spherical shell lying inside the cylinder vanishes in this limit, so only
+          ! the mass enclosed by a sphere of zero radius - that of any central point mass - remains. (The integral below can
+          ! not be evaluated here in any case, since it begins at log(radius_).)
+          massProjected       (i,1)=massDistribution_%massEnclosedBySphere(0.0d0)
+          if (self%includeRadii)                                                  &
+               & massProjected(i,2)=                  radius_
+          !![
+          <objectDestructor name="massDistribution_"/>
+          !!]
+          cycle
+       end if
        converged         =  .false.
        do while (.not.converged)
           massProjectedCurrent=integrator_%integrate(log(radius_),log(radiusOuter))

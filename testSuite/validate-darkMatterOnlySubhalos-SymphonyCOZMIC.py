@@ -10,7 +10,9 @@ import re
 
 # Get argument.
 if len(sys.argv) != 4:
-    sys.exit("FAIL: usage: validate-darkMatterOnlySubhalos-SymphonyCOZMIC.py <suite> <resolution> <simulation>")
+    print("FAIL: usage: validate-darkMatterOnlySubhalos-SymphonyCOZMIC.py <suite> <resolution> <simulation>")
+    # Always exit with status 0 - failure is signaled by "FAIL" in the output above.
+    sys.exit(0)
 suite      = sys.argv[1]
 resolution = sys.argv[2]
 simulation = sys.argv[3]

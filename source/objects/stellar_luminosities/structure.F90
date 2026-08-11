@@ -107,6 +107,9 @@ module Stellar_Luminosities_Structure
        <method description="Return true if the indexed luminosity is to be output at the given time." method="isOutput" />
        <method description="Return the index to a luminosity specified by name or properties." method="index" />
        <method description="Return the name of a luminosity specified by index." method="name" />
+       <method description="Return the effective wavelength (in Å, in the frame of the filter) of a luminosity specified by index." method="wavelengthEffective" />
+       <method description="Return the redshift to which the filter of a luminosity specified by index is shifted (zero for rest-frame filters)." method="bandRedshift" />
+       <method description="Return the rest-frame effective wavelength (in Å) of a luminosity specified by index." method="wavelengthRestFrame" />
        <method description="Truncate the number of stellar luminosities stored to match that in the given ``templateLuminosities``." method="truncate" />
        <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
      </methods>
@@ -146,6 +149,9 @@ module Stellar_Luminosities_Structure
      generic           :: index                 => Stellar_Luminosities_Index_From_Name      , &
           &                                        Stellar_Luminosities_Index_From_Properties
      procedure, nopass :: name                  => Stellar_Luminosities_Name
+     procedure, nopass :: wavelengthEffective   => Stellar_Luminosities_Wavelength_Effective
+     procedure, nopass :: bandRedshift          => Stellar_Luminosities_Band_Redshift
+     procedure, nopass :: wavelengthRestFrame   => Stellar_Luminosities_Wavelength_Rest_Frame
      procedure         :: truncate              => Stellar_Luminosities_Truncate
   end type stellarLuminosities
   
@@ -872,6 +878,63 @@ contains
     return
   end function Stellar_Luminosities_Name
 
+  double precision function Stellar_Luminosities_Wavelength_Effective(index)
+    !!{RST
+    Return the effective wavelength (in Å) of the filter used for the specified entry in the stellar luminosities
+    structure. Note that this is the wavelength in the frame of the filter---for an observed-frame filter the corresponding
+    rest-frame wavelength is smaller by a factor of :math:`1+z_\mathrm{band}`, where :math:`z_\mathrm{band}` is returned by
+    the ``bandRedshift`` method. Use the ``wavelengthRestFrame`` method to get the rest-frame wavelength directly.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    integer, intent(in   ) :: index
+
+    ! Check for index in range.
+    if (index > 0 .and. index <= luminosityCount) then
+       Stellar_Luminosities_Wavelength_Effective=luminosityWavelengthEffective(index)
+    else
+       Stellar_Luminosities_Wavelength_Effective=0.0d0
+       call Error_Report('index out of range'//{introspection:location})
+    end if
+    return
+  end function Stellar_Luminosities_Wavelength_Effective
+
+  double precision function Stellar_Luminosities_Band_Redshift(index)
+    !!{RST
+    Return the redshift to which the filter of the specified entry in the stellar luminosities structure is shifted. This is
+    zero for rest-frame filters, and equals the redshift at which the filter is applied for observed-frame filters.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    integer, intent(in   ) :: index
+
+    ! Check for index in range.
+    if (index > 0 .and. index <= luminosityCount) then
+       Stellar_Luminosities_Band_Redshift=luminosityBandRedshift(index)
+    else
+       Stellar_Luminosities_Band_Redshift=0.0d0
+       call Error_Report('index out of range'//{introspection:location})
+    end if
+    return
+  end function Stellar_Luminosities_Band_Redshift
+
+  double precision function Stellar_Luminosities_Wavelength_Rest_Frame(index)
+    !!{RST
+    Return the rest-frame effective wavelength (in Å) of the filter used for the specified entry in the stellar luminosities
+    structure, i.e. :math:`\lambda_\mathrm{eff}/(1+z_\mathrm{band})`. This is the wavelength at which any process acting in
+    the rest frame of the emitting galaxy---such as dust attenuation---should be evaluated.
+    !!}
+    implicit none
+    integer, intent(in   ) :: index
+
+    Stellar_Luminosities_Wavelength_Rest_Frame=+Stellar_Luminosities_Wavelength_Effective(index) &
+         &                                     /(                                                &
+         &                                       +1.0d0                                          &
+         &                                       +Stellar_Luminosities_Band_Redshift     (index) &
+         &                                      )
+    return
+  end function Stellar_Luminosities_Wavelength_Rest_Frame
+
   subroutine Stellar_Luminosities_Create(self)
     !!{RST
     Ensure that the ``luminosity`` array in a ``stellarLuminosities`` is allocated.
@@ -1182,7 +1245,9 @@ contains
        lengthNameMaximum =max(4,max(len(filterName),maxval(len(luminosityFilter))))
        countDigitsMaximum=int(log10(dble(luminosityCount)))+1
     else
-       lengthNameMaximum =4
+       ! The requested filter name is still written into the message, so the column must be wide enough for it even when no
+       ! luminosities are available to list.
+       lengthNameMaximum =max(4,len(filterName))
        countDigitsMaximum=1
     end if
     countCountDigitsMaximum=int(log10(dble(countDigitsMaximum)))+1

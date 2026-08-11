@@ -42,9 +42,12 @@ module Node_Component_NSC_Standard
        &    Node_Component_NSC_Standard_Thread_Initialize                     
 
   !![
-  <component>
+  <component docformat="rst">
    <class>NSC</class>
    <name>standard</name>
+   <description>
+   A nuclear star cluster at the center of a galaxy, with gas and stellar masses and abundances, angular momentum, a radial scale length and circular velocity, stellar luminosities, and a star formation history. ``isCollapsed`` records whether the cluster has undergone collapse, which is a channel for seeding a central black hole. Gas may be removed through the virtual ``massGasSink`` property.
+   </description>
    <isDefault>false</isDefault>
    <properties>
     <property>
@@ -302,7 +305,7 @@ contains
        class is (massDistributionSpherical)
           ! The NSC mass distribution must have spherical symmetry. So, this is acceptable.
        class default 
-          call Error_Report('only spehrically symmetric mass distributions are allowed'//{introspection:location})
+          call Error_Report('only spherically symmetric mass distributions are allowed'//{introspection:location})
        end select
        if (.not.massDistributionStellar_%isDimensionless()) call Error_Report('Nuclear star cluster mass distribution must be dimensionless'//{introspection:location})
        ! Duplicate the dimensionless mass distribution to use for the gas component, and set component and mass type in both.
