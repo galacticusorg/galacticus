@@ -725,9 +725,9 @@ contains
             &              /(self%massParticle/1.0d-23)**2  &
             &              /expansionFactor                 &
             &              /massCore
-       ! Compute the core density normalization.
-       densityCore       =+massCore                         & ! Equation (3) of Schive et al. (2014; PRL; 113; 1302; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
-            &             /0.413d0                          &
+       ! Compute the core density normalization by integrating the soliton density profile within the core radius.
+       densityCore       =+massCore                         & 
+            &             /0.888027d0                       &
             &             /radiusCore                  **3  &
             &             /Pi
        radiusCore_        =radiusCore
@@ -788,10 +788,10 @@ contains
             &          /(self%massParticle/1.0d-23)**2  &
             &          /expansionFactor                 &
             &          /massCore
-    ! Compute the core density normalization.
-    densityCore       =+massCore                        & ! Equation (3) of Schive et al. (2014; PRL; 113; 1302; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
-            &          /0.413d0                         &
-            &          /radiusCore                  **3 &
+    ! Compute the core density normalization by integrating the soliton density profile within the core radius.
+    densityCore       =+massCore                         &
+            &          /0.888027d0                       &
+            &          /radiusCore                  **3  &
             &          /Pi
 
     call darkMatterProfile%floatRank0MetaPropertySet(self%densityCoreID  ,densityCore)
