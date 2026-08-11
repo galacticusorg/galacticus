@@ -26,6 +26,7 @@
   use :: Cosmology_Functions            , only : cosmologyFunctionsClass
   use :: Linear_Growth                  , only : linearGrowthClass
   use :: Power_Spectrum_Window_Functions, only : powerSpectrumWindowFunctionTopHat
+  use :: Numerical_Ranges               , only : rangeLattice
   use :: Tables                         , only : table1DGeneric
   use :: Numerical_Interpolation        , only : interpolator
 
@@ -67,11 +68,14 @@
      class           (criticalOverdensityClass         ), pointer :: criticalOverdensity_         => null()
      class           (linearGrowthClass                ), pointer :: linearGrowth_                => null()
      type            (powerSpectrumWindowFunctionTopHat), pointer :: powerSpectrumWindowFunction_ => null()
-     double precision                                             :: wavenumberMaximum                     , fractionBaryonsUniversal, &
-          &                                                          massMinimum                           , massMaximum
+     double precision                                             :: wavenumberMaximum                     , fractionBaryonsUniversal
      logical                                                      :: wavenumberMaximumReached              , initialized
      integer                                                      :: countPerDecade
      type            (table1dGeneric                   )          :: perturbationsDarkMatter               , perturbationsBaryons
+     ! Lattice to which the tabulated masses are pinned, and the correlations tabulated on it. The lattice is the source of
+     ! truth for the extent of the tabulation, and is undefined until the first tabulation is made.
+     type            (rangeLattice                     )          :: latticeMass
+     double precision                     , allocatable, dimension(:) :: correlationTabulated
      type            (interpolator                     )          :: correlation
    contains
      !![
@@ -173,8 +177,6 @@ contains
 
     ! Set initialization state.
     self%initialized             =.false.
-    self%massMinimum             =+huge(0.0d0)
-    self%massMaximum             =-huge(0.0d0)
     ! Set maximum wavenumber.
     self%wavenumberMaximum       =+classWavenumberMaximumLimit                                        &
          &                        *self%cosmologyParameters_%hubbleConstant(units=hubbleUnitsLittleH)
@@ -385,7 +387,7 @@ contains
     !!}
     use :: Interfaces_CLASS     , only : Interface_CLASS_Perturbations
     use :: Galacticus_Nodes     , only : nodeComponentBasic
-    use :: Numerical_Ranges     , only : Make_Range                   , rangeTypeLogarithmic
+    use :: Numerical_Ranges     , only : Range_Lattice_Extend         , Range_Pinned          , gridSchemePerDecade
     use :: Numerical_Integration, only : integrator
     implicit none
     class           (accretionHaloIsocurvature), intent(inout), target     :: self
@@ -395,29 +397,43 @@ contains
          &                                                                    factorWavenumberLarge=1.0d3
     class           (nodeComponentBasic       )               , pointer    :: basic
     double precision                           , dimension(1)              :: redshifts
-    double precision                           , dimension(:), allocatable :: mass                        , correlation
+    double precision                           , dimension(:), allocatable :: mass
+    logical                                    , dimension(:), allocatable :: isComputed
+    type            (rangeLattice             )                            :: latticeMass
     double precision                                                       :: wavenumberMaximum           , massSmoothing         , &
          &                                                                    correlationDirect           , correlationCross
     logical                                                                :: makePerturbations           , remakeTable
-    integer                                                                :: i                           , countPointsInTable
+    integer                                                                :: i
     type            (integrator               )                            :: integratorDirect            , integratorCross
 
-    ! Determine if the tabulated correlation needs to be expanded.
+    ! Determine if the tabulated correlation needs to be expanded. The masses tabulated are pinned to an absolute lattice, so
+    ! that the masses evaluated - and therefore every value interpolated between them - depend only on which lattice points are
+    ! spanned, and not on the sequence of halo masses which happened to be requested. The request is passed as the target and the
+    ! range already tabulated is unioned in through `latticeCurrent`; folding the latter into the target instead - as the
+    ! `min`/`max` against the current bounds formerly did - would apply the safety margin to an already margined bound and so
+    ! ratchet the range outward on every retabulation. The bounds are anchored to half decades rather than to whole decades
+    ! because each additional point costs two numerical integrations over wavenumber, and because the lower bound sets the
+    ! largest wavenumber at which the perturbations must be known, and so how far CLASS must be run.
+    !
+    ! The decision to rebuild is taken from the pinned lattice rather than from the bounds directly: the safety margin is applied
+    ! to the request, so testing the request against the bounds would apply that margin only when the request happened to arrive
+    ! outside them. The range reached would then depend on the order in which halo masses were asked for - which is precisely the
+    ! dependence that pinning the lattice exists to remove.
     basic         => node %basic()
     massSmoothing =  basic%mass ()
-    remakeTable   =  .false.
-    if (massSmoothing < self%massMinimum) then
-       self%massMinimum=massSmoothing/2.0d0
-       remakeTable     =.true.
-    end if
-    if (massSmoothing > self%massMaximum) then
-       self%massMaximum=massSmoothing*2.0d0
-       remakeTable     =.true.
-    end if
+    latticeMass   =  Range_Pinned(                                                &
+         &                                       [massSmoothing]                , &
+         &                                        countPointsPerDecade          , &
+         &                                        gridSchemePerDecade           , &
+         &                        marginFactor  = 2.0d0                         , &
+         &                        anchorEvery   = countPointsPerDecade/2        , &
+         &                        latticeCurrent= self%latticeMass                &
+         &                       )
+    remakeTable   =  .not.self%latticeMass%covers(latticeMass)
     if (remakeTable) then
-       ! The tabulate correlation must be expanded. Next, determine if the tabulation of perturbations must be expanded.
+       ! The tabulated correlation must be expanded. Next, determine if the tabulation of perturbations must be expanded.
        makePerturbations=.false.
-       wavenumberMaximum=max(wavenumberLarge,factorWavenumberLarge/radiusLagrangian(self%massMinimum))
+       wavenumberMaximum=max(wavenumberLarge,factorWavenumberLarge/radiusLagrangian(latticeMass%minimum()))
        if (self%initialized) then
           if     (                                                             &
                &   wavenumberMaximum > exp(self%perturbationsDarkMatter%x(-1)) &
@@ -441,24 +457,35 @@ contains
                &                             perturbationsBaryons    =self%perturbationsBaryons      &
                &                            )
        end if
+       ! Extend the table of correlations onto the new lattice, preserving those already computed. Each is an integral over the
+       ! perturbations, so this is valid only while those perturbations are unchanged: they are interpolated by a *global* cubic
+       ! spline, every coefficient of which depends on every tabulated value, so extending them changes the perturbation
+       ! inferred at every wavenumber - and a correlation computed before that is not the correlation which would be computed
+       ! after it. Where the perturbations have just been remade, therefore, an undefined lattice is passed so that every
+       ! correlation is computed afresh.
+       if (makePerturbations) then
+          call Range_Lattice_Extend(rangeLattice()  ,latticeMass,self%correlationTabulated,isComputed)
+       else
+          call Range_Lattice_Extend(self%latticeMass,latticeMass,self%correlationTabulated,isComputed)
+       end if
        ! Construct the table of correlations.
        integratorDirect   =  integrator(integrandDirect,toleranceRelative=toleranceRelative)
        integratorCross    =  integrator(integrandCross ,toleranceRelative=toleranceRelative)
        self_              => self
        time_              =  self%cosmologyFunctions_%cosmicTime(1.0d0)
-       countPointsInTable =  int(log10(self%massMaximum/self%massMinimum)*dble(countPointsPerDecade))+1
-       mass               =  Make_Range(self%massMinimum,self%massMaximum,countPointsInTable,rangeTypeLogarithmic)
-       allocate(correlation(countPointsInTable))
-       do i=1,countPointsInTable
+       mass               =  latticeMass%values()
+       do i=1,latticeMass%count
+          if (isComputed(i)) cycle
           massSmoothing_      =mass(i)
           wavenumberMaximum   =max(wavenumberLarge,factorWavenumberLarge/radiusLagrangian(massSmoothing_))
           correlationDirect   =integratorDirect%integrate(0.0d0,wavenumberMaximum)
           correlationCross    =integratorCross %integrate(0.0d0,wavenumberMaximum)
-          correlation      (i)=+correlationCross  &
-               &               /correlationDirect
+          self%correlationTabulated(i)=+correlationCross  &
+               &                       /correlationDirect
        end do
        ! Build the interpolator.
-       self%correlation=interpolator(log(mass),correlation)
+       self%correlation=interpolator(log(mass),self%correlationTabulated)
+       self%latticeMass=latticeMass
        self%initialized=.true.
     end if
     ! Evaluate the relative baryon fraction (eqn. 9 of Jessop et al.; 2026; arXiv:2512.02127)/

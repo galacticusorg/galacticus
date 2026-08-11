@@ -49,6 +49,13 @@ program Tests_Accretion_Halo_Isocurvature
   type            (treeNode                                                    ), pointer :: node
   class           (nodeComponentBasic                                          ), pointer :: basic
   type            (accretionHaloIsocurvature                                   ), pointer :: accretionHalo_                    , accretionHaloNull => null()
+  ! Objects and workspace used to check that the tabulation of correlations does not depend on the order in which halo masses
+  ! are requested of it. These masses all lie above that used for the test against the published result, so that none of them
+  ! requires the perturbations to be computed to a larger wavenumber than has already been reached.
+  double precision                                                             , dimension(3), parameter :: massOrder=[1.0d11,2.0d11,5.0d11]
+  type            (accretionHaloIsocurvature                                   )          :: accretionHaloAscending            , accretionHaloDescending
+  double precision                                                             , dimension(3)  :: fractionAscending             , fractionDescending
+  integer                                                                                  :: i
   type            (cosmologyParametersSimple                                   ), pointer :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                              ), pointer :: cosmologyFunctions_
   type            (linearGrowthCollisionlessMatter                             ), pointer :: linearGrowth_
@@ -211,6 +218,35 @@ program Tests_Accretion_Halo_Isocurvature
   ! Get the accreted fraction (relative to the universal baryon fraction).
   fractionRelative=accretionHalo_%fraction(node)
   call Assert('Relative baryon fraction for 10¹¹M☉ halo at z=0',fractionRelative,1.0d0-0.0069d0,relTol=1.0d-4)
+  ! Check that the tabulation of correlations does not depend on the order in which halo masses are requested of it. The masses
+  ! tabulated are points of an absolute lattice, so two objects asked for the same halo masses must agree exactly, whichever
+  ! order they were asked in and however far each extended its tabulation before answering. Without pinning the tabulation is
+  ! laid out afresh across whatever range has accumulated, and the two disagree at the level of the interpolation error.
+  accretionHaloAscending =accretionHaloIsocurvature(                                              &
+       &                                            countPerDecade      = 0                    , &
+       &                                            accretionHalo_      = accretionHaloNull    , &
+       &                                            cosmologyParameters_= cosmologyParameters_ , &
+       &                                            cosmologyFunctions_ = cosmologyFunctions_  , &
+       &                                            criticalOverdensity_= criticalOverdensity_ , &
+       &                                            linearGrowth_       = linearGrowth_          &
+       &                                           )
+  accretionHaloDescending=accretionHaloIsocurvature(                                              &
+       &                                            countPerDecade      = 0                    , &
+       &                                            accretionHalo_      = accretionHaloNull    , &
+       &                                            cosmologyParameters_= cosmologyParameters_ , &
+       &                                            cosmologyFunctions_ = cosmologyFunctions_  , &
+       &                                            criticalOverdensity_= criticalOverdensity_ , &
+       &                                            linearGrowth_       = linearGrowth_          &
+       &                                           )
+  do i=1,size(massOrder)
+     call basic%massSet(massOrder(i))
+     fractionAscending (i)=accretionHaloAscending %fraction(node)
+  end do
+  do i=size(massOrder),1,-1
+     call basic%massSet(massOrder(i))
+     fractionDescending(i)=accretionHaloDescending%fraction(node)
+  end do
+  call Assert('Relative baryon fraction is independent of the order in which halo masses are requested',fractionAscending,fractionDescending,absTol=0.0d0)
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
   ! Clean up.
