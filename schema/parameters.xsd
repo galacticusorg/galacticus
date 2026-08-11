@@ -2437,6 +2437,7 @@
           <xs:enumeration value="radiusVirialLastDefined"/>
           <xs:enumeration value="ramPressureMassLossDisks"/>
           <xs:enumeration value="ramPressureMassLossSpheroids"/>
+          <xs:enumeration value="satelliteConditionalMassLoss"/>
           <xs:enumeration value="satelliteDecelerationSIDM"/>
           <xs:enumeration value="satelliteDestructionDensityProfileThreshold"/>
           <xs:enumeration value="satelliteDestructionMassThreshold"/>
@@ -2463,7 +2464,6 @@
           <xs:enumeration value="testInactivePropertyRead"/>
           <xs:enumeration value="tidalHeatingSpheroids"/>
           <xs:enumeration value="tidalMassLossDisks"/>
-          <xs:enumeration value="tidalMassLossSoliton"/>
           <xs:enumeration value="tidalMassLossSpheroids"/>
           <xs:enumeration value="timeFirstInfall"/>
           <xs:enumeration value="trackOutflowedMass"/>
@@ -3500,6 +3500,7 @@
        <xs:attribute name="value" use="optional">
         <xs:simpleType>
          <xs:restriction base="xs:string">
+          <xs:enumeration value="du2018"/>
           <xs:enumeration value="zentner2005"/>
           <xs:enumeration value="zero"/>
          </xs:restriction>
@@ -3517,6 +3518,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="king1962"/>
+          <xs:enumeration value="limited"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
