@@ -55,7 +55,7 @@ module Node_Component_Halo_Angular_Momentum_Scalar
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
     </property>
     <property>
-      <name>angularMomentumGrowthSpecific</name>
+      <name>angularMomentumSpecificAccreted</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />

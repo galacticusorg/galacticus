@@ -32,7 +32,7 @@
      momentum, with the rate of change of the scalar angular momentum computed self-consistently. For non-primary progenitors
      both scalar and vector angular momentum are assumed to be constant, i.e. :math:`\dot{J}=0`.
 
-     The specific angular momentum of accreted material is also computed as used to set the ``angularMomentumGrowthSpecific``
+     The specific angular momentum of accreted material is also computed and used to set the ``angularMomentumSpecificAccreted``
      property of the spin ``component``. If ``angularMomentumSpecificGrowthFromAccretionRate`` is true then this specific
      angular momentum is computed as :math:`j = \dot{J}/\dot{M}` where :math:`\dot{M}` is the dark matter only accretion rate
      onto the halo (which excludes resolved mergers). If ``angularMomentumSpecificGrowthFromAccretionRate`` is false then this
@@ -154,12 +154,12 @@ contains
           if (self%angularMomentumSpecificGrowthFromAccretionRate) then
              ! Estimate using the dark matter-only accretion rate (which excludes resolved mergers).
              if (basic%accretionRate() > 0.0d0) then
-                call  spin%angularMomentumGrowthSpecificSet  (                                          &
+                call  spin%angularMomentumSpecificAccretedSet(                                          &
                      &                                        +spin        %angularMomentumGrowthRate() &
                      &                                        /basic       %accretionRate            () &
                      &                                       )
              else
-                call  spin%angularMomentumGrowthSpecificSet  (                                          &
+                call  spin%angularMomentumSpecificAccretedSet(                                          &
                      &                                        +0.0d0                                    &
                      &                                       )
              end if
@@ -168,7 +168,7 @@ contains
              massInterval=+basicParent%mass() &
                   &       -basic      %mass()
              if (massInterval > 0.0d0) then
-                call  spin%angularMomentumGrowthSpecificSet  (                                          &
+                call  spin%angularMomentumSpecificAccretedSet(                                          &
                      &                                        +(                                        &
                      &                                          +spinParent%angularMomentum          () &
                      &                                          -spin      %angularMomentum          () &
@@ -176,7 +176,7 @@ contains
                      &                                        /massInterval                             &
                      &                                       )
              else
-                call  spin%angularMomentumGrowthSpecificSet  (                                          &
+                call  spin%angularMomentumSpecificAccretedSet(                                          &
                      &                                        +0.0d0                                    &
                      &                                       )
              end if
@@ -185,7 +185,7 @@ contains
           call        spin%angularMomentumGrowthRateSet      (                                          &
                &                                              +0.0d0                                    &
                &                                             )
-          call        spin%angularMomentumGrowthSpecificSet  (                                          &
+          call        spin%angularMomentumSpecificAccretedSet(                                          &
                &                                              +0.0d0                                    &
                &                                             )
           if (angularMomentumIsVector)                                                                  &
@@ -198,7 +198,7 @@ contains
        call           spin%angularMomentumGrowthRateSet      (                                          &
             &                                                 +0.0d0                                    &
             &                                                )
-       call           spin%angularMomentumGrowthSpecificSet  (                                          &
+       call           spin%angularMomentumSpecificAccretedSet(                                          &
             &                                                 +0.0d0                                    &
             &                                                )
        if (angularMomentumIsVector)                                                                     &
@@ -292,7 +292,7 @@ contains
     spinParent => nodeParent%spin  ()
     call    spin%angularMomentumSet                (spinParent%angularMomentum                ())
     call    spin%angularMomentumGrowthRateSet      (spinParent%angularMomentumGrowthRate      ())
-    call    spin%angularMomentumGrowthSpecificSet  (spinParent%angularMomentumGrowthSpecific  ())
+    call    spin%angularMomentumSpecificAccretedSet(spinParent%angularMomentumSpecificAccreted())
     if (spin%angularMomentumVectorGrowthRateIsSettable()) then
        call spin%angularMomentumVectorSet          (spinParent%angularMomentumVector          ())
        call spin%angularMomentumVectorGrowthRateSet(spinParent%angularMomentumVectorGrowthRate())

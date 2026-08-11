@@ -556,10 +556,10 @@ contains
          & rateChemicalsAccretionHot=   self%accretionHalo_%      accretionRateChemicals(node,accretionModeHot  )
     ! Get the rate of angular momentum accretion onto the halo.
     if (hotHalo%angularMomentumIsSettable()) then
-       spin                            =>  node%spin                         ()
-       rateAngularMomentumAccretionHot =  +spin%angularMomentumGrowthSpecific() &
+       spin                            =>  node%spin                           ()
+       rateAngularMomentumAccretionHot =  +spin%angularMomentumSpecificAccreted() &
             &                             *     rateMassAccretionHot
-       rateAngularMomentumAccretionCold=  +spin%angularMomentumGrowthSpecific() &
+       rateAngularMomentumAccretionCold=  +spin%angularMomentumSpecificAccreted() &
             &                             *     rateMassAccretionCold
        if (self%angularMomentumAlwaysGrows) then
           rateAngularMomentumAccretionHot =abs(rateAngularMomentumAccretionHot )
