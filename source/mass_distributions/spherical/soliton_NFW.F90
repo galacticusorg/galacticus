@@ -557,13 +557,8 @@
         call containerSolitonNFW%initialize(3)
         containerSolitonNFW%mass                      %radiusCountPer       =+6_c_size_t
         containerSolitonNFW%mass                      %parametersCountPer   =+6_c_size_t
-        ! The inversion giving the radius enclosing a mean density is tabulated more finely than the other quantities here. Within
-        ! the soliton core the density is very nearly uniform, so that the mean enclosed density varies only slowly with radius
-        ! and the inversion of it is correspondingly ill conditioned: a small error in the interpolated density becomes a large
-        ! error in the radius returned. Six points per octave leaves that error at tens of percent close to the core, which
-        ! twenty four points per octave reduces to within the few percent to which the inversion is verified.
-        containerSolitonNFW%radiusEnclosingDensity    %radiusCountPer       =+24_c_size_t
-        containerSolitonNFW%radiusEnclosingDensity    %parametersCountPer   =+24_c_size_t
+        containerSolitonNFW%radiusEnclosingDensity    %radiusCountPer       =+6_c_size_t
+        containerSolitonNFW%radiusEnclosingDensity    %parametersCountPer   =+6_c_size_t
         containerSolitonNFW%potential                 %radiusCountPer       =+6_c_size_t
         containerSolitonNFW%potential                 %parametersCountPer   =+6_c_size_t
         containerSolitonNFW%velocityDispersion1D      %radiusCountPer       =+6_c_size_t
