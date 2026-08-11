@@ -99,7 +99,8 @@ check(
 if status != 0:
     subprocess.run(f"tail -n 30 {pathOutputDirectory}/tolerated.log", shell=True)
     print("FAILED: model 'tolerated' did not complete - skipping output checks")
-    sys.exit(1)
+    # Always exit with status 0 - failure is signaled by "FAILED" in the output above.
+    sys.exit(0)
 
 fileName = os.path.join(pathOutputDirectory, "tolerated.hdf5")
 density         , radiiDensity          = gather(fileName, "densityProfile"  , 3)
@@ -219,5 +220,6 @@ if failures:
     print("FAILED: " + str(len(failures)) + " check(s) failed:")
     for failure in failures:
         print("   " + failure)
-    sys.exit(1)
+    # Always exit with status 0 - failure is signaled by "FAILED" in the output above.
+    sys.exit(0)
 print("SUCCESS: all checks passed")

@@ -728,6 +728,25 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="darkMatterHaloSplashbackRadius">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="diemer"/>
+          <xs:enumeration value="diemer2017"/>
+          <xs:enumeration value="diemer2020"/>
+          <xs:enumeration value="diemerKravtsov2014"/>
+          <xs:enumeration value="shi2016"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="darkMatterParticle">
    <xs:complexType mixed="true">
     <xs:sequence>
@@ -2686,6 +2705,7 @@
           <xs:enumeration value="formationTimeDistribution"/>
           <xs:enumeration value="galaxySizesSDSS"/>
           <xs:enumeration value="heatedLikelihood"/>
+          <xs:enumeration value="localGroupLuminosityFunction"/>
           <xs:enumeration value="localGroupMassMetallicityRelation"/>
           <xs:enumeration value="localGroupMassSizeRelation"/>
           <xs:enumeration value="localGroupMassVelocityDispersionRelation"/>
@@ -2864,6 +2884,7 @@
           <xs:enumeration value="csmlgyVolume"/>
           <xs:enumeration value="filterHighPass"/>
           <xs:enumeration value="identity"/>
+          <xs:enumeration value="localGroupDetection"/>
           <xs:enumeration value="nbodyMass"/>
           <xs:enumeration value="normal"/>
           <xs:enumeration value="property"/>
@@ -3108,6 +3129,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="cosmicEmu"/>
+          <xs:enumeration value="euclidEmulator2"/>
           <xs:enumeration value="linear"/>
           <xs:enumeration value="peacockDodds1996"/>
           <xs:enumeration value="smith2003"/>

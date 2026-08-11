@@ -17,6 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    The truncation of the integration range at the radius where the molecular fraction becomes negligible was implemented with
+  !+    assistance from Claude and verified by Andrew Benson.
+
   !!{RST
   Implementation of the :cite:t:`krumholz_star_2009` star formation rate surface density law for galactic disks.
   !!}
@@ -84,8 +87,9 @@
           &                                                    massGas                           , hydrogenMassFraction          , &
           &                                                    metallicityRelativeToSolar        , sNormalization                , &
           &                                                    sigmaMolecularComplexNormalization, clumpingFactorMolecularComplex, &
-          &                                                    frequencyStarFormation
-     logical                                                :: assumeMonotonicSurfaceDensity     , molecularFractionFast
+          &                                                    frequencyStarFormation            , sTruncation                   , &
+          &                                                    surfaceDensityGasTruncation
+     logical                                                :: molecularFractionFast
      type            (rootFinder         )                  :: finderCritical                    , finderMolecules
      type            (fastExponentiator  )                  :: surfaceDensityExponentiator
      type            (table1DLinearLinear)                  :: molecularFractionTable
@@ -123,8 +127,19 @@
   type            (treeNode                                        ), pointer   :: node_
   !$omp threadprivate(self_,node_)
 
+  ! Module-scope pointer to the molecular fraction fitting function in use - needed when solving for the value of s at which the
+  ! molecular fraction becomes negligible.
+  procedure       (double precision                                ), pointer   :: molecularFractionFunction_
+  !$omp threadprivate(molecularFractionFunction_)
+
   ! Range of s-parameter to tabulate.
-  double precision                                                  , parameter :: sMinimum=0.0d+0, sMaximum=10.0d0
+  double precision                                                  , parameter :: sMinimum                  =0.0d+00, sMaximum=10.0d0
+
+  ! Molecular fraction below which the star formation rate is treated as zero. The molecular fraction is a rapidly-decreasing
+  ! function of s (∝s⁻⁵ for the "slow" fitting function), and the star formation rate surface density is directly proportional to
+  ! it, so truncating the disk at the radius where the molecular fraction falls to this value introduces a fractional error in the
+  ! integrated star formation rate far below the tolerance to which that integral is evaluated.
+  double precision                                                  , parameter :: molecularFractionTiny     =1.0d-10
 
 contains
 
@@ -137,7 +152,7 @@ contains
     type            (starFormationRateSurfaceDensityDisksKrumholz2009)                :: self
     type            (inputParameters                                 ), intent(inout) :: parameters
     double precision                                                                  :: frequencyStarFormation, clumpingFactorMolecularComplex
-    logical                                                                           :: molecularFractionFast , assumeMonotonicSurfaceDensity
+    logical                                                                           :: molecularFractionFast
 
     !![
     <inputParameter docformat="rst">
@@ -167,23 +182,15 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter docformat="rst">
-      <name>assumeMonotonicSurfaceDensity</name>
-      <defaultValue>.false.</defaultValue>
-      <description>
-      If true, assume that the surface density in disks is always monotonically decreasing.
-      </description>
-      <source>parameters</source>
-    </inputParameter>
     !!]
-    self=starFormationRateSurfaceDensityDisksKrumholz2009(frequencyStarFormation,clumpingFactorMolecularComplex,molecularFractionFast,assumeMonotonicSurfaceDensity)
+    self=starFormationRateSurfaceDensityDisksKrumholz2009(frequencyStarFormation,clumpingFactorMolecularComplex,molecularFractionFast)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function krumholz2009ConstructorParameters
 
-  function krumholz2009ConstructorInternal(frequencyStarFormation,clumpingFactorMolecularComplex,molecularFractionFast,assumeMonotonicSurfaceDensity) result(self)
+  function krumholz2009ConstructorInternal(frequencyStarFormation,clumpingFactorMolecularComplex,molecularFractionFast) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`starFormationRateSurfaceDensityDisksKrumholz2009` star formation surface density rate in disks class.
     !!}
@@ -194,20 +201,23 @@ contains
     implicit none
     type            (starFormationRateSurfaceDensityDisksKrumholz2009)                :: self
     double precision                                                  , intent(in   ) :: frequencyStarFormation      , clumpingFactorMolecularComplex
-    logical                                                           , intent(in   ) :: molecularFractionFast       , assumeMonotonicSurfaceDensity
+    logical                                                           , intent(in   ) :: molecularFractionFast
     integer                                                           , parameter     :: sCount                =1000
+    double precision                                                  , parameter     :: sTruncationMinimum    =1.0d-3, sTruncationMaximum=1.0d+6
+    type            (rootFinder                                      )                :: finderTruncation
     integer                                                                           :: i
     !![
-    <constructorAssign variables="frequencyStarFormation, clumpingFactorMolecularComplex, molecularFractionFast, assumeMonotonicSurfaceDensity"/>
+    <constructorAssign variables="frequencyStarFormation, clumpingFactorMolecularComplex, molecularFractionFast"/>
     !!]
 
-    self%lastUniqueID          =-1_kind_int8
-    self%massGasPrevious       =-1.0d0
-    self%radiusPrevious        =-1.0d0
-    self%radiusCriticalPrevious=-1.0d0
-    self%radiusMaximumPrevious =-1.0d0
-    self%abundancesFuelPrevious=-unitAbundances
-    self%factorsComputed   =.false.
+    self%lastUniqueID               =-1_kind_int8
+    self%massGasPrevious            =-1.0d0
+    self%radiusPrevious             =-1.0d0
+    self%radiusCriticalPrevious     =-1.0d0
+    self%radiusMaximumPrevious      =-1.0d0
+    self%abundancesFuelPrevious     =-unitAbundances
+    self%surfaceDensityGasTruncation=-1.0d0
+    self%factorsComputed            =.false.
     ! Set a pointer to the molecular hydrogen fraction fitting function to be used.
     select case (molecularFractionFast)
     case (.true.)
@@ -220,6 +230,16 @@ contains
     do i=1,sCount
        call self%molecularFractionTable%populate(self%molecularFractionFunction(self%molecularFractionTable%x(i)),i)
     end do
+    ! Solve for the value of s at which the molecular fraction falls to a negligible value. Since the molecular fraction is a
+    ! monotonically-decreasing function of s alone this need be done just once, here - the corresponding truncation radius in any
+    ! given disk then follows from the surface density profile alone (see `krumholz2009ComputeFactors`).
+    molecularFractionFunction_ => self%molecularFractionFunction
+    finderTruncation           =  rootFinder(                                               &
+         &                                   rootFunction     =krumholz2009STruncationRoot, &
+         &                                   toleranceAbsolute=0.0d+0                     , &
+         &                                   toleranceRelative=1.0d-6                       &
+         &                                  )
+    self%sTruncation           =  finderTruncation%find(rootRange=[sTruncationMinimum,sTruncationMaximum])
     ! Initialize exponentiator.
     self%surfaceDensityExponentiator=fastExponentiator(1.0d0,1000.0d0,0.33d0,100.0d0,.false.)
     ! Build root finders.
@@ -322,6 +342,15 @@ contains
           self%chi                               =0.77d0*(1.0d0+3.1d0*self%metallicityRelativeToSolar**0.365d0)
           self%sigmaMolecularComplexNormalization=self%hydrogenMassFraction*self%clumpingFactorMolecularComplex/mega**2
           self%sNormalization                    =log(1.0d0+0.6d0*self%chi+0.01d0*self%chi**2)/(0.04d0*self%metallicityRelativeToSolar)
+          ! Find the gas surface density below which the molecular fraction is negligible. Since s ∝ 1/Σ_gas, the molecular
+          ! fraction falls below `molecularFractionTiny` wherever the gas surface density falls below this value.
+          if (self%sigmaMolecularComplexNormalization > 0.0d0) then
+             self%surfaceDensityGasTruncation=+self%sNormalization                     &
+                  &                           /self%sigmaMolecularComplexNormalization &
+                  &                           /self%sTruncation
+          else
+             self%surfaceDensityGasTruncation=+huge(0.0d0)
+          end if
        end if
        ! Record that factors have now been computed.
        self%factorsComputed=.true.
@@ -451,51 +480,80 @@ contains
     !!{RST
     Returns intervals to use for integrating the :cite:t:`krumholz_star_2009` star formation rate over a galactic disk.
     !!}
+    use :: Galactic_Structure_Options, only : componentTypeDisk    , massTypeGaseous
+    use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     class           (starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout), target                      :: self
     double precision                                                                 , allocatable, dimension(:,:) :: krumholz2009Intervals
     type            (treeNode                                        ), intent(inout), target                      :: node
-    double precision                                                  , intent(in   )                              :: radiusInner          , radiusOuter
+    double precision                                                  , intent(in   )                              :: radiusInner                        , radiusOuter
     logical                                                           , intent(inout), allocatable, dimension(  :) :: intervalIsAnalytic
     double precision                                                  , intent(inout), allocatable, dimension(  :) :: integralsAnalytic
-    double precision                                                                                               :: surfaceDensityGas    , surfaceDensityGasDimensionless, &
-         &                                                                                                            radiusCritical       , radiusMaximum
+    class           (massDistributionClass                           ), pointer                                    :: massDistributionGaseous
+    double precision                                                                                               :: surfaceDensityGas                  , surfaceDensityGasDimensionless, &
+         &                                                                                                            radiusCritical                     , radiusMaximum                 , &
+         &                                                                                                            surfaceDensityGasDimensionlessInner
+    logical                                                                                                        :: assumeMonotonicSurfaceDensity
 
-    ! Check if we can assume a monotonic surface density.
-    if (self%assumeMonotonicSurfaceDensity) then
+    ! Check if we can assume a monotonic surface density. Only the gaseous mass distribution is relevant here - the star formation
+    ! rate surface density in this model depends on the gas surface density alone.
+    massDistributionGaseous       => node                   %massDistribution                       (componentType=componentTypeDisk,massType=massTypeGaseous)
+    assumeMonotonicSurfaceDensity =  massDistributionGaseous%assumeMonotonicDecreasingSurfaceDensity(                                                        )
+    !![
+    <objectDestructor name="massDistributionGaseous"/>
+    !!]
+    if (assumeMonotonicSurfaceDensity) then
        ! Ensure required factors are computed.
-       call self%computeFactors(node)       
-       ! First, if using the fast molecular fraction calculation, check if this truncates to zero somewhere in range.
-       radiusMaximum=radiusOuter
-       if (self%molecularFractionFast) then
+       call self%computeFactors(node)
+       ! Check if the disk is physical - if it is not the star formation rate is zero everywhere, so set zero intervals.
+       if     (                                                  &
+            &   self%massGas                            <= 0.0d0 &
+            &  .or.                                              &
+            &   self%radiusDisk                         <= 0.0d0 &
+            &  .or.                                              &
+            &   self%metallicityRelativeToSolar         <= 0.0d0 &
+            &  .or.                                              &
+            &   self%sigmaMolecularComplexNormalization <= 0.0d0 &
+            & ) then
+          allocate(krumholz2009Intervals(2,0))
+          return
+       end if
+       ! The molecular fraction is a monotonically-decreasing function of s ∝ 1/Σ_gas, so it becomes negligible wherever the gas
+       ! surface density falls below Σ_gas,truncation. Look for that radius, and use it to truncate the outer limit of the
+       ! integration - beyond it the star formation rate is negligible, and including it merely makes the integral slower to
+       ! converge.
+       call self%surfaceDensityFactors(node,radiusInner,surfaceDensityGas,surfaceDensityGasDimensionlessInner)
+       if (surfaceDensityGas <= self%surfaceDensityGasTruncation) then
+          ! The molecular fraction is negligible throughout the disk, so the star formation rate is zero everywhere. Set zero
+          ! intervals.
+          allocate(krumholz2009Intervals(2,0))
+          return
+       end if
+       call self%surfaceDensityFactors(node,radiusOuter,surfaceDensityGas,surfaceDensityGasDimensionless)
+       if (surfaceDensityGas <= self%surfaceDensityGasTruncation) then
+          ! The outer regions of the disk have a negligible molecular fraction. Find the radius at which the molecular fraction
+          ! becomes negligible and set that as the maximum radius.
           self_ => self
           node_ => node
-          if (krumholz2009MolecularFractionRoot(radiusInner) <= 0.0d0) then
-             ! The entire disk has no molecules, so the star formation rate is zero everywhere. Set zero intervals.
-             allocate(krumholz2009Intervals(2,0))
-             return
-          else if (krumholz2009MolecularFractionRoot(radiusOuter) <= 0.0d0) then
-             ! The outer regions of the disk have no molecules. Find the radius at which the molecular fraction drops to zero and
-             ! set that as the maximum radius.
-             if (self%radiusMaximumPrevious > 0.0d0) then
-                radiusMaximum    =  self%finderMolecules%find(rootGuess=self%radiusMaximumPrevious)
-             else
-                radiusMaximum    =  self%finderMolecules%find(rootRange=[radiusInner,radiusOuter])
-             end if
-             self%radiusMaximumPrevious=radiusMaximum
+          if (self%radiusMaximumPrevious > 0.0d0) then
+             radiusMaximum          =self%finderMolecules%find(rootGuess=self%radiusMaximumPrevious)
+          else
+             radiusMaximum          =self%finderMolecules%find(rootRange=[radiusInner,radiusOuter])
           end if
+          self%radiusMaximumPrevious=radiusMaximum
+          call self%surfaceDensityFactors(node,radiusMaximum,surfaceDensityGas,surfaceDensityGasDimensionless)
+       else
+          radiusMaximum             =radiusOuter
        end if
        ! Test if the inner radius is below the surface density threshold.
-       call self%surfaceDensityFactors(node,radiusInner,surfaceDensityGas,surfaceDensityGasDimensionless)
-       if (surfaceDensityGasDimensionless <= 1.0d0) then
+       if (surfaceDensityGasDimensionlessInner <= 1.0d0) then
           ! The entire disk is below the critical surface density so use a single interval.
           allocate(krumholz2009Intervals(2,1))
           allocate(intervalIsAnalytic   (  1))
           intervalIsAnalytic   =.false.
           krumholz2009Intervals=reshape([radiusInner,radiusMaximum],[2,1])
        else
-          ! Test the surface density at the outer radius.
-          call self%surfaceDensityFactors(node,radiusMaximum,surfaceDensityGas,surfaceDensityGasDimensionless)
+          ! Test the surface density at the maximum radius.
           if (surfaceDensityGasDimensionless >= 1.0d0) then
              ! Entire disk is above the critical surface density threshold so use a single interval.
              allocate(krumholz2009Intervals(2,1))
@@ -529,28 +587,34 @@ contains
     return
   end function krumholz2009Intervals
     
+  double precision function krumholz2009STruncationRoot(s)
+    !!{RST
+    Root function used in finding the value of the :math:`s` parameter at which the molecular fraction drops below a tiny threshold.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: s
+
+    krumholz2009STruncationRoot=+molecularFractionFunction_(s) &
+         &                      -molecularFractionTiny
+    return
+  end function krumholz2009STruncationRoot
+
   double precision function krumholz2009MolecularFractionRoot(radius)
     !!{RST
-    Function used in finding where the molecular fraction drops below a tiny threshold.
+    Root function used in finding the radius in a disk at which the molecular fraction drops below a tiny threshold. Since :math:`s
+    \propto 1/\Sigma_\mathrm{gas}` and the molecular fraction is a monotonically-decreasing function of :math:`s`, this is simply
+    the radius at which the gas surface density falls to :math:`\Sigma_\mathrm{gas,truncation}`.
     !!}
     implicit none
     double precision, intent(in   ) :: radius
-    double precision, parameter     :: molecularFractionTiny=1.0d-10
-    double precision                :: surfaceDensityGas            , surfaceDensityGasDimensionless, &
-         &                             sigmaMolecularComplex        , s                             , &
-         &                             molecularFraction
-    
+    double precision                :: surfaceDensityGas, surfaceDensityGasDimensionless
+
     call self_%surfaceDensityFactors(node_,radius,surfaceDensityGas,surfaceDensityGasDimensionless)
-    sigmaMolecularComplex            =+self_%sigmaMolecularComplexNormalization &
-         &                            *      surfaceDensityGas
-    s                                =+self_%sNormalization                     &
-         &                            /      sigmaMolecularComplex
-    molecularFraction                =+self_%molecularFraction    (s)
-    krumholz2009MolecularFractionRoot=+molecularFraction                        &
-         &                            -molecularFractionTiny
+    krumholz2009MolecularFractionRoot=+      surfaceDensityGas           &
+         &                            -self_%surfaceDensityGasTruncation
     return
   end function krumholz2009MolecularFractionRoot
-    
+
   double precision function krumholz2009CriticalDensityRoot(radius)
     !!{RST
     Root function used in finding the radius in a disk where the surface density equals the critical surface density in the :cite:t:`krumholz_star_2009` star formation rate model.

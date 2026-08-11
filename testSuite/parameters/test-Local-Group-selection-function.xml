@@ -1,0 +1,90 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameters for testing the observational selection function applied to Local Group satellites. -->
+<!-- A deliberately small, low-resolution model: this tests the machinery which applies the selection    -->
+<!-- function, not the physics of the satellite population.                                             -->
+
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="a3e1665914d944c9fa844f662a028072e84740a5" time="2026-07-28T17:29:21"/>
+
+
+  <!-- Include required parameters -->
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/darkMatterParticleCDM.xml"       xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/cosmology.xml"                   xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/powerSpectrum.xml"               xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/structureFormation.xml"          xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/darkMatterHalosProfile.xml"      xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/darkMatterHalosTidalHeating.xml" xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/darkMatterHalosStructure.xml"    xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/subhaloOrbits.xml"               xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/mergerTrees.xml"                 xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/filterLMC.xml"                   xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/evolutionGalaxyFormation.xml"    xpointer="xpointer(parameters/*)" />
+
+  <!-- Set verbosity to standard level. -->
+  <verbosityLevel value="standard"/>
+
+  <!-- Set up the tasks to perform. -->
+  <task value="evolveForests">
+    <!-- Evolve merger tree forests. -->
+  </task>
+
+  <!-- Merger tree building options -->
+  <mergerTreeBuildMasses value="fixedMass">
+    <!-- Halo masses fixed at a single value. -->
+    <!-- The value used is the median estimate at r=262kpc from Slizewski et al. (2022; https://ui.adsabs.harvard.edu/abs/2022ApJ...924..131S) -->
+    <massTree   value="1.520e12"/>
+    <radiusTree value="0.262e00"/>
+    <treeCount  value="4"       />
+  </mergerTreeBuildMasses>
+
+  <!-- Halo mass resolution -->
+  <mergerTreeMassResolution value="fixed">
+    <!-- All trees are set to have the same halo mass resolution. -->
+    <!-- A relatively coarse mass resolution is used to allow the model to run in reasonable time. -->
+    <massResolution value="3.0e8"/>
+  </mergerTreeMassResolution>
+
+  <!-- Output epochs -->
+  <outputTimes value="list">
+    <!-- Additional redshifts can be added to this list to generate more outputs. -->
+    <redshifts value="0.0"/>
+  </outputTimes>
+
+  <!-- Luminosities -->
+  <!-- The V-band luminosity is required by the observational selection function applied to Local Group satellites. -->
+  <luminosityFilter   value="Buser_V"/>
+  <luminosityType     value="rest"   />
+  <luminosityRedshift value="0.0"    />
+
+  <!-- Analyses -->
+  <mergerTreeOutputter value="multi">
+    <mergerTreeOutputter value="analyzer"/>
+    <mergerTreeOutputter value="standard">
+      <!-- The properties used by the `localGroupDetection` weight operator, so that the detection -->
+      <!-- probabilities it applies can be recomputed independently.                              -->
+      <nodePropertyExtractor value="multi">
+        <nodePropertyExtractor value="nodeIndices"          />
+        <nodePropertyExtractor value="radiusOrbital"        />
+        <nodePropertyExtractor value="radiusHalfMassStellar"/>
+        <nodePropertyExtractor value="treeWeight"           />
+        <nodePropertyExtractor value="luminosityStellar"     >
+          <filterName value="Buser_V"/>
+          <filterType value="rest"   />
+        </nodePropertyExtractor>
+      </nodePropertyExtractor>
+    </mergerTreeOutputter>
+  </mergerTreeOutputter>
+  <outputAnalysis      value="localGroupLuminosityFunction">
+    <positionType                     value="orbital"/>
+    <logLikelihoodZero                value="0.0"    />
+    <randomErrorMinimum               value="1.0e-6" />
+    <randomErrorMaximum               value="1.0e-6" />
+    <randomErrorPolynomialCoefficient value="0.0"    />
+  </outputAnalysis>
+  <elementsToTrack value="Fe"/>
+
+  <!-- Output file -->
+  <outputFileName value="testSuite/outputs/test-Local-Group-selection-function.hdf5"/>
+
+</parameters>

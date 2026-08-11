@@ -17,6 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson. The analytic evaluation of the smoothed power spectrum slope was
+!+    drafted with assistance from Claude, and reviewed and verified by Andrew Benson.
+
   !!{RST
   Implements a generalization of the ETHOS power spectrum window function class from :cite:t:`bohr_halo_2021`.
   !!}
@@ -60,8 +63,9 @@
           &                                                                                  wavenumberScaledMinimum_                     , powerSpectrumSmoothingWidth, &
           &                                                                                  wavenumberMinimum_                           , wavenumberMaximum_         , &
           &                                                                                  timePrevious
-     double precision                                         , allocatable, dimension(:) :: logPowerSpectra
-     type            (interpolator                           ), allocatable               :: powerSpectrumSmoothed
+     integer                                                                              :: indexMinimum_                                , indexMaximum_
+     double precision                                         , allocatable, dimension(:) :: slopes
+     type            (interpolator                           ), allocatable               :: slopeSmoothed
    contains
      !![
      <methods docformat="rst">
@@ -191,6 +195,8 @@ contains
     self%timePrevious      =-huge(0.0d0)
     self%wavenumberMinimum_=+huge(0.0d0)
     self%wavenumberMaximum_=-huge(0.0d0)
+    self%indexMinimum_     =+huge(0    )
+    self%indexMaximum_     =-huge(0    )
     return
   end function ETHOSExtendedConstructorInternal
 
@@ -273,89 +279,130 @@ contains
   double precision function ETHOSExtendedPowerSpectrumSlopeSmoothed(self,wavenumber,time) result(slope)
     !!{RST
     Compute the logarithmic derivative of the power spectrum after smoothing.
+
+    The derivative is evaluated analytically, by differentiating the smoothing kernel under the integral sign, so that
+
+    .. math::
+
+       \frac{\mathrm{d} \log \tilde{P}}{\mathrm{d} \log k} = \frac{1}{\tilde{P}(k)} \int_{-\infty}^\infty \left( \frac{\log k^\prime - \log k}{\sigma^2} \right) \frac{1}{\sqrt{2 \pi} \sigma} \exp\left[-\frac{1}{2} \left(\frac{\log k - \log k^\prime}{\sigma}\right)^2\right] P(k^\prime) \mathrm{d} \log k^\prime.
+
+    The slope, rather than the smoothed power spectrum itself, is then tabulated and interpolated. Tabulating
+    :math:`\log \tilde{P}` and differentiating the interpolant instead would amplify the numerical error in each tabulated
+    point by the reciprocal of the tabulation interval, making the slope (and so the window function that depends on it)
+    noisy on the scale of that interval.
     !!}
-    use :: Numerical_Ranges     , only : Make_Range, rangeTypeLinear
+    use :: Error                , only : Error_Report
     use :: Numerical_Integration, only : integrator
     implicit none
     class           (powerSpectrumWindowFunctionETHOSExtended), intent(inout), target      :: self
-    double precision                                          , intent(in   )              :: wavenumber                    , time
-    double precision                                          , parameter                  :: countPerInterval       =10.0d0
-    double precision                                          , dimension(:) , allocatable :: logWavenumbers                , logPowerSpectra
-    integer                                                                                :: countPoints                   , i
-    double precision                                                                       :: logWavenumberLimitLower       , logWavenumberLimitUpper
-    logical                                                                                :: remakeTable
+    double precision                                          , intent(in   )              :: wavenumber                   , time
+    double precision                                          , parameter                  :: countPerInterval       =1.0d2
+    double precision                                          , parameter                  :: toleranceSlope         =1.0d-6
+    double precision                                          , parameter                  :: widthsSmoothing        =1.0d1
+    double precision                                          , dimension(:) , allocatable :: logWavenumbers               , slopes
+    logical                                                   , dimension(:) , allocatable :: computed
+    integer                                                                                :: countPoints                  , i
+    double precision                                                                       :: logWavenumberLimitLower      , logWavenumberLimitUpper
+    logical                                                                                :: remakeTable                  , retainTable
 
-    if (.not.allocated(self%powerSpectrumSmoothed) .or. time /= self%timePrevious) then
+    if (.not.allocated(self%slopeSmoothed) .or. time /= self%timePrevious) then
+       ! No table exists, or the table that does exist was built for a different time - in either case any tabulated slopes
+       ! must be recomputed.
        remakeTable=.true.
-       if (allocated(self%powerSpectrumSmoothed)) deallocate(self%powerSpectrumSmoothed)
+       retainTable=.false.
+       if (allocated(self%slopeSmoothed)) deallocate(self%slopeSmoothed)
     else
+       ! A table for this time exists - it need be extended only if the requested wavenumber lies outside of it.
        remakeTable= wavenumber < self%wavenumberMinimum_ &
             &      .or.                                  &
             &       wavenumber > self%wavenumberMaximum_
+       retainTable=.true.
     end if
     if (remakeTable) then
        block
-         type            (integrator) :: integrator_
-         double precision             :: wavenumberMinimum_, wavenumberMaximum_
-         integer                      :: countNewLower     , countNewUpper
+         type            (integrator) :: integratorPower       , integratorPowerGradient
+         double precision             :: separationLogarithmic , powerSmoothed          , &
+              &                          powerSmoothedGradient
+         integer                      :: indexMinimum          , indexMaximum           , &
+              &                          offset
 
-         if (.not.allocated(self%powerSpectrumSmoothed)) then
-            self%wavenumberMinimum_=min(self%wavenumberMinimum_,wavenumber/2.0d0)
-            self%wavenumberMaximum_=max(self%wavenumberMaximum_,wavenumber*2.0d0)
-            ! Allocate storage.
-            countPoints  =int(log(self%wavenumberMaximum_/self%wavenumberMinimum_)/self%powerSpectrumSmoothingWidth*countPerInterval)+1
-            countNewLower=0
-            countNewUpper=0
-            allocate(logPowerSpectra(countPoints))
-            logPowerSpectra=-huge(0.0d0)
-         else
-            wavenumberMinimum_=min(self%wavenumberMinimum_,wavenumber/2.0d0)
-            wavenumberMaximum_=max(self%wavenumberMaximum_,wavenumber*2.0d0)
-            ! Determine how many points the table must be extended by in each direction to span the new required range.
-            countNewLower=0
-            countNewUpper=0
-            if (self%wavenumberMinimum_ > wavenumberMinimum_) countNewLower=int(+log(self%wavenumberMinimum_/wavenumberMinimum_)/self%powerSpectrumSmoothingWidth*countPerInterval+1.0d0)
-            if (self%wavenumberMaximum_ < wavenumberMaximum_) countNewUpper=int(-log(self%wavenumberMaximum_/wavenumberMaximum_)/self%powerSpectrumSmoothingWidth*countPerInterval+1.0d0)
-            ! Adjust the limits of the table by an integer number of steps.
-            self%wavenumberMinimum_=self%wavenumberMinimum_/exp(dble(countNewLower)/countPerInterval*self%powerSpectrumSmoothingWidth)
-            self%wavenumberMaximum_=self%wavenumberMaximum_*exp(dble(countNewUpper)/countPerInterval*self%powerSpectrumSmoothingWidth)
-            ! Allocate storage.
-            countPoints=size(self%logPowerSpectra)+countNewLower+countNewUpper
-            allocate(logPowerSpectra(countPoints))
-            logPowerSpectra=-huge(0.0d0)
-            ! Populate the table with pre-existing results.
-            logPowerSpectra(countNewLower+1:countNewLower+size(self%logPowerSpectra))=self%logPowerSpectra
-         end if
+         ! Tabulate on an absolute lattice in log(wavenumber), of spacing set by the number of points per smoothing width, and
+         ! anchored at a wavenumber of unity. Since the lattice does not depend on the range spanned by the table, points
+         ! already computed remain at precisely the wavenumbers at which they were computed when the table is extended.
+         separationLogarithmic=+self%powerSpectrumSmoothingWidth &
+              &                /     countPerInterval
+         indexMinimum         =min(self%indexMinimum_,int(floor  (log(wavenumber/2.0d0)/separationLogarithmic)))
+         indexMaximum         =max(self%indexMaximum_,int(ceiling(log(wavenumber*2.0d0)/separationLogarithmic)))
+         countPoints          =+indexMaximum &
+              &                -indexMinimum &
+              &                +1
          allocate(logWavenumbers(countPoints))
-         logWavenumbers =  Make_Range(log(self%wavenumberMinimum_),log(self%wavenumberMaximum_),countPoints,rangeTypeLinear)
-         integrator_    =  integrator(integrandSmoothing,toleranceRelative=1.0d-3)
-         self_          => self
-         time_          =  time
+         allocate(slopes        (countPoints))
+         allocate(computed      (countPoints))
+         slopes  =0.0d0
+         computed=.false.
          do i=1,countPoints
-            if (logPowerSpectra(i) >= 0.0d0) cycle
-            logWavenumbers_           =logWavenumbers(i)
-            logWavenumberLimitLower   =logWavenumbers(i)-10.0d0*self%powerSpectrumSmoothingWidth
-            logWavenumberLimitUpper   =logWavenumbers(i)+10.0d0*self%powerSpectrumSmoothingWidth
-            logPowerSpectra        (i)=integrator_%integrate(logWavenumberLimitLower,logWavenumberLimitUpper)
-            if (logPowerSpectra(i) > 0.0d0) then
-               logPowerSpectra(i)=log(logPowerSpectra(i  ))
-            else
-               logPowerSpectra(i)=    logPowerSpectra(i-1)
+            logWavenumbers(i)=dble(indexMinimum+i-1)*separationLogarithmic
+         end do
+         ! Carry over any pre-existing results.
+         if (retainTable.and.allocated(self%slopes)) then
+            offset=+self%indexMinimum_ &
+                 & -     indexMinimum
+            slopes  (offset+1:offset+size(self%slopes))=self%slopes
+            computed(offset+1:offset+size(self%slopes))=.true.
+         end if
+         ! Construct integrators for the smoothed power spectrum and its gradient. An absolute tolerance is required for the
+         ! gradient integral as it passes through zero wherever the smoothed power spectrum peaks. It is set, for each point in
+         ! turn, such that the resulting tolerance in the slope is `toleranceSlope`.
+         integratorPower         =  integrator(integrandSmoothing        ,toleranceRelative=toleranceSlope)
+         integratorPowerGradient =  integrator(integrandSmoothingGradient,toleranceRelative=toleranceSlope)
+         self_                   => self
+         time_                   =  time
+         do i=1,countPoints
+            if (computed(i)) cycle
+            logWavenumbers_        =logWavenumbers(i)
+            logWavenumberLimitLower=logWavenumbers(i)-widthsSmoothing*self%powerSpectrumSmoothingWidth
+            logWavenumberLimitUpper=logWavenumbers(i)+widthsSmoothing*self%powerSpectrumSmoothingWidth
+            powerSmoothed          =integratorPower%integrate(logWavenumberLimitLower,logWavenumberLimitUpper)
+            ! If the smoothed power underflowed to zero the slope is indeterminate - such points are filled in below.
+            if (powerSmoothed <= 0.0d0) cycle
+            call integratorPowerGradient%toleranceSet(toleranceAbsolute=toleranceSlope*powerSmoothed,toleranceRelative=toleranceSlope)
+            powerSmoothedGradient  =integratorPowerGradient%integrate(logWavenumberLimitLower,logWavenumberLimitUpper)
+            slopes         (i)     =+powerSmoothedGradient &
+                 &                  /powerSmoothed
+            computed       (i)     =.true.
+         end do
+         ! Fill any points at which the smoothed power underflowed with the slope of the nearest point at which it did not.
+         if (.not.any(computed)) call Error_Report('smoothed power spectrum underflowed at all tabulated wavenumbers'//{introspection:location})
+         do i=2,countPoints
+            if (.not.computed(i).and.computed(i-1)) then
+               slopes  (i)=slopes(i-1)
+               computed(i)=.true.
             end if
          end do
-         if (allocated(self%logPowerSpectra      )) deallocate(self%logPowerSpectra      )
-         if (allocated(self%powerSpectrumSmoothed)) deallocate(self%powerSpectrumSmoothed)
-         allocate(self%logPowerSpectra      (countPoints))
-         allocate(self%powerSpectrumSmoothed             )
-         self%logPowerSpectra      =                            logPowerSpectra
-         self%powerSpectrumSmoothed=interpolator(logWavenumbers,logPowerSpectra)
-         self%timePrevious         =time
+         do i=countPoints-1,1,-1
+            if (.not.computed(i).and.computed(i+1)) then
+               slopes  (i)=slopes(i+1)
+               computed(i)=.true.
+            end if
+         end do
+         if (allocated(self%slopes       )) deallocate(self%slopes       )
+         if (allocated(self%slopeSmoothed)) deallocate(self%slopeSmoothed)
+         allocate(self%slopes       (countPoints))
+         allocate(self%slopeSmoothed             )
+         self%slopes            =                            slopes
+         self%slopeSmoothed     =interpolator(logWavenumbers,slopes)
+         self%indexMinimum_     =indexMinimum
+         self%indexMaximum_     =indexMaximum
+         self%wavenumberMinimum_=exp(logWavenumbers(          1))
+         self%wavenumberMaximum_=exp(logWavenumbers(countPoints))
+         self%timePrevious      =time
        end block
     end if
-    slope=self%powerSpectrumSmoothed%derivative(log(wavenumber))
+    slope=self%slopeSmoothed%interpolate(log(wavenumber))
     return
   end function ETHOSExtendedPowerSpectrumSlopeSmoothed
-  
+
   double precision function integrandSmoothing(logWavenumber)
     !!{RST
     Integrand function used in smoothing the power spectrum.
@@ -363,7 +410,7 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: logWavenumber
-    
+
     integrandSmoothing=+self_%powerSpectrumPrimordialTransferred_%power(exp(logWavenumber),time_) &
          &             *exp(                                                                      &
          &                  -0.5d0                                                                &
@@ -380,4 +427,19 @@ contains
     return
   end function integrandSmoothing
 
-  
+  double precision function integrandSmoothingGradient(logWavenumber)
+    !!{RST
+    Integrand function used in computing the gradient, with respect to :math:`\log k`, of the smoothed power spectrum. This is
+    simply the integrand used in smoothing the power spectrum multiplied by the logarithmic derivative of the smoothing kernel.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: logWavenumber
+
+    integrandSmoothingGradient=+(                                          &
+         &                       +logWavenumber                            &
+         &                       -logWavenumbers_                          &
+         &                      )                                          &
+         &                     /self_%powerSpectrumSmoothingWidth**2       &
+         &                     *integrandSmoothing(logWavenumber)
+    return
+  end function integrandSmoothingGradient
