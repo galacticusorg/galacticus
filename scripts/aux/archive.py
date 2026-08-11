@@ -46,19 +46,22 @@ def resolve_versions(link):
     A placeholder is the name of the local variable holding the version, embedded in the URL by string concatenation. It
     appears either wrapped in `char()` (where the URL is assembled from `character` variables) or bare (where it is assembled
     from `varying_string` variables) - normalize to the bare form first so that a single set of patterns handles both.
+
+    The variable name may contain digits after its first character (e.g. `euclidEmulator2Version`), so match it as a full
+    Fortran identifier - a letters-only pattern would silently leave such placeholders unresolved.
     """
-    link = re.sub(r'char\s*\(\s*([a-zA-Z]+Version(?:Major)?)\s*\)', r'\1', link)
+    link = re.sub(r'char\s*\(\s*([a-zA-Z]\w*Version(?:Major)?)\s*\)', r'\1', link)
     def replace_major(match):
         name = match.group(1).lower()
         return dependencies.get(name, {}).get("versionMajor", match.group(0))
-    link = re.sub(r'//([a-zA-Z]+)VersionMajor//', replace_major, link)
+    link = re.sub(r'//([a-zA-Z]\w*)VersionMajor//', replace_major, link)
     # Cloudy tarballs are named for the version prefixed by "c".
     cloudy_version = dependencies.get('cloudy', {}).get('version', '')
     link = re.sub(r'//cloudyVersion//', 'c' + cloudy_version, link)
     def replace_version(match):
         name = match.group(1).lower()
         return dependencies.get(name, {}).get("version", match.group(0))
-    link = re.sub(r'//([a-zA-Z]+)Version//', replace_version, link)
+    link = re.sub(r'//([a-zA-Z]\w*)Version//', replace_version, link)
     return link
 
 # Top-level domains and second-level names reserved by RFC 2606 and RFC 6761 for documentation and testing. These never
