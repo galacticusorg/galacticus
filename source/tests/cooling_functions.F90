@@ -28,7 +28,8 @@ program Test_Cooling_Functions
   use :: Abundances_Structure            , only : abundances                             , metallicityTypeLinearByMassSolar
   use :: Chemical_Abundances_Structure   , only : chemicalAbundances                     , zeroChemicalAbundances
   use :: Chemical_States                 , only : chemicalStateAtomicCIECloudy
-  use :: Cooling_Functions               , only : coolingFunctionSummation               , coolingFunctionAtomicCIECloudy   , coolingFunctionCMBCompton          , coolantList
+  use :: Cooling_Functions               , only : coolingFunctionSummation               , coolingFunctionAtomicCIECloudy   , coolingFunctionCMBCompton          , coolantList, &
+       &                                          coolingFunctionMolecularHydrogenGalliPalla
   use :: Cosmology_Parameters            , only : cosmologyParametersSimple
   use :: Cosmology_Functions             , only : cosmologyFunctionsMatterLambda
   use :: Display                         , only : displayVerbositySet                    , verbosityLevelStandard
@@ -59,6 +60,20 @@ program Test_Cooling_Functions
        &                                                                coolantSummation               , coolantCMBCompton     , &
        &                                                                timescaleCooling               , coolantAtomicCIECloudy
   type            (inputParameters                        )          :: parameters
+  ! Objects and workspace used to check that the tabulation built by the Galli & Palla molecular hydrogen cooling function does
+  ! not depend on the order in which temperatures are requested of it.
+  integer                                                  , parameter :: countTemperatures=5
+  double precision                                         , dimension(countTemperatures), parameter :: temperaturesOrder=[1.0d2,3.0d2,1.0d3,3.0d3,1.0d4]
+  type            (coolingFunctionMolecularHydrogenGalliPalla)                    :: coolingFunctionGalliPallaAscending, coolingFunctionGalliPallaDescending
+  ! One object per temperature, each constructed once and asked a single question - these must not be re-assigned in a loop, as
+  ! the assignment would finalize the previous object.
+  type            (coolingFunctionMolecularHydrogenGalliPalla), dimension(countTemperatures) :: coolingFunctionGalliPallaSingle
+  double precision                                         , dimension(countTemperatures) :: coolantLowDensityAscending  , coolantLowDensityDescending  , &
+       &                                                                                     coolantLowDensitySingle     , coolantEquilibriumAscending  , &
+       &                                                                                     coolantEquilibriumDescending, coolantEquilibriumSingle
+  double precision                                                   :: numberDensityCritical
+  character       (len=1024                               )          :: message
+  integer                                                            :: i
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -164,6 +179,36 @@ program Test_Cooling_Functions
   ! Compute Cloudy cooling time.
   coolantAtomicCIECloudy=+coolingFunctionAtomicCIECloudy_%coolingFunction(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
   call Assert('Cloudy CIE cooling function',coolantAtomicCIECloudy,1.4198000000000027d-30,relTol=1.0d-6)
+  call Unit_Tests_End_Group       ()
+  ! Check that the tabulation built by the Galli & Palla molecular hydrogen cooling function does not depend on the order in
+  ! which temperatures are requested of it. That tabulation is built on an absolute lattice, so the temperatures at which the
+  ! cooling function is evaluated depend only on which lattice points are spanned - three objects asked for the same
+  ! temperatures must therefore agree exactly, whichever order they were asked in, and however far each extended its
+  ! tabulation. Without pinning the tabulation is laid out afresh across whatever range has accumulated, and the three disagree
+  ! at the level of the interpolation error.
+  call Unit_Tests_Begin_Group("Molecular hydrogen tabulation")
+  coolingFunctionGalliPallaAscending =coolingFunctionMolecularHydrogenGalliPalla()
+  coolingFunctionGalliPallaDescending=coolingFunctionMolecularHydrogenGalliPalla()
+  do i=1,countTemperatures
+     call coolingFunctionGalliPallaAscending    %commonFactors(numberDensityHydrogen,temperaturesOrder(i),numberDensityCritical,coolantEquilibriumAscending (i),coolantLowDensityAscending (i))
+  end do
+  do i=countTemperatures,1,-1
+     call coolingFunctionGalliPallaDescending   %commonFactors(numberDensityHydrogen,temperaturesOrder(i),numberDensityCritical,coolantEquilibriumDescending(i),coolantLowDensityDescending(i))
+  end do
+  do i=1,countTemperatures
+     coolingFunctionGalliPallaSingle(i)=coolingFunctionMolecularHydrogenGalliPalla()
+     call coolingFunctionGalliPallaSingle    (i)%commonFactors(numberDensityHydrogen,temperaturesOrder(i),numberDensityCritical,coolantEquilibriumSingle    (i),coolantLowDensitySingle    (i))
+  end do
+  call Assert('low density limit is independent of the order in which temperatures are requested' ,coolantLowDensityAscending ,coolantLowDensityDescending ,absTol=0.0d0)
+  call Assert('low density limit is independent of the range of temperatures tabulated'           ,coolantLowDensityAscending ,coolantLowDensitySingle     ,absTol=0.0d0)
+  call Assert('LTE cooling function is independent of the order in which temperatures are requested',coolantEquilibriumAscending,coolantEquilibriumDescending,absTol=0.0d0)
+  call Assert('LTE cooling function is independent of the range of temperatures tabulated'          ,coolantEquilibriumAscending,coolantEquilibriumSingle    ,absTol=0.0d0)
+  ! The low density limit cooling function increases steeply and monotonically with temperature over this range, so a value
+  ! placed at the wrong temperature would show itself here.
+  do i=2,countTemperatures
+     write (message,'(a,f8.1,a)') 'low density limit increases with temperature [T = ',temperaturesOrder(i),' K]'
+     call Assert(trim(message),coolantLowDensityAscending(i) > coolantLowDensityAscending(i-1),.true.)
+  end do
   call Unit_Tests_End_Group       ()
   ! End unit tests.
   call Unit_Tests_End_Group       ()

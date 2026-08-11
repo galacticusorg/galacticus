@@ -23,7 +23,8 @@
   Implements a cooling function class which implements cooling from molecular hydrogen using the cooling function of :cite:t:`galli_chemistry_1998`.
   !!}
 
-  use :: Tables, only : table1DLinearLinear
+  use :: Numerical_Ranges, only : rangeLattice
+  use :: Tables          , only : table1DLinearLinear
 
   !![
   <coolingFunction name="coolingFunctionMolecularHydrogenGalliPalla" docformat="rst">
@@ -78,7 +79,10 @@
          &                                                temperatureHH2PlusPrevious                           , coolingFunctionAtomicHydrogenMolecularHydrogenCation, &
          &                                                temperatureH2PlusElectronPrevious                    , coolingFunctionElectronMolecularHydrogenCation      , &
          &                                                coolingFunctionRotationalTemperatureGradient         , coolingFunctionVibrationalTemperatureGradient
-    double precision                                   :: temperatureMinimumInterpolators                      , temperatureMaximumInterpolators
+    ! Lattice to which the tabulated temperatures are pinned. The tabulation is made against the logarithm of temperature, so
+    ! this is a lattice of the `perUnit` gridding scheme in that logarithm, whose points are those of a lattice of whole decades
+    ! of temperature. It is undefined until the first tabulation is made.
+    type            (rangeLattice       )              :: latticeTemperatureLogarithmic
     type            (table1DLinearLinear), allocatable :: interpolatorCoolingFunctionCommon
    contains
      !![
@@ -176,8 +180,6 @@ contains
     self%temperatureCommonPrevious        =-     1.0d0
     self%temperatureHH2PlusPrevious       =-     1.0d0
     self%temperatureH2PlusElectronPrevious=-     1.0d0
-    self%temperatureMinimumInterpolators  =+huge(0.0d0)
-    self%temperatureMaximumInterpolators  =-huge(0.0d0)
     return
   end function molecularHydrogenGalliPallaConstructorInternal
 
@@ -513,6 +515,7 @@ contains
     Compute the ratio of critical number density to the hydrogen number density for use in molecular hydrogen cooling functions.
     !!}
     use :: Numerical_Constants_Prefixes, only : milli
+    use :: Numerical_Ranges            , only : Range_Pinned                                  , gridSchemePerUnit
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout)             :: self
     double precision                                            , intent(in   )             :: numberDensityHydrogen                                  , temperature
@@ -521,23 +524,37 @@ contains
     integer                                                     , parameter                 :: temperaturePointsPerDecade                    =100
     double precision                                            , parameter                 :: coolingFunctionMinimum                        =1.0d-300
     double precision                                            , allocatable, dimension(:) :: logTemperatures                                        , temperaturesThousand
-    integer                                                                                 :: countTemperatures
+    logical                                                     , allocatable, dimension(:) :: isComputed
+    type            (rangeLattice                             )                             :: latticeTemperatureLogarithmic
     double precision                                                                        :: logarithmic10Temperature
 
     ! Check if solutions must be updated.
     if (temperature /= self%temperatureCommonPrevious) then
-       ! Build interpolation tables if necessary.
-       if     (                                                    &
-            &   temperature < self%temperatureMinimumInterpolators &
-            &  .or.                                                &
-            &   temperature > self%temperatureMaximumInterpolators &
-            & ) then
-          if (allocated(self%interpolatorCoolingFunctionCommon)) deallocate(self%interpolatorCoolingFunctionCommon)
-          allocate(self%interpolatorCoolingFunctionCommon)
-          self%temperatureMinimumInterpolators=min(self%temperatureMinimumInterpolators,temperature/2.0d0)
-          self%temperatureMaximumInterpolators=max(self%temperatureMaximumInterpolators,temperature*2.0d0)
-          countTemperatures=int(log10(self%temperatureMaximumInterpolators/self%temperatureMinimumInterpolators)*dble(temperaturePointsPerDecade))+1
-          call self%interpolatorCoolingFunctionCommon%create(log10(self%temperatureMinimumInterpolators),log10(self%temperatureMaximumInterpolators),countTemperatures,tableCount=3)
+       ! Find the range of temperatures to tabulate, pinning it to an absolute lattice so that the temperatures evaluated - and
+       ! therefore every value interpolated between them - depend only on which lattice points are spanned, and not on the
+       ! sequence of temperatures which happened to be requested. The tabulation is made against the logarithm of temperature,
+       ! so the lattice is one of the `perUnit` gridding scheme in that logarithm; its points are precisely those of a lattice
+       ! of whole decades of temperature, but taking it in the logarithm means that the abscissae of the table are the lattice
+       ! points themselves, with no round trip through a power of ten. The margin is the factor of two either side of the
+       ! request which was applied before this tabulation was pinned, which is an additive offset in the logarithm.
+       latticeTemperatureLogarithmic=Range_Pinned(                                                              &
+            &                                                    [log10(temperature)]                         , &
+            &                                                     temperaturePointsPerDecade                  , &
+            &                                                     gridSchemePerUnit                           , &
+            &                                     marginOffset  = log10(2.0d0)                                , &
+            &                                     latticeCurrent= self%latticeTemperatureLogarithmic            &
+            &                                    )
+       ! Build interpolation tables if necessary. The decision is taken from the pinned lattice rather than from the bounds
+       ! directly: the safety margin is applied to the request, so testing the request against the bounds would apply that
+       ! margin only when the request happened to arrive outside them. The range reached would then depend on the order in which
+       ! temperatures were asked for - which is precisely the dependence that pinning the lattice exists to remove.
+       if (.not.self%latticeTemperatureLogarithmic%covers(latticeTemperatureLogarithmic)) then
+          if (.not.allocated(self%interpolatorCoolingFunctionCommon)) allocate(self%interpolatorCoolingFunctionCommon)
+          ! Extend the tabulation onto the new lattice. Every point is repopulated below - each is a function of its own
+          ! temperature alone, and the temperatures are lattice points, so a point carried over and a point computed afresh are
+          ! identical.
+          call self%interpolatorCoolingFunctionCommon%extend(latticeTemperatureLogarithmic,isComputed,tableCount=3)
+          self%latticeTemperatureLogarithmic=latticeTemperatureLogarithmic
           logTemperatures     =self%interpolatorCoolingFunctionCommon%xs()
           temperaturesThousand=10.0d0**logTemperatures/1000.0d0
           ! The expression from Galli & Palla (1998), assumes an equilibrium (1:3) ratio of para:ortho.
