@@ -21,7 +21,8 @@
 Implements a class for the conditional mass functions using the :cite:t:`behroozi_comprehensive_2010` fitting function.
 !!}
 
-  use :: Tables, only : table1D, table1DLogarithmicLinear
+  use :: Numerical_Ranges, only : rangeLattice
+  use :: Tables          , only : table1D     , table1DLogarithmicLinear
 
   !![
   <conditionalMassFunction name="conditionalMassFunctionBehroozi2010" docformat="rst">
@@ -133,8 +134,10 @@ Implements a class for the conditional mass functions using the :cite:t:`behrooz
      double precision                                         :: fMass                , massHaloPrevious
      double precision                          , dimension(2) :: massSatelliteStored  , massPrevious    , &
          &                                                       fMassHaloStored      , massCutStored
-     ! Tabulation of-halo mass relation.
-     integer                                                  :: fMassTableCount
+     ! Tabulation of-halo mass relation. The lattice to which the tabulated masses are pinned is the source of truth for the
+     ! extent of the tabulation; the mass bounds are derived from it, and are retained because they are what the test for a
+     ! sufficient tabulation reads, and what the extension of the range is measured from.
+     type            (rangeLattice            )               :: latticeMass
      double precision                                         :: fMassTableMaximum    , fMassTableMinimum
      double precision                                         :: fMassHaloTableMaximum, fMassHaloTableMinimum
      type            (table1DLogarithmicLinear)               :: fMassTable
@@ -161,6 +164,11 @@ Implements a class for the conditional mass functions using the :cite:t:`behrooz
 
   ! Table resolution.
   integer                                              , parameter :: massTablePointsPerDecade=10
+
+  ! Seed range of masses to tabulate. Any two tabulations therefore contain this range, and so always overlap. Note that these
+  ! are exact powers of ten, so on a lattice anchored to whole decades they are themselves anchor points: a tabulation which is
+  ! never asked for a halo mass outside those which they span covers exactly this range, as it did before being pinned.
+  double precision                                     , parameter :: massTableSeedMinimum    =1.0d08, massTableSeedMaximum=1.0d13
 
   ! Module scope pointer to the current object.
   class           (conditionalMassFunctionBehroozi2010), pointer   :: self_
@@ -334,8 +342,8 @@ contains
     ! Initialize tables and accelerators.
     self%massPrevious     =-1.0d00
     self%massHaloPrevious =-1.0d00
-    self%fMassTableMinimum=+1.0d08
-    self%fMassTableMaximum=+1.0d13
+    self%fMassTableMinimum=massTableSeedMinimum
+    self%fMassTableMaximum=massTableSeedMaximum
     return
   end function behroozi2010ConstructorInternal
 
@@ -412,16 +420,20 @@ contains
     !!{RST
     Computes the cumulative conditional mass function, :math:`\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{ halo})` using the fitting formula of :cite:t:`behroozi_comprehensive_2010`.
     !!}
-    use :: Table_Labels, only : extrapolationTypeFix
+    use :: Numerical_Ranges, only : Range_Pinned            , gridSchemePerDecade
+    use :: Table_Labels    , only : extrapolationTypeFix
     implicit none
-    class           (conditionalMassFunctionBehroozi2010), intent(inout), target :: self
-    double precision                                     , intent(in   )         :: massHalo                , mass
-    double precision                                     , intent(  out)         :: numberCentrals          , numberSatellites
-    double precision                                     , parameter             :: massNormalization=1.0d12
-    double precision                                     , parameter             :: massMinimum      =1.0d-12
-    double precision                                     , parameter             :: massHaloMaximum  =1.0d+17
-    double precision                                                             :: fMassHalo               , massCut         , &
-         &                                                                          massSatellite
+    class           (conditionalMassFunctionBehroozi2010), intent(inout), target    :: self
+    double precision                                     , intent(in   )            :: massHalo                , mass
+    double precision                                     , intent(  out)            :: numberCentrals          , numberSatellites
+    double precision                                     , parameter                :: massNormalization=1.0d12
+    double precision                                     , parameter                :: massMinimum      =1.0d-12
+    double precision                                     , parameter                :: massHaloMaximum  =1.0d+17
+    type            (rangeLattice                       )                           :: latticeMass
+    logical                                              , allocatable, dimension(:):: isComputed
+    double precision                                                                :: fMassHalo               , massCut         , &
+         &                                                                             massSatellite           , massTableMinimum, &
+         &                                                                             massTableMaximum
 
     self_ => self
     do while (                                            &
@@ -435,28 +447,57 @@ contains
          &    .or.                                        &
          &       massHalo    > self%fMassHaloTableMaximum &
          &   )
+       ! Find the range of masses to tabulate, pinning it to an absolute lattice so that the masses evaluated - and therefore
+       ! every value interpolated between them - depend only on which lattice points are spanned, and not on the sequence of
+       ! halo masses which happened to be requested. The range already tabulated is unioned in through `latticeCurrent` rather
+       ! than being folded into the target, and no safety margin is applied: the loop condition already asks for exactly the
+       ! coverage which is needed.
+       !
+       ! The range is extended by taking a target beyond the current bound, rather than by the factors of two which were applied
+       ! to those bounds before this tabulation was pinned. A factor of two need not reach the next anchor point, and an
+       ! iteration which failed to enlarge the pinned range would rebuild an identical tabulation and leave the loop condition
+       ! unchanged - repeating forever. Halving a bound which is itself an anchor point always falls short of it, and so always
+       ! reaches the next anchor below.
+       massTableMinimum=self%fMassTableMinimum
+       massTableMaximum=self%fMassTableMaximum
        if (allocated(self%fMassHaloTable)) then
-          if (massHalo < self%fMassHaloTableMinimum) self%fMassTableMinimum=0.5d0*self%fMassTableMinimum
-          if (massHalo > self%fMassHaloTableMaximum) self%fMassTableMaximum=2.0d0*self%fMassTableMaximum
+          if (massHalo < self%fMassHaloTableMinimum) massTableMinimum=0.5d0*massTableMinimum
+          if (massHalo > self%fMassHaloTableMaximum) massTableMaximum=2.0d0*massTableMaximum
        end if
-       self%fMassTableCount=int(log10(self%fMassTableMaximum/self%fMassTableMinimum)*massTablePointsPerDecade)+1
-       call          self%fMassTable    %destroy()
-       if (allocated(self%fMassHaloTable)) then
-          call       self%fMassHaloTable%destroy()
-          deallocate(self%fMassHaloTable          )
-       end if
-       call self%fMassTable%create  (                                               &
-            &                        self%fMassTableMinimum                       , &
-            &                        self%fMassTableMaximum                       , &
-            &                        self%fMassTableCount                         , &
+       ! Note that the lower limit on the mass tabulated is imposed through the loop condition above, and not through
+       ! `limitMinimum`. A clamped bound is held *at* the limit, so the loop condition - which asks whether there is any room
+       ! left below - would have to compare a lattice point with that limit for equality. The two need not agree in their final
+       ! bits, and if the lattice point fell an ulp above the limit the loop would never end, rebuilding an identical tabulation
+       ! forever. Letting the range step past the limit by at most one anchor interval, as it did before being pinned, avoids
+       ! resting the termination of a loop on the last bit of a power of ten.
+       latticeMass=Range_Pinned(                                                    &
+            &                                  [massTableMinimum,massTableMaximum], &
+            &                                   massTablePointsPerDecade          , &
+            &                                   gridSchemePerDecade               , &
+            &                   marginFactor  = 1.0d0                             , &
+            &                   latticeCurrent= self%latticeMass                    &
+            &                  )
+       ! Extend the tabulation onto the new lattice. The tabulated masses are lattice points, so the halo mass tabulated for a
+       ! given mass is identical between one tabulation and another however many each spans.
+       call self%fMassTable%extend  (                                               &
+            &                        latticeMass                                  , &
+            &                        isComputed                                   , &
             &                   extrapolationType=spread(extrapolationTypeFix,1,2)  &
             &                       )
        call self%fMassTable%populate(                                               &
             &                        behroozi2010fSHMRInverse(self%fMassTable%xs()) &
             &                       )
+       ! Rebuild the reversed table, which is tabulated at halo masses and so lies on no lattice.
+       if (allocated(self%fMassHaloTable)) then
+          call       self%fMassHaloTable%destroy()
+          deallocate(self%fMassHaloTable          )
+       end if
        call self%fMassTable%reverse (                                               &
             &                        self%fMassHaloTable                            &
             &                       )
+       self%latticeMass          =latticeMass
+       self%fMassTableMinimum    =latticeMass%minimum()
+       self%fMassTableMaximum    =latticeMass%maximum()
        self%fMassHaloTableMinimum=self%fMassTable%y(+1)
        self%fMassHaloTableMaximum=self%fMassTable%y(-1)
     end do
