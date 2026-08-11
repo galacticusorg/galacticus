@@ -37,7 +37,6 @@
      private
      integer :: massCoreID, densityCoreID
    contains
-     final     ::                 du2018Destructor
      procedure :: massLossRate => du2018MassLossRate
   end type satelliteTidalStrippingDu2018
 
@@ -57,8 +56,8 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type            (satelliteTidalStrippingDu2018)                :: self
-    type            (inputParameters              ), intent(inout) :: parameters
+    type(satelliteTidalStrippingDu2018)                :: self
+    type(inputParameters              ), intent(inout) :: parameters
 
     self=satelliteTidalStrippingDu2018()
     !![
@@ -72,23 +71,13 @@ contains
     Internal constructor for the :galacticus-class:`satelliteTidalStrippingDu2018` satellite tidal stripping class.
     !!}
     implicit none
-    type            (satelliteTidalStrippingDu2018)                        :: self
+    type(satelliteTidalStrippingDu2018) :: self
     !![
     <addMetaProperty component="darkMatterProfile" name="solitonMassCore"       id="self%massCoreID"       isEvolvable="no"  isCreator="no"/>
     <addMetaProperty component="darkMatterProfile" name="solitonDensityCore"    id="self%densityCoreID"    isEvolvable="no"  isCreator="no"/>
     !!]
     return
   end function du2018ConstructorInternal
-
-  subroutine du2018Destructor(self)
-    !!{RST
-    Destructor for the :galacticus-class:`satelliteTidalStrippingDu2018` satellite tidal stripping class.
-    !!}
-    implicit none
-    type(satelliteTidalStrippingDu2018), intent(inout) :: self
-
-    return
-  end subroutine du2018Destructor
 
   double precision function du2018MassLossRate(self,node)
     !!{RST
