@@ -51,6 +51,8 @@
     <darkMatterProfileDMO/>
   </change>
 
+  <change type="remove" path="satelliteTidalStripping[@value='zentner2005']"/>
+
   <change type="append" path="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']">
     <darkMatterProfileDMO/>
   </change>
@@ -61,11 +63,29 @@
   <change type="replaceWith" path="darkMatterProfileScaleRadius/darkMatterProfileDMO"                                         target="darkMatterProfileDMO/darkMatterProfileDMO"/>
   <change type="replaceWith" path="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']/darkMatterProfileDMO" target="darkMatterProfileDMO/darkMatterProfileDMO"/>
   <change type="replaceWith" path="virialOrbit/darkMatterProfileDMO"                                                          target="darkMatterProfileDMO/darkMatterProfileDMO"/>
-  <change type="update" path="darkMatterProfileDMO/darkMatterProfileDMO" value="solitonNFW"/>
+
+  <change type="replace" path="darkMatterProfileDMO[@value='heated']">
+    <darkMatterProfileDMO value="solitonNFWHeated">
+      <nonAnalyticSolver value="numerical"/>
+      <toleranceRelativeVelocityDispersionMaximum value="0.1"/>
+    </darkMatterProfileDMO>
+  </change>
 
   <!-- Add the soliton node operator for soliton+NFW dark matter halo profiles. -->
   <change type="append" path="nodeOperator">
     <nodeOperator value="darkMatterProfileSoliton"/>
+  </change>
+
+  <change type="append" path="nodeOperator">
+    <nodeOperator value="satelliteConditionalMassLoss">
+      <satelliteTidalStrippingOuter value="zentner2005">
+	<efficiency value="2.95"/>
+	<satelliteTidalStrippingRadius value="limited">
+	  <satelliteTidalStrippingRadius value="king1962"/>
+	</satelliteTidalStrippingRadius>
+      </satelliteTidalStrippingOuter>
+      <satelliteTidalStrippingCore value="du2018"/>
+    </nodeOperator>
   </change>
 
 </changes>
