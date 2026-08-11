@@ -5,7 +5,7 @@ import subprocess
 import validate
 
 # Run models to validate a Fuzzy Dark Matter model using solitonNFWHeated.
-# Yu Zhao (10-Angust-2026)
+# Yu Zhao (10-August-2026)
 
 # Create output path.
 try:
