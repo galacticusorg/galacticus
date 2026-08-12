@@ -37,12 +37,48 @@
 # -3.5 and -4.9), so s is taken from the post-2026-07-21 runs instead; the
 # resulting fail threshold still trips if the series returns to that regime.
 #
-# NOTE: the COZMIC WDM 4keV X8 model had its ``replicationCount`` raised from 12
-# to 32 (24 -> 64 trees) on 2026-08-07, to stop it occasionally returning an
-# impossible likelihood when no subhalo landed in the massRatio=0.136 bin. All
-# three of its analyses will therefore settle at a new level with smaller
-# run-to-run scatter, and its entries below need re-tuning once a few post-change
-# runs have been published.
+# The COZMIC WDM 4keV X8 model had its ``replicationCount`` raised from 12 to 32
+# (24 -> 64 trees) on 2026-08-08, to stop it occasionally returning an impossible
+# likelihood when no subhalo landed in the massRatio=0.136 bin. The 2026-08-10
+# run is the first with the new tree count. It returned a finite subhaloMassFunction
+# likelihood, and all three of its analyses settled at a new level - much the
+# largest shift being subhaloVelocityMaximumMean, from ~-110 to -168.5, as
+# expected: that analysis compares binned *mean* Vmax, where the model's own
+# sampling error was a large part of the error budget, so shrinking it raises the
+# chi-square, whereas for the mass and radial distributions the target errors
+# dominate and the level barely moved.
+#
+# A 2026-08-10 pass therefore re-anchored those three entries plus COZMIC WDM 4keV
+# X1 subhaloVelocityMaximumMean (whose bootstrap warn line was tripped by ordinary
+# scatter), and re-derived all 12 decaying dark matter entries. The latter had been
+# bootstrapped from ``results.json`` values that carried the wrong sign, so their
+# thresholds were positive and every one of them read as failing; they are
+# re-anchored here against the (correctly signed) benchmark history, which was
+# never affected. With only one post-tree-change run available, the three COZMIC
+# WDM 4keV X8 entries are anchored on that single value with the 1.5s/3.0s
+# multipliers used for a level anchor, taking s as the larger of the scatter
+# retained from the previous pass and 1.5 x sd of the immediately preceding
+# 24-tree runs (for subhaloMassFunction, which was still on its bootstrap
+# fractions, the fractional scatter of the pre-2026-07-29 window scaled to the new
+# level). The bimodal-window exception was needed once more, for decaying dark
+# matter (tau=40 Gyr, vk=40 km/s) massCumulativeDistribution, whose two 2026-07-14
+# and 2026-07-21 excursions to -5.0 and -1.6 inflate sd fourfold.
+#
+# The same pass also fixed COZMIC WDM 4keV X1 subhaloMassFunction, whose warn
+# (-0.50) sat *below* its fail (-0.45). That ordering left the warn band empty, so
+# the entry could only ever report ok or fail, skipping the warning stage
+# entirely; it was re-anchored on its history rather than merely reordered.
+#
+# COZMIC WDM 3keV X8 subhaloMassFunction had the same problem for a different
+# reason: the 2026-08-01 bootstrap read a run in which that analysis returned
+# logImpossible, and scaling that sentinel by the bootstrap fractions put both
+# thresholds below it, so no finite likelihood could ever fail. It is re-anchored
+# here on the 15 finite values published since 2026-06-01, which run from -49.1 to
+# -43.6 with one excursion to -37.2. Those values are provisional: the model built
+# only 8 trees and returned an impossible likelihood on every run since
+# 2026-07-29, and its tree count is being raised to 128, so this entry should be
+# re-anchored once a few post-change runs have been published. The bootstrap
+# script no longer derives thresholds from an impossible likelihood.
 
 fraction_fail: 0.2
 fraction_warn: 0.1
@@ -102,9 +138,9 @@ thresholds:
       threshold_warn: -16.6427
   darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8:
     subhaloMassFunction:
-      current: -1.7976931348623154e+302
-      threshold_fail: -2.1572317618347786e+302
-      threshold_warn: -1.977462448348547e+302
+      current: -48.1525
+      threshold_fail: -60.8856
+      threshold_warn: -53.8111
     subhaloRadialDistribution:
       current: -68.4185
       threshold_fail: -82.1022
@@ -115,30 +151,30 @@ thresholds:
       threshold_warn: -692.9364
   darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1:
     subhaloMassFunction:
-      current: -0.2276
-      threshold_fail: -0.4500
-      threshold_warn: -0.5000
+      current: 0.3532
+      threshold_fail: -0.3449
+      threshold_warn: -0.1007
     subhaloRadialDistribution:
       current: -3.0242
       threshold_fail: -3.629
       threshold_warn: -3.3266
     subhaloVelocityMaximumMean:
-      current: -57.6866
-      threshold_fail: -69.224
-      threshold_warn: -63.4553
+      current: -66.1193
+      threshold_fail: -84.1495
+      threshold_warn: -73.3314
   darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX8:
     subhaloMassFunction:
-      current: -34.0315
-      threshold_fail: -40.8377
-      threshold_warn: -37.4346
+      current: -35.6761
+      threshold_fail: -38.6997
+      threshold_warn: -37.1879
     subhaloRadialDistribution:
-      current: -98.8315
-      threshold_fail: -116.8150
-      threshold_warn: -107.8232
+      current: -95.1402
+      threshold_fail: -114.5841
+      threshold_warn: -104.8621
     subhaloVelocityMaximumMean:
-      current: -113.3921
-      threshold_fail: -133.6169
-      threshold_warn: -123.5045
+      current: -168.4872
+      threshold_fail: -201.6631
+      threshold_warn: -185.0752
   darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1:
     subhaloMassFunction:
       current: 1.5222
@@ -258,58 +294,58 @@ thresholds:
       threshold_warn: -41.1687
   darkMatterOnlySubhalos_decayingDarkMatter_lifetime10.0_velocityKick20.0:
     massCumulativeDistribution:
-      current: 3.0072
-      threshold_fail: -1.5486
-      threshold_warn: 0.78
+      current: -3.2520
+      threshold_fail: -7.5005
+      threshold_warn: -5.8239
     radialCumulativeDistribution:
-      current: 5.9315
-      threshold_fail: -6.5173
-      threshold_warn: -0.2811
+      current: -8.6954
+      threshold_fail: -14.8794
+      threshold_warn: -11.3293
   darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick20.0:
     massCumulativeDistribution:
-      current: 16.9579
-      threshold_fail: -0.032
-      threshold_warn: 8.463
+      current: -17.2512
+      threshold_fail: -27.4087
+      threshold_warn: -23.6171
     radialCumulativeDistribution:
-      current: 9.9093
-      threshold_fail: 4.9855
-      threshold_warn: 7.4474
+      current: -9.9717
+      threshold_fail: -14.6643
+      threshold_warn: -12.9956
   darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick40.0:
     massCumulativeDistribution:
-      current: 123.7286
-      threshold_fail: 11.1499
-      threshold_warn: 67.4392
+      current: -165.8186
+      threshold_fail: -227.3926
+      threshold_warn: -190.4482
     radialCumulativeDistribution:
-      current: 384.014
-      threshold_fail: -58.1577
-      threshold_warn: 162.9282
+      current: -538.5286
+      threshold_fail: -765.7698
+      threshold_warn: -629.4251
   darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick20.0:
     massCumulativeDistribution:
-      current: 2.8589
-      threshold_fail: 2.2871
-      threshold_warn: 2.573
+      current: -6.0258
+      threshold_fail: -10.7005
+      threshold_warn: -7.8957
     radialCumulativeDistribution:
-      current: 49.591
-      threshold_fail: 39.6728
-      threshold_warn: 44.6319
+      current: -36.3420
+      threshold_fail: -77.6201
+      threshold_warn: -63.0682
   darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick40.0:
     massCumulativeDistribution:
-      current: 20.0528
-      threshold_fail: -44.2674
-      threshold_warn: -16.7171
+      current: -20.1412
+      threshold_fail: -29.4562
+      threshold_warn: -26.8763
     radialCumulativeDistribution:
-      current: 14.3866
-      threshold_fail: 6.6767
-      threshold_warn: 10.5316
+      current: -16.1612
+      threshold_fail: -24.0517
+      threshold_warn: -20.9675
   darkMatterOnlySubhalos_decayingDarkMatter_lifetime80.0_velocityKick40.0:
     massCumulativeDistribution:
-      current: 25.6174
-      threshold_fail: 17.9322
-      threshold_warn: 21.7748
+      current: -32.3641
+      threshold_fail: -42.5589
+      threshold_warn: -36.5514
     radialCumulativeDistribution:
-      current: 40.9189
-      threshold_fail: 32.7351
-      threshold_warn: 36.827
+      current: -36.9660
+      threshold_fail: -53.3808
+      threshold_warn: -48.3029
   haloMassFunctionCOZMIC:
     COZMIC MilkyWay FDM:25.9e-22eV resolutionX8 z=0.000:
       current: -91.6088
