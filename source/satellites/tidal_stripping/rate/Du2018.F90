@@ -23,6 +23,8 @@
   Implements a node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of :cite:t:`du_tidal_2018`.
   !!}
 
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+
   !![
   <satelliteTidalStripping name="satelliteTidalStrippingDu2018" docformat="rst">
    <description>
@@ -35,8 +37,10 @@
      A node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of :cite:t:`du_tidal_2018`.
      !!}
      private
-     integer :: massCoreID, densityCoreID
+     class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     integer                                    :: massCoreID                    , densityCoreID
    contains
+     final     ::                 du2018Destructor
      procedure :: massLossRate => du2018MassLossRate
   end type satelliteTidalStrippingDu2018
 
@@ -56,28 +60,48 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(satelliteTidalStrippingDu2018)                :: self
-    type(inputParameters              ), intent(inout) :: parameters
+    type (satelliteTidalStrippingDu2018)                :: self
+    type (inputParameters              ), intent(inout) :: parameters
+    class(darkMatterHaloScaleClass     ), pointer       :: darkMatterHaloScale_
 
-    self=satelliteTidalStrippingDu2018()
+    !![
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
+    self=satelliteTidalStrippingDu2018(darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
     !!]
     return
   end function du2018ConstructorParameters
 
-  function du2018ConstructorInternal() result(self)
+  function du2018ConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`satelliteTidalStrippingDu2018` satellite tidal stripping class.
     !!}
     implicit none
-    type(satelliteTidalStrippingDu2018) :: self
+    type (satelliteTidalStrippingDu2018)                        :: self
+    class(darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
     !![
+    <constructorAssign variables="*darkMatterHaloScale_"/>
     <addMetaProperty component="darkMatterProfile" name="solitonMassCore"       id="self%massCoreID"       isEvolvable="no"  isCreator="no"/>
     <addMetaProperty component="darkMatterProfile" name="solitonDensityCore"    id="self%densityCoreID"    isEvolvable="no"  isCreator="no"/>
     !!]
     return
   end function du2018ConstructorInternal
+
+  subroutine du2018Destructor(self)
+    !!{RST
+    Destructor for the :galacticus-class:`satelliteTidalStrippingDu2018` satellite tidal stripping class.
+    !!}
+    implicit none
+    type(satelliteTidalStrippingDu2018), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
+    return
+  end subroutine du2018Destructor
 
   double precision function du2018MassLossRate(self,node)
     !!{RST
@@ -101,16 +125,16 @@ contains
     ! https://ui.adsabs.harvard.edu/abs/2018PhRvD..97f3507D).
     double precision                                  , parameter        :: energyFitA      =5.89794d-5, energyFitB      =-8.72733d-2, &
          &                                                                  energyFitC      =1.67740d+0, energyFitGamma  =+1.50000d+0
-    double precision                                                     :: massSatellite              , frequencyAngular            , &
-         &                                                                  periodOrbital              , radius                      , &
+    double precision                                                     :: frequencyAngular           , periodOrbital               , &
+         &                                                                  radius                     , &
          &                                                                  frequencyOrbital           , frequencyRadial             , &
          &                                                                  massHost                   , densityHost                 , &
          &                                                                  densityCore                , densityRatio                , &
-         &                                                                  energyIm                   , massCore
+         &                                                                  energyIm                   , massCore                    , &
+         &                                                                  timescaleDynamical
 
     ! Get required quantities from the satellite node.
     satellite          =>  node     %satellite (        )
-    massSatellite      =   satellite%boundMass (        )
     position           =   satellite%position  (        )
     velocity           =   satellite%velocity  (        )
     radius             =   Vector_Magnitude    (position)
@@ -132,10 +156,16 @@ contains
          &                  frequencyAngular, &
          &                  frequencyRadial   &
          &                 )
-    ! Find the orbital period.
-    periodOrbital      =   +2.0d0             &
+    ! Find the orbital period. Guard against a degenerate orbit, for which both the angular and radial frequencies vanish, by
+    ! falling back on the dynamical timescale of the host halo.
+    timescaleDynamical =   self%darkMatterHaloScale_%timescaleDynamical(node%parent)
+    if (frequencyOrbital > frequencyFractionalTiny/timescaleDynamical) then
+       periodOrbital   =   +2.0d0             &
             &              *Pi                &
             &              /frequencyOrbital
+    else
+       periodOrbital   =   +timescaleDynamical
+    end if
     ! Get required quantities from the host node.
     darkMatterProfile  => node       %darkMatterProfile()
     massDistribution_  => node%parent%massDistribution ()
@@ -170,9 +200,8 @@ contains
     ! Set the soliton core mass evolution rate following Du et al. (2018). From Eq. (17), the core mass obeys (1/M_c) dM_c/dt =
     ! (1/2) Im(E), where Im(E) is given by the fitting formula in Eq. (7). Here we set dM_c/dt = (1/2) Im(E) M_c for time
     ! integration.
-
+    !
     ! In the soliton-only phase, assume M_bound ≈ 4*M_core. Therefore, evolve the bound mass using dM_bound/dt = 4*dM_c/dt.
-
     du2018MassLossRate=+4.0d0    &
             &          *0.5d0    &
             &          *energyIm &
