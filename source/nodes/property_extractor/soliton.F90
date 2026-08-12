@@ -130,14 +130,14 @@ contains
         &             0.0d0   &
         &            ]
     class default
-      solitonExtract=[                                                                      &
-       &              darkMatterProfile%floatRank0MetaPropertyGet  (self%massCoreNormalID), &
-       &              darkMatterProfile%floatRank0MetaPropertyGet  (self%massCoreID      ), &
-       &              darkMatterProfile%floatRank0MetaPropertyGet  (self%densityCoreID   ), &
-       &              darkMatterProfile%floatRank0MetaPropertyGet  (self%radiusCoreID    ), &
-       &              darkMatterProfile%floatRank0MetaPropertyGet  (self%radiusSolitonID ), &
-       &              darkMatterProfile%floatRank0MetaPropertyGet  (self%zetaID          ), &
-       &         real(darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID ), kind=8)  &
+      solitonExtract=[                                                                       &
+       &              darkMatterProfile%floatRank0MetaPropertyGet  (self%massCoreNormalID) , &
+       &              darkMatterProfile%floatRank0MetaPropertyGet  (self%massCoreID      ) , &
+       &              darkMatterProfile%floatRank0MetaPropertyGet  (self%densityCoreID   ) , &
+       &              darkMatterProfile%floatRank0MetaPropertyGet  (self%radiusCoreID    ) , &
+       &              darkMatterProfile%floatRank0MetaPropertyGet  (self%radiusSolitonID ) , &
+       &              darkMatterProfile%floatRank0MetaPropertyGet  (self%zetaID          ) , &
+       &         dble(darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID ))  &
        &             ]
     end select
     return
@@ -168,6 +168,8 @@ contains
     !!{RST
     Return the descriptions of the ``soliton`` property.
     !!}
+    use :: Dark_Matter_Profiles_Soliton_Status, only : solitonStatusUninitialized, solitonStatusSolitonNFW, solitonStatusSolitonOnly, solitonStatusNfwOnly
+    use :: String_Handling                    , only : operator(//)
     implicit none
     class           (nodePropertyExtractorSoliton), intent(inout)                             :: self
     double precision                              , intent(in   )                             :: time
@@ -181,7 +183,13 @@ contains
     descriptions(4)=var_str('The soliton core radius of the FDM halo, in units of Mpc.'                 )
     descriptions(5)=var_str('The soliton transition radius of the FDM halo, in units of Mpc.'           )
     descriptions(6)=var_str('The ratio of density contrast at redshift z and 0, dimensionless.'         )
-    descriptions(7)=var_str('The halo state: uninitialized, soliton+NFW, soliton-only, or NFW.'         )
+    ! The state values are taken directly from the enumeration members, so that this description can not drift out of step with
+    ! the enumeration if its ordering is ever changed.
+    descriptions(7)=var_str('The structural state of the FDM halo: ' )//solitonStatusUninitialized%ID// &
+         &          var_str('=uninitialized, '                       )//solitonStatusSolitonNFW   %ID// &
+         &          var_str('=soliton+NFW, '                         )//solitonStatusSolitonOnly  %ID// &
+         &          var_str('=soliton-only, '                        )//solitonStatusNfwOnly      %ID// &
+         &          var_str('=NFW-only.'                             )
     return
   end subroutine solitonDescriptions
 

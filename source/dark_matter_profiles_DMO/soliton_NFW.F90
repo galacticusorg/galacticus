@@ -23,12 +23,14 @@
   An implementation of fuzzy dark matter halo profiles using the soliton and NFW mass distribution.
   !!}
 
-  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
-  use :: Dark_Matter_Particles   , only : darkMatterParticleClass
-  use :: Cosmology_Parameters    , only : cosmologyParametersClass
-  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
-  use :: Virial_Density_Contrast , only : virialDensityContrastClass
-  use :: Statistics_Distributions, only : distributionFunction1DNormal
+  use :: Dark_Matter_Halo_Scales            , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Particles              , only : darkMatterParticleClass
+  use :: Dark_Matter_Profiles_Soliton_Status, only : enumerationSolitonStatusType, solitonStatusUninitialized, solitonStatusSolitonNFW, &
+       &                                             solitonStatusNfwOnly
+  use :: Cosmology_Parameters               , only : cosmologyParametersClass
+  use :: Cosmology_Functions                , only : cosmologyFunctionsClass
+  use :: Virial_Density_Contrast            , only : virialDensityContrastClass
+  use :: Statistics_Distributions           , only : distributionFunction1DNormal
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOSolitonNFW" docformat="rst">
    <description>
@@ -271,7 +273,7 @@ contains
          &                                                                       radiusSoliton          , radiusVirial , &
          &                                                                       densityScale           , densityCore  , &
          &                                                                       massCore
-    integer                                                                   :: solitonStatus
+    type            (enumerationSolitonStatusType  )                          :: solitonStatus
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -281,16 +283,15 @@ contains
     if (weightBy_ /= weightByMass) return
     ! Compute properties of the distribution.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
-
     basic             => node%basic            ()
     darkMatterProfile => node%darkMatterProfile()
-    solitonStatus     = darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID)
-
+    solitonStatus     =  enumerationSolitonStatusType(darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID))
     ! Cache the initial halo structure so that the halo remains consistently treated as either a soliton+NFW or an NFW profile throughout its evolution.
-    ! solitonStatus =  0 : uninitialized
-    ! solitonStatus = +1 : soliton+NFW
-    ! solitonStatus = -1 : NFW
-    if (solitonStatus >= 0) then
+    if     (                                             &
+         &   solitonStatus == solitonStatusUninitialized &
+         &  .or.                                         &
+         &   solitonStatus == solitonStatusSolitonNFW    &
+         & ) then
        if (self%radiusCorePrevious < 0.0d0) then
            call self%computeProperties(node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massCore)
            self%radiusVirialPrevious =radiusVirial
@@ -417,18 +418,19 @@ contains
          &                                                             redshift                  , concentration           , &
          &                                                             randomOffset              , massCoreNormal          , &
          &                                                             zeta_0                    , zeta_z
-    integer                                                         :: status                    , sampleCount             , &
-         &                                                             solitonStatus
+    integer                                                          :: status                   , sampleCount
+    type            (enumerationSolitonStatusType  )                 :: solitonStatus
 
     ! Get required components.
     basic             => node%basic            ()
     darkMatterProfile => node%darkMatterProfile()
     call darkMatterProfile%floatRank0MetaPropertySet(self%radiusSolitonID,-1.0d0)
     call darkMatterProfile%floatRank0MetaPropertySet(self%massCoreID     ,-1.0d0)
-    solitonStatus = darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID)
-    ! Initialize the status on the first call.  If a soliton solution is found, the halo is treated as a soliton+NFW profile thereafter. Otherwise the status is set to -1 and the halo is treated as an NFW profile for all subsequent calls.
-    if (solitonStatus == 0)  &
-        & call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID   ,-1)
+    solitonStatus = enumerationSolitonStatusType(darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID))
+    ! Initialize the status on the first call. If a soliton solution is found, the halo is treated as a soliton+NFW profile
+    ! thereafter. Otherwise the status is set to NFW-only and the halo is treated as an NFW profile for all subsequent calls.
+    if (solitonStatus == solitonStatusUninitialized) &
+        & call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,solitonStatusNfwOnly%ID)
     ! Extract basic properties of the node.
     expansionFactor=+self             %cosmologyFunctions_% expansionFactor            (basic%time           ())
     redshift       =+self             %cosmologyFunctions_ %redshiftFromExpansionFactor(      expansionFactor  )
@@ -498,18 +500,18 @@ contains
             &                 )
        radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore,status=status)
        if (status == errorStatusSuccess) then
-           call darkMatterProfile%floatRank0MetaPropertySet  (self%randomOffsetID ,randomOffset )
-           call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,1            )
-           call darkMatterProfile%floatRank0MetaPropertySet  (self%radiusSolitonID,radiusSoliton)
-           call darkMatterProfile%floatRank0MetaPropertySet  (self%massCoreID     ,massCore     )
-           call darkMatterProfile%floatRank0MetaPropertySet  (self%densityCoreID  ,densityCore  )
-           call darkMatterProfile%floatRank0MetaPropertySet  (self%radiusCoreID   ,radiusCore   )
+           call darkMatterProfile%floatRank0MetaPropertySet  (self%randomOffsetID ,randomOffset              )
+           call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,solitonStatusSolitonNFW%ID)
+           call darkMatterProfile%floatRank0MetaPropertySet  (self%radiusSolitonID,radiusSoliton             )
+           call darkMatterProfile%floatRank0MetaPropertySet  (self%massCoreID     ,massCore                  )
+           call darkMatterProfile%floatRank0MetaPropertySet  (self%densityCoreID  ,densityCore               )
+           call darkMatterProfile%floatRank0MetaPropertySet  (self%radiusCoreID   ,radiusCore                )
            exit
        end if
     end do
     call darkMatterProfile%floatRank0MetaPropertySet(self%zetaID,zeta_z/zeta_0)
     ! If no valid solitonic solution was found, treat the halo as an NFW halo.
-    if (status /= errorStatusSuccess)  call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,-1)
+    if (status /= errorStatusSuccess) call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,solitonStatusNfwOnly%ID)
     return
   end subroutine solitonNFWComputeProperties
 

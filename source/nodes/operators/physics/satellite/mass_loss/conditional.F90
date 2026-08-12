@@ -21,7 +21,8 @@
   Implements a node operator class that applies conditional mass loss to orbiting satellite halos.
   !!}
 
-  use :: Satellite_Tidal_Stripping, only : satelliteTidalStrippingClass
+  use :: Dark_Matter_Profiles_Soliton_Status, only : enumerationSolitonStatusType, solitonStatusSolitonNFW, solitonStatusSolitonOnly
+  use :: Satellite_Tidal_Stripping          , only : satelliteTidalStrippingClass
 
   !![
   <nodeOperator name="nodeOperatorSatelliteConditionalMassLoss" docformat="rst">
@@ -126,7 +127,7 @@ contains
     class    (nodeComponentDarkMatterProfile          ), pointer                :: darkMatterProfile
     double precision                                                            :: massLossRateOuter, massLossRateCore, &
               &                                                                    massSatellite    , massCore
-    integer                                                                     :: solitonStatus
+    type     (enumerationSolitonStatusType            )                         :: solitonStatus
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
     if (.not.node%isSatellite()) return
@@ -134,15 +135,13 @@ contains
     satellite         => node             %satellite        ()
     massSatellite     =  satellite        %boundMass        ()
     darkMatterProfile => node             %darkMatterProfile()
-    massCore          =  darkMatterProfile%floatRank0MetaPropertyGet  (self%massCoreID)
-    solitonStatus     =  darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID)
-
+    massCore          =  darkMatterProfile%floatRank0MetaPropertyGet(self%massCoreID)
+    solitonStatus     =  enumerationSolitonStatusType(darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID))
     ! Apply tidal mass loss according to the halo state:
-    !  - solitonStatus = 1: soliton+NFW phase; strip only the outer NFW component until the bound mass reaches 4*massCore.
-    !  - solitonStatus = 2: soliton-only phase; evolve both the bound mass and the solitonic core mass, and destroy the satellite if the core mass becomes non-positive.
-    !  - otherwise: no solitonic solution exists, so treat the halo as a pure NFW halo and evolve the NFW mass loss.
-
-    if (solitonStatus == 1) then
+    !  - solitonNFW : strip only the outer NFW component until the bound mass reaches 4*massCore.
+    !  - solitonOnly: evolve both the bound mass and the solitonic core mass, and destroy the satellite if the core mass becomes non-positive.
+    !  - otherwise  : no solitonic solution exists, so treat the halo as a pure NFW halo and evolve the NFW mass loss.
+    if (solitonStatus == solitonStatusSolitonNFW) then
         if (massSatellite > 0.0d0 .and. massSatellite < 4.0d0*massCore) then
             ! Destruction criterion met - trigger an interrupt.
             interrupt         =  .true.
@@ -154,7 +153,7 @@ contains
             massLossRateOuter=+self%satelliteTidalStrippingOuter_%massLossRate(node)
             call satellite%boundMassRate(massLossRateOuter)
         end if
-    else if (solitonStatus == 2) then
+    else if (solitonStatus == solitonStatusSolitonOnly) then
         ! The halo is soliton-only. Evolve the bound mass and core mass together.
         massLossRateCore =+self%satelliteTidalStrippingCore_%massLossRate(node)
         call satellite        %boundMassRate             (massLossRateCore    )
@@ -198,12 +197,12 @@ contains
     darkMatterProfile => node            %darkMatterProfile        (                )
     massCore          = darkMatterProfile%floatRank0MetaPropertyGet(self_%massCoreID)
     ! Transition to the soliton-only phase.
-    if     (                                  &
-         &   massSatellite > 0.0d0            &
-         &  .and.                             &
-         &   massSatellite < 4.0d0*massCore   &
+    if     (                                &
+         &   massSatellite > 0.0d0          &
+         &  .and.                           &
+         &   massSatellite < 4.0d0*massCore &
          & ) then
-        call darkMatterProfile%integerRank0MetaPropertySet(self_%solitonStatusID,2)
+        call darkMatterProfile%integerRank0MetaPropertySet(self_%solitonStatusID,solitonStatusSolitonOnly%ID)
     end if
     ! Destroy the satellite once the solitonic core has fully dissolved.
     if    (massCore <= 0.0d0) then
