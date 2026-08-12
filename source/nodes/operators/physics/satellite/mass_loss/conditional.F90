@@ -82,9 +82,10 @@ contains
     ! from the enclosing scope and therefore always matches the tidal stripping model used elsewhere in the model. Only the core
     ! stripping model, which is specific to the solitonic core, is named explicitly.
     !
-    ! The tidal radius model is used only to detect the transition to the soliton-only state. It must be the *unlimited* model:
-    ! if it were wrapped in `satelliteTidalStrippingRadiusLimited` the radius could never fall below the soliton radius, and the
-    ! transition would never be detected.
+    ! The tidal radius model is used only to detect the transition to the soliton-only state. Either the limited or the
+    ! unlimited model may be given: since the limited model returns max(radiusTidal,radiusSoliton), the test
+    ! `radius <= radiusSoliton` made below is satisfied under exactly the same conditions for both. The unlimited model is the
+    ! more natural choice, as the transition is a statement about where tides would strip to in the absence of the limit.
     !![
     <objectBuilder class="satelliteTidalStripping"       name="satelliteTidalStrippingOuter_"                                              source="parameters"/>
     <objectBuilder class="satelliteTidalStripping"       name="satelliteTidalStrippingCore_"   parameterName="satelliteTidalStrippingCore" source="parameters"/>
@@ -178,9 +179,9 @@ contains
     !  - solitonOnly: evolve both the bound mass and the solitonic core mass, and destroy the satellite if the core mass becomes non-positive.
     !  - otherwise  : no solitonic solution exists, so treat the halo as a pure NFW halo and evolve the NFW mass loss.
     if (solitonStatus == solitonStatusSolitonNFW) then
-        ! Test whether tides have stripped the halo down to the solitonic core. The tidal radius used here is the *unlimited*
-        ! one: `satelliteTidalStrippingRadiusLimited` clamps the radius used for stripping to be no smaller than the soliton
-        ! radius, so a limited radius could never fall below it and this test would never be satisfied.
+        ! Test whether tides have stripped the halo down to the solitonic core. Note that this test gives the same result
+        ! whether the tidal radius model used here is limited or unlimited, since `max(radiusTidal,radiusSoliton)` is less than
+        ! or equal to `radiusSoliton` under precisely the same conditions as `radiusTidal` itself.
         radiusSoliton=darkMatterProfile%floatRank0MetaPropertyGet            (self%radiusSolitonID)
         radiusTidal  =self             %satelliteTidalStrippingRadius_%radius(node                )
         if (radiusSoliton > 0.0d0 .and. radiusTidal <= radiusSoliton) then

@@ -753,7 +753,7 @@ contains
        end if
     end do
     call darkMatterProfile%floatRank0MetaPropertySet(self%zetaID,zeta_z/zeta_0)
-    ! IF valid solitonic solution was found, treat the halo as an NFW halo.
+    ! If no valid solitonic solution was found, treat the halo as an NFW halo.
     if (status /= errorStatusSuccess) call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,solitonStatusNfwOnly%ID)
     return
   end subroutine solitonNFWHeatedComputeProperties

@@ -100,9 +100,9 @@
     </nodeOperator>
   </change>
 
-  <!-- Give the soliton mass-loss operator a copy of the *unlimited* tidal radius model. It is used only to detect when the
-       tidal radius first reaches the soliton radius: were it the limited model, the radius could never fall below the soliton
-       radius and that transition would never be detected. -->
+  <!-- Give the soliton mass-loss operator a copy of the unlimited tidal radius model, which it uses to detect when the tidal
+       radius first reaches the soliton radius. Either model would in fact serve, as the test the operator makes is satisfied
+       under the same conditions for both, but the unlimited model is the more natural choice for it. -->
   <change type="replaceWith" path="nodeOperator/nodeOperator[@value='satelliteConditionalMassLoss']/satelliteTidalStrippingRadius" target="satelliteTidalStripping/satelliteTidalStrippingRadius[@value='limited']/satelliteTidalStrippingRadius"/>
 
 </changes>
