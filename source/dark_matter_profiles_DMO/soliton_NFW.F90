@@ -395,9 +395,10 @@ contains
   end function solitonNFWGet
 
   subroutine solitonNFWComputeProperties(self,node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massCore)
-    use :: Galacticus_Nodes                , only : treeNode  , nodeComponentBasic       , nodeComponentDarkMatterProfile
-    use :: Numerical_Constants_Math        , only : Pi
-    use :: Root_Finder                     , only : rootFinder, rangeExpandMultiplicative, rangeExpandSignExpectPositive , rangeExpandSignExpectNegative
+    use :: Galacticus_Nodes                    , only : treeNode           , nodeComponentBasic       , nodeComponentDarkMatterProfile
+    use :: Mass_Distribution_Soliton_Schive2014, only : coefficientMassCore
+    use :: Numerical_Constants_Math            , only : Pi
+    use :: Root_Finder                         , only : rootFinder         , rangeExpandMultiplicative, rangeExpandSignExpectPositive , rangeExpandSignExpectNegative
     implicit none
     class           (darkMatterProfileDMOSolitonNFW), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -469,7 +470,7 @@ contains
        else
           randomOffset       =self%massCoreScatter%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
        end if
-       ! Find the core mass, including the random offset. 
+       ! Find the core mass, including the random offset.
        massCore           =+massCoreNormal       &
             &              *10.0d0**randomOffset
        ! Compute the core radius.
@@ -477,9 +478,11 @@ contains
             &              /(self%massParticle/1.0d-23)**2  &
             &              /expansionFactor                 &
             &              /massCore
-       ! Compute the core density normalization by integrating the soliton density profile within the core radius.
+       ! Compute the core density normalization such that the mass enclosed within the core radius equals the core mass, for the
+       ! soliton density profile of Schive et al. (2014; PRL; 113; 1302; equation 3;
+       ! https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
        densityCore       =+massCore                         &
-            &             /0.888027d0                       &
+            &             /coefficientMassCore              &
             &             /radiusCore                  **3  &
             &             /Pi
        radiusCore_        =radiusCore
@@ -504,13 +507,9 @@ contains
            exit
        end if
     end do
-    call darkMatterProfile%floatRank0MetaPropertySet(self%zetaID       ,zeta_z  /zeta_0)
-
-    if (status /= errorStatusSuccess) then
-        ! No valid solitonic solution was found. Treat the halo as an NFW halo.
-        call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,-1     )
-    end if
-    
+    call darkMatterProfile%floatRank0MetaPropertySet(self%zetaID,zeta_z/zeta_0)
+    ! If no valid solitonic solution was found, treat the halo as an NFW halo.
+    if (status /= errorStatusSuccess)  call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,-1)
     return
   end subroutine solitonNFWComputeProperties
 

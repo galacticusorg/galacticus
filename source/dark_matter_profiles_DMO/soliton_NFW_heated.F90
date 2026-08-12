@@ -66,13 +66,13 @@
      double precision                                             :: radiusVirialPrevious                         , radiusScalePrevious                       , &
           &                                                          radiusCorePrevious                           , radiusSolitonPrevious                     , &
           &                                                          densityCorePrevious                          , densityScalePrevious                      , &
-          &                                                          massCorePrevious                             , scatterFractional   
+          &                                                          massCorePrevious                             , scatterFractional
      integer          (kind_int8                      )           :: lastUniqueID
      integer                                                      :: randomOffsetID                               , densityCoreID                             , &
           &                                                          radiusCoreID                                 , radiusSolitonID                           , &
           &                                                          massCoreNormalID                             , massCoreID                                , &
-          &                                                          zetaID                                       , solitonStatusID                           
-   contains    
+          &                                                          zetaID                                       , solitonStatusID
+   contains
      !![
      <methods docformat="rst">
        <method method="computeProperties" description="Compute properties of the mass distribution."/>
@@ -243,8 +243,8 @@ contains
     class           (virialDensityContrastClass          ), intent(in), target :: virialDensityContrast_
     type            (enumerationNonAnalyticSolversType   ), intent(in)         :: nonAnalyticSolver
     logical                                               , intent(in)         :: tolerateVelocityMaximumFailure        , toleratePotentialIntegrationFailure       , &
-         &                                                                        tolerateEnclosedMassIntegrationFailure, velocityDispersionApproximate          
-    double precision                                      , intent(in)         :: toleranceRelativeVelocityDispersion   , toleranceRelativeVelocityDispersionMaximum, & 
+         &                                                                        tolerateEnclosedMassIntegrationFailure, velocityDispersionApproximate
+    double precision                                      , intent(in)         :: toleranceRelativeVelocityDispersion   , toleranceRelativeVelocityDispersionMaximum, &
          &                                                                        fractionRadiusFinalSmall              , toleranceRelativePotential                , &
          &                                                                        scatterFractional
     !![
@@ -384,7 +384,7 @@ contains
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
-    
+
     ! Return a null distribution if weighting is not by mass.
     massDistribution_ => null()
     if (weightBy_ /= weightByMass) return
@@ -420,16 +420,14 @@ contains
        self%radiusVirialPrevious=+self%darkMatterHaloScale_%radiusVirial(node)
        self%radiusScalePrevious =+     darkMatterProfile   %scale       (    )
     end if
-    radiusVirial =self%radiusVirialPrevious
-    radiusScale  =self%radiusScalePrevious
-    radiusCore   =self%radiusCorePrevious
-    radiusSoliton=self%radiusSolitonPrevious
-    densityCore  =self%densityCorePrevious
-    densityScale =self%densityScalePrevious
-    massCore     =self%massCorePrevious
-
-    solitonStatus     = darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID)
-    
+    radiusVirial =self             %radiusVirialPrevious
+    radiusScale  =self             %radiusScalePrevious
+    radiusCore   =self             %radiusCorePrevious
+    radiusSoliton=self             %radiusSolitonPrevious
+    densityCore  =self             %densityCorePrevious
+    densityScale =self             %densityScalePrevious
+    massCore     =self             %massCorePrevious
+    solitonStatus=darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID)
     ! Construct the distribution.
     if (solitonStatus == 2) then
        ! Build a soliton only mass distribution.
@@ -595,11 +593,12 @@ contains
   end function solitonNFWHeatedGet
 
   subroutine solitonNFWHeatedComputeProperties(self,node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massCore,weightBy,weightIndex)
-    use :: Galacticus_Nodes          , only : treeNode                       , nodeComponentBasic          , nodeComponentDarkMatterProfile
-    use :: Galactic_Structure_Options, only : componentTypeDarkHalo          , massTypeDark                , weightByMass
-    use :: Numerical_Constants_Math  , only : Pi
-    use :: Root_Finder               , only : rootFinder                     , rangeExpandMultiplicative   , rangeExpandSignExpectPositive , rangeExpandSignExpectNegative
-    use :: Mass_Distributions        , only : massDistributionSphericalHeated, kinematicsDistributionHeated, massDistributionSpherical     , massDistributionHeatingClass
+    use :: Galacticus_Nodes                    , only : treeNode                       , nodeComponentBasic          , nodeComponentDarkMatterProfile
+    use :: Galactic_Structure_Options          , only : componentTypeDarkHalo          , massTypeDark                , weightByMass
+    use :: Mass_Distribution_Soliton_Schive2014, only : coefficientMassCore
+    use :: Numerical_Constants_Math            , only : Pi
+    use :: Root_Finder                         , only : rootFinder                     , rangeExpandMultiplicative   , rangeExpandSignExpectPositive , rangeExpandSignExpectNegative
+    use :: Mass_Distributions                  , only : massDistributionSphericalHeated, kinematicsDistributionHeated, massDistributionSpherical     , massDistributionHeatingClass
     implicit none
     class           (darkMatterProfileDMOSolitonNFWHeated), intent(inout), target   :: self
     type            (treeNode                            ), intent(inout)           :: node
@@ -694,10 +693,8 @@ contains
     class default
        call Error_Report('expected a spherical mass distribution'//{introspection:location})
     end select
-    
     ! Compute the core mass.
-    massCoreNormal =+darkMatterProfile%floatRank0MetaPropertyGet(self%massCoreNormalID)
-
+    massCoreNormal=+darkMatterProfile%floatRank0MetaPropertyGet(self%massCoreNormalID)
     ! Solve for the soliton radius.
     self_ => self
     if (.not.finderInitialized) then
@@ -725,9 +722,11 @@ contains
             &              /(self%massParticle/1.0d-23)**2  &
             &              /expansionFactor                 &
             &              /massCore
-       ! Compute the core density normalization by integrating the soliton density profile within the core radius.
-       densityCore       =+massCore                         & 
-            &             /0.888027d0                       &
+       ! Compute the core density normalization such that the mass enclosed within the core radius equals the core mass, for the
+       ! soliton density profile of Schive et al. (2014; PRL; 113; 1302; equation 3;
+       ! https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
+       densityCore       =+massCore                         &
+            &             /coefficientMassCore              &
             &             /radiusCore                  **3  &
             &             /Pi
        radiusCore_        =radiusCore
@@ -741,7 +740,7 @@ contains
             &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
             &                  rangeExpandType              =rangeExpandMultiplicative      &
             &                 )
-       radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore,status=status)   
+       radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore,status=status)
        if (status == errorStatusSuccess) then
            call darkMatterProfile%floatRank0MetaPropertySet  (self%randomOffsetID ,randomOffset )
            call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,1            )
@@ -752,28 +751,25 @@ contains
            exit
        end if
     end do
-    call darkMatterProfile%floatRank0MetaPropertySet(self%zetaID             ,zeta_z/zeta_0)
-
-    if (status /= errorStatusSuccess) then
-        ! No valid solitonic solution was found. Treat the halo as an NFW halo.
-        call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,-1         )
-    end if
-    
+    call darkMatterProfile%floatRank0MetaPropertySet(self%zetaID,zeta_z/zeta_0)
+    ! IF valid solitonic solution was found, treat the halo as an NFW halo.
+    if (status /= errorStatusSuccess) call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,-1)
     return
   end subroutine solitonNFWHeatedComputeProperties
 
   subroutine solitonComputeProperties(self,node,radiusCore,densityCore)
-    use :: Galacticus_Nodes          , only :  treeNode                       , nodeComponentBasic          , nodeComponentDarkMatterProfile
-    use :: Numerical_Constants_Math  , only : Pi
+    use :: Galacticus_Nodes                    , only : treeNode           , nodeComponentBasic, nodeComponentDarkMatterProfile
+    use :: Mass_Distribution_Soliton_Schive2014, only : coefficientMassCore
+    use :: Numerical_Constants_Math            , only : Pi
     implicit none
     class           (darkMatterProfileDMOSolitonNFWHeated), intent(inout), target   :: self
     type            (treeNode                            ), intent(inout)           :: node
-    double precision                                      , intent(  out)           :: radiusCore     , densityCore
+    double precision                                      , intent(  out)           :: radiusCore       , densityCore
     class           (nodeComponentBasic                  ), pointer                 :: basic
     class           (nodeComponentDarkMatterProfile      ), pointer                 :: darkMatterProfile
-    double precision                                                                :: expansionFactor, massCoreNormal , &
-            &                                                                          randomOffset   , massCore
-    
+    double precision                                                                :: expansionFactor  , massCoreNormal, &
+            &                                                                          randomOffset     , massCore
+
     ! Get required components.
     basic             => node%basic            ()
     darkMatterProfile => node%darkMatterProfile()
@@ -781,24 +777,23 @@ contains
     randomOffset      =+ darkMatterProfile%floatRank0MetaPropertyGet(self%randomOffsetID  )
     massCore          =+massCoreNormal       &
             &          *10.0d0**randomOffset
-    
     ! Extract basic properties of the node.
     expansionFactor   =+self%cosmologyFunctions_%expansionFactor(basic%time())
     radiusCore        =+5.5d6                           & ! Equation (14) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
             &          /(self%massParticle/1.0d-23)**2  &
             &          /expansionFactor                 &
             &          /massCore
-    ! Compute the core density normalization by integrating the soliton density profile within the core radius.
+    ! Compute the core density normalization such that the mass enclosed within the core radius equals the core mass, for the
+    ! soliton density profile of Schive et al. (2014; PRL; 113; 1302; equation 3;
+    ! https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S).
     densityCore       =+massCore                         &
-            &          /0.888027d0                       &
+            &          /coefficientMassCore              &
             &          /radiusCore                  **3  &
             &          /Pi
-
     call darkMatterProfile%floatRank0MetaPropertySet(self%densityCoreID  ,densityCore)
     call darkMatterProfile%floatRank0MetaPropertySet(self%radiusCoreID   ,radiusCore )
     call darkMatterProfile%floatRank0MetaPropertySet(self%massCoreID     ,massCore   )
     call darkMatterProfile%floatRank0MetaPropertySet(self%radiusSolitonID,-1.0d0     )
-
     return
   end subroutine solitonComputeProperties
 
