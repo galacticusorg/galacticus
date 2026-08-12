@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson. The pinning of the tabulation range to absolute lattices for issue
+  !+    #1317 was drafted with assistance from Claude, and reviewed and verified by Andrew Benson.
+
   !!{RST
   Implementation of a kinematic distribution class for finite-resolution NFW mass distributions.
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
+  use :: Numerical_Ranges       , only : rangeLattice
 
   !![
   <kinematicsDistribution name="kinematicsDistributionFiniteResolutionNFW" docformat="rst">
@@ -58,9 +62,12 @@
      module procedure finiteResolutionNFWConstructorInternal
   end interface kinematicsDistributionFiniteResolutionNFW
 
-  ! Tabulation resolution parameters.
+  ! Tabulation resolution parameters. The interval, in lattice steps, to which the bounds of both axes are pinned is a tenth of
+  ! a decade: this tabulation is two-dimensional and reaches a long way along its radius axis, so rounding its bounds outward to
+  ! whole decades would inflate it substantially, where tenths of a decade cost a few percent.
   integer, parameter :: velocityDispersion1DTableRadiusPointsPerDecade          =100
   integer, parameter :: velocityDispersion1DTableLengthResolutionPointsPerDecade=100
+  integer, parameter :: velocityDispersion1DTableAnchorsPerDecade               = 10
 
   ! Tabulated solutions.
   logical                                                     :: velocityDispersion1DTableInitialized
@@ -70,7 +77,15 @@
   type            (interpolator), allocatable                 :: velocityDispersion1DTableLengthResolutionInterpolator             , velocityDispersion1DTableRadiusInterpolator
   double precision                                            :: velocityDispersion1DRadiusMinimum                    =+huge(0.0d0), velocityDispersion1DRadiusMaximum          =-huge(0.0d0), &
        &                                                         velocityDispersion1DLengthResolutionMinimum          =+huge(0.0d0), velocityDispersion1DLengthResolutionMaximum=-huge(0.0d0)
-  !$omp threadprivate(velocityDispersion1DTableInitialized,velocityDispersion1DTableLengthResolutionCount,velocityDispersion1DTableRadiusCount,velocityDispersion1DTableLengthResolution,velocityDispersion1DTableRadius,velocityDispersion1DTable,velocityDispersion1DTableLengthResolutionInterpolator,velocityDispersion1DTableRadiusInterpolator,velocityDispersion1DRadiusMinimum,velocityDispersion1DRadiusMaximum,velocityDispersion1DLengthResolutionMinimum,velocityDispersion1DLengthResolutionMaximum)
+  ! Lattices to which the two axes are pinned, and the state of the inward integration of the Jeans equation at the innermost
+  ! tabulated radius of each length resolution. The solution at a radius is the integral from that radius out to the outer
+  ! boundary, accumulated inward, so it is *not* a pure function of its abscissa: retaining that accumulated integral is what
+  ! allows the tabulation to be extended to smaller radii by resuming the integration rather than repeating it. It is retained
+  ! unnormalized - the solution stored in the table is its square root divided by the density, from which it could not be
+  ! recovered exactly.
+  type            (rangeLattice)                              :: velocityDispersion1DLatticeRadius                                 , velocityDispersion1DLatticeLengthResolution
+  double precision              , allocatable, dimension(:  ) :: velocityDispersion1DJeansIntegral
+  !$omp threadprivate(velocityDispersion1DLatticeRadius,velocityDispersion1DLatticeLengthResolution,velocityDispersion1DJeansIntegral,velocityDispersion1DTableInitialized,velocityDispersion1DTableLengthResolutionCount,velocityDispersion1DTableRadiusCount,velocityDispersion1DTableLengthResolution,velocityDispersion1DTableRadius,velocityDispersion1DTable,velocityDispersion1DTableLengthResolutionInterpolator,velocityDispersion1DTableRadiusInterpolator,velocityDispersion1DRadiusMinimum,velocityDispersion1DRadiusMaximum,velocityDispersion1DLengthResolutionMinimum,velocityDispersion1DLengthResolutionMaximum)
 
   ! Submodule-scope variables used in table construction.
   class(massDistributionSphericalFiniteResolutionNFW), pointer :: massDistributionEmbedding_
@@ -180,22 +195,26 @@ contains
     !!{RST
     Tabulates the mass enclosed within a given radius for finite resolution NFW density profiles.
     !!}
-    use :: Numerical_Ranges     , only : Make_Range, rangeTypeLogarithmic
+    use :: Numerical_Ranges     , only : Range_Pinned, Range_Lattice_Extend, Range_Lattice_Extend_2D, gridSchemePerDecade
     use :: Numerical_Integration, only : integrator
     implicit none
-    class           (kinematicsDistributionFiniteResolutionNFW   ), intent(inout), target :: self
-    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target :: massDistributionEmbedding
-    double precision                                              , intent(in   )         :: radius                           , radiusCore
-    double precision                                              , parameter             :: radiusTiny               =1.0d-2
-    type            (integrator                                  ), save                  :: integrator_
-    logical                                                       , save                  :: initialized              =.false.
+    class           (kinematicsDistributionFiniteResolutionNFW   ), intent(inout), target       :: self
+    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target       :: massDistributionEmbedding
+    double precision                                              , intent(in   )               :: radius                           , radiusCore
+    double precision                                              , parameter                   :: radiusTiny               =1.0d-2
+    type            (integrator                                  ), save                        :: integrator_
+    logical                                                       , save                        :: initialized              =.false.
     !$omp threadprivate(integrator_,initialized)
-    logical                                                                               :: retabulate
-    integer                                                                               :: iLengthResolution                , iRadius              , &
-         &                                                                                   i
-    double precision                                                                      :: jeansIntegral                    , jeansIntegralPrevious, &
-         &                                                                                   radiusLower                      , radiusUpper          , &
-         &                                                                                   radiusOuter                      , density
+    logical                                                                                     :: retabulate
+    integer                                                                                     :: iLengthResolution                , iRadius                , &
+         &                                                                                         i                                , iRadiusStart
+    double precision                                                                            :: jeansIntegral                    , jeansIntegralPrevious  , &
+         &                                                                                         radiusLower                      , radiusUpper            , &
+         &                                                                                         radiusOuter                      , density
+    type            (rangeLattice                                )                              :: latticeRadius                    , latticeLengthResolution
+    type            (rangeLattice                                )                              :: latticeRadiusCurrent
+    logical                                                       , allocatable, dimension(:,:) :: isComputed
+    logical                                                       , allocatable, dimension(:  ) :: isComputedLengthResolution
 
     do i=1,2
        retabulate=.false.
@@ -216,24 +235,60 @@ contains
        if (.not.retabulate         ) exit
     end do
     if (retabulate) then
-       ! Decide how many points to tabulate and allocate table arrays.
-       velocityDispersion1DRadiusMinimum             =min(0.5d0*radius    ,velocityDispersion1DRadiusMinimum          )
-       velocityDispersion1DRadiusMaximum             =max(2.0d0*radius    ,velocityDispersion1DRadiusMaximum          )
-       velocityDispersion1DLengthResolutionMinimum   =min(0.5d0*radiusCore,velocityDispersion1DLengthResolutionMinimum)
-       velocityDispersion1DLengthResolutionMaximum   =max(2.0d0*radiusCore,velocityDispersion1DLengthResolutionMaximum)
-       velocityDispersion1DTableRadiusCount          =int(log10(velocityDispersion1DRadiusMaximum          /velocityDispersion1DRadiusMinimum          )*dble(velocityDispersion1DTableRadiusPointsPerDecade          ))+1
-       velocityDispersion1DTableLengthResolutionCount=int(log10(velocityDispersion1DLengthResolutionMaximum/velocityDispersion1DLengthResolutionMinimum)*dble(velocityDispersion1DTableLengthResolutionPointsPerDecade))+1
-       if (allocated(velocityDispersion1DTableRadius)) then
-          deallocate(velocityDispersion1DTableLengthResolution)
-          deallocate(velocityDispersion1DTableRadius          )
-          deallocate(velocityDispersion1DTable                )
+       ! Find the range to tabulate, pinning each axis to an absolute lattice so that the points evaluated - and therefore every
+       ! value interpolated between them - depend only on which lattice points are spanned, and not on the sequence of values
+       ! which happened to be requested. Each request is passed as the target and the range already tabulated is unioned in
+       ! through `latticeCurrent`; folding the latter into the target instead - as the `min`/`max` against the current bounds
+       ! formerly did - would apply the factor-of-two margin to an already-margined bound and so ratchet the range outward on
+       ! every retabulation.
+       latticeRadius          =Range_Pinned(                                                                           &
+            &                                              [radius                                                  ], &
+            &                                               velocityDispersion1DTableRadiusPointsPerDecade           , &
+            &                                               gridSchemePerDecade                                      , &
+            &                               marginFactor  = 2.0d0                                                    , &
+            &                               anchorEvery   =+velocityDispersion1DTableRadiusPointsPerDecade             &
+            &                                              /velocityDispersion1DTableAnchorsPerDecade                , &
+            &                               latticeCurrent= velocityDispersion1DLatticeRadius                          &
+            &                              )
+       latticeLengthResolution=Range_Pinned(                                                                           &
+            &                                              [radiusCore                                              ], &
+            &                                               velocityDispersion1DTableLengthResolutionPointsPerDecade , &
+            &                                               gridSchemePerDecade                                      , &
+            &                               marginFactor  = 2.0d0                                                    , &
+            &                               anchorEvery   =+velocityDispersion1DTableLengthResolutionPointsPerDecade   &
+            &                                              /velocityDispersion1DTableAnchorsPerDecade                , &
+            &                               latticeCurrent= velocityDispersion1DLatticeLengthResolution                &
+            &                              )
+       ! The solution at each radius is the integral of the Jeans equation from that radius outward, so it depends on the
+       ! solution at every larger radius and on where the outer boundary of the integration lies. It can therefore be carried
+       ! over only while the *upper* end of the radius axis is unchanged; if the axis grows outward the whole tabulation must be
+       ! rebuilt, which is arranged here by presenting an undefined current lattice to the extension below.
+       latticeRadiusCurrent=velocityDispersion1DLatticeRadius
+       if (latticeRadiusCurrent%isDefined()) then
+          if (latticeRadiusCurrent%indexMaximum() /= latticeRadius%indexMaximum()) then
+             latticeRadiusCurrent=rangeLattice()
+             if (allocated(velocityDispersion1DJeansIntegral)) deallocate(velocityDispersion1DJeansIntegral)
+          end if
        end if
-       allocate(velocityDispersion1DTableLengthResolution(                                     velocityDispersion1DTableLengthResolutionCount))
-       allocate(velocityDispersion1DTableRadius          (velocityDispersion1DTableRadiusCount                                               ))
-       allocate(velocityDispersion1DTable                (velocityDispersion1DTableRadiusCount,velocityDispersion1DTableLengthResolutionCount))
-       ! Create a range of radii and core radii.
-       velocityDispersion1DTableRadius          =Make_Range(velocityDispersion1DRadiusMinimum          ,velocityDispersion1DRadiusMaximum          ,velocityDispersion1DTableRadiusCount          ,rangeType=rangeTypeLogarithmic)
-       velocityDispersion1DTableLengthResolution=Make_Range(velocityDispersion1DLengthResolutionMinimum,velocityDispersion1DLengthResolutionMaximum,velocityDispersion1DTableLengthResolutionCount,rangeType=rangeTypeLogarithmic)
+       ! Extend the table onto the new lattices, carrying over the solutions already found. Every offset is computed in exact
+       ! integer arithmetic from the lattice indices, so no abscissa is compared.
+       call Range_Lattice_Extend_2D(latticeRadiusCurrent,latticeRadius,velocityDispersion1DLatticeLengthResolution,latticeLengthResolution,velocityDispersion1DTable        ,isComputed                )
+       call Range_Lattice_Extend   (                                   velocityDispersion1DLatticeLengthResolution,latticeLengthResolution,velocityDispersion1DJeansIntegral,isComputedLengthResolution)
+       velocityDispersion1DLatticeRadius             =latticeRadius
+       velocityDispersion1DLatticeLengthResolution   =latticeLengthResolution
+       velocityDispersion1DTableRadiusCount          =latticeRadius          %count
+       velocityDispersion1DTableLengthResolutionCount=latticeLengthResolution%count
+       velocityDispersion1DRadiusMinimum             =latticeRadius          %minimum()
+       velocityDispersion1DRadiusMaximum             =latticeRadius          %maximum()
+       velocityDispersion1DLengthResolutionMinimum   =latticeLengthResolution%minimum()
+       velocityDispersion1DLengthResolutionMaximum   =latticeLengthResolution%maximum()
+       ! Take the abscissae from the lattices. They must come from there, and never from a range laid out across the current
+       ! extent: the lattice evaluates them through a single, deliberately un-inlined path, so that a given lattice point is
+       ! bit-identical between one tabulation and another regardless of how many points each spans.
+       if (allocated(velocityDispersion1DTableRadius          )) deallocate(velocityDispersion1DTableRadius          )
+       if (allocated(velocityDispersion1DTableLengthResolution)) deallocate(velocityDispersion1DTableLengthResolution)
+       velocityDispersion1DTableRadius          =latticeRadius          %values()
+       velocityDispersion1DTableLengthResolution=latticeLengthResolution%values()
        ! Initialize integrator if necessary.
        if (.not.initialized) then
           integrator_=integrator(jeansEquationIntegrand,toleranceRelative=1.0d-2)
@@ -244,8 +299,21 @@ contains
        radiusOuter                =  max(10.0d0*velocityDispersion1DRadiusMaximum,1000.0d0)
        do iLengthResolution=1,velocityDispersion1DTableLengthResolutionCount
           iLengthResolution_   =iLengthResolution
-          jeansIntegralPrevious=0.0d0
-          do iRadius=velocityDispersion1DTableRadiusCount,1,-1
+          ! Resume the inward integration where it was left, for a length resolution whose solution was carried over; otherwise
+          ! begin it afresh at the outer boundary. Since the upper end of the radius axis is unchanged wherever anything was
+          ! carried over, the solutions carried are exactly those at the largest radii, so the integration resumes immediately
+          ! below them.
+          iRadiusStart=velocityDispersion1DTableRadiusCount
+          do while (iRadiusStart > 0)
+             if (.not.isComputed(iRadiusStart,iLengthResolution)) exit
+             iRadiusStart=iRadiusStart-1
+          end do
+          if (iRadiusStart == velocityDispersion1DTableRadiusCount) then
+             jeansIntegralPrevious=0.0d0
+          else
+             jeansIntegralPrevious=velocityDispersion1DJeansIntegral(iLengthResolution)
+          end if
+          do iRadius=iRadiusStart,1,-1
              ! For radii that are tiny compared to the core radius the velocity dispersion become almost constant. Simply assume this to avoid floating point errors.
              if     (                                                                                                                    &
                   &   velocityDispersion1DTableRadius(iRadius) < radiusTiny                                                              &
@@ -276,6 +344,9 @@ contains
                      &                                               +jeansIntegral
              end if
           end do
+          ! Retain the accumulated integral at the innermost tabulated radius, so that a later extension to smaller radii can
+          ! resume from it.
+          velocityDispersion1DJeansIntegral(iLengthResolution)=jeansIntegralPrevious
        end do
        ! Build interpolators.
        if (allocated(velocityDispersion1DTableLengthResolutionInterpolator)) deallocate(velocityDispersion1DTableLengthResolutionInterpolator)
@@ -312,12 +383,13 @@ contains
     !!{RST
     Store the tabulated velocity dispersion data to file.
     !!}
-    use :: File_Utilities    , only : File_Lock     , File_Unlock        , lockDescriptor, Directory_Make, &
+    use :: File_Utilities    , only : File_Lock                , File_Unlock        , lockDescriptor, Directory_Make, &
          &                            File_Path
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File
-    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : varying_string, operator(//)       , char
+    use :: Input_Paths       , only : inputPath                , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : varying_string           , operator(//)       , char
+    use :: Table_Caches      , only : Table_Cache_Lattice_Write
     implicit none
     class(kinematicsDistributionFiniteResolutionNFW), intent(inout) :: self
     type (lockDescriptor                           )                :: fileLock
@@ -336,9 +408,15 @@ contains
     hdf5FileScope: block
       type (hdf5File  ) :: file
       file=hdf5File(fileName,overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
+      ! Record the lattices on which the two axes are built, so that a restored tabulation is recognized as lying on the same
+      ! absolute lattice as one built here, along with the state of the inward integration at the innermost tabulated radius,
+      ! without which a restored tabulation could not be extended inward by resuming that integration.
+      call Table_Cache_Lattice_Write(file,'radius'    ,velocityDispersion1DLatticeRadius          )
+      call Table_Cache_Lattice_Write(file,'radiusCore',velocityDispersion1DLatticeLengthResolution)
       call file%writeDataset(velocityDispersion1DTableLengthResolution,'radiusCore'        )
       call file%writeDataset(velocityDispersion1DTableRadius          ,'radius'            )
       call file%writeDataset(velocityDispersion1DTable                ,'velocityDispersion')
+      call file%writeDataset(velocityDispersion1DJeansIntegral        ,'jeansIntegral'     )
     end block hdf5FileScope
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
@@ -348,16 +426,27 @@ contains
   subroutine finiteResolutionNFWRestoreVelocityDispersionTable(self)
     !!{RST
     Restore the tabulated velocity dispersion data from file.
+
+    The stored tabulation is adopted only if the file records, for both axes, a lattice which is self-consistent and which uses
+    the density of points that this object would use, if the arrays stored alongside them have the extent they imply, and if it
+    contains the tabulation already in hand - this being called only when the latter has been found insufficient, so that
+    adopting a narrower tabulation in its place would discard solutions which must then be found again.
     !!}
-    use :: File_Utilities    , only : File_Exists   , File_Lock          , File_Unlock, lockDescriptor
+    use :: File_Utilities    , only : File_Exists             , File_Lock          , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File
-    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : varying_string, operator(//)
+    use :: Input_Paths       , only : inputPath               , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : varying_string          , operator(//)       , char
+    use :: Numerical_Ranges  , only : gridSchemePerDecade
+    use :: Table_Caches      , only : Table_Cache_Lattice_Read
     implicit none
-    class(kinematicsDistributionFiniteResolutionNFW), intent(inout) :: self
-    type (lockDescriptor                           )                :: fileLock
-    type (varying_string                           )                :: fileName
+    class           (kinematicsDistributionFiniteResolutionNFW), intent(inout)               :: self
+    type            (lockDescriptor                           )                              :: fileLock
+    type            (varying_string                           )                              :: fileName
+    type            (rangeLattice                             )                              :: latticeRadius      , latticeLengthResolution
+    double precision                                           , allocatable, dimension(:,:) :: tableStored
+    double precision                                           , allocatable, dimension(:  ) :: jeansIntegralStored
+    logical                                                                                  :: isUsable
 
     fileName=inputPath(pathTypeDataDynamic)                   // &
          &   'darkMatter/'                                    // &
@@ -365,37 +454,57 @@ contains
          &   'VelocityDispersion_'                            // &
          &   self%hashedDescriptor(includeSourceDigest=.true.)// &
          &   '.hdf5'
-    if (File_Exists(fileName)) then
-       if (allocated(velocityDispersion1DTableRadius)) then
-          deallocate(velocityDispersion1DTableLengthResolution)
-          deallocate(velocityDispersion1DTableRadius          )
-          deallocate(velocityDispersion1DTable                )
-       end if
-       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
-       !$ call hdf5Access%set()
-       hdf5FileScope: block
-         type (hdf5File  ) :: file
-         file=hdf5File(fileName)
-         call file%readDataset('radiusCore'        ,velocityDispersion1DTableLengthResolution)
-         call file%readDataset('radius'            ,velocityDispersion1DTableRadius          )
-         call file%readDataset('velocityDispersion',velocityDispersion1DTable                )
-       end block hdf5FileScope
-       !$ call hdf5Access%unset()
-       call File_Unlock(fileLock)
-       velocityDispersion1DTableRadiusCount          =size(velocityDispersion1DTableRadius          )
-       velocityDispersion1DTableLengthResolutionCount=size(velocityDispersion1DTableLengthResolution)
-       velocityDispersion1DRadiusMinimum             =velocityDispersion1DTableRadius          (                                             1)
-       velocityDispersion1DRadiusMaximum             =velocityDispersion1DTableRadius          (velocityDispersion1DTableRadiusCount          )
-       velocityDispersion1DLengthResolutionMinimum   =velocityDispersion1DTableLengthResolution(                                             1)
-       velocityDispersion1DLengthResolutionMaximum   =velocityDispersion1DTableLengthResolution(velocityDispersion1DTableLengthResolutionCount)
-       if (allocated(velocityDispersion1DTableLengthResolutionInterpolator)) deallocate(velocityDispersion1DTableLengthResolutionInterpolator)
-       if (allocated(velocityDispersion1DTableRadiusInterpolator          )) deallocate(velocityDispersion1DTableRadiusInterpolator          )
-       allocate(velocityDispersion1DTableLengthResolutionInterpolator)
-       allocate(velocityDispersion1DTableRadiusInterpolator          )
-       velocityDispersion1DTableLengthResolutionInterpolator=interpolator(velocityDispersion1DTableLengthResolution)
-       velocityDispersion1DTableRadiusInterpolator          =interpolator(velocityDispersion1DTableRadius          )
-       velocityDispersion1DTableInitialized                 =.true.
-    end if    
+    if (.not.File_Exists(fileName)) return
+    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads. Note that the file is
+    ! opened read-only: opening it for writing would take an exclusive lock and abort any concurrent reader.
+    call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+    !$ call hdf5Access%set()
+    hdf5FileScope: block
+      type (hdf5File  ) :: file
+      file=hdf5File(fileName,readOnly=.true.)
+      call Table_Cache_Lattice_Read(file,'radius'    ,gridSchemePerDecade,velocityDispersion1DTableRadiusPointsPerDecade          ,latticeRadius          )
+      call Table_Cache_Lattice_Read(file,'radiusCore',gridSchemePerDecade,velocityDispersion1DTableLengthResolutionPointsPerDecade,latticeLengthResolution)
+      isUsable=latticeRadius%isDefined() .and. latticeLengthResolution%isDefined()
+      if (isUsable) isUsable=file%hasDataset('jeansIntegral')
+      if (isUsable) then
+         call file%readDataset('velocityDispersion',tableStored        )
+         call file%readDataset('jeansIntegral'     ,jeansIntegralStored)
+      end if
+    end block hdf5FileScope
+    !$ call hdf5Access%unset()
+    call File_Unlock(fileLock)
+    if (isUsable)                                                                          &
+         & isUsable=      size(tableStored        ,dim=1) == latticeRadius          %count &
+         &          .and. size(tableStored        ,dim=2) == latticeLengthResolution%count &
+         &          .and. size(jeansIntegralStored      ) == latticeLengthResolution%count
+    if (isUsable .and. velocityDispersion1DTableInitialized)                                                                                                              &
+         & isUsable=      (.not.velocityDispersion1DLatticeRadius          %isDefined() .or. latticeRadius          %covers(velocityDispersion1DLatticeRadius          )) &
+         &          .and. (.not.velocityDispersion1DLatticeLengthResolution%isDefined() .or. latticeLengthResolution%covers(velocityDispersion1DLatticeLengthResolution))
+    if (.not.isUsable) return
+    ! Adopt the stored tabulation, recovering everything which describes its extent from the lattices rather than from the
+    ! stored abscissae, so that a restored tabulation cannot come to be described differently from a freshly built one.
+    if (allocated(velocityDispersion1DTableRadius          )) deallocate(velocityDispersion1DTableRadius          )
+    if (allocated(velocityDispersion1DTableLengthResolution)) deallocate(velocityDispersion1DTableLengthResolution)
+    if (allocated(velocityDispersion1DTable                )) deallocate(velocityDispersion1DTable                )
+    if (allocated(velocityDispersion1DJeansIntegral        )) deallocate(velocityDispersion1DJeansIntegral        )
+    call Move_Alloc(tableStored        ,velocityDispersion1DTable        )
+    call Move_Alloc(jeansIntegralStored,velocityDispersion1DJeansIntegral)
+    velocityDispersion1DLatticeRadius             =latticeRadius
+    velocityDispersion1DLatticeLengthResolution   =latticeLengthResolution
+    velocityDispersion1DTableRadius               =latticeRadius          %values ()
+    velocityDispersion1DTableLengthResolution     =latticeLengthResolution%values ()
+    velocityDispersion1DTableRadiusCount          =latticeRadius          %count
+    velocityDispersion1DTableLengthResolutionCount=latticeLengthResolution%count
+    velocityDispersion1DRadiusMinimum             =latticeRadius          %minimum()
+    velocityDispersion1DRadiusMaximum             =latticeRadius          %maximum()
+    velocityDispersion1DLengthResolutionMinimum   =latticeLengthResolution%minimum()
+    velocityDispersion1DLengthResolutionMaximum   =latticeLengthResolution%maximum()
+    if (allocated(velocityDispersion1DTableLengthResolutionInterpolator)) deallocate(velocityDispersion1DTableLengthResolutionInterpolator)
+    if (allocated(velocityDispersion1DTableRadiusInterpolator          )) deallocate(velocityDispersion1DTableRadiusInterpolator          )
+    allocate(velocityDispersion1DTableLengthResolutionInterpolator)
+    allocate(velocityDispersion1DTableRadiusInterpolator          )
+    velocityDispersion1DTableLengthResolutionInterpolator=interpolator(velocityDispersion1DTableLengthResolution)
+    velocityDispersion1DTableRadiusInterpolator          =interpolator(velocityDispersion1DTableRadius          )
+    velocityDispersion1DTableInitialized                 =.true.
     return
   end subroutine finiteResolutionNFWRestoreVelocityDispersionTable

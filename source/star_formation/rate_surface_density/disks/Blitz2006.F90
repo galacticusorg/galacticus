@@ -17,6 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson. The pinning of the tabulated star formation rate solution to absolute
+  !+    lattices for issue #1317 was drafted with assistance from Claude, and reviewed and verified by Andrew Benson.
+
   !!{RST
   Implementation of the :cite:t:`blitz_role_2006` star formation rate surface density law for galactic disks.
   !!}
@@ -24,6 +27,7 @@
   use :: Kind_Numbers       , only : kind_int8
   use :: Root_Finder        , only : rootFinder
   use :: Math_Exponentiation, only : fastExponentiator
+  use :: Numerical_Ranges   , only : rangeLattice
 
   ! Floor on the disk gas mass, below which the disk is treated as gas-free.
   !
@@ -41,6 +45,18 @@
   ! and blitz2006Intervals, since the coefficients are only *set* (in computeFactors) under
   ! massGas > massGasFloor and must only be *used* (in Rate/Intervals) under the complementary condition.
   double precision, parameter :: massGasFloor=1.0d-30
+
+  ! Densities of tabulation points along the three axes of the tabulated solution, and the intervals - in lattice steps - to
+  ! which their bounds are pinned. The anchoring is to *tenths* of a decade rather than to whole decades because this tabulation
+  ! is three-dimensional and its cost is the product of its three extents: rounding each axis outward to a whole decade would,
+  ! for the ranges these axes actually reach, inflate the number of points to be evaluated - each of which is a numerical
+  ! integral - by about a half, whereas tenths of a decade cost a few percent. Note that the anchor interval must divide the
+  ! density of points, so that whole numbers of the lattice coordinate are themselves anchor points and a bound lying on one -
+  ! such as the hard lower limits below - can actually be reached.
+  integer         , parameter :: pointsPerDecadeFactorBoost       =30, pointsPerDecadeFactorBoostStellar=30, &
+       &                         pointsPerDecadeRadius            =30
+  integer         , parameter :: anchorEveryFactorBoost           = 3, anchorEveryFactorBoostStellar    = 3, &
+       &                         anchorEveryRadius                = 3
 
   !![
   <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksBlitz2006" docformat="rst">
@@ -80,28 +96,30 @@
      !!}
      private
      integer         (kind_int8             )                                :: lastUniqueID
-     logical                                                                 :: factorsComputed                                       , assumeMonotonicSurfaceDensity                      , &
-          &                                                                     isExponentialDisk                                     , useTabulation
-     double precision                                                        :: heightToRadialScaleDisk                               , pressureCharacteristic                             , &
-          &                                                                     pressureExponent                                      , starFormationFrequencyNormalization                , &
-          &                                                                     surfaceDensityCritical                                , surfaceDensityExponent                             , &
-          &                                                                     velocityDispersionDiskGas                             , radiusDisk                                         , &
-          &                                                                     massGas                                               , hydrogenMassFraction                               , &
-          &                                                                     massStellar                                           , massGasPrevious                                    , &
-          &                                                                     massStellarPrevious                                   , hydrogenMassFractionPrevious                       , &
-          &                                                                     radiusDiskPrevious                                    , radiusCritical                                     , &
-          &                                                                     radiusCriticalPrevious                                , factorBoostStellarCoefficient                      , &
+     logical                                                                 :: factorsComputed                     , assumeMonotonicSurfaceDensity       , &
+          &                                                                     isExponentialDisk                   , useTabulation
+     double precision                                                        :: heightToRadialScaleDisk             , pressureCharacteristic              , &
+          &                                                                     pressureExponent                    , starFormationFrequencyNormalization , &
+          &                                                                     surfaceDensityCritical              , surfaceDensityExponent              , &
+          &                                                                     velocityDispersionDiskGas           , radiusDisk                          , &
+          &                                                                     massGas                             , hydrogenMassFraction                , &
+          &                                                                     massStellar                         , massGasPrevious                     , &
+          &                                                                     massStellarPrevious                 , hydrogenMassFractionPrevious        , &
+          &                                                                     radiusDiskPrevious                  , radiusCritical                      , &
+          &                                                                     radiusCriticalPrevious              , factorBoostStellarCoefficient       , &
           &                                                                     pressureRatioCoefficient
      type            (rootFinder            )                                :: finder
      type            (fastExponentiator     )                                :: pressureRatioExponentiator
      double precision                        , allocatable, dimension(:,:,:) :: integralPartiallyMolecularTable
      logical                                                                 :: tableInitialized
-     double precision                                                        :: coefficientFactorBoostMinimum                         , coefficientFactorBoostMaximum                      , &
-          &                                                                     coefficientFactorBoostStellarMinimum                  , coefficientFactorBoostStellarMaximum               , &
-          &                                                                     radiusScaleFreeMinimum                                , radiusScaleFreeMaximum                             , &
-          &                                                                     coefficientFactorBoostLogarithmicStepInverse          , coefficientFactorBoostStellarLogarithmicStepInverse, &
-          &                                                                     radiusScaleFreeLogarithmicStepInverse                 , radiusScaleFreeLogarithmicOffset                   , &
-          &                                                                     coefficientFactorBoostLogarithmicOffset               , coefficientFactorBoostStellarLogarithmicOffset
+     double precision                                                        :: coefficientFactorBoostMinimum       , coefficientFactorBoostMaximum       , &
+          &                                                                     coefficientFactorBoostStellarMinimum, coefficientFactorBoostStellarMaximum, &
+          &                                                                     radiusScaleFreeMinimum              , radiusScaleFreeMaximum
+     ! Lattices to which the three axes of the tabulation are pinned. These are the source of truth for its extent: the limits
+     ! above are derived from them, and so are the offset and inverse step which the interpolation uses, which are therefore no
+     ! longer held on the object.
+     type            (rangeLattice          )                                :: latticeFactorBoost                  , latticeFactorBoostStellar           , &
+          &                                                                     latticeRadiusScaleFree
      type            (varying_string        )                                :: filenameTable
    contains
      !![
@@ -925,37 +943,48 @@ contains
       !!{RST
       Analytic solution to the improper integral of the star formation rate surface density over an exponential disk for the general case.
       !!}
-      use :: Display              , only : displayCounter , displayCounterClear  , displayIndent, displayMessage, &
-           &                               displayUnindent, verbosityLevelWorking
-      use :: Numerical_Integration, only : integrator     , GSL_Integ_Gauss61
+      use :: Display              , only : displayCounter          , displayCounterClear      , displayIndent      , displayMessage, &
+           &                               displayUnindent         , verbosityLevelWorking
+      use :: Numerical_Integration, only : integrator              , GSL_Integ_Gauss61
       use :: HDF5_Access          , only : hdf5Access
       use :: IO_HDF5              , only : hdf5File
-      use :: File_Utilities       , only : File_Exists    , File_Lock            , File_Unlock  , lockDescriptor, &
-           &                               Directory_Make , File_Path
+      use :: File_Utilities       , only : File_Exists             , File_Lock                , File_Unlock        , lockDescriptor, &
+           &                               Directory_Make          , File_Path
+      use :: Numerical_Ranges     , only : Range_Pinned            , Range_Lattice_Offset     , gridSchemePerDecade
+      use :: Table_Caches         , only : Table_Cache_Lattice_Read, Table_Cache_Lattice_Write
       implicit none
-      double precision                , intent(in   ) :: radiusScaleFree
-      double precision                , parameter     :: toleranceRelative                    =1.0d-6
-      integer                         , parameter     :: pointsPerDecadeFactorBoost           =30    , pointsPerDecadeFactorBoostStellar           =30    , &
-           &                                             pointsPerDecadeRadius                =30
-      integer                                         :: countFactorBoost                            , countFactorBoostStellar                            , &
-           &                                             countRadii                                  , i                                                  , &
-           &                                             j                                           , k                                                  , &
-           &                                             ii                                          , jj                                                 , &
-           &                                             kk                                          , loopCount                                         ,  &
-           &                                             loopCountTotal
-      double precision                                :: radiusScaleFreeLogarithmicStep              , integral                                           , &
-           &                                             coefficientFactorBoostLogarithmicStep       , coefficientFactorBoostStellarLogarithmicStep       , &
-           &                                             hi                                          , hj                                                 , &
-           &                                             hk                                          , hhi                                                , &
-           &                                             hhj                                         , hhk                                                , &
-           &                                             radiusMinimum                               , radiusMaximum
-      character       (len= 8        )                :: tableSize
-      character       (len= 8        )                :: countSteps
-      character       (len=12        )                :: rangeLower                                  , rangeUpper
-      type            (integrator    ), allocatable   :: integrator_
-      type            (varying_string), save          :: message
-      type            (lockDescriptor), save          :: fileLock
-      logical                                         :: haveLock
+      double precision                , intent(in   )                 :: radiusScaleFree
+      double precision                , parameter                     :: toleranceRelative                    =1.0d-6
+      integer                                                         :: countFactorBoost                            , countFactorBoostStellar        , &
+           &                                                             countRadii                                  , i                              , &
+           &                                                             j                                           , k                              , &
+           &                                                             ii                                          , jj                             , &
+           &                                                             kk                                          , loopCount                      , &
+           &                                                             loopCountTotal                              , offsetFactorBoost              , &
+           &                                                             offsetFactorBoostStellar                    , offsetRadius                   , &
+           &                                                             countFactorBoostPrevious                    , countFactorBoostStellarPrevious, &
+           &                                                             countRadiiPrevious
+      double precision                                                :: integral                                                                     , &
+           &                                                             hi                                          , hj                             , &
+           &                                                             hk                                          , hhi                            , &
+           &                                                             hhj                                         , hhk                            , &
+           &                                                             radiusMinimum                               , radiusMaximum                  , &
+           &                                                             coordinateFactorBoost                       , coordinateFactorBoostStellar   , &
+           &                                                             coordinateRadiusScaleFree
+      type            (rangeLattice  )                                :: latticeFactorBoost                          , latticeFactorBoostStellar      , &
+           &                                                             latticeRadiusScaleFree
+      double precision                , allocatable, dimension(:    ) :: valuesFactorBoost                           , valuesFactorBoostStellar       , &
+           &                                                             valuesRadiusScaleFree
+      double precision                , allocatable, dimension(:,:,:) :: integralPartiallyMolecularPrevious
+      logical                                                         :: carryOver                                   , isCarriedFactorBoost           , &
+           &                                                             isCarriedFactorBoostStellar
+      character       (len= 8        )                                :: tableSize
+      character       (len= 8        )                                :: countSteps
+      character       (len=12        )                                :: rangeLower                                  , rangeUpper
+      type            (integrator    ), allocatable                   :: integrator_
+      type            (varying_string), save                          :: message
+      type            (lockDescriptor), save                          :: fileLock
+      logical                                                         :: haveLock
       !$omp threadprivate(message,fileLock)
 
       ! If our table is insufficient (or does not yet exist), attempt to read the table from file.
@@ -972,22 +1001,55 @@ contains
             hdf5FileScopeRead: block
               type(hdf5File  ) :: file
               file=hdf5File(self%filenameTable,readOnly=.true.)
-              call file%readAttribute('coefficientFactorBoostMinimum'                      ,self%coefficientFactorBoostMinimum                      )
-              call file%readAttribute('coefficientFactorBoostMaximum'                      ,self%coefficientFactorBoostMaximum                      )
-              call file%readAttribute('coefficientFactorBoostStellarMinimum'               ,self%coefficientFactorBoostStellarMinimum               )
-              call file%readAttribute('coefficientFactorBoostStellarMaximum'               ,self%coefficientFactorBoostStellarMaximum               )
-              call file%readAttribute('radiusScaleFreeMinimum'                             ,self%radiusScaleFreeMinimum                             )
-              call file%readAttribute('radiusScaleFreeMaximum'                             ,self%radiusScaleFreeMaximum                             )
-              call file%readAttribute('coefficientFactorBoostLogarithmicOffset'            ,self%coefficientFactorBoostLogarithmicOffset            )
-              call file%readAttribute('coefficientFactorBoostStellarLogarithmicOffset'     ,self%coefficientFactorBoostStellarLogarithmicOffset     )
-              call file%readAttribute('radiusScaleFreeLogarithmicOffset'                   ,self%radiusScaleFreeLogarithmicOffset                   )
-              call file%readAttribute('coefficientFactorBoostLogarithmicStepInverse'       ,self%coefficientFactorBoostLogarithmicStepInverse       )
-              call file%readAttribute('coefficientFactorBoostStellarLogarithmicStepInverse',self%coefficientFactorBoostStellarLogarithmicStepInverse)
-              call file%readAttribute('radiusScaleFreeLogarithmicStepInverse'              ,self%radiusScaleFreeLogarithmicStepInverse              )
-              call file%readDataset  ('integral'                                           ,self%integralPartiallyMolecularTable                    )
+              ! Recover the lattices on which the stored tabulation was built. A file which records none, or which records
+              ! lattices this object would not use, is ignored rather than misread.
+              call Table_Cache_Lattice_Read(file,'coefficientFactorBoost'       ,gridSchemePerDecade,pointsPerDecadeFactorBoost       ,self%latticeFactorBoost       )
+              call Table_Cache_Lattice_Read(file,'coefficientFactorBoostStellar',gridSchemePerDecade,pointsPerDecadeFactorBoostStellar,self%latticeFactorBoostStellar)
+              call Table_Cache_Lattice_Read(file,'radiusScaleFree'              ,gridSchemePerDecade,pointsPerDecadeRadius            ,self%latticeRadiusScaleFree   )
+              if     (                                             &
+                   &   self%latticeFactorBoost       %isDefined()  &
+                   &  .and.                                        &
+                   &   self%latticeFactorBoostStellar%isDefined()  &
+                   &  .and.                                        &
+                   &   self%latticeRadiusScaleFree   %isDefined()  &
+                   & ) call file%readDataset('integral',self%integralPartiallyMolecularTable)
             end block hdf5FileScopeRead
             !$ call hdf5Access%unset()
-            self%tableInitialized=.true.
+            ! Adopt the stored tabulation only if its lattices were recovered and the array stored alongside them matches.
+            if     (                                                 &
+                 &   self%latticeFactorBoost       %isDefined()      &
+                 &  .and.                                            &
+                 &   self%latticeFactorBoostStellar%isDefined()      &
+                 &  .and.                                            &
+                 &   self%latticeRadiusScaleFree   %isDefined()      &
+                 &  .and.                                            &
+                 &   allocated(self%integralPartiallyMolecularTable) &
+                 & ) then
+               if     (                                                                                          &
+                    &   size(self%integralPartiallyMolecularTable,dim=1) == self%latticeFactorBoost       %count &
+                    &  .and.                                                                                     &
+                    &   size(self%integralPartiallyMolecularTable,dim=2) == self%latticeFactorBoostStellar%count &
+                    &  .and.                                                                                     &
+                    &   size(self%integralPartiallyMolecularTable,dim=3) == self%latticeRadiusScaleFree   %count &
+                    & ) then
+                  ! Recover the limits from the lattices rather than reading them from the file, so that a restored tabulation
+                  ! cannot come to be described differently from a freshly built one.
+                  self%coefficientFactorBoostMinimum                      =      self%latticeFactorBoost       %minimum()
+                  self%coefficientFactorBoostMaximum                      =      self%latticeFactorBoost       %maximum()
+                  self%coefficientFactorBoostStellarMinimum               =      self%latticeFactorBoostStellar%minimum()
+                  self%coefficientFactorBoostStellarMaximum               =      self%latticeFactorBoostStellar%maximum()
+                  self%radiusScaleFreeMinimum                             =      self%latticeRadiusScaleFree   %minimum()
+                  self%radiusScaleFreeMaximum                             =      self%latticeRadiusScaleFree   %maximum()
+                  self%tableInitialized                                   =.true.
+               end if
+            end if
+            if (.not.self%tableInitialized) then
+               ! The stored tabulation is unusable - discard whatever was read of it.
+               if (allocated(self%integralPartiallyMolecularTable)) deallocate(self%integralPartiallyMolecularTable)
+               self%latticeFactorBoost       =rangeLattice()
+               self%latticeFactorBoostStellar=rangeLattice()
+               self%latticeRadiusScaleFree   =rangeLattice()
+            end if
          end if
       end if
       ! Having read the table from file (if it exists), check again to see if it is sufficient. If it is not, we must retabulate.
@@ -997,32 +1059,92 @@ contains
             call File_Lock(self%filenameTable,fileLock,lockIsShared=.false.)
             haveLock=.true.
          end if
-         ! Find range encompassing the existing table and the new point (with some buffer).
-         self%coefficientFactorBoostMinimum       =max(min(self%coefficientFactorBoostMinimum       ,coefficientFactorBoost       /2.0d0),coefficientFactorBoostTiny             )
-         self%coefficientFactorBoostMaximum       =    max(self%coefficientFactorBoostMaximum       ,coefficientFactorBoost       *2.0d0 ,coefficientFactorBoostTiny       *2.0d0)
-         self%coefficientFactorBoostStellarMinimum=max(min(self%coefficientFactorBoostStellarMinimum,coefficientFactorBoostStellar/2.0d0),coefficientFactorBoostStellarTiny      )
-         self%coefficientFactorBoostStellarMaximum=    max(self%coefficientFactorBoostStellarMaximum,coefficientFactorBoostStellar*2.0d0 ,coefficientFactorBoostStellarTiny*2.0d0)
-         self%radiusScaleFreeMinimum              =    min(self%radiusScaleFreeMinimum              ,radiusScaleFree              /2.0d0                                         )
-         self%radiusScaleFreeMaximum              =    max(self%radiusScaleFreeMaximum              ,radiusScaleFree              *2.0d0                                         )
-         ! Create the table.
-         !! Number of points in each axis.
-         countFactorBoost       =int(log10(self%coefficientFactorBoostMaximum       /self%coefficientFactorBoostMinimum       )*dble(pointsPerDecadeFactorBoost       ))+1
-         countFactorBoostStellar=int(log10(self%coefficientFactorBoostStellarMaximum/self%coefficientFactorBoostStellarMinimum)*dble(pointsPerDecadeFactorBoostStellar))+1
-         countRadii             =int(log10(self%radiusScaleFreeMaximum              /self%radiusScaleFreeMinimum              )*dble(pointsPerDecadeRadius            ))+1
-         !! Step sizes.
-         coefficientFactorBoostLogarithmicStep       =log10(self%coefficientFactorBoostMaximum       /self%coefficientFactorBoostMinimum       )/dble(countFactorBoost       -1)
-         coefficientFactorBoostStellarLogarithmicStep=log10(self%coefficientFactorBoostStellarMaximum/self%coefficientFactorBoostStellarMinimum)/dble(countFactorBoostStellar-1)
-         radiusScaleFreeLogarithmicStep              =log10(self%radiusScaleFreeMaximum              /self%radiusScaleFreeMinimum              )/dble(countRadii             -1)
-         !! Inverse step sizes.
-         self%coefficientFactorBoostLogarithmicOffset            =log10(self%coefficientFactorBoostMinimum       )
-         self%coefficientFactorBoostStellarLogarithmicOffset     =log10(self%coefficientFactorBoostStellarMinimum)
-         self%radiusScaleFreeLogarithmicOffset                   =log10(self%radiusScaleFreeMinimum              )
-         self%coefficientFactorBoostLogarithmicStepInverse       =1.0d0/coefficientFactorBoostLogarithmicStep
-         self%coefficientFactorBoostStellarLogarithmicStepInverse=1.0d0/coefficientFactorBoostStellarLogarithmicStep
-         self%radiusScaleFreeLogarithmicStepInverse              =1.0d0/radiusScaleFreeLogarithmicStep
-         !! Allocate the table.
-         if (self%tableInitialized) deallocate(self%integralPartiallyMolecularTable)
+         ! Find the range to tabulate, pinning each axis to an absolute lattice so that the points evaluated - and therefore every
+         ! value interpolated between them - depend only on which lattice points are spanned, and not on the sequence of values
+         ! which happened to be requested. Each request is passed as the target and the range already tabulated is unioned in
+         ! through `latticeCurrent`; folding the latter into the target instead would apply the factor-of-two margin to an
+         ! already-margined bound and ratchet the range outward on every retabulation. The hard lower limits enter as
+         ! `limitMinimum`. Note that each request is first clamped *up* to its hard limit - exactly as the interpolation below
+         ! clamps it - rather than the limit being added to the target: adding it would make it the smallest target value, and so
+         ! would drag the lower bound of every tabulation down to the limit instead of leaving it where the request puts it.
+         latticeFactorBoost       =Range_Pinned(                                                                                       &
+              &                                                [max(coefficientFactorBoost       ,coefficientFactorBoostTiny       )], &
+              &                                                 pointsPerDecadeFactorBoost                                           , &
+              &                                                 gridSchemePerDecade                                                  , &
+              &                                 marginFactor  = 2.0d0                                                                , &
+              &                                 anchorEvery   = anchorEveryFactorBoost                                               , &
+              &                                 limitMinimum  = coefficientFactorBoostTiny                                           , &
+              &                                 latticeCurrent=self%latticeFactorBoost                                                 &
+              &                                )
+         latticeFactorBoostStellar=Range_Pinned(                                                                                       &
+              &                                                [max(coefficientFactorBoostStellar,coefficientFactorBoostStellarTiny)], &
+              &                                                 pointsPerDecadeFactorBoostStellar                                    , &
+              &                                                 gridSchemePerDecade                                                  , &
+              &                                 marginFactor  = 2.0d0                                                                , &
+              &                                 anchorEvery   = anchorEveryFactorBoostStellar                                        , &
+              &                                 limitMinimum  = coefficientFactorBoostStellarTiny                                    , &
+              &                                 latticeCurrent=self%latticeFactorBoostStellar                                          &
+              &                                )
+         latticeRadiusScaleFree   =Range_Pinned(                                                                                       &
+              &                                                [radiusScaleFree]                                                     , &
+              &                                                 pointsPerDecadeRadius                                                , &
+              &                                                 gridSchemePerDecade                                                  , &
+              &                                 marginFactor  = 2.0d0                                                                , &
+              &                                 anchorEvery   = anchorEveryRadius                                                    , &
+              &                                 latticeCurrent=self%latticeRadiusScaleFree                                             &
+              &                                )
+         countFactorBoost       =latticeFactorBoost       %count
+         countFactorBoostStellar=latticeFactorBoostStellar%count
+         countRadii             =latticeRadiusScaleFree   %count
+         ! Record where the table already in hand sits within the extended one, so that the solutions it holds can be carried
+         ! over. Every offset is found in exact integer arithmetic from the lattice indices, so no abscissa is compared.
+         carryOver              =       self%tableInitialized                      &
+              &                  .and.  self%latticeFactorBoost       %isDefined() &
+              &                  .and.  self%latticeFactorBoostStellar%isDefined() &
+              &                  .and.  self%latticeRadiusScaleFree   %isDefined()
+         offsetFactorBoost       =0
+         offsetFactorBoostStellar=0
+         offsetRadius            =0
+         countFactorBoostPrevious       =0
+         countFactorBoostStellarPrevious=0
+         countRadiiPrevious             =0
+         if (carryOver) then
+            offsetFactorBoost              =Range_Lattice_Offset(self%latticeFactorBoost       ,latticeFactorBoost       )
+            offsetFactorBoostStellar       =Range_Lattice_Offset(self%latticeFactorBoostStellar,latticeFactorBoostStellar)
+            offsetRadius                   =Range_Lattice_Offset(self%latticeRadiusScaleFree   ,latticeRadiusScaleFree   )
+            countFactorBoostPrevious       =self%latticeFactorBoost       %count
+            countFactorBoostStellarPrevious=self%latticeFactorBoostStellar%count
+            countRadiiPrevious             =self%latticeRadiusScaleFree   %count
+            call Move_Alloc(self%integralPartiallyMolecularTable,integralPartiallyMolecularPrevious)
+         end if
+         self%latticeFactorBoost       =latticeFactorBoost
+         self%latticeFactorBoostStellar=latticeFactorBoostStellar
+         self%latticeRadiusScaleFree   =latticeRadiusScaleFree
+         ! Take the abscissae from the lattices. They must come from there, and never from an exponentiation open-coded here: the
+         ! lattice evaluates them through a single, deliberately un-inlined path, so that a given lattice point is bit-identical
+         ! between one tabulation and another regardless of how many points each spans.
+         valuesFactorBoost       =latticeFactorBoost       %values()
+         valuesFactorBoostStellar=latticeFactorBoostStellar%values()
+         valuesRadiusScaleFree   =latticeRadiusScaleFree   %values()
+         ! Record the limits. The offset and inverse step which the interpolation uses are not recorded: both are functions of
+         ! the lattice, and are taken from it where they are used.
+         self%coefficientFactorBoostMinimum       =latticeFactorBoost       %minimum()
+         self%coefficientFactorBoostMaximum       =latticeFactorBoost       %maximum()
+         self%coefficientFactorBoostStellarMinimum=latticeFactorBoostStellar%minimum()
+         self%coefficientFactorBoostStellarMaximum=latticeFactorBoostStellar%maximum()
+         self%radiusScaleFreeMinimum              =latticeRadiusScaleFree   %minimum()
+         self%radiusScaleFreeMaximum              =latticeRadiusScaleFree   %maximum()
+         !! Allocate the table, and carry over the block of solutions already found.
          allocate(self%integralPartiallyMolecularTable(countFactorBoost,countFactorBoostStellar,countRadii))
+         self%integralPartiallyMolecularTable=0.0d0
+         if (carryOver) then
+            self%integralPartiallyMolecularTable(                                                                                     &
+                 &                               offsetFactorBoost       +1:offsetFactorBoost       +countFactorBoostPrevious       , &
+                 &                               offsetFactorBoostStellar+1:offsetFactorBoostStellar+countFactorBoostStellarPrevious, &
+                 &                               offsetRadius            +1:offsetRadius            +countRadiiPrevious               &
+                 &                              )=integralPartiallyMolecularPrevious
+            deallocate(integralPartiallyMolecularPrevious)
+         end if
          !! Populate the table.
          call displayIndent("tabulating solutions for Blitz2006 star formation rate in exponential disks",verbosityLevelWorking)
          call displayIndent("table ranges"                                                               ,verbosityLevelWorking)
@@ -1048,20 +1170,34 @@ contains
          call displayMessage(message,verbosityLevelWorking)
          call displayUnindent("",verbosityLevelWorking)
          loopCount     =+0
-         loopCountTotal=+countFactorBoost        &
-              &         *countFactorBoostStellar &
-              &         *countRadii
-         !$omp parallel private(i,j,k,integrator_,radiusMinimum,radiusMaximum)
+         loopCountTotal=+countFactorBoost                                                            &
+              &         *countFactorBoostStellar                                                     &
+              &         *countRadii                                                                  &
+              &         -countFactorBoostPrevious*countFactorBoostStellarPrevious*countRadiiPrevious
+         !$omp parallel private(i,j,k,integrator_,radiusMinimum,radiusMaximum,isCarriedFactorBoost,isCarriedFactorBoostStellar)
          allocate(integrator_)
          integrator_   = integrator(integrand,toleranceRelative=toleranceRelative,integrationRule=GSL_Integ_Gauss61)
          do i=1,countFactorBoost
-            coefficientFactorBoost_                          =10.0d0**(dble(i-1)*coefficientFactorBoostLogarithmicStep       +self%coefficientFactorBoostLogarithmicOffset       )
+            coefficientFactorBoost_          =valuesFactorBoost       (i)
+            isCarriedFactorBoost             =         carryOver                                                           &
+                 &                            .and. i >           offsetFactorBoost                                        &
+                 &                            .and. i <=          offsetFactorBoost+countFactorBoostPrevious
             do j=1,countFactorBoostStellar
-               coefficientFactorBoostStellar_                =10.0d0**(dble(j-1)*coefficientFactorBoostStellarLogarithmicStep+self%coefficientFactorBoostStellarLogarithmicOffset)
+               coefficientFactorBoostStellar_=valuesFactorBoostStellar(j)
+               isCarriedFactorBoostStellar   =         isCarriedFactorBoost                                                &
+                    &                         .and. j >           offsetFactorBoostStellar                                 &
+                    &                         .and. j <=          offsetFactorBoostStellar+countFactorBoostStellarPrevious
                !$omp do
                do k=1,countRadii
+                  ! Skip the block of solutions carried over from the tabulation already in hand - evaluating them again would
+                  ! merely reproduce them, at the cost of a numerical integral apiece.
+                  if     (                                           &
+                       &        isCarriedFactorBoostStellar          &
+                       &  .and. k >  offsetRadius                    &
+                       &  .and. k <= offsetRadius+countRadiiPrevious &
+                       & ) cycle
                   radiusMinimum                              = 0.0d0
-                  radiusMaximum                              =10.0d0**(dble(k-1)*radiusScaleFreeLogarithmicStep              +self%radiusScaleFreeLogarithmicOffset              )
+                  radiusMaximum                              =valuesRadiusScaleFree   (k)
                   self%integralPartiallyMolecularTable(i,j,k)=log(integrator_%integrate(radiusMinimum,radiusMaximum))
                   !$omp critical(blitz2006Tabulation)
                   call displayCounter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityLevelWorking)
@@ -1084,19 +1220,12 @@ contains
          hdf5FileScopeWrite: block
            type(hdf5File  ) :: file
            file=hdf5File(self%filenameTable,overWrite=.true.,readOnly=.false.)
-           call file%writeAttribute(self%coefficientFactorBoostMinimum                       ,'coefficientFactorBoostMinimum'                      )
-           call file%writeAttribute(self%coefficientFactorBoostMaximum                       ,'coefficientFactorBoostMaximum'                      )
-           call file%writeAttribute(self%coefficientFactorBoostStellarMinimum                ,'coefficientFactorBoostStellarMinimum'               )
-           call file%writeAttribute(self%coefficientFactorBoostStellarMaximum                ,'coefficientFactorBoostStellarMaximum'               )
-           call file%writeAttribute(self%radiusScaleFreeMinimum                              ,'radiusScaleFreeMinimum'                             )
-           call file%writeAttribute(self%radiusScaleFreeMaximum                              ,'radiusScaleFreeMaximum'                             )
-           call file%writeAttribute(self%coefficientFactorBoostLogarithmicOffset             ,'coefficientFactorBoostLogarithmicOffset'            )
-           call file%writeAttribute(self%coefficientFactorBoostStellarLogarithmicOffset      ,'coefficientFactorBoostStellarLogarithmicOffset'     )
-           call file%writeAttribute(self%radiusScaleFreeLogarithmicOffset                    ,'radiusScaleFreeLogarithmicOffset'                   )
-           call file%writeAttribute(self%coefficientFactorBoostLogarithmicStepInverse        ,'coefficientFactorBoostLogarithmicStepInverse'       )
-           call file%writeAttribute(self%coefficientFactorBoostStellarLogarithmicStepInverse ,'coefficientFactorBoostStellarLogarithmicStepInverse')
-           call file%writeAttribute(self%radiusScaleFreeLogarithmicStepInverse               ,'radiusScaleFreeLogarithmicStepInverse'              )
-           call file%writeDataset  (self%integralPartiallyMolecularTable                     ,'integral'                                           )
+           ! Record the lattices on which the three axes are built. The limits, offsets and inverse steps formerly stored
+           ! alongside them are not: each is a function of the lattices, and is recovered from them when the file is read.
+           call Table_Cache_Lattice_Write(file,'coefficientFactorBoost'       ,self%latticeFactorBoost       )
+           call Table_Cache_Lattice_Write(file,'coefficientFactorBoostStellar',self%latticeFactorBoostStellar)
+           call Table_Cache_Lattice_Write(file,'radiusScaleFree'              ,self%latticeRadiusScaleFree   )
+           call file%writeDataset(self%integralPartiallyMolecularTable,'integral')
          end block hdf5FileScopeWrite
          !$ call hdf5Access%unset()
       end if
@@ -1108,12 +1237,42 @@ contains
       integralAnalyticPartiallyMolecularGeneric=0.0d0
       coefficientFactorBoost_            =max(coefficientFactorBoost       ,coefficientFactorBoostTiny       )
       coefficientFactorBoostStellar_     =max(coefficientFactorBoostStellar,coefficientFactorBoostStellarTiny)
-      i                                  =int((log10(coefficientFactorBoost_       )-self%coefficientFactorBoostLogarithmicOffset       )*self%coefficientFactorBoostLogarithmicStepInverse       )+1
-      j                                  =int((log10(coefficientFactorBoostStellar_)-self%coefficientFactorBoostStellarLogarithmicOffset)*self%coefficientFactorBoostStellarLogarithmicStepInverse)+1
-      hi                                 =    (log10(coefficientFactorBoost_       )-self%coefficientFactorBoostLogarithmicOffset       )*self%coefficientFactorBoostLogarithmicStepInverse        +1.0d0-dble(i)
-      hj                                 =    (log10(coefficientFactorBoostStellar_)-self%coefficientFactorBoostStellarLogarithmicOffset)*self%coefficientFactorBoostStellarLogarithmicStepInverse +1.0d0-dble(j)
-      k                                  =int((log10(radiusScaleFree               )-self%radiusScaleFreeLogarithmicOffset              )*self%radiusScaleFreeLogarithmicStepInverse              )+1
-      hk                                 =    (log10(radiusScaleFree               )-self%radiusScaleFreeLogarithmicOffset              )*self%radiusScaleFreeLogarithmicStepInverse               +1.0d0-dble(k)
+      ! Find the position of each value along its axis. This is done as the coordinate of the value on the *absolute* lattice -
+      ! a quantity which depends only on the value and on the density of lattice points, never on which part of the lattice this
+      ! particular table happens to span - split there into the index of the lattice point below it and the fraction of the
+      ! interval above that, with the index of the first tabulated point subtracted only afterwards, in exact integer
+      ! arithmetic.
+      !
+      ! The order matters. Forming the position relative to the first tabulated point *first* is exact in the subtraction, but
+      ! the fractional part is then extracted from a number whose magnitude is the index within the table, and so is rounded on
+      ! a grid which coarsens as the table grows: extending the table would perturb every interpolated value in its last bits,
+      ! which is exactly the dependence on the sequence of requests that pinning the ranges exists to remove.
+      coordinateFactorBoost              =log10(coefficientFactorBoost_       )*dble(pointsPerDecadeFactorBoost       )
+      coordinateFactorBoostStellar       =log10(coefficientFactorBoostStellar_)*dble(pointsPerDecadeFactorBoostStellar)
+      coordinateRadiusScaleFree          =log10(radiusScaleFree               )*dble(pointsPerDecadeRadius            )
+      i                                  =floor(coordinateFactorBoost       )
+      j                                  =floor(coordinateFactorBoostStellar)
+      k                                  =floor(coordinateRadiusScaleFree   )
+      hi                                 =coordinateFactorBoost       -dble(i)
+      hj                                 =coordinateFactorBoostStellar-dble(j)
+      hk                                 =coordinateRadiusScaleFree   -dble(k)
+      i                                  =i-self%latticeFactorBoost       %indexMinimum+1
+      j                                  =j-self%latticeFactorBoostStellar%indexMinimum+1
+      k                                  =k-self%latticeRadiusScaleFree   %indexMinimum+1
+      ! Confine the indices to the table. Each is guaranteed to lie within it by the test which decided that the table need not
+      ! be extended, but only up to rounding: a value which sits within an ulp of a bound can index one point beyond it, and the
+      ! interpolation below reads the *next* point along every axis. Where an index is moved the interpolating factor is moved
+      ! with it, to the end of the interval nearest the value, so that the interpolation returns the value at the edge of the
+      ! table. Moving the index alone - as this formerly did - shifts the result by a whole interval at the bounds.
+      if (i <                                                        1) hi=0.0d0
+      if (i > size(self%integralPartiallyMolecularTable,dim=1)-1      ) hi=1.0d0
+      if (j <                                                        1) hj=0.0d0
+      if (j > size(self%integralPartiallyMolecularTable,dim=2)-1      ) hj=1.0d0
+      if (k <                                                        1) hk=0.0d0
+      if (k > size(self%integralPartiallyMolecularTable,dim=3)-1      ) hk=1.0d0
+      i=min(max(i,1),size(self%integralPartiallyMolecularTable,dim=1)-1)
+      j=min(max(j,1),size(self%integralPartiallyMolecularTable,dim=2)-1)
+      k=min(max(k,1),size(self%integralPartiallyMolecularTable,dim=3)-1)
       integral=0.0d0
       do ii=0,1
          if (ii == 0) then
@@ -1276,3 +1435,4 @@ contains
     end if
     return
   end function blitz2006PressureRatio
+

@@ -1190,7 +1190,12 @@ jobs:
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 1
-      ompNumThreads: 2
+      # The soliton NFW `radiusEnclosingDensity` tabulation is `!$omp threadprivate`, so its
+      # memory scales with the thread count: measured peak resident size for this model is
+      # 12.7 GB at one thread but 18.4 GB at two, against a 16 GB runner. Run it single
+      # threaded. This is both lighter and faster than the two-thread job was before the
+      # tabulation gained value reuse (13.4 GB, 28 minutes).
+      ompNumThreads: 1
     secrets: inherit
   # Tests
   ## Linux

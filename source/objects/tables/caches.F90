@@ -59,7 +59,7 @@ module Table_Caches
   use :: ISO_Varying_String, only : varying_string
   implicit none
   private
-  public :: Table_Cache_Restore, Table_Cache_Store, Table_Cache_File_Name
+  public :: Table_Cache_Restore, Table_Cache_Store, Table_Cache_File_Name, Table_Cache_Lattice_Write, Table_Cache_Lattice_Read
 
   interface Table_Cache_Restore
      !!{RST
@@ -110,6 +110,70 @@ contains
     fileName=inputPath(pathTypeDataDynamic)//trim(subDirectory)//'/'//trim(objectType)//label_//'_'//trim(hashedDescriptor)//'.hdf5'
     return
   end function Table_Cache_File_Name
+
+  subroutine Table_Cache_Lattice_Write(file,axisName,lattice)
+    !!{RST
+    Record, as attributes of the already-open file ``file``, the ``rangeLattice`` on which an axis of a stored tabulation is
+    built. The attributes are named for that axis, so a file may hold the lattices of any number of axes.
+
+    This is for tabulations held in raw arrays rather than in a :galacticus-class:`table1D`; those are written whole by
+    ``Table_Cache_Store``, which records their lattices itself.
+    !!}
+    use :: IO_HDF5         , only : hdf5File
+    use :: Numerical_Ranges, only : rangeLattice
+    implicit none
+    type     (hdf5File    ), intent(inout) :: file
+    character(len=*       ), intent(in   ) :: axisName
+    type     (rangeLattice), intent(in   ) :: lattice
+
+    call file%writeAttribute(lattice%scheme%ID   ,axisName//'GridScheme'  )
+    call file%writeAttribute(lattice%pointsPer   ,axisName//'PointsPer'   )
+    call file%writeAttribute(lattice%indexMinimum,axisName//'IndexMinimum')
+    call file%writeAttribute(lattice%count       ,axisName//'Count'       )
+    return
+  end subroutine Table_Cache_Lattice_Write
+
+  subroutine Table_Cache_Lattice_Read(file,axisName,scheme,pointsPer,lattice)
+    !!{RST
+    Restore, from the already-open file ``file``, the ``rangeLattice`` on which an axis of a stored tabulation was built. The
+    lattice is returned undefined---which the caller must treat as the stored tabulation being unusable---unless the file
+    records one which is self-consistent and which uses the gridding scheme and density of points that the caller expects. A
+    file written before the lattices were recorded, or with a different grid, therefore reports an undefined lattice rather
+    than being misread.
+    !!}
+    use :: IO_HDF5         , only : hdf5File
+    use :: Numerical_Ranges, only : rangeLattice, enumerationGridSchemeType
+    implicit none
+    type     (hdf5File                 ), intent(inout) :: file
+    character(len=*                    ), intent(in   ) :: axisName
+    type     (enumerationGridSchemeType), intent(in   ) :: scheme
+    integer                             , intent(in   ) :: pointsPer
+    type     (rangeLattice             ), intent(  out) :: lattice
+    integer                                             :: schemeStored, pointsPerStored, &
+         &                                                 indexMinimum, countPoints
+
+    lattice=rangeLattice()
+    if     (                                                  &
+         &   .not.file%hasAttribute(axisName//'GridScheme'  ) &
+         &  .or.                                              &
+         &   .not.file%hasAttribute(axisName//'PointsPer'   ) &
+         &  .or.                                              &
+         &   .not.file%hasAttribute(axisName//'IndexMinimum') &
+         &  .or.                                              &
+         &   .not.file%hasAttribute(axisName//'Count'       ) &
+         & ) return
+    call file%readAttribute(axisName//'GridScheme'  ,schemeStored   )
+    call file%readAttribute(axisName//'PointsPer'   ,pointsPerStored)
+    call file%readAttribute(axisName//'IndexMinimum',indexMinimum   )
+    call file%readAttribute(axisName//'Count'       ,countPoints    )
+    ! Comparing the stored scheme against the one expected is stronger than merely checking that it is a valid member of the
+    ! enumeration, so no separate validity test is needed.
+    if (enumerationGridSchemeType(schemeStored) /= scheme   ) return
+    if (pointsPerStored                         /= pointsPer) return
+    lattice=rangeLattice(enumerationGridSchemeType(schemeStored),pointsPerStored,indexMinimum,countPoints)
+    if (.not.lattice%isDefined()) lattice=rangeLattice()
+    return
+  end subroutine Table_Cache_Lattice_Read
 
   subroutine Table_Cache_Restore_1D(table_,fileName,status)
     !!{RST
