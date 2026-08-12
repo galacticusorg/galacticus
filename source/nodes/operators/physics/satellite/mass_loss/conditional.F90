@@ -38,7 +38,9 @@
      !!}
      private
      integer                                              :: massCoreID                              , solitonStatusID                       , &
-          &                                                  massCoreNormalID                        , radiusSolitonID
+          &                                                  massCoreNormalID                        , radiusSolitonID                       , &
+          &                                                  massCoreTransitionID
+     double precision                                     :: fractionMassCoreDestruction
      class  (satelliteTidalStrippingClass      ), pointer :: satelliteTidalStrippingOuter_  => null(), satelliteTidalStrippingCore_ => null()
      class  (satelliteTidalStrippingRadiusClass), pointer :: satelliteTidalStrippingRadius_ => null()
    contains
@@ -70,6 +72,7 @@ contains
     type   (inputParameters                         ), intent(inout) :: parameters
     class  (satelliteTidalStrippingClass            ), pointer       :: satelliteTidalStrippingOuter_ , satelliteTidalStrippingCore_
     class  (satelliteTidalStrippingRadiusClass      ), pointer       :: satelliteTidalStrippingRadius_
+    double precision                                                 :: fractionMassCoreDestruction
 
     ! The outer-halo stripping model is built from the unqualified `satelliteTidalStripping` parameter, so that it is inherited
     ! from the enclosing scope and therefore always matches the tidal stripping model used elsewhere in the model. Only the core
@@ -82,8 +85,18 @@ contains
     <objectBuilder class="satelliteTidalStripping"       name="satelliteTidalStrippingOuter_"                                              source="parameters"/>
     <objectBuilder class="satelliteTidalStripping"       name="satelliteTidalStrippingCore_"   parameterName="satelliteTidalStrippingCore" source="parameters"/>
     <objectBuilder class="satelliteTidalStrippingRadius" name="satelliteTidalStrippingRadius_"                                             source="parameters"/>
+    <inputParameter docformat="rst">
+      <name>fractionMassCoreDestruction</name>
+      <defaultValue>0.01d0</defaultValue>
+      <source>parameters</source>
+      <description>
+      The fraction of the solitonic core mass, measured at the point at which the halo entered the soliton-only state, below which
+      the satellite is destroyed. The core mass decays exponentially under the :cite:t:`du_tidal_2018` model, and so approaches
+      zero without ever reaching it, so a threshold of this kind is required if a satellite is ever to be destroyed.
+      </description>
+    </inputParameter>
     !!]
-    self=nodeOperatorSatelliteConditionalMassLoss(satelliteTidalStrippingOuter_,satelliteTidalStrippingCore_,satelliteTidalStrippingRadius_)
+    self=nodeOperatorSatelliteConditionalMassLoss(satelliteTidalStrippingOuter_,satelliteTidalStrippingCore_,satelliteTidalStrippingRadius_,fractionMassCoreDestruction)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalStrippingOuter_" />
@@ -93,20 +106,22 @@ contains
     return
   end function satelliteConditionalStrippingConstructorParameters
 
-  function satelliteConditionalStrippingConstructorInternal(satelliteTidalStrippingOuter_,satelliteTidalStrippingCore_,satelliteTidalStrippingRadius_) result(self)
+  function satelliteConditionalStrippingConstructorInternal(satelliteTidalStrippingOuter_,satelliteTidalStrippingCore_,satelliteTidalStrippingRadius_,fractionMassCoreDestruction) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`nodeOperatorSatelliteConditionalMassLoss` node operator class.
     !!}
     implicit none
-    type (nodeOperatorSatelliteConditionalMassLoss)                        :: self
-    class(satelliteTidalStrippingClass            ), intent(in   ), target :: satelliteTidalStrippingOuter_ , satelliteTidalStrippingCore_
-    class(satelliteTidalStrippingRadiusClass      ), intent(in   ), target :: satelliteTidalStrippingRadius_
+    type            (nodeOperatorSatelliteConditionalMassLoss)                        :: self
+    class           (satelliteTidalStrippingClass            ), intent(in   ), target :: satelliteTidalStrippingOuter_ , satelliteTidalStrippingCore_
+    class           (satelliteTidalStrippingRadiusClass      ), intent(in   ), target :: satelliteTidalStrippingRadius_
+    double precision                                          , intent(in   )         :: fractionMassCoreDestruction
     !![
-    <constructorAssign variables="*satelliteTidalStrippingOuter_, *satelliteTidalStrippingCore_, *satelliteTidalStrippingRadius_"/>
-    <addMetaProperty component="darkMatterProfile" name="solitonRadiusSoliton"  id="self%radiusSolitonID"  isEvolvable="no"  isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="solitonMassCoreNormal" id="self%massCoreNormalID" isEvolvable="yes" isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="solitonMassCore"       id="self%massCoreID"       isEvolvable="no"  isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="solitonStatus"         id="self%solitonStatusID"  type="integer"    isCreator="no"/>
+    <constructorAssign variables="*satelliteTidalStrippingOuter_, *satelliteTidalStrippingCore_, *satelliteTidalStrippingRadius_, fractionMassCoreDestruction"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonMassCoreTransition" id="self%massCoreTransitionID" isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonRadiusSoliton"      id="self%radiusSolitonID"      isEvolvable="no"  isCreator="no" />
+    <addMetaProperty component="darkMatterProfile" name="solitonMassCoreNormal"     id="self%massCoreNormalID"     isEvolvable="yes" isCreator="no" />
+    <addMetaProperty component="darkMatterProfile" name="solitonMassCore"           id="self%massCoreID"           isEvolvable="no"  isCreator="no" />
+    <addMetaProperty component="darkMatterProfile" name="solitonStatus"             id="self%solitonStatusID"      type="integer"    isCreator="no" />
     !!]
 
     return
@@ -141,8 +156,8 @@ contains
     class    (nodeComponentSatellite                  )               , pointer :: satellite
     class    (nodeComponentDarkMatterProfile          ), pointer                :: darkMatterProfile
     double precision                                                            :: massLossRateOuter, massLossRateCore, &
-              &                                                                    massCore         , radiusTidal     , &
-              &                                                                    radiusSoliton
+              &                                                                    massCore          , radiusTidal    , &
+              &                                                                    radiusSoliton     , massCoreTransition
     type     (enumerationSolitonStatusType            )                         :: solitonStatus
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
@@ -182,12 +197,18 @@ contains
                 &                                         +0.25d0                &
                 &                                         *massLossRateCore      &
                 &                                        )
-        ! Check if the evolved core mass has become negative.
-        massCore = darkMatterProfile%floatRank0MetaPropertyGet(self%massCoreID)
-        if (massCore <= 0.0d0) then
+        ! Test whether the solitonic core has been stripped down to the destruction threshold. Under the Du et al. (2018) model
+        ! the core mass decays exponentially, approaching zero without ever reaching it, so destruction must be triggered at some
+        ! finite fraction of the core mass at the point at which stripping of the core began.
+        massCoreTransition=darkMatterProfile%floatRank0MetaPropertyGet(self%massCoreTransitionID)
+        if     (                                                                          &
+             &   massCoreTransition > 0.0d0                                               &
+             &  .and.                                                                     &
+             &   massCore           < self%fractionMassCoreDestruction*massCoreTransition &
+             & ) then
             ! Destruction criterion met - trigger an interrupt.
             interrupt         =  .true.
-            functionInterrupt => solitonPhaseTransition
+            functionInterrupt => solitonDestruction
             self_             => self
             return
         end if
@@ -201,31 +222,44 @@ contains
 
   subroutine solitonPhaseTransition(node,timeEnd)
     !!{RST
-    Advance a satellite to the next stage of its solitonic evolution: transition a soliton+NFW halo whose NFW envelope has been
-    tidally stripped away to the soliton-only state, and destroy a soliton-only halo whose core has been fully dissolved.
+    Transition a soliton+NFW halo whose NFW envelope has been tidally stripped away to the soliton-only state, recording the
+    solitonic core mass at that point so that a destruction threshold can later be measured relative to it.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentSatellite
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
     type            (treeNode                      ), intent(inout), target   :: node
     double precision                                , intent(in   ), optional :: timeEnd
-    class           (nodeComponentSatellite        ), pointer                 :: satellite
     class           (nodeComponentDarkMatterProfile), pointer                 :: darkMatterProfile
-    double precision                                                          :: massCore         , radiusTidal, &
-         &                                                                       radiusSoliton
+    double precision                                                          :: radiusTidal      , radiusSoliton
     !$GLC attributes unused :: timeEnd
 
-    satellite         => node             %satellite                (                     )
-    darkMatterProfile => node             %darkMatterProfile        (                     )
-    massCore          =  darkMatterProfile%floatRank0MetaPropertyGet(self_%massCoreID     )
-    radiusSoliton     =  darkMatterProfile%floatRank0MetaPropertyGet(self_%radiusSolitonID)
-    radiusTidal       =  self_%satelliteTidalStrippingRadius_%radius(      node           )
+    darkMatterProfile => node             %darkMatterProfile                    (                     )
+    radiusSoliton     =  darkMatterProfile%floatRank0MetaPropertyGet            (self_%radiusSolitonID)
+    radiusTidal       =  self_            %satelliteTidalStrippingRadius_%radius(      node           )
     ! Transition to the soliton-only state once the tidal radius has reached the soliton radius, so that no NFW envelope remains.
     if     (                                &
          &   radiusSoliton >  0.0d0         &
          &  .and.                           &
          &   radiusTidal   <= radiusSoliton &
-         & ) call darkMatterProfile%integerRank0MetaPropertySet(self_%solitonStatusID,solitonStatusSolitonOnly%ID)
-    ! Destroy the satellite once the solitonic core has fully dissolved.
-    if (massCore <= 0.0d0) call satellite%destructionTimeSet(0.0d0)
+         & ) then
+       call darkMatterProfile%integerRank0MetaPropertySet(self_%solitonStatusID     ,solitonStatusSolitonOnly%ID                                  )
+       call darkMatterProfile%floatRank0MetaPropertySet  (self_%massCoreTransitionID,darkMatterProfile%floatRank0MetaPropertyGet(self_%massCoreID))
+    end if
     return
   end subroutine solitonPhaseTransition
+
+  subroutine solitonDestruction(node,timeEnd)
+    !!{RST
+    Destroy a satellite whose solitonic core has been stripped below the destruction threshold.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentSatellite
+    implicit none
+    type            (treeNode              ), intent(inout), target   :: node
+    double precision                        , intent(in   ), optional :: timeEnd
+    class           (nodeComponentSatellite), pointer                 :: satellite
+    !$GLC attributes unused :: timeEnd
+
+    satellite => node%satellite()
+    call satellite%destructionTimeSet(0.0d0)
+    return
+  end subroutine solitonDestruction
