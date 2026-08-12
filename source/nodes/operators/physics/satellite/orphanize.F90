@@ -85,8 +85,8 @@ contains
     implicit none
     type(nodeOperatorSatelliteOrphanize), intent(inout) :: self
 
-    if (  satelliteHostChangeEvent%isAttached(self,satelliteHostChange)) call   satelliteHostChangeEvent%detach(self,satelliteHostChange)
-    if (branchJumpPostProcessEvent%isAttached(self,satelliteHostChange)) call branchJumpPostProcessEvent%detach(self,satelliteHostChange)
+    if (  satelliteHostChangeEvent%isAttached(self,satelliteHostChange  )) call   satelliteHostChangeEvent%detach(self,satelliteHostChange  )
+    if (branchJumpPostProcessEvent%isAttached(self,branchJumpPostProcess)) call branchJumpPostProcessEvent%detach(self,branchJumpPostProcess)
     return
   end subroutine satelliteOrphanizeDestructor
 
