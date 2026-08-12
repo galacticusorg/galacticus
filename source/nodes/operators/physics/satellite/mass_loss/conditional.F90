@@ -17,13 +17,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Yu Zhao
+
   !!{RST
   Implements a node operator class that applies conditional mass loss to orbiting satellite halos.
   !!}
 
-  use :: Dark_Matter_Profiles_Soliton_Status, only : enumerationSolitonStatusType      , solitonStatusSolitonNFW, solitonStatusSolitonOnly
-  use :: Satellite_Tidal_Stripping          , only : satelliteTidalStrippingClass
-  use :: Satellite_Tidal_Stripping_Radii    , only : satelliteTidalStrippingRadiusClass
+  use :: Dark_Matter_Profiles_Soliton_Status , only : enumerationSolitonStatusType      , solitonStatusSolitonNFW, solitonStatusSolitonOnly
+  use :: Mass_Distribution_Soliton_Schive2014, only : massTotalPerMassCore
+  use :: Satellite_Tidal_Stripping           , only : satelliteTidalStrippingClass
+  use :: Satellite_Tidal_Stripping_Radii     , only : satelliteTidalStrippingRadiusClass
 
   !![
   <nodeOperator name="nodeOperatorSatelliteConditionalMassLoss" docformat="rst">
@@ -61,7 +64,7 @@
   end interface nodeOperatorSatelliteConditionalMassLoss
 
   ! Submodule-scope pointer to self, used in callback functions.
-  class(nodeOperatorSatelliteConditionalMassLoss), pointer :: self_
+  class(nodeOperatorSatelliteConditionalMassLoss), pointer :: self_ => null()
   !$omp threadprivate(self_)
 
 contains
@@ -166,7 +169,7 @@ contains
               &                                                                    radiusSoliton    , massCoreTransition, &
               &                                                                    randomOffset
     type     (enumerationSolitonStatusType            )                         :: solitonStatus
-    !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
+    !$GLC attributes unused :: propertyType
 
     if (.not.node%isSatellite()) return
     ! Get required quantities from the satellite node.
@@ -200,18 +203,18 @@ contains
         massLossRateCore =+self%satelliteTidalStrippingCore_%massLossRate(node)
         call satellite%boundMassRate(massLossRateCore)
         ! Convert the rate of loss of bound mass into a rate of change of the *unscattered* core mass, which is the evolved
-        ! property. A factor of 1/4 converts from the bound mass to the core mass, since the bound mass in this state is taken to
-        ! be the total mass of the soliton, which is four times the mass within its core radius. A further factor of
+        ! property. Dividing by massTotalPerMassCore converts from the bound mass to the core mass, since the bound mass in this
+        ! state is taken to be the total mass of the soliton. A further factor of
         ! 10^(-randomOffset) converts from the core mass to the unscattered core mass, as the dark matter profile applies the
         ! log-normal scatter of the core-halo mass relation via massCore = massCoreNormal * 10^randomOffset. Without it the
         ! *fractional* rate of decay of the core mass would be wrong by a factor of 10^randomOffset, and so would differ from
         ! halo to halo for no physical reason.
         randomOffset=+darkMatterProfile%floatRank0MetaPropertyGet(self%randomOffsetID)
-        call darkMatterProfile%floatRank0MetaPropertyRate(                        &
-                &                                         self%massCoreNormalID , &
-                &                                         +0.25d0                 &
-                &                                         *massLossRateCore       &
-                &                                         /10.0d0**randomOffset   &
+        call darkMatterProfile%floatRank0MetaPropertyRate(                       &
+                &                                         self%massCoreNormalID, &
+                &                                         +massLossRateCore      &
+                &                                         /massTotalPerMassCore  &
+                &                                         /10.0d0**randomOffset  &
                 &                                        )
         ! Test whether the solitonic core has been stripped down to the destruction threshold. Under the Du et al. (2018) model
         ! the core mass decays exponentially, approaching zero without ever reaching it, so destruction must be triggered at some

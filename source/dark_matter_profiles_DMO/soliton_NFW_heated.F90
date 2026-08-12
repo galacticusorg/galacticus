@@ -35,11 +35,21 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOSolitonNFWHeated" docformat="rst">
    <description>
-   A dark matter profile DMO class which builds :galacticus-class:`massDistributionSolitonNFWHeated` objects to implement the :term:`FDM` profile. The inner region follows the soliton solution, while the outer region transitions to a heated NFW envelope. The core-halo mass relation and core radius are computed following :cite:t:`chan_diversity_2022`, while the core density normalization follows :cite:t:`schive_understanding_2014`.
+   A dark matter profile DMO class which builds :galacticus-class:`massDistributionSolitonNFWHeated` objects to implement the
+   :term:`FDM` profile. The inner region follows the soliton solution, while the outer region transitions to a heated NFW
+   envelope. The core-halo mass relation and core radius are computed following :cite:t:`chan_diversity_2022`, while the core
+   density normalization follows :cite:t:`schive_understanding_2014`.
 
-   Note that tidal heating is applied to the NFW envelope only, and never to the solitonic core: the core is a coherent ground state of the wave equation governing the fuzzy dark matter field, rather than a collection of particles on orbits, and so does not respond to tidal heating in the way that a collisionless profile does. In consequence a halo which has been stripped down to its core, and which is therefore described by :galacticus-class:`massDistributionSoliton` alone, carries no heating at all.
+   Note that tidal heating is applied to the NFW envelope only, and never to the solitonic core: the core is a coherent ground
+   state of the wave equation governing the fuzzy dark matter field, rather than a collection of particles on orbits, and so does
+   not respond to tidal heating in the way that a collisionless profile does. In consequence a halo which has been stripped down
+   to its core, and which is therefore described by :galacticus-class:`massDistributionSoliton` alone, carries no heating at all.
 
-   The structural state of each halo is recorded in the ``solitonStatus`` meta-property. A halo is determined, once, to be either soliton+NFW or NFW-only, and is never afterwards reconsidered---so that it can not move back and forth between the two descriptions as its properties evolve, which would be unphysical and would present the ODE solver with discontinuous changes in the density profile. A soliton+NFW halo may subsequently become soliton-only, if tidal stripping removes its NFW envelope; that state, too, is permanent.
+   The structural state of each halo is recorded in the ``solitonStatus`` meta-property. A halo is determined, once, to be either
+   soliton+NFW or NFW-only, and is never afterwards reconsidered---so that it can not move back and forth between the two
+   descriptions as its properties evolve, which would be unphysical and would present the ODE solver with discontinuous changes in
+   the density profile. A soliton+NFW halo may subsequently become soliton-only, if tidal stripping removes its NFW envelope; that
+   state, too, is permanent.
    </description>
    <deepCopy>
     <functionClass variables="massDistributionHeated_"/>
@@ -431,6 +441,8 @@ contains
     densityCore  =self             %densityCorePrevious
     densityScale =self             %densityScalePrevious
     massCore     =self             %massCorePrevious
+    ! Re-read the state: `computeProperties` above may have found that no soliton solution exists for this halo and so changed
+    ! it since it was read on entry to this function.
     solitonStatus=enumerationSolitonStatusType(darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID))
     ! Construct the distribution.
     if (solitonStatus == solitonStatusSolitonOnly) then
@@ -627,7 +639,6 @@ contains
          &                                                                             zeta_0                           , zeta_z
     integer                                                                         :: sampleCountMaximum       =50
     integer                                                                         :: status                           , sampleCount
-    type            (enumerationSolitonStatusType        )                          :: solitonStatus
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -637,14 +648,11 @@ contains
     darkMatterProfile => node%darkMatterProfile()
     call darkMatterProfile%floatRank0MetaPropertySet(self%radiusSolitonID,-1.0d0)
     call darkMatterProfile%floatRank0MetaPropertySet(self%massCoreID     ,-1.0d0)
-    solitonStatus = enumerationSolitonStatusType(darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID))
-    ! Record the state of the halo. If a solution for the soliton transition radius is found the halo is treated as soliton+NFW,
-    ! and otherwise as NFW-only. The NFW-only state is permanent: a halo which has once failed to admit a soliton is never
-    ! reconsidered. This is deliberate. Allowing the state to be re-determined lets a halo move back and forth between the
+    ! The state of the halo is recorded below, once it is known: as soliton+NFW if a solution for the soliton transition radius
+    ! is found, and as NFW-only otherwise. The NFW-only state is permanent: a halo which has once failed to admit a soliton is
+    ! never reconsidered. This is deliberate. Allowing the state to be re-determined lets a halo move back and forth between the
     ! soliton+NFW and NFW-only descriptions as its properties evolve, which is unphysical, and the resulting discontinuous
     ! changes in its density profile cause numerical difficulties for the ODE solver.
-    if (solitonStatus == solitonStatusUninitialized) &
-        & call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,solitonStatusNfwOnly%ID)
     ! Extract basic properties of the node.
     expansionFactor=+self             %cosmologyFunctions_% expansionFactor            (basic%time           ())
     redshift       =+self             %cosmologyFunctions_ %redshiftFromExpansionFactor(      expansionFactor  )
@@ -766,6 +774,11 @@ contains
   end subroutine solitonNFWHeatedComputeProperties
 
   subroutine solitonComputeProperties(self,node,radiusCore,densityCore)
+    !!{RST
+    Compute the properties of a halo which has been stripped down to its solitonic core, for which only the core radius and
+    central density are required. This is the counterpart of ``computeProperties`` for the soliton-only state: no NFW envelope
+    remains, so no transition radius is sought, and the core properties follow directly from the core mass.
+    !!}
     use :: Galacticus_Nodes                    , only : treeNode           , nodeComponentBasic, nodeComponentDarkMatterProfile
     use :: Mass_Distribution_Soliton_Schive2014, only : coefficientMassCore
     use :: Numerical_Constants_Math            , only : Pi

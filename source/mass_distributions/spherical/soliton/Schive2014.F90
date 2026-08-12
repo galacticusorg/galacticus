@@ -65,4 +65,12 @@
          &                                                                  *coefficientCore**1.5d0               &
          &                                                                 )
 
+    ! Ratio of the total mass of a soliton to the mass enclosed within its core radius. Taking the r -> infinity limit of the
+    ! analytic solution used for coefficientMassCore above, in which the arctangent tends to Pi/2 and the remaining term
+    ! vanishes, gives a total mass of 3.688092 Pi rho_c r_c^3 against 0.888027 Pi rho_c r_c^3 within the core radius, a ratio of
+    ! 4.1531. The value of four adopted here is the rounded value used by Du et al. (2018; PRD; 97; 3507;
+    ! https://ui.adsabs.harvard.edu/abs/2018PhRvD..97f3507D), whose model for the tidal stripping of solitonic cores is
+    ! formulated in terms of it; it is defined here so that the model and the operator which applies it can not disagree on it.
+    double precision, parameter, public  :: massTotalPerMassCore         =4.0d0
+
   end module Mass_Distribution_Soliton_Schive2014

@@ -34,9 +34,15 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOSolitonNFW" docformat="rst">
    <description>
-   A dark matter profile DMO class which builds :galacticus-class:`massDistributionSolitonNFW` objects to implement the :term:`FDM` profile. The core-halo mass relation and core radius are computed following :cite:t:`chan_diversity_2022`, while the core density normalization follows :cite:t:`schive_understanding_2014`.
+   A dark matter profile DMO class which builds :galacticus-class:`massDistributionSolitonNFW` objects to implement the
+   :term:`FDM` profile. The core-halo mass relation and core radius are computed following :cite:t:`chan_diversity_2022`, while
+   the core density normalization follows :cite:t:`schive_understanding_2014`.
 
-   The structural state of each halo---whether it admits a solitonic core or is treated as a pure NFW halo---is determined once, on the first occasion that its mass distribution is required, and recorded in the ``solitonStatus`` meta-property. It is not subsequently re-determined, so that a halo can not move back and forth between the two descriptions as its properties evolve. For a halo in which no soliton formed the ``solitonRadiusCore`` and ``solitonDensityCore`` properties are output as zero, while ``solitonRadiusSoliton`` and ``solitonMassCore`` are output as negative.
+   The structural state of each halo---whether it admits a solitonic core or is treated as a pure NFW halo---is determined once,
+   on the first occasion that its mass distribution is required, and recorded in the ``solitonStatus`` meta-property. It is not
+   subsequently re-determined, so that a halo can not move back and forth between the two descriptions as its properties
+   evolve. For a halo in which no soliton formed the ``solitonRadiusCore`` and ``solitonDensityCore`` properties are output as
+   zero, while ``solitonRadiusSoliton`` and ``solitonMassCore`` are output as negative.
    </description>
   </darkMatterProfileDMO>
   !!]
@@ -421,21 +427,17 @@ contains
          &                                                             randomOffset              , massCoreNormal          , &
          &                                                             zeta_0                    , zeta_z
     integer                                                          :: status                   , sampleCount
-    type            (enumerationSolitonStatusType  )                 :: solitonStatus
 
     ! Get required components.
     basic             => node%basic            ()
     darkMatterProfile => node%darkMatterProfile()
     call darkMatterProfile%floatRank0MetaPropertySet(self%radiusSolitonID,-1.0d0)
     call darkMatterProfile%floatRank0MetaPropertySet(self%massCoreID     ,-1.0d0)
-    solitonStatus = enumerationSolitonStatusType(darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID))
-    ! Record the state of the halo. If a solution for the soliton transition radius is found the halo is treated as soliton+NFW,
-    ! and otherwise as NFW-only. The NFW-only state is permanent: a halo which has once failed to admit a soliton is never
-    ! reconsidered. This is deliberate. Allowing the state to be re-determined lets a halo move back and forth between the
+    ! The state of the halo is recorded below, once it is known: as soliton+NFW if a solution for the soliton transition radius
+    ! is found, and as NFW-only otherwise. The NFW-only state is permanent: a halo which has once failed to admit a soliton is
+    ! never reconsidered. This is deliberate. Allowing the state to be re-determined lets a halo move back and forth between the
     ! soliton+NFW and NFW-only descriptions as its properties evolve, which is unphysical, and the resulting discontinuous
     ! changes in its density profile cause numerical difficulties for the ODE solver.
-    if (solitonStatus == solitonStatusUninitialized) &
-        & call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,solitonStatusNfwOnly%ID)
     ! Extract basic properties of the node.
     expansionFactor=+self             %cosmologyFunctions_% expansionFactor            (basic%time           ())
     redshift       =+self             %cosmologyFunctions_ %redshiftFromExpansionFactor(      expansionFactor  )

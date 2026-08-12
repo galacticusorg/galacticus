@@ -20,7 +20,7 @@
   !+    Contributions to this file made by: Yu Zhao
 
   !!{RST
-  Implements a node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of :cite:t:`du_tidal_2018`.
+  Implements a satellite tidal stripping class which computes the rate of mass loss from an :term:`FDM` solitonic core, following the model of :cite:t:`du_tidal_2018`.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
@@ -28,13 +28,24 @@
   !![
   <satelliteTidalStripping name="satelliteTidalStrippingDu2018" docformat="rst">
    <description>
-   A node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of :cite:t:`du_tidal_2018`.
+   A satellite tidal stripping class which computes the rate at which a satellite loses mass from its :term:`FDM` solitonic core,
+   following :cite:t:`du_tidal_2018`. Tides excite the core out of its ground state, allowing it to lose mass by tunneling through
+   the tidal barrier; the rate is set by the imaginary part of the energy eigenvalue of the perturbed core, for which equation (7)
+   of :cite:t:`du_tidal_2018` provides a fitting function in terms of the ratio of the central density of the core to the mean
+   density of the host within the orbital radius.
+
+   Note that this class assumes that the satellite has been stripped down to its solitonic core, such that its bound mass is the
+   total mass of the soliton. That total is taken to be four times the mass enclosed within the core radius, and it is therefore
+   four times the rate of loss of the core mass which is returned here, as this class must report the rate of loss of the *bound*
+   mass. The class is consequently not meaningful when applied to a satellite which retains an envelope around its core, and is
+   intended for use only through :galacticus-class:`nodeOperatorSatelliteConditionalMassLoss`, which applies it only in that
+   state.
    </description>
   </satelliteTidalStripping>
   !!]
   type, extends(satelliteTidalStrippingClass) :: satelliteTidalStrippingDu2018
      !!{RST
-     A node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of :cite:t:`du_tidal_2018`.
+     A satellite tidal stripping class which computes the rate of mass loss from an :term:`FDM` solitonic core, following the model of :cite:t:`du_tidal_2018`.
      !!}
      private
      class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
@@ -105,14 +116,15 @@ contains
 
   double precision function du2018MassLossRate(self,node)
     !!{RST
-    Set the rate of tidal mass loss from the soliton following the model of :cite:t:`du_tidal_2018`.
+    Return the rate of tidal mass loss from a satellite which has been stripped to its :term:`FDM` solitonic core, following the model of :cite:t:`du_tidal_2018`.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile, nodeComponentSatellite, treeNode
-    use :: Mass_Distributions              , only : massDistributionClass
-    use :: Numerical_Constants_Astronomical, only : gigaYear                      , megaParsec
-    use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Prefixes    , only : kilo
-    use :: Vectors                         , only : Vector_Magnitude              , Vector_Product
+    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile, nodeComponentSatellite, treeNode
+    use :: Mass_Distributions                  , only : massDistributionClass
+    use :: Numerical_Constants_Astronomical    , only : gigaYear                      , megaParsec
+    use :: Mass_Distribution_Soliton_Schive2014, only : massTotalPerMassCore
+    use :: Numerical_Constants_Math            , only : Pi
+    use :: Numerical_Constants_Prefixes        , only : kilo
+    use :: Vectors                             , only : Vector_Magnitude              , Vector_Product
     implicit none
     class           (satelliteTidalStrippingDu2018 ), intent   (inout):: self
     type            (treeNode                      ), intent   (inout):: node
@@ -197,14 +209,15 @@ contains
          &        +energyFitC                                              &
          &       )                                                         &
          &   /periodOrbital
-    ! Set the soliton core mass evolution rate following Du et al. (2018). From Eq. (17), the core mass obeys (1/M_c) dM_c/dt =
-    ! (1/2) Im(E), where Im(E) is given by the fitting formula in Eq. (7). Here we set dM_c/dt = (1/2) Im(E) M_c for time
-    ! integration.
+    ! Compute the rate of loss of mass from the core. From equation (17) of Du et al. (2018; PRD; 97; 3507;
+    ! https://ui.adsabs.harvard.edu/abs/2018PhRvD..97f3507D) the core mass obeys (1/M_c) dM_c/dt = (1/2) Im(E).
     !
-    ! In the soliton-only phase, assume M_bound ≈ 4*M_core. Therefore, evolve the bound mass using dM_bound/dt = 4*dM_c/dt.
-    du2018MassLossRate=+4.0d0    &
-            &          *0.5d0    &
-            &          *energyIm &
+    ! This class must report the rate of loss of the *bound* mass, so scale to that. The satellite is assumed to have been
+    ! stripped to its core, such that its bound mass is the total mass of the soliton, and so the two rates differ by the ratio
+    ! of the total soliton mass to the core mass.
+    du2018MassLossRate=+massTotalPerMassCore &
+            &          *0.5d0                &
+            &          *energyIm             &
             &          *massCore
     return
   end function du2018MassLossRate

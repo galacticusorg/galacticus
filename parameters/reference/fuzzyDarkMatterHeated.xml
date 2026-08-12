@@ -5,7 +5,7 @@
   <!-- Change the dark matter particle to a fuzzy dark matter particle -->
   <change type="replace" path="darkMatterParticle">
     <darkMatterParticle value="fuzzyDarkMatter">
-      <mass            value="10.0"/> <!-- In unis of 1.0e-22 eV -->
+      <mass            value="10.0"/> <!-- In units of 1.0e-22 eV -->
       <densityFraction value=" 1.0"/>
     </darkMatterParticle>
   </change>
