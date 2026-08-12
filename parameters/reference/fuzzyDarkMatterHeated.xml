@@ -51,8 +51,6 @@
     <darkMatterProfileDMO/>
   </change>
 
-  <change type="remove" path="satelliteTidalStripping[@value='zentner2005']"/>
-
   <change type="append" path="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']">
     <darkMatterProfileDMO/>
   </change>
@@ -71,6 +69,23 @@
     </darkMatterProfileDMO>
   </change>
 
+  <!-- Limit the tidal radius used for stripping the outer halo so that it can never enter the solitonic core. The inner tidal
+       radius model must be given explicitly: "limited" composites a member of its own class, and Galacticus refuses to build
+       such a member from defaults since that would recurse indefinitely. It is therefore stated once here and copied below to
+       wherever else it is needed, so that this file has a single point of truth for it. Should the reference model ever specify
+       an explicit tidal radius model of its own, use a change of type "encapsulate" on it instead, so that the model it
+       specifies is moved inside this wrapper rather than being overridden by the one given here. -->
+  <change type="append" path="satelliteTidalStripping">
+    <satelliteTidalStrippingRadius value="limited">
+      <satelliteTidalStrippingRadius value="king1962"/>
+    </satelliteTidalStrippingRadius>
+  </change>
+
+  <!-- Tidal mass loss from satellites is handled by the soliton-aware operator added below, which dispatches to the outer halo
+       or to the solitonic core according to the state of the halo. The standard operator would double-count that mass loss, and
+       would additionally bypass the tidal radius limiter added above, so it is removed here. -->
+  <change type="remove" path="nodeOperator/nodeOperator[@value='satelliteTidalMassLoss']"/>
+
   <!-- Add the soliton node operator for soliton+NFW dark matter halo profiles. -->
   <change type="append" path="nodeOperator">
     <nodeOperator value="darkMatterProfileSoliton"/>
@@ -78,14 +93,16 @@
 
   <change type="append" path="nodeOperator">
     <nodeOperator value="satelliteConditionalMassLoss">
-      <satelliteTidalStrippingOuter value="zentner2005">
-	<efficiency value="2.95"/>
-	<satelliteTidalStrippingRadius value="limited">
-	  <satelliteTidalStrippingRadius value="king1962"/>
-	</satelliteTidalStrippingRadius>
-      </satelliteTidalStrippingOuter>
+      <!-- The outer-halo stripping model is not specified here: it is inherited from the enclosing scope, so that it always
+           matches the tidal stripping model used by the rest of the model, including the radius limiter added above. -->
       <satelliteTidalStrippingCore value="du2018"/>
+      <satelliteTidalStrippingRadius/>
     </nodeOperator>
   </change>
+
+  <!-- Give the soliton mass-loss operator a copy of the *unlimited* tidal radius model. It is used only to detect when the
+       tidal radius first reaches the soliton radius: were it the limited model, the radius could never fall below the soliton
+       radius and that transition would never be detected. -->
+  <change type="replaceWith" path="nodeOperator/nodeOperator[@value='satelliteConditionalMassLoss']/satelliteTidalStrippingRadius" target="satelliteTidalStripping/satelliteTidalStrippingRadius[@value='limited']/satelliteTidalStrippingRadius"/>
 
 </changes>

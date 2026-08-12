@@ -20,19 +20,19 @@
 !+    Contributions to this file made by:  Yu Zhao.
 
   !!{RST
-    Implementation of a satellite tidal radius class which limits the tidal radius to be no smaller than the soliton radius for soliton+NFW halos.
+    Implementation of a satellite tidal radius class which limits the tidal radius to be no smaller than the radius of the solitonic core.
   !!}
 
   !![
   <satelliteTidalStrippingRadius name="satelliteTidalStrippingRadiusLimited" docformat="rst">
    <description>
-   A satellite tidal radius class which computes the tidal radius for satellite halos. For :galacticus-class:`darkMatterProfileSolitonNFWHeated` profiles, the tidal radius used for outer-halo stripping is limited to be no smaller than the soliton radius. For other dark matter profiles, the tidal radius is returned unchanged.
+   A satellite tidal radius class which limits the tidal radius returned by a wrapped :galacticus-class:`satelliteTidalStrippingRadiusClass` to be no smaller than the radius of the solitonic core, so that stripping of the outer halo can not remove material from within the core itself. Intended for use with the :galacticus-class:`darkMatterProfileDMOSolitonNFW` and :galacticus-class:`darkMatterProfileDMOSolitonNFWHeated` dark matter profiles, which create the ``solitonRadiusSoliton`` meta-property that this class reads. In any model where that meta-property is not created---i.e. one containing no fuzzy dark matter---and for halos in which no soliton formed, or which have already been stripped down to their core, the wrapped tidal radius is returned unchanged.
    </description>
   </satelliteTidalStrippingRadius>
   !!]
   type, extends(satelliteTidalStrippingRadiusClass) :: satelliteTidalStrippingRadiusLimited
      !!{RST
-     Implementation of a satellite tidal radius class for computing the tidal radius of satellite halos.
+     Implementation of a satellite tidal radius class which limits the tidal radius to be no smaller than the solitonic core radius.
      !!}
      private
      class  (satelliteTidalStrippingRadiusClass), pointer :: satelliteTidalStrippingRadius_ => null()
@@ -102,36 +102,30 @@ contains
 
   double precision function limitedRadius(self,node)
     !!{RST
-    Return the tidal radius, limiting it to the soliton radius for :galacticus-class:`massDistributionSolitonNFWHeated` profiles.
+    Return the tidal radius, limited to be no smaller than the radius of the solitonic core.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile, treeNode
-    use :: Mass_Distributions              , only : massDistributionClass         , massDistributionSolitonNFWHeated
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (satelliteTidalStrippingRadiusLimited), intent(inout), target :: self
     type            (treeNode                            ), intent(inout), target :: node
     class           (nodeComponentDarkMatterProfile      ), pointer               :: darkMatterProfile
-    class           (massDistributionClass               ), pointer               :: massDistribution_
     double precision                                                              :: radiusTidal      , radiusSoliton
 
-    massDistribution_  => node%massDistribution()
-    darkMatterProfile  => node%darkMatterProfile()
-
     ! Compute the tidal radius using the wrapped tidal-radius model.
-    radiusTidal        =  self%satelliteTidalStrippingRadius_%radius(node)
-
-    select type (massDistribution_)
-        type is (massDistributionSolitonNFWHeated)
-            ! Prevent the outer-halo stripping radius from entering the solitonic core.
-            radiusSoliton = darkMatterProfile%floatRank0MetaPropertyGet(self%radiusSolitonID)
-            limitedRadius = max(radiusTidal, radiusSoliton)
-    class default
-        ! Other dark matter profiles are unaffected.
-       limitedRadius = radiusTidal
-    end select
-
-    !![
-    <objectDestructor name="massDistribution_"/>
-    !!]
-
+    radiusTidal      =  self%satelliteTidalStrippingRadius_%radius(node)
+    ! Find the radius of the solitonic core. The meta-property always has a valid ID, but has storage only if some class creates
+    ! it - which is not the case in a model containing no fuzzy dark matter. A non-positive radius indicates a halo in which no
+    ! soliton formed, or one which has already been stripped down to its core so that no NFW envelope remains to be stripped
+    ! (the soliton profiles store -1 in both cases). In all of these cases the tidal radius is returned unchanged.
+    radiusSoliton    =  0.0d0
+    darkMatterProfile=> node%darkMatterProfile()
+    if (darkMatterProfile%floatRank0MetaPropertyIsCreated(self%radiusSolitonID)) &
+         & radiusSoliton=darkMatterProfile%floatRank0MetaPropertyGet(self%radiusSolitonID)
+    ! Prevent the outer-halo stripping radius from entering the solitonic core.
+    if (radiusSoliton > 0.0d0) then
+       limitedRadius=max(radiusTidal,radiusSoliton)
+    else
+       limitedRadius=    radiusTidal
+    end if
     return
   end function limitedRadius
