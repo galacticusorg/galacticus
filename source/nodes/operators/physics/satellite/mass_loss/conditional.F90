@@ -39,7 +39,7 @@
      private
      integer                                              :: massCoreID                              , solitonStatusID                       , &
           &                                                  massCoreNormalID                        , radiusSolitonID                       , &
-          &                                                  massCoreTransitionID
+          &                                                  massCoreTransitionID                    , randomOffsetID
      double precision                                     :: fractionMassCoreDestruction
      class  (satelliteTidalStrippingClass      ), pointer :: satelliteTidalStrippingOuter_  => null(), satelliteTidalStrippingCore_ => null()
      class  (satelliteTidalStrippingRadiusClass), pointer :: satelliteTidalStrippingRadius_ => null()
@@ -118,6 +118,7 @@ contains
     !![
     <constructorAssign variables="*satelliteTidalStrippingOuter_, *satelliteTidalStrippingCore_, *satelliteTidalStrippingRadius_, fractionMassCoreDestruction"/>
     <addMetaProperty component="darkMatterProfile" name="solitonMassCoreTransition" id="self%massCoreTransitionID" isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonRandomOffset"       id="self%randomOffsetID"       isEvolvable="no"  isCreator="no" />
     <addMetaProperty component="darkMatterProfile" name="solitonRadiusSoliton"      id="self%radiusSolitonID"      isEvolvable="no"  isCreator="no" />
     <addMetaProperty component="darkMatterProfile" name="solitonMassCoreNormal"     id="self%massCoreNormalID"     isEvolvable="yes" isCreator="no" />
     <addMetaProperty component="darkMatterProfile" name="solitonMassCore"           id="self%massCoreID"           isEvolvable="no"  isCreator="no" />
@@ -157,7 +158,8 @@ contains
     class    (nodeComponentDarkMatterProfile          ), pointer                :: darkMatterProfile
     double precision                                                            :: massLossRateOuter, massLossRateCore, &
               &                                                                    massCore          , radiusTidal    , &
-              &                                                                    radiusSoliton     , massCoreTransition
+              &                                                                    radiusSoliton     , massCoreTransition, &
+              &                                                                    randomOffset
     type     (enumerationSolitonStatusType            )                         :: solitonStatus
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
@@ -191,11 +193,20 @@ contains
     else if (solitonStatus == solitonStatusSolitonOnly) then
         ! The halo is soliton-only. Evolve the bound mass and core mass together.
         massLossRateCore =+self%satelliteTidalStrippingCore_%massLossRate(node)
-        call satellite        %boundMassRate             (massLossRateCore    )
-        call darkMatterProfile%floatRank0MetaPropertyRate(                       &
-                &                                         self%massCoreNormalID, &
-                &                                         +0.25d0                &
-                &                                         *massLossRateCore      &
+        call satellite%boundMassRate(massLossRateCore)
+        ! Convert the rate of loss of bound mass into a rate of change of the *unscattered* core mass, which is the evolved
+        ! property. A factor of 1/4 converts from the bound mass to the core mass, since the bound mass in this state is taken to
+        ! be the total mass of the soliton, which is four times the mass within its core radius. A further factor of
+        ! 10^(-randomOffset) converts from the core mass to the unscattered core mass, as the dark matter profile applies the
+        ! log-normal scatter of the core-halo mass relation via massCore = massCoreNormal * 10^randomOffset. Without it the
+        ! *fractional* rate of decay of the core mass would be wrong by a factor of 10^randomOffset, and so would differ from
+        ! halo to halo for no physical reason.
+        randomOffset     =+darkMatterProfile%floatRank0MetaPropertyGet(self%randomOffsetID)
+        call darkMatterProfile%floatRank0MetaPropertyRate(                        &
+                &                                         self%massCoreNormalID , &
+                &                                         +0.25d0                 &
+                &                                         *massLossRateCore       &
+                &                                         /10.0d0**randomOffset   &
                 &                                        )
         ! Test whether the solitonic core has been stripped down to the destruction threshold. Under the Du et al. (2018) model
         ! the core mass decays exponentially, approaching zero without ever reaching it, so destruction must be triggered at some
