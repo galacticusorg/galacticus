@@ -22,7 +22,7 @@
   !!{RST
     Implementation of a satellite tidal radius class which limits the tidal radius to be no smaller than the soliton radius for soliton+NFW halos.
   !!}
-  
+
   !![
   <satelliteTidalStrippingRadius name="satelliteTidalStrippingRadiusLimited" docformat="rst">
    <description>
@@ -132,6 +132,6 @@ contains
     !![
     <objectDestructor name="massDistribution_"/>
     !!]
-    
+
     return
   end function limitedRadius

@@ -41,7 +41,7 @@
      final     ::                          satelliteConditionalStrippingDestructor
      procedure :: differentialEvolution => satelliteConditionalStrippingDifferentialEvolution
   end type nodeOperatorSatelliteConditionalMassLoss
-  
+
   interface nodeOperatorSatelliteConditionalMassLoss
      !!{RST
      Constructors for the :galacticus-class:`nodeOperatorSatelliteConditionalMassLoss` node operator class.
@@ -53,7 +53,7 @@
   ! Submodule-scope pointer to self, used in callback functions.
   class          (nodeOperatorSatelliteConditionalMassLoss), pointer :: self_
   !$omp threadprivate(self_)
-  
+
 contains
 
   function satelliteConditionalStrippingConstructorParameters(parameters) result(self)
@@ -65,7 +65,7 @@ contains
     type   (nodeOperatorSatelliteConditionalMassLoss)                :: self
     type   (inputParameters                         ), intent(inout) :: parameters
     class  (satelliteTidalStrippingClass            ), pointer       :: satelliteTidalStrippingOuter_, satelliteTidalStrippingCore_
-    
+
     !![
     <objectBuilder   class="satelliteTidalStripping" name="satelliteTidalStrippingOuter_" source="parameters"   parameterName="satelliteTidalStrippingOuter"  />
     <objectBuilder   class="satelliteTidalStripping" name="satelliteTidalStrippingCore_"  source="parameters"   parameterName="satelliteTidalStrippingCore"  />
@@ -86,8 +86,8 @@ contains
     implicit none
     type   (nodeOperatorSatelliteConditionalMassLoss)                        :: self
     class  (satelliteTidalStrippingClass            ), intent(in   ), target :: satelliteTidalStrippingOuter_, satelliteTidalStrippingCore_
-    
-    !![ 
+
+    !![
     <constructorAssign variables="*satelliteTidalStrippingOuter_, *satelliteTidalStrippingCore_"/>
     <addMetaProperty component="darkMatterProfile" name="solitonMassCoreNormal" id="self%massCoreNormalID" isEvolvable="yes" isCreator="no"/>
     <addMetaProperty component="darkMatterProfile" name="solitonMassCore"       id="self%massCoreID"       isEvolvable="no"  isCreator="no"/>
@@ -110,7 +110,7 @@ contains
     !!]
     return
   end subroutine satelliteConditionalStrippingDestructor
-  
+
   subroutine satelliteConditionalStrippingDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{RST
     Perform mass loss from a satellite due to tidal stripping.
@@ -136,7 +136,7 @@ contains
     darkMatterProfile => node             %darkMatterProfile()
     massCore          =  darkMatterProfile%floatRank0MetaPropertyGet  (self%massCoreID)
     solitonStatus     =  darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID)
-    
+
     ! Apply tidal mass loss according to the halo state:
     !  - solitonStatus = 1: soliton+NFW phase; strip only the outer NFW component until the bound mass reaches 4*massCore.
     !  - solitonStatus = 2: soliton-only phase; evolve both the bound mass and the solitonic core mass, and destroy the satellite if the core mass becomes non-positive.
@@ -192,7 +192,7 @@ contains
     class           (nodeComponentDarkMatterProfile), pointer                 :: darkMatterProfile
     double precision                                                          :: massSatellite    , massCore
     !$GLC attributes unused :: timeEnd
-    
+
     satellite         => node            %satellite                (                )
     massSatellite     =  satellite       %boundMass                (                )
     darkMatterProfile => node            %darkMatterProfile        (                )
@@ -211,4 +211,4 @@ contains
     end if
     return
   end subroutine destructionTrigger
-  
+

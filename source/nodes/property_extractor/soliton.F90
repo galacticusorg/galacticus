@@ -20,7 +20,7 @@
   !!{RST
   Implements a property extractor class for the core mass of the :term:`FDM` soliton.
   !!}
-  
+
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSoliton" docformat="rst">
    <description>
@@ -75,7 +75,7 @@ contains
     !!}
     implicit none
     type         (nodePropertyExtractorSoliton) :: self
-    
+
     !![
     <addMetaProperty component="darkMatterProfile" name="solitonMassCoreNormal" id="self%massCoreNormalID" isEvolvable="yes" isCreator="no"/>
     <addMetaProperty component="darkMatterProfile" name="solitonMassCore"       id="self%massCoreID"       isEvolvable="no"  isCreator="no"/>
@@ -120,7 +120,7 @@ contains
     select type (darkMatterProfile)
     type is (nodeComponentDarkMatterProfile)
        ! Dark matter profile does not exist.
-      solitonExtract=[        & 
+      solitonExtract=[        &
         &             0.0d0,  &
         &             0.0d0,  &
         &             0.0d0,  &
@@ -138,7 +138,7 @@ contains
        &              darkMatterProfile%floatRank0MetaPropertyGet  (self%radiusSolitonID ), &
        &              darkMatterProfile%floatRank0MetaPropertyGet  (self%zetaID          ), &
        &         real(darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID ), kind=8)  &
-       &             ]    
+       &             ]
     end select
     return
   end function solitonExtract

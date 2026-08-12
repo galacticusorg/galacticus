@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !+    Contributions to this file made by: Yu Zhao
-  
+
   !!{RST
   Implements a node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of :cite:t:`du_tidal_2018`.
   !!}
@@ -172,7 +172,7 @@ contains
     ! integration.
 
     ! In the soliton-only phase, assume M_bound ≈ 4*M_core. Therefore, evolve the bound mass using dM_bound/dt = 4*dM_c/dt.
-    
+
     du2018MassLossRate=+4.0d0    &
             &          *0.5d0    &
             &          *energyIm &

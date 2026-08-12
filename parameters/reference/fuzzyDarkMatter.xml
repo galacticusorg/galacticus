@@ -27,7 +27,7 @@
   <!-- Restore the original cosmological parameters into the transfer function. -->
   <change type="replaceWith" path="transferFunction/cosmologyParameters" target="axionCAMBTmp/cosmologyParameters"/>
   <change type="remove" path="axionCAMBTmp"/>
-  
+
   <!-- Copy the concentration scale-radius model out of the Johnson (2021) wrapper. -->
   <change type="append" path="darkMatterProfileScaleRadius">
     <darkMatterProfileScaleRadius value="concentration"/>
