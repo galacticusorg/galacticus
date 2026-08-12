@@ -3917,6 +3917,7 @@
           <xs:enumeration value="differentialDTD"/>
           <xs:enumeration value="fixedYield"/>
           <xs:enumeration value="massIndependentDTD"/>
+          <xs:enumeration value="metallicityDependentRate"/>
           <xs:enumeration value="nagashima2005"/>
           <xs:enumeration value="powerLawDTD"/>
           <xs:enumeration value="powerLawDTDDifferential"/>

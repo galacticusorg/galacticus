@@ -88,7 +88,8 @@ program Test_Stellar_Populations
        &                                                            stellarTracks_                       =stellarTracks_             &
        &                                                           )
   supernovaeTypeIa_        =supernovaeTypeIaNagashima2005          (                                                                 &
-       &                                                            stellarAstrophysics_                 =stellarAstrophysics_       &
+       &                                                            stellarAstrophysics_                 =stellarAstrophysics_     , &
+       &                                                            fileName                             =char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/Supernovae_Type_Ia_Yields.xml'  &
        &                                                           )
   supernovaePopulationIII_ =supernovaePopulationIIIHegerWoosley2002(                                                                 &
        &                                                            stellarAstrophysics_                 =stellarAstrophysics_       &

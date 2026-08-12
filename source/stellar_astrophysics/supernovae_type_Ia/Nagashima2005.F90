@@ -29,6 +29,7 @@
    <description>
    A supernovae type Ia class which uses the prescriptions from :cite:t:`nagashima_metal_2005` to compute the numbers and yields of Type Ia supernovae.
    </description>
+   <runTimeFileDependencies paths="fileName"/>
   </supernovaeTypeIa>
   !!]
   type, extends(supernovaeTypeIaFixedYield) :: supernovaeTypeIaNagashima2005
@@ -68,16 +69,26 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`supernovaeTypeIaNagashima2005` supernovae type Ia class which takes a parameter list as input.
     !!}
+    use :: Input_Paths     , only : inputPath     , pathTypeDataStatic
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (supernovaeTypeIaNagashima2005)                :: self
     type (inputParameters              ), intent(inout) :: parameters
     class(stellarAstrophysicsClass     ), pointer       :: stellarAstrophysics_
+    type (varying_string               )                :: fileName
 
     !![
+    <inputParameter docformat="rst">
+      <name>fileName</name>
+      <source>parameters</source>
+      <defaultValue>inputPath(pathTypeDataStatic)//'stellarAstrophysics/Supernovae_Type_Ia_Yields.xml'</defaultValue>
+      <description>
+      The name of the XML file from which to read the yields of Type Ia supernovae.
+      </description>
+    </inputParameter>
     <objectBuilder class="stellarAstrophysics" name="stellarAstrophysics_" source="parameters"/>
     !!]
-    self=supernovaeTypeIaNagashima2005(stellarAstrophysics_)
+    self=supernovaeTypeIaNagashima2005(stellarAstrophysics_,char(fileName))
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="stellarAstrophysics_"/>
@@ -85,15 +96,16 @@ contains
     return
   end function nagashima2005ConstructorParameters
 
-  function nagashima2005ConstructorInternal(stellarAstrophysics_) result(self)
+  function nagashima2005ConstructorInternal(stellarAstrophysics_,fileName) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`supernovaeTypeIaNagashima2005` supernovae type Ia class.
     !!}
     implicit none
-    type (supernovaeTypeIaNagashima2005)                        :: self
-    class(stellarAstrophysicsClass     ), intent(in   ), target :: stellarAstrophysics_
+    type     (supernovaeTypeIaNagashima2005)                        :: self
+    class    (stellarAstrophysicsClass     ), intent(in   ), target :: stellarAstrophysics_
+    character(len=*                        ), intent(in   )         :: fileName
     !![
-    <constructorAssign variables="*stellarAstrophysics_"/>
+    <constructorAssign variables="*stellarAstrophysics_, fileName"/>
     !!]
 
     self%initialized=.false.
