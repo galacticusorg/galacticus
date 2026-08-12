@@ -28,7 +28,11 @@
   !![
   <nodeOperator name="nodeOperatorSatelliteConditionalMassLoss" docformat="rst">
    <description>
-   A node operator class that applies conditional tidal mass loss to orbiting satellite halos at each ODE timestep for use with the :galacticus-class:`darkMatterProfileDMOSolitonNFWHeated` dark matter profile. Depending on the halo state, it evolves either the outer halo or the solitonic core using a :galacticus-class:`satelliteTidalStrippingClass`. If no solitonic solution exists, the halo is treated as an NFW halo and tidal stripping is applied using the NFW model throughout its evolution. The satellite bound mass and, where applicable, the solitonic core mass are evolved as ODE variables.
+   A node operator class that applies conditional tidal mass loss to orbiting satellite halos at each ODE timestep for use with
+   the :galacticus-class:`darkMatterProfileDMOSolitonNFWHeated` dark matter profile. Depending on the halo state, it evolves
+   either the outer halo or the solitonic core using a :galacticus-class:`satelliteTidalStrippingClass`. If no solitonic solution
+   exists, the halo is treated as an NFW halo and tidal stripping is applied using the NFW model throughout its evolution. The
+   satellite bound mass and, where applicable, the solitonic core mass are evolved as ODE variables.
    </description>
   </nodeOperator>
   !!]
@@ -156,9 +160,9 @@ contains
     integer                                            , intent(in   )          :: propertyType
     class    (nodeComponentSatellite                  )               , pointer :: satellite
     class    (nodeComponentDarkMatterProfile          ), pointer                :: darkMatterProfile
-    double precision                                                            :: massLossRateOuter, massLossRateCore, &
-              &                                                                    massCore          , radiusTidal    , &
-              &                                                                    radiusSoliton     , massCoreTransition, &
+    double precision                                                            :: massLossRateOuter, massLossRateCore  , &
+              &                                                                    massCore         , radiusTidal       , &
+              &                                                                    radiusSoliton    , massCoreTransition, &
               &                                                                    randomOffset
     type     (enumerationSolitonStatusType            )                         :: solitonStatus
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
@@ -201,7 +205,7 @@ contains
         ! log-normal scatter of the core-halo mass relation via massCore = massCoreNormal * 10^randomOffset. Without it the
         ! *fractional* rate of decay of the core mass would be wrong by a factor of 10^randomOffset, and so would differ from
         ! halo to halo for no physical reason.
-        randomOffset     =+darkMatterProfile%floatRank0MetaPropertyGet(self%randomOffsetID)
+        randomOffset=+darkMatterProfile%floatRank0MetaPropertyGet(self%randomOffsetID)
         call darkMatterProfile%floatRank0MetaPropertyRate(                        &
                 &                                         self%massCoreNormalID , &
                 &                                         +0.25d0                 &
