@@ -2437,7 +2437,6 @@
           <xs:enumeration value="radiusVirialLastDefined"/>
           <xs:enumeration value="ramPressureMassLossDisks"/>
           <xs:enumeration value="ramPressureMassLossSpheroids"/>
-          <xs:enumeration value="satelliteConditionalMassLoss"/>
           <xs:enumeration value="satelliteDecelerationSIDM"/>
           <xs:enumeration value="satelliteDestructionDensityProfileThreshold"/>
           <xs:enumeration value="satelliteDestructionMassThreshold"/>
@@ -2453,6 +2452,7 @@
           <xs:enumeration value="satelliteSubsampling"/>
           <xs:enumeration value="satelliteTidalHeating"/>
           <xs:enumeration value="satelliteTidalMassLoss"/>
+          <xs:enumeration value="satelliteTidalMassLossSoliton"/>
           <xs:enumeration value="spheroidRadiusPowerLaw"/>
           <xs:enumeration value="starFormationDisks"/>
           <xs:enumeration value="starFormationNuclearStarClusters"/>
@@ -3518,7 +3518,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="king1962"/>
-          <xs:enumeration value="limited"/>
+          <xs:enumeration value="solitonLimited"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>

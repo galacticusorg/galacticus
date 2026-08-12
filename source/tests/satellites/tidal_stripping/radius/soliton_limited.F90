@@ -21,9 +21,9 @@
   Contains a program to test the limiting of satellite tidal radii by the radius of a solitonic core.
   !!}
 
-program Test_Satellite_Tidal_Stripping_Radius_Limited
+program Test_Satellite_Tidal_Stripping_Radius_Soliton_Limited
   !!{RST
-  Test that the :galacticus-class:`satelliteTidalStrippingRadiusLimited` class limits the tidal radius returned by the model
+  Test that the :galacticus-class:`satelliteTidalStrippingRadiusSolitonLimited` class limits the tidal radius returned by the model
   which it wraps to be no smaller than the radius of the solitonic core.
 
   The wrapped model is :galacticus-class:`satelliteTidalStrippingRadiusKing1962`, applied to an isolated node which is not a
@@ -43,7 +43,7 @@ program Test_Satellite_Tidal_Stripping_Radius_Limited
   use :: ISO_Varying_String             , only : var_str
   use :: Node_Components                , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize   , &
        &                                         Node_Components_Thread_Uninitialize                           , Node_Components_Uninitialize
-  use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusKing1962                         , satelliteTidalStrippingRadiusLimited
+  use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusKing1962                         , satelliteTidalStrippingRadiusSolitonLimited
   use :: Satellites_Tidal_Fields        , only : satelliteTidalFieldNull                                       , satelliteTidalFieldClass
   use :: Unit_Tests                     , only : Assert                                                        , Unit_Tests_Begin_Group              , &
        &                                         Unit_Tests_End_Group                                          , Unit_Tests_Finish
@@ -58,15 +58,15 @@ program Test_Satellite_Tidal_Stripping_Radius_Limited
   type            (darkMatterHaloScaleVirialDensityContrastDefinition            ), pointer   :: darkMatterHaloScale_
   type            (satelliteTidalFieldNull                                       ), pointer   :: satelliteTidalField_
   type            (satelliteTidalStrippingRadiusKing1962                         ), pointer   :: radiusKing1962_
-  type            (satelliteTidalStrippingRadiusLimited                          ), pointer   :: radiusLimited_
+  type            (satelliteTidalStrippingRadiusSolitonLimited                          ), pointer   :: radiusLimited_
   type            (inputParameters                                               )            :: parameters
   double precision                                                                            :: radiusVirial                 , radiusSoliton
   integer                                                                                     :: radiusSolitonID
   double precision                                                                , parameter :: massVirial            =1.0d12, timeNode     =13.8d0
 
   call displayVerbositySet(verbosityLevelStandard)
-  call Unit_Tests_Begin_Group("Satellite tidal stripping radius: limited")
-  parameters=inputParameters('testSuite/parameters/satellites/tidalStrippingRadiusLimited.xml')
+  call Unit_Tests_Begin_Group("Satellite tidal stripping radius: soliton-limited")
+  parameters=inputParameters('testSuite/parameters/satellites/tidalStrippingRadiusSolitonLimited.xml')
   call eventsHooksInitialize            (          )
   call Functions_Global_Set             (          )
   call nodeClassHierarchyInitialize     (parameters)
@@ -95,7 +95,7 @@ program Test_Satellite_Tidal_Stripping_Radius_Limited
   darkMatterHaloScale_  = darkMatterHaloScaleVirialDensityContrastDefinition            (cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_,virialDensityContrast_=virialDensityContrast_)
   satelliteTidalField_  = satelliteTidalFieldNull                                       ()
   radiusKing1962_       = satelliteTidalStrippingRadiusKing1962                         (efficiencyCentrifugal=1.0d0,applyPreInfall=.false.,cosmologyParameters_=cosmologyParameters_,darkMatterHaloScale_=darkMatterHaloScale_,satelliteTidalField_=satelliteTidalField_)
-  radiusLimited_        = satelliteTidalStrippingRadiusLimited                          (satelliteTidalStrippingRadius_=radiusKing1962_)
+  radiusLimited_        = satelliteTidalStrippingRadiusSolitonLimited                          (satelliteTidalStrippingRadius_=radiusKing1962_)
   ! Build a node. It is not a satellite, so the wrapped King (1962) model returns the virial radius.
   node              => treeNode                  (                 )
   basic             => node    %basic            (autoCreate=.true.)
@@ -122,4 +122,4 @@ program Test_Satellite_Tidal_Stripping_Radius_Limited
   call nodeClassHierarchyFinalize         ()
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Finish                  ()
-end program Test_Satellite_Tidal_Stripping_Radius_Limited
+end program Test_Satellite_Tidal_Stripping_Radius_Soliton_Limited

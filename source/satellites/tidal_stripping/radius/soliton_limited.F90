@@ -24,7 +24,7 @@
   !!}
 
   !![
-  <satelliteTidalStrippingRadius name="satelliteTidalStrippingRadiusLimited" docformat="rst">
+  <satelliteTidalStrippingRadius name="satelliteTidalStrippingRadiusSolitonLimited" docformat="rst">
    <description>
    A satellite tidal radius class which limits the tidal radius returned by a wrapped
    :galacticus-class:`satelliteTidalStrippingRadiusClass` to be no smaller than the radius of the solitonic core, so that
@@ -36,7 +36,7 @@
    </description>
   </satelliteTidalStrippingRadius>
   !!]
-  type, extends(satelliteTidalStrippingRadiusClass) :: satelliteTidalStrippingRadiusLimited
+  type, extends(satelliteTidalStrippingRadiusClass) :: satelliteTidalStrippingRadiusSolitonLimited
      !!{RST
      Implementation of a satellite tidal radius class which limits the tidal radius to be no smaller than the solitonic core radius.
      !!}
@@ -44,75 +44,75 @@
      class  (satelliteTidalStrippingRadiusClass), pointer :: satelliteTidalStrippingRadius_ => null()
      integer                                              :: radiusSolitonID
    contains
-     final     ::           limitedDestructor
-     procedure :: radius => limitedRadius
-  end type satelliteTidalStrippingRadiusLimited
+     final     ::           solitonLimitedDestructor
+     procedure :: radius => solitonLimitedRadius
+  end type satelliteTidalStrippingRadiusSolitonLimited
 
-  interface satelliteTidalStrippingRadiusLimited
+  interface satelliteTidalStrippingRadiusSolitonLimited
      !!{RST
-     Constructors for the :galacticus-class:`satelliteTidalStrippingRadiusLimited` satellite tidal stripping class.
+     Constructors for the :galacticus-class:`satelliteTidalStrippingRadiusSolitonLimited` satellite tidal stripping class.
      !!}
-     module procedure limitedConstructorParameters
-     module procedure limitedConstructorInternal
-  end interface satelliteTidalStrippingRadiusLimited
+     module procedure solitonLimitedConstructorParameters
+     module procedure solitonLimitedConstructorInternal
+  end interface satelliteTidalStrippingRadiusSolitonLimited
 
 contains
 
-  function limitedConstructorParameters(parameters) result(self)
+  function solitonLimitedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`satelliteTidalStrippingRadiusLimited` satellite tidal stripping class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`satelliteTidalStrippingRadiusSolitonLimited` satellite tidal stripping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (satelliteTidalStrippingRadiusLimited)                :: self
+    type            (satelliteTidalStrippingRadiusSolitonLimited)                :: self
     type            (inputParameters                     ), intent(inout) :: parameters
     class           (satelliteTidalStrippingRadiusClass  ), pointer       :: satelliteTidalStrippingRadius_
 
     !![
     <objectBuilder class="satelliteTidalStrippingRadius" name="satelliteTidalStrippingRadius_" source="parameters"/>
     !!]
-    self=satelliteTidalStrippingRadiusLimited(satelliteTidalStrippingRadius_)
+    self=satelliteTidalStrippingRadiusSolitonLimited(satelliteTidalStrippingRadius_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalStrippingRadius_"/>
     !!]
     return
-  end function limitedConstructorParameters
+  end function solitonLimitedConstructorParameters
 
-  function limitedConstructorInternal(satelliteTidalStrippingRadius_) result(self)
+  function solitonLimitedConstructorInternal(satelliteTidalStrippingRadius_) result(self)
     !!{RST
-    Internal constructor for the :galacticus-class:`satelliteTidalStrippingRadiusLimited` satellite tidal stripping class.
+    Internal constructor for the :galacticus-class:`satelliteTidalStrippingRadiusSolitonLimited` satellite tidal stripping class.
     !!}
     implicit none
-    type            (satelliteTidalStrippingRadiusLimited)                     :: self
+    type            (satelliteTidalStrippingRadiusSolitonLimited)                     :: self
     class           (satelliteTidalStrippingRadiusClass  ), intent(in), target :: satelliteTidalStrippingRadius_
     !![
     <constructorAssign variables="*satelliteTidalStrippingRadius_"/>
     <addMetaProperty component="darkMatterProfile" name="solitonRadiusSoliton"  id="self%radiusSolitonID"  isEvolvable="no"  isCreator="no"/>
     !!]
     return
-  end function limitedConstructorInternal
+  end function solitonLimitedConstructorInternal
 
-  subroutine limitedDestructor(self)
+  subroutine solitonLimitedDestructor(self)
     !!{RST
-    Destructor for the :galacticus-class:`satelliteTidalStrippingRadiusLimited` satellite tidal stripping class.
+    Destructor for the :galacticus-class:`satelliteTidalStrippingRadiusSolitonLimited` satellite tidal stripping class.
     !!}
     implicit none
-    type            (satelliteTidalStrippingRadiusLimited), intent(inout)      :: self
+    type            (satelliteTidalStrippingRadiusSolitonLimited), intent(inout)      :: self
 
     !![
     <objectDestructor name="self%satelliteTidalStrippingRadius_"/>
     !!]
     return
-  end subroutine limitedDestructor
+  end subroutine solitonLimitedDestructor
 
-  double precision function limitedRadius(self,node)
+  double precision function solitonLimitedRadius(self,node)
     !!{RST
     Return the tidal radius, limited to be no smaller than the radius of the solitonic core.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none
-    class           (satelliteTidalStrippingRadiusLimited), intent(inout), target :: self
+    class           (satelliteTidalStrippingRadiusSolitonLimited), intent(inout), target :: self
     type            (treeNode                            ), intent(inout), target :: node
     class           (nodeComponentDarkMatterProfile      ), pointer               :: darkMatterProfile
     double precision                                                              :: radiusTidal      , radiusSoliton
@@ -129,9 +129,9 @@ contains
          & radiusSoliton=darkMatterProfile%floatRank0MetaPropertyGet(self%radiusSolitonID)
     ! Prevent the outer-halo stripping radius from entering the solitonic core.
     if (radiusSoliton > 0.0d0) then
-       limitedRadius=max(radiusTidal,radiusSoliton)
+       solitonLimitedRadius=max(radiusTidal,radiusSoliton)
     else
-       limitedRadius=    radiusTidal
+       solitonLimitedRadius=    radiusTidal
     end if
     return
-  end function limitedRadius
+  end function solitonLimitedRadius

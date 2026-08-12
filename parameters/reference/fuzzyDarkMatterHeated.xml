@@ -82,13 +82,13 @@
   </change>
 
   <!-- Limit the tidal radius used for stripping the outer halo so that it can never enter the solitonic core. The inner tidal
-       radius model must be given explicitly: "limited" composites a member of its own class, and Galacticus refuses to build
+       radius model must be given explicitly: "solitonLimited" composites a member of its own class, and Galacticus refuses to build
        such a member from defaults since that would recurse indefinitely. It is therefore stated once here and copied below to
        wherever else it is needed, so that this file has a single point of truth for it. Should the reference model ever specify
        an explicit tidal radius model of its own, use a change of type "encapsulate" on it instead, so that the model it
        specifies is moved inside this wrapper rather than being overridden by the one given here. -->
   <change type="append" path="satelliteTidalStripping">
-    <satelliteTidalStrippingRadius value="limited">
+    <satelliteTidalStrippingRadius value="solitonLimited">
       <satelliteTidalStrippingRadius value="king1962"/>
     </satelliteTidalStrippingRadius>
   </change>
@@ -104,7 +104,7 @@
   </change>
 
   <change type="append" path="nodeOperator">
-    <nodeOperator value="satelliteConditionalMassLoss">
+    <nodeOperator value="satelliteTidalMassLossSoliton">
       <!-- The outer-halo stripping model is not specified here: it is inherited from the enclosing scope, so that it always
            matches the tidal stripping model used by the rest of the model, including the radius limiter added above. -->
       <satelliteTidalStrippingCore value="du2018"/>
@@ -115,6 +115,6 @@
   <!-- Give the soliton mass-loss operator a copy of the unlimited tidal radius model, which it uses to detect when the tidal
        radius first reaches the soliton radius. Either model would in fact serve, as the test the operator makes is satisfied
        under the same conditions for both, but the unlimited model is the more natural choice for it. -->
-  <change type="replaceWith" path="nodeOperator/nodeOperator[@value='satelliteConditionalMassLoss']/satelliteTidalStrippingRadius" target="satelliteTidalStripping/satelliteTidalStrippingRadius[@value='limited']/satelliteTidalStrippingRadius"/>
+  <change type="replaceWith" path="nodeOperator/nodeOperator[@value='satelliteTidalMassLossSoliton']/satelliteTidalStrippingRadius" target="satelliteTidalStripping/satelliteTidalStrippingRadius[@value='solitonLimited']/satelliteTidalStrippingRadius"/>
 
 </changes>

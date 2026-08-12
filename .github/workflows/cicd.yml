@@ -1320,7 +1320,7 @@ jobs:
                       tests.dark_matter_profiles.finite_resolution.exe,
                       tests.dark_matter_profiles.Zhao1996.exe,
                       tests.dark_matter_profiles.fuzzy_dark_matter.exe,
-                      tests.satellites.tidal_stripping.radius.limited.exe,
+                      tests.satellites.tidal_stripping.radius.soliton_limited.exe,
                       tests.decaying_dark_matter.exe,
                       tests.decaying_dark_matter_spherical_collapse.exe,
                       tests.spectra.postprocess.Inoue2014.exe,

@@ -29,7 +29,7 @@
   use :: Satellite_Tidal_Stripping_Radii     , only : satelliteTidalStrippingRadiusClass
 
   !![
-  <nodeOperator name="nodeOperatorSatelliteConditionalMassLoss" docformat="rst">
+  <nodeOperator name="nodeOperatorSatelliteTidalMassLossSoliton" docformat="rst">
    <description>
    A node operator class that applies conditional tidal mass loss to orbiting satellite halos at each ODE timestep for use with
    the :galacticus-class:`darkMatterProfileDMOSolitonNFWHeated` dark matter profile. Depending on the halo state, it evolves
@@ -39,7 +39,7 @@
    </description>
   </nodeOperator>
   !!]
-  type, extends(nodeOperatorClass) :: nodeOperatorSatelliteConditionalMassLoss
+  type, extends(nodeOperatorClass) :: nodeOperatorSatelliteTidalMassLossSoliton
      !!{RST
      A node operator class that applies tidal mass loss to orbiting satellite halos.
      !!}
@@ -51,31 +51,31 @@
      class  (satelliteTidalStrippingClass      ), pointer :: satelliteTidalStrippingOuter_  => null(), satelliteTidalStrippingCore_ => null()
      class  (satelliteTidalStrippingRadiusClass), pointer :: satelliteTidalStrippingRadius_ => null()
    contains
-     final     ::                          satelliteConditionalStrippingDestructor
-     procedure :: differentialEvolution => satelliteConditionalStrippingDifferentialEvolution
-  end type nodeOperatorSatelliteConditionalMassLoss
+     final     ::                          satelliteTidalMassLossSolitonDestructor
+     procedure :: differentialEvolution => satelliteTidalMassLossSolitonDifferentialEvolution
+  end type nodeOperatorSatelliteTidalMassLossSoliton
 
-  interface nodeOperatorSatelliteConditionalMassLoss
+  interface nodeOperatorSatelliteTidalMassLossSoliton
      !!{RST
-     Constructors for the :galacticus-class:`nodeOperatorSatelliteConditionalMassLoss` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteTidalMassLossSoliton` node operator class.
      !!}
-     module procedure satelliteConditionalStrippingConstructorParameters
-     module procedure satelliteConditionalStrippingConstructorInternal
-  end interface nodeOperatorSatelliteConditionalMassLoss
+     module procedure satelliteTidalMassLossSolitonConstructorParameters
+     module procedure satelliteTidalMassLossSolitonConstructorInternal
+  end interface nodeOperatorSatelliteTidalMassLossSoliton
 
   ! Submodule-scope pointer to self, used in callback functions.
-  class(nodeOperatorSatelliteConditionalMassLoss), pointer :: self_ => null()
+  class(nodeOperatorSatelliteTidalMassLossSoliton), pointer :: self_ => null()
   !$omp threadprivate(self_)
 
 contains
 
-  function satelliteConditionalStrippingConstructorParameters(parameters) result(self)
+  function satelliteTidalMassLossSolitonConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`nodeOperatorSatelliteConditionalMassLoss` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteTidalMassLossSoliton` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type   (nodeOperatorSatelliteConditionalMassLoss)                :: self
+    type   (nodeOperatorSatelliteTidalMassLossSoliton)                :: self
     type   (inputParameters                         ), intent(inout) :: parameters
     class  (satelliteTidalStrippingClass            ), pointer       :: satelliteTidalStrippingOuter_ , satelliteTidalStrippingCore_
     class  (satelliteTidalStrippingRadiusClass      ), pointer       :: satelliteTidalStrippingRadius_
@@ -104,7 +104,7 @@ contains
       </description>
     </inputParameter>
     !!]
-    self=nodeOperatorSatelliteConditionalMassLoss(satelliteTidalStrippingOuter_,satelliteTidalStrippingCore_,satelliteTidalStrippingRadius_,fractionMassCoreDestruction)
+    self=nodeOperatorSatelliteTidalMassLossSoliton(satelliteTidalStrippingOuter_,satelliteTidalStrippingCore_,satelliteTidalStrippingRadius_,fractionMassCoreDestruction)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalStrippingOuter_" />
@@ -112,14 +112,14 @@ contains
     <objectDestructor name="satelliteTidalStrippingRadius_"/>
     !!]
     return
-  end function satelliteConditionalStrippingConstructorParameters
+  end function satelliteTidalMassLossSolitonConstructorParameters
 
-  function satelliteConditionalStrippingConstructorInternal(satelliteTidalStrippingOuter_,satelliteTidalStrippingCore_,satelliteTidalStrippingRadius_,fractionMassCoreDestruction) result(self)
+  function satelliteTidalMassLossSolitonConstructorInternal(satelliteTidalStrippingOuter_,satelliteTidalStrippingCore_,satelliteTidalStrippingRadius_,fractionMassCoreDestruction) result(self)
     !!{RST
-    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteConditionalMassLoss` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteTidalMassLossSoliton` node operator class.
     !!}
     implicit none
-    type            (nodeOperatorSatelliteConditionalMassLoss)                        :: self
+    type            (nodeOperatorSatelliteTidalMassLossSoliton)                        :: self
     class           (satelliteTidalStrippingClass            ), intent(in   ), target :: satelliteTidalStrippingOuter_ , satelliteTidalStrippingCore_
     class           (satelliteTidalStrippingRadiusClass      ), intent(in   ), target :: satelliteTidalStrippingRadius_
     double precision                                          , intent(in   )         :: fractionMassCoreDestruction
@@ -134,14 +134,14 @@ contains
     !!]
 
     return
-  end function satelliteConditionalStrippingConstructorInternal
+  end function satelliteTidalMassLossSolitonConstructorInternal
 
-  subroutine satelliteConditionalStrippingDestructor(self)
+  subroutine satelliteTidalMassLossSolitonDestructor(self)
     !!{RST
-    Destructor for the :galacticus-class:`nodeOperatorSatelliteConditionalMassLoss` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteTidalMassLossSoliton` node operator class.
     !!}
     implicit none
-    type(nodeOperatorSatelliteConditionalMassLoss), intent(inout) :: self
+    type(nodeOperatorSatelliteTidalMassLossSoliton), intent(inout) :: self
 
     !![
     <objectDestructor name="self%satelliteTidalStrippingOuter_" />
@@ -149,15 +149,15 @@ contains
     <objectDestructor name="self%satelliteTidalStrippingRadius_"/>
     !!]
     return
-  end subroutine satelliteConditionalStrippingDestructor
+  end subroutine satelliteTidalMassLossSolitonDestructor
 
-  subroutine satelliteConditionalStrippingDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
+  subroutine satelliteTidalMassLossSolitonDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{RST
     Perform mass loss from a satellite due to tidal stripping.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentSatellite
     implicit none
-    class    (nodeOperatorSatelliteConditionalMassLoss), intent(inout), target  :: self
+    class    (nodeOperatorSatelliteTidalMassLossSoliton), intent(inout), target  :: self
     type     (treeNode                                ), intent(inout), target  :: node
     logical                                            , intent(inout)          :: interrupt
     procedure(interruptTask                           ), intent(inout), pointer :: functionInterrupt
@@ -237,7 +237,7 @@ contains
         call satellite%boundMassRate(massLossRateOuter)
     end if
     return
-  end subroutine satelliteConditionalStrippingDifferentialEvolution
+  end subroutine satelliteTidalMassLossSolitonDifferentialEvolution
 
   subroutine solitonPhaseTransition(node,timeEnd)
     !!{RST

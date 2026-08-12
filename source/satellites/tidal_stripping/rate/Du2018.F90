@@ -38,7 +38,7 @@
    total mass of the soliton. That total is taken to be four times the mass enclosed within the core radius, and it is therefore
    four times the rate of loss of the core mass which is returned here, as this class must report the rate of loss of the *bound*
    mass. The class is consequently not meaningful when applied to a satellite which retains an envelope around its core, and is
-   intended for use only through :galacticus-class:`nodeOperatorSatelliteConditionalMassLoss`, which applies it only in that
+   intended for use only through :galacticus-class:`nodeOperatorSatelliteTidalMassLossSoliton`, which applies it only in that
    state.
    </description>
   </satelliteTidalStripping>
