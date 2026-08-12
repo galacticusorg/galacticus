@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!-- Schema used to validate componentPropertyAssert directives -->
+
+  <xs:element name="componentPropertyAssert">
+    <xs:complexType>
+      <xs:attribute name="class"      use="required"/>
+      <xs:attribute name="properties" use="required"/>
+      <xs:attribute name="require"    use="required"/>
+      <xs:attribute name="message"                  />
+      <xs:attribute name="assignTo"                 />
+      <xs:attribute name="condition"                />
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

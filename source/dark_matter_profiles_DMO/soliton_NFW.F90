@@ -150,10 +150,9 @@ contains
     !!{RST
     Generic constructor for the :galacticus-class:`darkMatterProfileDMOSolitonNFW` dark matter halo profile class.
     !!}
-    use :: Error                         , only : Component_List                   , Error_Report
-    use :: Dark_Matter_Particles         , only : darkMatterParticleFuzzyDarkMatter
-    use :: Numerical_Constants_Prefixes  , only : kilo
-    use :: Galacticus_Nodes              , only : defaultDarkMatterProfileComponent
+    use :: Error                       , only : Error_Report
+    use :: Dark_Matter_Particles       , only : darkMatterParticleFuzzyDarkMatter
+    use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
     type            (darkMatterProfileDMOSolitonNFW)                      :: self
     class           (darkMatterHaloScaleClass      ), intent(in), target  :: darkMatterHaloScale_
@@ -183,16 +182,9 @@ contains
     class default
        call Error_Report('expected a `darkMatterParticleFuzzyDarkMatter` dark matter particle object'//{introspection:location})
     end select
-    if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                             &
-        & call Error_Report                                                                                                   &
-        &      (                                                                                                              &
-        &       'solitonNFW dark matter profile requires a dark matter profile component with a gettable "scale" property.'// &
-        &       Component_List(                                                                                               &
-        &                      'darkMatterProfile'                                                                         ,  &
-        &                      defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)                  &
-        &                     )                                                                                            // &
-        &      {introspection:location}                                                                                       &
-        &      )
+    !![
+    <componentPropertyAssert class="darkMatterProfile" properties="scale" require="gettable"/>
+    !!]
     return
   end function solitonNFWConstructorInternal
 

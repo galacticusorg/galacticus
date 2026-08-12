@@ -95,8 +95,6 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorSatelliteStatus` property extractor class.
     !!}
-    use :: Error           , only : Component_List          , Error_Report
-    use :: Galacticus_Nodes, only : defaultPositionComponent, defaultSatelliteComponent
     implicit none
     type(nodePropertyExtractorSatelliteStatus       )                :: self
     type(enumerationSatelliteStatusDiscriminatorType), intent(in   ) :: discriminator
@@ -106,35 +104,13 @@ contains
 
     select case (discriminator%ID)
     case (satelliteStatusDiscriminatorBoundMass%ID)
-       if     (                                                                                                             &
-            &  .not.                                                                                                        &
-            &       (                                                                                                       &
-            &        defaultSatelliteComponent% boundMassHistoryIsGettable()                                                &
-            &       )                                                                                                       &
-            & ) call Error_Report                                                                                           &
-            &        (                                                                                                      &
-            &         'this method requires that boundMassHistory property must be gettable for the satellite component.'// &
-            &         Component_List(                                                                                       &
-            &                        'satellite'                                                                         ,  &
-            &                        defaultSatelliteComponent%boundMassHistoryAttributeMatch(requireGettable=.true.)       &
-            &                       )                                                                                    // &
-            &         {introspection:location}                                                                              &
-            &        )
+       !![
+       <componentPropertyAssert class="satellite" properties="boundMassHistory" require="gettable"/>
+       !!]
     case (satelliteStatusDiscriminatorPosition %ID)
-       if     (                                                                                                             &
-            &  .not.                                                                                                        &
-            &       (                                                                                                       &
-            &        defaultPositionComponent %  positionHistoryIsGettable()                                                &
-            &       )                                                                                                       &
-            & ) call Error_Report                                                                                           &
-            &        (                                                                                                      &
-            &         'this method requires that positionHistory property must be gettable for the position component.'  // &
-            &         Component_List(                                                                                       &
-            &                        'position'                                                                          ,  &
-            &                        defaultPositionComponent%positionHistoryAttributeMatch  (requireGettable=.true.)       &
-            &                       )                                                                                    // &
-            &         {introspection:location}                                                                              &
-            &        )
+       !![
+       <componentPropertyAssert class="position"  properties="positionHistory"  require="gettable"/>
+       !!]
     end select
     return
   end function satelliteStatusConstructorInternal

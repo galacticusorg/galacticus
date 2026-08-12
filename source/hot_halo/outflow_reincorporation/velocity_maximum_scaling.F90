@@ -149,8 +149,6 @@ contains
     !!{RST
     Default constructor for the velocityMaximumScaling hot halo outflow reincorporation class.
     !!}
-    use :: Error           , only : Component_List         , Error_Report
-    use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type            (hotHaloOutflowReincorporationVelocityMaximumScaling)                        :: self
     double precision                                                     , intent(in   )         :: timeScale            , velocityExponent, &
@@ -162,16 +160,9 @@ contains
     !!]
 
     ! Validate.
-    if (.not.defaultHotHaloComponent%outflowedMassIsGettable())                                            &
-         & call Error_Report                                                                               &
-         &   (                                                                                             &
-         &    'the "outflowedMass" properties of the hotHalo component must be gettable.'               // &
-         &    Component_List(                                                                              &
-         &                   'hotHalo'                                                                   , &
-         &                   defaultHotHaloComponent%outflowedMassAttributeMatch(requireGettable=.true.)   &
-         &                  )                                                                           // &
-         &    {introspection:location}                                                                     &
-         &   )
+    !![
+    <componentPropertyAssert class="hotHalo" properties="outflowedMass" require="gettable"/>
+    !!]
     ! Construct the object.
     self%timeScaleNormalization =timeScale/velocityNormalization**velocityExponent
     self%lastUniqueID           =-1_kind_int8

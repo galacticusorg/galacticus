@@ -105,24 +105,16 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`starFormationTimescaleDynamicalTime` timescale for star formation class.
     !!}
-    use :: Galacticus_Nodes, only : defaultDiskComponent, defaultSpheroidComponent, defaultNSCComponent
     implicit none
     type            (starFormationTimescaleDynamicalTime)                :: self
     double precision                                     , intent(in   ) :: efficiency      , exponentVelocity, &
          &                                                                  timescaleMinimum
     !![
     <constructorAssign variables="efficiency, exponentVelocity, timescaleMinimum"/>
+    <componentPropertyAssert class="disk"     properties="velocity radius" require="gettable" assignTo="self%diskSupported"              />
+    <componentPropertyAssert class="spheroid" properties="velocity radius" require="gettable" assignTo="self%spheroidSupported"          />
+    <componentPropertyAssert class="NSC"      properties="velocity radius" require="gettable" assignTo="self%nuclearStarClusterSupported"/>
     !!]
-    
-    self%diskSupported              = defaultDiskComponent    %velocityIsGettable() &
-         &                            .and.                                         &
-         &                            defaultDiskComponent    %  radiusIsGettable() 
-    self%spheroidSupported          = defaultSpheroidComponent%velocityIsGettable() &
-         &                            .and.                                         &
-         &                            defaultSpheroidComponent%  radiusIsGettable() 
-    self%nuclearStarClusterSupported= defaultNSCComponent     %velocityIsGettable() &
-         &                            .and.                                         &
-         &                            defaultNSCComponent     %  radiusIsGettable() 
     return
   end function dynamicalTimeConstructorInternal
 
@@ -136,10 +128,8 @@ contains
 
     where :math:`\epsilon_\star`\ (=\ ``efficiency``) is a star formation efficiency and :math:`\alpha_\star`\ (=\ ``exponentVelocity``) controls the scaling with velocity. Note that :math:`\tau_\mathrm{dynamical}=R/V` where the radius and velocity are whatever characteristic values returned by the component. This scaling is functionally similar to that adopted by :cite:t:`cole_hierarchical_2000`, but they specifically used the half-mass radius and circular velocity at that radius.
     !!}
-    use :: Array_Utilities                 , only : operator(.intersection.)
     use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : defaultDiskComponent    , defaultSpheroidComponent, defaultNSCComponent, nodeComponent, &
-          &                                         nodeComponentDisk       , nodeComponentSpheroid   , nodeComponentNSC
+    use :: Galacticus_Nodes                , only : nodeComponent    , nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
     implicit none
     class           (starFormationTimescaleDynamicalTime), intent(inout) :: self
@@ -150,48 +140,21 @@ contains
 
     select type (component)
     class is (nodeComponentDisk              )
-       if (.not.self%diskSupported              ) then
-          call Error_Report(                                                                                          &
-               &            'disk component must have gettable radius and velocity properties.'                    // &
-               &            Component_List(                                                                           &
-               &                           'disk'                                                                  ,  &
-               &                            defaultDiskComponent    %velocityAttributeMatch(requireGettable=.true.)   &
-               &                           .intersection.                                                             &
-               &                            defaultDiskComponent    %  radiusAttributeMatch(requireGettable=.true.)   &
-               &                          )                                                                        // &
-               &            {introspection:location}                                                                  &
-               &           )
-       end if
+       !![
+       <componentPropertyAssert class="disk"     properties="velocity radius" require="gettable" condition="self%diskSupported"              />
+       !!]
        velocity=component%velocity()
        radius  =component%radius  ()
     class is (nodeComponentSpheroid          )
-       if (.not.self%spheroidSupported          ) then
-          call Error_Report(                                                                                          &
-               &            'spheroid component must have gettable radius and velocity properties.'                // &
-               &            Component_List(                                                                           &
-               &                           'spheroid'                                                              ,  &
-               &                            defaultSpheroidComponent%velocityAttributeMatch(requireGettable=.true.)   &
-               &                           .intersection.                                                             &
-               &                            defaultSpheroidComponent%  radiusAttributeMatch(requireGettable=.true.)   &
-               &                          )                                                                        // &
-               &            {introspection:location}                                                                  &
-               &           )
-       end if
+       !![
+       <componentPropertyAssert class="spheroid" properties="velocity radius" require="gettable" condition="self%spheroidSupported"          />
+       !!]
        velocity=component%velocity()
        radius  =component%radius  ()
     class is (nodeComponentNSC)
-       if (.not.self%nuclearStarClusterSupported) then
-          call Error_Report(                                                                                          &
-               &            'nuclear star cluster component must have gettable radius and velocity properties.'    // &
-               &            Component_List(                                                                           &
-               &                           'NSC'                                                                   ,  &
-               &                            defaultNSCComponent     %velocityAttributeMatch(requireGettable=.true.)   &
-               &                           .intersection.                                                             &
-               &                            defaultNSCComponent     %  radiusAttributeMatch(requireGettable=.true.)   &
-               &                          )                                                                        // &
-               &            {introspection:location}                                                                  &
-               &           )
-       end if
+       !![
+       <componentPropertyAssert class="NSC"      properties="velocity radius" require="gettable" condition="self%nuclearStarClusterSupported"/>
+       !!]
        velocity=component%velocity()
        radius  =component%radius  ()
     class default
