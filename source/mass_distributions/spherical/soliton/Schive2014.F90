@@ -44,7 +44,7 @@
     !
     ! This is simply the r=r_c case of the analytic solution evaluated in solitonMassEnclosedBySphere(), i.e.
     !
-    !  coefficientMassCore = [ 3465 tan-¹(√c) + √c P(c) / (1+c)⁷ ] / ( 53760 c^(3/2) ),
+    !  coefficientMassCore = [ 3465 tan⁻¹(√c) + √c P(c) / (1+c)⁷ ] / ( 53760 c^(3/2) ),
     !
     ! with c=coefficientCore and P(c) the polynomial below. For c=0.091 this evaluates to 0.888026837983102.
     double precision, parameter, private :: coefficientMassCorePolynomial=+  3465.0d0*coefficientCore**6 &

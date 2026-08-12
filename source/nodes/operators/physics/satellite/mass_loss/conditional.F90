@@ -211,4 +211,3 @@ contains
     end if
     return
   end subroutine destructionTrigger
-
