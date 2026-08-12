@@ -152,10 +152,24 @@ contains
                &                                             )
           ! Estimate the specific angular momentum of the accreted material.
           if (self%angularMomentumSpecificGrowthFromAccretionRate) then
-             ! Estimate using the dark matter-only accretion rate (which excludes resolved mergers).
-             if (basic%accretionRate() > 0.0d0) then
+             ! Estimate using the dark matter-only accretion rate (which excludes resolved mergers). Note that negative
+             ! accretion rates are permitted here - when a halo is losing mass the gas removed from the circumgalactic
+             ! medium must carry away its angular momentum. Only a precisely zero accretion rate, for which the specific
+             ! angular momentum is undefined (and irrelevant, since no mass is accreted), is excluded.
+             if (basic%accretionRate() /= 0.0d0) then
+                ! Note that the change in the magnitude of the angular momentum is used here directly, rather than the
+                ! `angularMomentumGrowthRate` property. For a vector spin component that property is a deferred function
+                ! returning the instantaneous projection, d|J|/dt = (J.dJ/dt)/|J|, which varies along the branch segment as
+                ! the angular momentum vector reorients. Evaluating it here would freeze its value at the start of the
+                ! segment, and, since |J(t)| is convex, would systematically under-deliver angular momentum to the
+                ! circumgalactic medium. Using the net change in magnitude instead integrates to exactly the change in the
+                ! angular momentum of the halo across the segment, for both scalar and vector spin components.
                 call  spin%angularMomentumSpecificAccretedSet(                                          &
-                     &                                        +spin        %angularMomentumGrowthRate() &
+                     &                                        +(                                        &
+                     &                                          +spinParent%angularMomentum          () &
+                     &                                          -spin      %angularMomentum          () &
+                     &                                         )                                        &
+                     &                                        /             timeInterval                &
                      &                                        /basic       %accretionRate            () &
                      &                                       )
              else
