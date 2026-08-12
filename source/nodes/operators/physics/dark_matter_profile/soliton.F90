@@ -192,6 +192,12 @@ contains
          &                                                                               K1
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
+    ! The core-halo mass relation describes the growth of the solitonic core of a halo which is accreting in the cosmological
+    ! background, and is not applicable to a satellite: a satellite does not accrete, so the term in the accretion rate below
+    ! vanishes identically for one, while the remaining terms would continue to evolve its core in response to the expansion of
+    ! the universe and to the changing virial density contrast, neither of which acts on a halo which is instead losing mass to
+    ! tides. The core of a satellite is evolved by the tidal stripping operators instead.
+    if (node%isSatellite()) return
     ! Get required components.
     basic             => node%basic            ()
     darkMatterProfile => node%darkMatterProfile()
