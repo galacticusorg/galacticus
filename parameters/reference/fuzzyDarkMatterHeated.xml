@@ -28,19 +28,31 @@
   <change type="replaceWith" path="transferFunction/cosmologyParameters" target="axionCAMBTmp/cosmologyParameters"/>
   <change type="remove" path="axionCAMBTmp"/>
 
-  <!-- Copy the concentration scale-radius model out of the Johnson (2021) wrapper. -->
+  <!-- Replace the Johnson (2021) energy random-walk model for halo scale radii with the concentration-based model which it
+       itself wraps. The random-walk model follows the energy of a halo through its accretion and merging history, and is
+       calibrated against N-body simulations of cold dark matter; it has not been calibrated for halos forming from a power
+       spectrum with a small-scale cut-off, where the accretion history is markedly different. The concentration-based model
+       nested within it is used directly instead. This is done by copying that model out of the wrapper before the wrapper is
+       removed, so that the settings it carries are preserved. -->
   <change type="append" path="darkMatterProfileScaleRadius">
     <darkMatterProfileScaleRadius value="concentration"/>
   </change>
 
   <change type="replaceWith" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius[@value='concentration']" target="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius[@value='johnson2021']/darkMatterProfileScaleRadius[@value='concentration']"/>
 
-  <!-- Allow lower halo concentrations for fuzzy dark matter. -->
+  <!-- Lower the floor imposed on halo concentrations. The default of 3.0 is appropriate for cold dark matter, but fuzzy dark
+       matter halos with masses close to the cut-off in the power spectrum form late and are correspondingly far less
+       concentrated, so that floor would otherwise bind on a substantial fraction of them and truncate the very part of the
+       population which distinguishes the model from cold dark matter. -->
   <change type="update" path="darkMatterProfileScaleRadius/concentrationMinimum" value="0.1"/>
 
   <!-- Remove the Johnson (2021) wrapper only after its required children have been copied. -->
   <change type="remove" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius[@value='johnson2021']"/>
 
+  <!-- Restrict the Diemer & Joyce (2019) concentration model to the range over which it was calibrated, rather than
+       extrapolating it. Truncating the concentration prevents the fit being evaluated outside that range, and the upturn in
+       concentration at high peak height is a feature of the cold dark matter halo population which is not expected to carry
+       over to halos forming near a cut-off in the power spectrum. -->
   <change type="update"  path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/reference/darkMatterProfileConcentration/truncateConcentration" value="true"/>
 
   <change type="update" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/reference/darkMatterProfileConcentration/includeUpturn" value="false"/>

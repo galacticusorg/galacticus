@@ -36,6 +36,10 @@
   <darkMatterProfileDMO name="darkMatterProfileDMOSolitonNFWHeated" docformat="rst">
    <description>
    A dark matter profile DMO class which builds :galacticus-class:`massDistributionSolitonNFWHeated` objects to implement the :term:`FDM` profile. The inner region follows the soliton solution, while the outer region transitions to a heated NFW envelope. The core-halo mass relation and core radius are computed following :cite:t:`chan_diversity_2022`, while the core density normalization follows :cite:t:`schive_understanding_2014`.
+
+   Note that tidal heating is applied to the NFW envelope only, and never to the solitonic core: the core is a coherent ground state of the wave equation governing the fuzzy dark matter field, rather than a collection of particles on orbits, and so does not respond to tidal heating in the way that a collisionless profile does. In consequence a halo which has been stripped down to its core, and which is therefore described by :galacticus-class:`massDistributionSoliton` alone, carries no heating at all.
+
+   The structural state of each halo is recorded in the ``solitonStatus`` meta-property. A halo is determined, once, to be either soliton+NFW or NFW-only, and is never afterwards reconsidered---so that it can not move back and forth between the two descriptions as its properties evolve, which would be unphysical and would present the ODE solver with discontinuous changes in the density profile. A soliton+NFW halo may subsequently become soliton-only, if tidal stripping removes its NFW envelope; that state, too, is permanent.
    </description>
    <deepCopy>
     <functionClass variables="massDistributionHeated_"/>
@@ -634,8 +638,11 @@ contains
     call darkMatterProfile%floatRank0MetaPropertySet(self%radiusSolitonID,-1.0d0)
     call darkMatterProfile%floatRank0MetaPropertySet(self%massCoreID     ,-1.0d0)
     solitonStatus = enumerationSolitonStatusType(darkMatterProfile%integerRank0MetaPropertyGet(self%solitonStatusID))
-    ! Initialize the status on the first call. If a soliton solution is found, the halo is treated as a soliton+NFW profile
-    ! thereafter. Otherwise the status is set to NFW-only and the halo is treated as an NFW profile for all subsequent calls.
+    ! Record the state of the halo. If a solution for the soliton transition radius is found the halo is treated as soliton+NFW,
+    ! and otherwise as NFW-only. The NFW-only state is permanent: a halo which has once failed to admit a soliton is never
+    ! reconsidered. This is deliberate. Allowing the state to be re-determined lets a halo move back and forth between the
+    ! soliton+NFW and NFW-only descriptions as its properties evolve, which is unphysical, and the resulting discontinuous
+    ! changes in its density profile cause numerical difficulties for the ODE solver.
     if (solitonStatus == solitonStatusUninitialized) &
         & call darkMatterProfile%integerRank0MetaPropertySet(self%solitonStatusID,solitonStatusNfwOnly%ID)
     ! Extract basic properties of the node.

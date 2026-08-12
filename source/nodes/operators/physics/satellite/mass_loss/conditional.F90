@@ -61,7 +61,7 @@
   end interface nodeOperatorSatelliteConditionalMassLoss
 
   ! Submodule-scope pointer to self, used in callback functions.
-  class          (nodeOperatorSatelliteConditionalMassLoss), pointer :: self_
+  class(nodeOperatorSatelliteConditionalMassLoss), pointer :: self_
   !$omp threadprivate(self_)
 
 contains
