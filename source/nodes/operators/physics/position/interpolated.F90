@@ -337,8 +337,8 @@ contains
     !!}
     use :: Error                       , only : Error_Report
     use :: Display                     , only : displayIndent            , displayUnindent      , displayMessage
-    use :: Galacticus_Nodes            , only : nodeComponentBasic       , nodeComponentPosition, nodeComponentSatellite            , nodeEvent                   , &
-         &                                      nodeEventSubhaloPromotion, nodeEventBranchJump  , nodeEventSubhaloPromotionIntertree, nodeEventBranchJumpIntertree
+    use :: Galacticus_Nodes            , only : nodeComponentBasic       , nodeComponentPosition, nodeComponentSatellite, nodeEvent, &
+         &                                      nodeEventSubhaloPromotion, nodeEventBranchJump
     use :: Histories                   , only : history
     use :: Satellite_Merging_Timescales, only : satelliteMergeTimeInfinite
     use :: String_Handling             , only : operator(//)
@@ -875,10 +875,6 @@ contains
                   event          => event_
                   timeEvent      =  event %time
                end if
-            type is (nodeEventSubhaloPromotionInterTree)
-               call Error_Report('inter-tree subhalo promotions are not supported'//{introspection:location})
-            type is (nodeEventBranchJumpInterTree)
-               call Error_Report('inter-tree branch jumps are not supported'      //{introspection:location})
             end select
          end if
          event_ => event_%next

@@ -488,7 +488,6 @@ contains
     use               :: Merger_Tree_Outputters  , only : outputGroupTypeSnapshot
     use               :: MPI_Utilities           , only : mpiSelf
     use               :: Node_Components         , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
-    use               :: Node_Events_Inter_Tree  , only : Inter_Tree_Event_Post_Evolve
     !$ use            :: OMP_Lib                 , only : OMP_Destroy_Lock                 , OMP_Get_Thread_Num                 , OMP_Init_Lock  , omp_lock_kind    , &
     !$      &                                             OMP_Get_Max_Threads
     use               :: Sorting                 , only : sortIndex
@@ -1076,7 +1075,6 @@ contains
                 end if
                 call self%universeProcessed%lock%unset()
                 call displayMessage(message)
-                call Inter_Tree_Event_Post_Evolve()
                 call Error_Report('exiting'//{introspection:location})
              else
                 deadlockReport=.true.
