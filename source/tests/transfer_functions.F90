@@ -36,36 +36,36 @@ program Tests_Transfer_Functions
   use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group          , Unit_Tests_End_Group, Unit_Tests_Finish
   use :: Transfer_Functions                  , only : transferFunctionAccelerator             , transferFunctionEnvelope
   implicit none
-  type            (cosmologyParametersSimple               )                             :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda          )                             :: cosmologyFunctions_
-  type            (transferFunctionEisensteinHu1999        )                             :: transferFunctionEisensteinHu1999_               , transferFunctionEisensteinHu1999Massless_
-  type            (transferFunctionEisensteinHu1998        )                             :: transferFunctionEisensteinHu1998_
-  type            (transferFunctionCAMB                    )                             :: transferFunctionCAMB_
-  type            (darkMatterParticleCDM                   )                             :: darkMatterParticle_
-  type            (linearGrowthCollisionlessMatter         )                             :: linearGrowthCollisionlessMatter_
-  type            (powerSpectrumPrimordialTransferredSimple)                             :: powerSpectrumPrimordialTransferredSimple_
-  type            (powerSpectrumPrimordialPowerLaw         )                             :: powerSpectrumPrimordialPowerLaw_
-  double precision                                          , parameter                  :: stepLogarithmic                          =1.0d-3
-  integer                                                   , parameter                  :: wavenumberCount                          =1000
-  double precision                                          , parameter                  :: wavenumberMinimum                        =1.0d-3
-  double precision                                          , parameter                  :: wavenumberMaximum                        =1.0d+2
-  double precision                                          , dimension(wavenumberCount) :: transferFunctionLogarithmicDerivativeEH99       , transferFunctionLogarithmicDerivativeFiniteDifferenceEH99, &
-       &                                                                                    transferFunctionLogarithmicDerivativeEH98       , transferFunctionLogarithmicDerivativeFiniteDifferenceEH98, &
-       &                                                                                    powerSpectrumLogarithmicDerivativeEH98          , powerSpectrumLogarithmicDerivativeFiniteDifferenceEH98   , &
-       &                                                                                    transferFunctionValueEisensteinHu1999           , transferFunctionValueCAMB                                , &
-       &                                                                                    wavenumbers
-  double precision                                          , dimension(              2) :: wavenumber                                      , powerSpectrumValueEH98_                                  , &
-       &                                                                                    transferFunctionValueEH98_                      , transferFunctionValueEH99_
+  type            (cosmologyParametersSimple               )                                             :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda          )                                             :: cosmologyFunctions_
+  type            (transferFunctionEisensteinHu1999        )                                             :: transferFunctionEisensteinHu1999_               , transferFunctionEisensteinHu1999Massless_
+  type            (transferFunctionEisensteinHu1998        )                                             :: transferFunctionEisensteinHu1998_
+  type            (transferFunctionCAMB                    )                                             :: transferFunctionCAMB_
+  type            (darkMatterParticleCDM                   )                                             :: darkMatterParticle_
+  type            (linearGrowthCollisionlessMatter         )                                             :: linearGrowthCollisionlessMatter_
+  type            (powerSpectrumPrimordialTransferredSimple)                                             :: powerSpectrumPrimordialTransferredSimple_
+  type            (powerSpectrumPrimordialPowerLaw         )                                             :: powerSpectrumPrimordialPowerLaw_
+  double precision                                          , parameter                                  :: stepLogarithmic                          =1.0d-3
+  integer                                                   , parameter                                  :: wavenumberCount                          =1000
+  double precision                                          , parameter                                  :: wavenumberMinimum                        =1.0d-3
+  double precision                                          , parameter                                  :: wavenumberMaximum                        =1.0d+2
+  double precision                                                     , dimension(wavenumberCount     ) :: transferFunctionLogarithmicDerivativeEH99       , transferFunctionLogarithmicDerivativeFiniteDifferenceEH99, &
+       &                                                                                                    transferFunctionLogarithmicDerivativeEH98       , transferFunctionLogarithmicDerivativeFiniteDifferenceEH98, &
+       &                                                                                                    powerSpectrumLogarithmicDerivativeEH98          , powerSpectrumLogarithmicDerivativeFiniteDifferenceEH98   , &
+       &                                                                                                    transferFunctionValueEisensteinHu1999           , transferFunctionValueCAMB                                , &
+       &                                                                                                    wavenumbers
+  double precision                                                     , dimension(                   2) :: wavenumber                                      , powerSpectrumValueEH98_                                  , &
+       &                                                                                                    transferFunctionValueEH98_                      , transferFunctionValueEH99_
   double precision :: timeNow
-  integer                                                                                :: i                                               , j
+  integer                                                                                                :: i                                               , j
   ! Objects and workspace used to check that the tabulations built by the accelerator and envelope transfer functions do not
   ! depend on the order in which wavenumbers are requested of them.
-  type            (transferFunctionAccelerator             )                             :: transferFunctionAcceleratorAscending_           , transferFunctionAcceleratorDescending_
-  type            (transferFunctionEnvelope                )                             :: transferFunctionEnvelopeAscending_              , transferFunctionEnvelopeDescending_
-  integer                                                   , parameter                  :: wavenumberOrderCount                     =5
-  double precision                                          , parameter, dimension(wavenumberOrderCount) :: wavenumbersOrder=[1.0d-2,1.0d-1,1.0d0,1.0d1,1.0d2]
-  double precision                                          , dimension(wavenumberOrderCount) :: acceleratorAscending                       , acceleratorDescending, &
-       &                                                                                    envelopeAscending                          , envelopeDescending
+  type            (transferFunctionAccelerator             )                                             :: transferFunctionAcceleratorAscending_           , transferFunctionAcceleratorDescending_
+  type            (transferFunctionEnvelope                )                                             :: transferFunctionEnvelopeAscending_              , transferFunctionEnvelopeDescending_
+  integer                                                   , parameter                                  :: wavenumberOrderCount                     =5
+  double precision                                          , parameter, dimension(wavenumberOrderCount) :: wavenumbersOrder                         =[1.0d-2,1.0d-1,1.0d0,1.0d1,1.0d2]
+  double precision                                                     , dimension(wavenumberOrderCount) :: acceleratorAscending                            , acceleratorDescending                                   , &
+       &                                                                                                    envelopeAscending                               , envelopeDescending
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -174,21 +174,21 @@ program Tests_Transfer_Functions
   transferFunctionAcceleratorAscending_ =transferFunctionAccelerator(transferFunctionEisensteinHu1998_,cosmologyParameters_,10)
   transferFunctionAcceleratorDescending_=transferFunctionAccelerator(transferFunctionEisensteinHu1998_,cosmologyParameters_,10)
   do i=1,wavenumberOrderCount
-     acceleratorAscending (                     i)=transferFunctionAcceleratorAscending_ %value(wavenumbersOrder(                     i))
+     acceleratorAscending (i)=transferFunctionAcceleratorAscending_ %value(wavenumbersOrder(i))
   end do
   do i=wavenumberOrderCount,1,-1
-     acceleratorDescending(                     i)=transferFunctionAcceleratorDescending_%value(wavenumbersOrder(                     i))
+     acceleratorDescending(i)=transferFunctionAcceleratorDescending_%value(wavenumbersOrder(i))
   end do
   call Assert('accelerator T(k) is independent of the order in which wavenumbers are requested',acceleratorAscending,acceleratorDescending,absTol=0.0d0)
-  transferFunctionEnvelopeAscending_    =transferFunctionEnvelope   (100,1.0d-2,1.0d2,.false.,.false.,cosmologyParameters_,transferFunctionEisensteinHu1998_)
-  transferFunctionEnvelopeDescending_   =transferFunctionEnvelope   (100,1.0d-2,1.0d2,.false.,.false.,cosmologyParameters_,transferFunctionEisensteinHu1998_)
+  transferFunctionEnvelopeAscending_ =transferFunctionEnvelope(100,1.0d-2,1.0d2,.false.,.false.,cosmologyParameters_,transferFunctionEisensteinHu1998_)
+  transferFunctionEnvelopeDescending_=transferFunctionEnvelope(100,1.0d-2,1.0d2,.false.,.false.,cosmologyParameters_,transferFunctionEisensteinHu1998_)
   do i=1,wavenumberOrderCount
-     envelopeAscending    (                     i)=transferFunctionEnvelopeAscending_    %value(wavenumbersOrder(                     i))
+     envelopeAscending    (i)=transferFunctionEnvelopeAscending_    %value(wavenumbersOrder(i))
   end do
   do i=wavenumberOrderCount,1,-1
-     envelopeDescending   (                     i)=transferFunctionEnvelopeDescending_   %value(wavenumbersOrder(                     i))
+     envelopeDescending   (i)=transferFunctionEnvelopeDescending_   %value(wavenumbersOrder(i))
   end do
-  call Assert('envelope T(k) is independent of the order in which wavenumbers are requested'   ,envelopeAscending   ,envelopeDescending   ,absTol=0.0d0)
+  call Assert('envelope T(k) is independent of the order in which wavenumbers are requested',envelopeAscending,envelopeDescending,absTol=0.0d0)
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()

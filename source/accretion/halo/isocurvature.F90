@@ -62,21 +62,21 @@
      A halo accretion class in which accretion is reduced to account for the effects of isocurvature perturbations following the model of :cite:t:`jessop_ripples_2026`
      !!}
      private
-     class           (accretionHaloClass               ), pointer :: accretionHalo_               => null()
-     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_         => null()
-     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_          => null()
-     class           (criticalOverdensityClass         ), pointer :: criticalOverdensity_         => null()
-     class           (linearGrowthClass                ), pointer :: linearGrowth_                => null()
-     type            (powerSpectrumWindowFunctionTopHat), pointer :: powerSpectrumWindowFunction_ => null()
-     double precision                                             :: wavenumberMaximum                     , fractionBaryonsUniversal
-     logical                                                      :: wavenumberMaximumReached              , initialized
-     integer                                                      :: countPerDecade
-     type            (table1dGeneric                   )          :: perturbationsDarkMatter               , perturbationsBaryons
+     class           (accretionHaloClass               ), pointer                   :: accretionHalo_               => null()
+     class           (cosmologyParametersClass         ), pointer                   :: cosmologyParameters_         => null()
+     class           (cosmologyFunctionsClass          ), pointer                   :: cosmologyFunctions_          => null()
+     class           (criticalOverdensityClass         ), pointer                   :: criticalOverdensity_         => null()
+     class           (linearGrowthClass                ), pointer                   :: linearGrowth_                => null()
+     type            (powerSpectrumWindowFunctionTopHat), pointer                   :: powerSpectrumWindowFunction_ => null()
+     double precision                                                               :: wavenumberMaximum                     , fractionBaryonsUniversal
+     logical                                                                        :: wavenumberMaximumReached              , initialized
+     integer                                                                        :: countPerDecade
+     type            (table1dGeneric                   )                            :: perturbationsDarkMatter               , perturbationsBaryons
      ! Lattice to which the tabulated masses are pinned, and the correlations tabulated on it. The lattice is the source of
      ! truth for the extent of the tabulation, and is undefined until the first tabulation is made.
-     type            (rangeLattice                     )          :: latticeMass
-     double precision                     , allocatable, dimension(:) :: correlationTabulated
-     type            (interpolator                     )          :: correlation
+     type            (rangeLattice                     )                            :: latticeMass
+     double precision                                   , allocatable, dimension(:) :: correlationTabulated
+     type            (interpolator                     )                            :: correlation
    contains
      !![
      <methods docformat="rst">
@@ -387,24 +387,24 @@ contains
     !!}
     use :: Interfaces_CLASS     , only : Interface_CLASS_Perturbations
     use :: Galacticus_Nodes     , only : nodeComponentBasic
-    use :: Numerical_Ranges     , only : Range_Lattice_Extend         , Range_Pinned          , gridSchemePerDecade
+    use :: Numerical_Ranges     , only : Range_Lattice_Extend         , Range_Pinned, gridSchemePerDecade
     use :: Numerical_Integration, only : integrator
     implicit none
-    class           (accretionHaloIsocurvature), intent(inout), target     :: self
-    type            (treeNode                 ), intent(inout)             :: node
-    integer                                    , parameter                 :: countPointsPerDecade =20
-    double precision                           , parameter                 :: toleranceRelative    =1.0d-6, wavenumberLarge =1.0d3, &
-         &                                                                    factorWavenumberLarge=1.0d3
-    class           (nodeComponentBasic       )               , pointer    :: basic
-    double precision                           , dimension(1)              :: redshifts
-    double precision                           , dimension(:), allocatable :: mass
-    logical                                    , dimension(:), allocatable :: isComputed
-    type            (rangeLattice             )                            :: latticeMass
-    double precision                                                       :: wavenumberMaximum           , massSmoothing         , &
-         &                                                                    correlationDirect           , correlationCross
-    logical                                                                :: makePerturbations           , remakeTable
-    integer                                                                :: i
-    type            (integrator               )                            :: integratorDirect            , integratorCross
+    class           (accretionHaloIsocurvature), intent(inout), target      :: self
+    type            (treeNode                 ), intent(inout)              :: node
+    integer                                    , parameter                  :: countPointsPerDecade =20
+    double precision                           , parameter                  :: toleranceRelative    =1.0d-6, wavenumberLarge =1.0d3, &
+         &                                                                     factorWavenumberLarge=1.0d3
+    class           (nodeComponentBasic       )               , pointer     :: basic
+    double precision                           , dimension(1)               :: redshifts
+    double precision                           , dimension(:) , allocatable :: mass
+    logical                                    , dimension(:) , allocatable :: isComputed
+    type            (rangeLattice             )                             :: latticeMass
+    double precision                                                        :: wavenumberMaximum           , massSmoothing         , &
+         &                                                                     correlationDirect           , correlationCross
+    logical                                                                 :: makePerturbations           , remakeTable
+    integer                                                                 :: i
+    type            (integrator               )                             :: integratorDirect            , integratorCross
 
     ! Determine if the tabulated correlation needs to be expanded. The masses tabulated are pinned to an absolute lattice, so
     ! that the masses evaluated - and therefore every value interpolated between them - depend only on which lattice points are
@@ -421,13 +421,13 @@ contains
     ! dependence that pinning the lattice exists to remove.
     basic         => node %basic()
     massSmoothing =  basic%mass ()
-    latticeMass   =  Range_Pinned(                                                &
-         &                                       [massSmoothing]                , &
-         &                                        countPointsPerDecade          , &
-         &                                        gridSchemePerDecade           , &
-         &                        marginFactor  = 2.0d0                         , &
-         &                        anchorEvery   = countPointsPerDecade/2        , &
-         &                        latticeCurrent= self%latticeMass                &
+    latticeMass   =  Range_Pinned(                                        &
+         &                                       [massSmoothing]        , &
+         &                                        countPointsPerDecade  , &
+         &                                        gridSchemePerDecade   , &
+         &                        marginFactor  = 2.0d0                 , &
+         &                        anchorEvery   = countPointsPerDecade/2, &
+         &                        latticeCurrent= self%latticeMass        &
          &                       )
     remakeTable   =  .not.self%latticeMass%covers(latticeMass)
     if (remakeTable) then
@@ -446,7 +446,7 @@ contains
        if (makePerturbations) then
           ! The perturbations tables must be expanded. Call the CLASS interface to do this.
           redshifts=[0.0d0]
-          call Interface_CLASS_Perturbations(                                                       &
+          call Interface_CLASS_Perturbations(                                                        &
                &                                                      self%cosmologyParameters_    , &
                &                                                           redshifts               , &
                &                                                           wavenumberMaximum       , &

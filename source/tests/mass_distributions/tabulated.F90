@@ -36,39 +36,39 @@ program Test_Mass_Distributions_Tabulated
        &                                          Skip
   use :: IO_HDF5                         , only : ioHDF5AccessInitialize
   implicit none
-  class           (massDistributionClass      ), allocatable             :: massDistribution_
-  class           (kinematicsDistributionClass), pointer                 :: kinematicsDistribution_
-  double precision                             , parameter               :: radiusVirial           =0.25d0, radiusScale               =0.025d0, &
-       &                                                                    massVirial             =1.0d12, radiusCore                =0.010d0, &
-       &                                                                    yCusp                  =0.2d00
+  class           (massDistributionClass      ), allocatable               :: massDistribution_
+  class           (kinematicsDistributionClass), pointer                   :: kinematicsDistribution_
+  double precision                             , parameter                 :: radiusVirial           =0.25d0, radiusScale               =0.025d0, &
+       &                                                                      massVirial             =1.0d12, radiusCore                =0.010d0, &
+       &                                                                      yCusp                  =0.2d00
   ! A scaled radius beyond any reached by the tests below, used to force the tabulations to be extended.
-  double precision                             , parameter               :: radiusExtension        =1.0d02
-  double precision                                        , dimension(7) :: mass                          , densityMoment0                    , &
-       &                                                                    densityMoment1                , densityMoment2                    , &
-       &                                                                    densityMoment3                , energy                            , &
-       &                                                                    radiusFreefall                , radiusFreefallIncreaseRate        , &
-       &                                                                    potential                     , fourierTransform                  , &
-       &                                                                    velocityDispersion            , massTarget                        , &
-       &                                                                    densityMoment0Target          , densityMoment1Target              , &
-       &                                                                    densityMoment2Target          , densityMoment3Target              , &
-       &                                                                    radiusDensity                 , radiusDensityTarget               , &
-       &                                                                    massBefore                    , densityMoment2Before
-  type            (coordinateSpherical        )                          :: coordinates                   , coordinatesReference
-  double precision                                                       :: timeScale                     , densityScale                      , &
-       &                                                                    massExtended
-  integer                                                                :: i                             , iProfile
-  double precision                             , parameter, dimension(7) :: radiiScaleFree      =[                                           &
-       &                                                                                          0.010000000000000d00,0.030000000000000d00, &
-       &                                                                                          0.100000000000000d00,0.300000000000000d00, &
-       &                                                                                          1.000000000000000d00,3.000000000000000d00, &
-       &                                                                                          1.000000000000000d01                       &
-       &                                                                                         ]
-  double precision                                        , dimension(7) :: energyTarget
-  double precision                                        , dimension(7) :: radiusFreefallTarget
-  double precision                                        , dimension(7) :: radiusFreefallIncreaseRateTarget
-  double precision                                        , dimension(7) :: potentialTarget
-  double precision                                        , dimension(7) :: fourierTransformTarget
-  double precision                                        , dimension(7) :: velocityDispersionTarget
+  double precision                             , parameter                 :: radiusExtension        =1.0d02
+  double precision                                          , dimension(7) :: mass                          , densityMoment0                    , &
+       &                                                                      densityMoment1                , densityMoment2                    , &
+       &                                                                      densityMoment3                , energy                            , &
+       &                                                                      radiusFreefall                , radiusFreefallIncreaseRate        , &
+       &                                                                      potential                     , fourierTransform                  , &
+       &                                                                      velocityDispersion            , massTarget                        , &
+       &                                                                      densityMoment0Target          , densityMoment1Target              , &
+       &                                                                      densityMoment2Target          , densityMoment3Target              , &
+       &                                                                      radiusDensity                 , radiusDensityTarget               , &
+       &                                                                      massBefore                    , densityMoment2Before
+  type            (coordinateSpherical        )                            :: coordinates                   , coordinatesReference
+  double precision                                                         :: timeScale                     , densityScale                      , &
+       &                                                                      massExtended
+  integer                                                                  :: i                             , iProfile
+  double precision                             , parameter  , dimension(7) :: radiiScaleFree      =[                                           &
+       &                                                                                            0.010000000000000d00,0.030000000000000d00, &
+       &                                                                                            0.100000000000000d00,0.300000000000000d00, &
+       &                                                                                            1.000000000000000d00,3.000000000000000d00, &
+       &                                                                                            1.000000000000000d01                       &
+       &                                                                                           ]
+  double precision                                          , dimension(7) :: energyTarget
+  double precision                                          , dimension(7) :: radiusFreefallTarget
+  double precision                                          , dimension(7) :: radiusFreefallIncreaseRateTarget
+  double precision                                          , dimension(7) :: potentialTarget
+  double precision                                          , dimension(7) :: fourierTransformTarget
+  double precision                                          , dimension(7) :: velocityDispersionTarget
   
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelWorking)
@@ -239,11 +239,11 @@ program Test_Mass_Distributions_Tabulated
         massBefore          =mass
         densityMoment2Before=densityMoment2
         ! These two are evaluated purely to force each tabulation to be extended; their results are not used.
-        massExtended        =massDistribution_%massEnclosedBySphere(                 radiusExtension   *radiusScale      )
-        massExtended        =massDistribution_%densityRadialMoment (2.0d0,0.0d0     ,radiusExtension   *radiusScale      )
+        massExtended        =massDistribution_%massEnclosedBySphere(            radiusExtension   *radiusScale)
+        massExtended        =massDistribution_%densityRadialMoment (2.0d0,0.0d0,radiusExtension   *radiusScale)
         do i=1,7
-           mass          (i)=massDistribution_%massEnclosedBySphere(                 radiiScaleFree (i)*radiusScale      )
-           densityMoment2(i)=massDistribution_%densityRadialMoment (2.0d0,0.0d0     ,radiiScaleFree (i)*radiusScale      )
+           mass          (i)=massDistribution_%massEnclosedBySphere(            radiiScaleFree (i)*radiusScale)
+           densityMoment2(i)=massDistribution_%densityRadialMoment (2.0d0,0.0d0,radiiScaleFree (i)*radiusScale)
         end do
         call    Assert("Mass within radius is unchanged by extension"          ,mass          ,massBefore          ,absTol=0.0d0)
         call    Assert("Radial density moment (m=2) is unchanged by extension" ,densityMoment2,densityMoment2Before,absTol=0.0d0)

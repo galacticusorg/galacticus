@@ -28,9 +28,18 @@
   !![
   <transferFunction name="transferFunctionEnvelope" docformat="rst">
     <description>
-    A transfer function envelope class which computes a transfer function that is a monotonically-decreasing (as a function of wavenumber) envelope to another transfer function. There is no unique monotonic envelope to an arbitrary function. The approach taken here largely follows the algorithm described by :cite:t:`mcclain_algorithm_1991`. Briefly, inflection points in the transfer function are identified, and the midpoints of the corresponding concave upward intervals are used as initial guesses for the tangent points of the envelope and original transfer function. These guesses for the tangent points are iteratively updated to remove regions when the envelope function fails (i.e. is below the original function).
+    A transfer function envelope class which computes a transfer function that is a monotonically-decreasing (as a function of
+    wavenumber) envelope to another transfer function. There is no unique monotonic envelope to an arbitrary function. The
+    approach taken here largely follows the algorithm described by :cite:t:`mcclain_algorithm_1991`. Briefly, inflection points in
+    the transfer function are identified, and the midpoints of the corresponding concave upward intervals are used as initial
+    guesses for the tangent points of the envelope and original transfer function. These guesses for the tangent points are
+    iteratively updated to remove regions when the envelope function fails (i.e. is below the original function).
 
-    If ``[transferFunctionReference]`` is supplied then half-, quarter-, and fraction-mode masses relative to that reference transfer function can be computed using the envelope function. If ``[envelopeModeMassesOnly]`` is set to true, then the envelope transfer function is used *only* for calculation of these mode masses---the original (non-envelope) transfer function is returned in all other cases. If ``[envelopeModeMassesOnly]`` is set to false then the enveloped transfer function is used for *all* calculations.
+    If ``[transferFunctionReference]`` is supplied then half-, quarter-, and fraction-mode masses relative to that reference
+    transfer function can be computed using the envelope function. If ``[envelopeModeMassesOnly]`` is set to true, then the
+    envelope transfer function is used *only* for calculation of these mode masses---the original (non-envelope) transfer function
+    is returned in all other cases. If ``[envelopeModeMassesOnly]`` is set to false then the enveloped transfer function is used
+    for *all* calculations.
     </description>
   </transferFunction>
   !!]
@@ -47,7 +56,7 @@
      ! tabulated at pivot points chosen from that sampling by a geometric construction, so *its* abscissae cannot lie on any
      ! lattice - but they are determined by the sampling, so pinning the sampling makes the envelope deterministic. For the same
      ! reason nothing can be carried over when the range grows: the construction is global, and every pivot may move.
-      type            (rangeLattice            )          :: latticeWavenumber
+     type            (rangeLattice            )          :: latticeWavenumber
      double precision                                    :: wavenumberMinimumLogarithmic           , wavenumberMaximumLogarithmic           , &
           &                                                 normalization                          , normalizationReference
      integer                                             :: tablePointsPerDecade
@@ -371,14 +380,14 @@ contains
     class           (transferFunctionEnvelope), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumberLogarithmic
 
-    lattice=Range_Pinned(                                                                            &
-         &                                [exp(wavenumberLogarithmic-1.0d0),exp(wavenumberLogarithmic)], &
-         &                                 self%tablePointsPerDecade                                  , &
-         &                                 gridSchemePerDecade                                        , &
-         &                 marginFactor  = 1.0d0                                                      , &
-         &                 rangeCurrent  =[self%wavenumberMinimum,self%wavenumberMaximum]             , &
-         &                 latticeCurrent= self%latticeWavenumber                                       &
-         &                )
+    lattice=Range_Pinned(                                                                              &
+         &                              [exp(wavenumberLogarithmic-1.0d0),exp(wavenumberLogarithmic)], &
+         &                               self%tablePointsPerDecade                                   , &
+         &                               gridSchemePerDecade                                         , &
+         &               marginFactor  = 1.0d0                                                       , &
+         &               rangeCurrent  =[self%wavenumberMinimum,self%wavenumberMaximum]              , &
+         &               latticeCurrent= self%latticeWavenumber                                        &
+         &              )
     return
   end function envelopeLattice
 
@@ -447,7 +456,7 @@ contains
        iLastNonZero=0
        do i=1,pointCountDense
           transferFunctionDense       (i)=+abs(self%transferFunction_        %value(exp(wavenumberLogarithmicDense(i)))/self%normalization         )
-          if (self%envelopeRatio) &
+          if (self%envelopeRatio)                                                                                                                    &
                & transferFunctionDense(i)=+transferFunctionDense(i)                                                                                  &
                &                          /abs(self%transferFunctionReference%value(exp(wavenumberLogarithmicDense(i)))/self%normalizationReference)
           if (transferFunctionDense(i) > 0.0d0) iLastNonZero=i

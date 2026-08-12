@@ -1014,25 +1014,25 @@ contains
     !!}
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Ranges        , only : Range_Pinned                  , gridSchemePerDecade
+    use :: Numerical_Ranges        , only : Range_Pinned          , gridSchemePerDecade
     use :: Table_Labels            , only : extrapolationTypeAbort
     implicit none
-    class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout)                            :: self
-    double precision                                                  , intent(in   )                            :: x
-    double precision                                                  , intent(in   ), optional                  :: xMinimumIn                    , xMaximumIn
+    class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout)               :: self
+    double precision                                                  , intent(in   )               :: x
+    double precision                                                  , intent(in   ), optional     :: xMinimumIn                    , xMaximumIn
     ! The tabulation is made at twenty points per decade. Ten points per decade leaves an interpolation error of order two parts
     ! in a thousand in the subresolution accretion rate, which is the accuracy to which that rate is checked against a direct
     ! evaluation of the hypergeometric functions - so the tabulated result sat exactly at the limit of its own tolerance, and any
     ! change in where the tabulated points fall relative to the value being interpolated could carry it over. The error falls as
     ! the square of the spacing, so this places it comfortably within that tolerance instead.
-    integer                                                           , parameter                                :: xCountPerDecade=20
-    double precision                                                  , parameter                                :: sqrtTwoOverPi  =sqrt(2.0d0/Pi)
-    double precision                                                  , parameter                                :: xSeedMinimum   =1.0d-9        , xSeedMaximum=12.5d0
-    double precision                                                                                             :: xMinimum                      , xMaximum
-    type            (rangeLattice                                    )                                           :: latticeX
-    logical                                                           , allocatable  , dimension(:)              :: isComputed
-    integer                                                                                                      :: i
-    logical                                                                                                      :: tabulate
+    integer                                                           , parameter                   :: xCountPerDecade=20
+    double precision                                                  , parameter                   :: sqrtTwoOverPi  =sqrt(2.0d0/Pi)
+    double precision                                                  , parameter                   :: xSeedMinimum   =1.0d-9        , xSeedMaximum=12.5d0
+    double precision                                                                                :: xMinimum                      , xMaximum
+    type            (rangeLattice                                    )                              :: latticeX
+    logical                                                           , allocatable  , dimension(:) :: isComputed
+    integer                                                                                         :: i
+    logical                                                                                         :: tabulate
 
     ! Discard any previous tabulation which has been marked as invalid, so that no stale value is carried over into the new one.
     if (.not.self%subresolutionHypergeometricInitialized) then
@@ -1057,13 +1057,13 @@ contains
     else
        xMaximum=max(xSeedMaximum,2.0d0*(x-1.0d0))
     end if
-    latticeX=Range_Pinned(                                              &
-         &                              [xMinimum,xMaximum]           , &
-         &                               xCountPerDecade              , &
-         &                               gridSchemePerDecade          , &
-         &                marginFactor  = 1.0d0                       , &
-         &                anchorEvery   = xCountPerDecade/2           , &
-         &                latticeCurrent= self%latticeSubresolution      &
+    latticeX=Range_Pinned(                                           &
+         &                              [xMinimum,xMaximum]        , &
+         &                               xCountPerDecade           , &
+         &                               gridSchemePerDecade       , &
+         &                marginFactor  = 1.0d0                    , &
+         &                anchorEvery   = xCountPerDecade/2        , &
+         &                latticeCurrent= self%latticeSubresolution  &
          &               )
     ! Decide whether the tabulation must be built or extended. The decision is taken from the pinned lattice rather than from the
     ! bounds directly, so that the decision and the range cannot disagree.
@@ -1105,21 +1105,21 @@ contains
     use :: Display                 , only : displayGreen          , displayBlue, displayYellow, displayReset
     use :: Error                   , only : Error_Report
     implicit none
-    class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout)                          :: self
-    double precision                                                  , intent(in   )                          :: mass                              , massResolution
-    double precision                                                  , intent(in   ), optional                :: massMinimumIn                     , massMaximumIn
-    integer                                                           , parameter                              :: massCountPerDecade =30
-    double precision                                                  , parameter                              :: sqrtTwoOverPi      =sqrt(2.0d0/Pi)
-    double precision                                                  , parameter                              :: massSeedMaximum    =1.0d16
-    double precision                                                                                           :: massMinimum                       , massMaximum        , &
-         &                                                                                                        massScale                         , massTabulated
-    type            (rangeLattice                                    )                                         :: latticeMass
-    logical                                                           , allocatable  , dimension(:)            :: isComputed
-    integer                                                                                                    :: i
-    logical                                                                                                    :: tabulate
-    double precision                                                                                           :: massSigma                         , gammaEffective     , &
-         &                                                                                                        halfMassSigma                     , halfMassAlpha      , &
-         &                                                                                                        resolutionMassSigma               , resolutionMassAlpha
+    class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout)               :: self
+    double precision                                                  , intent(in   )               :: mass                              , massResolution
+    double precision                                                  , intent(in   ), optional     :: massMinimumIn                     , massMaximumIn
+    integer                                                           , parameter                   :: massCountPerDecade =30
+    double precision                                                  , parameter                   :: sqrtTwoOverPi      =sqrt(2.0d0/Pi)
+    double precision                                                  , parameter                   :: massSeedMaximum    =1.0d16
+    double precision                                                                                :: massMinimum                       , massMaximum        , &
+         &                                                                                             massScale                         , massTabulated
+    type            (rangeLattice                                    )                              :: latticeMass
+    logical                                                           , allocatable  , dimension(:) :: isComputed
+    integer                                                                                         :: i
+    logical                                                                                         :: tabulate
+    double precision                                                                                :: massSigma                         , gammaEffective     , &
+         &                                                                                             halfMassSigma                     , halfMassAlpha      , &
+         &                                                                                             resolutionMassSigma               , resolutionMassAlpha
 
     ! Discard any previous tabulation which has been marked as invalid - the mass resolution on which it was built may have
     ! changed, or the growth of the mass variance may be mass dependent, in which case no value in it may be carried over.
@@ -1145,14 +1145,14 @@ contains
     else
        massMaximum=max(massSeedMaximum,2.0d0*mass)/massScale
     end if
-    latticeMass=Range_Pinned(                                            &
-         &                                 [massMinimum,massMaximum]   , &
-         &                                  massCountPerDecade         , &
-         &                                  gridSchemePerDecade        , &
-         &                   marginFactor  = 1.0d0                     , &
-         &                   limitMinimum  = 1.0d0                     , &
-         &                   anchorEvery   = massCountPerDecade/2       , &
-         &                   latticeCurrent= self%latticeUpperBound       &
+    latticeMass=Range_Pinned(                                         &
+         &                                 [massMinimum,massMaximum], &
+         &                                  massCountPerDecade      , &
+         &                                  gridSchemePerDecade     , &
+         &                   marginFactor  = 1.0d0                  , &
+         &                   limitMinimum  = 1.0d0                  , &
+         &                   anchorEvery   = massCountPerDecade/2   , &
+         &                   latticeCurrent= self%latticeUpperBound   &
          &                  )
     ! Decide whether the tabulation must be built or extended. The decision is taken from the pinned lattice rather than from the
     ! bounds directly, so that the decision and the range cannot disagree.
@@ -1174,7 +1174,7 @@ contains
           massSigma     =self%cosmologicalMassVariance_%rootVariance                      (      massTabulated,self%timeParent                            )
           if (abs(halfMassAlpha) <= alphaMinimum)                                                                                                                                                                                                                      &
                & call Error_Report(                                                                                                                                                                                                                                    &
-               &                   'CDM assumptions were requested, but seem to be violated: unexpected |α| = |dlogσ/dlogM| ≪ 1'//char(10)                                                                                                                                         // &
+               &                   'CDM assumptions were requested, but seem to be violated: unexpected |α| = |dlogσ/dlogM| ≪ 1'//char(10)                                                                                                                         // &
                &                   displayGreen()//'HELP:'//displayReset()//' set <'//displayBlue()//'cdmAssumptions'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"false"'//displayReset()//'/> '                         // &
                &                   'in class <'//displayBlue()//'mergerTreeBranchingProbability'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"parkinsonColeHelly"'//displayReset()//'/> to avoid making these assumptions'// &
                &                   {introspection:location}                                                                                                                                                                                                            &

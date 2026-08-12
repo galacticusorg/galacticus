@@ -25,55 +25,55 @@ program Test_Cooling_Functions
   !!{RST
   Tests cooling function functionality.
   !!}
-  use :: Abundances_Structure            , only : abundances                             , metallicityTypeLinearByMassSolar
-  use :: Chemical_Abundances_Structure   , only : chemicalAbundances                     , zeroChemicalAbundances
+  use :: Abundances_Structure            , only : abundances                                , metallicityTypeLinearByMassSolar
+  use :: Chemical_Abundances_Structure   , only : chemicalAbundances                        , zeroChemicalAbundances
   use :: Chemical_States                 , only : chemicalStateAtomicCIECloudy
-  use :: Cooling_Functions               , only : coolingFunctionSummation               , coolingFunctionAtomicCIECloudy   , coolingFunctionCMBCompton          , coolantList, &
+  use :: Cooling_Functions               , only : coolingFunctionSummation                  , coolingFunctionAtomicCIECloudy   , coolingFunctionCMBCompton          , coolantList, &
        &                                          coolingFunctionMolecularHydrogenGalliPalla
   use :: Cosmology_Parameters            , only : cosmologyParametersSimple
   use :: Cosmology_Functions             , only : cosmologyFunctionsMatterLambda
-  use :: Display                         , only : displayVerbositySet                    , verbosityLevelStandard
+  use :: Display                         , only : displayVerbositySet                       , verbosityLevelStandard
   use :: Events_Hooks                    , only : eventsHooksInitialize
   use :: Functions_Global_Utilities      , only : Functions_Global_Set
-  use :: Galacticus_Nodes                , only : nodeClassHierarchyInitialize           , nodeComponentBasic               , treeNode
+  use :: Galacticus_Nodes                , only : nodeClassHierarchyInitialize              , nodeComponentBasic               , treeNode
   use :: Input_Parameters                , only : inputParameters
-  use :: Node_Components                 , only : Node_Components_Initialize             , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Node_Components                 , only : Node_Components_Initialize                , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Numerical_Constants_Astronomical, only : gigaYear
   use :: Numerical_Constants_Physical    , only : boltzmannsConstant
   use :: Numerical_Constants_Units       , only : ergs
   use :: Radiation_Fields                , only : radiationFieldCosmicMicrowaveBackground
-  use :: Unit_Tests                      , only : Assert                                 , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Unit_Tests                      , only : Assert                                    , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
-  type            (coolantList                            ), pointer :: coolants
-  type            (treeNode                               ), pointer :: node
-  class           (nodeComponentBasic                     ), pointer :: basic
-  type            (coolingFunctionCMBCompton              ), target  :: coolingFunctionCMBCompton_
-  type            (coolingFunctionSummation               )          :: coolingFunctionSummation_
-  type            (coolingFunctionAtomicCIECloudy)                   :: coolingFunctionAtomicCIECloudy_
-  type            (cosmologyParametersSimple              )          :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda         )          :: cosmologyFunctions_
-  type            (chemicalStateAtomicCIECloudy           )          :: chemicalState_
-  type            (abundances                             )          :: gasAbundances
-  type            (chemicalAbundances                     )          :: chemicalDensities
-  type            (radiationFieldCosmicMicrowaveBackground)          :: radiation
-  double precision                                                   :: numberDensityHydrogen          , temperature           , &
-       &                                                                coolantSummation               , coolantCMBCompton     , &
-       &                                                                timescaleCooling               , coolantAtomicCIECloudy
-  type            (inputParameters                        )          :: parameters
+  type            (coolantList                            ), pointer                                    :: coolants
+  type            (treeNode                               ), pointer                                    :: node
+  class           (nodeComponentBasic                     ), pointer                                    :: basic
+  type            (coolingFunctionCMBCompton              ), target                                     :: coolingFunctionCMBCompton_
+  type            (coolingFunctionSummation               )                                             :: coolingFunctionSummation_
+  type            (coolingFunctionAtomicCIECloudy)                                                      :: coolingFunctionAtomicCIECloudy_
+  type            (cosmologyParametersSimple              )                                             :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda         )                                             :: cosmologyFunctions_
+  type            (chemicalStateAtomicCIECloudy           )                                             :: chemicalState_
+  type            (abundances                             )                                             :: gasAbundances
+  type            (chemicalAbundances                     )                                             :: chemicalDensities
+  type            (radiationFieldCosmicMicrowaveBackground)                                             :: radiation
+  double precision                                                                                      :: numberDensityHydrogen             , temperature                        , &
+       &                                                                                                   coolantSummation                  , coolantCMBCompton                  , &
+       &                                                                                                   timescaleCooling                  , coolantAtomicCIECloudy
+  type            (inputParameters                        )                                             :: parameters
   ! Objects and workspace used to check that the tabulation built by the Galli & Palla molecular hydrogen cooling function does
   ! not depend on the order in which temperatures are requested of it.
-  integer                                                  , parameter :: countTemperatures=5
-  double precision                                         , dimension(countTemperatures), parameter :: temperaturesOrder=[1.0d2,3.0d2,1.0d3,3.0d3,1.0d4]
-  type            (coolingFunctionMolecularHydrogenGalliPalla)                    :: coolingFunctionGalliPallaAscending, coolingFunctionGalliPallaDescending
+  integer                                                                                   , parameter :: countTemperatures=5
+  double precision                                            , dimension(countTemperatures), parameter :: temperaturesOrder=[1.0d2,3.0d2,1.0d3,3.0d3,1.0d4]
+  type            (coolingFunctionMolecularHydrogenGalliPalla)                                          :: coolingFunctionGalliPallaAscending, coolingFunctionGalliPallaDescending
   ! One object per temperature, each constructed once and asked a single question - these must not be re-assigned in a loop, as
   ! the assignment would finalize the previous object.
-  type            (coolingFunctionMolecularHydrogenGalliPalla), dimension(countTemperatures) :: coolingFunctionGalliPallaSingle
-  double precision                                         , dimension(countTemperatures) :: coolantLowDensityAscending  , coolantLowDensityDescending  , &
-       &                                                                                     coolantLowDensitySingle     , coolantEquilibriumAscending  , &
-       &                                                                                     coolantEquilibriumDescending, coolantEquilibriumSingle
-  double precision                                                   :: numberDensityCritical
-  character       (len=1024                               )          :: message
-  integer                                                            :: i
+  type            (coolingFunctionMolecularHydrogenGalliPalla), dimension(countTemperatures)            :: coolingFunctionGalliPallaSingle
+  double precision                                            , dimension(countTemperatures)            :: coolantLowDensityAscending        , coolantLowDensityDescending        , &
+       &                                                                                                   coolantLowDensitySingle           , coolantEquilibriumAscending        , &
+       &                                                                                                   coolantEquilibriumDescending      , coolantEquilibriumSingle
+  double precision                                                                                      :: numberDensityCritical
+  character       (len=1024                               )                                             :: message
+  integer                                                                                               :: i
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -199,8 +199,8 @@ program Test_Cooling_Functions
      coolingFunctionGalliPallaSingle(i)=coolingFunctionMolecularHydrogenGalliPalla()
      call coolingFunctionGalliPallaSingle    (i)%commonFactors(numberDensityHydrogen,temperaturesOrder(i),numberDensityCritical,coolantEquilibriumSingle    (i),coolantLowDensitySingle    (i))
   end do
-  call Assert('low density limit is independent of the order in which temperatures are requested' ,coolantLowDensityAscending ,coolantLowDensityDescending ,absTol=0.0d0)
-  call Assert('low density limit is independent of the range of temperatures tabulated'           ,coolantLowDensityAscending ,coolantLowDensitySingle     ,absTol=0.0d0)
+  call Assert('low density limit is independent of the order in which temperatures are requested'   ,coolantLowDensityAscending ,coolantLowDensityDescending ,absTol=0.0d0)
+  call Assert('low density limit is independent of the range of temperatures tabulated'             ,coolantLowDensityAscending ,coolantLowDensitySingle     ,absTol=0.0d0)
   call Assert('LTE cooling function is independent of the order in which temperatures are requested',coolantEquilibriumAscending,coolantEquilibriumDescending,absTol=0.0d0)
   call Assert('LTE cooling function is independent of the range of temperatures tabulated'          ,coolantEquilibriumAscending,coolantEquilibriumSingle    ,absTol=0.0d0)
   ! The low density limit cooling function increases steeply and monotonically with temperature over this range, so a value
@@ -209,10 +209,10 @@ program Test_Cooling_Functions
      write (message,'(a,f8.1,a)') 'low density limit increases with temperature [T = ',temperaturesOrder(i),' K]'
      call Assert(trim(message),coolantLowDensityAscending(i) > coolantLowDensityAscending(i-1),.true.)
   end do
-  call Unit_Tests_End_Group       ()
+  call Unit_Tests_End_Group()
   ! End unit tests.
-  call Unit_Tests_End_Group       ()
-  call Unit_Tests_Finish          ()
+  call Unit_Tests_End_Group()
+  call Unit_Tests_Finish   ()
   ! Clean up.
   call node%destroy()
   deallocate(node)

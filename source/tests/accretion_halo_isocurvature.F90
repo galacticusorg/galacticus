@@ -46,29 +46,29 @@ program Tests_Accretion_Halo_Isocurvature
   use :: Unit_Tests                          , only : Assert                                                      , Unit_Tests_Begin_Group               , Unit_Tests_End_Group, Unit_Tests_Finish
   use :: ISO_Varying_String                  , only : assignment(=)                                               , operator(//)                         , varying_string
   implicit none
-  type            (treeNode                                                    ), pointer :: node
-  class           (nodeComponentBasic                                          ), pointer :: basic
-  type            (accretionHaloIsocurvature                                   ), pointer :: accretionHalo_                    , accretionHaloNull => null()
+  type            (treeNode                                                    ), pointer                 :: node
+  class           (nodeComponentBasic                                          ), pointer                 :: basic
+  type            (accretionHaloIsocurvature                                   ), pointer                 :: accretionHalo_                    , accretionHaloNull      => null()
   ! Objects and workspace used to check that the tabulation of correlations does not depend on the order in which halo masses
   ! are requested of it. These masses all lie above that used for the test against the published result, so that none of them
   ! requires the perturbations to be computed to a larger wavenumber than has already been reached.
-  double precision                                                             , dimension(3), parameter :: massOrder=[1.0d11,2.0d11,5.0d11]
-  type            (accretionHaloIsocurvature                                   )          :: accretionHaloAscending            , accretionHaloDescending
-  double precision                                                             , dimension(3)  :: fractionAscending             , fractionDescending
-  integer                                                                                  :: i
-  type            (cosmologyParametersSimple                                   ), pointer :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda                              ), pointer :: cosmologyFunctions_
-  type            (linearGrowthCollisionlessMatter                             ), pointer :: linearGrowth_
-  type            (cosmologicalMassVarianceFilteredPower                       ), pointer :: cosmologicalMassVariance_
-  type            (powerSpectrumWindowFunctionTopHat                           ), pointer :: powerSpectrumWindowFunction_
-  type            (powerSpectrumPrimordialPowerLaw                             ), pointer :: powerSpectrumPrimordial_
-  type            (transferFunctionEisensteinHu1999                            ), pointer :: transferFunction_
-  type            (powerSpectrumPrimordialTransferredSimple                    ), pointer :: powerSpectrumPrimordialTransferred_
-  type            (darkMatterParticleCDM                                       ), pointer :: darkMatterParticle_
-  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: criticalOverdensity_
-  double precision                                                                        :: fractionRelative
-  type            (inputParameters                                             )          :: parameters
-  type            (varying_string                                              )          :: parameterFile
+  double precision                                                              , dimension(3), parameter :: massOrder=[1.0d11,2.0d11,5.0d11]
+  type            (accretionHaloIsocurvature                                   )                          :: accretionHaloAscending            , accretionHaloDescending
+  double precision                                                              , dimension(3)            :: fractionAscending                 , fractionDescending
+  integer                                                                                                 :: i
+  type            (cosmologyParametersSimple                                   ), pointer                 :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda                              ), pointer                 :: cosmologyFunctions_
+  type            (linearGrowthCollisionlessMatter                             ), pointer                 :: linearGrowth_
+  type            (cosmologicalMassVarianceFilteredPower                       ), pointer                 :: cosmologicalMassVariance_
+  type            (powerSpectrumWindowFunctionTopHat                           ), pointer                 :: powerSpectrumWindowFunction_
+  type            (powerSpectrumPrimordialPowerLaw                             ), pointer                 :: powerSpectrumPrimordial_
+  type            (transferFunctionEisensteinHu1999                            ), pointer                 :: transferFunction_
+  type            (powerSpectrumPrimordialTransferredSimple                    ), pointer                 :: powerSpectrumPrimordialTransferred_
+  type            (darkMatterParticleCDM                                       ), pointer                 :: darkMatterParticle_
+  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer                 :: criticalOverdensity_
+  double precision                                                                                        :: fractionRelative
+  type            (inputParameters                                             )                          :: parameters
+  type            (varying_string                                              )                          :: parameterFile
 
   ! Initialize.
   parameterFile=inputPath(pathTypeExec)//'testSuite/parameters/accretionHaloIsocurvature.xml'
@@ -208,8 +208,8 @@ program Tests_Accretion_Halo_Isocurvature
   </referenceConstruct>
   !!]
   ! Build a node at the present day with a mass of 10¹¹M☉.
-  node             => treeNode                   (                 )
-  basic             => node    %basic            (autoCreate=.true.)
+  node  => treeNode      (                 )
+  basic => node    %basic(autoCreate=.true.)
   call basic%timeSet            (cosmologyFunctions_%cosmicTime(1.0d00))
   call basic%timeLastIsolatedSet(cosmologyFunctions_%cosmicTime(1.0d00))
   call basic%massSet            (                               1.0d11 )
@@ -222,21 +222,21 @@ program Tests_Accretion_Halo_Isocurvature
   ! tabulated are points of an absolute lattice, so two objects asked for the same halo masses must agree exactly, whichever
   ! order they were asked in and however far each extended its tabulation before answering. Without pinning the tabulation is
   ! laid out afresh across whatever range has accumulated, and the two disagree at the level of the interpolation error.
-  accretionHaloAscending =accretionHaloIsocurvature(                                              &
-       &                                            countPerDecade      = 0                    , &
-       &                                            accretionHalo_      = accretionHaloNull    , &
-       &                                            cosmologyParameters_= cosmologyParameters_ , &
-       &                                            cosmologyFunctions_ = cosmologyFunctions_  , &
-       &                                            criticalOverdensity_= criticalOverdensity_ , &
-       &                                            linearGrowth_       = linearGrowth_          &
+  accretionHaloAscending =accretionHaloIsocurvature(                                            &
+       &                                            countPerDecade      =0                    , &
+       &                                            accretionHalo_      =accretionHaloNull    , &
+       &                                            cosmologyParameters_=cosmologyParameters_ , &
+       &                                            cosmologyFunctions_ =cosmologyFunctions_  , &
+       &                                            criticalOverdensity_=criticalOverdensity_ , &
+       &                                            linearGrowth_       =linearGrowth_          &
        &                                           )
-  accretionHaloDescending=accretionHaloIsocurvature(                                              &
-       &                                            countPerDecade      = 0                    , &
-       &                                            accretionHalo_      = accretionHaloNull    , &
-       &                                            cosmologyParameters_= cosmologyParameters_ , &
-       &                                            cosmologyFunctions_ = cosmologyFunctions_  , &
-       &                                            criticalOverdensity_= criticalOverdensity_ , &
-       &                                            linearGrowth_       = linearGrowth_          &
+  accretionHaloDescending=accretionHaloIsocurvature(                                            &
+       &                                            countPerDecade      =0                    , &
+       &                                            accretionHalo_      =accretionHaloNull    , &
+       &                                            cosmologyParameters_=cosmologyParameters_ , &
+       &                                            cosmologyFunctions_ =cosmologyFunctions_  , &
+       &                                            criticalOverdensity_=criticalOverdensity_ , &
+       &                                            linearGrowth_       =linearGrowth_          &
        &                                           )
   do i=1,size(massOrder)
      call basic%massSet(massOrder(i))

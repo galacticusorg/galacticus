@@ -27,16 +27,16 @@ program Tests_Linear_Growth_EdS
   use :: Linear_Growth       , only : componentDarkMatter           , linearGrowthCollisionlessMatter
   use :: Unit_Tests          , only : Assert                        , Unit_Tests_Begin_Group         , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  double precision                                 , dimension(8), parameter :: redshift            =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]
+  double precision                                 , dimension(8), parameter :: redshift                =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]
   type            (cosmologyParametersSimple      )                          :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda )                          :: cosmologyFunctions_
   type            (linearGrowthCollisionlessMatter)                          :: linearGrowth_
   character       (len=1024                       )                          :: message
   integer                                                                    :: iExpansion
-  double precision                                                           :: expansionFactor                                                               , linearGrowthFactor
+  double precision                                                           :: expansionFactor                                                                   , linearGrowthFactor
   ! An epoch beyond any reached above, used to force the tabulation to be extended.
-  double precision                                             , parameter   :: expansionFactorExtension=4.0d0
-  double precision                                 , dimension(8)            :: linearGrowthFactorBefore                                                      , linearGrowthFactorAfter
+  double precision                                               , parameter :: expansionFactorExtension=4.0d0
+  double precision                                 , dimension(8)            :: linearGrowthFactorBefore                                                          , linearGrowthFactorAfter
   logical                                                                    :: unchangedByExtension
 
   ! Set verbosity level.

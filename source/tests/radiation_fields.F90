@@ -33,29 +33,29 @@ program Tests_Radiation_Fields
   time as the universe expands and the background cools---a check that the values are placed at the times they were computed
   for.
   !!}
-  use :: Cosmology_Functions             , only : cosmologyFunctionsMatterLambda
-  use :: Cosmology_Parameters            , only : cosmologyParametersSimple
-  use :: Display                         , only : displayVerbositySet                    , verbosityLevelStandard
-  use :: Events_Hooks                    , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities      , only : Functions_Global_Set
-  use :: Galacticus_Nodes                , only : nodeClassHierarchyInitialize           , treeNode
-  use :: Input_Parameters                , only : inputParameters
-  use :: Node_Components                 , only : Node_Components_Initialize             , Node_Components_Thread_Initialize
-  use :: Radiation_Fields                , only : crossSectionFunctionTemplate           , radiationFieldCosmicMicrowaveBackground
-  use :: Unit_Tests                      , only : Assert                                 , Unit_Tests_Begin_Group                 , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
+  use :: Cosmology_Parameters      , only : cosmologyParametersSimple
+  use :: Display                   , only : displayVerbositySet           , verbosityLevelStandard
+  use :: Events_Hooks              , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities, only : Functions_Global_Set
+  use :: Galacticus_Nodes          , only : nodeClassHierarchyInitialize  , treeNode
+  use :: Input_Parameters          , only : inputParameters
+  use :: Node_Components           , only : Node_Components_Initialize    , Node_Components_Thread_Initialize
+  use :: Radiation_Fields          , only : crossSectionFunctionTemplate  , radiationFieldCosmicMicrowaveBackground
+  use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group                 , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   ! Times at which the rate coefficient is evaluated, in Gyr. These span a decade, so that the tabulation must be extended
   ! several times, and include exact points of the lattice on which it is built - a value carried over to the wrong place shows
   ! itself most clearly at a time which needs no interpolation.
-  double precision                                         , dimension(5), parameter :: time                          =[1.0d0,2.0d0,3.16227766016838d0,6.0d0,10.0d0]
+  double precision                                         , dimension(5), parameter :: time                =[1.0d0,2.0d0,3.16227766016838d0,6.0d0,10.0d0]
   ! Wavelength range over which to integrate, in Angstroms. This spans the peak of the cosmic microwave background over the
   ! whole range of times used here.
-  double precision                                         , dimension(2), parameter :: wavelengthRange               =[1.0d6,1.0d9]
-  double precision                                         , dimension(5)            :: rateAscending                 , rateDescending     , &
+  double precision                                         , dimension(2), parameter :: wavelengthRange     =[1.0d6,1.0d9]
+  double precision                                         , dimension(5)            :: rateAscending                                                     , rateDescending     , &
        &                                                                                rateSingle
   type            (cosmologyParametersSimple              )                          :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda         )                          :: cosmologyFunctions_
-  type            (radiationFieldCosmicMicrowaveBackground)                          :: radiationAscending            , radiationDescending
+  type            (radiationFieldCosmicMicrowaveBackground)                          :: radiationAscending                                                , radiationDescending
   ! One field per time, each constructed once and asked a single question - these must not be re-assigned in a loop, as the
   ! assignment would finalize the previous field and so release the cosmology functions object which they all share.
   type            (radiationFieldCosmicMicrowaveBackground), dimension(5)            :: radiationSingle
@@ -75,18 +75,18 @@ program Tests_Radiation_Fields
   call nodeClassHierarchyInitialize     (parameters)
   call Node_Components_Initialize       (parameters)
   call Node_Components_Thread_Initialize(parameters)
-  node          => treeNode(   )
+  node          => treeNode()
   crossSection_ => crossSection
   ! Construct the cosmology.
-  cosmologyParameters_=cosmologyParametersSimple     (                            &
-       &                                              OmegaMatter    = 0.2815d0 , &
-       &                                              OmegaBaryon    = 0.0465d0 , &
-       &                                              OmegaDarkEnergy= 0.7185d0 , &
-       &                                              temperatureCMB = 2.7255d0 , &
-       &                                              HubbleConstant =69.3000d0   &
+  cosmologyParameters_=cosmologyParametersSimple     (                                           &
+       &                                              OmegaMatter         = 0.2815d0           , &
+       &                                              OmegaBaryon         = 0.0465d0           , &
+       &                                              OmegaDarkEnergy     = 0.7185d0           , &
+       &                                              temperatureCMB      = 2.7255d0           , &
+       &                                              HubbleConstant      =69.3000d0             &
        &                                             )
-  cosmologyFunctions_ =cosmologyFunctionsMatterLambda(                            &
-       &                                                               cosmologyParameters_ &
+  cosmologyFunctions_ =cosmologyFunctionsMatterLambda(                                           &
+       &                                              cosmologyParameters_=cosmologyParameters_  &
        &                                             )
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Radiation fields")
@@ -129,10 +129,10 @@ contains
     implicit none
     double precision, intent(in   ) :: wavelength
 
-    crossSection=+1.0d-18                &
-         &       *(                      &
-         &         +wavelength           &
-         &         /1.0d+7               &
+    crossSection=+1.0d-18      &
+         &       *(            &
+         &         +wavelength &
+         &         /1.0d+7     &
          &        )**(-3.0d0)
     return
   end function crossSection

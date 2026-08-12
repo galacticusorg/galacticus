@@ -889,25 +889,25 @@ contains
           ! into the target would apply the safety margin to an already-margined bound and ratchet the range upward on every
           ! retabulation.
           if      (present(mass)               ) then
-             latticeMass=Range_Pinned(                                                            &
-                  &                                   [mass]                                    , &
-                  &                                    pointsPerDecade                          , &
-                  &                                    gridSchemePerDecade                      , &
-                  &                   anchorEvery   =  anchorEveryMass                          , &
+             latticeMass=Range_Pinned(                                                             &
+                  &                                   [mass]                                     , &
+                  &                                    pointsPerDecade                           , &
+                  &                                    gridSchemePerDecade                       , &
+                  &                   anchorEvery   =  anchorEveryMass                           , &
                   &                   rangeCurrent  = [massTableSeedMinimum,massTableSeedMaximum], &
-                  &                   latticeCurrent=self%latticeMass                             &
+                  &                   latticeCurrent=self%latticeMass                              &
                   &                  )
           else if (self%latticeMass%isDefined()) then
              latticeMass=self%latticeMass
           else
              ! No mass was given, and there is no tabulation to retain. The seed range serves as the target; it is already a whole
              ! number of decades, and so is taken with no safety margin.
-             latticeMass=Range_Pinned(                                                            &
+             latticeMass=Range_Pinned(                                                             &
                   &                                   [massTableSeedMinimum,massTableSeedMaximum], &
-                  &                                    pointsPerDecade                          , &
-                  &                                    gridSchemePerDecade                      , &
-                  &                   marginFactor  =  1.0d0                                    , &
-                  &                   anchorEvery   =  anchorEveryMass                            &
+                  &                                    pointsPerDecade                           , &
+                  &                                    gridSchemePerDecade                       , &
+                  &                   marginFactor  =  1.0d0                                     , &
+                  &                   anchorEvery   =  anchorEveryMass                             &
                   &                  )
           end if
           rootVarianceTableCount=latticeMass%count
@@ -1032,14 +1032,14 @@ contains
              sigmaMinimum=-1.0d0
              iMinimum    =-1
              do i=1,rootVarianceTableCount
-                smoothingMass   =+self%rootVarianceTable(k)%x(i)
+                smoothingMass=+self%rootVarianceTable(k)%x(i)
                 if (rootVarianceIsComputed(i)) then
                    ! This point was tabulated on an earlier pass. Its σ(M) integral - which is the whole cost of the tabulation -
                    ! is precisely what carrying values over exists to avoid repeating.
-                   sigma        =+self%rootVarianceTable(k)%y(i)
+                   sigma     =+self%rootVarianceTable(k)%y(i)
                 else
-                   sigma        =+rootVariance               (time_=self%times(k),useTopHat=.false.) &
-                        &        *self%sigmaNormalization
+                   sigma     =+rootVariance               (time_=self%times(k),useTopHat=.false.) &
+                        &     *self%sigmaNormalization
                 end if
                 ! Enforce monotonicity. The clamp is re-applied across the whole axis, carried-over points included: a point
                 ! which acquires a new predecessor when the range is extended downward must be clamped against it. Re-clamping
@@ -1610,17 +1610,17 @@ contains
        lastCache=lastCache+1
        if (lastCache > sizeCache) lastCache=1
        countCache=max(countCache,lastCache)
-       cachedVariances(lastCache)%fileName                   =self%fileName
-       cachedVariances(lastCache)%timesTmp                   =     timesTmp
-       cachedVariances(lastCache)%massTmp                    =     massTmp
-       cachedVariances(lastCache)%rootVarianceTmp            =     rootVarianceTmp
-       cachedVariances(lastCache)%rootVarianceUniqueTmp      =     rootVarianceUniqueTmp
-       cachedVariances(lastCache)%indexTmp                   =     indexTmp
-       cachedVariances(lastCache)%uniqueSizeTmp              =     uniqueSizeTmp
-       cachedVariances(lastCache)%latticeMass                =     latticeMass
-       cachedVariances(lastCache)%latticeTime                =     latticeTime
-       cachedVariances(lastCache)%sigma8Value                =self%sigma8Value
-       cachedVariances(lastCache)%sigmaNormalization         =self%sigmaNormalization
+       cachedVariances(lastCache)%fileName             =self%fileName
+       cachedVariances(lastCache)%timesTmp             =     timesTmp
+       cachedVariances(lastCache)%massTmp              =     massTmp
+       cachedVariances(lastCache)%rootVarianceTmp      =     rootVarianceTmp
+       cachedVariances(lastCache)%rootVarianceUniqueTmp=     rootVarianceUniqueTmp
+       cachedVariances(lastCache)%indexTmp             =     indexTmp
+       cachedVariances(lastCache)%uniqueSizeTmp        =     uniqueSizeTmp
+       cachedVariances(lastCache)%latticeMass          =     latticeMass
+       cachedVariances(lastCache)%latticeTime          =     latticeTime
+       cachedVariances(lastCache)%sigma8Value          =self%sigma8Value
+       cachedVariances(lastCache)%sigmaNormalization   =self%sigmaNormalization
        !$omp end critical(cosmologicalMassVarianceFilteredPowerCache)
     end if
     if (allocated(self%times                  )) deallocate(self%times                  )

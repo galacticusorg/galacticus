@@ -420,19 +420,19 @@ contains
     !!{RST
     Computes the cumulative conditional mass function, :math:`\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{ halo})` using the fitting formula of :cite:t:`behroozi_comprehensive_2010`.
     !!}
-    use :: Numerical_Ranges, only : Range_Pinned            , gridSchemePerDecade
+    use :: Numerical_Ranges, only : Range_Pinned        , gridSchemePerDecade
     use :: Table_Labels    , only : extrapolationTypeFix
     implicit none
     class           (conditionalMassFunctionBehroozi2010), intent(inout), target    :: self
-    double precision                                     , intent(in   )            :: massHalo                , mass
-    double precision                                     , intent(  out)            :: numberCentrals          , numberSatellites
-    double precision                                     , parameter                :: massNormalization=1.0d12
+    double precision                                     , intent(in   )            :: massHalo                 , mass
+    double precision                                     , intent(  out)            :: numberCentrals           , numberSatellites
+    double precision                                     , parameter                :: massNormalization=1.0d+12
     double precision                                     , parameter                :: massMinimum      =1.0d-12
     double precision                                     , parameter                :: massHaloMaximum  =1.0d+17
     type            (rangeLattice                       )                           :: latticeMass
     logical                                              , allocatable, dimension(:):: isComputed
-    double precision                                                                :: fMassHalo               , massCut         , &
-         &                                                                             massSatellite           , massTableMinimum, &
+    double precision                                                                :: fMassHalo                , massCut         , &
+         &                                                                             massSatellite            , massTableMinimum, &
          &                                                                             massTableMaximum
 
     self_ => self
@@ -492,9 +492,7 @@ contains
           call       self%fMassHaloTable%destroy()
           deallocate(self%fMassHaloTable          )
        end if
-       call self%fMassTable%reverse (                                               &
-            &                        self%fMassHaloTable                            &
-            &                       )
+       call self%fMassTable%reverse (self%fMassHaloTable)
        self%latticeMass          =latticeMass
        self%fMassTableMinimum    =latticeMass%minimum()
        self%fMassTableMaximum    =latticeMass%maximum()

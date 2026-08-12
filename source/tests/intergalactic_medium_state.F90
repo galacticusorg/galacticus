@@ -44,19 +44,19 @@ program Tests_Intergalactic_Medium_State
   use :: Numerical_Constants_Physical    , only : speedLight                    , thomsonCrossSection
   use :: Unit_Tests                      , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group    , Unit_Tests_Finish
   implicit none
-  double precision                                , dimension(6), parameter :: redshift                          =[0.1d0,0.5d0,1.0d0,3.0d0,9.0d0,29.0d0]
-  double precision                                , dimension(6)            :: time                                              , opticalDepthAscending              , &
-       &                                                                       opticalDepthDescending                            , opticalDepthAnalytic               , &
+  double precision                                , dimension(6), parameter :: redshift=[0.1d0,0.5d0,1.0d0,3.0d0,9.0d0,29.0d0]
+  double precision                                , dimension(6)            :: time                               , opticalDepthAscending              , &
+       &                                                                       opticalDepthDescending             , opticalDepthAnalytic               , &
        &                                                                       timeInverse
   type            (cosmologyParametersSimple     )                          :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda)                          :: cosmologyFunctions_
   ! Three identically-constructed objects: one asked for its optical depths from the earliest time to the latest, one from the
   ! latest to the earliest, and one asked to invert them.
-  type            (intergalacticMediumStateSimple)                          :: intergalacticMediumStateAscending_                , intergalacticMediumStateDescending_, &
+  type            (intergalacticMediumStateSimple)                          :: intergalacticMediumStateAscending_, intergalacticMediumStateDescending_, &
        &                                                                       intergalacticMediumStateInverse_
   character       (len=1024                      )                          :: message
   integer                                                                   :: i
-  double precision                                                          :: timePresent                                       , opticalDepthNormalization
+  double precision                                                          :: timePresent                       , opticalDepthNormalization
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -71,7 +71,7 @@ program Tests_Intergalactic_Medium_State
        &                                                             HubbleConstant            =70.00d0                                &
        &                                                            )
   cosmologyFunctions_                =cosmologyFunctionsMatterLambda(                                                                  &
-       &                                                                                         cosmologyParameters_                   &
+       &                                                             cosmologyParameters_      =cosmologyParameters_                   &
        &                                                            )
   ! Reionization is placed at an epoch far earlier than any time tabulated below, so that the intergalactic medium is fully
   ! ionized throughout the range tabulated and the optical depth therefore has the closed form used here.
@@ -98,27 +98,27 @@ program Tests_Intergalactic_Medium_State
        &                                                            )
   ! Find the times corresponding to our redshifts, and the analytic optical depths at those times.
   timePresent              =cosmologyFunctions_%cosmicTime(1.0d0)
-  opticalDepthNormalization=+speedLight                                  &
-       &                    *gigaYear                                    &
-       &                    *thomsonCrossSection                         &
-       &                    *massSolar                                   &
-       &                    /atomicMassUnit                              &
-       &                    /megaParsec         **3                      &
-       &                    *cosmologyParameters_%OmegaBaryon    ()      &
-       &                    *cosmologyParameters_%densityCritical()      &
-       &                    *(                                           &
-       &                      +      hydrogenByMassPrimordial            &
-       &                      /atomicMassHydrogen                        &
-       &                      +2.0d0*heliumByMassPrimordial              &
-       &                      /atomicMassHelium                          &
+  opticalDepthNormalization=+speedLight                             &
+       &                    *gigaYear                               &
+       &                    *thomsonCrossSection                    &
+       &                    *massSolar                              &
+       &                    /atomicMassUnit                         &
+       &                    /megaParsec         **3                 &
+       &                    *cosmologyParameters_%OmegaBaryon    () &
+       &                    *cosmologyParameters_%densityCritical() &
+       &                    *(                                      &
+       &                      +      hydrogenByMassPrimordial       &
+       &                      /atomicMassHydrogen                   &
+       &                      +2.0d0*heliumByMassPrimordial         &
+       &                      /atomicMassHelium                     &
        &                     )
   do i=1,size(redshift)
      time                (i)=+cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift(i)))
      opticalDepthAnalytic(i)=+opticalDepthNormalization &
           &                  *timePresent          **2  &
           &                  *(                         &
-          &                    +1.0d0/time       (i)     &
-          &                    -1.0d0/timePresent        &
+          &                    +1.0d0/time       (i)    &
+          &                    -1.0d0/timePresent       &
           &                   )
   end do
   ! Begin unit tests.

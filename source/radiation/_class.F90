@@ -45,13 +45,13 @@ module Radiation_Fields
      Type used to store tables of rate coefficients.
      !!}
      private
-     procedure       (crossSectionFunctionTemplate), pointer                  , nopass :: crossSectionFunction => null()
-     double precision                              , dimension(2)                      :: wavelengthRange
+     procedure       (crossSectionFunctionTemplate), pointer     , nopass      :: crossSectionFunction => null()
+     double precision                              , dimension(2)              :: wavelengthRange
      ! Lattice to which the tabulated times are pinned, and the rate coefficients tabulated on it. The lattice is the source of
      ! truth for the extent of the tabulation, and is undefined until the first tabulation is made.
-     type            (rangeLattice                )                                    :: latticeTime
-     double precision                              , dimension(:), allocatable         :: rateCoefficient_
-     type            (interpolator                )                                    :: interpolator_
+     type            (rangeLattice                )                            :: latticeTime
+     double precision                              , dimension(:), allocatable :: rateCoefficient_
+     type            (interpolator                )                            :: interpolator_
    contains
      !![
      <methods docformat="rst">
@@ -144,8 +144,8 @@ contains
     use :: Numerical_Constants_Math    , only : Pi
     use :: Numerical_Constants_Physical, only : plancksConstant
     use :: Numerical_Constants_Units   , only : ergs
-    use :: Numerical_Integration       , only : integrator     , GSL_Integ_Gauss15
-    use :: Numerical_Ranges            , only : Range_Lattice_Extend, Range_Pinned, gridSchemePerDecade
+    use :: Numerical_Integration       , only : integrator          , GSL_Integ_Gauss15
+    use :: Numerical_Ranges            , only : Range_Lattice_Extend, Range_Pinned     , gridSchemePerDecade
     implicit none
     class           (radiationFieldClass         ), target      , intent(inout) :: self
     double precision                              , dimension(2), intent(in   ) :: wavelengthRange
@@ -157,11 +157,10 @@ contains
     logical                                       , dimension(:), allocatable   :: isComputed
     type            (rangeLattice                )                              :: latticeTime
     integer                                       , parameter                   :: countTimesPerDecade  =30
-    logical                                                                     :: integratorInitialized=.false., matched         , &
+    logical                                                                     :: integratorInitialized=.false., matched             , &
          &                                                                         recompute
     double precision                                                            :: timeCurrent
-    integer                                                                     :: i                            , &
-         &                                                                         indexRateCoefficient
+    integer                                                                     :: i                            , indexRateCoefficient
     !$omp threadprivate(integrator_,integratorInitialized)
 
     ! Construct the integrator if necessary.
@@ -224,12 +223,12 @@ contains
        ! the request that was applied before this tabulation was pinned. The bounds are anchored to half decades rather than to
        ! whole decades because this is a cosmic time axis, on which a whole decade is a large fraction of the history of the
        ! universe, and each additional point costs an integration of the radiation field over the cross section.
-       latticeTime=Range_Pinned(                                                                        &
-            &                                  [timeCurrent]                                          , &
-            &                                   countTimesPerDecade                                   , &
-            &                                   gridSchemePerDecade                                   , &
-            &                   marginFactor  = 2.0d0                                                 , &
-            &                   anchorEvery   = countTimesPerDecade/2                                 , &
+       latticeTime=Range_Pinned(                                                                         &
+            &                                  [timeCurrent]                                           , &
+            &                                   countTimesPerDecade                                    , &
+            &                                   gridSchemePerDecade                                    , &
+            &                   marginFactor  = 2.0d0                                                  , &
+            &                   anchorEvery   = countTimesPerDecade/2                                  , &
             &                   latticeCurrent= self%rateCoefficients(indexRateCoefficient)%latticeTime  &
             &                  )
        ! Decide whether the tabulation must be built or extended. The decision is taken from the pinned lattice rather than from

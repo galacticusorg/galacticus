@@ -207,16 +207,16 @@ module Intergalactic_Medium_State
     </code>
    </method>
    <!-- Objects. -->
-   <data scope="self"  >class           (cosmologyParametersClass), pointer   :: cosmologyParameters_                   => null()                                  </data>
-   <data scope="self"  >class           (cosmologyFunctionsClass ), pointer   :: cosmologyFunctions_                    => null()                                  </data>
+   <data scope="self"  >class           (cosmologyParametersClass), pointer   :: cosmologyParameters_                   => null()                          </data>
+   <data scope="self"  >class           (cosmologyFunctionsClass ), pointer   :: cosmologyFunctions_                    => null()                          </data>
    <!-- Electron scattering optical depth tables. -->
-   <data scope="module">integer                                   , parameter :: electronScatteringTablePointsPerDecade =  100                                 </data>
-   <data scope="self"  >logical                                               :: electronScatteringTableInitialized     =  .false.                             </data>
-   <data scope="self"  >double precision                                      :: electronScatteringTableTimeMaximum                                            </data>
+   <data scope="module">integer                                   , parameter :: electronScatteringTablePointsPerDecade =  100                             </data>
+   <data scope="self"  >logical                                               :: electronScatteringTableInitialized     =  .false.                         </data>
+   <data scope="self"  >double precision                                      :: electronScatteringTableTimeMaximum                                        </data>
    <!-- Lattice to which the tabulated times are pinned. This is the source of truth for the extent of the tabulation. -->
-   <data scope="self"  >type            (rangeLattice            )            :: electronScatteringTableLattice                                                </data>
-   <data scope="self"  >type            (table1DLogarithmicLinear)            :: electronScattering                        , electronScatteringFullyIonized    </data>
-   <data scope="self"  >type            (table1DGeneric          )            :: electronScatteringFullyIonizedInverse     , electronScatteringInverse         </data>
+   <data scope="self"  >type            (rangeLattice            )            :: electronScatteringTableLattice                                            </data>
+   <data scope="self"  >type            (table1DLogarithmicLinear)            :: electronScattering                        , electronScatteringFullyIonized</data>
+   <data scope="self"  >type            (table1DGeneric          )            :: electronScatteringFullyIonizedInverse     , electronScatteringInverse     </data>
   </functionClass>
   !!]
 
@@ -236,16 +236,16 @@ contains
     !!}
     use :: Error                , only : Error_Report
     use :: Numerical_Integration, only : integrator
-    use :: Numerical_Ranges     , only : Range_Pinned                    , gridSchemePerDecade
+    use :: Numerical_Ranges     , only : Range_Pinned, gridSchemePerDecade
     implicit none
     class           (intergalacticMediumStateClass), intent(inout), target      :: self
     double precision                               , intent(in   )              :: time
-    double precision                               , dimension(:) , allocatable :: time_                     , opticalDepth              , &
+    double precision                               , dimension(:) , allocatable :: time_                     , opticalDepth          , &
          &                                                                         opticalDepthFullyIonized
     logical                                        , dimension(:) , allocatable :: isComputed                , isComputedFullyIonized
     type            (integrator                   )                             :: integrator_
     type            (rangeLattice                 )                             :: latticeTime
-    integer                                                                     :: iTime                     , iTimeMonotonic            , &
+    integer                                                                     :: iTime                     , iTimeMonotonic        , &
          &                                                                         iTimeMonotonicFullyIonized
     double precision                                                            :: timeRelative
     logical                                                                     :: fullyIonized              , makeTable
@@ -306,7 +306,7 @@ contains
        iTimeMonotonicFullyIonized=1
        do iTime=1,latticeTime%count
           if      (isComputed            (iTime)        ) then
-             opticalDepth            (iTime)=self%electronScattering            %y(iTime)
+             opticalDepth            (iTime)=self%electronScattering%y(iTime)
           else if (latticeTime%indexMinimum+iTime-1 == 0) then
              ! This point is the present day - the lattice point of index zero - at which the optical depth is zero by
              ! definition. Testing the lattice index rather than the position in the table means that a range which did not reach

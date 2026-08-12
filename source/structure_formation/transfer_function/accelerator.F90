@@ -37,13 +37,13 @@
      !!}
      private
      type            (table1DLogarithmicLinear)          :: transferTable
-     class           (transferFunctionClass   ), pointer :: transferFunction_       => null()
+     class           (transferFunctionClass   ), pointer :: transferFunction_    => null()
      ! Lattice to which the tabulated wavenumbers are pinned. This is the source of truth for the extent of the tabulation: the
      ! bounds below are derived from it, and are retained because they are what the test for a sufficient tabulation reads.
      type            (rangeLattice            )          :: latticeWavenumber
-     double precision                                    :: wavenumberMinimum                  , wavenumberMaximum
+     double precision                                    :: wavenumberMinimum               , wavenumberMaximum
      integer                                             :: tablePointsPerDecade
-     logical                                             :: tableInitialized        =  .false.
+     logical                                             :: tableInitialized     =  .false.
    contains
      final     ::                          acceleratorDestructor
      procedure :: value                 => acceleratorValue
@@ -115,9 +115,9 @@ contains
     <constructorAssign variables="*cosmologyParameters_, *transferFunction_, tablePointsPerDecade"/>
     !!]
 
-    self%tableInitialized            =.false.
-    self%wavenumberMinimum           =wavenumberTableSeedMinimum
-    self%wavenumberMaximum           =wavenumberTableSeedMaximum
+    self%tableInitialized =.false.
+    self%wavenumberMinimum=wavenumberTableSeedMinimum
+    self%wavenumberMaximum=wavenumberTableSeedMaximum
     return
   end function acceleratorConstructorInternal
 
@@ -219,17 +219,17 @@ contains
     !!}
     use :: Numerical_Ranges, only : Range_Pinned, gridSchemePerDecade
     implicit none
-    class           (transferFunctionAccelerator), intent(inout)                            :: self
-    double precision                             , intent(in   )                            :: wavenumber
-    logical                                                                                 :: makeTable
-    integer                                                                                 :: i
-    type            (rangeLattice                )                                          :: latticeWavenumber
-    logical                                                     , allocatable, dimension(:) :: isComputed
+    class           (transferFunctionAccelerator), intent(inout)               :: self
+    double precision                             , intent(in   )               :: wavenumber
+    logical                                                                    :: makeTable
+    integer                                                                    :: i
+    type            (rangeLattice                )                             :: latticeWavenumber
+    logical                                       , allocatable , dimension(:) :: isComputed
 
     makeTable=.not.self%tableInitialized
-    if (.not.makeTable)                                        &
-         & makeTable= wavenumber < self%wavenumberMinimum      &
-         &           .or.                                      &
+    if (.not.makeTable)                                   &
+         & makeTable= wavenumber < self%wavenumberMinimum &
+         &           .or.                                 &
          &            wavenumber > self%wavenumberMaximum
     if (makeTable) then
        ! Find the range of wavenumbers to tabulate, pinning it to an absolute lattice so that the wavenumbers evaluated - and
@@ -239,13 +239,13 @@ contains
        ! against the current bounds formerly did - would apply the safety margin to an already margined bound and so ratchet the
        ! range outward on every retabulation. The margin is a factor of e, which is the margin of one unit in the natural
        ! logarithm of the wavenumber that was applied before.
-       latticeWavenumber=Range_Pinned(                                                                 &
-            &                                        [wavenumber]                                    , &
-            &                                         self%tablePointsPerDecade                      , &
-            &                                         gridSchemePerDecade                            , &
-            &                         marginFactor  = exp(1.0d0)                                     , &
+       latticeWavenumber=Range_Pinned(                                                                        &
+            &                                        [wavenumber]                                           , &
+            &                                         self%tablePointsPerDecade                             , &
+            &                                         gridSchemePerDecade                                   , &
+            &                         marginFactor  = exp(1.0d0)                                            , &
             &                         rangeCurrent  =[wavenumberTableSeedMinimum,wavenumberTableSeedMaximum], &
-            &                         latticeCurrent= self%latticeWavenumber                           &
+            &                         latticeCurrent= self%latticeWavenumber                                  &
             &                        )
        ! Extend the tabulation onto the new lattice, preserving the values already computed - the transfer function being
        ! tabulated is expensive to evaluate, which is the entire purpose of this class. The abscissae come from the lattice, so

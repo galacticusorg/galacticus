@@ -173,13 +173,13 @@ contains
     self%molecularHydrogenCationIndex=Chemicals_Index("MolecularHydrogenCation",status)
     self%molecularHydrogenIndex      =Chemicals_Index("MolecularHydrogen"      ,status)
     ! Initialized stored calculations to unphysical values.
-    self%temperaturePrevious1             =-     1.0d0
-    self%temperaturePrevious2             =-     1.0d0
-    self%temperaturePrevious3             =-     1.0d0
-    self%temperaturePrevious4             =-     1.0d0
-    self%temperatureCommonPrevious        =-     1.0d0
-    self%temperatureHH2PlusPrevious       =-     1.0d0
-    self%temperatureH2PlusElectronPrevious=-     1.0d0
+    self%temperaturePrevious1             =-1.0d0
+    self%temperaturePrevious2             =-1.0d0
+    self%temperaturePrevious3             =-1.0d0
+    self%temperaturePrevious4             =-1.0d0
+    self%temperatureCommonPrevious        =-1.0d0
+    self%temperatureHH2PlusPrevious       =-1.0d0
+    self%temperatureH2PlusElectronPrevious=-1.0d0
     return
   end function molecularHydrogenGalliPallaConstructorInternal
 
@@ -515,7 +515,7 @@ contains
     Compute the ratio of critical number density to the hydrogen number density for use in molecular hydrogen cooling functions.
     !!}
     use :: Numerical_Constants_Prefixes, only : milli
-    use :: Numerical_Ranges            , only : Range_Pinned                                  , gridSchemePerUnit
+    use :: Numerical_Ranges            , only : Range_Pinned, gridSchemePerUnit
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout)             :: self
     double precision                                            , intent(in   )             :: numberDensityHydrogen                                  , temperature
@@ -537,12 +537,12 @@ contains
        ! of whole decades of temperature, but taking it in the logarithm means that the abscissae of the table are the lattice
        ! points themselves, with no round trip through a power of ten. The margin is the factor of two either side of the
        ! request which was applied before this tabulation was pinned, which is an additive offset in the logarithm.
-       latticeTemperatureLogarithmic=Range_Pinned(                                                              &
-            &                                                    [log10(temperature)]                         , &
-            &                                                     temperaturePointsPerDecade                  , &
-            &                                                     gridSchemePerUnit                           , &
-            &                                     marginOffset  = log10(2.0d0)                                , &
-            &                                     latticeCurrent= self%latticeTemperatureLogarithmic            &
+       latticeTemperatureLogarithmic=Range_Pinned(                                                    &
+            &                                                    [log10(temperature)]               , &
+            &                                                     temperaturePointsPerDecade        , &
+            &                                                     gridSchemePerUnit                 , &
+            &                                     marginOffset  = log10(2.0d0)                      , &
+            &                                     latticeCurrent= self%latticeTemperatureLogarithmic  &
             &                                    )
        ! Build interpolation tables if necessary. The decision is taken from the pinned lattice rather than from the bounds
        ! directly: the safety margin is applied to the request, so testing the request against the bounds would apply that

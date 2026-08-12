@@ -954,33 +954,33 @@ contains
       use :: Table_Caches         , only : Table_Cache_Lattice_Read, Table_Cache_Lattice_Write
       implicit none
       double precision                , intent(in   )                 :: radiusScaleFree
-      double precision                , parameter                     :: toleranceRelative                    =1.0d-6
-      integer                                                         :: countFactorBoost                            , countFactorBoostStellar        , &
-           &                                                             countRadii                                  , i                              , &
-           &                                                             j                                           , k                              , &
-           &                                                             ii                                          , jj                             , &
-           &                                                             kk                                          , loopCount                      , &
-           &                                                             loopCountTotal                              , offsetFactorBoost              , &
-           &                                                             offsetFactorBoostStellar                    , offsetRadius                   , &
-           &                                                             countFactorBoostPrevious                    , countFactorBoostStellarPrevious, &
+      double precision                , parameter                     :: toleranceRelative                 =1.0d-6
+      integer                                                         :: countFactorBoost                         , countFactorBoostStellar        , &
+           &                                                             countRadii                               , i                              , &
+           &                                                             j                                        , k                              , &
+           &                                                             ii                                       , jj                             , &
+           &                                                             kk                                       , loopCount                      , &
+           &                                                             loopCountTotal                           , offsetFactorBoost              , &
+           &                                                             offsetFactorBoostStellar                 , offsetRadius                   , &
+           &                                                             countFactorBoostPrevious                 , countFactorBoostStellarPrevious, &
            &                                                             countRadiiPrevious
-      double precision                                                :: integral                                                                     , &
-           &                                                             hi                                          , hj                             , &
-           &                                                             hk                                          , hhi                            , &
-           &                                                             hhj                                         , hhk                            , &
-           &                                                             radiusMinimum                               , radiusMaximum                  , &
-           &                                                             coordinateFactorBoost                       , coordinateFactorBoostStellar   , &
+      double precision                                                :: integral                                                                  , &
+           &                                                             hi                                       , hj                             , &
+           &                                                             hk                                       , hhi                            , &
+           &                                                             hhj                                      , hhk                            , &
+           &                                                             radiusMinimum                            , radiusMaximum                  , &
+           &                                                             coordinateFactorBoost                    , coordinateFactorBoostStellar   , &
            &                                                             coordinateRadiusScaleFree
-      type            (rangeLattice  )                                :: latticeFactorBoost                          , latticeFactorBoostStellar      , &
+      type            (rangeLattice  )                                :: latticeFactorBoost                       , latticeFactorBoostStellar      , &
            &                                                             latticeRadiusScaleFree
-      double precision                , allocatable, dimension(:    ) :: valuesFactorBoost                           , valuesFactorBoostStellar       , &
+      double precision                , allocatable, dimension(:    ) :: valuesFactorBoost                        , valuesFactorBoostStellar       , &
            &                                                             valuesRadiusScaleFree
       double precision                , allocatable, dimension(:,:,:) :: integralPartiallyMolecularPrevious
-      logical                                                         :: carryOver                                   , isCarriedFactorBoost           , &
+      logical                                                         :: carryOver                                , isCarriedFactorBoost           , &
            &                                                             isCarriedFactorBoostStellar
       character       (len= 8        )                                :: tableSize
       character       (len= 8        )                                :: countSteps
-      character       (len=12        )                                :: rangeLower                                  , rangeUpper
+      character       (len=12        )                                :: rangeLower                               , rangeUpper
       type            (integrator    ), allocatable                   :: integrator_
       type            (varying_string), save                          :: message
       type            (lockDescriptor), save                          :: fileLock
@@ -1034,13 +1034,13 @@ contains
                     & ) then
                   ! Recover the limits from the lattices rather than reading them from the file, so that a restored tabulation
                   ! cannot come to be described differently from a freshly built one.
-                  self%coefficientFactorBoostMinimum                      =      self%latticeFactorBoost       %minimum()
-                  self%coefficientFactorBoostMaximum                      =      self%latticeFactorBoost       %maximum()
-                  self%coefficientFactorBoostStellarMinimum               =      self%latticeFactorBoostStellar%minimum()
-                  self%coefficientFactorBoostStellarMaximum               =      self%latticeFactorBoostStellar%maximum()
-                  self%radiusScaleFreeMinimum                             =      self%latticeRadiusScaleFree   %minimum()
-                  self%radiusScaleFreeMaximum                             =      self%latticeRadiusScaleFree   %maximum()
-                  self%tableInitialized                                   =.true.
+                  self%coefficientFactorBoostMinimum       =self%latticeFactorBoost       %minimum()
+                  self%coefficientFactorBoostMaximum       =self%latticeFactorBoost       %maximum()
+                  self%coefficientFactorBoostStellarMinimum=self%latticeFactorBoostStellar%minimum()
+                  self%coefficientFactorBoostStellarMaximum=self%latticeFactorBoostStellar%maximum()
+                  self%radiusScaleFreeMinimum              =self%latticeRadiusScaleFree   %minimum()
+                  self%radiusScaleFreeMaximum              =self%latticeRadiusScaleFree   %maximum()
+                  self%tableInitialized                    =.true.
                end if
             end if
             if (.not.self%tableInitialized) then
@@ -1196,7 +1196,7 @@ contains
                        &  .and. k >  offsetRadius                    &
                        &  .and. k <= offsetRadius+countRadiiPrevious &
                        & ) cycle
-                  radiusMinimum                              = 0.0d0
+                  radiusMinimum                              =0.0d0
                   radiusMaximum                              =valuesRadiusScaleFree   (k)
                   self%integralPartiallyMolecularTable(i,j,k)=log(integrator_%integrate(radiusMinimum,radiusMaximum))
                   !$omp critical(blitz2006Tabulation)
@@ -1247,29 +1247,29 @@ contains
       ! the fractional part is then extracted from a number whose magnitude is the index within the table, and so is rounded on
       ! a grid which coarsens as the table grows: extending the table would perturb every interpolated value in its last bits,
       ! which is exactly the dependence on the sequence of requests that pinning the ranges exists to remove.
-      coordinateFactorBoost              =log10(coefficientFactorBoost_       )*dble(pointsPerDecadeFactorBoost       )
-      coordinateFactorBoostStellar       =log10(coefficientFactorBoostStellar_)*dble(pointsPerDecadeFactorBoostStellar)
-      coordinateRadiusScaleFree          =log10(radiusScaleFree               )*dble(pointsPerDecadeRadius            )
-      i                                  =floor(coordinateFactorBoost       )
-      j                                  =floor(coordinateFactorBoostStellar)
-      k                                  =floor(coordinateRadiusScaleFree   )
-      hi                                 =coordinateFactorBoost       -dble(i)
-      hj                                 =coordinateFactorBoostStellar-dble(j)
-      hk                                 =coordinateRadiusScaleFree   -dble(k)
-      i                                  =i-self%latticeFactorBoost       %indexMinimum+1
-      j                                  =j-self%latticeFactorBoostStellar%indexMinimum+1
-      k                                  =k-self%latticeRadiusScaleFree   %indexMinimum+1
+      coordinateFactorBoost       =log10(coefficientFactorBoost_       )*dble(pointsPerDecadeFactorBoost       )
+      coordinateFactorBoostStellar=log10(coefficientFactorBoostStellar_)*dble(pointsPerDecadeFactorBoostStellar)
+      coordinateRadiusScaleFree   =log10(radiusScaleFree               )*dble(pointsPerDecadeRadius            )
+      i                           =floor(coordinateFactorBoost       )
+      j                           =floor(coordinateFactorBoostStellar)
+      k                           =floor(coordinateRadiusScaleFree   )
+      hi                          =coordinateFactorBoost       -dble(i)
+      hj                          =coordinateFactorBoostStellar-dble(j)
+      hk                          =coordinateRadiusScaleFree   -dble(k)
+      i                           =i-self%latticeFactorBoost       %indexMinimum+1
+      j                           =j-self%latticeFactorBoostStellar%indexMinimum+1
+      k                           =k-self%latticeRadiusScaleFree   %indexMinimum+1
       ! Confine the indices to the table. Each is guaranteed to lie within it by the test which decided that the table need not
       ! be extended, but only up to rounding: a value which sits within an ulp of a bound can index one point beyond it, and the
       ! interpolation below reads the *next* point along every axis. Where an index is moved the interpolating factor is moved
       ! with it, to the end of the interval nearest the value, so that the interpolation returns the value at the edge of the
       ! table. Moving the index alone - as this formerly did - shifts the result by a whole interval at the bounds.
-      if (i <                                                        1) hi=0.0d0
-      if (i > size(self%integralPartiallyMolecularTable,dim=1)-1      ) hi=1.0d0
-      if (j <                                                        1) hj=0.0d0
-      if (j > size(self%integralPartiallyMolecularTable,dim=2)-1      ) hj=1.0d0
-      if (k <                                                        1) hk=0.0d0
-      if (k > size(self%integralPartiallyMolecularTable,dim=3)-1      ) hk=1.0d0
+      if (i <                                                  1) hi=0.0d0
+      if (i > size(self%integralPartiallyMolecularTable,dim=1)-1) hi=1.0d0
+      if (j <                                                  1) hj=0.0d0
+      if (j > size(self%integralPartiallyMolecularTable,dim=2)-1) hj=1.0d0
+      if (k <                                                  1) hk=0.0d0
+      if (k > size(self%integralPartiallyMolecularTable,dim=3)-1) hk=1.0d0
       i=min(max(i,1),size(self%integralPartiallyMolecularTable,dim=1)-1)
       j=min(max(j,1),size(self%integralPartiallyMolecularTable,dim=2)-1)
       k=min(max(k,1),size(self%integralPartiallyMolecularTable,dim=3)-1)
@@ -1294,9 +1294,9 @@ contains
                end if
                integral=+integral                                             &
                     &   +self%integralPartiallyMolecularTable(i+ii,j+jj,k+kk) &
-                    &   *                                      hhi            &
-                    &   *                                           hhj       &
-                    &   *                                                hhk
+                    &   *                                     hhi             &
+                    &   *                                          hhj        &
+                    &   *                                               hhk
             end do
          end do
       end do

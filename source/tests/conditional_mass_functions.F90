@@ -36,28 +36,28 @@ program Tests_Conditional_Mass_Functions
   use :: Conditional_Mass_Functions, only : conditionalMassFunctionBehroozi2010, haloModelGalaxyTypeCentral
   use :: Display                   , only : displayVerbositySet                , verbosityLevelStandard
   use :: Events_Hooks              , only : eventsHooksInitialize
-  use :: Unit_Tests                , only : Assert                             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests                , only : Assert                             , Unit_Tests_Begin_Group    , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   ! Halo masses at which the conditional mass function is evaluated. The seeded tabulation spans masses of 10⁸ to 10¹³ M☉, which
   ! corresponds to halo masses above 4.9×10¹⁰ M☉, so the smaller of these require the tabulation to be extended - by five decades
   ! in the case of the smallest.
-  double precision                                     , dimension(7), parameter :: massHalo             =[1.0d8,1.0d9,1.0d10,1.0d11,1.0d12,1.0d13,1.0d14]
+  double precision                                     , dimension(7), parameter :: massHalo                        =[1.0d8,1.0d9,1.0d10,1.0d11,1.0d12,1.0d13,1.0d14]
   ! Parameters of the fitting function, from the fit of Leauthaud et al. (2011).
-  double precision                                                   , parameter :: alphaSatellite       = 1.0000d0, log10M1      =12.5200d0, &
-       &                                                                            log10Mstar0          =10.9160d0, beta         = 0.4570d0, &
-       &                                                                            delta                = 0.5666d0, gamma        = 1.5300d0, &
-       &                                                                            sigmaLogMstar        = 0.2060d0, BCut         = 1.4700d0, &
-       &                                                                            BSatellite           =10.6200d0, betaCut      =-0.1300d0, &
-       &                                                                            betaSatellite        = 0.8590d0
-  double precision                                     , dimension(7)            :: massFunctionAscending          , massFunctionDescending, &
+  double precision                                                   , parameter :: alphaSatellite                  = 1.0000d0, log10M1                          =12.5200d0, &
+       &                                                                            log10Mstar0                     =10.9160d0, beta                             = 0.4570d0, &
+       &                                                                            delta                           = 0.5666d0, gamma                            = 1.5300d0, &
+       &                                                                            sigmaLogMstar                   = 0.2060d0, BCut                             = 1.4700d0, &
+       &                                                                            BSatellite                      =10.6200d0, betaCut                          =-0.1300d0, &
+       &                                                                            betaSatellite                   = 0.8590d0
+  double precision                                     , dimension(7)            :: massFunctionAscending                     , massFunctionDescending                     , &
        &                                                                            massFunctionSingle
-  type            (conditionalMassFunctionBehroozi2010)                          :: conditionalMassFunctionAscending, conditionalMassFunctionDescending
+  type            (conditionalMassFunctionBehroozi2010)                          :: conditionalMassFunctionAscending          , conditionalMassFunctionDescending
   ! One object per halo mass, each constructed once and asked a single question - these must not be re-assigned in a loop, as the
   ! assignment would finalize the previous object.
   type            (conditionalMassFunctionBehroozi2010), dimension(7)            :: conditionalMassFunctionSingle
   character       (len=1024                           )                          :: message
   integer                                                                        :: i
-  double precision                                                               :: mass                           , numberCentrals
+  double precision                                                               :: mass                                      , numberCentrals
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -69,14 +69,14 @@ program Tests_Conditional_Mass_Functions
   conditionalMassFunctionAscending =conditionalMassFunctionBehroozi2010(alphaSatellite,log10M1,log10Mstar0,beta,delta,gamma,sigmaLogMstar,BCut,BSatellite,betaCut,betaSatellite)
   conditionalMassFunctionDescending=conditionalMassFunctionBehroozi2010(alphaSatellite,log10M1,log10Mstar0,beta,delta,gamma,sigmaLogMstar,BCut,BSatellite,betaCut,betaSatellite)
   do i=1,size(massHalo)
-     massFunctionAscending    (i)=conditionalMassFunctionAscending    %massFunction(massHalo(i),1.0d10)
+     massFunctionAscending (i)=conditionalMassFunctionAscending %massFunction(massHalo(i),1.0d10)
   end do
   do i=size(massHalo),1,-1
-     massFunctionDescending   (i)=conditionalMassFunctionDescending   %massFunction(massHalo(i),1.0d10)
+     massFunctionDescending(i)=conditionalMassFunctionDescending%massFunction(massHalo(i),1.0d10)
   end do
   do i=1,size(massHalo)
      conditionalMassFunctionSingle(i)=conditionalMassFunctionBehroozi2010(alphaSatellite,log10M1,log10Mstar0,beta,delta,gamma,sigmaLogMstar,BCut,BSatellite,betaCut,betaSatellite)
-     massFunctionSingle       (i)=conditionalMassFunctionSingle    (i)%massFunction(massHalo(i),1.0d10)
+     massFunctionSingle           (i)=conditionalMassFunctionSingle(i)%massFunction(massHalo(i),1.0d10)
   end do
   call Assert("conditional mass function is independent of the order in which halo masses are requested",massFunctionAscending,massFunctionDescending,absTol=0.0d0)
   call Assert("conditional mass function is independent of the range of masses tabulated"               ,massFunctionAscending,massFunctionSingle    ,absTol=0.0d0)
@@ -108,19 +108,19 @@ contains
     double precision, intent(in   ) :: mass
     double precision                :: massRelative
 
-    massRelative  =+mass                          &
+    massRelative  =+mass                            &
          &         /10.0d0**log10Mstar0
-    massHaloMedian=+10.0d0**(                     &
-         &                   +log10M1             &
-         &                   +beta                &
-         &                   *log10(massRelative) &
-         &                   +massRelative**delta &
-         &                   /(                   &
-         &                     +1.0d0             &
-         &                     +1.0d0             &
+    massHaloMedian=+10.0d0**(                       &
+         &                   +log10M1               &
+         &                   +beta                  &
+         &                   *log10(massRelative)   &
+         &                   +massRelative**delta   &
+         &                   /(                     &
+         &                     +1.0d0               &
+         &                     +1.0d0               &
          &                     /massRelative**gamma &
-         &                    )                   &
-         &                   -0.5d0               &
+         &                    )                     &
+         &                   -0.5d0                 &
          &                  )
     return
   end function massHaloMedian

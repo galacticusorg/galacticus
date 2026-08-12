@@ -39,8 +39,8 @@
      !!}
      private
      logical                                                 :: tableInitialized             =  .false.
-     double precision                                        :: tableTimeMinimum                       , tableTimeMaximum, &
-          &                                                     normalizationMatterDominated           , valuePrevious   , &
+     double precision                                        :: tableTimeMinimum                       , tableTimeMaximum           , &
+          &                                                     normalizationMatterDominated           , valuePrevious              , &
           &                                                     timePrevious
      type            (enumerationNormalizeType)              :: normalizePrevious
      ! Lattice to which the tabulated epochs are pinned, and the state in which the integration of the growth factor was left at
@@ -81,7 +81,7 @@
   double precision, parameter :: timeToleranceRelative=1.0d-4
   ! Seed range of epochs to tabulate. Any two tabulations therefore contain this range, and so always overlap - which is what
   ! makes their shared lattice points reusable no matter which epochs each was asked for.
-  double precision, parameter :: timeTableSeedMinimum = 1.0d0, timeTableSeedMaximum=20.0d0
+  double precision, parameter :: timeTableSeedMinimum =1.0d+0, timeTableSeedMaximum=20.0d0
 
 contains
 
@@ -160,25 +160,25 @@ contains
     !!}
     use :: Interface_GSL        , only : GSL_Success
     use :: Numerical_ODE_Solvers, only : odeSolver
-    use :: Numerical_Ranges     , only : Range_Pinned, gridSchemePerDecade
+    use :: Numerical_Ranges     , only : Range_Pinned            , gridSchemePerDecade
     use :: Tables               , only : table1DLogarithmicLinear
     implicit none
-    class           (linearGrowthCollisionlessMatter), intent(inout) :: self
-    double precision                                 , intent(in   ) :: time
-    double precision                                 , parameter     :: dominateFactor               =   1.0d+04
-    double precision                                 , parameter     :: odeToleranceAbsolute         =   1.0d-10, odeToleranceRelative     =1.0d-10
+    class           (linearGrowthCollisionlessMatter), intent(inout)             :: self
+    double precision                                 , intent(in   )             :: time
+    double precision                                 , parameter                 :: dominateFactor            =1.0d+04
+    double precision                                 , parameter                 :: odeToleranceAbsolute      =1.0d-10, odeToleranceRelative  =1.0d-10
     ! Density of tabulation points, and the interval - in lattice steps - to which the bounds are pinned. The bounds are pinned
     ! to the lattice points themselves rather than to whole decades: at a thousand points per decade, and an ordinary differential
     ! equation solved at each of them, rounding a bound outward to a whole decade would add a thousand epochs for the sake of
     ! reaching one.
-    integer                                          , parameter     :: growthTablePointsPerDecade   =1000     , growthTableAnchorEvery   =   1
-    double precision                                 , dimension(2)  :: growthFactorODEVariables
-    logical                                                          :: remakeTable                            , carryOver
-    integer                                                          :: i                                      , iStart
-    double precision                                                 :: timeNow                                , timeMatterDominant       , &
-         &                                                              timePresent                            , timeBigCrunch            , &
-         &                                                              timeSeedMinimum                        , timeSeedMaximum
-    type            (rangeLattice                   )                :: latticeTime
+    integer                                          , parameter                 :: growthTablePointsPerDecade=1000   , growthTableAnchorEvery=1
+    double precision                                              , dimension(2) :: growthFactorODEVariables
+    logical                                                                      :: remakeTable                       , carryOver
+    integer                                                                      :: i                                 , iStart
+    double precision                                                             :: timeNow                           , timeMatterDominant           , &
+         &                                                                          timePresent                       , timeBigCrunch                , &
+         &                                                                          timeSeedMinimum                   , timeSeedMaximum
+    type            (rangeLattice                   )                            :: latticeTime
     logical                                          , allocatable, dimension(:) :: isComputed
 
     ! Check if we need to recompute our table.
@@ -215,25 +215,25 @@ contains
        ! formerly did - would apply the safety margin to an already margined bound and so ratchet the range outward on every
        ! retabulation.
        if (timeBigCrunch > 0.0d0) then
-          latticeTime=Range_Pinned(                                                                       &
-               &                                  [timePresent,time,timeMatterDominant]                 , &
-               &                                   growthTablePointsPerDecade                           , &
-               &                                   gridSchemePerDecade                                  , &
-               &                   marginFactor  = 2.0d0                                                , &
-               &                   anchorEvery   = growthTableAnchorEvery                               , &
-               &                   rangeCurrent  =[timeSeedMinimum,timeSeedMaximum]                     , &
-               &                   limitMaximum  =(1.0d0-timeToleranceRelative)*timeBigCrunch           , &
-               &                   latticeCurrent= self%latticeTime                                       &
+          latticeTime=Range_Pinned(                                                            &
+               &                                  [timePresent,time,timeMatterDominant]      , &
+               &                                   growthTablePointsPerDecade                , &
+               &                                   gridSchemePerDecade                       , &
+               &                   marginFactor  = 2.0d0                                     , &
+               &                   anchorEvery   = growthTableAnchorEvery                    , &
+               &                   rangeCurrent  =[timeSeedMinimum,timeSeedMaximum]          , &
+               &                   limitMaximum  =(1.0d0-timeToleranceRelative)*timeBigCrunch, &
+               &                   latticeCurrent= self%latticeTime                            &
                &                  )
        else
-          latticeTime=Range_Pinned(                                                                       &
-               &                                  [timePresent,time,timeMatterDominant]                 , &
-               &                                   growthTablePointsPerDecade                           , &
-               &                                   gridSchemePerDecade                                  , &
-               &                   marginFactor  = 2.0d0                                                , &
-               &                   anchorEvery   = growthTableAnchorEvery                               , &
-               &                   rangeCurrent  =[timeSeedMinimum,timeSeedMaximum]                     , &
-               &                   latticeCurrent= self%latticeTime                                       &
+          latticeTime=Range_Pinned(                                                            &
+               &                                  [timePresent,time,timeMatterDominant]      , &
+               &                                   growthTablePointsPerDecade                , &
+               &                                   gridSchemePerDecade                       , &
+               &                   marginFactor  = 2.0d0                                     , &
+               &                   anchorEvery   = growthTableAnchorEvery                    , &
+               &                   rangeCurrent  =[timeSeedMinimum,timeSeedMaximum]          , &
+               &                   latticeCurrent= self%latticeTime                            &
                &                  )
        end if
        ! The growth factor is integrated forward from an initial condition imposed at the earliest tabulated epoch, so every
