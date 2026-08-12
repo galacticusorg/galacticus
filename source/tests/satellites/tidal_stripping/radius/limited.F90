@@ -32,37 +32,37 @@ program Test_Satellite_Tidal_Stripping_Radius_Limited
   !!}
   use :: Cosmology_Functions            , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters           , only : cosmologyParametersSimple                                     , cosmologyParametersClass
-  use :: Dark_Matter_Halo_Scales        , only : darkMatterHaloScaleVirialDensityContrastDefinition             , darkMatterHaloScaleClass
+  use :: Dark_Matter_Halo_Scales        , only : darkMatterHaloScaleVirialDensityContrastDefinition            , darkMatterHaloScaleClass
   use :: Display                        , only : displayVerbositySet                                           , verbosityLevelStandard
   use :: Events_Hooks                   , only : eventsHooksInitialize
   use :: Functions_Global_Utilities     , only : Functions_Global_Set
-  use :: Galacticus_Nodes               , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , &
-       &                                         nodeComponentBasic                                            , nodeComponentDarkMatterProfile   , &
+  use :: Galacticus_Nodes               , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize        , &
+       &                                         nodeComponentBasic                                            , nodeComponentDarkMatterProfile      , &
        &                                         treeNode                                                      , defaultDarkMatterProfileComponent
   use :: Input_Parameters               , only : inputParameters
   use :: ISO_Varying_String             , only : var_str
-  use :: Node_Components                , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, &
+  use :: Node_Components                , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize   , &
        &                                         Node_Components_Thread_Uninitialize                           , Node_Components_Uninitialize
-  use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusKing1962                          , satelliteTidalStrippingRadiusLimited
+  use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusKing1962                         , satelliteTidalStrippingRadiusLimited
   use :: Satellites_Tidal_Fields        , only : satelliteTidalFieldNull                                       , satelliteTidalFieldClass
-  use :: Unit_Tests                     , only : Assert                                                        , Unit_Tests_Begin_Group           , &
+  use :: Unit_Tests                     , only : Assert                                                        , Unit_Tests_Begin_Group              , &
        &                                         Unit_Tests_End_Group                                          , Unit_Tests_Finish
   use :: Virial_Density_Contrast        , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   implicit none
-  type            (treeNode                                                      ), pointer :: node
-  class           (nodeComponentBasic                                            ), pointer :: basic
-  class           (nodeComponentDarkMatterProfile                                ), pointer :: darkMatterProfile
-  type            (cosmologyParametersSimple                                     ), pointer :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda                                ), pointer :: cosmologyFunctions_
-  type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: virialDensityContrast_
-  type            (darkMatterHaloScaleVirialDensityContrastDefinition            ), pointer :: darkMatterHaloScale_
-  type            (satelliteTidalFieldNull                                       ), pointer :: satelliteTidalField_
-  type            (satelliteTidalStrippingRadiusKing1962                         ), pointer :: radiusKing1962_
-  type            (satelliteTidalStrippingRadiusLimited                          ), pointer :: radiusLimited_
-  type            (inputParameters                                               )          :: parameters
-  double precision                                                                          :: radiusVirial       , radiusSoliton
-  integer                                                                                   :: radiusSolitonID
-  double precision                                                                , parameter :: massVirial  =1.0d12, timeNode     =13.8d0
+  type            (treeNode                                                      ), pointer   :: node
+  class           (nodeComponentBasic                                            ), pointer   :: basic
+  class           (nodeComponentDarkMatterProfile                                ), pointer   :: darkMatterProfile
+  type            (cosmologyParametersSimple                                     ), pointer   :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda                                ), pointer   :: cosmologyFunctions_
+  type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer   :: virialDensityContrast_
+  type            (darkMatterHaloScaleVirialDensityContrastDefinition            ), pointer   :: darkMatterHaloScale_
+  type            (satelliteTidalFieldNull                                       ), pointer   :: satelliteTidalField_
+  type            (satelliteTidalStrippingRadiusKing1962                         ), pointer   :: radiusKing1962_
+  type            (satelliteTidalStrippingRadiusLimited                          ), pointer   :: radiusLimited_
+  type            (inputParameters                                               )            :: parameters
+  double precision                                                                            :: radiusVirial                 , radiusSoliton
+  integer                                                                                     :: radiusSolitonID
+  double precision                                                                , parameter :: massVirial            =1.0d12, timeNode     =13.8d0
 
   call displayVerbositySet(verbosityLevelStandard)
   call Unit_Tests_Begin_Group("Satellite tidal stripping radius: limited")
@@ -75,11 +75,11 @@ program Test_Satellite_Tidal_Stripping_Radius_Limited
   ! Register the soliton radius meta-property as a creator. The class under test registers it as a non-creator, so without a
   ! creator the meta-property has no storage and can not be written. This must be done *before* the dark matter profile
   ! component is created below, as the meta-property storage is allocated at component creation.
-  radiusSolitonID=defaultDarkMatterProfileComponent%addFloatRank0MetaProperty(                                                &
-       &                                                                      var_str('solitonRadiusSoliton'               ), &
-       &                                                                              'darkMatterProfile:solitonRadiusSoliton', &
-       &                                                                      isCreator  =.true.                            , &
-       &                                                                      isEvolvable=.false.                             &
+  radiusSolitonID=defaultDarkMatterProfileComponent%addFloatRank0MetaProperty(                                                   &
+       &                                                                      var_str('solitonRadiusSoliton'                  ), &
+       &                                                                              'darkMatterProfile:solitonRadiusSoliton' , &
+       &                                                                      isCreator  =.true.                               , &
+       &                                                                      isEvolvable=.false.                                &
        &                                                                     )
   ! Build the objects required by the tidal radius models.
   allocate(cosmologyParameters_  )
@@ -106,16 +106,16 @@ program Test_Satellite_Tidal_Stripping_Radius_Limited
   ! With no solitonic core the tidal radius must be returned unchanged. The soliton profiles store a negative radius in this
   ! case.
   call darkMatterProfile%floatRank0MetaPropertySet(radiusSolitonID,-1.0d0)
-  call Assert('no soliton: tidal radius returned unchanged'   ,radiusLimited_%radius(node),radiusVirial      ,relTol=1.0d-6)
+  call Assert('no soliton: tidal radius returned unchanged' ,radiusLimited_%radius(node),radiusVirial ,relTol=1.0d-6)
   ! With a solitonic core smaller than the tidal radius the tidal radius must again be returned unchanged.
   radiusSoliton=0.5d0*radiusVirial
   call darkMatterProfile%floatRank0MetaPropertySet(radiusSolitonID,radiusSoliton)
-  call Assert('soliton smaller than tidal radius: unchanged'  ,radiusLimited_%radius(node),radiusVirial      ,relTol=1.0d-6)
+  call Assert('soliton smaller than tidal radius: unchanged',radiusLimited_%radius(node),radiusVirial ,relTol=1.0d-6)
   ! With a solitonic core larger than the tidal radius the tidal radius must be limited to the soliton radius, so that stripping
   ! of the outer halo can not remove material from within the core.
   radiusSoliton=2.0d0*radiusVirial
   call darkMatterProfile%floatRank0MetaPropertySet(radiusSolitonID,radiusSoliton)
-  call Assert('soliton larger than tidal radius: limited'     ,radiusLimited_%radius(node),radiusSoliton     ,relTol=1.0d-6)
+  call Assert('soliton larger than tidal radius: limited'   ,radiusLimited_%radius(node),radiusSoliton,relTol=1.0d-6)
   ! Clean up.
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
