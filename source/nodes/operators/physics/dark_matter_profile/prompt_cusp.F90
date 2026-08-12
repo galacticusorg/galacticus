@@ -269,7 +269,7 @@ contains
     !!}
     use :: Calculations_Resets                 , only : Calculations_Reset
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Error                               , only : Error_Report                       , Warn
+    use :: Error                               , only : Error_Report                       , Warn                          , errorStatusSuccess
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , nodeComponentDarkMatterProfile
     use :: Lambert_Ws                          , only : Lambert_W0
     use :: Numerical_Constants_Math            , only : Pi
@@ -288,9 +288,16 @@ contains
     type            (rootFinder                              )               , save    :: finderCollapse                   , finderRadius
     logical                                                                  , save    :: finderCollapseInitialized=.false., finderRadiusInitialized=.false.
     !$omp threadprivate(finderCollapse,finderRadius,finderCollapseInitialized,finderRadiusInitialized)
+    integer                                                                  , save    :: countNoCollapse          =0
+    !$omp threadprivate(countNoCollapse)
+    ! Factor by which the collapse time is allowed to exceed the present age of the Universe before the search is abandoned. σ₀(t)
+    ! grows only until the Universe becomes Λ-dominated and is then constant to far better than double precision by this epoch, so
+    ! no root can exist beyond it.
+    double precision                                          , parameter              :: factorTimeCollapseMaximum=1.0d1
+    double precision                                                                   :: timeCollapseMaximum
     double precision                                                         , save    :: errorFractionalMaximum=  0.0d+0
     logical                                                                            :: computeCusp
-    integer                                                                            :: iterationCount
+    integer                                                                            :: iterationCount                   , statusCollapse
     double precision                                                                   :: sigma0                           , sigma2                         , &
          &                                                                                densityMean                      , densityMeanCollapse            , &
          &                                                                                sigma2Collapse                   , timeCollapse                   , &
@@ -335,6 +342,22 @@ contains
     ! Evaluate the required integrals over the power spectrum at the time of this node.
     self_             =>  self
     basic             =>  node                                  %basic               (                   )
+    ! Bound the upward expansion of the collapse time search. For sufficiently low mass halos no solution exists at all: σ₀Collapse
+    ! then exceeds σ₀(t) at every epoch, because σ₀(t) grows only until the Universe becomes Λ-dominated and is constant
+    ! thereafter. With no limit the range expansion doubles the trial time without bound, the expansion factor table is rebuilt
+    ! out to ever later times, and the cosmological functions eventually raise a floating point exception when a³ overflows -
+    ! which is diagnosed far from its cause. The limit is placed well beyond any epoch at which σ₀ is still growing, so it does
+    ! not alter any collapse time that is found; it only converts the runaway into a clean out-of-range status here.
+    timeCollapseMaximum=+factorTimeCollapseMaximum                                &
+         &              *self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0)
+    call finderCollapse%rangeExpand(                                                             &
+         &                          rangeExpandUpward            =2.0d+0                       , &
+         &                          rangeExpandDownward          =0.5d+0                       , &
+         &                          rangeExpandType              =rangeExpandMultiplicative    , &
+         &                          rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+         &                          rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+         &                          rangeUpwardLimit             =timeCollapseMaximum            &
+         &                         )
     darkMatterProfile =>  node                                  %darkMatterProfile   (                   )
     sigma0            =   self                                  %sigma               (0,     basic%time())
     sigma2            =   self                                  %sigma               (2,     basic%time())
@@ -391,7 +414,22 @@ contains
                &                            /(sigma0/sigma2)**1.5d0                           &
                &                           )**((2.0d0*self%p-1.0d0)/3.0d0)                    &
                &                         )
-          timeCollapse       =finderCollapse            %find(                  rootGuess=basic%time        ())
+          timeCollapse       =finderCollapse            %find(                  rootGuess=basic%time        (),status=statusCollapse)
+          if (statusCollapse /= errorStatusSuccess) then
+             ! No collapse time exists for this halo - σ₀Collapse exceeds σ₀(t) at every epoch. Take the collapse to occur at the
+             ! limiting time, which is the continuous limit of the solution as σ₀Collapse approaches the asymptotic value of σ₀.
+             timeCollapse   =timeCollapseMaximum
+             countNoCollapse=countNoCollapse+1
+             ! Report on the first occurrence and then at each decade, so that the incidence is visible without the reporting
+             ! itself dominating the run.
+             if (countNoCollapse == 10**int(log10(dble(countNoCollapse))+0.5d0)) then
+                block
+                  character(len=256) :: labelDiagnostic
+                  write (labelDiagnostic,'(a,i9,a,e12.6,a,e12.6,a,e12.6,a,e12.6,a,e12.6)') "prompt cusp: no collapse time solution (occurrence ",countNoCollapse," on this thread): t=",basic%time(),", M=",basic%mass(),", M200c=",mass200Critical,", sigma0=",sigma0,", sigma0Collapse=",sigma0Collapse
+                  call Warn(trim(labelDiagnostic))
+                end block
+             end if
+          end if
           sigma2Collapse     =self                      %sigma               (2,time     =      timeCollapse  )
           densityMeanCollapse=self  %cosmologyFunctions_%matterDensityEpochal(  time     =      timeCollapse  )
           ! Evaluate the prompt cusp parameters.

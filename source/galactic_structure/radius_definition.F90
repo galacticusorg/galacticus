@@ -169,15 +169,13 @@ contains
     !!{RST
     Decode a set of radii descriptors and store the corresponding specifiers.
     !!}
-    use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode   , enumerationMassTypeEncode  , weightByLuminosity      , weightByMass       , &
-          &                                       enumerationComponentTypeDescribe , enumerationMassTypeDescribe, weightIndexNull
-    use :: Error                         , only : Component_List                   , Error_Report               , errorStatusSuccess
-    use :: Galacticus_Nodes              , only : defaultDarkMatterProfileComponent, defaultDiskComponent       , defaultSpheroidComponent, defaultNSCComponent, &
-          &                                       defaultHotHaloComponent
-    use :: ISO_Varying_String            , only : char                             , extract                    , operator(==)            , assignment(=)      , &
+    use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode  , enumerationMassTypeEncode  , weightByLuminosity, weightByMass , &
+          &                                       enumerationComponentTypeDescribe, enumerationMassTypeDescribe, weightIndexNull
+    use :: Error                         , only : Error_Report                    , errorStatusSuccess
+    use :: ISO_Varying_String            , only : char                            , extract                    , operator(==)      , assignment(=), &
           &                                       operator(//)
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
-    use :: String_Handling               , only : String_Count_Words               , String_Split_Words         , char
+    use :: String_Handling               , only : String_Count_Words              , String_Split_Words         , char
     implicit none
     class    (radiusDefinitions), intent(inout), target       :: self
     type     (varying_string   ), intent(in   ), dimension(:) :: descriptors
@@ -229,108 +227,52 @@ contains
        case ('hotHaloOuterRadius'              )
           specifiers(i)%type=radiusTypeHotHaloOuterRadius
           self%hotHaloRequired           =.true.
-          if (.not.defaultHotHaloComponent          %outerRadiusIsGettable   ())                                        &
-               & call Error_Report                                                                                      &
-               &(                                                                                                       &
-               &                              'hot halo outer radius is not gettable.'//                                &
-               &        Component_List(                                                                                 &
-               &                       'hotHalo'                                                                     ,  &
-               &                        defaultHotHaloComponent %   outerRadiusAttributeMatch(requireGettable=.true.)   &
-               &                       )                                                                             // &
-               &       {introspection:location}                                                                         &
-               &                             )
+          !![
+          <componentPropertyAssert class="hotHalo"           properties="outerRadius"    require="gettable"/>
+          !!]
        case ('darkMatterScaleRadius'           )
           specifiers(i)%type=radiusTypeDarkMatterScaleRadius
           self%radiusScaleRequired       =.true.
-          if (.not.defaultDarkMatterProfileComponent%scaleIsGettable         ())                                        &
-               & call Error_Report                                                                                      &
-               &      (                                                                                                 &
-               &       'dark matter profile scale radius is not gettable.'//                                            &
-               &        Component_List(                                                                                 &
-               &                       'darkMatterProfile'                                                           ,  &
-               &                        defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)   &
-               &                       )                                                                             // &
-               &       {introspection:location}                                                                         &
-               &      )
+          !![
+          <componentPropertyAssert class="darkMatterProfile" properties="scale"          require="gettable"/>
+          !!]
        case ('diskRadius'                      )
           specifiers(i)%type=radiusTypeDiskRadius
           self%diskRequired              =.true.
-          if (.not.defaultDiskComponent             %radiusIsGettable        ())                                        &
-               & call Error_Report                                                                                      &
-               &(                                                                                                       &
-               &                              'disk radius is not gettable.'//                                          &
-               &        Component_List(                                                                                 &
-               &                       'disk'                                                                        ,  &
-               &                        defaultDiskComponent    %        radiusAttributeMatch(requireGettable=.true.)   &
-               &                       )                                                                             // &
-               &       {introspection:location}                                                                         &
-               &                             )
+          !![
+          <componentPropertyAssert class="disk"              properties="radius"         require="gettable"/>
+          !!]
        case ('spheroidRadius'                  )
           specifiers(i)%type=radiusTypeSpheroidRadius
           self%spheroidRequired          =.true.
-          if (.not.defaultSpheroidComponent         %radiusIsGettable        ())                                        &
-               & call Error_Report                                                                                      &
-               &(                                                                                                       &
-               &                              'spheroid radius is not gettable.'//                                      &
-               &        Component_List(                                                                                 &
-               &                       'spheroid'                                                                    ,  &
-               &                        defaultSpheroidComponent%        radiusAttributeMatch(requireGettable=.true.)   &
-               &                       )                                                                             // &
-               &       {introspection:location}                                                                         &
-               &                             )
+          !![
+          <componentPropertyAssert class="spheroid"          properties="radius"         require="gettable"/>
+          !!]
        case ('nuclearStarClusterRadius'        )
           specifiers(i)%type=radiusTypeNuclearStarClusterRadius
           self%nuclearStarClusterRequired=.true.
-          if (.not.defaultNSCComponent             %radiusIsGettable        ())                                         &
-               & call Error_Report                                                                                      &
-               &(                                                                                                       &
-               &                              'nuclear star cluster radius is not gettable.'//                          &
-               &        Component_List(                                                                                 &
-               &                       'NSC'                                                                        ,   &
-               &                        defaultNSCComponent    %        radiusAttributeMatch(requireGettable=.true.)    &
-               &                       )                                                                             // &
-               &       {introspection:location}                                                                         &
-               &                             )
+          !![
+          <componentPropertyAssert class="NSC"               properties="radius"         require="gettable"/>
+          !!]
 
        case ('diskHalfMassRadius'              )
           specifiers(i)%type=radiusTypeDiskHalfMassRadius
           self%diskRequired              =.true.
-          if (.not.defaultDiskComponent             %halfMassRadiusIsGettable())                                        &
-               & call Error_Report                                                                                      &
-               &(                                                                                                       &
-               &                              'disk half-mass radius is not gettable.'//                                &
-               &        Component_List(                                                                                 &
-               &                       'disk'                                                                        ,  &
-               &                        defaultDiskComponent    %halfMassRadiusAttributeMatch(requireGettable=.true.)   &
-               &                       )                                                                             // &
-               &       {introspection:location}                                                                         &
-               &                             )
+          !![
+          <componentPropertyAssert class="disk"              properties="halfMassRadius" require="gettable"/>
+          !!]
        case ('spheroidHalfMassRadius'          )
           specifiers(i)%type=radiusTypeSpheroidHalfMassRadius
           self%spheroidRequired          =.true.
-          if (.not.defaultSpheroidComponent         %halfMassRadiusIsGettable())                                        &
-               & call Error_Report                                                                                      &
-               &(                                                                                                       &
-               &                              'spheroid half-mass radius is not gettable.'//                            &
-               &        Component_List(                                                                                 &
-               &                       'spheroid'                                                                    ,  &
-               &                        defaultSpheroidComponent%halfMassRadiusAttributeMatch(requireGettable=.true.)   &
-               &                       )                                                                             // &
-               &       {introspection:location}                                                                         &
-               &                             )
+          !![
+          <componentPropertyAssert class="spheroid"          properties="halfMassRadius" require="gettable"/>
+          !!]
        case ('nuclearStarClusterHalfMassRadius')
           specifiers(i)%type=radiusTypeNuclearStarClusterHalfMassRadius
           self%nuclearStarClusterRequired=.true.
-          if (.not.defaultNSCComponent         %halfMassRadiusIsGettable())                                             &
-               & call Error_Report                                                                                      &
-               &(                                                                                                       &
-               &                              'nuclear star cluster half-mass radius is not gettable.'//                &
-               &        Component_List(                                                                                 &
-               &                       'NSC'                                                                         ,  &
-               &                        defaultNSCComponent     %halfMassRadiusAttributeMatch(requireGettable=.true.)   &
-               &                       )                                                                             // &
-               &       {introspection:location}                                                                         &
-               &                             )
+          !![
+          <componentPropertyAssert class="NSC"               properties="halfMassRadius" require="gettable"/>
+          !!]
 
        case ('satelliteBoundMassFraction'      )
           specifiers(i)%type=radiusTypeSatelliteBoundMassFraction

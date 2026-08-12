@@ -23,6 +23,7 @@ Run with::
 
 import argparse
 import json
+import math
 import re
 import sys
 from datetime import datetime, timezone
@@ -31,6 +32,13 @@ from pathlib import Path
 import yaml
 
 REPO_URL = "https://github.com/galacticusorg/galacticus"
+
+# Magnitude at or above which a published logL is taken to be Galacticus'
+# ``logImpossible`` sentinel rather than a real likelihood. The sentinel is
+# ``-1.0d-06 * huge(1.0d0)`` (about -1.8e302; see
+# source/models/likelihoods/constants.F90), so any threshold comfortably
+# between the largest plausible likelihood and that value will do.
+LOG_LIKELIHOOD_IMPOSSIBLE = 1.0e100
 
 JS_PREFIX_RE = re.compile(
     r"^\s*window\.[A-Z_]+\s*=\s*", flags=re.MULTILINE
@@ -300,8 +308,15 @@ def bootstrap_thresholds(gh_root, manifest, fraction_warn=0.10, fraction_fail=0.
     """Read each ``standardLogLikelihood`` metric's currently-published
     logL values and derive per-analysis warn/fail thresholds at
     ``current - fraction * |current|``. Returns a nested dict keyed by
-    metric suffix, then analysis name."""
+    metric suffix, then analysis name.
+
+    Analyses whose published logL is Galacticus' ``logImpossible`` sentinel
+    (``-1.0d-06 * huge(1.0d0)``, i.e. about -1.8e302) are skipped rather than
+    bootstrapped. Scaling that sentinel by a fraction would place both
+    thresholds below it, leaving an entry that no finite likelihood - however
+    bad - could ever fail, and so silently disabling the analysis."""
     out = {}
+    skipped = []
     for suffix, m in (manifest.get("metrics") or {}).items():
         if m.get("aggregator") != "standardLogLikelihood":
             continue
@@ -322,6 +337,9 @@ def bootstrap_thresholds(gh_root, manifest, fraction_warn=0.10, fraction_fail=0.
                 current = float(ll)
             except (TypeError, ValueError):
                 continue
+            if not math.isfinite(current) or abs(current) >= LOG_LIKELIHOOD_IMPOSSIBLE:
+                skipped.append(f"{suffix}/{name}")
+                continue
             warn = current - fraction_warn * abs(current)
             fail = current - fraction_fail * abs(current)
             analyses[name] = {
@@ -331,6 +349,12 @@ def bootstrap_thresholds(gh_root, manifest, fraction_warn=0.10, fraction_fail=0.
             }
         if analyses:
             out[suffix] = analyses
+    if skipped:
+        print(
+            "warning: not bootstrapping "+str(len(skipped))+" analyses whose published logL is impossible; "
+            "set their thresholds by hand once a finite likelihood has been published: "+", ".join(sorted(skipped)),
+            file=sys.stderr,
+        )
     return out
 
 

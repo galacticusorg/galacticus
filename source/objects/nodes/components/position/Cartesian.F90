@@ -27,8 +27,7 @@ module Node_Component_Position_Cartesian
   !!}
   implicit none
   private
-  public :: Node_Component_Position_Cartesian_Thread_Initialize, Node_Component_Position_Cartesian_Thread_Uninitialize, &
-       &    Node_Component_Position_Cartesian_Inter_Tree_Insert 
+  public :: Node_Component_Position_Cartesian_Thread_Initialize, Node_Component_Position_Cartesian_Thread_Uninitialize
   ! The `position` and `velocity` properties below are rank-1, 3-element arrays. As with all bare 3-element
   ! position/velocity arrays in Galacticus, their components are *Cartesian*, in the order (x,y,z) --- the
   ! coordinate system is implicit in the representation and is not carried by the type. Code which needs a
@@ -131,43 +130,5 @@ contains
     end select
     return
   end subroutine nodePromotion
-
-  !![
-  <interTreePositionInsert>
-   <unitName>Node_Component_Position_Cartesian_Inter_Tree_Insert</unitName>
-  </interTreePositionInsert>
-  !!]
-  subroutine Node_Component_Position_Cartesian_Inter_Tree_Insert(node,replaceNode)
-    !!{RST
-    A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been assigned to the ``replaceNode`` so must be transferred.
-    !!}
-    use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentBasic, nodeComponentPosition, treeNode
-    use :: Histories       , only : history
-    implicit none
-    type (treeNode             ), intent(inout), pointer :: node               , replaceNode
-    class(nodeComponentPosition)               , pointer :: position           , replacePosition
-    class(nodeComponentBasic   )               , pointer :: basic
-    type (history              )                         :: historyPosition    , replaceHistoryPosition, &
-         &                                                  moveHistoryPosition
-
-    ! Return immediately if the cartesian position implementation is not active.
-    if (.not.defaultPositionComponent%cartesianIsActive()) return
-    ! Get the basic component of the pulled node.
-    basic                  =>           node%basic          ()
-    ! Get the position components to both nodes.
-    position               =>           node%position       ()
-    replacePosition        =>    replaceNode%position       ()
-     ! Transfer subhalo mass history.
-    historyPosition        =        position%positionHistory()
-    replaceHistoryPosition = replacePosition%positionHistory()
-    ! Cut off history in node being replaced subsequent to current time.
-    call replaceHistoryPosition%trimForward       (basic%time(),   moveHistoryPosition)
-    ! Append removed history to pulled node.
-    call historyPosition       %append            (                moveHistoryPosition)
-    ! Set the histories.
-    call        position       %positionHistorySet(                    historyPosition)
-    call replacePosition       %positionHistorySet(             replaceHistoryPosition)
-    return
-  end subroutine Node_Component_Position_Cartesian_Inter_Tree_Insert
 
 end module Node_Component_Position_Cartesian

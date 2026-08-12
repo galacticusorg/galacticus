@@ -60,9 +60,7 @@ contains
     !!{RST
     Constructor for the :cite:t:`jiang_fitting_2008` merging timescale class which builds the object from a parameter set.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : defaultBasicComponent
-    use :: Input_Parameters, only : inputParameter       , inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (satelliteMergingTimescalesJiang2008)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
@@ -70,8 +68,8 @@ contains
     class           (darkMatterProfileDMOClass          ), pointer       :: darkMatterProfileDMO_
     double precision                                                     :: scatter              , timescaleMultiplier
 
-    if (.not.defaultBasicComponent%massIsGettable()) call Error_Report('this method requires that the "mass" property of the basic component be gettable'//{introspection:location})
     !![
+    <componentPropertyAssert class="basic" properties="mass" require="gettable"/>
     <inputParameter docformat="rst">
       <name>timescaleMultiplier</name>
       <defaultValue>0.75d0</defaultValue>

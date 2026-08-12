@@ -17,6 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson. The pinning of the linear growth tabulation to absolute lattices for
+  !+    issue #1317 was drafted with assistance from Claude, and reviewed and verified by Andrew Benson.
+
   !!{RST
   An implementation of linear growth of cosmological structure in models containing baryons and dark matter. Assumes no growth of radiation perturbations.
   !!}
@@ -25,6 +28,7 @@
   use :: Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass     , hubbleUnitsTime
   use :: File_Utilities            , only : lockDescriptor
   use :: Intergalactic_Medium_State, only : intergalacticMediumState, intergalacticMediumStateClass
+  use :: Numerical_Ranges          , only : rangeLattice
   use :: Tables                    , only : table2DLogLogLin
 
   !![
@@ -45,19 +49,40 @@
      A linear growth of cosmological structure contrast class in models containing baryons and dark matter. Assumes no growth of radiation perturbations.
      !!}
      private
-     logical                                                    :: tableInitialized                 =  .false., darkMatterOnlyInitialConditions
-     double precision                                           :: tableTimeMinimum                           , tableTimeMaximum                               , &
-          &                                                        tableWavenumberMinimum                     , tableWavenumberMaximum                         , &
-          &                                                        fractionDarkMatter                         , fractionBaryons                                , &
-          &                                                        normalizationMatterDominated               , redshiftInitial                                , &
-          &                                                        redshiftInitialDelta
-     integer                                                    :: cambCountPerDecade
-     type            (table2DLogLogLin               )          :: growthFactor
-     type            (varying_string                 )          :: fileName
-     class           (cosmologyParametersClass       ), pointer :: cosmologyParameters_             => null() , cosmologyParametersInitialConditions_ => null()
-     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_              => null()
-     class           (intergalacticMediumStateClass  ), pointer :: intergalacticMediumState_        => null()
-     type            (linearGrowthCollisionlessMatter), pointer :: linearGrowthCollisionlessMatter_ => null()
+     logical                                                                      :: tableInitialized                 =  .false., darkMatterOnlyInitialConditions
+     double precision                                                             :: tableTimeMinimum                           , tableTimeMaximum                               , &
+          &                                                                          tableWavenumberMinimum                     , tableWavenumberMaximum                         , &
+          &                                                                          fractionDarkMatter                         , fractionBaryons                                , &
+          &                                                                          normalizationMatterDominated               , redshiftInitial                                , &
+          &                                                                          redshiftInitialDelta
+     integer                                                                      :: cambCountPerDecade
+     type            (table2DLogLogLin               )                            :: growthFactor
+     ! Lattices to which the two axes of the tabulation are pinned. These are the source of truth for its extent; the limits
+     ! above are derived from them. The time axis begins at the epoch from which the growth equations are integrated, so its
+     ! lower bound never moves and the axis is only ever extended upward.
+     type            (rangeLattice                   )                            :: latticeTime                                , latticeWavenumber
+     ! The state of the growth equations at the final tabulated epoch, one entry per wavenumber, together with the factor by
+     ! which each wavenumber was normalized. This is all that is needed to resume the integration when the time axis is
+     ! extended, and it costs five numbers per wavenumber rather than the four further tables which retaining the state at
+     ! every epoch would require.
+     !
+     ! The state is held *unnormalized* - as the integration itself produced it - and deliberately not divided by
+     ! `normalizationFactor`. The equations are linear, so a normalized solution is also a solution and could be integrated
+     ! directly; but their solver applies an absolute tolerance as well as a relative one, and an absolute tolerance is not
+     ! invariant under a change of scale. Resuming from normalized values would therefore integrate the Jeans-suppressed baryon
+     ! modes - which are smaller than the dark matter modes by some seven orders of magnitude - against an effective tolerance
+     ! coarser by the normalization factor, and the result would differ from that of an uninterrupted integration by of order
+     ! `10⁻⁴` of their amplitude. Resuming from exactly the numbers an uninterrupted integration would have held at that epoch
+     ! instead reproduces it bit for bit, which is what makes the tabulation a function of the range alone rather than of the
+     ! sequence of requests which produced it.
+     double precision                                 , allocatable, dimension(:) :: valueDarkMatterFinal                      , derivativeDarkMatterFinal                       , &
+               &                                                                     valueBaryonsFinal                         , derivativeBaryonsFinal                          , &
+               &                                                                     normalizationFactor
+     type            (varying_string                 )                            :: fileName
+     class           (cosmologyParametersClass       ), pointer                   :: cosmologyParameters_             => null() , cosmologyParametersInitialConditions_ => null()
+     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_              => null()
+     class           (intergalacticMediumStateClass  ), pointer                   :: intergalacticMediumState_        => null()
+     type            (linearGrowthCollisionlessMatter), pointer                   :: linearGrowthCollisionlessMatter_ => null()
    contains
      !![
      <methods docformat="rst">
@@ -87,15 +112,30 @@
   end interface linearGrowthBaryonsDarkMatter
 
   ! Tolerance parameter used to ensure times do not exceed that at the Big Crunch.
-  double precision                               , parameter               :: timeToleranceRelative    =1.0d-4
+  double precision                               , parameter               :: timeToleranceRelative               =1.0d-4
 
   ! Reference wavenumber used when no wavenumber is specified. Small enough that it should be into the regime where baryon
   ! suppression is negligible, but large enough to avoid the BAO region.
-  double precision                               , parameter               :: wavenumberReference      =1.0d+0
+  double precision                               , parameter               :: wavenumberReference                 =1.0d+0
 
   ! Indices of tables for baryons and dark matter.
-  integer                                        , parameter               :: indexDarkMatter               =1
-  integer                                        , parameter               :: indexBaryons                  =2
+  integer                                        , parameter               :: indexDarkMatter                     =1
+  integer                                        , parameter               :: indexBaryons                        =2
+
+  ! Seed ranges for the tabulation - the ranges spanned when nothing requires a wider one. Because they are fixed, and derived
+  ! from no request, every tabulation contains them, so any two tabulations overlap and can always be merged. The wavenumber
+  ! seed already spans whole decades.
+  double precision                               , parameter               :: timeMaximumSeed                     =2.0d+1
+  double precision                               , parameter               :: wavenumberMinimumSeed               =1.0d-3                             , wavenumberMaximumSeed=1.0d+4
+
+  ! Densities of tabulation points, and the intervals - in lattice steps - to which the bounds of the two axes are pinned. The
+  ! time axis is pinned to the lattice points themselves: it carries a thousand points per decade, so anchoring to whole
+  ! decades could add a thousand epochs, each of which costs an integration step at every wavenumber. The wavenumber axis is
+  ! pinned to whole decades, which is the granularity of its seed range and of the factor-of-two margin applied to a request.
+  integer                                        , parameter               :: growthTablePointsPerDecadeTime      =1000
+  integer                                        , parameter               :: growthTablePointsPerDecadeWavenumber= 100
+  integer                                        , parameter               :: anchorEveryTime                     =   1
+  integer                                        , parameter               :: anchorEveryWavenumber               =growthTablePointsPerDecadeWavenumber
 
   ! Lock used for file access.
   type            (lockDescriptor               )                          :: fileLock
@@ -195,22 +235,15 @@ contains
     class           (cosmologyParametersClass     ), target   , intent(in   ) :: cosmologyParameters_           , cosmologyParametersInitialConditions_
     class           (cosmologyFunctionsClass      ), target   , intent(in   ) :: cosmologyFunctions_
     class           (intergalacticMediumStateClass), target   , intent(in   ) :: intergalacticMediumState_
-    double precision                                                          :: timeBigCrunch                  , timeNow
+    double precision                                                          :: timeNow
     !![
     <constructorAssign variables="redshiftInitial, redshiftInitialDelta, cambCountPerDecade, darkMatterOnlyInitialConditions, *cosmologyParameters_, *cosmologyParametersInitialConditions_, *cosmologyFunctions_, *intergalacticMediumState_"/>
     !!]
 
+    ! The extent of the tabulation is not set here: it is determined entirely by the lattices to which the two axes are pinned,
+    ! which `baryonsDarkMatterRetabulate` builds from the seed ranges above and from whatever is requested. Nothing reads the
+    ! limits before then, since `baryonsDarkMatterRemakeTable` consults them only once the table is initialized.
     self%tableInitialized      =.false.
-    self%tableTimeMinimum      =1.0d+0
-    self%tableTimeMaximum      =2.0d+1
-    self%tableWavenumberMinimum=1.0d-3
-    self%tableWavenumberMaximum=1.0d+4
-    timeBigCrunch              =self%cosmologyFunctions_%timeBigCrunch()
-    if (timeBigCrunch > 0.0d0) then
-       ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
-       if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                       *timeBigCrunch
-       if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-timeToleranceRelative)*timeBigCrunch
-    end if
     ! Validate initial redshifts.
     if (redshiftInitialDelta > redshiftInitial) call Error_Report('[redshiftInitialDelta] ≤ [redshiftInitial] is required'//{introspection:location})
     ! Compute dark matter and baryon fractions.
@@ -227,12 +260,12 @@ contains
     timeNow=self%cosmologyFunctions_%cosmicTime(1.0d0)
     self%normalizationMatterDominated=+self%linearGrowthCollisionlessMatter_%value(timeNow,normalize=normalizeMatterDominated) &
          &                            /self%linearGrowthCollisionlessMatter_%value(timeNow                                   )
-    self%fileName              =inputPath(pathTypeDataDynamic)                                                       // &
-         &                      'largeScaleStructure/'                                                               // &
-         &                      self%objectType      (                                                              )// &
-         &                      '_'                                                                                  // &
-         &                      self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
-         &                      '.hdf5'
+    self%fileName                    =inputPath(pathTypeDataDynamic)                                                       // &
+         &                            'largeScaleStructure/'                                                               // &
+         &                            self%objectType      (                                                              )// &
+         &                            '_'                                                                                  // &
+         &                            self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
+         &                            '.hdf5'
     call Directory_Make(File_Path(self%fileName))
     return
   end function baryonsDarkMatterConstructorInternal
@@ -264,6 +297,7 @@ contains
     use    :: Interface_GSL        , only : GSL_Success
     use    :: Interfaces_CAMB      , only : Interface_CAMB_Transfer_Function
     use    :: Numerical_ODE_Solvers, only : odeSolver
+    use    :: Numerical_Ranges     , only : Range_Pinned                    , Range_Lattice_Offset, gridSchemePerDecade
     !$ use :: OMP_Lib              , only : omp_lock_kind
     use    :: Table_Labels         , only : extrapolationTypeAbort          , extrapolationTypeFix
     use    :: Tables               , only : table1DGeneric
@@ -271,21 +305,34 @@ contains
     class           (linearGrowthBaryonsDarkMatter), intent(inout)              :: self
     double precision                               , intent(in   )              :: time
     double precision                               , intent(in   ), optional    :: wavenumber
-    double precision                               , parameter                  :: odeToleranceAbsolute          =   1.0d-10, odeToleranceRelative                = 1.0d-10
-    integer                                        , parameter                  :: growthTablePointsPerDecadeTime=1000      , growthTablePointsPerDecadeWavenumber=100
+    double precision                               , parameter                  :: odeToleranceAbsolute          =1.0d-10, odeToleranceRelative            =1.0d-10
     double precision                               , dimension(4)               :: growthFactorODEVariables
-    double precision                               , dimension(2)               :: redshiftsInitial                         , timesInitial
-    double precision                               , dimension(:) , allocatable :: linearGrowthFactorPresent
+    double precision                               , dimension(2)               :: redshiftsInitial                      , timesInitial
+    double precision                               , dimension(4)               :: timeTarget
+    double precision                               , dimension(2)               :: wavenumberSeed
+    type            (rangeLattice                 )                             :: latticeTime                           , latticeWavenumber
+    logical                                        , dimension(:) , allocatable :: wavenumberIsCarried
+    logical                                        , dimension(:,:), allocatable :: isComputed
+    double precision                               , dimension(:) , allocatable :: normalizationFactorPrevious           , valueDarkMatterPrevious                 , &
+         &                                                                         derivativeDarkMatterPrevious          , valueBaryonsPrevious                    , &
+         &                                                                         derivativeBaryonsPrevious
     type            (odeSolver                    ), save         , allocatable :: solver
     !$omp threadprivate(solver)
-    integer                                                                     :: i                                        , j
-    double precision                                                            :: growthFactorDerivativeBaryons            , growthFactorDerivativeDarkMatter             , &
-         &                                                                         timeNow                                  , wavenumberLogarithmic                        , &
-         &                                                                         timePresent                              , timeBigCrunch
+    integer                                                                     :: i                                     , j                                       , &
+         &                                                                         iStart                                , jPrevious                               , &
+         &                                                                         iPresent                              , offsetWavenumber                        , &
+         &                                                                         offsetTime                            , countTimePrevious                       , &
+         &                                                                         countWavenumberPrevious
+    double precision                                                            :: growthFactorDerivativeBaryons         , growthFactorDerivativeDarkMatter        , &
+         &                                                                         timeNow                               , wavenumberLogarithmic                   , &
+         &                                                                         timePresent                           , timeBigCrunch                           , &
+         &                                                                         timeInitialNominal                    , hPresent                                , &
+         &                                                                         linearGrowthFactorPresent             , wavenumberTarget
+    logical                                                                     :: carryOver
     integer                                                                     :: growthTableNumberPoints
-    type            (table1DGeneric               )                             :: transferFunctionDarkMatter               , transferFunctionBaryons
+    type            (table1DGeneric               )                             :: transferFunctionDarkMatter            , transferFunctionBaryons
     integer                                                                     :: countWavenumbers
-    !$ integer      (omp_lock_kind                )                             :: lockBaryons                              , lockDarkMatter
+    !$ integer      (omp_lock_kind                )                             :: lockBaryons                           , lockDarkMatter
 
     ! Check if we need to recompute our table.
     if (self%remakeTable(time)) then
@@ -299,44 +346,146 @@ contains
        call File_Lock(char(self%fileName),fileLock,lockIsShared=.false.)
        ! Find the present-day epoch.
        timePresent=self%cosmologyFunctions_%cosmicTime(1.0d0,collapsingPhase=self%cosmologyParameters_%HubbleConstant() < 0.0d0)
-       ! Find the time corresponding to our CAMB starting redshift.
-       redshiftsInitial(1)=+self%redshiftInitial
-       redshiftsInitial(2)=+self%redshiftInitial      &
-            &              -self%redshiftInitialDelta
-       timesInitial    (1)=+self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftsInitial(1)))
-       timesInitial    (2)=+self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftsInitial(2)))
-       if (time        < timesInitial(1)) call Error_Report('requested epoch is before the chosen initial epoch'//{introspection:location})
-       if (timePresent < timesInitial(1)) call Error_Report('present epoch is before the chosen initial epoch'  //{introspection:location})
-       ! Find minimum and maximum times to tabulate.
-       self%tableTimeMinimum=timesInitial(1)
-       self%tableTimeMaximum=max(self%tableTimeMaximum,max(timePresent,2.0d0*time))
-       timeBigCrunch        =self%cosmologyFunctions_%timeBigCrunch()
+       ! Find the epoch at which the growth equations are to be initialized, as implied by the chosen initial redshift. This is
+       ! only the *nominal* epoch: the tabulation is pinned to an absolute lattice, and the integration necessarily begins at
+       ! the first point of that lattice, so the actual initial epoch is the lattice point at or below this one and the initial
+       ! redshift is derived from it below. The two differ by at most one lattice step - a part in `10³` of a decade in time -
+       ! and the nominal epoch depends only on the parameters of this object, so the lattice, and hence the epoch at which CAMB
+       ! is asked for initial conditions, is the same for every tabulation this object ever builds.
+       timeInitialNominal=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%redshiftInitial))
+       if (time        < timeInitialNominal) call Error_Report('requested epoch is before the chosen initial epoch'//{introspection:location})
+       if (timePresent < timeInitialNominal) call Error_Report('present epoch is before the chosen initial epoch'  //{introspection:location})
+       timeBigCrunch     =self%cosmologyFunctions_%timeBigCrunch()
+       if (timeBigCrunch > 0.0d0 .and. timeInitialNominal > timeBigCrunch) &
+            & call Error_Report('Big Crunch occurs before the chosen initial epoch'//{introspection:location})
+       ! Pin the time axis. The request itself is the target - never the range already tabulated, which `latticeCurrent` unions
+       ! in afterwards - since folding the current range into the target would apply the margin to an already-margined bound
+       ! and ratchet the range upward on every retabulation. No further margin is applied here (`marginFactor=1`) because the
+       ! factor of two on the requested epoch already is one.
+       timeTarget=[timeInitialNominal,timePresent,2.0d0*time,timeMaximumSeed]
        if (timeBigCrunch > 0.0d0) then
           ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
-          if (self%tableTimeMinimum > timeBigCrunch) call Error_Report('Big Crunch occurs before the chosen initial epoch'//{introspection:location})
-          if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-timeToleranceRelative)*timeBigCrunch
+          latticeTime      =Range_Pinned(                                                            &
+               &                                        timeTarget                                 , &
+               &                                        growthTablePointsPerDecadeTime             , &
+               &                                        gridSchemePerDecade                        , &
+               &                         marginFactor  =1.0d0                                      , &
+               &                         anchorEvery   =anchorEveryTime                            , &
+               &                         limitMaximum  =(1.0d0-timeToleranceRelative)*timeBigCrunch, &
+               &                         latticeCurrent=self%latticeTime                             &
+               &                        )
+       else
+          latticeTime      =Range_Pinned(                                                            &
+               &                                        timeTarget                                 , &
+               &                                        growthTablePointsPerDecadeTime             , &
+               &                                        gridSchemePerDecade                        , &
+               &                         marginFactor  =1.0d0                                      , &
+               &                         anchorEvery   =anchorEveryTime                            , &
+               &                         latticeCurrent=self%latticeTime                             &
+               &                        )
        end if
-       ! Find minimum and maximum wavenumbers to tabulate.
+       ! Pin the wavenumber axis. The seed range is supplied as `rangeCurrent` so that it is never inflated by the margin, and
+       ! so that every tabulation contains it; the requested wavenumber carries the factor-of-two margin which this class has
+       ! always applied.
+       wavenumberSeed      =[wavenumberMinimumSeed,wavenumberMaximumSeed]
        if (present(wavenumber)) then
-          self%tableWavenumberMinimum=min(self%tableWavenumberMinimum,0.5d0*wavenumber)
-          self%tableWavenumberMaximum=max(self%tableWavenumberMaximum,2.0d0*wavenumber)
+          wavenumberTarget =wavenumber
+       else
+          wavenumberTarget =wavenumberReference
        end if
+       latticeWavenumber   =Range_Pinned(                                                      &
+            &                                           [wavenumberTarget]                   , &
+            &                                            growthTablePointsPerDecadeWavenumber, &
+            &                                            gridSchemePerDecade                 , &
+            &                            marginFactor  =2.0d0                                , &
+            &                            anchorEvery   =anchorEveryWavenumber                , &
+            &                            rangeCurrent  =wavenumberSeed                       , &
+            &                            latticeCurrent=self%latticeWavenumber                 &
+            &                           )
+       ! The integration begins at the first point of the pinned time axis; derive the initial redshifts from it. The first
+       ! epoch is taken from the lattice directly, rather than by converting the redshift back to a time, so that it is exactly
+       ! the abscissa at which the initial conditions are stored.
+       timesInitial    (1)=latticeTime%minimum()
+       redshiftsInitial(1)=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timesInitial(1)))
+       redshiftsInitial(2)=redshiftsInitial(1)-self%redshiftInitialDelta
+       timesInitial    (2)=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftsInitial(2)))
        ! Get the initial conditions from CAMB.
        call transferFunctionDarkMatter%destroy()
        call transferFunctionBaryons   %destroy()
-       call Interface_CAMB_Transfer_Function(self%cosmologyParametersInitialConditions_,redshiftsInitial,self%tableWavenumberMaximum,self%tableWavenumberMaximum,countPerDecade=self%cambCountPerDecade,transferFunctionDarkMatter=transferFunctionDarkMatter,transferFunctionBaryons=transferFunctionBaryons)
-       ! Determine number of points to tabulate.
-       growthTableNumberPoints=int(log10(self%tableTimeMaximum/self%tableTimeMinimum)*dble(growthTablePointsPerDecadeTime))
-       ! Destroy current table.
-       call self%growthFactor%destroy()
-       ! Create table.
-       countWavenumbers=int(dble(growthTablePointsPerDecadeWavenumber)*log10(self%tableWavenumberMaximum/self%tableWavenumberMinimum))+1
-       call self%growthFactor%create(self%tableTimeMinimum,self%tableTimeMaximum,growthTableNumberPoints,self%tableWavenumberMinimum,self%tableWavenumberMaximum,countWavenumbers,tableCount=2,extrapolationTypeX=extrapolationTypeAbort,extrapolationTypeY=extrapolationTypeFix)
-       allocate(linearGrowthFactorPresent(countWavenumbers))
+       call Interface_CAMB_Transfer_Function(self%cosmologyParametersInitialConditions_,redshiftsInitial,latticeWavenumber%maximum(),latticeWavenumber%maximum(),countPerDecade=self%cambCountPerDecade,transferFunctionDarkMatter=transferFunctionDarkMatter,transferFunctionBaryons=transferFunctionBaryons)
+       ! Record the extent of the tabulation already in hand, so that the columns carried over into the extended one can be
+       ! identified, and then extend onto the new lattices. Carrying over is possible only if the time axis still begins where
+       ! it did, since a column is resumed from the top of its carried block and must therefore reach back to the initial
+       ! epoch; by construction it always does, as the lower bound of the time axis is a function of the parameters alone.
+       countTimePrevious      =0
+       countWavenumberPrevious=0
+       offsetWavenumber       =0
+       offsetTime             =0
+       carryOver              =       self%latticeTime      %isDefined()        &
+            &                  .and.  self%latticeWavenumber%isDefined()        &
+            &                  .and.  allocated(self%normalizationFactor      ) &
+            &                  .and.  allocated(self%valueDarkMatterFinal     ) &
+            &                  .and.  allocated(self%derivativeDarkMatterFinal) &
+            &                  .and.  allocated(self%valueBaryonsFinal        ) &
+            &                  .and.  allocated(self%derivativeBaryonsFinal   )
+       if (carryOver) then
+          countTimePrevious      =self%latticeTime      %count
+          countWavenumberPrevious=self%latticeWavenumber%count
+          offsetTime             =Range_Lattice_Offset(self%latticeTime      ,latticeTime      )
+          offsetWavenumber       =Range_Lattice_Offset(self%latticeWavenumber,latticeWavenumber)
+          if (offsetTime /= 0) call Error_Report('the time axis no longer begins at the initial epoch'//{introspection:location})
+          call Move_Alloc(self%normalizationFactor      ,normalizationFactorPrevious      )
+          call Move_Alloc(self%valueDarkMatterFinal     ,valueDarkMatterPrevious          )
+          call Move_Alloc(self%derivativeDarkMatterFinal,derivativeDarkMatterPrevious     )
+          call Move_Alloc(self%valueBaryonsFinal        ,valueBaryonsPrevious             )
+          call Move_Alloc(self%derivativeBaryonsFinal   ,derivativeBaryonsPrevious        )
+       end if
+       call self%growthFactor%extend(latticeTime,latticeWavenumber,isComputed,tableCount=2,extrapolationTypeX=extrapolationTypeAbort,extrapolationTypeY=extrapolationTypeFix)
+       self%latticeTime           =latticeTime
+       self%latticeWavenumber     =latticeWavenumber
+       growthTableNumberPoints    =latticeTime      %count
+       countWavenumbers           =latticeWavenumber%count
+       self%tableTimeMinimum      =timesInitial(1)
+       self%tableTimeMaximum      =latticeTime      %maximum()
+       self%tableWavenumberMinimum=latticeWavenumber%minimum()
+       self%tableWavenumberMaximum=latticeWavenumber%maximum()
+       if (allocated(self%normalizationFactor      )) deallocate(self%normalizationFactor      )
+       if (allocated(self%valueDarkMatterFinal     )) deallocate(self%valueDarkMatterFinal     )
+       if (allocated(self%derivativeDarkMatterFinal)) deallocate(self%derivativeDarkMatterFinal)
+       if (allocated(self%valueBaryonsFinal        )) deallocate(self%valueBaryonsFinal        )
+       if (allocated(self%derivativeBaryonsFinal   )) deallocate(self%derivativeBaryonsFinal   )
+       allocate(self%normalizationFactor      (countWavenumbers))
+       allocate(self%valueDarkMatterFinal     (countWavenumbers))
+       allocate(self%derivativeDarkMatterFinal(countWavenumbers))
+       allocate(self%valueBaryonsFinal        (countWavenumbers))
+       allocate(self%derivativeBaryonsFinal   (countWavenumbers))
+       allocate(wavenumberIsCarried           (countWavenumbers))
+       do j=1,countWavenumbers
+          jPrevious             =j-offsetWavenumber
+          wavenumberIsCarried(j)=carryOver .and. jPrevious >= 1 .and. jPrevious <= countWavenumberPrevious
+       end do
+       ! Interpolating factors for the present epoch, at which the growth factor is normalized to unity. They are found once,
+       ! since the epoch is the same for every wavenumber, and are applied *within* a single column rather than through the
+       ! table's two-dimensional interpolation. Confining them to the column matters: a column computed afresh alongside
+       ! carried-over columns which are already normalized would otherwise pick up a contribution from a neighbour on a
+       ! different normalization, at the level of the rounding error in the interpolating weight - which would make its own
+       ! normalization depend on which columns happened to have been carried over.
+       if      (log(timePresent) <  self%growthFactor%xv(1                      )) then
+          iPresent=1
+       else if (log(timePresent) >= self%growthFactor%xv(growthTableNumberPoints)) then
+          iPresent=growthTableNumberPoints-1
+       else
+          iPresent=int((log(timePresent)-self%growthFactor%xv(1))/latticeTime%stepLogarithmic())+1
+       end if
+       hPresent=(log(timePresent)-self%growthFactor%xv(iPresent))/latticeTime%stepLogarithmic()
        ! Iterate over wavenumber.
        !$ call OMP_Init_Lock(lockBaryons   )
        !$ call OMP_Init_Lock(lockDarkMatter)
-       !$omp parallel private(i,j,wavenumberLogarithmic,growthFactorDerivativeDarkMatter,growthFactorDerivativeBaryons,timeNow,growthFactorODEVariables)
+       ! Note that `linearGrowthFactorPresent`, `iStart` and `jPrevious` must be private: each is written once per wavenumber,
+       ! and the wavenumbers are shared out between the threads. (`linearGrowthFactorPresent` was formerly an array indexed by
+       ! wavenumber, and so was safely shared; it is a scalar here because each column is now normalized as it is finished.)
+       ! `iPresent` and `hPresent`, by contrast, are evaluated once before this region and only read within it.
+       !$omp parallel private(i,j,wavenumberLogarithmic,growthFactorDerivativeDarkMatter,growthFactorDerivativeBaryons,timeNow,growthFactorODEVariables,iStart,jPrevious,linearGrowthFactorPresent)
        allocate(cosmologyFunctions_      ,mold=self%cosmologyFunctions_      )
        allocate(intergalacticMediumState_,mold=self%intergalacticMediumState_)
        allocate(solver                                                       )
@@ -354,34 +503,58 @@ contains
        do j=1,countWavenumbers
           wavenumber_          =self%growthFactor%y(j)
           wavenumberLogarithmic=log(wavenumber_)
-          ! Solve ODE to get corresponding expansion factors. Initialize with solution from CAMB.
-          !$ call OMP_Set_Lock  (lockDarkMatter)
-          call    self%growthFactor%populate(exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1)),1,j,table=indexDarkMatter)
-          growthFactorDerivativeDarkMatter=(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=2)-transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
-          !$ call OMP_Unset_Lock(lockDarkMatter)
-          if (self%darkMatterOnlyInitialConditions) then
-             !$ call OMP_Set_Lock  (lockDarkMatter)
-             call self%growthFactor%populate(exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1)),1,j,table=indexDarkMatter)
-             growthFactorDerivativeBaryons=(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=2)-transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
-             !$ call OMP_Unset_Lock(lockDarkMatter)
+          if (wavenumberIsCarried(j)) then
+             ! This wavenumber was tabulated on an earlier pass. Resume its integration from the top of the block carried over,
+             ! from exactly the state which that integration left - unnormalized, so that these steps are taken over precisely
+             ! the numbers an uninterrupted integration would have held here.
+             iStart                     =countTimePrevious
+             jPrevious                  =j-offsetWavenumber
+             growthFactorODEVariables(1)=valueDarkMatterPrevious     (jPrevious)
+             growthFactorODEVariables(2)=derivativeDarkMatterPrevious(jPrevious)
+             growthFactorODEVariables(3)=valueBaryonsPrevious        (jPrevious)
+             growthFactorODEVariables(4)=derivativeBaryonsPrevious   (jPrevious)
+             self%normalizationFactor(j)=normalizationFactorPrevious (jPrevious)
           else
-             !$ call OMP_Set_Lock  (lockBaryons   )
-             call self%growthFactor%populate(exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1)),1,j,table=indexBaryons   )
-             growthFactorDerivativeBaryons=(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=2)-transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
-             !$ call OMP_Unset_Lock(lockBaryons   )
-          end if
-          do i=2,growthTableNumberPoints
-             timeNow                    =self%growthFactor                    %x(i-1                        )
-             growthFactorODEVariables(1)=self%growthFactor                    %z(i-1,j,table=indexDarkMatter)
+             ! Solve ODE to get corresponding expansion factors. Initialize with solution from CAMB.
+             iStart                          =1
+             !$ call OMP_Set_Lock  (lockDarkMatter)
+             call    self%growthFactor%populate(exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1)),1,j,table=indexDarkMatter)
+             growthFactorDerivativeDarkMatter=(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=2)-transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
+             !$ call OMP_Unset_Lock(lockDarkMatter)
+             if (self%darkMatterOnlyInitialConditions) then
+                ! Initial conditions are to be taken as those of pure dark matter, so the baryon perturbation begins equal to
+                ! the dark matter perturbation, and grows at the same initial rate.
+                !$ call OMP_Set_Lock  (lockDarkMatter)
+                call self%growthFactor%populate(exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1)),1,j,table=indexBaryons   )
+                growthFactorDerivativeBaryons=(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=2)-transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
+                !$ call OMP_Unset_Lock(lockDarkMatter)
+             else
+                !$ call OMP_Set_Lock  (lockBaryons   )
+                call self%growthFactor%populate(exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1)),1,j,table=indexBaryons   )
+                growthFactorDerivativeBaryons=(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=2)-transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
+                !$ call OMP_Unset_Lock(lockBaryons   )
+             end if
+             ! Take the initial state from the table, into which both perturbations have just been written.
+             growthFactorODEVariables(1)=self%growthFactor%zv(1,j,indexDarkMatter)
              growthFactorODEVariables(2)=growthFactorDerivativeDarkMatter
-             growthFactorODEVariables(3)=self%growthFactor                    %z(i-1,j,table=indexBaryons   )
+             growthFactorODEVariables(3)=self%growthFactor%zv(1,j,indexBaryons   )
              growthFactorODEVariables(4)=growthFactorDerivativeBaryons
+          end if
+          ! Carry the state of the equations forward in the solution vector itself, rather than reading the values back from the
+          ! table between steps: where the integration is being resumed the table holds normalized values, which are not the
+          ! state the equations were left in.
+          do i=iStart+1,growthTableNumberPoints
+             timeNow=self%growthFactor%x(i-1)
              call solver             %solve   (timeNow,self%growthFactor%x(i),growthFactorODEVariables                             )
              call self  %growthFactor%populate(                               growthFactorODEVariables(1),i,j,table=indexDarkMatter)
              call self  %growthFactor%populate(                               growthFactorODEVariables(3),i,j,table=indexBaryons   )
-             growthFactorDerivativeDarkMatter=growthFactorODEVariables(2)
-             growthFactorDerivativeBaryons   =growthFactorODEVariables(4)
           end do
+          ! Retain the state of the equations at the final epoch, so that the integration can be resumed if the time axis is
+          ! later extended.
+          self%valueDarkMatterFinal     (j)=growthFactorODEVariables(1)
+          self%derivativeDarkMatterFinal(j)=growthFactorODEVariables(2)
+          self%valueBaryonsFinal        (j)=growthFactorODEVariables(3)
+          self%derivativeBaryonsFinal   (j)=growthFactorODEVariables(4)
        end do
        !$omp end do
        !![
@@ -389,20 +562,24 @@ contains
        <objectDestructor name="intergalacticMediumState_"/>
        !!]
        deallocate(solver)
-       !$omp barrier
-       !$omp single
-       ! Get present day growth factor at every wavenumber.
-       do j=1,countWavenumbers
-          linearGrowthFactorPresent(j)=self%growthFactor%interpolate(timePresent,self%growthFactor%y(j))
-       end do
-       !$omp end single
-       !$omp barrier
        !$omp do
        do j=1,countWavenumbers
-          ! Normalize to growth factor of unity at present day.
-          do i=1,growthTableNumberPoints
-             call self%growthFactor%populate(self%growthFactor%z(i,j,table=indexDarkMatter)/linearGrowthFactorPresent(j),i,j,table=indexDarkMatter)
-             call self%growthFactor%populate(self%growthFactor%z(i,j,table=indexBaryons   )/linearGrowthFactorPresent(j),i,j,table=indexBaryons   )
+          ! Normalize to growth factor of unity at present day. A column carried over from an earlier pass keeps the factor it
+          ! was normalized by, and only the epochs newly integrated for it are divided by that factor: the factor is fixed at
+          ! the present day, which lies within the block carried over, so it cannot have changed, and leaving the carried epochs
+          ! untouched keeps them exactly as they were.
+          if (wavenumberIsCarried(j)) then
+             iStart                     =countTimePrevious
+             linearGrowthFactorPresent  =self%normalizationFactor(j)
+          else
+             iStart                     =0
+             linearGrowthFactorPresent  =+self%growthFactor%zv(iPresent  ,j,indexDarkMatter)*(1.0d0-hPresent) &
+                  &                      +self%growthFactor%zv(iPresent+1,j,indexDarkMatter)*       hPresent
+             self%normalizationFactor(j)=linearGrowthFactorPresent
+          end if
+          do i=iStart+1,growthTableNumberPoints
+             call self%growthFactor%populate(self%growthFactor%zv(i,j,indexDarkMatter)/linearGrowthFactorPresent,i,j,table=indexDarkMatter)
+             call self%growthFactor%populate(self%growthFactor%zv(i,j,indexBaryons   )/linearGrowthFactorPresent,i,j,table=indexBaryons   )
           end do
        end do
        !$omp end do
@@ -645,35 +822,145 @@ contains
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout)               :: self
     double precision                               , dimension(:,:), allocatable :: growthFactorDarkMatter, growthFactorBaryons
+    double precision                               , dimension(:  ), allocatable :: normalizationFactor   , valueDarkMatter    , &
+         &                                                                          derivativeDarkMatter  , valueBaryons       , &
+         &                                                                          derivativeBaryons
+    type            (rangeLattice                 )                              :: latticeTime           , latticeWavenumber
+    logical                                        , dimension(:,:), allocatable :: isComputed
     type            (hdf5File                     )                              :: dataFile
 
     ! Return immediately if the file does not exist.
     if (.not.File_Exists(self%fileName)) return
     call displayMessage('reading D(k,t) data from: '//self%fileName,verbosityLevelWorking)
-    if (self%tableInitialized) call self%growthFactor%destroy()
     !$ call hdf5Access%set()
-    dataFile=hdf5File(self%fileName,overWrite=.false.)
-    call dataFile%readDataset  ('growthFactorDarkMatter',                growthFactorDarkMatter)
-    call dataFile%readDataset  ('growthFactorBaryons'   ,                growthFactorBaryons   )
-    call dataFile%readAttribute('wavenumberMinimum'     ,          self%tableWavenumberMinimum )
-    call dataFile%readAttribute('wavenumberMaximum'     ,          self%tableWavenumberMaximum )
-    call dataFile%readAttribute('timeMinimum'           ,          self%tableTimeMinimum       )
-    call dataFile%readAttribute('timeMaximum'           ,          self%tableTimeMaximum       )
+    ! The file is opened read-only: a read-write open takes an exclusive lock, which aborts any concurrent reader.
+    dataFile=hdf5File(self%fileName,overWrite=.false.,readOnly=.true.)
+    ! Recover the lattices on which the stored tabulation was built. A file which records none, or which records lattices this
+    ! object would not use, is ignored - as is one written before the derivatives needed to resume the integration were stored.
+    call baryonsDarkMatterLatticeRead(dataFile,'time'      ,growthTablePointsPerDecadeTime      ,latticeTime      )
+    call baryonsDarkMatterLatticeRead(dataFile,'wavenumber',growthTablePointsPerDecadeWavenumber,latticeWavenumber)
+    if (latticeTime%isDefined() .and. latticeWavenumber%isDefined()) then
+       call dataFile%readDataset('growthFactorDarkMatter',growthFactorDarkMatter)
+       call dataFile%readDataset('growthFactorBaryons'   ,growthFactorBaryons   )
+       call dataFile%readDataset('normalizationFactor'   ,normalizationFactor   )
+       call dataFile%readDataset('valueDarkMatterFinal'  ,valueDarkMatter       )
+       call dataFile%readDataset('derivativeDarkMatter'  ,derivativeDarkMatter  )
+       call dataFile%readDataset('valueBaryonsFinal'     ,valueBaryons          )
+       call dataFile%readDataset('derivativeBaryons'     ,derivativeBaryons     )
+    end if
     !$ call hdf5Access%unset()
-    call self%growthFactor%create  (                                                                                                               &
-         &                                             self%tableTimeMinimum      ,self%tableTimeMaximum      ,size(growthFactorDarkMatter,dim=1), &
-         &                                             self%tableWavenumberMinimum,self%tableWavenumberMaximum,size(growthFactorDarkmatter,dim=2), &
-         &                          tableCount        =2                                                                                         , &
-         &                          extrapolationTypeX=extrapolationTypeAbort                                                                    , &
-         &                          extrapolationTypeY=extrapolationTypeFix                                                                        &
+    if (.not.latticeTime%isDefined() .or. .not.latticeWavenumber%isDefined()) return
+    ! Reject a stored tabulation whose datasets do not match the lattices recorded alongside them.
+    if     (                                                               &
+         &   size(growthFactorDarkMatter,dim=1) /= latticeTime      %count &
+         &  .or.                                                           &
+         &   size(growthFactorDarkMatter,dim=2) /= latticeWavenumber%count &
+         &  .or.                                                           &
+         &   size(growthFactorBaryons   ,dim=1) /= latticeTime      %count &
+         &  .or.                                                           &
+         &   size(growthFactorBaryons   ,dim=2) /= latticeWavenumber%count &
+         &  .or.                                                           &
+         &   size(normalizationFactor         ) /= latticeWavenumber%count &
+         &  .or.                                                           &
+         &   size(valueDarkMatter             ) /= latticeWavenumber%count &
+         &  .or.                                                           &
+         &   size(derivativeDarkMatter        ) /= latticeWavenumber%count &
+         &  .or.                                                           &
+         &   size(valueBaryons                ) /= latticeWavenumber%count &
+         &  .or.                                                           &
+         &   size(derivativeBaryons           ) /= latticeWavenumber%count &
+         & ) return
+    if (self%tableInitialized) call self%growthFactor%destroy()
+    ! Build the table on the lattices recorded in the file, rather than by subdividing the ranges they span, so that its
+    ! abscissae are bit-identical to those of any other tabulation built on the same lattices.
+    call self%growthFactor%extend  (                                           &
+         &                                              latticeTime          , &
+         &                                              latticeWavenumber    , &
+         &                                              isComputed           , &
+         &                          tableCount        =2                     , &
+         &                          extrapolationTypeX=extrapolationTypeAbort, &
+         &                          extrapolationTypeY=extrapolationTypeFix    &
          &                         )
     call self%growthFactor%populate(growthFactorDarkMatter,table=indexDarkMatter)
     call self%growthFactor%populate(growthFactorBaryons   ,table=indexBaryons   )
+    self%latticeTime           =latticeTime
+    self%latticeWavenumber     =latticeWavenumber
+    self%tableTimeMinimum      =latticeTime      %minimum()
+    self%tableTimeMaximum      =latticeTime      %maximum()
+    self%tableWavenumberMinimum=latticeWavenumber%minimum()
+    self%tableWavenumberMaximum=latticeWavenumber%maximum()
+    if (allocated(self%normalizationFactor      )) deallocate(self%normalizationFactor      )
+    if (allocated(self%valueDarkMatterFinal     )) deallocate(self%valueDarkMatterFinal     )
+    if (allocated(self%derivativeDarkMatterFinal)) deallocate(self%derivativeDarkMatterFinal)
+    if (allocated(self%valueBaryonsFinal        )) deallocate(self%valueBaryonsFinal        )
+    if (allocated(self%derivativeBaryonsFinal   )) deallocate(self%derivativeBaryonsFinal   )
+    call Move_Alloc(normalizationFactor ,self%normalizationFactor      )
+    call Move_Alloc(valueDarkMatter     ,self%valueDarkMatterFinal     )
+    call Move_Alloc(derivativeDarkMatter,self%derivativeDarkMatterFinal)
+    call Move_Alloc(valueBaryons        ,self%valueBaryonsFinal        )
+    call Move_Alloc(derivativeBaryons   ,self%derivativeBaryonsFinal   )
     deallocate(growthFactorDarkMatter)
     deallocate(growthFactorBaryons   )
     self%tableInitialized=.true.
     return
   end subroutine baryonsDarkMatterFileRead
+
+  subroutine baryonsDarkMatterLatticeWrite(dataFile,axisName,lattice)
+    !!{RST
+    Record the ``rangeLattice`` on which an axis of the stored tabulation is built, as attributes named for that axis.
+    !!}
+    use :: IO_HDF5, only : hdf5File
+    implicit none
+    type     (hdf5File    ), intent(inout) :: dataFile
+    character(len=*       ), intent(in   ) :: axisName
+    type     (rangeLattice), intent(in   ) :: lattice
+
+    call dataFile%writeAttribute(lattice%scheme%ID   ,axisName//'GridScheme'  )
+    call dataFile%writeAttribute(lattice%pointsPer   ,axisName//'PointsPer'   )
+    call dataFile%writeAttribute(lattice%indexMinimum,axisName//'IndexMinimum')
+    call dataFile%writeAttribute(lattice%count       ,axisName//'Count'       )
+    return
+  end subroutine baryonsDarkMatterLatticeWrite
+
+  subroutine baryonsDarkMatterLatticeRead(dataFile,axisName,pointsPer,lattice)
+    !!{RST
+    Restore the ``rangeLattice`` on which an axis of the stored tabulation was built. The lattice is returned undefined---which
+    the caller must treat as the tabulation being unusable---unless the file records one which is self-consistent and which
+    uses the density of points that this object would use, so that a file written before the lattices were recorded reports an
+    undefined lattice rather than being misread.
+    !!}
+    use :: IO_HDF5         , only : hdf5File
+    use :: Numerical_Ranges, only : enumerationGridSchemeType, gridSchemePerDecade
+    implicit none
+    type     (hdf5File    ), intent(inout) :: dataFile
+    character(len=*       ), intent(in   ) :: axisName
+    integer                , intent(in   ) :: pointsPer
+    type     (rangeLattice), intent(  out) :: lattice
+    integer                                :: schemeStored, pointsPerStored, &
+         &                                    indexMinimum, count_
+
+    lattice=rangeLattice()
+    if     (                                                      &
+         &   .not.dataFile%hasAttribute(axisName//'GridScheme'  ) &
+         &  .or.                                                  &
+         &   .not.dataFile%hasAttribute(axisName//'PointsPer'   ) &
+         &  .or.                                                  &
+         &   .not.dataFile%hasAttribute(axisName//'IndexMinimum') &
+         &  .or.                                                  &
+         &   .not.dataFile%hasAttribute(axisName//'Count'       ) &
+         & ) return
+    call dataFile%readAttribute(axisName//'GridScheme'  ,schemeStored   )
+    call dataFile%readAttribute(axisName//'PointsPer'   ,pointsPerStored)
+    call dataFile%readAttribute(axisName//'IndexMinimum',indexMinimum   )
+    call dataFile%readAttribute(axisName//'Count'       ,count_         )
+    ! Comparing the stored scheme against the one expected is stronger than merely checking that it is a valid member of the
+    ! enumeration, so no separate validity test is needed.
+    if (enumerationGridSchemeType(schemeStored) /= gridSchemePerDecade) return
+    if (pointsPerStored                         /= pointsPer          ) return
+    lattice=rangeLattice(enumerationGridSchemeType(schemeStored),pointsPerStored,indexMinimum,count_)
+    if (.not.lattice%isDefined()) lattice=rangeLattice()
+    return
+  end subroutine baryonsDarkMatterLatticeRead
 
   subroutine baryonsDarkMatterFileWrite(self)
     !!{RST
@@ -691,12 +978,21 @@ contains
     call displayMessage('writing D(k,t) data to: '//self%fileName,verbosityLevelWorking)
     !$ call hdf5Access%set()
     dataFile=hdf5File(self%fileName,overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
-    call dataFile%writeDataset  (reshape(self%growthFactor          %zs(table=indexDarkMatter),[self%growthFactor%size(dim=1),self%growthFactor%size(dim=2)]),          'growthFactorDarkMatter'                       )
-    call dataFile%writeDataset  (reshape(self%growthFactor          %zs(table=indexBaryons   ),[self%growthFactor%size(dim=1),self%growthFactor%size(dim=2)]),          'growthFactorBaryons'                          )
-    call dataFile%writeAttribute(        self%tableWavenumberMinimum                                                                                         ,          'wavenumberMinimum'                            )
-    call dataFile%writeAttribute(        self%tableWavenumberMaximum                                                                                         ,          'wavenumberMaximum'                            )
-    call dataFile%writeAttribute(        self%tableTimeMinimum                                                                                               ,          'timeMinimum'                                  )
-    call dataFile%writeAttribute(        self%tableTimeMaximum                                                                                               ,          'timeMaximum'                                  )
+    call dataFile%writeDataset  (reshape(self%growthFactor             %zs(table=indexDarkMatter),[self%growthFactor%size(dim=1),self%growthFactor%size(dim=2)]),'growthFactorDarkMatter')
+    call dataFile%writeDataset  (reshape(self%growthFactor             %zs(table=indexBaryons   ),[self%growthFactor%size(dim=1),self%growthFactor%size(dim=2)]),'growthFactorBaryons'   )
+    ! Store the state of the growth equations at the final tabulated epoch - unnormalized, as the integration left it - together
+    ! with the factor by which each wavenumber was normalized, so that the integration can be resumed exactly if the time axis
+    ! is later extended.
+    call dataFile%writeDataset  (        self%normalizationFactor                                                                                               ,'normalizationFactor'   )
+    call dataFile%writeDataset  (        self%valueDarkMatterFinal                                                                                              ,'valueDarkMatterFinal'  )
+    call dataFile%writeDataset  (        self%derivativeDarkMatterFinal                                                                                         ,'derivativeDarkMatter'  )
+    call dataFile%writeDataset  (        self%valueBaryonsFinal                                                                                                 ,'valueBaryonsFinal'     )
+    call dataFile%writeDataset  (        self%derivativeBaryonsFinal                                                                                            ,'derivativeBaryons'     )
+    ! Record the lattices on which the two axes are built. The bounds formerly stored alongside them are not: each is a function
+    ! of the lattices, and is recovered from them when the file is read, so that a restored tabulation cannot come to be
+    ! described differently from a freshly built one.
+    call baryonsDarkMatterLatticeWrite(dataFile,'time'      ,self%latticeTime      )
+    call baryonsDarkMatterLatticeWrite(dataFile,'wavenumber',self%latticeWavenumber)
     !$ call hdf5Access%unset()
     return
   end subroutine baryonsDarkMatterFileWrite

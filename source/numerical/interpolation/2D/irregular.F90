@@ -72,21 +72,26 @@ contains
   ! Public API
   ! ════════════════════════════════════════════════════════════════════════════
 
-  function Interpolate_2D_Irregular_Array(dataX,dataY,dataZ,interpolateX,interpolateY,workspace,numberComputePoints,reset) &
-       result(zi)
+  function Interpolate_2D_Irregular_Array(dataX,dataY,dataZ,interpolateX,interpolateY,workspace,numberComputePoints,reset, &
+       dataStatic) result(zi)
     !!{RST
-    Perform interpolation on a set of points irregularly spaced on a 2D surface. On ``reset=.true.`` (or the first call) the triangulation, closest-neighbour indices, partial derivatives, and 9-section lookup grid are all rebuilt from scratch. On subsequent calls (``reset=.false.``) the triangulation and closest-neighbour indices are reused but the partial derivatives are re-estimated, which correctly handles the case where the Z values change between calls while the XY positions do not. The function is fully thread-safe: all state is held in ``workspace`` and no global or module-level variables are accessed.
+    Perform interpolation on a set of points irregularly spaced on a 2D surface. On ``reset=.true.`` (or the first call) the triangulation, closest-neighbour indices, partial derivatives, and 9-section lookup grid are all rebuilt from scratch. On subsequent calls (``reset=.false.``) the triangulation and closest-neighbour indices are reused but the partial derivatives are re-estimated, which correctly handles the case where the ``dataZ`` values change between calls while the ``dataX`` and ``dataY`` positions do not.
+
+    Re-estimating the derivatives costs :math:`\mathcal{O}(N n_\mathrm{neighbors}^2)` for :math:`N` tabulated points and so dominates the cost wherever a large table is interpolated repeatedly. A caller which knows that none of its data change between calls---because they were read once from a file, say---may pass ``dataStatic=.true.``, whereupon the workspace is reused as it stands and the cost per call becomes independent of the size of the table. Note that each set of data then needs its own workspace, since sharing one between several sets would leave it describing whichever was passed most recently.
+
+    The function is fully thread-safe: all state is held in ``workspace`` and no global or module-level variables are accessed.
     !!}
     implicit none
     type            (interpolator2DIrregular)                               , intent(inout)           :: workspace
-    double precision                         , dimension(:)                 , intent(in   )           :: dataX        , dataY       , &
-         &                                                                                               dataZ        , interpolateX, &
+    double precision                         , dimension(:)                 , intent(in   )           :: dataX              , dataY           , &
+         &                                                                                               dataZ              , interpolateX    , &
          &                                                                                               interpolateY
     integer                                                                 , intent(in   ), optional :: numberComputePoints
     logical                                                                 , intent(inout), optional :: reset
+    logical                                                                 , intent(in   ), optional :: dataStatic
     double precision                         , dimension(size(interpolateX))                          :: zi
     integer                                                                                           :: i
-    logical                                                                                           :: resetActual
+    logical                                                                                           :: resetActual        , dataStaticActual
 
     ! Determine reset status.
     if (present(reset)) then
@@ -96,20 +101,32 @@ contains
        resetActual = .true.
     end if
 
+    ! Determine whether the caller guarantees that its data are unchanged since the previous call.
+    if (present(dataStatic)) then
+       dataStaticActual=dataStatic
+    else
+       dataStaticActual=.false.
+    end if
+
     ! Decide how many neighbours to use for partial derivative estimation.
     if (present(numberComputePoints)) workspace%nNeighbors = numberComputePoints
 
-    if (resetActual .or. .not. workspace%initialized) then
+    if      (resetActual .or. .not. workspace%initialized) then
        call initializeWorkspace(workspace, dataX, dataY, dataZ)
-    else
-       ! Reuse triangulation and closest-neighbour indices; re-estimate partial
-       ! derivatives in case the Z values have changed since the previous call.
+    else if (size(dataX) /= workspace%nData                 ) then
+       ! The number of data points has changed, so the triangulation and closest-neighbour indices no longer
+       ! describe them and everything must be rebuilt. Reusing them here would leave the cached indices out of
+       ! bounds.
+       call initializeWorkspace(workspace, dataX, dataY, dataZ)
+    else if (.not. dataStaticActual                         ) then
+       ! Reuse triangulation and closest-neighbour indices; re-estimate partial derivatives in case the Z values
+       ! have changed since the previous call.
        workspace%zData = dataZ
-       call estimateDerivatives(workspace%nData, workspace%xData, workspace%yData, &
-            &                   workspace%zData, workspace%nNeighbors,              &
-            &                   workspace%ipc, workspace%pd)
+       call estimateDerivatives(workspace%nData, workspace%xData     , workspace%yData, &
+            &                   workspace%zData, workspace%nNeighbors,                  &
+            &                   workspace%ipc  , workspace%pd)
     end if
-
+    ! Otherwise the caller has guaranteed that nothing has changed, and the workspace is used as it stands.
     do i = 1, size(interpolateX)
        zi(i) = interpolateOne(workspace, interpolateX(i), interpolateY(i))
     end do
@@ -117,7 +134,7 @@ contains
   end function Interpolate_2D_Irregular_Array
 
   double precision function Interpolate_2D_Irregular_Scalar(dataX,dataY,dataZ,interpolateX,interpolateY,workspace, &
-       &                                                     numberComputePoints,reset)
+       &                                                     numberComputePoints,reset,dataStatic)
     !!{RST
     Scalar wrapper: interpolate at a single point.
     !!}
@@ -127,11 +144,12 @@ contains
     double precision                                       , intent(in   )           :: interpolateX, interpolateY
     integer                                                , intent(in   ), optional :: numberComputePoints
     logical                                                , intent(inout), optional :: reset
+    logical                                                , intent(in   ), optional :: dataStatic
     double precision                         , dimension(1)                          :: xArr, yArr, zArr
 
     xArr(1) = interpolateX
     yArr(1) = interpolateY
-    zArr    = Interpolate_2D_Irregular_Array(dataX,dataY,dataZ,xArr,yArr,workspace,numberComputePoints,reset)
+    zArr    = Interpolate_2D_Irregular_Array(dataX,dataY,dataZ,xArr,yArr,workspace,numberComputePoints,reset,dataStatic)
     Interpolate_2D_Irregular_Scalar = zArr(1)
   end function Interpolate_2D_Irregular_Scalar
 

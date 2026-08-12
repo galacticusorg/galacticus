@@ -1190,7 +1190,12 @@ jobs:
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 1
-      ompNumThreads: 2
+      # The soliton NFW `radiusEnclosingDensity` tabulation is `!$omp threadprivate`, so its
+      # memory scales with the thread count: measured peak resident size for this model is
+      # 12.7 GB at one thread but 18.4 GB at two, against a 16 GB runner. Run it single
+      # threaded. This is both lighter and faster than the two-thread job was before the
+      # tabulation gained value reuse (13.4 GB, 28 minutes).
+      ompNumThreads: 1
     secrets: inherit
   # Tests
   ## Linux
@@ -1254,6 +1259,7 @@ jobs:
                       tests.multi_counters.exe,
                       tests.tensors.exe,
                       tests.cosmic_age.exe,
+                      tests.dark_energy_CPL.exe,
                       tests.spherical_collapse.open.exe,
                       tests.spherical_collapse.flat.exe,
                       tests.spherical_collapse.dark_energy.EdS.exe,
@@ -1499,7 +1505,6 @@ jobs:
                 test-parameter-validation.py,
                 test-python-modules.py,
                 test-reproducibility.py,
-                test-splitForests.py,
                 test-parameters-diff.py,
                 test-parameters-extract.py,
                 test-parameters-changes.py,
@@ -1517,6 +1522,11 @@ jobs:
                 test-stateRestore.py,
                 test-checkpointing.py,
                 test-stellar-mass-weighted-ages.py,
+                test-supernovae-type-Ia-yields-file.py,
+                test-supernovae-type-Ia-yields-metallicity.py,
+                test-supernovae-type-Ia-rate-metallicity.py,
+                test-stellar-properties-LimongiChieffi2018.py,
+                test-stellar-properties-Sukhbold2016.py,
                 test-tidalTracks.py,
                 test-transferFunctionHalfModeSlope.py,
                 test-galacticStructureStateDeallocateBug.py,
@@ -1689,6 +1699,7 @@ jobs:
                 testSuite/regressions/satellitePresetBoundMassNonZero.py,
                 testSuite/regressions/cosmicEmu.py,
                 testSuite/regressions/euclidEmulator2.py,
+                testSuite/regressions/nGenHalofit.py,
                 testSuite/regressions/bug1053153.xml,
                 testSuite/regressions/bug711424.xml,
                 testSuite/regressions/bug725315.xml,

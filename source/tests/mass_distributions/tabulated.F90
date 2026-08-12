@@ -38,21 +38,25 @@ program Test_Mass_Distributions_Tabulated
   implicit none
   class           (massDistributionClass      ), allocatable             :: massDistribution_
   class           (kinematicsDistributionClass), pointer                 :: kinematicsDistribution_
-  double precision                             , parameter               :: radiusVirial     =0.25d0, radiusScale               =0.025d0, &
-       &                                                                    massVirial       =1.0d12, radiusCore                =0.010d0, &
-       &                                                                    yCusp            =0.2d00
-  double precision                                        , dimension(7) :: mass                    , densityMoment0                    , &
-       &                                                                    densityMoment1          , densityMoment2                    , &
-       &                                                                    densityMoment3          , energy                            , &
-       &                                                                    radiusFreefall          , radiusFreefallIncreaseRate        , &
-       &                                                                    potential               , fourierTransform                  , &
-       &                                                                    velocityDispersion      , massTarget                        , &
-       &                                                                    densityMoment0Target    , densityMoment1Target              , &
-       &                                                                    densityMoment2Target    , densityMoment3Target              , &
-       &                                                                    radiusDensity           , radiusDensityTarget
-  type            (coordinateSpherical        )                          :: coordinates             , coordinatesReference
-  double precision                                                       :: timeScale               , densityScale
-  integer                                                                :: i                       , iProfile
+  double precision                             , parameter               :: radiusVirial           =0.25d0, radiusScale               =0.025d0, &
+       &                                                                    massVirial             =1.0d12, radiusCore                =0.010d0, &
+       &                                                                    yCusp                  =0.2d00
+  ! A scaled radius beyond any reached by the tests below, used to force the tabulations to be extended.
+  double precision                             , parameter               :: radiusExtension        =1.0d02
+  double precision                                        , dimension(7) :: mass                          , densityMoment0                    , &
+       &                                                                    densityMoment1                , densityMoment2                    , &
+       &                                                                    densityMoment3                , energy                            , &
+       &                                                                    radiusFreefall                , radiusFreefallIncreaseRate        , &
+       &                                                                    potential                     , fourierTransform                  , &
+       &                                                                    velocityDispersion            , massTarget                        , &
+       &                                                                    densityMoment0Target          , densityMoment1Target              , &
+       &                                                                    densityMoment2Target          , densityMoment3Target              , &
+       &                                                                    radiusDensity                 , radiusDensityTarget               , &
+       &                                                                    massBefore                    , densityMoment2Before
+  type            (coordinateSpherical        )                          :: coordinates                   , coordinatesReference
+  double precision                                                       :: timeScale                     , densityScale                      , &
+       &                                                                    massExtended
+  integer                                                                :: i                             , iProfile
   double precision                             , parameter, dimension(7) :: radiiScaleFree      =[                                           &
        &                                                                                          0.010000000000000d00,0.030000000000000d00, &
        &                                                                                          0.100000000000000d00,0.300000000000000d00, &
@@ -219,9 +223,30 @@ program Test_Mass_Distributions_Tabulated
         call    Assert("Radial density moment (m=1)"  ,densityMoment1            ,densityMoment1Target            ,relTol=1.0d-3                                     )
         call    Assert("Radial density moment (m=2)"  ,densityMoment2            ,densityMoment2Target            ,relTol=1.0d-3                                     )
         call    Assert("Radial density moment (m=3)"  ,densityMoment3            ,densityMoment3Target            ,relTol=2.0d-3                                     )
-        call    Assert("Fourier transform"            ,fourierTransform          ,fourierTransformTarget          ,relTol=1.2d-2                                     )
+        ! The Fourier transform is tabulated linearly, and at the largest wavenumber tested the transform of the truncated
+        ! profile oscillates through several radians within a single tabulation interval - so its relative accuracy there
+        ! reflects where the tabulation points happen to fall rather than the density of them. The transform is normalized to
+        ! unity at zero wavenumber, so an absolute tolerance is the meaningful statement of accuracy in that regime; the
+        ! relative tolerance still governs the wavenumbers at which the transform is resolved.
+        call    Assert("Fourier transform"            ,fourierTransform          ,fourierTransformTarget          ,relTol=1.2d-2,absTol=1.0d-3                       )
         call    Assert("Freefall radius"              ,radiusFreefall            ,radiusFreefallTarget            ,relTol=1.0d-1,absTol=1.0d-1*radiusCore            )
         call    Assert("Freefall radius increase rate",radiusFreefallIncreaseRate,radiusFreefallIncreaseRateTarget,relTol=1.0d-2,absTol=2.0d+0*radiusVirial/timeScale)
+        ! Check that extending a tabulation leaves the values it already held unchanged. Each of these tabulations is built on
+        ! an absolute lattice, so a request beyond the current range adds points to it rather than laying a fresh grid across
+        ! the whole of the enlarged range: the values interpolated at radii within the original range must therefore be
+        ! reproduced bit for bit. (A tabulation restored from a cache file which already spans the extended range will not
+        ! extend, and the assertions then hold trivially - so this is exercised in full only from a cold cache.)
+        massBefore          =mass
+        densityMoment2Before=densityMoment2
+        ! These two are evaluated purely to force each tabulation to be extended; their results are not used.
+        massExtended        =massDistribution_%massEnclosedBySphere(                 radiusExtension   *radiusScale      )
+        massExtended        =massDistribution_%densityRadialMoment (2.0d0,0.0d0     ,radiusExtension   *radiusScale      )
+        do i=1,7
+           mass          (i)=massDistribution_%massEnclosedBySphere(                 radiiScaleFree (i)*radiusScale      )
+           densityMoment2(i)=massDistribution_%densityRadialMoment (2.0d0,0.0d0     ,radiiScaleFree (i)*radiusScale      )
+        end do
+        call    Assert("Mass within radius is unchanged by extension"          ,mass          ,massBefore          ,absTol=0.0d0)
+        call    Assert("Radial density moment (m=2) is unchanged by extension" ,densityMoment2,densityMoment2Before,absTol=0.0d0)
      end select
      deallocate(massDistribution_      )
      nullify   (kinematicsDistribution_)
