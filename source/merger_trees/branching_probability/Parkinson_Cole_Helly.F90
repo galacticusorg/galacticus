@@ -1008,11 +1008,109 @@ contains
     return
   end subroutine parkinsonColeHellyComputeCommonFactors
 
+  double precision function parkinsonColeHellyHypergeometricFactor(x,gamma,toleranceRelative) result(factor)
+    !!{RST
+    Evaluate the factor
+
+    .. math::
+
+       (1+x)^{\gamma-1} \, {}_2F_1\left(\frac{3}{2},\frac{1-\gamma}{2};\frac{3-\gamma}{2};\frac{1}{(1+x)^2}\right) \Big/ (1-\gamma)
+
+    which appears in the subresolution merger fraction, as a function of :math:`x`---the excess of the ratio of
+    :math:`\sigma(M_\mathrm{res})` to :math:`\sigma(M_\mathrm{parent})` over unity.
+
+    Evaluating this directly is impossible for small :math:`x`. The argument of the hypergeometric function,
+    :math:`z=1/(1+x)^2`, approaches its singular point :math:`z=1` as :math:`x \rightarrow 0`, and since
+    :math:`1+x` cannot be distinguished from :math:`1` once :math:`x` falls below the machine epsilon, :math:`z`
+    becomes *exactly* :math:`1` and the evaluation fails outright with a domain error. Well before that it loses
+    precision: what the function depends on is :math:`1-z`, which is formed by a subtraction from unity and so
+    carries an absolute error of order the machine epsilon---a relative error of order
+    :math:`\epsilon/2x`, which reaches a part in :math:`10^8` by :math:`x=10^{-8}`.
+
+    The cure is to evaluate in terms of :math:`w \equiv 1-z = x(2+x)/(1+x)^2`, which suffers no such cancellation,
+    using the connection formula between :math:`z` and :math:`1-z` (:cite:t:`olver_nist_2010`, eq. 15.8.4). Here
+    :math:`c-a-b=-1/2` exactly---never an integer, so that formula is always valid---and two simplifications
+    follow: the first of its two hypergeometric functions has equal first numerator and denominator parameters, so
+    it collapses to :math:`(1-w)^{(\gamma-1)/2}=(1+x)^{1-\gamma}` and cancels the prefactor entirely, leaving a
+    constant; and the second reduces to :math:`{}_2F_1(-\gamma/2,1;1/2;w)`, whose series in :math:`w` has the
+    simple ratio of successive terms used below. The result is
+
+    .. math::
+
+       \frac{-2\sqrt{\pi}\,\Gamma\left(\frac{3-\gamma}{2}\right)}{(1-\gamma)\Gamma\left(-\frac{\gamma}{2}\right)}
+       + \frac{(1+x)^{\gamma-1}}{\sqrt{w}} \, {}_2F_1\left(-\frac{\gamma}{2},1;\frac{1}{2};w\right),
+
+    which is exact, not asymptotic. The series is used below :math:`x=1/10`, where it needs some twenty terms and
+    agrees with the direct evaluation to a part in :math:`10^{15}`; above that the direct evaluation is used, as
+    the series converges ever more slowly while the direct evaluation is at its most accurate.
+    !!}
+    use :: Gamma_Functions         , only : Gamma_Function
+    use :: Hypergeometric_Functions, only : Hypergeometric_2F1
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    double precision, intent(in   ) :: x                         , gamma         , &
+         &                             toleranceRelative
+    ! Value of x below which the series in w is used in place of a direct evaluation.
+    double precision, parameter     :: xSeriesMaximum    =0.1d+00
+    ! Maximum number of terms to accumulate in that series. Twenty are needed at the switch-over, so this is never
+    ! approached - it exists only to bound the loop.
+    integer         , parameter     :: countTermsMaximum =1000
+    ! Tolerance within which -γ/2 is judged to sit on a pole of the Γ function.
+    double precision, parameter     :: toleranceGammaPole=1.0d-12
+    double precision                :: w                         , term          , &
+         &                             seriesSum                 , factorConstant
+    integer                         :: i
+
+    if (x > xSeriesMaximum) then
+       ! Away from the singular point evaluate directly.
+       factor=+(1.0d0+x)**(+gamma-1.0d0)                                       &
+            & /             (-gamma+1.0d0)                                     &
+            & *Hypergeometric_2F1(                                             &
+            &                                       [1.5d0,0.5d0-0.5d0*gamma], &
+            &                                       [      1.5d0-0.5d0*gamma], &
+            &                                       1.0d0/(1.0d0+x)**2       , &
+            &                     toleranceRelative=toleranceRelative          &
+            &                    )
+    else
+       ! Close to the singular point evaluate through the connection formula, in terms of w=1-z, which is free of
+       ! the cancellation that destroys z.
+       w      =+       x     &
+            &  *(2.0d0+x)    &
+            &  /(1.0d0+x)**2
+       ! Accumulate ₂F₁(-γ/2,1;1/2;w). Since the second numerator parameter is unity the factorial in the series
+       ! cancels the Pochhammer symbol it would otherwise carry, leaving this ratio of successive terms.
+       term     =1.0d0
+       seriesSum=1.0d0
+       do i=0,countTermsMaximum-1
+          term     =+term                   &
+               &    *(-0.5d0*gamma+dble(i)) &
+               &    /(+0.5d0      +dble(i)) &
+               &    *w
+          seriesSum=seriesSum+term
+          if (abs(term) <= toleranceRelative*abs(seriesSum)) exit
+       end do
+       ! The constant term. Γ(-γ/2) has poles at γ=0,2,4,…, at which this term vanishes.
+       if (gamma >= -toleranceGammaPole .and. abs(gamma-2.0d0*dble(nint(gamma/2.0d0))) < toleranceGammaPole) then
+          factorConstant=+0.0d0
+       else
+          factorConstant=-2.0d0                             &
+               &         *sqrt(Pi)                          &
+               &         *Gamma_Function(1.5d0-0.5d0*gamma) &
+               &         /Gamma_Function(     -0.5d0*gamma) &
+               &         /             (-gamma+1.0d0)
+       end if
+       factor=+factorConstant            &
+            & +(1.0d0+x)**(+gamma-1.0d0) &
+            & *seriesSum                 &
+            & /sqrt(w)
+    end if
+    return
+  end function parkinsonColeHellyHypergeometricFactor
+
   subroutine parkinsonColeHellySubresolutionHypergeometricTabulate(self,x,xMinimumIn,xMaximumIn)
     !!{RST
     Tabulate the hypergeometric term appearing in the subresolution merger fraction expression.
     !!}
-    use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Ranges        , only : Range_Pinned          , gridSchemePerDecade
     use :: Table_Labels            , only : extrapolationTypeAbort
@@ -1075,17 +1173,14 @@ contains
        call self%subresolutionHypergeometric%extend(latticeX,isComputed,tableCount=1,extrapolationType=spread(extrapolationTypeAbort,1,2))
        do i=1,latticeX%count
           if (isComputed(i)) cycle
-          call self%subresolutionHypergeometric%populate(                                                                                              &
-               &                                         +sqrtTwoOverPi                                                                                &
-               &                                         *(self%subresolutionHypergeometric%x(i)+1.0d0)**(+self%gamma1-1.0d0)                          &
-               &                                         /                                               (-self%gamma1+1.0d0)                          &
-               &                                         *Hypergeometric_2F1(                                                                          &
-               &                                                                               self%hypergeometricA(self%gamma1)                     , &
-               &                                                                               [      1.5d0-0.5d0*self%gamma1]                       , &
-               &                                                                               1.0d0/(self%subresolutionHypergeometric%x(i)+1.0d0)**2, &
-               &                                                             toleranceRelative=self%precisionHypergeometric                            &
-               &                                                            )                                                                        , &
-               &                                         i                                                                                             &
+          call self%subresolutionHypergeometric%populate(                                                                               &
+               &                                         +sqrtTwoOverPi                                                                 &
+               &                                         *parkinsonColeHellyHypergeometricFactor(                                       &
+               &                                                                                 self%subresolutionHypergeometric%x(i), &
+               &                                                                                 self%gamma1                          , &
+               &                                                                                 self%precisionHypergeometric           &
+               &                                                                                )                                     , &
+               &                                         i                                                                              &
                &                                        )
        end do
        self%latticeSubresolution                  =latticeX
