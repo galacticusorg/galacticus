@@ -297,8 +297,13 @@ contains
              self%normalizationFactor=growthFactor%interpolate(timePresent)
              call growthFactor%populate(reshape(growthFactor%ys(),[latticeTime%count])/self%normalizationFactor)
           end if
-          self%tableTimeMinimum=latticeTime%minimum()
-          self%tableTimeMaximum=latticeTime%maximum()
+          ! Record the bounds of the tabulation from the abscissae actually stored, not from the lattice. The two are the same
+          ! point of the lattice, but they are not reached by the same arithmetic and so need not agree in their final bits. These
+          ! bounds guard the decision to retabulate, and a consumer which reads an abscissa from the table and asks for its value
+          ! there must not be judged to lie outside it: a guard an ulp below the last abscissa makes every such request retabulate,
+          ! and since the range is grown by a factor of two each time, it does so without limit.
+          self%tableTimeMinimum=growthFactor%x(+1)
+          self%tableTimeMaximum=growthFactor%x(-1)
           ! Compute relative normalization factor such that growth factor behaves as expansion factor at early times.
           self%normalizationMatterDominated=+(                                                                &
                &                              +9.0d0                                                          &
