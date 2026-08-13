@@ -21,7 +21,7 @@
   Implementation of a Burkert :cite:p:`burkert_structure_1995` mass distribution class.
   !!}
 
-  use :: Numerical_Interpolation , only : interpolator
+  use :: Tabulations_Inverse     , only : tabulationInverse
   use :: Numerical_Constants_Math, only : Pi
   
   !![
@@ -64,18 +64,9 @@
      !!}
      private
      double precision                            :: densityNormalization                         , scaleLength
-     double precision                            :: densityScaleFreeRadiusMinimum                , densityScaleFreeRadiusMaximum
-     double precision                            :: densityScaleFreeMinimum                      , densityScaleFreeMaximum
-     type            (interpolator), allocatable :: densityScaleFree_
-     double precision                            :: massScaleFreeRadiusMinimum                   , massScaleFreeRadiusMaximum
-     double precision                            :: massScaleFreeMinimum                         , massScaleFreeMaximum
-     type            (interpolator), allocatable :: massScaleFree_
-     double precision                            :: angularMomentumSpecificScaleFreeRadiusMinimum, angularMomentumSpecificScaleFreeRadiusMaximum
-     double precision                            :: angularMomentumSpecificScaleFreeMinimum      , angularMomentumSpecificScaleFreeMaximum
-     type            (interpolator), allocatable :: angularMomentumSpecificScaleFree_
-     double precision                            :: timeFreefallScaleFreeRadiusMinimum           , timeFreefallScaleFreeRadiusMaximum
-     double precision                            :: timeFreefallScaleFreeMinimum                 , timeFreefallScaleFreeMaximum
-     type            (interpolator), allocatable :: timeFreefallScaleFree_
+     ! Tabulations of the scale-free profile, built for inversion.
+     type            (tabulationInverse)         :: densityScaleFree_                            , massScaleFree_                               , &
+          &                                         angularMomentumSpecificScaleFree_            , timeFreefallScaleFree_
    contains
      !![
      <methods docformat="rst">
@@ -110,6 +101,9 @@
      module procedure massDistributionBurkertConstructorParameters
      module procedure massDistributionBurkertConstructorInternal
   end interface massDistributionBurkert
+
+  ! Density of the tabulations; see the note in the NFW implementation for why an octave lattice is used here.
+  integer, parameter :: countRadiiPerOctave=30
 
   ! The minimum (scale-free) freefall timescale in a Burkert profile.
   double precision , parameter :: timeFreefallScaleFreeMinimum=sqrt(3.0d0*Pi)/4.0d0
@@ -240,22 +234,11 @@ contains
        self%dimensionless=.false.
     end if
     ! Initialize memoized results.
-    self%densityScaleFreeMinimum                      =+huge(0.0d0)
-    self%densityScaleFreeMaximum                      =-huge(0.0d0)
-    self%densityScaleFreeRadiusMinimum                =+1.0d0
-    self%densityScaleFreeRadiusMaximum                =+1.0d0
-    self%massScaleFreeMinimum                         =+huge(0.0d0)
-    self%massScaleFreeMaximum                         =-huge(0.0d0)
-    self%massScaleFreeRadiusMinimum                   =+1.0d0
-    self%massScaleFreeRadiusMaximum                   =+1.0d0
-    self%angularMomentumSpecificScaleFreeMinimum      =+huge(0.0d0)
-    self%angularMomentumSpecificScaleFreeMaximum      =-huge(0.0d0)
-    self%angularMomentumSpecificScaleFreeRadiusMinimum=+1.0d0
-    self%angularMomentumSpecificScaleFreeRadiusMaximum=+1.0d0
-    self%timeFreefallScaleFreeMinimum                 =+huge(0.0d0)
-    self%timeFreefallScaleFreeMaximum                 =-huge(0.0d0)
-    self%timeFreefallScaleFreeRadiusMinimum           =+1.0d0
-    self%timeFreefallScaleFreeRadiusMaximum           =+1.0d0
+    ! Initialize the tabulations.
+    call self%densityScaleFree_                %reset(countRadiiPerOctave,increasing=.false.)
+    call self%massScaleFree_                   %reset(countRadiiPerOctave,increasing=.true. )
+    call self%angularMomentumSpecificScaleFree_%reset(countRadiiPerOctave,increasing=.true. )
+    call self%timeFreefallScaleFree_           %reset(countRadiiPerOctave,increasing=.true. )
     return
   end function massDistributionBurkertConstructorInternal
 
@@ -429,15 +412,13 @@ contains
     !!{RST
     Computes the radius enclosing a given mass or mass fraction for burkert mass distributions.
     !!}    
-    use :: Numerical_Ranges, only : Make_Range  , rangeTypeLogarithmic
-    use :: Error           , only : Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (massDistributionBurkert), intent(inout), target       :: self
     double precision                         , intent(in   ), optional     :: mass                       , massFractional
-    double precision                         , allocatable  , dimension(:) :: radii                      , masses
-    double precision                         , parameter                   :: countRadiiPerDecade=100.0d0
+    double precision                         , allocatable  , dimension(:) :: radii
     double precision                                                       :: massScaleFree              , mass_
-    integer                                                                :: countRadii
+    integer                                                                :: i
 
     mass_=0.0d0
     if (present(mass)) then
@@ -450,29 +431,16 @@ contains
     massScaleFree=+     mass_                   &
          &        /self%densityNormalization    &
          &        /self%scaleLength         **3
-    if     (                                            &
-         &   massScaleFree <= self%massScaleFreeMinimum &
-         &  .or.                                        &
-         &   massScaleFree >  self%massScaleFreeMaximum &
-         & ) then
-       do while (massEnclosedScaleFree(self%massScaleFreeRadiusMinimum) >= massScaleFree)
-          self%massScaleFreeRadiusMinimum=0.5d0*self%massScaleFreeRadiusMinimum
+    do while (.not.self%massScaleFree_%brackets(massScaleFree))
+       call self%massScaleFree_%expand(massScaleFree)
+       radii=self%massScaleFree_%abscissae()
+       do i=1,size(radii)
+          if (self%massScaleFree_%isComputed(i)) cycle
+          call self%massScaleFree_%set(i,massEnclosedScaleFree(radii(i)))
        end do
-       do while (massEnclosedScaleFree(self%massScaleFreeRadiusMaximum) <  massScaleFree)
-          self%massScaleFreeRadiusMaximum=2.0d0*self%massScaleFreeRadiusMaximum
-       end do
-       countRadii=int(log10(self%massScaleFreeRadiusMaximum/self%massScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-       if (allocated(self%massScaleFree_)) deallocate(self%massScaleFree_)
-       allocate(     radii         (countRadii))
-       allocate(     masses        (countRadii))
-       allocate(self%massScaleFree_            )
-       radii                    =Make_Range(self%massScaleFreeRadiusMinimum,self%massScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
-       masses                   =massEnclosedScaleFree(           radii)
-       self%massScaleFreeMinimum=masses               (         1      )
-       self%massScaleFreeMaximum=masses               (countRadii      )
-       self%massScaleFree_      =interpolator         (masses    ,radii)
-    end if
-    radius=+self%massScaleFree_%interpolate(massScaleFree) &
+       call self%massScaleFree_%build()
+    end do
+    radius=+self%massScaleFree_%invert     (massScaleFree) &
          & *self%scaleLength
     return
   end function burkertRadiusEnclosingMass
@@ -481,41 +449,26 @@ contains
     !!{RST
     Computes the radius enclosing a given mean density for burkert mass distributions.
     !!}
-    use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none
     class           (massDistributionBurkert), intent(inout), target       :: self
     double precision                         , intent(in   )               :: density
     double precision                         , intent(in   ), optional     :: radiusGuess
-    double precision                         , allocatable  , dimension(:) :: radii                      , densities
-    double precision                         , parameter                   :: countRadiiPerDecade=100.0d0
+    double precision                         , allocatable  , dimension(:) :: radii
     double precision                                                       :: densityScaleFree
-    integer                                                                :: countRadii
+    integer                                                                :: i
 
     densityScaleFree=+density                   &
          &           /self%densityNormalization
-    if     (                                                  &
-         &   densityScaleFree <= self%densityScaleFreeMinimum &
-         &  .or.                                              &
-         &   densityScaleFree >  self%densityScaleFreeMaximum &
-         & ) then
-       do while (densityEnclosedScaleFree(self%densityScaleFreeRadiusMinimum) <  densityScaleFree)
-          self%densityScaleFreeRadiusMinimum=0.5d0*self%densityScaleFreeRadiusMinimum
+    do while (.not.self%densityScaleFree_%brackets(densityScaleFree))
+       call self%densityScaleFree_%expand(densityScaleFree)
+       radii=self%densityScaleFree_%abscissae()
+       do i=1,size(radii)
+          if (self%densityScaleFree_%isComputed(i)) cycle
+          call self%densityScaleFree_%set(i,densityEnclosedScaleFree(radii(i)))
        end do
-       do while (densityEnclosedScaleFree(self%densityScaleFreeRadiusMaximum) >= densityScaleFree)
-          self%densityScaleFreeRadiusMaximum=2.0d0*self%densityScaleFreeRadiusMaximum
-       end do
-       countRadii=int(log10(self%densityScaleFreeRadiusMaximum/self%densityScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-       if (allocated(self%densityScaleFree_)) deallocate(self%densityScaleFree_)
-       allocate(     radii            (countRadii))
-       allocate(     densities        (countRadii))
-       allocate(self%densityScaleFree_            )
-       radii                       = Make_Range(self%densityScaleFreeRadiusMinimum,self%densityScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
-       densities                   =-densityEnclosedScaleFree(           radii)
-       self%densityScaleFreeMinimum=-densities               (countRadii      )
-       self%densityScaleFreeMaximum=-densities               (         1      )
-       self%densityScaleFree_      = interpolator            (densities ,radii)
-    end if
-    radius=+self%densityScaleFree_%interpolate(-densityScaleFree) &
+       call self%densityScaleFree_%build()
+    end do
+    radius=+self%densityScaleFree_%invert     (densityScaleFree) &
          & *self%scaleLength
     return    
   end function burkertRadiusEnclosingDensity
@@ -569,14 +522,12 @@ contains
     Computes the radius corresponding to a given specific angular momentum for burkert mass distributions.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
-    use :: Numerical_Ranges                , only : Make_Range                    , rangeTypeLogarithmic
     implicit none
     class           (massDistributionBurkert), intent(inout), target       :: self
     double precision                         , intent(in   )               :: angularMomentumSpecific
-    double precision                         , allocatable  , dimension(:) :: radii                                   , angularMomentaSpecific
-    double precision                         , parameter                   :: countRadiiPerDecade             =100.0d0
+    double precision                         , allocatable  , dimension(:) :: radii
     double precision                                                       :: angularMomentumSpecificScaleFree
-    integer                                                                :: countRadii
+    integer                                                                :: i
 
     if (angularMomentumSpecific > 0.0d0) then
        angularMomentumSpecificScaleFree=+angularMomentumSpecific                 &
@@ -585,29 +536,16 @@ contains
             &                                 *self%densityNormalization         &
             &                                )                                   &
             &                           /      self%scaleLength              **2
-       if     (                                                                                  &
-            &   angularMomentumSpecificScaleFree <= self%angularMomentumSpecificScaleFreeMinimum &
-            &  .or.                                                                              &
-            &   angularMomentumSpecificScaleFree >  self%angularMomentumSpecificScaleFreeMaximum &
-            & ) then
-          do while (angularMomentumSpecificEnclosedScaleFree(self%angularMomentumSpecificScaleFreeRadiusMinimum) >= angularMomentumSpecificScaleFree)
-             self%angularMomentumSpecificScaleFreeRadiusMinimum=0.5d0*self%angularMomentumSpecificScaleFreeRadiusMinimum
+       do while (.not.self%angularMomentumSpecificScaleFree_%brackets(angularMomentumSpecificScaleFree))
+          call self%angularMomentumSpecificScaleFree_%expand(angularMomentumSpecificScaleFree)
+          radii=self%angularMomentumSpecificScaleFree_%abscissae()
+          do i=1,size(radii)
+             if (self%angularMomentumSpecificScaleFree_%isComputed(i)) cycle
+             call self%angularMomentumSpecificScaleFree_%set(i,angularMomentumSpecificEnclosedScaleFree(radii(i)))
           end do
-          do while (angularMomentumSpecificEnclosedScaleFree(self%angularMomentumSpecificScaleFreeRadiusMaximum) <  angularMomentumSpecificScaleFree)
-             self%angularMomentumSpecificScaleFreeRadiusMaximum=2.0d0*self%angularMomentumSpecificScaleFreeRadiusMaximum
-          end do
-          countRadii=int(log10(self%angularMomentumSpecificScaleFreeRadiusMaximum/self%angularMomentumSpecificScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-          if (allocated(self%angularMomentumSpecificScaleFree_)) deallocate(self%angularMomentumSpecificScaleFree_)
-          allocate(     radii                            (countRadii))
-          allocate(     angularMomentaSpecific           (countRadii))
-          allocate(self%angularMomentumSpecificScaleFree_            )
-          radii                                       =Make_Range(self%angularMomentumSpecificScaleFreeRadiusMinimum,self%angularMomentumSpecificScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
-          angularMomentaSpecific                      =angularMomentumSpecificEnclosedScaleFree(                       radii)
-          self%angularMomentumSpecificScaleFreeMinimum=angularMomentaSpecific                  (                     1      )
-          self%angularMomentumSpecificScaleFreeMaximum=angularMomentaSpecific                  (            countRadii      )
-          self%angularMomentumSpecificScaleFree_      =interpolator                            (angularMomentaSpecific,radii)
-       end if
-       radius=+self%angularMomentumSpecificScaleFree_%interpolate(angularMomentumSpecificScaleFree) &
+          call self%angularMomentumSpecificScaleFree_%build()
+       end do
+       radius=+self%angularMomentumSpecificScaleFree_%invert     (angularMomentumSpecificScaleFree) &
             & *self%scaleLength
     else
        radius=+0.0d0
@@ -822,7 +760,7 @@ contains
        return
     end if
     call self%timeFreefallTabulate(timeScaleFree)
-    radius=+self%timeFreefallScaleFree_%interpolate(timeScaleFree) &
+    radius=+self%timeFreefallScaleFree_%invert     (timeScaleFree) &
          & *self%scaleLength
     return   
   end function burkertRadiusFreefall
@@ -860,40 +798,25 @@ contains
     Tabulate the freefall radius at the given ``time`` in an Burkert mass distribution.
     !!}
     use :: Numerical_Integration, only : integrator
-    use :: Numerical_Ranges     , only : Make_Range, rangeTypeLogarithmic
     implicit none
     class           (massDistributionBurkert), intent(inout)               :: self
     double precision                         , intent(in   )               :: timeScaleFree
-    double precision                         , allocatable  , dimension(:) :: radii                      , timesFreefall
-    double precision                         , parameter                   :: countRadiiPerDecade=100.0d0
+    double precision                         , allocatable  , dimension(:) :: radii
     double precision                                                       :: radiusStart
-    integer                                                                :: countRadii                 , i
+    integer                                                                :: i
     type            (integrator             )                              :: integrator_
 
-    if     (                                                    &
-         &   timeScaleFree <= self%timeFreefallScaleFreeMinimum &
-         &  .or.                                                &
-         &   timeScaleFree >  self%timeFreefallScaleFreeMaximum &
-         & ) then
+    if (.not.self%timeFreefallScaleFree_%brackets(timeScaleFree)) then
        integrator_=integrator(timeFreeFallIntegrand,toleranceRelative=1.0d-6)
-       do while (timeFreefallScaleFree(self%timeFreefallScaleFreeRadiusMinimum) >= timeScaleFree)
-          self%timeFreefallScaleFreeRadiusMinimum=0.5d0*self%timeFreefallScaleFreeRadiusMinimum
+       do while (.not.self%timeFreefallScaleFree_%brackets(timeScaleFree))
+          call self%timeFreefallScaleFree_%expand(timeScaleFree)
+          radii=self%timeFreefallScaleFree_%abscissae()
+          do i=1,size(radii)
+             if (self%timeFreefallScaleFree_%isComputed(i)) cycle
+             call self%timeFreefallScaleFree_%set(i,timeFreefallScaleFree(radii(i)))
+          end do
+          call self%timeFreefallScaleFree_%build()
        end do
-       do while (timeFreefallScaleFree(self%timeFreefallScaleFreeRadiusMaximum) <  timeScaleFree)
-          self%timeFreefallScaleFreeRadiusMaximum=2.0d0*self%timeFreefallScaleFreeRadiusMaximum
-       end do
-       countRadii=int(log10(self%timeFreefallScaleFreeRadiusMaximum/self%timeFreefallScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-       if (allocated(self%timeFreefallScaleFree_)) deallocate(self%timeFreefallScaleFree_)
-       allocate(     radii                 (countRadii))
-       allocate(     timesFreefall         (countRadii))
-       allocate(self%timeFreefallScaleFree_            )
-       radii=Make_Range(self%timeFreefallScaleFreeRadiusMinimum,self%timeFreefallScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
-       do i=1,countRadii
-          timesFreefall(i)=timeFreefallScaleFree(radii(i))
-       end do
-       self%timeFreefallScaleFreeMinimum=timesFreefall(            1      )
-       self%timeFreefallScaleFreeMaximum=timesFreefall(   countRadii      )
-       self%timeFreefallScaleFree_      =interpolator (timesFreefall,radii)
     end if
     return
     
