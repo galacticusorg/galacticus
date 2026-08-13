@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "9e04f6f256cbf0ca9dcb567b478c773848082e61",
-        "message": "Merge pull request #1347 from galacticusorg/fix/ethos-extended-slope-analytic-derivative\n\nfix(powerSpectrum): evaluate the ETHOS extended slope analytically\n",
-        "timestamp": "2026-08-09 21:58:23+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/9e04f6f256cbf0ca9dcb567b478c773848082e61"
+        "id": "f62df0c3b1d868c052eedef79c20488955a738c9",
+        "message": "Merge pull request #1366 from galacticusorg/update/bibliography\n\nfix: Update bibliography records\n",
+        "timestamp": "2026-08-12 22:36:04+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/f62df0c3b1d868c052eedef79c20488955a738c9"
     },
     "results": [
         {
