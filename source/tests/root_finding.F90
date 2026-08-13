@@ -17,6 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson. The tests of the GSL abort-on-error handler state added for issue #1360
+!+    were drafted with assistance from Claude, and reviewed and verified by Andrew Benson.
+
 !!{RST
 Contains a program to test root finding routines.
 !!}
@@ -25,16 +28,16 @@ program Test_Root_Finding
   !!{RST
   Tests that routine finding routines work.
   !!}
-  use :: Display                    , only : displayVerbositySet    , verbosityLevelStandard
-  use :: Error                      , only : errorStatusDivideByZero, Error_Handler_Register
-  use :: Root_Finder                , only : rangeExpandAdditive    , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rootFinder                , &
+  use :: Display                    , only : displayVerbositySet       , verbosityLevelStandard
+  use :: Error                      , only : errorStatusDivideByZero   , Error_Handler_Register   , errorStatusOutOfRange        , GSL_Error_Handler_Aborting
+  use :: Root_Finder                , only : rangeExpandAdditive       , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rootFinder                , &
        &                                     stoppingCriterionDelta
-  use :: Test_Root_Finding_Functions, only : Root_Function_1        , Root_Function_2          , Root_Function_2_Both         , Root_Function_2_Derivative, &
-          &                                  Root_Function_3        , Root_Function_4          , Root_Function_4_Both         , Root_Function_4_Derivative
-  use :: Unit_Tests                 , only : Assert                 , Unit_Tests_Begin_Group   , Unit_Tests_End_Group         , Unit_Tests_Finish
+  use :: Test_Root_Finding_Functions, only : Root_Function_1           , Root_Function_2          , Root_Function_2_Both         , Root_Function_2_Derivative, &
+          &                                  Root_Function_3           , Root_Function_4          , Root_Function_4_Both         , Root_Function_4_Derivative
+  use :: Unit_Tests                 , only : Assert                    , Unit_Tests_Begin_Group   , Unit_Tests_End_Group         , Unit_Tests_Finish
   implicit none
   type            (rootFinder)               :: finder1, finder2, &
-       &                                        finder3
+       &                                        finder3, finder4
   double precision                           :: xGuess , xRoot
   double precision            , dimension(2) :: xRange
   integer                                    :: status
@@ -110,6 +113,72 @@ program Test_Root_Finding
   xRange=[+2.0d0,+4.0d0]
   xRoot=finder3%find(rootRange=xRange)
   call Assert('root of f(x)=x² - 5x + 1 in range  2 < x < 10 expand range upward only',xRoot,0.5d0*(5.0d0+sqrt(21.0d0)),absTol=1.0d-6,relTol=1.0d-6)
+
+  ! Test that out-of-range exits restore GSL's abort-on-error handler. Each of the following cases causes the root finder to
+  ! return early with an out-of-range status. Prior to the fix for issue #1360, the exit taken when the range could not be
+  ! expanded to bracket the root left the (thread-local) abort-on-error handler disabled for the remainder of the run, so that
+  ! subsequent GSL errors - including in callers which pass no "status" argument - failed silently instead of aborting. A single
+  ! root finder is used for all of these cases, reconfigured between them - each call to "rangeExpand" resets all range
+  ! expansion options, including those not explicitly specified.
+  call Assert('GSL abort-on-error handler is initially enabled',GSL_Error_Handler_Aborting(),.true.)
+  finder4=rootFinder(rootFunction=Root_Function_2,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-6)
+
+  !! Wrong sign at the downward limit. f(x)=x² - 5x + 1 is negative at the downward limit of x=1, but a positive value is
+  !! expected there.
+  call finder4%rangeExpand(                                                             &
+       &                   rangeExpandDownward          =0.5d0                        , &
+       &                   rangeExpandType              =rangeExpandMultiplicative    , &
+       &                   rangeDownwardLimit           =1.0d0                        , &
+       &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+       &                   testLimits                   =.true.                         &
+       &                  )
+  xRange=[1.0d0,2.0d0]
+  xRoot=finder4%find(rootRange=xRange,status=status)
+  call Assert('out of range status returned for incorrect sign at downward limit'         ,status                     ,errorStatusOutOfRange)
+  call Assert('GSL abort-on-error handler restored after incorrect sign at downward limit',GSL_Error_Handler_Aborting(),.true.               )
+
+  !! Wrong sign at the upward limit. f(x)=x² - 5x + 1 is negative at the upward limit of x=4, but a positive value is expected
+  !! there.
+  call finder4%rangeExpand(                                                             &
+       &                   rangeExpandUpward            =2.0d0                        , &
+       &                   rangeExpandType              =rangeExpandMultiplicative    , &
+       &                   rangeUpwardLimit             =4.0d0                        , &
+       &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+       &                   testLimits                   =.true.                         &
+       &                  )
+  xRange=[1.0d0,2.0d0]
+  xRoot=finder4%find(rootRange=xRange,status=status)
+  call Assert('out of range status returned for incorrect sign at upward limit'         ,status                     ,errorStatusOutOfRange)
+  call Assert('GSL abort-on-error handler restored after incorrect sign at upward limit',GSL_Error_Handler_Aborting(),.true.               )
+
+  !! Range expansion unable to bracket the root. Expansion upward is limited to x=4, below the root of f(x)=x² - 5x + 1 at
+  !! x=(5+√21)/2 ≈ 4.79, so the root can never be bracketed. Limit testing is switched off here so that this case is reached
+  !! instead of the incorrect-sign-at-the-upward-limit case above.
+  call finder4%rangeExpand(                                                             &
+       &                   rangeExpandUpward            =2.0d0                        , &
+       &                   rangeExpandType              =rangeExpandMultiplicative    , &
+       &                   rangeUpwardLimit             =4.0d0                        , &
+       &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+       &                   testLimits                   =.false.                        &
+       &                  )
+  xRange=[1.0d0,2.0d0]
+  xRoot=finder4%find(rootRange=xRange,status=status)
+  call Assert('out of range status returned when root can not be bracketed'         ,status                     ,errorStatusOutOfRange)
+  call Assert('GSL abort-on-error handler restored after root can not be bracketed' ,GSL_Error_Handler_Aborting(),.true.               )
+
+  !! Finally, check that a root can still be found once the range limit is relaxed sufficiently to allow the root to be
+  !! bracketed.
+  call finder4%rangeExpand(                                                             &
+       &                   rangeExpandUpward            =2.0d0                        , &
+       &                   rangeExpandType              =rangeExpandMultiplicative    , &
+       &                   rangeUpwardLimit             =8.0d0                        , &
+       &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+       &                   testLimits                   =.true.                         &
+       &                  )
+  xRange=[1.0d0,2.0d0]
+  xRoot=finder4%find(rootRange=xRange,status=status)
+  call Assert('root of f(x)=x² - 5x + 1 found once upward limit is relaxed'      ,xRoot                      ,0.5d0*(5.0d0+sqrt(21.0d0)),absTol=1.0d-6,relTol=1.0d-6)
+  call Assert('GSL abort-on-error handler restored after successful root finding',GSL_Error_Handler_Aborting(),.true.                                              )
 
   ! End unit tests.
   call Unit_Tests_End_Group()
