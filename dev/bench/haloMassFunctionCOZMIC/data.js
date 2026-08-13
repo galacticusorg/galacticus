@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786334919416,
+  "lastUpdate": 1786601583104,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (COZMIC)": [
@@ -391,6 +391,55 @@ window.BENCHMARK_DATA = {
           {
             "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV:f0.6 resolutionX8 z=0.000",
             "value": 74.58237262063814,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f62df0c3b1d868c052eedef79c20488955a738c9",
+          "message": "Merge pull request #1366 from galacticusorg/update/bibliography\n\nfix: Update bibliography records",
+          "timestamp": "2026-08-12T22:36:04Z",
+          "tree_id": "b8f41bf1c8420cb8858a024e36483c41327a1f7d",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f62df0c3b1d868c052eedef79c20488955a738c9"
+        },
+        "date": 1786601581876,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay FDM:25.9e-22eV resolutionX8 z=0.000",
+            "value": 91.59985209016538,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay IDM:1e-4GeV:envelope resolutionX8 z=0.000",
+            "value": 62.1909413513904,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV resolutionX8 z=0.000",
+            "value": 61.205239677219446,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV:bumpCutoff resolutionX8 z=0.000",
+            "value": 103.88672852406121,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV:f0.6 resolutionX8 z=0.000",
+            "value": 74.58211605030675,
             "unit": "-logℒ"
           }
         ]
