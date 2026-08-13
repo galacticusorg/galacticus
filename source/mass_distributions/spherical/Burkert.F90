@@ -51,10 +51,10 @@
     .. math::
 
        F(k) &amp; = (1+i) \frac{\pi}{k m(c) } \left( \right.                                                              \nonumber \\
-       &amp;  +      \exp( k) \left\{ -i \pi -\mathrm{E}_\mathrm{i}[-  k]+\mathrm{E}_\mathrm{i}[(-1+ic)k] \right\} \nonumber \\
-       &amp;  +(1-i) \exp(-k) \left\{        +\mathrm{E}_\mathrm{i}[-i k]+\mathrm{E}_\mathrm{i}[(+i+ic)k] \right\} \nonumber \\
-       &amp;  +   i  \exp(-k) \left\{        +\mathrm{E}_\mathrm{i}[+  k]+\mathrm{E}_\mathrm{i}[(+1+ic)k] \right\} \nonumber \\
-       &amp;  \left. \right).
+       &amp;         +      \exp( k) \left\{ -i \pi -\mathrm{E}_\mathrm{i}[-  k]+\mathrm{E}_\mathrm{i}[(-1+ic)k] \right\} \nonumber \\
+       &amp;         +(1-i) \exp(-k) \left\{        +\mathrm{E}_\mathrm{i}[-i k]+\mathrm{E}_\mathrm{i}[(+i+ic)k] \right\} \nonumber \\
+       &amp;         +   i  \exp(-k) \left\{        +\mathrm{E}_\mathrm{i}[+  k]+\mathrm{E}_\mathrm{i}[(+1+ic)k] \right\} \nonumber \\
+       &amp;         \left. \right).
     </description>
   </massDistribution>
   !!]
@@ -63,10 +63,10 @@
      The :cite:p:`burkert_structure_1995` mass distribution.
      !!}
      private
-     double precision                            :: densityNormalization                         , scaleLength
+     double precision                    :: densityNormalization             , scaleLength
      ! Tabulations of the scale-free profile, built for inversion.
-     type            (tabulationInverse)         :: densityScaleFree_                            , massScaleFree_                               , &
-          &                                         angularMomentumSpecificScaleFree_            , timeFreefallScaleFree_
+     type            (tabulationInverse) :: densityScaleFree_                , massScaleFree_        , &
+          &                                 angularMomentumSpecificScaleFree_, timeFreefallScaleFree_
    contains
      !![
      <methods docformat="rst">
@@ -103,7 +103,7 @@
   end interface massDistributionBurkert
 
   ! Density of the tabulations; see the note in the NFW implementation for why an octave lattice is used here.
-  integer, parameter :: countRadiiPerOctave=30
+  integer          , parameter :: countRadiiPerOctave         =30
 
   ! The minimum (scale-free) freefall timescale in a Burkert profile.
   double precision , parameter :: timeFreefallScaleFreeMinimum=sqrt(3.0d0*Pi)/4.0d0
@@ -233,7 +233,6 @@ contains
     else
        self%dimensionless=.false.
     end if
-    ! Initialize memoized results.
     ! Initialize the tabulations.
     call self%densityScaleFree_                %reset(countRadiiPerOctave,increasing=.false.)
     call self%massScaleFree_                   %reset(countRadiiPerOctave,increasing=.true. )
@@ -415,9 +414,9 @@ contains
     use :: Error, only : Error_Report
     implicit none
     class           (massDistributionBurkert), intent(inout), target       :: self
-    double precision                         , intent(in   ), optional     :: mass                       , massFractional
+    double precision                         , intent(in   ), optional     :: mass         , massFractional
     double precision                         , allocatable  , dimension(:) :: radii
-    double precision                                                       :: massScaleFree              , mass_
+    double precision                                                       :: massScaleFree, mass_
     integer                                                                :: i
 
     mass_=0.0d0
@@ -426,7 +425,7 @@ contains
     else if (present(massFractional)) then
        call Error_Report('mass is unbounded, so mass fraction is undefined'//{introspection:location})
     else
-       call Error_Report('either mass or massFractional must be supplied'//{introspection:location})
+       call Error_Report('either mass or massFractional must be supplied'  //{introspection:location})
     end if
     massScaleFree=+     mass_                   &
          &        /self%densityNormalization    &
@@ -440,7 +439,7 @@ contains
        end do
        call self%massScaleFree_%build()
     end do
-    radius=+self%massScaleFree_%invert     (massScaleFree) &
+    radius=+self%massScaleFree_%invert(massScaleFree) &
          & *self%scaleLength
     return
   end function burkertRadiusEnclosingMass
@@ -468,7 +467,7 @@ contains
        end do
        call self%densityScaleFree_%build()
     end do
-    radius=+self%densityScaleFree_%invert     (densityScaleFree) &
+    radius=+self%densityScaleFree_%invert(densityScaleFree) &
          & *self%scaleLength
     return    
   end function burkertRadiusEnclosingDensity
@@ -545,7 +544,7 @@ contains
           end do
           call self%angularMomentumSpecificScaleFree_%build()
        end do
-       radius=+self%angularMomentumSpecificScaleFree_%invert     (angularMomentumSpecificScaleFree) &
+       radius=+self%angularMomentumSpecificScaleFree_%invert(angularMomentumSpecificScaleFree) &
             & *self%scaleLength
     else
        radius=+0.0d0
@@ -760,7 +759,7 @@ contains
        return
     end if
     call self%timeFreefallTabulate(timeScaleFree)
-    radius=+self%timeFreefallScaleFree_%invert     (timeScaleFree) &
+    radius=+self%timeFreefallScaleFree_%invert(timeScaleFree) &
          & *self%scaleLength
     return   
   end function burkertRadiusFreefall

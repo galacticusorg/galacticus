@@ -40,13 +40,13 @@
      The Einasto (e.g. :cite:author:`cardone_spherical_2005` :cite:year:`cardone_spherical_2005`) mass distribution.
      !!}
      private
-     double precision                            :: densityNormalization                         , scaleLength                                  , &
-          &                                         shapeParameter                               , massTotal_
-     double precision                            :: enclosedMassRadiusPrevious                   , enclosedMassPrevious
+     double precision                    :: densityNormalization             , scaleLength           , &
+          &                                 shapeParameter                   , massTotal_
+     double precision                    :: enclosedMassRadiusPrevious       , enclosedMassPrevious
      ! Tabulations of the scale-free profile, built for inversion. These are held per object because the scale-free Einasto
      ! profile depends on the shape parameter, so each is specific to the object which owns it.
-     type            (tabulationInverse)         :: massScaleFree_                               , densityScaleFree_                            , &
-          &                                         angularMomentumSpecificScaleFree_            , timeFreefallScaleFree_
+     type            (tabulationInverse) :: massScaleFree_                   , densityScaleFree_     , &
+          &                                 angularMomentumSpecificScaleFree_, timeFreefallScaleFree_
    contains
      !![
      <methods docformat="rst">
@@ -250,10 +250,9 @@ contains
     else
        self%dimensionless=.false.
     end if
-
     ! Initialize memoized results.
-    self%enclosedMassPrevious                         =-huge(0.0d0)
-    self%enclosedMassRadiusPrevious                   =-huge(0.0d0)
+    self%enclosedMassPrevious      =-huge(0.0d0)
+    self%enclosedMassRadiusPrevious=-huge(0.0d0)
     ! Initialize the tabulations. This is done here, where the shape parameter is set, so that an object can never serve a
     ! tabulation built for a different shape.
     call self%massScaleFree_                   %reset(countRadiiPerOctave,increasing=.true. )
@@ -426,9 +425,9 @@ contains
     use :: Error, only : Error_Report
     implicit none
     class           (massDistributionEinasto), intent(inout), target       :: self
-    double precision                         , intent(in   ), optional     :: mass                       , massFractional
+    double precision                         , intent(in   ), optional     :: mass         , massFractional
     double precision                         , allocatable  , dimension(:) :: radii
-    double precision                                                       :: massScaleFree              , mass_
+    double precision                                                       :: massScaleFree, mass_
     integer                                                                :: i
 
     mass_=0.0d0
@@ -451,7 +450,7 @@ contains
        end do
        call self%massScaleFree_%build()
     end do
-    radius=+self%massScaleFree_%invert     (massScaleFree) &
+    radius=+self%massScaleFree_%invert(massScaleFree) &
          & *self%scaleLength
     return
   end function einastoRadiusEnclosingMass
@@ -479,7 +478,7 @@ contains
        end do
        call self%densityScaleFree_%build()
     end do
-    radius=+self%densityScaleFree_%invert     ( densityScaleFree) &
+    radius=+self%densityScaleFree_%invert( densityScaleFree) &
          & *self%scaleLength
     return    
   end function einastoRadiusEnclosingDensity
@@ -547,7 +546,7 @@ contains
           end do
           call self%angularMomentumSpecificScaleFree_%build()
        end do
-       radius=+self%angularMomentumSpecificScaleFree_%invert     (angularMomentumSpecificScaleFree) &
+       radius=+self%angularMomentumSpecificScaleFree_%invert(angularMomentumSpecificScaleFree) &
             & *self%scaleLength
     else
        radius=+0.0d0
@@ -676,7 +675,7 @@ contains
        return
     end if
     call self%timeFreefallTabulate(timeScaleFree)
-    radius=+self%timeFreefallScaleFree_%invert     (timeScaleFree) &
+    radius=+self%timeFreefallScaleFree_%invert(timeScaleFree) &
          & *self%scaleLength
     return   
   end function einastoRadiusFreefall

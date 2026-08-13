@@ -69,24 +69,24 @@ module Tabulations_Inverse
      double precision              , allocatable, dimension(:) :: values
      logical                       , allocatable, dimension(:) :: isComputed
      type            (interpolator), allocatable               :: interpolator_
-     double precision                                          :: valueMinimum         =+huge(0.0d0), &
-          &                                                       valueMaximum         =-huge(0.0d0)
-     integer                                                   :: pointsPerOctave      =0
-     logical                                                   :: increasing           =.true.      , &
-          &                                                       initialized          =.false.
+     double precision                                          :: valueMinimum   =+huge(0.0d0), &
+          &                                                       valueMaximum   =-huge(0.0d0)
+     integer                                                   :: pointsPerOctave=0
+     logical                                                   :: increasing     =.true.      , &
+          &                                                       initialized    =.false.
    contains
      !![
      <methods docformat="rst">
-       <method description="Initialize the tabulation, discarding anything previously tabulated."                                    method="reset"    />
-       <method description="Return true if the tabulated range of the function spans the given value."                               method="brackets" />
-       <method description="Extend the tabulation by one octave, in whichever direction is needed to approach the given value."      method="expand"   />
-       <method description="Return the abscissae of the tabulation."                                                                 method="abscissae"/>
-       <method description="Set the value of the function at the given point of the tabulation."                                     method="set"      />
-       <method description="Complete the tabulation, recording its range and constructing the interpolator used to invert it."       method="build"    />
-       <method description="Return the abscissa at which the function takes the given value."                                        method="invert"    />
-       <method description="Return the derivative of the abscissa with respect to the value of the function."                        method="derivative"/>
-       <method description="Write the tabulation to an open state file."                                                             method="stateStore"  />
-       <method description="Read the tabulation back from an open state file."                                                       method="stateRestore"/>
+       <method description="Initialize the tabulation, discarding anything previously tabulated."                               method="reset"       />
+       <method description="Return true if the tabulated range of the function spans the given value."                          method="brackets"    />
+       <method description="Extend the tabulation by one octave, in whichever direction is needed to approach the given value." method="expand"      />
+       <method description="Return the abscissae of the tabulation."                                                            method="abscissae"   />
+       <method description="Set the value of the function at the given point of the tabulation."                                method="set"         />
+       <method description="Complete the tabulation, recording its range and constructing the interpolator used to invert it."  method="build"       />
+       <method description="Return the abscissa at which the function takes the given value."                                   method="invert"      />
+       <method description="Return the derivative of the abscissa with respect to the value of the function."                   method="derivative"  />
+       <method description="Write the tabulation to an open state file."                                                        method="stateStore"  />
+       <method description="Read the tabulation back from an open state file."                                                  method="stateRestore"/>
      </methods>
      !!]
      procedure :: reset        => tabulationInverseReset
@@ -134,7 +134,7 @@ contains
     class           (tabulationInverse), intent(in   ) :: self
     double precision                   , intent(in   ) :: value
 
-    brackets=      self%initialized       &
+    brackets=               self%initialized  &
          &   .and. value >= self%valueMinimum &
          &   .and. value <= self%valueMaximum
     return
@@ -209,18 +209,18 @@ contains
     implicit none
     class(tabulationInverse), intent(inout) :: self
 
-    if (.not.self%lattice%isDefined()      ) call Error_Report('tabulation has no abscissae'  //{introspection:location})
-    if (.not.all(self%isComputed)          ) call Error_Report('tabulation is incomplete'     //{introspection:location})
+    if (.not.self%lattice%isDefined()) call Error_Report('tabulation has no abscissae'//{introspection:location})
+    if (.not.all(self%isComputed)    ) call Error_Report('tabulation is incomplete'   //{introspection:location})
     if (allocated(self%interpolator_)) deallocate(self%interpolator_)
     allocate(self%interpolator_)
     if (self%increasing) then
-       self%valueMinimum  =self%values(              1)
-       self%valueMaximum  =self%values(self%lattice%count)
-       self%interpolator_ =interpolator(+self%values,self%lattice%values())
+       self%valueMinimum =self%values(                 1)
+       self%valueMaximum =self%values(self%lattice%count)
+       self%interpolator_=interpolator(+self%values,self%lattice%values())
     else
-       self%valueMinimum  =self%values(self%lattice%count)
-       self%valueMaximum  =self%values(              1)
-       self%interpolator_ =interpolator(-self%values,self%lattice%values())
+       self%valueMinimum =self%values(self%lattice%count)
+       self%valueMaximum =self%values(                 1)
+       self%interpolator_=interpolator(-self%values,self%lattice%values())
     end if
     self%initialized=.true.
     return

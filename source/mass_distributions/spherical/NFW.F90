@@ -91,9 +91,9 @@
   ! doubling from a seed of unity, so they are exact powers of two and are therefore already points of that lattice: pinning
   ! costs nothing in range here, where anchoring to whole decades would pad every bound outward. Thirty points per octave is
   ! 99.66 per decade, against the hundred per decade used before.
-  integer                      , parameter    :: countRadiiPerOctave=30
-  type            (tabulationInverse)         :: densityScaleFree_                , angularMomentumSpecificScaleFree_, &
-       &                                         timeFreefallScaleFree_
+  integer                   , parameter :: countRadiiPerOctave   =30
+  type   (tabulationInverse)            :: densityScaleFree_        , angularMomentumSpecificScaleFree_, &
+       &                                   timeFreefallScaleFree_
   !$omp threadprivate(densityScaleFree_,angularMomentumSpecificScaleFree_,timeFreefallScaleFree_)
 
 contains

@@ -21,7 +21,7 @@
   Implementation of the :cite:t:`zhao_analytical_1996` mass distribution class.
   !!}
 
-  use :: Tabulations_Inverse     , only : tabulationInverse
+  use :: Tabulations_Inverse, only : tabulationInverse
 
   !![
   <enumeration docformat="rst">
@@ -65,14 +65,14 @@
      The :cite:p:`zhao_analytical_1996` mass distribution.
      !!}
      private
-     type            (enumerationSpecialCaseType)              :: specialCase
-     double precision                                          :: densityNormalization                         , scaleLength                                  , &
-          &                                                       alpha                                        , beta                                         , &
-          &                                                       gamma
+     type            (enumerationSpecialCaseType) :: specialCase
+     double precision                             :: densityNormalization             , scaleLength           , &
+          &                                          alpha                            , beta                  , &
+          &                                          gamma
      ! Tabulations of the scale-free profile, built for inversion. These are held per object because the scale-free Zhao1996
      ! profile depends on the shape parameters, so each is specific to the object which owns it.
-     type            (tabulationInverse         )              :: densityScaleFree_                            , massScaleFree_                               , &
-          &                                                       angularMomentumSpecificScaleFree_            , timeFreefallScaleFree_
+     type            (tabulationInverse         ) :: densityScaleFree_                , massScaleFree_        , &
+          &                                          angularMomentumSpecificScaleFree_, timeFreefallScaleFree_
    contains
      !![
      <methods docformat="rst">
@@ -110,13 +110,13 @@
   end interface massDistributionZhao1996
 
   ! Density of the tabulations; see the note in the NFW implementation for why an octave lattice is used here.
-  integer, parameter :: countRadiiPerOctave=30
+  integer                                   , parameter :: countRadiiPerOctave                 =30
 
-  class(massDistributionZhao1996), pointer :: self_
+  class           (massDistributionZhao1996), pointer   :: self_
   !$omp threadprivate(self_)
 
   ! The minimum (scale-free) freefall timescale in a cored NFW profile.
-  double precision , parameter :: timeFreefallScaleFreeMinimumCoredNFW=sqrt(3.0d0*Pi)/4.0d0
+  double precision                          , parameter :: timeFreefallScaleFreeMinimumCoredNFW=sqrt(3.0d0*Pi)/4.0d0
   
 contains
 
@@ -315,7 +315,6 @@ contains
        ! Use general solutions.
        self%specialCase=specialCaseGeneral
     end if
-    ! Initialize memoized results.
     ! Initialize the tabulations. This is done here, where the shape parameters are set, so that an object can never serve a
     ! tabulation built for a different shape.
     call self%densityScaleFree_                %reset(countRadiiPerOctave,increasing=.false.)
@@ -595,12 +594,12 @@ contains
     !!{RST
     Computes the radius enclosing a given mass or mass fraction for zhao1996 mass distributions.
     !!}    
-    use :: Error           , only : Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (massDistributionZhao1996), intent(inout), target       :: self
-    double precision                          , intent(in   ), optional     :: mass                       , massFractional
+    double precision                          , intent(in   ), optional     :: mass         , massFractional
     double precision                          , allocatable  , dimension(:) :: radii
-    double precision                                                        :: massScaleFree              , mass_
+    double precision                                                        :: massScaleFree, mass_
     integer                                                                 :: i
 
     mass_=0.0d0
@@ -625,7 +624,7 @@ contains
        end do
        call self%massScaleFree_%build()
     end do
-    radius=+self%massScaleFree_%invert     (massScaleFree) &
+    radius=+self%massScaleFree_%invert(massScaleFree) &
          & *self%scaleLength
     return
   end function zhao1996RadiusEnclosingMass
@@ -654,7 +653,7 @@ contains
        end do
        call self%densityScaleFree_%build()
     end do
-    radius=+self%densityScaleFree_%invert     (densityScaleFree) &
+    radius=+self%densityScaleFree_%invert(densityScaleFree) &
          & *self%scaleLength
     return    
   end function zhao1996RadiusEnclosingDensity
@@ -807,7 +806,7 @@ contains
           end do
           call self%angularMomentumSpecificScaleFree_%build()
        end do
-       radius=+self%angularMomentumSpecificScaleFree_%invert     (angularMomentumSpecificScaleFree) &
+       radius=+self%angularMomentumSpecificScaleFree_%invert(angularMomentumSpecificScaleFree) &
             & *self%scaleLength
     else
        radius=+0.0d0
@@ -1066,7 +1065,7 @@ contains
        return
     end if
     call self%timeFreefallTabulate(timeScaleFree)
-    radius=+self%timeFreefallScaleFree_%invert     (timeScaleFree) &
+    radius=+self%timeFreefallScaleFree_%invert(timeScaleFree) &
          & *self%scaleLength
     return   
   end function zhao1996RadiusFreefall

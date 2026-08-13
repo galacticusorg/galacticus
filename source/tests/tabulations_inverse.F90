@@ -35,20 +35,20 @@ program Test_Tabulations_Inverse
   use :: Tabulations_Inverse, only : tabulationInverse
   use :: Unit_Tests         , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  type            (tabulationInverse)                              :: increasingAscending  , increasingDescending, &
-       &                                                              decreasingAscending  , decreasingDescending, &
-       &                                                              extended             , restored
+  type            (tabulationInverse)                              :: increasingAscending, increasingDescending, &
+       &                                                              decreasingAscending, decreasingDescending, &
+       &                                                              extended           , restored
+  integer                            , parameter                   :: pointsPerOctave      =12
+  double precision                   , dimension(7)                :: resultAscending    , resultDescending
+  double precision                   , allocatable, dimension(:)   :: valuesPreserved    , abscissaePreserved  , &
+       &                                                              abscissaeExtended
+  integer                                                          :: i                  , fileUnit            , &
+       &                                                              countPreserved
+  logical                                                          :: preserved
   ! Values at which each tabulation is queried. They span several octaves in each direction, so that both must be extended
   ! repeatedly, and they are deliberately not points of the lattice.
   double precision                   , dimension(7), parameter     :: valuesIncreasing     =[3.7d-3,4.1d-2,0.83d0,7.3d0,51.0d0,410.0d0,3300.0d0], &
        &                                                              valuesDecreasing     =[3.1d-3,2.7d-2,0.31d0,2.9d0,44.0d0,370.0d0,2900.0d0]
-  integer                            , parameter                   :: pointsPerOctave      =12
-  double precision                   , dimension(7)                :: resultAscending      , resultDescending
-  double precision                   , allocatable, dimension(:)   :: valuesPreserved      , abscissaePreserved  , &
-       &                                                              abscissaeExtended
-  integer                                                          :: i                    , fileUnit            , &
-       &                                                              countPreserved
-  logical                                                          :: preserved
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -57,16 +57,16 @@ program Test_Tabulations_Inverse
   call Unit_Tests_Begin_Group("Inverse tabulations")
 
   ! An increasing function, f(x)=x², requested in ascending and in descending order.
-  call tabulate(increasingAscending ,valuesIncreasing              ,increasing=.true.)
-  call tabulate(increasingDescending,reverse(valuesIncreasing)     ,increasing=.true.)
+  call tabulate(increasingAscending ,valuesIncreasing         ,increasing=.true.)
+  call tabulate(increasingDescending,reverse(valuesIncreasing),increasing=.true.)
   do i=1,size(valuesIncreasing)
      resultAscending (i)=increasingAscending %invert(valuesIncreasing(i))
      resultDescending(i)=increasingDescending%invert(valuesIncreasing(i))
   end do
   call Assert("increasing: inverse is independent of the order in which values are requested",resultAscending,resultDescending,absTol=0.0d0)
-  call Assert("increasing: the two tabulations span the same lattice"                                                                  , &
-       &      [increasingAscending %lattice%indexMinimum,increasingAscending %lattice%count]                                           , &
-       &      [increasingDescending%lattice%indexMinimum,increasingDescending%lattice%count]                                             )
+  call Assert("increasing: the two tabulations span the same lattice"                       , &
+       &      [increasingAscending %lattice%indexMinimum,increasingAscending %lattice%count], &
+       &      [increasingDescending%lattice%indexMinimum,increasingDescending%lattice%count]  )
   ! The inverse should recover the abscissa: f(x)=x² so x=√f.
   call Assert("increasing: inverse recovers the abscissa at a tabulated point",increasingAscending%invert(4.0d0),2.0d0,relTol=1.0d-12)
 
@@ -78,9 +78,9 @@ program Test_Tabulations_Inverse
      resultDescending(i)=decreasingDescending%invert(valuesDecreasing(i))
   end do
   call Assert("decreasing: inverse is independent of the order in which values are requested",resultAscending,resultDescending,absTol=0.0d0)
-  call Assert("decreasing: the two tabulations span the same lattice"                                                                  , &
-       &      [decreasingAscending %lattice%indexMinimum,decreasingAscending %lattice%count]                                           , &
-       &      [decreasingDescending%lattice%indexMinimum,decreasingDescending%lattice%count]                                             )
+  call Assert("decreasing: the two tabulations span the same lattice"                       , &
+       &      [decreasingAscending %lattice%indexMinimum,decreasingAscending %lattice%count], &
+       &      [decreasingDescending%lattice%indexMinimum,decreasingDescending%lattice%count]  )
   call Assert("decreasing: inverse recovers the abscissa at a tabulated point",decreasingAscending%invert(0.25d0),4.0d0,relTol=1.0d-12)
 
   ! Extension must preserve every previously computed value bit-for-bit, and must place them at the abscissae they were
@@ -89,7 +89,7 @@ program Test_Tabulations_Inverse
   countPreserved    =extended%lattice%count
   valuesPreserved   =extended%values
   abscissaePreserved=extended%abscissae()
-  call tabulate(extended,valuesIncreasing     ,increasing=.true.,reset=.false.)
+  call tabulate(extended,valuesIncreasing,increasing=.true.,reset=.false.)
   abscissaeExtended =extended%abscissae()
   preserved         =.false.
   do i=1,size(abscissaeExtended)-countPreserved+1
@@ -126,9 +126,9 @@ contains
     Return ``values`` in reverse order.
     !!}
     implicit none
-    double precision, intent(in   ), dimension(     :) :: values
+    double precision, intent(in   ), dimension(           :) :: values
     double precision               , dimension(size(values)) :: reverse
-    integer                                            :: i
+    integer                                                  :: i
 
     do i=1,size(values)
        reverse(i)=values(size(values)-i+1)
@@ -146,7 +146,7 @@ contains
     logical                            , intent(in   )               :: increasing
     logical                            , intent(in   ), optional     :: reset
     double precision                   , allocatable  , dimension(:) :: abscissae
-    integer                                                          :: i             , j
+    integer                                                          :: i         , j
     logical                                                          :: reset_
 
     reset_=.true.
@@ -159,9 +159,9 @@ contains
           do j=1,size(abscissae)
              if (tabulation%isComputed(j)) cycle
              if (increasing) then
-                call tabulation%set(j,abscissae(j)**2)
+                call tabulation%set(j,      abscissae(j)**2)
              else
-                call tabulation%set(j,1.0d0/abscissae(j))
+                call tabulation%set(j,1.0d0/abscissae(j)   )
              end if
           end do
           call tabulation%build()
