@@ -2132,6 +2132,7 @@
           <xs:enumeration value="pruneBaryons"/>
           <xs:enumeration value="pruneBranchComplement"/>
           <xs:enumeration value="pruneBranchTips"/>
+          <xs:enumeration value="pruneByFilter"/>
           <xs:enumeration value="pruneByMass"/>
           <xs:enumeration value="pruneByMassAndTime"/>
           <xs:enumeration value="pruneByTime"/>
