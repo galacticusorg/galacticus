@@ -172,7 +172,11 @@ with safe_section("outputTimesUniformSpacingInRedshift"):
     outputTimes = galacticus.outputTimesUniformSpacingInRedshift(0.0,5.0,10,cosmologyFunctions)
     # TODO: replace dummy expectations below with golden values from a real run.
     check_eq("count()"           , outputTimes.count()             ,  10)  # integer(c_size_t) return
-    check   ("time(indexOutput=1)", outputTimes.time(indexOutput=1),  1.15473815)  # integer(c_size_t) arg, double return
+    # This expectation was updated when the cosmology function tabulations were pinned to an absolute lattice (#1317). It is the
+    # cosmic time at redshift 5, so it moves with the abscissae of the expansion factor tabulation and with the epoch at which
+    # that tabulation's initial condition is imposed; it shifted by 1.5 parts per million, just past the one part per million
+    # relative tolerance `check` applies by default.
+    check   ("time(indexOutput=1)", outputTimes.time(indexOutput=1),  1.154739884689715)  # integer(c_size_t) arg, double return
     check   ("redshift(idx=10)"   , outputTimes.redshift(indexOutput=10),  0.0)
 
 # Output times list — exercises the 1D deferred-shape numeric array path
