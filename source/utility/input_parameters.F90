@@ -557,7 +557,13 @@ contains
     character(len=32         )                                        :: changeType
 
     ! Check that the file exists.
-    if (.not.File_Exists(fileName)) call Error_Report("parameter file '"//trim(fileName)//"' does not exist"//{introspection:location})
+    if (.not.File_Exists(fileName))                                                                                                           &
+         & call Error_Report(                                                                                                                 &
+         &                   "parameter file '"//trim(fileName)//"' does not exist"//char(10)//                                               &
+         &                   displayGreen()//"HELP:"//displayReset()//" this path is interpreted relative to the directory Galacticus was" // &
+         &                   " run from, not to the location of the executable"                                                            // &
+         &                   {introspection:location}                                                                                         &
+         &                  )
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
     doc           => XML_Parse(fileName,iostat=errorStatus,ex=exception,fileNameCurrent=fileNameFailed)
@@ -1600,12 +1606,13 @@ contains
 
   subroutine inputParametersCheckParameters(self,allowedParameterNamesGlobal,allowedParameterNames,allowedMultiParameterNames)
     use :: Error              , only : Error_Report
-    use :: Display            , only : displayIndent              , displayMagenta  , displayMessage                 , displayReset        , &
-          &                            displayUnindent            , displayVerbosity, enumerationVerbosityLevelEncode, verbosityLevelSilent
-    use :: FoX_dom            , only : DOMException               , destroy         , extractDataContent             , getAttributeNode    , &
-          &                            getNodeName                , hasAttribute    , inException                    , node                , &
+    use :: Display            , only : displayGreen               , displayIndent   , displayMagenta    , displayMessage      , &
+          &                            displayReset               , displayUnindent , displayVerbosity  , verbosityLevelSilent, &
+          &                            enumerationVerbosityLevelEncode
+    use :: FoX_dom            , only : DOMException               , destroy         , extractDataContent, getAttributeNode    , &
+          &                            getNodeName                , hasAttribute    , inException       , node                , &
           &                            getParentNode
-    use :: ISO_Varying_String , only : assignment(=)              , char            , operator(//)                   , operator(==)
+    use :: ISO_Varying_String , only : assignment(=)              , char            , operator(//)      , operator(==)
     use :: Regular_Expressions, only : regEx
     use :: String_Handling    , only : String_Levenshtein_Distance
     implicit none
@@ -1780,7 +1787,14 @@ contains
        end do
     end if
     if (warningsFound .and. verbose) call displayUnindent('')
-    if (warningsFound .and. self%strict) call Error_Report('warnings found and strict compliance requested'//{introspection:location})
+    if (warningsFound .and. self%strict)                                                                                                     &
+         & call Error_Report(                                                                                                                &
+         &                   'problems were found with the input parameters, and this parameter file requests strict compliance'//char(10)// &
+         &                   displayGreen()//'HELP:'//displayReset()//' the problems are listed above. Correct them, or remove'           // &
+         &                   ' `strict="true"` from the `<lastModified>` element of your parameter file to have them reported as'         // &
+         &                   ' warnings rather than as an error'                                                                          // &
+         &                   {introspection:location}                                                                                        &
+         &                  )
     return
   end subroutine inputParametersCheckParameters
 
@@ -2277,8 +2291,11 @@ contains
     !!{RST
     Return the value of the parameter specified by name.
     !!}
-    use :: Error      , only : Error_Report
-    use :: HDF5_Access, only : hdf5Access
+    use :: Display           , only : displayGreen, displayReset
+    use :: Error             , only : Error_Report
+    use :: HDF5_Access       , only : hdf5Access
+    use :: ISO_Varying_String, only : char        , varying_string, assignment(=), operator(==), &
+         &                            operator(//)
     implicit none
     class           (inputParameters                         ), intent(inout), target   :: self
     character       (len=*                                   ), intent(in   )           :: parameterName
@@ -2322,7 +2339,25 @@ contains
     else if (present(errorStatus )) then
        errorStatus   =inputParameterErrorStatusNotPresent
     else
-       call Error_Report('parameter ['//parameterName//'] not present and no default given'//{introspection:location})
+       block
+         type     (varying_string)              :: whereToAdd
+         character(len=:         ), allocatable :: pathText
+
+         ! `path()` is empty for a parameter at the top level of the file, and otherwise ends with
+         ! the "/" separator, which reads oddly inside brackets - so trim it.
+         pathText=char(self%path())
+         if (len(pathText) == 0) then
+            whereToAdd="at the top level of your parameter file"
+         else
+            whereToAdd="within the ["//pathText(1:len(pathText)-1)//"] element of your parameter file"
+         end if
+         call Error_Report(                                                                                                        &
+              &             'parameter ['//parameterName//'] is required, but is not present and has no default value'//char(10)// &
+              &             displayGreen()//'HELP:'//displayReset()//' add it '//char(whereToAdd)//', as:'            //char(10)// &
+              &             '        <'//parameterName//' value="..."/>'                                                        // &
+              &             {introspection:location}                                                                               &
+              &            )
+       end block
     end if
     return
   end subroutine inputParametersValueName{Type¦label}
@@ -2332,6 +2367,7 @@ contains
     Return the value of the specified parameter.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_int64_t                        , c_size_t
+    use            :: Display           , only : displayGreen                     , displayReset
     use            :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName   , hasAttribute      , &
           &                                      inException                      , node              , getTextContent, extractDataContent
     use            :: Error             , only : Error_Report
@@ -2520,7 +2556,12 @@ contains
                    valueElement => getAttributeNode(parameterNode%content,"value")
                    !$omp end critical (FoX_DOM_Access)
 #else
-                   call Error_Report('derived parameters require libmatheval, but it is not installed'//{introspection:location})
+                   call Error_Report(                                                                                                        &
+                        &             'derived parameters require libmatheval, but Galacticus was built without it'             //char(10)// &
+                        &             displayGreen()//'HELP:'//displayReset()//' install libmatheval and rebuild Galacticus, or'          // &
+                        &             ' replace the derived parameter with a literal value in your parameter file'                        // &
+                        &             {introspection:location}                                                                               &
+                        &            )
 #endif
                 else if (isText) then
                    call parameterNode%set(var_str(trim(expression)))
