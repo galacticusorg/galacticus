@@ -29,7 +29,7 @@
   integer         , parameter :: distanceTableNPointsPerDecade=100
 
   ! Factor by which one component of Universe must dominate others such that we can ignore the others.
-  double precision, parameter :: matterLambdaDominateFactor               =100.0d0
+  double precision, parameter :: matterLambdaDominateFactor   =100.0d0
 
   !![
   <cosmologyFunctions name="cosmologyFunctionsMatterLambda" docformat="rst">
@@ -1280,8 +1280,8 @@ contains
     Builds a table of comoving distance vs. time.
     !!}
     use :: Numerical_Integration           , only : integrator
-    use :: Numerical_Ranges                , only : Range_Pinned                                     , Range_Lattice_Extend, gridSchemePerDecade
-    use :: Numerical_Constants_Astronomical, only : gigaYear                                         , megaParsec
+    use :: Numerical_Ranges                , only : Range_Pinned, Range_Lattice_Extend, gridSchemePerDecade
+    use :: Numerical_Constants_Astronomical, only : gigaYear    , megaParsec
     use :: Numerical_Constants_Physical    , only : speedLight
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout), target       :: self
