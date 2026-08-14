@@ -163,6 +163,7 @@ contains
     Reduce over the outputter.
     !!}
     use :: Error, only : Error_Report
+    use :: ISO_Varying_String, only : char
     implicit none
     class(mergerTreeOutputterAnalyzer), intent(inout) :: self
     class(mergerTreeOutputterClass   ), intent(inout) :: reduced
@@ -171,7 +172,7 @@ contains
     type is (mergerTreeOutputterAnalyzer)
        call self%outputAnalysis_%reduce(reduced%outputAnalysis_)
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [mergerTreeOutputterAnalyzer] class, but of ['//char(reduced%objectType())//'] class'//{introspection:location})
     end select
     return
   end subroutine analyzerReduce

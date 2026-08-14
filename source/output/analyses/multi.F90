@@ -207,6 +207,7 @@ contains
     Reduce over the analysis.
     !!}
     use :: Error, only : Error_Report
+    use :: ISO_Varying_String, only : char
     implicit none
     class(outputAnalysisMulti), intent(inout) :: self
     class(outputAnalysisClass), intent(inout) :: reduced
@@ -222,7 +223,7 @@ contains
           analysisReduced_ => analysisReduced_%next
        end do
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [outputAnalysisMulti] class, but of ['//char(reduced%objectType())//'] class'//{introspection:location})
     end select
     return
   end subroutine multiReduce

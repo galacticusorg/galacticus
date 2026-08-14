@@ -1360,6 +1360,8 @@ contains
     Promote a recently promoted subhalo to its new parent.
     !!}
     use :: Error, only : Error_Report
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class(*       ), intent(inout)          :: self
     type (treeNode), intent(inout), pointer :: node, nodePromotion
@@ -1368,8 +1370,10 @@ contains
     select type (self)
     class is (mergerTreeNodeEvolverStandard)
        call self%promote(node)
+    class is (functionClass)
+       call Error_Report('object is not of [mergerTreeNodeEvolverStandard] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [mergerTreeNodeEvolverStandard] class'//{introspection:location})
     end select
     return
   end subroutine standardNodeSubhaloPromotion

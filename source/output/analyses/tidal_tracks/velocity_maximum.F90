@@ -208,6 +208,7 @@ contains
     Reduce over the maximum velocity tidal track output analysis.
     !!}
     use :: Error, only : Error_Report
+    use :: ISO_Varying_String, only : char
     implicit none
     class           (outputAnalysisTidalTracksVelocityMaximum), intent(inout)              :: self
     class           (outputAnalysisClass                     ), intent(inout)              :: reduced
@@ -240,7 +241,7 @@ contains
        reduced%countPointsOnTrack=reduced%countPointsOnTrack+self%countPointsOnTrack
        !$ call reduced%accumulateLock%unset()
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [outputAnalysisTidalTracksVelocityMaximum] class, but of ['//char(reduced%objectType())//'] class'//{introspection:location})
     end select
     return
   end subroutine tidalTracksVelocityMaximumReduce

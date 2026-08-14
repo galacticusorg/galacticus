@@ -199,6 +199,8 @@ contains
     Hookable wrapper around the solver.
     !!}
     use :: Error, only : Error_Report
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class(*       ), intent(inout)         :: self
     type (treeNode), intent(inout), target :: node
@@ -206,8 +208,10 @@ contains
     select type (self)
     type is (galacticStructureSolverEquilibrium)
        call self%solve(node)
+    class is (functionClass)
+       call Error_Report('object is not of [galacticStructureSolverEquilibrium] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [galacticStructureSolverEquilibrium] class'//{introspection:location})
     end select
     return
   end subroutine equilibriumSolveHook
@@ -218,6 +222,8 @@ contains
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : propertyTypeInactive, treeNode
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node
@@ -226,8 +232,10 @@ contains
     select type (self)
     type is (galacticStructureSolverEquilibrium)
        call self%solve(node,plausibilityOnly=propertyType == propertyTypeInactive .and. .not.self%solveForInactiveProperties)
+    class is (functionClass)
+       call Error_Report('object is not of [galacticStructureSolverEquilibrium] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [galacticStructureSolverEquilibrium] class'//{introspection:location})
     end select
     return
   end subroutine equilibriumSolvePreDeriativeHook

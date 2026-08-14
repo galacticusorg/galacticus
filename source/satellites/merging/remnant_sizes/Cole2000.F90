@@ -181,6 +181,8 @@ contains
     !!}
     use :: Error       , only : Error_Report
     use :: Kind_Numbers, only : kind_int8
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class  (*        ), intent(inout) :: self
     type   (treeNode ), intent(inout) :: node
@@ -191,8 +193,10 @@ contains
     class is (mergerRemnantSizeCole2000)
        self%propertiesCalculated=.false.
        self%lastUniqueID       =uniqueID
+    class is (functionClass)
+       call Error_Report('object is not of [mergerRemnantSizeCole2000] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [mergerRemnantSizeCole2000] class'//{introspection:location})
     end select
     return
   end subroutine cole2000CalculationReset
@@ -202,6 +206,8 @@ contains
     Hookable wrapper around the get function.
     !!}
     use :: Error, only : Error_Report
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class           (*       ), intent(inout)         :: self
     type            (treeNode), intent(inout), target :: node
@@ -211,8 +217,10 @@ contains
     select type (self)
     type is (mergerRemnantSizeCole2000)
        call self%get(node,radius,velocityCircular,angularMomentumSpecific)
+    class is (functionClass)
+       call Error_Report('object is not of [mergerRemnantSizeCole2000] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [mergerRemnantSizeCole2000] class'//{introspection:location})
     end select
     return
   end subroutine cole2000GetHook

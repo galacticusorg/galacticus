@@ -683,6 +683,7 @@ contains
     Implement a scatterFunction1D output analysis reduction.
     !!}
     use :: Error, only : Error_Report
+    use :: ISO_Varying_String, only : char
     implicit none
     class(outputAnalysisScatterFunction1D), intent(inout) :: self
     class(outputAnalysisClass            ), intent(inout) :: reduced
@@ -692,7 +693,7 @@ contains
        call self%meanFunction       %reduce(reduced%meanFunction       )
        call self%meanSquaredFunction%reduce(reduced%meanSquaredFunction)
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [outputAnalysisScatterFunction1D] class, but of ['//char(reduced%objectType())//'] class'//{introspection:location})
     end select
     return
   end subroutine scatterFunction1DReduce

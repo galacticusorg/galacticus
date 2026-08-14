@@ -209,6 +209,8 @@ contains
     use :: Galacticus_Nodes  , only : nodeComponentSatellite, treeNode        , treeNodeLinkedList
     use :: ISO_Varying_String, only : operator(//)          , var_str         , varying_string
     use :: String_Handling   , only : operator(//)
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class(*                     ), intent(inout)          :: self
     type (treeNode              ), intent(inout), target  :: node
@@ -256,8 +258,10 @@ contains
              call orphanizePerform(nodeWork)
           end do
        end if
+    class is (functionClass)
+       call Error_Report('object is not of [nodeOperatorSatelliteOrphanize] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [nodeOperatorSatelliteOrphanize] class'//{introspection:location})
     end select
     return
   end subroutine satelliteHostChange
@@ -271,6 +275,8 @@ contains
     use :: Galacticus_Nodes  , only : nodeComponentSatellite, treeNode        , treeNodeLinkedList
     use :: ISO_Varying_String, only : operator(//)          , var_str         , varying_string
     use :: String_Handling   , only : operator(//)
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class(*                     ), intent(inout)          :: self
     type (treeNode              ), intent(inout), pointer :: node
@@ -323,8 +329,10 @@ contains
           ! Process the node.
           call orphanizePerform(nodeWork)
        end do
+    class is (functionClass)
+       call Error_Report('object is not of [nodeOperatorSatelliteOrphanize] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [nodeOperatorSatelliteOrphanize] class'//{introspection:location})
     end select
     return
   end subroutine branchJumpPostProcess

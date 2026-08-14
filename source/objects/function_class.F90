@@ -45,8 +45,10 @@ module Function_Classes
        <method method="isDefault"               description="Return true if this is the default object of this class."                        />
        <method method="reportOn"                description="Indicate that reference count changes to this object should be reported on."     />
        <method method="isRecursiveShim"         description="Return true if this is a generated recursion shim (see issue #695)."            />
+       <method method="objectType"              description="Return the name of the class of this object."                                   />
      </methods>
      !!]
+     procedure :: objectType              => functionClassObjectType
      procedure :: isDefault               => functionClassIsDefault
      procedure :: reportOn                => functionClassReportOn
      procedure :: isRecursiveShim         => functionClassIsRecursiveShim
@@ -56,6 +58,29 @@ module Function_Classes
   end type functionClass
 
 contains
+
+  function functionClassObjectType(self,short)
+    !!{RST
+    Return the name of the class of this object.
+
+    Every ``functionClass`` has this method generated for it, returning the name
+    of its concrete class (or, with ``short``, the name by which it is selected
+    in a parameter file). It is declared here so that those generated methods
+    *override* a binding on the base class, which in turn means the name of an
+    object's class can be obtained through a ``class(functionClass)`` reference -
+    for example when reporting that an object passed as ``class(*)`` is not of
+    the class that was expected. This default implementation is reached only by a
+    class for which no method was generated.
+    !!}
+    implicit none
+    type     (varying_string)                           :: functionClassObjectType
+    class    (functionClass ), intent(inout)            :: self
+    logical                  , intent(in   ), optional  :: short
+    !$GLC attributes unused :: self, short
+
+    functionClassObjectType='functionClass'
+    return
+  end function functionClassObjectType
 
   subroutine functionClassReportOn(self)
     !!{RST

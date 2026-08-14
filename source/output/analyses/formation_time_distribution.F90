@@ -779,6 +779,7 @@ contains
     Implement reduction over progenitor mass functions.
     !!}
     use :: Error, only : Error_Report
+    use :: ISO_Varying_String, only : char
     implicit none
     class(outputAnalysisFormationTimeDistribution), intent(inout) :: self
     class(outputAnalysisClass                    ), intent(inout) :: reduced
@@ -790,7 +791,7 @@ contains
             &                +self   %weightParents
        !$ call reduced%accumulateLock%unset()
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [outputAnalysisFormationTimeDistribution] class, but of ['//char(reduced%objectType())//'] class'//{introspection:location})
     end select
     call self%outputAnalysisVolumeFunction1D%reduce(reduced)
     return

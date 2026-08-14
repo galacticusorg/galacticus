@@ -241,6 +241,8 @@ contains
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class  (*                 ), intent(inout)          :: self
     type   (treeNode          ), intent(inout), target  :: node
@@ -265,8 +267,10 @@ contains
           call satelliteHostChange(self,nodeSatellite)
           nodeSatellite => nodeSatellite%sibling
        end do
+    class is (functionClass)
+       call Error_Report('object is not of [nodeOperatorHierarchy] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [nodeOperatorHierarchy] class'//{introspection:location})
     end select
     return
   end subroutine satelliteHostChange
@@ -277,6 +281,8 @@ contains
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class(*                 ), intent(inout)          :: self
     type (treeNode          ), intent(inout), pointer :: node , nodePromotion
@@ -287,8 +293,10 @@ contains
        basic       => node         %basic()
        basicParent => nodePromotion%basic()
        call basic%floatRank0MetaPropertySet(self%massWhenFirstIsolatedID,basicParent%mass())
+    class is (functionClass)
+       call Error_Report('object is not of [nodeOperatorHierarchy] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [nodeOperatorHierarchy] class'//{introspection:location})
     end select
     return
   end subroutine nodeSubhaloPromotion

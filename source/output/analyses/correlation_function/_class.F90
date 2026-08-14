@@ -877,6 +877,7 @@ contains
     Implement a ``correlationFunction`` output analysis reduction.
     !!}
     use :: Error, only : Error_Report
+    use :: ISO_Varying_String, only : char
     implicit none
     class(outputAnalysisCorrelationFunction), intent(inout) :: self
     class(outputAnalysisClass              ), intent(inout) :: reduced
@@ -894,7 +895,7 @@ contains
        reduced%termCovariance       =reduced%termCovariance       +self%termCovariance
        !$ call reduced%accumulateLock%unset()
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [outputAnalysisCorrelationFunction] class, but of ['//char(reduced%objectType())//'] class'//{introspection:location})
     end select
     return
   end subroutine correlationFunctionReduce

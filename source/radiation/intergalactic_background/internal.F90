@@ -445,6 +445,8 @@ contains
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : universe    , universeEvent
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class  (*                                   ), intent(inout), target :: self
     type   (universe                            ), intent(inout)         :: universe_
@@ -474,8 +476,10 @@ contains
           self%timePrevious             =  -1.0d0
           self%statePrevious            => null()
        end if
+    class is (functionClass)
+       call Error_Report('object is not of [radiationFieldIntergalacticBackgroundInternal] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [radiationFieldIntergalacticBackgroundInternal] class'//{introspection:location})
     end select
     return
   end subroutine intergalacticBackgroundInternalUniversePreEvolve

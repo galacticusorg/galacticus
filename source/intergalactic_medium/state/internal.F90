@@ -334,6 +334,8 @@ contains
     Set state in the internal :term:`IGM` state class.
     !!}
     use :: Error, only : Error_Report
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class           (*), intent(inout)               :: self
     double precision   , intent(in   ), dimension(:) :: time            , densityHydrogen1, &
@@ -370,8 +372,10 @@ contains
        if (allocated(self%interpolator_)) deallocate(self%interpolator_)
        allocate(self%interpolator_)
        self%interpolator_=interpolator(self%time)
+    class is (functionClass)
+       call Error_Report('object is not of [intergalacticMediumStateInternal] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [intergalacticMediumStateInternal] class'//{introspection:location})
     end select
     return
   end subroutine internalStateSet
