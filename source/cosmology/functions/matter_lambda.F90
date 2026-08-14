@@ -27,6 +27,11 @@
 
   integer         , parameter :: ageTableNPointsPerDecade     =300
   integer         , parameter :: distanceTableNPointsPerDecade=100
+  ! Factor by which the earliest epoch of the expansion factor tabulation is placed below the epoch of single component
+  ! domination - see `matterLambdaMakeExpansionFactorTable` for why that bound is seeded rather than left to follow the
+  ! request. Two decades of headroom cost a few hundred additional steps of an ordinary differential equation which is
+  ! integrated across a far larger range in any case.
+  double precision, parameter :: ageTableTimeEarliestFactor   =100.0d0
 
   ! Factor by which one component of Universe must dominate others such that we can ignore the others.
   double precision, parameter :: matterLambdaDominateFactor   =100.0d0
@@ -921,6 +926,7 @@ contains
     double precision                                                              :: OmegaDominant                 , densityPower               , &
          &                                                                           tDominant                     , timeActual                 , &
          &                                                                           expansionFactorDominant
+    double precision                                               , dimension(3) :: timesTarget
     type            (odeSolver                     )                              :: solver
 
     ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
@@ -936,14 +942,22 @@ contains
     ! computed points pasted back into the new table carried the *old* spacing. The table thereby became a patchwork of spacings
     ! which no single `ageTableInverseDeltaLogTime` could describe, and the index computed from it in `expansionFactor` drifted
     ! further from the truth with every extension - far enough, after sufficiently many, to fall beyond the end of the table.
+    !
+    ! The earliest epoch tabulated is seeded to a fixed fraction of the epoch of single component domination rather than being
+    ! left to follow the request. Two things depend on that bound. The expansion factor is integrated forward from an initial
+    ! condition imposed there, so moving it invalidates the whole tabulation - and a consumer which integrates over a range of
+    ! epochs, or compares quantities evaluated either side of the move, sees the tabulation shift beneath it. And that condition
+    ! is the analytic single component solution, which is the more accurate the earlier it is applied: imposed at the epoch of
+    ! domination itself it is in error by of order one part in a thousand at redshifts of a few hundred.
     if (present(time)) then
        timeActual=time
     else
        timeActual=tDominant
     end if
+    timesTarget=[timeActual,tDominant,tDominant/ageTableTimeEarliestFactor]
     if (self%collapsingUniverse) then
        latticeTime=Range_Pinned(                                          &
-            &                                  [timeActual,tDominant]   , &
+            &                                   timesTarget             , &
             &                                   ageTableNPointsPerDecade, &
             &                                   gridSchemePerDecade     , &
             &                   marginFactor  = 2.0d0                   , &
@@ -953,7 +967,7 @@ contains
             &                  )
     else
        latticeTime=Range_Pinned(                                          &
-            &                                  [timeActual,tDominant]   , &
+            &                                   timesTarget             , &
             &                                   ageTableNPointsPerDecade, &
             &                                   gridSchemePerDecade     , &
             &                   marginFactor  = 2.0d0                   , &

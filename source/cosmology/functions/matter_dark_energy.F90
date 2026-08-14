@@ -24,6 +24,10 @@
   use :: Root_Finder, only : rootFinder
 
   integer         , parameter :: ageTableNPointsPerDecade     =300
+  ! Factor by which the earliest epoch of the expansion factor tabulation is placed below the epoch of single component
+  ! domination - see the equivalent tabulation in the parent class for why that bound is seeded rather than left to follow
+  ! the request.
+  double precision, parameter :: ageTableTimeEarliestFactor   =100.0d0
 
   ! Factor by which one component of Universe must dominate others such that we can ignore the others.
   double precision, parameter :: factorDominate               =100.0d0
@@ -504,6 +508,7 @@ contains
          &                                                                                        densityPower                            , timeDominant                   , &
          &                                                                                        expansionFactorDominant                 , timeActual
     logical                                                                                    :: solutionFound                           , timeExceeded
+    double precision                                                 , dimension(3)            :: timesTarget
 
     ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
     call self%densityScalingEarlyTime(factorDominate,densityPower,expansionFactorDominant,OmegaDominant)
@@ -531,9 +536,10 @@ contains
     else
        timeActual=timeDominant
     end if
+    timesTarget=[timeActual,timeDominant,timeDominant/ageTableTimeEarliestFactor]
     if (self%collapsingUniverse) then
        latticeTime=Range_Pinned(                                          &
-            &                                  [timeActual,timeDominant], &
+            &                                   timesTarget             , &
             &                                   ageTableNPointsPerDecade, &
             &                                   gridSchemePerDecade     , &
             &                   marginFactor  = 2.0d0                   , &
@@ -543,7 +549,7 @@ contains
             &                  )
     else
        latticeTime=Range_Pinned(                                          &
-            &                                  [timeActual,timeDominant], &
+            &                                   timesTarget             , &
             &                                   ageTableNPointsPerDecade, &
             &                                   gridSchemePerDecade     , &
             &                   marginFactor  = 2.0d0                   , &
