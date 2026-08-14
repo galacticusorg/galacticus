@@ -10,6 +10,8 @@ import sys
 #  2. Duplicated variable assignments in <constructorAssign> directives.
 #  3. Empty constructor functions (no-argument constructors for known types).
 #  4. Empty finalizer subroutines.
+#  5. Error_Report calls building a message from a string literal without
+#     appending {introspection:location}.
 
 if len(sys.argv) != 2:
     print("Usage: staticAnalyzer.py <fileName>", file=sys.stderr)
@@ -79,6 +81,9 @@ _USE_STMT     = re.compile(r'^\s*use(\s*,\s*intrinsic)??\s*::', re.IGNORECASE)
 _IMPLICIT     = re.compile(r'^\s*implicit\s+none\s*$', re.IGNORECASE)
 _RETURN       = re.compile(r'^\s*return\s*$',          re.IGNORECASE)
 
+# A call to Error_Report (check 5).
+_ERROR_REPORT = re.compile(r'\bcall\s+Error_Report\s*\(', re.IGNORECASE)
+
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -104,6 +109,87 @@ def _join_continuations(lines):
     if current is not None:
         result.append(current)
     return result
+
+
+def _join_continuations_numbered(lines):
+    """Join Fortran continuation lines, returning (lineNumber, text) pairs where
+    lineNumber is the 1-indexed line on which each logical line begins.
+
+    This is deliberately separate from `_join_continuations`, which checks 1-4
+    use, for two reasons. It tracks line numbers, and it also treats `&amp;` as a
+    continuation marker: Fortran embedded in the `!![ ... !!]` directive blocks is
+    XML, so its continuations are escaped. Without that, a call spread over
+    several lines inside a directive block is never joined, and check 5 reports a
+    missing location for a call which in fact has one.
+    """
+    result  = []
+    current = None
+    start   = None
+    for number, raw in enumerate(lines, start=1):
+        line = raw.rstrip('\n')
+        if current is not None:
+            # A continued line may optionally begin with the continuation marker.
+            stripped = line.lstrip()
+            for marker in ('&amp;', '&'):
+                if stripped.startswith(marker):
+                    stripped = stripped[len(marker):]
+                    break
+            current = current + stripped
+        else:
+            current = line
+            start   = number
+        trimmed = current.rstrip()
+        for marker in ('&amp;', '&'):
+            if trimmed.endswith(marker):
+                current = trimmed[:-len(marker)]
+                break
+        else:
+            result.append((start, current))
+            current = None
+    if current is not None:
+        result.append((start, current))
+    return result
+
+
+def _call_arguments(line, start):
+    """Return the text of a call's argument list, where `start` is the index just
+    after its opening parenthesis.
+
+    Fortran string literals are respected, so a parenthesis or a `!` inside a
+    message does not end the scan, and doubled quotes (the Fortran escape) do not
+    end a literal. Scanning stops at the matching closing parenthesis, or at a
+    trailing comment. Restricting the checks to this text matters: a `!` comment
+    after the call can easily contain an apostrophe, which would otherwise make a
+    call whose message is a bare variable look as though it were built from a
+    literal.
+    """
+    depth = 1
+    i     = start
+    n     = len(line)
+    while i < n:
+        character = line[i]
+        if character in ("'", '"'):
+            quote = character
+            i    += 1
+            while i < n:
+                if line[i] == quote:
+                    if i + 1 < n and line[i + 1] == quote:
+                        i += 2          # a doubled quote is an escaped quote
+                        continue
+                    i += 1
+                    break
+                i += 1
+            continue
+        if character == '!':
+            break                       # trailing comment, outside any literal
+        if character == '(':
+            depth += 1
+        elif character == ')':
+            depth -= 1
+            if depth == 0:
+                break
+        i += 1
+    return line[start:i]
 
 
 def _is_trivial_body_line(line):
@@ -328,5 +414,31 @@ for line in lines:
         if m:
             names = [n.strip().lower() for n in m.group(1).split(',')]
             constructors.extend(names)
+
+
+# ── Check 5: Error_Report without {introspection:location} ────────────────────
+#
+# Every fatal error should say where it was raised, so `{introspection:location}`
+# must be appended to the message. Only calls whose message is built from a
+# string literal are checked: where the message is a bare variable the location
+# may already have been appended where that variable was assigned, which cannot
+# be determined from this call site alone.
+
+for start_line, line in _join_continuations_numbered(raw_lines):
+    if _COMMENT.match(line):
+        continue
+    m = _ERROR_REPORT.search(line)
+    if not m:
+        continue
+    arguments = _call_arguments(line, m.end())
+    if '{introspection:location}' in arguments:
+        continue
+    # The message is a bare variable (or an expression built only from
+    # variables) - the location cannot be checked here.
+    if "'" not in arguments and '"' not in arguments:
+        continue
+    print(f"Error_Report at line {start_line} of file '{file_name}'"
+          f" does not append {{introspection:location}} to its message")
+    status = 1
 
 raise SystemExit(status)
