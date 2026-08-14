@@ -325,6 +325,16 @@
     <!-- behavior of existing parameter files.                                                  -->
     <translation function="splashback_radius_accretion_flow"/>
   </migration>
+  <migration commit="def071a0fd5184deb821b30d7f382e27cbafa49e">
+    <!-- The fuzzy dark matter tidal stripping classes were renamed, so that their names indicate  -->
+    <!-- that they apply only to solitonic halos.                                                  -->
+    <translation xpath="//nodeOperator[@value]">
+      <value old="satelliteConditionalMassLoss" new="satelliteTidalMassLossSoliton"/>
+    </translation>
+    <translation xpath="//satelliteTidalStrippingRadius[@value]">
+      <value old="limited" new="solitonLimited"/>
+    </translation>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />

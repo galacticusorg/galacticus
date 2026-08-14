@@ -73,11 +73,48 @@
   <change type="replaceWith" path="darkMatterProfileScaleRadius/darkMatterProfileDMO"                                         target="darkMatterProfileDMO/darkMatterProfileDMO"/>
   <change type="replaceWith" path="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']/darkMatterProfileDMO" target="darkMatterProfileDMO/darkMatterProfileDMO"/>
   <change type="replaceWith" path="virialOrbit/darkMatterProfileDMO"                                                          target="darkMatterProfileDMO/darkMatterProfileDMO"/>
-  <change type="update" path="darkMatterProfileDMO/darkMatterProfileDMO" value="solitonNFW"/>
+
+  <change type="replace" path="darkMatterProfileDMO[@value='heated']">
+    <darkMatterProfileDMO value="solitonNFWHeated">
+      <nonAnalyticSolver value="numerical"/>
+      <toleranceRelativeVelocityDispersionMaximum value="0.1"/>
+    </darkMatterProfileDMO>
+  </change>
+
+  <!-- Limit the tidal radius used for stripping the outer halo so that it can never enter the solitonic core. The inner tidal
+       radius model must be given explicitly: "solitonLimited" composites a member of its own class, and Galacticus refuses to build
+       such a member from defaults since that would recurse indefinitely. It is therefore stated once here and copied below to
+       wherever else it is needed, so that this file has a single point of truth for it. Should the reference model ever specify
+       an explicit tidal radius model of its own, use a change of type "encapsulate" on it instead, so that the model it
+       specifies is moved inside this wrapper rather than being overridden by the one given here. -->
+  <change type="append" path="satelliteTidalStripping">
+    <satelliteTidalStrippingRadius value="solitonLimited">
+      <satelliteTidalStrippingRadius value="king1962"/>
+    </satelliteTidalStrippingRadius>
+  </change>
+
+  <!-- Tidal mass loss from satellites is handled by the soliton-aware operator added below, which dispatches to the outer halo
+       or to the solitonic core according to the state of the halo. The standard operator would double-count that mass loss, and
+       would additionally bypass the tidal radius limiter added above, so it is removed here. -->
+  <change type="remove" path="nodeOperator/nodeOperator[@value='satelliteTidalMassLoss']"/>
 
   <!-- Add the soliton node operator for soliton+NFW dark matter halo profiles. -->
   <change type="append" path="nodeOperator">
     <nodeOperator value="darkMatterProfileSoliton"/>
   </change>
+
+  <change type="append" path="nodeOperator">
+    <nodeOperator value="satelliteTidalMassLossSoliton">
+      <!-- The outer-halo stripping model is not specified here: it is inherited from the enclosing scope, so that it always
+           matches the tidal stripping model used by the rest of the model, including the radius limiter added above. -->
+      <satelliteTidalStrippingCore value="du2018"/>
+      <satelliteTidalStrippingRadius/>
+    </nodeOperator>
+  </change>
+
+  <!-- Give the soliton mass-loss operator a copy of the unlimited tidal radius model, which it uses to detect when the tidal
+       radius first reaches the soliton radius. Either model would in fact serve, as the test the operator makes is satisfied
+       under the same conditions for both, but the unlimited model is the more natural choice for it. -->
+  <change type="replaceWith" path="nodeOperator/nodeOperator[@value='satelliteTidalMassLossSoliton']/satelliteTidalStrippingRadius" target="satelliteTidalStripping/satelliteTidalStrippingRadius[@value='solitonLimited']/satelliteTidalStrippingRadius"/>
 
 </changes>

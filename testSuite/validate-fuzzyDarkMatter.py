@@ -4,7 +4,7 @@ import os
 import subprocess
 import validate
 
-# Run models to validate a Fuzzy Dark Matter model.
+# Run models to validate a Fuzzy Dark Matter model using solitonNFW.
 # Yu Zhao (17-November-2025)
 
 # Create output path.
@@ -16,7 +16,7 @@ except FileExistsError:
 # Run the validation model.
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/validate_darkMatterOnlySubhalos_Symphony_resolutionX1_CDM.xml parameters/reference/powerSpectraSuppressed.xml parameters/reference/fuzzyDarkMatter.xml testSuite/parameters/resolutionM1e9.xml",shell=True)
 if status.returncode != 0:
-    print("FAILED: Fuzzy Dark Matter validation model failed to run")
+    print("FAILED: Fuzzy Dark Matter validation model using solitonNFW failed to run")
     sys.exit(0)
 
-print("SUCCESS: Fuzzy Dark Matter validation model")
+print("SUCCESS: Fuzzy Dark Matter validation model using solitonNFW")
