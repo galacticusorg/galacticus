@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "ea506749aa29eefea02d26d50af0db3050d203b9",
-        "message": "chore(parameters): migrate parameter files to latest revision\n",
-        "timestamp": "2026-08-13 08:11:28-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/ea506749aa29eefea02d26d50af0db3050d203b9"
+        "id": "0f36c1956a768da25d994e061f65826a137b2d48",
+        "message": "Merge pull request #1371 from galacticusorg/fix/warn-quadratic-append\n\nfix(error): make recording of warnings independent of the number already issued\n",
+        "timestamp": "2026-08-14 14:45:48+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/0f36c1956a768da25d994e061f65826a137b2d48"
     },
     "results": [
         {
