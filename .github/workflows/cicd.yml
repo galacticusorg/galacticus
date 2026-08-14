@@ -1336,6 +1336,7 @@ jobs:
                       tests.radiation_fields.exe,
                       tests.conditional_mass_functions.exe,
                       tests.locks.exe,
+                      tests.warnings.exe,
                       tests.initial_mass_functions.exe,
                       tests.stellar_populations.exe,
                       tests.stellar_populations.luminosities.exe,

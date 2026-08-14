@@ -17,8 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson. The "GSL_Error_Handler_Aborting" function added for issue #1360 was
-!+    drafted with assistance from Claude, and reviewed and verified by Andrew Benson.
+!+    Contributions to this file made by: Andrew Benson. The bounded accumulation of warning messages for issue #1359 and
+!+    the "GSL_Error_Handler_Aborting" function added for issue #1360 were drafted with assistance from Claude, and
+!+    reviewed and verified by Andrew Benson.
 
 !!{RST
 Contains a module which implements error reporting for the  Galacticus package.
@@ -28,9 +29,9 @@ module Error
   !!{RST
   Implements error reporting for the  Galacticus package.
   !!}
-  use, intrinsic :: ISO_C_Binding     , only : c_int
+  use, intrinsic :: ISO_C_Binding     , only : c_int         , c_size_t
   use            :: ISO_Varying_String, only : varying_string
-  use            :: Interface_GSL     , only : GSL_Failure   , GSL_Success , GSL_eDom    , GSL_eRange  , &
+  use            :: Interface_GSL     , only : GSL_Failure   , GSL_Success , GSL_eDom    , GSL_eRange, &
           &                                    GSL_eUndrFlw  , GSL_eZeroDiv, GSL_eMaxIter, GSL_eRound
   implicit none
   private
@@ -87,14 +88,22 @@ module Error
 
   ! Type used to accumulate warning messages.
   type :: warning
-     type(varying_string)          :: message
-     type(warning       ), pointer :: next    => null()
+     type   (varying_string)          :: message
+     integer(c_size_t      )          :: count   =  0_c_size_t
+     type   (warning       ), pointer :: next    => null()
   end type warning
 
-  ! Record of warnings.
-  type   (warning), pointer :: warningList
-  logical                   :: warningsFound=.false.
-  
+  ! Record of warnings. Warnings are accumulated into a linked list, which is consumed only if the
+  ! run subsequently exits with an error. Since warnings can be issued very frequently (for example,
+  ! once per node), and since the list is maintained inside a global critical section, care is taken
+  ! to keep the cost of recording a warning bounded: repeated warnings are deduplicated on their
+  ! message text (with a count kept of the number of times each was issued), the number of unique
+  ! messages retained is limited to `warningsUniqueMaximum`, and a pointer to the tail of the list is
+  ! maintained so that appends need not walk the list.
+  integer(c_size_t), parameter :: warningsUniqueMaximum=  100_c_size_t
+  type   (warning ), pointer   :: warningList          => null()      , warningListTail => null()
+  integer(c_size_t)            :: warningsUnique       =    0_c_size_t, warningsTotal   =  0_c_size_t
+
   ! Linked-list of functions to call on error.
   abstract interface
      subroutine signalHandlerInterface(signal)
@@ -227,31 +236,43 @@ contains
     Display a warning message.
     !!}
     use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelWarn
-    use :: ISO_Varying_String, only : assignment(=)
+    use :: ISO_Varying_String, only : assignment(=) , operator(==)
     implicit none
     character(len=*  ), intent(in   ) :: message
-    type     (warning), pointer       :: newWarning
+    type     (warning), pointer       :: warning_
 
     ! Display the message.
     call displayMessage(message,verbosity=verbosityLevelWarn)
+    ! If the message was displayed there is no need to record it - it will already have appeared in
+    ! the output.
+    if (displayVerbosity() >= verbosityLevelWarn) return
     ! Add this warning message to the list of warnings in case we need to display them on an
     ! error condition.
     !$omp critical (Warn)
-    if (displayVerbosity() < verbosityLevelWarn) then
-       if (.not.warningsFound) then
-          allocate(warningList)
-          newWarning => warningList
+    warningsTotal =  warningsTotal+1_c_size_t
+    ! Search for a matching message already in the list. The list is bounded in length, so this
+    ! search costs O(1).
+    warning_      => warningList
+    do while (associated(warning_))
+       if (warning_%message == message) exit
+       warning_ => warning_%next
+    end do
+    if      (associated(warning_)                  ) then
+       ! This warning has been issued before - simply count it.
+       warning_       %count   =  warning_%count+1_c_size_t
+    else if (warningsUnique < warningsUniqueMaximum) then
+       ! A previously unseen warning - append it to the tail of the list.
+       allocate(warning_)
+       warning_       %message =  message
+       warning_       %count   =  1_c_size_t
+       warning_       %next    => null()
+       if (associated(warningListTail)) then
+          warningListTail%next => warning_
        else
-          newWarning => warningList
-          do while (associated(newWarning%next))
-             newWarning => newWarning%next
-          end do
-          allocate(newWarning%next)
-          newWarning => newWarning%next
+          warningList          => warning_
        end if
-       newWarning   %next    => null   ()
-       newWarning   %message =  message
-       warningsFound         =  .true.
+       warningListTail         => warning_
+       warningsUnique          =  warningsUnique+1_c_size_t
     end if
     !$omp end critical (Warn)
     return
@@ -264,16 +285,29 @@ contains
     use, intrinsic :: ISO_Fortran_Env   , only : error_unit, output_unit
     use            :: ISO_Varying_String, only : char
     implicit none
-    type(warning), pointer :: warning_
+    type     (warning), pointer :: warning_
+    integer  (c_size_t)         :: countRecorded
+    character(len=64  )         :: label
 
     !$omp critical (Warn)
-    if (warningsFound) then
+    if (warningsTotal > 0_c_size_t) then
        write (error_unit,*) " => The following warnings were issued:"
-       warning_ => warningList
+       countRecorded =  0_c_size_t
+       warning_      => warningList
        do while (associated(warning_))
-          write (error_unit,*) char(warning_%message)
+          countRecorded=countRecorded+warning_%count
+          if (warning_%count > 1_c_size_t) then
+             write (label       ,'(a,i0,a)') " [issued ",warning_%count," times]"
+             write (error_unit  ,*         ) char(warning_%message)//trim(label)
+          else
+             write (error_unit  ,*         ) char(warning_%message)
+          end if
           warning_ => warning_%next
        end do
+       ! Report any warnings that were issued but not recorded - this happens once the limit on the
+       ! number of unique warning messages retained has been reached.
+       if (countRecorded < warningsTotal) &
+            & write (error_unit,'(a,i0,a,i0,a)') "  => (a further ",warningsTotal-countRecorded," warnings were issued but not recorded, as the limit of ",warningsUniqueMaximum," unique warning messages had been reached)"
     end if
     !$omp end critical (Warn)
     return
