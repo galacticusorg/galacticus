@@ -333,7 +333,7 @@ contains
     !!{RST
     Set state in the internal :term:`IGM` state class.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char
     use :: Function_Classes  , only : functionClass
     implicit none

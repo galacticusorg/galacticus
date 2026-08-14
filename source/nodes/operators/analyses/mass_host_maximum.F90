@@ -140,7 +140,7 @@ contains
     !!{RST
     Update the maximum host mass of this node in response to a change in host.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char
     use :: Function_Classes  , only : functionClass
     implicit none

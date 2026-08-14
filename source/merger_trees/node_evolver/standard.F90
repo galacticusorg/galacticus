@@ -1359,7 +1359,7 @@ contains
     !!{RST
     Promote a recently promoted subhalo to its new parent.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char
     use :: Function_Classes  , only : functionClass
     implicit none

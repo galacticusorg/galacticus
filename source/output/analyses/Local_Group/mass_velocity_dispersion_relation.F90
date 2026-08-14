@@ -582,7 +582,7 @@ contains
     !!{RST
     Implement a ``localGroupMassVelocityDispersionRelation`` output analysis reduction.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char
     implicit none
     class(outputAnalysisLocalGroupMassVelocityDispersionRelation), intent(inout) :: self

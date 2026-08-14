@@ -127,8 +127,8 @@ contains
     !!{RST
     Update the host halo index of this node in response to a change in host.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : nodeComponentBasic
     use :: ISO_Varying_String, only : char
     use :: Function_Classes  , only : functionClass
     implicit none

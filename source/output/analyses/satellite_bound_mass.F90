@@ -211,7 +211,7 @@ contains
     !!{RST
     Reduce over the maximum velocity tidal track output analysis.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char
     implicit none
     class(outputAnalysisSatelliteBoundMass), intent(inout) :: self

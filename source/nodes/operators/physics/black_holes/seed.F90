@@ -211,8 +211,8 @@ contains
     !!{RST
     Handle cases where two black holes merge.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBlackHole
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : nodeComponentBlackHole
     use :: ISO_Varying_String, only : char
     use :: Function_Classes  , only : functionClass
     implicit none

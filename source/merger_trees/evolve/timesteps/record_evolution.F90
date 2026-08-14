@@ -242,8 +242,8 @@ contains
     use            :: Galacticus_Nodes          , only : mergerTree           , nodeComponentBasic, treeNode
     use            :: Mass_Distributions        , only : massDistributionClass
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
-    use :: ISO_Varying_String, only : char
-    use :: Function_Classes  , only : functionClass
+    use            :: ISO_Varying_String        , only : char
+    use            :: Function_Classes          , only : functionClass
     implicit none
     class           (*                            ), intent(inout)          :: self
     type            (mergerTree                   ), intent(in   )          :: tree
@@ -295,8 +295,8 @@ contains
     use            :: Units_MetaData                  , only : unitType
     use            :: String_Handling                 , only : operator(//)
     use            :: Locks                           , only : ompLock
-    use :: ISO_Varying_String              , only : char
-    use :: Function_Classes                , only : functionClass
+    use            :: ISO_Varying_String              , only : char
+    use            :: Function_Classes                , only : functionClass
     implicit none
     class  (*             ), intent(inout) :: self
     type   (treeNode      ), intent(inout) :: node

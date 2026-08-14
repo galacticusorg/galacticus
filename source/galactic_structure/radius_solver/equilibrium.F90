@@ -198,7 +198,7 @@ contains
     !!{RST
     Hookable wrapper around the solver.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char
     use :: Function_Classes  , only : functionClass
     implicit none
@@ -220,8 +220,8 @@ contains
     !!{RST
     Hookable wrapper around the solver for pre-derivative events.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : propertyTypeInactive, treeNode
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : propertyTypeInactive, treeNode
     use :: ISO_Varying_String, only : char
     use :: Function_Classes  , only : functionClass
     implicit none

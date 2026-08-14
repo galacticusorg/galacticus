@@ -195,9 +195,9 @@ contains
     !!{RST
     Initialize a new subhalo orbit.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : treeNode    , nodeComponentSatellite
-    use :: Kepler_Orbits   , only : keplerOrbit
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : treeNode     , nodeComponentSatellite
+    use :: Kepler_Orbits     , only : keplerOrbit
     use :: ISO_Varying_String, only : char
     use :: Function_Classes  , only : functionClass
     implicit none

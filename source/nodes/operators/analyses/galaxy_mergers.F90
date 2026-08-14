@@ -159,8 +159,8 @@ contains
     !!{RST
     Record galaxy-galaxy mergers.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
     use :: ISO_Varying_String, only : char
     use :: Function_Classes  , only : functionClass
     implicit none

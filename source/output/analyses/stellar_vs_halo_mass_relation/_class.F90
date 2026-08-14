@@ -738,7 +738,7 @@ contains
     !!{RST
     Implement reduction for the ``stellarVsHaloMassRelation`` output analysis class.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char
     implicit none
     class(outputAnalysisStellarVsHaloMassRelation), intent(inout) :: self

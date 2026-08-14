@@ -443,8 +443,8 @@ contains
     !!{RST
     Attach an initial event to the universe to cause the background radiation update function to be called.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : universe    , universeEvent
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : universe     , universeEvent
     use :: ISO_Varying_String, only : char
     use :: Function_Classes  , only : functionClass
     implicit none

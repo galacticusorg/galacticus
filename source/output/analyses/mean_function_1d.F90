@@ -793,7 +793,7 @@ contains
     !!{RST
     Implement a volumeFunction1D output analysis reduction.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char
     implicit none
     class(outputAnalysisMeanFunction1D), intent(inout) :: self

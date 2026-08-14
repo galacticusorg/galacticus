@@ -278,7 +278,7 @@ contains
     !!{RST
     Record galaxy-galaxy merges and combine trees.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes  , only : nodeComponentBasic
     use :: ISO_Varying_String, only : char
     use :: Function_Classes  , only : functionClass
     implicit none

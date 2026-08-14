@@ -231,8 +231,8 @@ contains
     !!{RST
     Zero any in-situ star formation history for the galaxy about to merge.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     use :: ISO_Varying_String, only : char
     implicit none
     class(starFormationHistoryInSitu), intent(inout) :: self

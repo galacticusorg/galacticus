@@ -139,8 +139,8 @@ contains
     !!{RST
     Respond to mass removal from the hot halo component.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentHotHalo
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : nodeComponentHotHalo
     use :: ISO_Varying_String, only : char
     use :: Function_Classes  , only : functionClass
     implicit none

@@ -552,7 +552,7 @@ contains
     !!{RST
     Implement a ``localGroupMassMetallicityRelation`` output analysis reduction.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char
     implicit none
     class(outputAnalysisLocalGroupMassMetallicityRelation), intent(inout) :: self

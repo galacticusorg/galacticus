@@ -292,8 +292,8 @@ contains
          &                                               treeNode
     use            :: Mass_Distributions        , only : massDistributionClass
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
-    use :: ISO_Varying_String, only : char
-    use :: Function_Classes  , only : functionClass
+    use            :: ISO_Varying_String        , only : char
+    use            :: Function_Classes          , only : functionClass
     implicit none
     class           (*                            ), intent(inout)          :: self
     type            (mergerTree                   ), intent(in   )          :: tree

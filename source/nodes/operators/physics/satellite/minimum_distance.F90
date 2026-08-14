@@ -196,8 +196,8 @@ contains
     !!{RST
     Update the minimum distance of approach when a satellite changes host node.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentSatellite
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : nodeComponentSatellite
     use :: ISO_Varying_String, only : char
     use :: Function_Classes  , only : functionClass
     implicit none
@@ -236,8 +236,8 @@ contains
     !!{RST
     Reset the minimum distance of approach when a satellite is promoted to be an isolated halo.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentSatellite
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : nodeComponentSatellite
     use :: ISO_Varying_String, only : char
     use :: Function_Classes  , only : functionClass
     implicit none

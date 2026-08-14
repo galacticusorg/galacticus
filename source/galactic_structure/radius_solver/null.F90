@@ -99,7 +99,7 @@ contains
     !!{RST
     Hookable wrapper around the solver.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char
     use :: Function_Classes  , only : functionClass
     implicit none
@@ -121,7 +121,7 @@ contains
     !!{RST
     Hookable wrapper around the solver.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char
     use :: Function_Classes  , only : functionClass
     implicit none

@@ -179,7 +179,7 @@ contains
     !!{RST
     Handle cases where a satellite switches host node.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char
     use :: Function_Classes  , only : functionClass
     implicit none
@@ -201,7 +201,7 @@ contains
     !!{RST
     Handle cases where a host halo reforms.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char
     use :: Function_Classes  , only : functionClass
     implicit none
