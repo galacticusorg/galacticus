@@ -20,6 +20,10 @@ args = parser.parse_args()
 # Create the root `parameters` element.
 parameters = ET.Element("parameters")
 
+# Suffix used to mark, in the output file's `Parameters` group, a parameter which took a default
+# value. This must match `defaultedMarkerSuffix` in `source/utility/input_parameters.F90`.
+defaultedMarkerSuffix = "{defaulted}"
+
 # Define a function to handle creation of the parameter file structure.
 def createStructure(name, node):
     # Ignore anything other than groups.
@@ -57,6 +61,11 @@ def assignValues(name, node):
             parent = parameters.find(name)
         # Iterate over all attributes in this group.
         for attributeName in node.attrs.keys():
+            # Skip markers recording that a parameter took a default value. These are not parameters
+            # themselves - they annotate the parameter of the same name, minus the suffix - and the
+            # braces are not valid in an XML element name, so they must not be emitted here.
+            if attributeName.endswith(defaultedMarkerSuffix):
+                continue
             isReference = None
             idReference = None
             # Extract the attribute value and convert to a string.

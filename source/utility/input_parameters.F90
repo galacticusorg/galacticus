@@ -17,6 +17,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson. The fix to the deduplication of reports of the use of default
+!+    parameter values, the marking of defaulted parameters in the output file, and the removal of the then-unused
+!+    per-object OpenMP lock, for issue #1353, were drafted with assistance from Claude, and reviewed and verified by
+!+    Andrew Benson.
+
 !!{RST
 Contains a module which implements reading of parameters from an XML data file.
 !!}
@@ -36,7 +41,6 @@ module Input_Parameters
   use            :: Kind_Numbers      , only : kind_int8
   use            :: String_Handling   , only : char
   use            :: Dictionaries      , only : integerDictionary
-  use            :: Locks             , only : ompLock
   use            :: Resource_Manager  , only : resourceManager
   private
   public :: inputParameters                 , inputParameter                         , inputParameterList                           , Input_Parameters_Build_Stack_Push, &
@@ -113,14 +117,6 @@ module Input_Parameters
      procedure :: get           => inputParameterGet
   end type inputParameter
 
-  !![
-  <deepCopyActions class="inputParameters">
-   <inputParameters>
-    <methodCall method="lockReinitialize"/>
-   </inputParameters>
-  </deepCopyActions>
-  !!]
-    
   type :: documentWrapper
      !!{RST
      Wrapper class for managing XML documents.
@@ -143,9 +139,6 @@ module Input_Parameters
      type   (inputParameters)  , pointer, public :: parent                    => null() , original                         => null()
      logical                                     :: outputParametersCopied    =  .false., outputParametersTemporary        = .false., &
           &                                         isNull                    =  .false., strict                           = .false.
-     type   (integerDictionary), allocatable     :: warnedDefaults
-     type   (ompLock          ), pointer         :: lock                      => null()
-     type   (resourceManager  )                  :: lockManager
    contains
      !![
      <methods docformat="rst">
@@ -169,7 +162,6 @@ module Input_Parameters
        <method description="Reset all objects in this parameter set." method="reset" />
        <method description="Destroy the parameters document." method="destroy" />
        <method description="Return the path to this parameters object." method="path" />
-       <method description="Reinitialize lock." method="lockReinitialize" />
        <method description="Assign input parameter objects." method="assignment(=)"/>
      </methods>
      !!]
@@ -196,7 +188,6 @@ module Input_Parameters
      procedure :: addParameter         => inputParametersAddParameter
      procedure :: reset                => inputParametersReset
      procedure :: path                 => inputParametersPath
-     procedure :: lockReinitialize     => inputParametersLockReinitialize
      procedure ::                         inputParametersAssignment
      generic   :: assignment(=)        => inputParametersAssignment
   end type inputParameters
@@ -289,6 +280,28 @@ module Input_Parameters
   type   (buildStackEntry), allocatable, dimension(:) :: buildStack
   integer                                             :: buildStackDepth=0
   !$omp threadprivate(buildStack,buildStackDepth)
+
+  ! Record of parameters for which a default value has been used, so that each is reported to the
+  ! user precisely once. Keys are the full parameter path (i.e. the path of the containing parameters
+  ! node, followed by the parameter name) - the same text that appears in the message - so that
+  ! distinct parameters sharing a container do not collide.
+  !
+  ! This record is deliberately *shared*: it is a module-level variable, not a component of
+  ! `inputParameters`, and is not threadprivate. Parameter sets are freely copied (once per OpenMP
+  ! thread, for example), and a parameter defaulted in one copy has already been reported to the
+  ! user, so must not be reported again by another - were this record held per-object and deep-copied
+  ! along with the parameter set, the number of messages would scale with the number of copies.
+  ! Access is guarded by the `inputParametersWarnedDefaults` critical section.
+  type   (integerDictionary)                          :: warnedDefaults
+  logical                                             :: warnedDefaultsInitialized=.false.
+
+  ! Suffix appended to a parameter name to form the name of the attribute, written into the
+  ! `Parameters` group of the output file, that marks the parameter as having taken a default value.
+  ! A parameter given explicitly in the parameter file carries no such attribute, so the absence of
+  ! the marker means "set explicitly". The braced form follows the convention already used to
+  ! annotate attribute names in this group (`{id:...}` on a reference target); braces cannot appear
+  ! in a parameter name, which is an XML element name, so the marker cannot collide with one.
+  character(len=*), parameter :: defaultedMarkerSuffix="{defaulted}"
 
   ! Interface to the (auto-generated) knownParameterNames() function.
   interface
@@ -439,11 +452,9 @@ contains
     use :: FoX_dom, only : createDocument, getDocumentElement, getImplementation, setLiveNodeLists
     implicit none
     type (inputParameters)          :: self
-    class(*              ), pointer :: lock_, document_
+    class(*              ), pointer :: document_
 
-    allocate(self%warnedDefaults)
-    allocate(self%lock          )
-    allocate(self%document      )
+    allocate(self%document)
     !$omp critical (FoX_DOM_Access)
     self%document%document => createDocument    (                                  &
          &                                       getImplementation()             , &
@@ -464,21 +475,8 @@ contains
     !![
     </workaround>
     !!]
-    self%parameters     => null              (             )
-    self%warnedDefaults =  integerDictionary (             )
-    self%lock           =  ompLock           (             )
-    !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
-      <description>
-      ICE when passing a derived type component to a class(*) function argument.
-      </description>
-    !!]
-    lock_ => self%lock
-    self%lockManager    =  resourceManager   (     lock_   )
-    !![
-    </workaround>
-    !!]
-    self%isNull         = .true.
+    self%parameters => null()
+    self%isNull     = .true.
    return
   end function inputParametersConstructorNull
 
@@ -764,33 +762,11 @@ contains
     implicit none
     type (inputParameters)                :: self
     type (inputParameters), intent(in   ) :: parameters
-    class(*              ), pointer       :: lock_
 
     self            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.,documentManager=parameters%documentManager,document=parameters%document)
     self%parameters =>                 parameters%parameters
     self%parent     =>                 parameters%parent
-    self%original   =>                 parameters%original       
-    if (allocated(parameters%warnedDefaults)) then
-       if (allocated(self%warnedDefaults)) deallocate(self%warnedDefaults)
-       allocate(self%warnedDefaults)
-       self%warnedDefaults=parameters%warnedDefaults
-    end if
-    if (associated(parameters%lock)) then
-       call self%lockManager%release()
-       allocate  (self%lock)
-       self%lock=ompLock()
-       !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
-	 <description>
-	 ICE when passing a derived type component to a class(*) function argument.
-	 </description>
-       !!]
-       lock_ => self%lock
-       self%lockManager    =  resourceManager   (     lock_   )
-       !![
-       </workaround>
-       !!]
-    end if
+    self%original   =>                 parameters%original
     return
   end function inputParametersConstructorCopy
 
@@ -851,24 +827,9 @@ contains
     !!]
 #include "os.inc"
 
-    allocate(self%warnedDefaults)
-    allocate(self%lock          )
     self%isNull         =  .false.
     self%rootNode       =>                   parametersNode
     self%parent         => null             (              )
-    self%warnedDefaults =  integerDictionary(              )
-    self%lock           =  ompLock          (              )
-    !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
-      <description>
-      ICE when passing a derived type component to a class(*) function argument.
-      </description>
-    !!]
-    dummyPointer_       => self%lock
-    self%lockManager    =  resourceManager (dummyPointer_ )
-    !![
-    </workaround>
-    !!]
     if (present(documentManager)) then
        if (.not.present(document)) call Error_Report('If `documentManager` is provided, `document` must also be provided'//{introspection:location})
        self%document        => document
@@ -1367,7 +1328,6 @@ contains
     self%parameters                       => from%parameters
     self%parent                           => from%parent
     self%original                         => from%original
-    self%lock                             => from%lock
     self%outputParametersCopied           =  from%outputParametersCopied
     self%outputParametersTemporary        =  from%outputParametersTemporary
     self%isNull                           =  from%isNull
@@ -1375,12 +1335,6 @@ contains
     self%outputParametersManager          =  from%outputParametersManager
     self%outputParametersContainerManager =  from%outputParametersContainerManager
     self%documentManager                  =  from%documentManager
-    self%lockManager                      =  from%lockManager
-    if (allocated(self%warnedDefaults)) deallocate(self%warnedDefaults)
-    if (allocated(from%warnedDefaults)) then
-       allocate(self%warnedDefaults,mold=from%warnedDefaults)
-       self%warnedDefaults=from%warnedDefaults
-    end if
     return
   end subroutine inputParametersAssignment
   
@@ -2320,7 +2274,6 @@ contains
     type            (enumerationInputParameterErrorStatusType), intent(  out), optional :: errorStatus
     integer                                                   , intent(in   ), optional :: copyInstance
     logical                                                   , intent(in   ), optional :: writeOutput   , evaluate
-    type            (inputParameters                         ), pointer                 :: parametersRoot
     type            (inputParameter                          ), pointer                 :: parameterNode
     type            (varying_string                          )                          :: parameterPath
     !![
@@ -2331,23 +2284,35 @@ contains
        parameterNode => self%node(parameterName,copyInstance=copyInstance,writeOutput=writeOutput)
        call self%value(parameterNode,parameterValue,errorStatus,writeOutput,evaluate)
     else if (present(defaultValue)) then
-       parametersRoot => self
-       do while (associated(parametersRoot%parent))
-          parametersRoot => parametersRoot%parent
-       end do
+       ! Report the use of a default value for this parameter, but only the first time that it is
+       ! used. The key must be the full path *including* the parameter name - `path()` returns the
+       ! path of the containing parameters node only, so keying on that alone would cause distinct
+       ! parameters within the same container to collide, suppressing all but the first of them.
        parameterPath=self%path()
-       call parametersRoot%lock%set()
-       if (.not.parametersRoot%warnedDefaults%exists(parameterPath)) then
-          if (mpiSelf%isMaster()) call Warn("Using default value for parameter '["//char(parameterPath)//parameterName//"]'")
-          call parametersRoot%warnedDefaults%set(parameterPath,1)
+       !$omp critical (inputParametersWarnedDefaults)
+       if (.not.warnedDefaultsInitialized) then
+          warnedDefaults           =integerDictionary()
+          warnedDefaultsInitialized=.true.
        end if
-       call parametersRoot%lock%unset()
+       if (.not.warnedDefaults%exists(char(parameterPath)//parameterName)) then
+          if (mpiSelf%isMaster()) call Warn("Using default value for parameter '["//char(parameterPath)//parameterName//"]'")
+          call warnedDefaults%set(char(parameterPath)//parameterName,1)
+       end if
+       !$omp end critical (inputParametersWarnedDefaults)
        parameterValue=defaultValue
        ! Write the parameter file to an HDF5 object.
        if (associated(self%outputParameters)) then
           if (self%outputParameters%isOpen().and.writeOutput_) then
              !$ call hdf5Access%set()
-             if (.not.self%outputParameters%hasAttribute(parameterName)) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},parameterName)
+             if (.not.self%outputParameters%hasAttribute(parameterName)) then
+                call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},parameterName)
+                ! Mark this parameter as having taken a default value. The marker is written here, at
+                ! the same instant as the value itself, so that it survives a fatal error exactly as
+                ! the value does - `Error_Report` closes the HDF5 library (flushing open files) but
+                ! never calls `Output_HDF5_Close_File`, so anything deferred to output-file closure
+                ! would be lost. Parameters set explicitly carry no marker.
+                call self%outputParameters%writeAttribute(.true.,parameterName//defaultedMarkerSuffix)
+             end if
              !$ call hdf5Access%unset()
           end if
        end if
@@ -2866,31 +2831,5 @@ contains
     return
   end subroutine inputParametersReset
 
-  subroutine inputParametersLockReinitialize(self)
-    !!{RST
-    Reinitialize the OpenMP lock.
-    !!}
-    implicit none
-    class(inputParameters), intent(inout) :: self
-    class(*              ), pointer :: lock_
-    
-    if (associated(self%lock)) then
-       call self%lockManager%release()
-       allocate(self%lock)
-       self%lock=ompLock()
-       !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
-	 <description>
-	 ICE when passing a derived type component to a class(*) function argument.
-	 </description>
-       !!]
-       lock_ => self%lock
-       self%lockManager    =  resourceManager   (     lock_   )
-       !![
-       </workaround>
-       !!]
-    end if
-    return
-  end subroutine inputParametersLockReinitialize
 
 end module Input_Parameters
