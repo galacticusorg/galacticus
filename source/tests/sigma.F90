@@ -44,7 +44,7 @@ program Tests_Sigma
   ! of the absolute lattice to which the tabulation is pinned - the tabulated values are what extension preserves exactly, so it
   ! is at the tabulated points that invariance is asserted. (Between them the cubic spline interpolant is not preserved: every
   ! one of its coefficients depends on every tabulated value, so adding points at either end changes it everywhere.)
-  integer                                                   , parameter                                :: massCountExtension                     =3
+  integer                                                                                  , parameter :: massCountExtension                     =3
   double precision                                          , dimension(massCountExtension), parameter :: massExtension(massCountExtension)      =[1.0d11,1.0d12,1.0d13]
   double precision                                          , dimension(massCountExtension)            :: sigmaNarrow                                                   , sigmaExtended
   type            (darkMatterParticleCDM                   )                                           :: darkMatterParticleCDM_

@@ -243,7 +243,7 @@ contains
     ! The extent of the tabulation is not set here: it is determined entirely by the lattices to which the two axes are pinned,
     ! which `baryonsDarkMatterRetabulate` builds from the seed ranges above and from whatever is requested. Nothing reads the
     ! limits before then, since `baryonsDarkMatterRemakeTable` consults them only once the table is initialized.
-    self%tableInitialized      =.false.
+    self%tableInitialized=.false.
     ! Validate initial redshifts.
     if (redshiftInitialDelta > redshiftInitial) call Error_Report('[redshiftInitialDelta] ≤ [redshiftInitial] is required'//{introspection:location})
     ! Compute dark matter and baryon fractions.
@@ -302,37 +302,37 @@ contains
     use    :: Table_Labels         , only : extrapolationTypeAbort          , extrapolationTypeFix
     use    :: Tables               , only : table1DGeneric
     implicit none
-    class           (linearGrowthBaryonsDarkMatter), intent(inout)              :: self
-    double precision                               , intent(in   )              :: time
-    double precision                               , intent(in   ), optional    :: wavenumber
-    double precision                               , parameter                  :: odeToleranceAbsolute          =1.0d-10, odeToleranceRelative            =1.0d-10
-    double precision                               , dimension(4)               :: growthFactorODEVariables
-    double precision                               , dimension(2)               :: redshiftsInitial                      , timesInitial
-    double precision                               , dimension(4)               :: timeTarget
-    double precision                               , dimension(2)               :: wavenumberSeed
-    type            (rangeLattice                 )                             :: latticeTime                           , latticeWavenumber
-    logical                                        , dimension(:) , allocatable :: wavenumberIsCarried
+    class           (linearGrowthBaryonsDarkMatter), intent(inout)               :: self
+    double precision                               , intent(in   )               :: time
+    double precision                               , intent(in   ), optional     :: wavenumber
+    double precision                               , parameter                   :: odeToleranceAbsolute          =1.0d-10, odeToleranceRelative            =1.0d-10
+    double precision                               , dimension(4)                :: growthFactorODEVariables
+    double precision                               , dimension(2)                :: redshiftsInitial                      , timesInitial
+    double precision                               , dimension(4)                :: timeTarget
+    double precision                               , dimension(2)                :: wavenumberSeed
+    type            (rangeLattice                 )                              :: latticeTime                           , latticeWavenumber
+    logical                                        , dimension(:  ), allocatable :: wavenumberIsCarried
     logical                                        , dimension(:,:), allocatable :: isComputed
-    double precision                               , dimension(:) , allocatable :: normalizationFactorPrevious           , valueDarkMatterPrevious                 , &
-         &                                                                         derivativeDarkMatterPrevious          , valueBaryonsPrevious                    , &
-         &                                                                         derivativeBaryonsPrevious
-    type            (odeSolver                    ), save         , allocatable :: solver
+    double precision                               , dimension(:  ), allocatable :: normalizationFactorPrevious           , valueDarkMatterPrevious                 , &
+         &                                                                          derivativeDarkMatterPrevious          , valueBaryonsPrevious                    , &
+         &                                                                          derivativeBaryonsPrevious
+    type            (odeSolver                    ), save          , allocatable :: solver
     !$omp threadprivate(solver)
-    integer                                                                     :: i                                     , j                                       , &
-         &                                                                         iStart                                , jPrevious                               , &
-         &                                                                         iPresent                              , offsetWavenumber                        , &
-         &                                                                         offsetTime                            , countTimePrevious                       , &
-         &                                                                         countWavenumberPrevious
-    double precision                                                            :: growthFactorDerivativeBaryons         , growthFactorDerivativeDarkMatter        , &
-         &                                                                         timeNow                               , wavenumberLogarithmic                   , &
-         &                                                                         timePresent                           , timeBigCrunch                           , &
-         &                                                                         timeInitialNominal                    , hPresent                                , &
-         &                                                                         linearGrowthFactorPresent             , wavenumberTarget
-    logical                                                                     :: carryOver
-    integer                                                                     :: growthTableNumberPoints
-    type            (table1DGeneric               )                             :: transferFunctionDarkMatter            , transferFunctionBaryons
-    integer                                                                     :: countWavenumbers
-    !$ integer      (omp_lock_kind                )                             :: lockBaryons                           , lockDarkMatter
+    integer                                                                      :: i                                     , j                                       , &
+         &                                                                          iStart                                , jPrevious                               , &
+         &                                                                          iPresent                              , offsetWavenumber                        , &
+         &                                                                          offsetTime                            , countTimePrevious                       , &
+         &                                                                          countWavenumberPrevious
+    double precision                                                             :: growthFactorDerivativeBaryons         , growthFactorDerivativeDarkMatter        , &
+         &                                                                          timeNow                               , wavenumberLogarithmic                   , &
+         &                                                                          timePresent                           , timeBigCrunch                           , &
+         &                                                                          timeInitialNominal                    , hPresent                                , &
+         &                                                                          linearGrowthFactorPresent             , wavenumberTarget
+    logical                                                                      :: carryOver
+    integer                                                                      :: growthTableNumberPoints
+    type            (table1DGeneric               )                              :: transferFunctionDarkMatter            , transferFunctionBaryons
+    integer                                                                      :: countWavenumbers
+    !$ integer      (omp_lock_kind                )                              :: lockBaryons                           , lockDarkMatter
 
     ! Check if we need to recompute our table.
     if (self%remakeTable(time)) then
