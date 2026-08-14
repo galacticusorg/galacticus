@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786658370426,
+  "lastUpdate": 1786740835572,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "0adc1b35040118e0f6803adbcd581bfddc03c357",
-          "message": "feat: Improve galaxy merger tree plots\n\nIncludes a color bar and size scale.",
-          "timestamp": "2025-06-02T14:32:30Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/0adc1b35040118e0f6803adbcd581bfddc03c357"
-        },
-        "date": 1748910430700,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 89.984,
-            "unit": "seconds",
-            "range": 0.142437354650544
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10719,6 +10691,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 3.153702340327506,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0f36c1956a768da25d994e061f65826a137b2d48",
+          "message": "Merge pull request #1371 from galacticusorg/fix/warn-quadratic-append\n\nfix(error): make recording of warnings independent of the number already issued",
+          "timestamp": "2026-08-14T14:45:48Z",
+          "tree_id": "f55822ad989c715b241aca7f1a6d704d5636a77f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0f36c1956a768da25d994e061f65826a137b2d48"
+        },
+        "date": 1786740834871,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 30.584999999999997,
+            "range": "0.06873499836327918",
+            "unit": "seconds"
           }
         ]
       }
