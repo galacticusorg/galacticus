@@ -2277,8 +2277,8 @@ contains
     !!{RST
     Return the value of the parameter specified by name.
     !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5_Access       , only : hdf5Access
+    use :: Error      , only : Error_Report
+    use :: HDF5_Access, only : hdf5Access
     implicit none
     class           (inputParameters                         ), intent(inout), target   :: self
     character       (len=*                                   ), intent(in   )           :: parameterName
