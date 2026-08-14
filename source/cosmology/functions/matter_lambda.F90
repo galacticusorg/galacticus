@@ -26,11 +26,7 @@
   use :: Numerical_Ranges       , only : rangeLattice
 
   integer         , parameter :: ageTableNPointsPerDecade     =300
-  double precision, parameter :: ageTableNPointsPerOctave     =dble(ageTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
-  double precision, parameter :: ageTableIncrementFactor      =exp(int(ageTableNPointsPerOctave+1.0d0)*log(10.0d0)/dble(ageTableNPointsPerDecade))
   integer         , parameter :: distanceTableNPointsPerDecade=100
-  double precision, parameter :: distanceTableNPointsPerOctave=dble(distanceTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
-  double precision, parameter :: distanceTableIncrementFactor =exp(int(distanceTableNPointsPerOctave+1.0d0)*log(10.0d0)/dble(distanceTableNPointsPerDecade))
 
   ! Factor by which one component of Universe must dominate others such that we can ignore the others.
   double precision, parameter :: matterLambdaDominateFactor               =100.0d0
@@ -64,7 +60,8 @@
           &                                                                   interpolatorDistanceInverse                              , interpolatorLuminosityDistance                             , &
           &                                                                   interpolatorLuminosityDistanceKCorrected
      logical                                                               :: distanceTableInitialized                        =.false.
-     integer                                                               :: distanceTableNumberPoints
+     type            (rangeLattice            )                            :: latticeDistanceTable
+     integer                                                               :: distanceTableNumberPoints                                , distanceTableAgeTableIndexMinimum
      double precision                                                      :: distanceTableTimeMaximum                                 , distanceTableTimeMinimum                            =1.0d+0
      double precision                          , allocatable, dimension(:) :: distanceTableComovingDistance                            , distanceTableComovingDistanceNegated                       , &
           &                                                                   distanceTableLuminosityDistanceNegated                   , distanceTableTime                                          , &
@@ -1283,74 +1280,66 @@ contains
     Builds a table of comoving distance vs. time.
     !!}
     use :: Numerical_Integration           , only : integrator
-    use :: Numerical_Ranges                , only : Make_Range   , rangeTypeLogarithmic
-    use :: Numerical_Constants_Astronomical, only : gigaYear  , megaParsec
+    use :: Numerical_Ranges                , only : Range_Pinned                                     , Range_Lattice_Extend, gridSchemePerDecade
+    use :: Numerical_Constants_Astronomical, only : gigaYear                                         , megaParsec
     use :: Numerical_Constants_Physical    , only : speedLight
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout), target       :: self
     double precision                                , intent(in   )               :: time
-    double precision                                , allocatable  , dimension(:) :: distanceTableTimeTemporary                                      , distanceTableComovingDistanceTemporary                , &
-         &                                                                           distanceTableComovingDistanceNegatedTemporary                   , distanceTableLuminosityDistanceNegatedTemporary       , &
-         &                                                                           distanceTableLuminosityDistanceKCorrectedNegatedTemporary
-    double precision                                , parameter                   :: toleranceAbsolute                                        =1.0d-5, toleranceRelative                              =1.0d-5
-    integer                                                                       :: iTime                                                           , prefixPointCount
+    double precision                                , parameter                   :: toleranceAbsolute       =1.0d-5, toleranceRelative=1.0d-5
+    ! The bounds are pinned to single lattice steps rather than to whole decades: every point of this table is a numerical
+    ! integral, so rounding a bound out to a whole decade would add a hundred of them for the sake of reaching one.
+    integer                                         , parameter                   :: distanceTableAnchorEvery=1
+    logical                                         , allocatable  , dimension(:) :: isComputed
+    type            (rangeLattice                  )                              :: latticeTime
+    integer                                                                       :: iTime                          , ageTableIndexMinimum
+    logical                                                                       :: carryOver
     type            (integrator                    )                              :: integrator_
 
-    ! Find minimum and maximum times to tabulate.
-    if (.not.self%distanceTableInitialized) then
-       self%distanceTableTimeMinimum=0.5d0*time
+    ! Find the range of epochs to tabulate, pinning it to an absolute lattice so that the epochs tabulated - and therefore every
+    ! distance interpolated between them - depend only on which lattice points are spanned, and not on the sequence of epochs
+    ! which happened to be requested.
+    !
+    ! The comoving distance to an epoch is an integral out to the present day, so this table must *end* exactly at the present
+    ! day - and no lattice point of an absolute lattice in cosmic time does. The axis is therefore tabulated in units of the
+    ! present day age of the universe, in which the present day is the lattice point of index zero, exactly, on any lattice. (The
+    ! same device is used for the electron scattering optical depth of the intergalactic medium state class.)
+    !
+    ! Both that unit and the limits of each integral are interpolated from the expansion factor table, so this tabulation is only
+    ! as stable as that one: extending the expansion factor table downward restarts its integration from a new earliest epoch,
+    ! and so changes every value in it. The loop below therefore establishes the expansion factor table across the whole range
+    ! about to be tabulated *before* any distance is computed, and repeats if doing so rebuilt it. The tabulation which follows
+    ! then cannot be undermined part way through, and previously computed distances are carried over only while that table has
+    ! not been rebuilt since they were computed.
+    do
        self%distanceTableTimeMaximum=self%cosmicTime(1.0d0)
-    else
-       do while (self%distanceTableTimeMinimum > time/2.0d0)
-          self%distanceTableTimeMinimum=self%distanceTableTimeMinimum/distanceTableIncrementFactor
-       end do
+       ageTableIndexMinimum         =self%latticeAgeTable%indexMinimum
+       latticeTime=Range_Pinned(                                                            &
+            &                                  [time/self%distanceTableTimeMaximum,1.0d0] , &
+            &                                   distanceTableNPointsPerDecade             , &
+            &                                   gridSchemePerDecade                       , &
+            &                   marginFactor  = 2.0d0                                     , &
+            &                   anchorEvery   = distanceTableAnchorEvery                  , &
+            &                   limitMaximum  = 1.0d0                                     , &
+            &                   latticeCurrent= self%latticeDistanceTable                   &
+            &                  )
+       call self%expansionFactorTabulate(latticeTime%minimum()*self%distanceTableTimeMaximum)
+       if (self%latticeAgeTable%indexMinimum == ageTableIndexMinimum) exit
+    end do
+    carryOver=self%distanceTableInitialized .and. self%latticeDistanceTable%isDefined()
+    if (carryOver) carryOver=self%distanceTableAgeTableIndexMinimum == ageTableIndexMinimum
+    if (.not.carryOver) then
+       if (allocated(self%distanceTableComovingDistance)) deallocate(self%distanceTableComovingDistance)
+       self%latticeDistanceTable=rangeLattice()
     end if
-    ! Determine number of points to tabulate.
-    self%distanceTableNumberPoints=int(log10(self%distanceTableTimeMaximum/self%distanceTableTimeMinimum)*dble(distanceTableNPointsPerDecade))+1
-    self%distanceTableTimeMinimum =self%distanceTableTimeMaximum/10.0d0**(dble(self%distanceTableNumberPoints)/dble(distanceTableNPointsPerDecade))
-    ! Deallocate arrays if currently allocated.
-    if (allocated(self%distanceTableTime)) then
-       prefixPointCount=int(log10(self%distanceTableTime(1)/self%distanceTableTimeMinimum)*dble(distanceTableNPointsPerDecade)+0.5d0)
-       call Move_Alloc(self%distanceTableTime                               ,distanceTableTimeTemporary                               )
-       call Move_Alloc(self%distanceTableComovingDistance                   ,distanceTableComovingDistanceTemporary                   )
-       call Move_Alloc(self%distanceTableComovingDistanceNegated            ,distanceTableComovingDistanceNegatedTemporary            )
-       call Move_Alloc(self%distanceTableLuminosityDistanceNegated          ,distanceTableLuminosityDistanceNegatedTemporary          )
-       call Move_Alloc(self%distanceTableLuminosityDistanceKCorrectedNegated,distanceTableLuminosityDistanceKCorrectedNegatedTemporary)
-       ! Allocate the arrays to current required size.
-       allocate(self%distanceTableTime                               (self%distanceTableNumberPoints))
-       allocate(self%distanceTableComovingDistance                   (self%distanceTableNumberPoints))
-       allocate(self%distanceTableComovingDistanceNegated            (self%distanceTableNumberPoints))
-       allocate(self%distanceTableLuminosityDistanceNegated          (self%distanceTableNumberPoints))
-       allocate(self%distanceTableLuminosityDistanceKCorrectedNegated(self%distanceTableNumberPoints))
-       ! Create the range of times.
-       self%distanceTableTime=Make_Range(self%distanceTableTimeMinimum,self%distanceTableTimeMaximum,self%distanceTableNumberPoints,rangeTypeLogarithmic)
-       ! Set the comoving distances to a negative value to indicate they are not yet computed.
-       self%distanceTableComovingDistance=-1.0d0
-       ! Paste in the previously computed regions.
-       self%distanceTableTime                               (prefixPointCount+1:prefixPointCount+size(distanceTableTimeTemporary))=+distanceTableTimeTemporary
-       self%distanceTableComovingDistance                   (prefixPointCount+1:prefixPointCount+size(distanceTableTimeTemporary))=+distanceTableComovingDistanceTemporary
-       self%distanceTableComovingDistanceNegated            (prefixPointCount+1:prefixPointCount+size(distanceTableTimeTemporary))=-distanceTableComovingDistanceNegatedTemporary
-       self%distanceTableLuminosityDistanceNegated          (prefixPointCount+1:prefixPointCount+size(distanceTableTimeTemporary))=-distanceTableLuminosityDistanceNegatedTemporary
-       self%distanceTableLuminosityDistanceKCorrectedNegated(prefixPointCount+1:prefixPointCount+size(distanceTableTimeTemporary))=-distanceTableLuminosityDistanceKCorrectedNegatedTemporary
-       ! Deallocate the temporary arrays.
-       deallocate(distanceTableTimeTemporary                               )
-       deallocate(distanceTableComovingDistanceTemporary                   )
-       deallocate(distanceTableComovingDistanceNegatedTemporary            )
-       deallocate(distanceTableLuminosityDistanceNegatedTemporary          )
-       deallocate(distanceTableLuminosityDistanceKCorrectedNegatedTemporary)
-    else
-       ! Allocate the arrays to current required size.
-       allocate(self%distanceTableTime                               (self%distanceTableNumberPoints))
-       allocate(self%distanceTableComovingDistance                   (self%distanceTableNumberPoints))
-       allocate(self%distanceTableComovingDistanceNegated            (self%distanceTableNumberPoints))
-       allocate(self%distanceTableLuminosityDistanceNegated          (self%distanceTableNumberPoints))
-       allocate(self%distanceTableLuminosityDistanceKCorrectedNegated(self%distanceTableNumberPoints))
-       ! Create set of grid points in time variable.
-       self%distanceTableTime=Make_Range(self%distanceTableTimeMinimum,self%distanceTableTimeMaximum,self%distanceTableNumberPoints,rangeTypeLogarithmic)
-       ! Set the expansion factors to a negative value to indicate they are not yet computed.
-       self%distanceTableComovingDistance=-1.0d0
-    end if
-        ! Integrate to get the comoving distance.
+    call Range_Lattice_Extend(self%latticeDistanceTable,latticeTime,self%distanceTableComovingDistance,isComputed)
+    self%latticeDistanceTable             =latticeTime
+    self%distanceTableAgeTableIndexMinimum=ageTableIndexMinimum
+    self%distanceTableNumberPoints        =latticeTime%count
+    if (allocated(self%distanceTableTime)) deallocate(self%distanceTableTime)
+    self%distanceTableTime                =latticeTime%values()*self%distanceTableTimeMaximum
+    self%distanceTableTimeMinimum         =self%distanceTableTime(1)
+    ! Integrate to get the comoving distance.
     integrator_ =  integrator(                                                         &
          &                                      matterLambdaComovingDistanceIntegrand, &
          &                    toleranceAbsolute=toleranceAbsolute                    , &
@@ -1359,25 +1348,34 @@ contains
     self_       => self
     do iTime=1,self%distanceTableNumberPoints
        ! Skip pre-computed entries.
-       if (self%distanceTableComovingDistance(iTime) >= 0.0d0) cycle
+       if (isComputed(iTime)) cycle
        self%distanceTableComovingDistance(iTime)=+integrator_%integrate(                                                                              &
             &                                                           self%expansionFactor(self%distanceTableTime(iTime                         )), &
             &                                                           self%expansionFactor(self%distanceTableTime(self%distanceTableNumberPoints))  &
             &                                                          )                                                                              &
             &                                    *speedLight                                                                                          &
             &                                    *gigaYear                                                                                            &
-            &                                    /megaParsec       
+            &                                    /megaParsec
+    end do
+    ! Make negated copies of the distances so that we have increasing arrays for use in interpolation routines. The luminosity
+    ! distances are simple functions of the comoving distance and of the expansion factor, so they are evaluated afresh at every
+    ! point rather than being carried over: the expansion factor is interpolated from a table which has not been rebuilt, so for
+    ! the points carried over this gives back exactly the values they had.
+    if (allocated(self%distanceTableComovingDistanceNegated            )) deallocate(self%distanceTableComovingDistanceNegated            )
+    if (allocated(self%distanceTableLuminosityDistanceNegated          )) deallocate(self%distanceTableLuminosityDistanceNegated          )
+    if (allocated(self%distanceTableLuminosityDistanceKCorrectedNegated)) deallocate(self%distanceTableLuminosityDistanceKCorrectedNegated)
+    allocate(self%distanceTableComovingDistanceNegated            (self%distanceTableNumberPoints))
+    allocate(self%distanceTableLuminosityDistanceNegated          (self%distanceTableNumberPoints))
+    allocate(self%distanceTableLuminosityDistanceKCorrectedNegated(self%distanceTableNumberPoints))
+    self%distanceTableComovingDistanceNegated=-self%distanceTableComovingDistance
+    do iTime=1,self%distanceTableNumberPoints
        self              %distanceTableLuminosityDistanceNegated              (iTime)   &
-            & =      self%distanceTableComovingDistance                       (iTime)   &
+            & =     -self%distanceTableComovingDistance                       (iTime)   &
             &       /self%expansionFactor              (self%distanceTableTime(iTime))
        self              %distanceTableLuminosityDistanceKCorrectedNegated    (iTime)   &
-            & =      self%distanceTableComovingDistance                       (iTime)   &
+            & =     -self%distanceTableComovingDistance                       (iTime)   &
             &  /sqrt(self%expansionFactor              (self%distanceTableTime(iTime)))
     end do
-    ! Make a negated copy of the distances so that we have an increasing array for use in interpolation routines.
-    self%distanceTableComovingDistanceNegated            =-self%distanceTableComovingDistance
-    self%distanceTableLuminosityDistanceNegated          =-self%distanceTableLuminosityDistanceNegated
-    self%distanceTableLuminosityDistanceKCorrectedNegated=-self%distanceTableLuminosityDistanceKCorrectedNegated
     ! Build interpolators.
     if (allocated(self%interpolatorDistance                    )) deallocate(self%interpolatorDistance                    )
     if (allocated(self%interpolatorDistanceInverse             )) deallocate(self%interpolatorDistanceInverse             )
