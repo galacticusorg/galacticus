@@ -24,9 +24,6 @@
   use :: Root_Finder, only : rootFinder
 
   integer         , parameter :: ageTableNPointsPerDecade     =300
-  double precision, parameter :: ageTableNPointsPerOctave     =dble(ageTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
-  double precision, parameter :: ageTableIncrementFactor      =exp(int(ageTableNPointsPerOctave+1.0d0)*log(10.0d0)/dble(ageTableNPointsPerDecade))
-  integer         , parameter :: distanceTableNPointsPerDecade=100
 
   ! Factor by which one component of Universe must dominate others such that we can ignore the others.
   double precision, parameter :: factorDominate               =100.0d0
@@ -238,13 +235,13 @@ contains
        call Error_Report('non-collapsing universe assumed'//{introspection:location})
     else
        ! In expanding phase ensure that sufficiently small and large expansion factors have been reached.
+       ! Request a wider range rather than adjusting the bounds directly: the tabulation derives its range from the request
+       ! and from the lattice it already holds, so a bound assigned here would simply be overwritten and the loop never end.
        do while (self%ageTableExpansionFactor(                        1) > expansionFactor)
-          self%ageTableTimeMinimum=    self%ageTableTimeMinimum/ageTableIncrementFactor
-          call self%expansionFactorTabulate()
+          call self%expansionFactorTabulate(self%ageTableTimeMinimum/2.0d0)
        end do
        do while (self%ageTableExpansionFactor(self%ageTableNumberPoints) < expansionFactor)
-          self%ageTableTimeMaximum=max(self%ageTableTimeMaximum*ageTableIncrementFactor,self%timeTurnaround)
-          call self%expansionFactorTabulate()
+          call self%expansionFactorTabulate(self%ageTableTimeMaximum*2.0d0)
        end do
     end if
     ! Interpolate to get cosmic time.
@@ -488,14 +485,21 @@ contains
     Builds a table of expansion factor vs. time for dark energy universes.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsTime
-    use :: Numerical_Ranges    , only : Make_Range     , rangeTypeLogarithmic
+    use :: Numerical_Ranges    , only : Range_Pinned   , Range_Lattice_Extend, rangeLattice, gridSchemePerDecade
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy)             , intent(inout), target   :: self
     double precision                                                 , intent(in   ), optional :: time
     double precision                                    , parameter                            :: turnaroundTimeTolerance         =1.0d-12
     double precision                                    , parameter                            :: odeToleranceAbsolute            =1.0d-9 , odeToleranceRelative    =1.0d-9
+    ! The bounds are pinned to single lattice steps rather than to whole decades: at three hundred points per decade, with an
+    ! ordinary differential equation integrated across each of them, rounding a bound out to a whole decade would add three
+    ! hundred epochs for the sake of reaching one.
+    integer                                             , parameter                            :: ageTableAnchorEvery             =1
     double precision                                    , allocatable, dimension(:)            :: ageTableExpansionFactorTemporary        , ageTableTimeTemporary
-    integer                                                                                    :: iTime                                   , prefixPointCount
+    logical                                             , allocatable, dimension(:)            :: isComputed
+    type            (rangeLattice                      )                                       :: latticeTime
+    integer                                                                                    :: iTime
+    logical                                                                                    :: carryOver
     double precision                                                                           :: OmegaDominant                           , deltaTime                      , &
          &                                                                                        densityPower                            , timeDominant                   , &
          &                                                                                        expansionFactorDominant                 , timeActual
@@ -505,65 +509,71 @@ contains
     call self%densityScalingEarlyTime(factorDominate,densityPower,expansionFactorDominant,OmegaDominant)
     ! Find the corresponding time.
     timeDominant=-2.0d0/densityPower/self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime)/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
-    ! Find minimum and maximum times to tabulate.
+    ! Assume initially that this Universe does not collapse; the tabulation below detects otherwise. Once found, the epoch of
+    ! turnaround is a property of the cosmology rather than of the tabulation, so it is determined on the first build and
+    ! retained thereafter. Redetermining it on every call, as was formerly attempted here, cannot work once previously computed
+    ! values are carried over, since the detection below examines only those points which are computed afresh.
+    if (.not.self%ageTableInitialized) then
+       self%collapsingUniverse    =.false.
+       self%expansionFactorMaximum=0.0d0
+       self%timeTurnaround        =0.0d0
+       self%timeMaximum           =0.0d0
+    end if
+    ! Find the range of epochs to tabulate, pinning it to an absolute lattice so that the epochs tabulated - and therefore every
+    ! expansion factor interpolated between them - depend only on which lattice points are spanned, and not on the sequence of
+    ! epochs which happened to be requested. The bounds formerly grew by repeated multiplication by a fixed factor from an origin
+    ! set by the first request, and the abscissae were then redistributed over the result by `Make_Range`, so that the previously
+    ! computed points pasted back into the new table carried the *old* spacing. The table thereby became a patchwork of spacings
+    ! which no single `ageTableInverseDeltaLogTime` could describe, and the index computed from it in `expansionFactor` drifted
+    ! further from the truth with every extension.
     if (present(time)) then
        timeActual=time
-       do while (self%ageTableTimeMinimum > min(timeActual,timeDominant)/2.0d0)
-          self%ageTableTimeMinimum=self%ageTableTimeMinimum/ageTableIncrementFactor
-       end do
-       do while (self%ageTableTimeMaximum < max(timeActual,timeDominant)*2.0d0)
-          self%ageTableTimeMaximum=self%ageTableTimeMaximum*ageTableIncrementFactor
-       end do
     else
-       do while (self%ageTableTimeMinimum > timeDominant/2.0d0)
-          self%ageTableTimeMinimum=self%ageTableTimeMinimum/ageTableIncrementFactor
-       end do
-       do while (self%ageTableTimeMaximum < timeDominant*2.0d0)
-          self%ageTableTimeMaximum=self%ageTableTimeMaximum*ageTableIncrementFactor
-       end do
+       timeActual=timeDominant
     end if
-    ! Determine number of points to tabulate.
-    self%ageTableNumberPoints=int(log10(self%ageTableTimeMaximum/self%ageTableTimeMinimum)     *dble(ageTableNPointsPerDecade))+1
-    self%ageTableTimeMaximum =self%ageTableTimeMinimum*10.0d0**(dble(self%ageTableNumberPoints)/dble(ageTableNPointsPerDecade))
-    ! Assume this Universe does not collapse initially.
-    self%collapsingUniverse    =.false.
-    self%expansionFactorMaximum=0.0d0
-    self%timeTurnaround        =0.0d0
-    self%timeMaximum           =0.0d0
-    ! Deallocate arrays if currently allocated.
-    if (allocated(self%ageTableTime)) then
-       ! Determine number of points that are being added at the start of the array.
-       prefixPointCount=int(log10(self%ageTableTime(1)/self%ageTableTimeMinimum)*dble(ageTableNPointsPerDecade)+0.5d0)
-       call Move_Alloc(self%ageTableTime           ,ageTableTimeTemporary           )
-       call Move_Alloc(self%ageTableExpansionFactor,ageTableExpansionFactorTemporary)
-       ! Allocate the arrays to current required size.
-       allocate(self%ageTableTime           (self%ageTableNumberPoints))
-       allocate(self%ageTableExpansionFactor(self%ageTableNumberPoints))
-       ! Create set of grid points in time variable.
-       self%ageTableTime=Make_Range(self%ageTableTimeMinimum,self%ageTableTimeMaximum,self%ageTableNumberPoints,rangeTypeLogarithmic)
-       ! Set the expansion factors to a negative value to indicate they are not yet computed.
-       self%ageTableExpansionFactor=-1.0d0
-       ! Paste in the previously computed regions.
-       self%ageTableTime           (prefixPointCount+1:prefixPointCount+size(ageTableTimeTemporary))=ageTableTimeTemporary
-       self%ageTableExpansionFactor(prefixPointCount+1:prefixPointCount+size(ageTableTimeTemporary))=ageTableExpansionFactorTemporary
-       ! Deallocate the temporary arrays.
-       deallocate(ageTableTimeTemporary           )
-       deallocate(ageTableExpansionFactorTemporary)
+    if (self%collapsingUniverse) then
+       latticeTime=Range_Pinned(                                          &
+            &                                  [timeActual,timeDominant], &
+            &                                   ageTableNPointsPerDecade, &
+            &                                   gridSchemePerDecade     , &
+            &                   marginFactor  = 2.0d0                   , &
+            &                   anchorEvery   = ageTableAnchorEvery     , &
+            &                   limitMaximum  = self%timeTurnaround     , &
+            &                   latticeCurrent= self%latticeAgeTable      &
+            &                  )
     else
-       ! Allocate the arrays to current required size.
-       allocate(self%ageTableTime           (self%ageTableNumberPoints))
-       allocate(self%ageTableExpansionFactor(self%ageTableNumberPoints))
-       ! Create set of grid points in time variable.
-       self%ageTableTime=Make_Range(self%ageTableTimeMinimum,self%ageTableTimeMaximum,self%ageTableNumberPoints,rangeTypeLogarithmic)
-       ! Set the expansion factors to a negative value to indicate they are not yet computed.
-       self%ageTableExpansionFactor=-1.0d0
+       latticeTime=Range_Pinned(                                          &
+            &                                  [timeActual,timeDominant], &
+            &                                   ageTableNPointsPerDecade, &
+            &                                   gridSchemePerDecade     , &
+            &                   marginFactor  = 2.0d0                   , &
+            &                   anchorEvery   = ageTableAnchorEvery     , &
+            &                   latticeCurrent= self%latticeAgeTable      &
+            &                  )
     end if
-    ! Compute quantities required for table interpolation.
+    ! The expansion factor is integrated forward from an initial condition imposed at the earliest tabulated epoch, so every
+    ! value depends on where that integration began. The tabulation can therefore be carried over only while the earliest epoch
+    ! is unchanged; where it moves, everything is discarded by presenting an undefined lattice to the extension.
+    carryOver=self%ageTableInitialized .and. self%latticeAgeTable%isDefined()
+    if (carryOver) carryOver=latticeTime%indexMinimum == self%latticeAgeTable%indexMinimum
+    if (.not.carryOver) then
+       if (allocated(self%ageTableExpansionFactor)) deallocate(self%ageTableExpansionFactor)
+       self%latticeAgeTable=rangeLattice()
+    end if
+    call Range_Lattice_Extend(self%latticeAgeTable,latticeTime,self%ageTableExpansionFactor,isComputed)
+    self%latticeAgeTable     =latticeTime
+    self%ageTableNumberPoints=latticeTime%count
+    if (allocated(self%ageTableTime)) deallocate(self%ageTableTime)
+    self%ageTableTime        =latticeTime%values()
+    self%ageTableTimeMinimum =self%ageTableTime(                        1)
+    self%ageTableTimeMaximum =self%ageTableTime(self%ageTableNumberPoints)
+    ! Compute quantities required for table interpolation. These are evaluated again after the tabulation below, so that they
+    ! describe the table actually held even where it is truncated at turnaround.
     self%ageTableTimeLogarithmicMinimum=log(self%ageTableTimeMinimum)
     self%ageTableInverseDeltaLogTime   =dble(self%ageTableNumberPoints-1)/log(self%ageTableTimeMaximum/self%ageTableTimeMinimum)
     ! For the initial time, we approximate that we are at sufficiently early times that a single component dominates the
     ! Universe and use the appropriate analytic solution.
-    if (self%ageTableExpansionFactor(1) < 0.0d0)                        &
+    if (.not.isComputed(1))                                             &
          &    self%ageTableExpansionFactor           (               1) &
          & =(                                                           &
          &   -0.5d0                                                     &
@@ -577,7 +587,7 @@ contains
     call self%targetSelf()
     do iTime=2,self%ageTableNumberPoints
        ! Compute the expansion factor if it is not already computed.
-       if (self%ageTableExpansionFactor(iTime) < 0.0d0) then
+       if (.not.isComputed(iTime)) then
           self%ageTableExpansionFactor(iTime)=matterDarkEnergyExpansionFactorChange(                                       &
                &                                                                    self%ageTableTime           (iTime-1), &
                &                                                                    self%ageTableTime           (iTime  ), &
@@ -617,19 +627,27 @@ contains
              end do
              self%enableRangeChecks=.true.
              self%timeMaximum      =2.0d0*self%timeTurnaround
-             ! Limit the tables to the expanding part of the evolution.
-             self%iTableTurnaround=iTime-2
+             ! Limit the tables to the expanding part of the evolution. The lattice held is shortened to match: its points are
+             ! unchanged, so the shortened table remains a set of points of the same absolute lattice and can be extended - or
+             ! carried over - exactly as before. Now that the epoch of turnaround is known it is imposed as a hard limit on the
+             ! range above, so this truncation happens only on the build which discovers it.
+             self%iTableTurnaround     =iTime-2
+             self%ageTableNumberPoints =self%iTableTurnaround
+             self%latticeAgeTable%count=self%ageTableNumberPoints
              call Move_Alloc(self%ageTableTime           ,ageTableTimeTemporary           )
              call Move_Alloc(self%ageTableExpansionFactor,ageTableExpansionFactorTemporary)
-             self%ageTableNumberPoints=self%iTableTurnaround
              allocate(self%ageTableTime           (self%ageTableNumberPoints))
              allocate(self%ageTableExpansionFactor(self%ageTableNumberPoints))
              self%ageTableTime           =ageTableTimeTemporary           (1:self%ageTableNumberPoints)
              self%ageTableExpansionFactor=ageTableExpansionFactorTemporary(1:self%ageTableNumberPoints)
+             self%ageTableTimeMaximum    =self%ageTableTime               (  self%ageTableNumberPoints)
              exit
           end if
        end if
     end do
+    ! Recompute the quantities required for table interpolation, so that they describe the table actually held even where it was
+    ! truncated at turnaround above.
+    self%ageTableInverseDeltaLogTime=dble(self%ageTableNumberPoints-1)/log(self%ageTableTimeMaximum/self%ageTableTimeMinimum)
     if (allocated(self%interpolatorTime)) deallocate(self%interpolatorTime)
     allocate(self%interpolatorTime)
     self%interpolatorTime=interpolator(self%ageTableExpansionFactor,self%ageTableTime)
