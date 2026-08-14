@@ -162,6 +162,7 @@ module Input_Parameters
        <method description="Reset all objects in this parameter set." method="reset" />
        <method description="Destroy the parameters document." method="destroy" />
        <method description="Return the path to this parameters object." method="path" />
+       <method description="Mark a parameter, in the output file, as having taken a default value." method="markDefaulted" />
        <method description="Assign input parameter objects." method="assignment(=)"/>
      </methods>
      !!]
@@ -188,6 +189,7 @@ module Input_Parameters
      procedure :: addParameter         => inputParametersAddParameter
      procedure :: reset                => inputParametersReset
      procedure :: path                 => inputParametersPath
+     procedure :: markDefaulted        => inputParametersMarkDefaulted
      procedure ::                         inputParametersAssignment
      generic   :: assignment(=)        => inputParametersAssignment
   end type inputParameters
@@ -280,20 +282,6 @@ module Input_Parameters
   type   (buildStackEntry), allocatable, dimension(:) :: buildStack
   integer                                             :: buildStackDepth=0
   !$omp threadprivate(buildStack,buildStackDepth)
-
-  ! Record of parameters for which a default value has been used, so that each is reported to the
-  ! user precisely once. Keys are the full parameter path (i.e. the path of the containing parameters
-  ! node, followed by the parameter name) - the same text that appears in the message - so that
-  ! distinct parameters sharing a container do not collide.
-  !
-  ! This record is deliberately *shared*: it is a module-level variable, not a component of
-  ! `inputParameters`, and is not threadprivate. Parameter sets are freely copied (once per OpenMP
-  ! thread, for example), and a parameter defaulted in one copy has already been reported to the
-  ! user, so must not be reported again by another - were this record held per-object and deep-copied
-  ! along with the parameter set, the number of messages would scale with the number of copies.
-  ! Access is guarded by the `inputParametersWarnedDefaults` critical section.
-  type   (integerDictionary)                          :: warnedDefaults
-  logical                                             :: warnedDefaultsInitialized=.false.
 
   ! Suffix appended to a parameter name to form the name of the attribute, written into the
   ! `Parameters` group of the output file, that marks the parameter as having taken a default value.
@@ -2258,14 +2246,36 @@ contains
     return
   end function inputParametersPath
 
+  subroutine inputParametersMarkDefaulted(self,parameterName)
+    !!{RST
+    Mark the named parameter, in the ``Parameters`` group of the output file, as having taken a
+    default value. Used for parameters which are not read through ``value()`` - in particular the
+    name of a ``functionClass`` object which was not specified and so was built from its default
+    class. A parameter given explicitly in the parameter file is never marked, so the absence of the
+    marker means that the value was supplied by the user.
+    !!}
+    use :: HDF5_Access, only : hdf5Access
+    implicit none
+    class    (inputParameters), intent(inout) :: self
+    character(len=*          ), intent(in   ) :: parameterName
+
+    if (.not.associated(self%outputParameters)) return
+    !$ call hdf5Access%set()
+    if (self%outputParameters%isOpen()) then
+       ! Write the marker only if it is absent: attributes are not, in general, overwritable.
+       if (.not.self%outputParameters%hasAttribute(parameterName//defaultedMarkerSuffix)) &
+            & call self%outputParameters%writeAttribute(.true.,parameterName//defaultedMarkerSuffix)
+    end if
+    !$ call hdf5Access%unset()
+    return
+  end subroutine inputParametersMarkDefaulted
+
   recursive subroutine inputParametersValueName{Type¦label}(self,parameterName,parameterValue,defaultValue,errorStatus,writeOutput,copyInstance,evaluate)
     !!{RST
     Return the value of the parameter specified by name.
     !!}
-    use :: Error             , only : Error_Report, Warn
+    use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
-    use :: ISO_Varying_String, only : char
-    use :: MPI_Utilities     , only : mpiSelf
     implicit none
     class           (inputParameters                         ), intent(inout), target   :: self
     character       (len=*                                   ), intent(in   )           :: parameterName
@@ -2275,7 +2285,6 @@ contains
     integer                                                   , intent(in   ), optional :: copyInstance
     logical                                                   , intent(in   ), optional :: writeOutput   , evaluate
     type            (inputParameter                          ), pointer                 :: parameterNode
-    type            (varying_string                          )                          :: parameterPath
     !![
     <optionalArgument name="writeOutput" defaultsTo=".true." />
     !!]
@@ -2284,21 +2293,12 @@ contains
        parameterNode => self%node(parameterName,copyInstance=copyInstance,writeOutput=writeOutput)
        call self%value(parameterNode,parameterValue,errorStatus,writeOutput,evaluate)
     else if (present(defaultValue)) then
-       ! Report the use of a default value for this parameter, but only the first time that it is
-       ! used. The key must be the full path *including* the parameter name - `path()` returns the
-       ! path of the containing parameters node only, so keying on that alone would cause distinct
-       ! parameters within the same container to collide, suppressing all but the first of them.
-       parameterPath=self%path()
-       !$omp critical (inputParametersWarnedDefaults)
-       if (.not.warnedDefaultsInitialized) then
-          warnedDefaults           =integerDictionary()
-          warnedDefaultsInitialized=.true.
-       end if
-       if (.not.warnedDefaults%exists(char(parameterPath)//parameterName)) then
-          if (mpiSelf%isMaster()) call Warn("Using default value for parameter '["//char(parameterPath)//parameterName//"]'")
-          call warnedDefaults%set(char(parameterPath)//parameterName,1)
-       end if
-       !$omp end critical (inputParametersWarnedDefaults)
+       ! The use of a default value is not reported to the terminal. Using a default is an extremely
+       ! common idiom - a small model defaults of order a hundred parameters - so reporting each one
+       ! swamped the warning list which `Error_Report` replays, crowding genuine warnings out of it
+       ! entirely (the list retains a bounded number of unique messages). The information is instead
+       ! recorded in the output file, where each defaulted parameter is marked; see
+       ! `defaultedMarkerSuffix`.
        parameterValue=defaultValue
        ! Write the parameter file to an HDF5 object.
        if (associated(self%outputParameters)) then

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Changes applied to `parametersExtract.xml` for `test-parameters-default-reporting.py`.       -->
-<!-- The verbosity is raised to `warn` so that reports of the use of default parameter values are -->
-<!-- displayed as they are issued (below that level they are merely accumulated for replay on a   -->
-<!-- fatal error), and the output is directed to a file of its own.                               -->
+<!-- The verbosity is raised to `warn` so that any warning issued would be displayed as it is     -->
+<!-- issued; the test relies on this to show that the use of a default value or class is *not*    -->
+<!-- reported to the terminal. The output is directed to a file of its own.                       -->
 <changes>
 
   <change type="replaceOrAppend" path="verbosityLevel">

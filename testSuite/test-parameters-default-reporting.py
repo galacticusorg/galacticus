@@ -1,27 +1,24 @@
 #!/usr/bin/env python3
-"""Test the reporting of parameters which take default values (issue #1353).
+"""Test the recording of parameters which take default values (issue #1353).
 
-Two properties are pinned here, corresponding to the two defects that this test
-was written alongside the fix for. They partly masked one another, so both must
-be checked:
+Galacticus does not report the use of a default to the terminal. Defaulting is
+an extremely common idiom - a small model defaults of order a hundred parameters
+and as many classes - so reporting each one swamped the bounded list of warnings
+that `Error_Report` replays on a fatal error, crowding genuine warnings out of it
+entirely. The information is recorded in the output file instead, where each
+defaulted parameter carries a companion attribute named for it plus the
+`{defaulted}` suffix.
 
-  * Each defaulted parameter is reported *exactly once*, however many threads the
-    model runs on. The record of which parameters have already been reported is
-    shared, rather than being deep-copied into the per-thread copies of the
-    parameter set - were it copied, each thread would re-report parameters that
-    another thread had already reported, and the message count would scale with
-    the thread count. The model is therefore run multi-threaded here; on a single
-    thread this check could not fail.
+This test pins that contract from both sides:
 
-  * Parameters which share a container are reported *separately*. The record is
-    keyed on the full parameter path including the parameter name; were it keyed
-    on the containing node's path alone, all but the first parameter defaulted
-    within any one container would be silently suppressed.
-
-The marking of defaulted parameters in the output file's `Parameters` group is
-also checked: a parameter which took a default value carries a companion
-attribute named for it plus the `{defaulted}` suffix, and one given explicitly in
-the parameter file carries no such attribute.
+  * No default-related message appears on the terminal, even at `warn` verbosity.
+  * Both kinds of default are marked in the output file - a parameter whose
+    *value* was defaulted, and a `functionClass` parameter whose *class* was not
+    specified and so was built from its default.
+  * A parameter given explicitly in the parameter file is not marked, so the
+    absence of a marker means the value came from the user.
+  * Every marker annotates a parameter which is itself present, and the set of
+    markers does not depend on the number of threads.
 
 Andrew Benson
 """
@@ -43,113 +40,138 @@ outputFile    = "outputs/defaultParameterReporting.hdf5"
 logFileName   = "outputs/test-parameters-default-reporting.log"
 
 subprocess.run("mkdir -p outputs",shell=True)
-subprocess.run(f"rm -f {outputFile}",shell=True)
 
 failed = False
 
-# Run the model on several threads. The thread count matters: the duplicate
-# reporting this test guards against was produced by the per-thread copies of the
-# parameter set, so it is invisible on a single thread.
+
+def runModel(threadCount):
+    """Run the model on the given number of threads, returning its output."""
+    subprocess.run(f"rm -f {outputFile}",shell=True)
+    process = subprocess.run(
+        f"export OMP_NUM_THREADS={threadCount}; cd ..; "
+        f"./Galacticus.exe {parameterFile} {changeFile}",
+        shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        universal_newlines=True,
+    )
+    return process.returncode, process.stdout or ""
+
+
+def readMarkers():
+    """Return {group: (values, markers)} for the output file's Parameters group."""
+    groups = {}
+
+    def visit(name,node):
+        if not isinstance(node,h5py.Group):
+            return
+        values  = set()
+        markers = set()
+        for attributeName in node.attrs.keys():
+            if attributeName.endswith(defaultedMarkerSuffix):
+                markers.add(attributeName[:-len(defaultedMarkerSuffix)])
+            else:
+                values.add(attributeName)
+        groups[name] = (values,markers)
+
+    with h5py.File(outputFile,"r") as outputFileHDF5:
+        parameters = outputFileHDF5["Parameters"]
+        visit("parameters",parameters)
+        parameters.visititems(visit)
+    return groups
+
+
+# Run the model. The thread count matters: the record of defaulted parameters is
+# shared rather than copied per thread, so a per-thread copy must not be able to
+# change what is recorded.
 print("Running model...")
-process = subprocess.run(
-    "export OMP_NUM_THREADS=4; cd ..; "
-    f"./Galacticus.exe {parameterFile} {changeFile}",
-    shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-    universal_newlines=True,
-)
-output = process.stdout or ""
+returnCode,output = runModel(4)
 with open(logFileName,"w") as logFile:
     logFile.write(output)
 print("...done")
 
-if process.returncode != 0:
-    print(f"FAILED: model did not run to completion (return code {process.returncode}) - see {logFileName}")
+if returnCode != 0:
+    print(f"FAILED: model did not run to completion (return code {returnCode}) - see {logFileName}")
     failed = True
 
-# Collect the reported parameters. The message names the parameter by its full
-# path, in brackets.
-reported = re.findall(r"Using default value for parameter '\[([^\]]+)\]'",output)
+# No default-related message may be emitted, even at `warn` verbosity.
+if not failed:
+    stray = re.findall(r"Using default (?:value|class) for parameter '\[[^\]]+\]'",output)
+    if stray:
+        print(f"FAILED: {len(stray)} default-related messages were emitted to the terminal; these are recorded in the output file and must not be reported as warnings")
+        failed = True
+    else:
+        print("SUCCESS: no default-related messages were emitted to the terminal")
 
-if not failed and len(reported) == 0:
-    print("FAILED: no default parameter values were reported - the test model is expected to default many parameters")
+if not failed and not os.path.exists(outputFile):
+    print(f"FAILED: output file {outputFile} was not produced")
     failed = True
 
-# Each parameter must be reported exactly once.
 if not failed:
-    repeated = sorted({parameter for parameter in reported if reported.count(parameter) > 1})
-    if repeated:
-        print(f"FAILED: {len(repeated)} parameters were reported more than once; the record of already-reported parameters is not being shared between copies of the parameter set. First few: {repeated[:5]}")
+    groups = readMarkers()
+
+    # Every marker must annotate a parameter which is itself present.
+    markerCount = sum(len(markers) for _,markers in groups.values())
+    orphaned    = [f"{group}/{marker}"
+                   for group,(values,markers) in groups.items()
+                   for marker in markers if marker not in values]
+    if markerCount == 0:
+        print("FAILED: no defaulted parameters were marked in the output file's `Parameters` group")
+        failed = True
+    elif orphaned:
+        print(f"FAILED: {len(orphaned)} markers annotate no parameter of their own. First few: {orphaned[:5]}")
         failed = True
     else:
-        print(f"SUCCESS: each of the {len(reported)} defaulted parameters was reported exactly once")
+        print(f"SUCCESS: {markerCount} defaulted parameters are marked, each annotating a parameter that is present")
 
-# Parameters sharing a container must be reported separately. Split each reported
-# path into its containing path and the parameter name, and require that at least
-# one container contributes more than one parameter - which cannot happen if the
-# containing path alone is used to identify a parameter.
+# A defaulted *class* must be marked. `linearGrowth` is not specified in the
+# parameter file, so its class is built from the default - the same default that
+# `test-parameters-extract.py` checks appears in an extracted parameter file.
 if not failed:
-    containers = {}
-    for parameter in reported:
-        container,_,name = parameter.rpartition("/")
-        containers.setdefault(container,[]).append(name)
-    shared = {container: names for container,names in containers.items() if len(names) > 1}
-    if shared:
-        print(f"SUCCESS: parameters sharing a container are reported separately ({len(shared)} containers report more than one parameter)")
+    topLevelValues,topLevelMarkers = groups["parameters"]
+    defaultedClass = "linearGrowth"
+    if defaultedClass not in topLevelValues:
+        print(f"FAILED: expected defaulted class `{defaultedClass}` is absent from the output file")
+        failed = True
+    elif defaultedClass not in topLevelMarkers:
+        print(f"FAILED: class `{defaultedClass}` was built from its default but is not marked as defaulted")
+        failed = True
     else:
-        print("FAILED: no container reported more than one parameter, which suggests that parameters sharing a container are colliding and all but the first are being suppressed")
-        failed = True
+        print(f"SUCCESS: defaulted class `{defaultedClass}` is marked in the output file")
 
-# Check the marking of defaulted parameters in the output file.
+# A parameter given explicitly in the parameter file must carry no marker.
 if not failed:
-    if not os.path.exists(outputFile):
-        print(f"FAILED: output file {outputFile} was not produced")
+    explicit = "componentBasic"
+    if explicit not in topLevelValues:
+        print(f"FAILED: expected parameter `{explicit}` is absent from the output file, so the marking of explicitly-set parameters cannot be checked")
         failed = True
+    elif explicit in topLevelMarkers:
+        print(f"FAILED: parameter `{explicit}` is set explicitly in the parameter file but is marked as having taken a default value")
+        failed = True
+    else:
+        print(f"SUCCESS: explicitly-set parameter `{explicit}` carries no defaulted marker")
 
+# The set of markers must not depend on the thread count.
 if not failed:
-    with h5py.File(outputFile,"r") as outputFileHDF5:
-        parameters = outputFileHDF5["Parameters"]
-
-        # Every marker must annotate a parameter which is itself present.
-        markerCount = 0
-        orphaned    = []
-
-        def checkGroup(name,node):
-            global markerCount
-            if not isinstance(node,h5py.Group):
-                return
-            for attributeName in node.attrs.keys():
-                if attributeName.endswith(defaultedMarkerSuffix):
-                    markerCount += 1
-                    marked = attributeName[:-len(defaultedMarkerSuffix)]
-                    if marked not in node.attrs:
-                        orphaned.append(f"{name}/{attributeName}")
-
-        checkGroup("parameters",parameters)
-        parameters.visititems(checkGroup)
-
-        if markerCount == 0:
-            print("FAILED: no defaulted parameters were marked in the output file's `Parameters` group")
-            failed = True
-        elif orphaned:
-            print(f"FAILED: {len(orphaned)} defaulted markers annotate no parameter of their own. First few: {orphaned[:5]}")
-            failed = True
+    markersMultiThreaded = {(group,marker)
+                            for group,(_,markers) in groups.items()
+                            for marker in markers}
+    returnCodeSingle,_ = runModel(1)
+    if returnCodeSingle != 0:
+        print(f"FAILED: single-threaded model did not run to completion (return code {returnCodeSingle})")
+        failed = True
+    else:
+        markersSingleThreaded = {(group,marker)
+                                 for group,(_,markers) in readMarkers().items()
+                                 for marker in markers}
+        if markersSingleThreaded == markersMultiThreaded:
+            print(f"SUCCESS: the {len(markersMultiThreaded)} markers are identical on 1 and 4 threads")
         else:
-            print(f"SUCCESS: {markerCount} defaulted parameters are marked in the output file")
-
-        # A parameter given explicitly in the parameter file must carry no marker.
-        explicit = "componentBasic"
-        if explicit not in parameters.attrs:
-            print(f"FAILED: expected parameter `{explicit}` is absent from the output file, so the marking of explicitly-set parameters cannot be checked")
+            difference = markersSingleThreaded ^ markersMultiThreaded
+            print(f"FAILED: the markers differ between 1 and 4 threads ({len(difference)} differences). First few: {sorted(difference)[:5]}")
             failed = True
-        elif explicit+defaultedMarkerSuffix in parameters.attrs:
-            print(f"FAILED: parameter `{explicit}` is set explicitly in the parameter file but is marked as having taken a default value")
-            failed = True
-        else:
-            print(f"SUCCESS: explicitly-set parameter `{explicit}` carries no defaulted marker")
 
 # Failure is signaled by the text above, not by the exit status.
 if failed:
-    print("FAILED: default parameter reporting")
+    print("FAILED: default parameter recording")
 else:
-    print("SUCCESS: default parameter reporting")
+    print("SUCCESS: default parameter recording")
 sys.exit(0)
