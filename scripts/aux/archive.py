@@ -177,8 +177,20 @@ for group in links:
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         report["report"] += f"RETRIEVING: {link}\n"
         # `--no-check-certificate` matches the behavior of the run-time downloader (`downloadMultiple()` in
-        # `source/system/downloader.F90`), so that the archiver can retrieve exactly what a model run would.
-        result = subprocess.run(["wget", "--no-check-certificate", link, "-O", dest])
+        # `source/system/downloader.F90`), so that the archiver can retrieve exactly what a model run would. `--ciphers=DEFAULT`
+        # likewise matches it: `wget`'s own default cipher list yields a TLS handshake which some content delivery networks
+        # (bitbucket.org, which hosts the NGenHalofit source, among them) fingerprint as a bot and reject with a "404 Not Found"
+        # for every URL on the host, so that the failure looks like missing content rather than a refused client.
+        result = subprocess.run(["wget", "--no-check-certificate", "--ciphers=DEFAULT", link, "-O", dest])
+        if result.returncode != 0:
+            # Fall back to `curl`, again mirroring the run-time downloader. A failure of one downloader does not establish that
+            # the content is unavailable, since a host may reject one client at the TLS layer while accepting the other.
+            if os.path.exists(dest):
+                os.remove(dest)
+            # `--fail` is essential: without it `curl` treats an HTTP error response as a successful transfer, exiting with zero
+            # status after writing the server's error page to the output file. That page would then be archived as though it were
+            # the requested content, and counted as "already archived" on every subsequent run.
+            result = subprocess.run(["curl", "--location", "--insecure", "--fail", "--output", dest, "--", link])
         if result.returncode == 0:
             break
         # Do not leave a partial file behind, which would otherwise count as "already archived" on the next run.

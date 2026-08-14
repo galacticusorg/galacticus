@@ -17,6 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    The fallback from `wget` to `curl` within a single download attempt, and the use of `--ciphers=DEFAULT` to avoid hosts which
+!+    reject `wget` on the basis of its TLS handshake, were diagnosed and drafted with assistance from Claude, and reviewed and
+!+    verified by Andrew Benson.
+
 !!{RST
 Contains a module which downloads content from a supplied URL (or list of URLs).
 !!}
@@ -232,6 +236,10 @@ contains
     Download content to the given ``outputFileName``, trying each URL in url in turn. If the download from one URL fails (even
     after any retries), the next URL is used as a fallback. The download is considered successful as soon as any URL succeeds.
 
+    Each attempt uses ``wget``, falling back to ``curl`` if ``wget`` is unavailable or fails. Both are tried because a failure of
+    one does not establish that the content is unavailable---a host which fingerprints and rejects a client at the TLS layer will
+    reject it for every URL and on every retry, while accepting the other client.
+
     TLS certificates are verified by default. Setting ``allowInsecure`` to true disables that verification, which leaves the
     download open to interception and modification by anyone able to intercept the connection---content fetched this way must be
     treated as untrusted. It exists only for hosts which serve an unusable certificate and for which no alternative source is
@@ -266,15 +274,22 @@ contains
        tries=0
        do while (tries <= retries_)
           status_=errorStatusFail
-          if      (downloadUsingWget) then
+          if (downloadUsingWget) then
              command=downloadCommand(url(i),outputFileName,timeout_,allowInsecure_,downloaderWget)
              call System_Command_Do(char(command),status_)
-          else if (downloadUsingCurl) then
+          end if
+          ! If `wget` is unavailable, or failed, try `curl`. A failure of one downloader does not imply that the content is
+          ! unavailable: hosts which fingerprint and reject a client at the TLS layer do so irrespective of the URL requested, so
+          ! the other downloader may well succeed where this one could never do so no matter how many times it is retried.
+          if (status_ /= errorStatusSuccess .and. downloadUsingCurl) then
+             ! Remove any partial file left behind by a failed `wget` attempt, so that no part of it can survive into the file
+             ! written by `curl`.
+             if (File_Exists(outputFileName)) call File_Remove(outputFileName)
              command=downloadCommand(url(i),outputFileName,timeout_,allowInsecure_,downloaderCurl)
              call System_Command_Do(char(command),status_)
-          else if (.not.present(status)) then
-             call Error_Report('no downloader available'//{introspection:location})
           end if
+          if (.not.downloadUsingWget .and. .not.downloadUsingCurl .and. .not.present(status)) &
+               & call Error_Report('no downloader available'//{introspection:location})
           if (status_ == errorStatusSuccess) then
              if (present(status)) status=status_
              return
@@ -335,14 +350,26 @@ contains
        ! `downloadMultiple`, so allowing `wget` to also retry internally results in a multiplicative number of attempts (and can
        ! cause the download to far exceed any time limit when each internal attempt hangs until its read-timeout). The `--timeout`
        ! option bounds the time spent on DNS lookup, connection, and reads for the single attempt.
-       command='wget --tries=1 --timeout='//trim(timeoutLabel)//' '
+       !
+       ! `--ciphers=DEFAULT` replaces `wget`'s own, more restrictive, default cipher list with that of the underlying TLS library.
+       ! `wget`'s default list yields a TLS handshake which some content delivery networks (bitbucket.org, which hosts the
+       ! NGenHalofit source, among them) fingerprint as a bot and reject---returning a "404 Not Found" for every URL on the host,
+       ! including its front page, so that the failure masquerades as missing content rather than a refused client. This does not
+       ! weaken certificate verification, which remains controlled by `--no-check-certificate` below. A `wget` too old to accept
+       ! `--ciphers` will reject the option and exit without contacting the host---the fallback to `curl` in `downloadMultiple`
+       ! covers that case, so downloads still succeed wherever `curl` is available.
+       command='wget --tries=1 --ciphers=DEFAULT --timeout='//trim(timeoutLabel)//' '
        if (allowInsecure) command=command//'--no-check-certificate '
        command=command//'-O '//escapedOutputFile//' -- '//escapedURL
     case (downloaderCurl)
        ! Force `curl` to make only a single attempt (i.e. disable its own retrying) so that retries are handled solely by the
        ! calling loop, consistent with the behavior of `wget` above. The `--max-time` option bounds the total time allowed for the
        ! single attempt.
-       command='curl --location --retry 0 --max-time '//trim(timeoutLabel)//' '
+       !
+       ! `--fail` is essential: without it `curl` treats an HTTP error response as a successful transfer, exiting with zero status
+       ! after writing the server's error page to the output file. The download would then be reported as having succeeded, and
+       ! the error page used as though it were the requested content.
+       command='curl --location --retry 0 --fail --max-time '//trim(timeoutLabel)//' '
        if (allowInsecure) command=command//'--insecure '
        command=command//'--output '//escapedOutputFile//' -- '//escapedURL
     case default
