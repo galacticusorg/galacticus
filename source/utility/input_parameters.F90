@@ -2237,10 +2237,13 @@ contains
     class(inputParameters), intent(in   ), target :: self
     type (inputParameter ), pointer               :: parameterNode
     
+    ! The tree is walked from this node *upwards*, so each ancestor's name is prepended, not
+    ! appended: appending would build the path in reverse, reporting `b/a/` for a node `a` which
+    ! contains `b`.
     parameterNode       => self%parameters
     inputParametersPath =  ""
     do while (associated(parameterNode))
-       if (associated(parameterNode%content)) inputParametersPath=inputParametersPath//getNodeName(parameterNode%content)//"/"
+       if (associated(parameterNode%content)) inputParametersPath=getNodeName(parameterNode%content)//"/"//inputParametersPath
        parameterNode => parameterNode%parent
     end do
     return
