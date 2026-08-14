@@ -17,6 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson. The routing of all exits through a common finalization for issue #1360
+!+    was drafted with assistance from Claude, and reviewed and verified by Andrew Benson.
+
 ! Specify an explicit dependence on the interface.GSL.C.root_finding.o object file.
 !: $(BUILDPATH)/interface/GSL/C/root_finding.o
 
@@ -601,7 +604,8 @@ contains
     class           (*                   ), pointer                               :: dummyPointer_
     integer                               , parameter                             :: iterationMaximum =1000
     integer                               , parameter                             :: findersIncrement =   3
-    logical                                                                       :: rangeChanged          , rangeLowerAsExpected, rangeUpperAsExpected
+    logical                                                                       :: rangeChanged          , rangeLowerAsExpected, rangeUpperAsExpected, &
+         &                                                                           errorHandlerDisabled
     integer                                                                       :: iteration             , statusActual
     double precision                                                              :: xHigh                 , xLow                , xRoot               , &
          &                                                                           xRootPrevious         , fLow                , fHigh               , &
@@ -615,6 +619,8 @@ contains
 
     ! Begin reporting.
     if (report_) call displayIndent("Root finder report:")
+    ! Record that this invocation has not (yet) disabled GSL's abort-on-error handler.
+    errorHandlerDisabled=.false.
     ! Add the current finder to the list of finders. This allows us to track back to the previously used finder if this function is called recursively.
     currentFinderIndex=currentFinderIndex+1
     if (allocated(currentFinders)) then
@@ -741,8 +747,8 @@ contains
        if (.not.rangeLowerAsExpected) then
           if (present(status)) then
              status        =errorStatusOutOfRange
-             call popCurrentFinder()
              rootFinderFind=self%rangeDownwardLimit
+             call finalizeFind()
              return
           else
              message='root function has incorrect sign at downward limit'
@@ -772,8 +778,8 @@ contains
        if (.not.rangeUpperAsExpected) then
           if (present(status)) then
              status        =errorStatusOutOfRange
-             call popCurrentFinder()
              rootFinderFind=self%rangeUpwardLimit
+             call finalizeFind()
              return
           else
              message='root function has incorrect sign at upward limit'
@@ -787,10 +793,13 @@ contains
           call displayMessage(message)
        end if
     end if
-    ! Set error handler if necessary.
+    ! Set error handler if necessary. Note that 'errorHandlerDisabled' records that this invocation is responsible for
+    ! re-enabling the handler - it must not be re-enabled by any invocation which did not disable it, as the handler state is
+    ! tracked by a counter which disables aborts whenever it is non-zero.
     if (present(status)) then
        call GSL_Error_Handler_Abort_Off()
-       statusActual=errorStatusSuccess
+       errorHandlerDisabled=.true.
+       statusActual        =errorStatusSuccess
     end if
     ! Expand the range as necessary.
     if (self%useDerivative) then
@@ -950,7 +959,7 @@ contains
              end if
              if (present(status)) then
                 status=errorStatusOutOfRange
-                call popCurrentFinder()
+                call finalizeFind()
                 return
              else
                 fLow =self%finderFunction(xLow )
@@ -1063,15 +1072,28 @@ contains
        end if
        if (report_) call displayUnindent("done")
     end if
-    ! Reset error handler.
-    if (present(status)) call GSL_Error_Handler_Abort_On()
-    ! Restore state.
-    call popCurrentFinder()
-    ! Finish reporting.
-    if (report_) call displayUnindent("done")
+    ! Reset error handler, restore state, and finish reporting.
+    call finalizeFind()
     return
 
   contains
+
+    subroutine finalizeFind()
+      !!{RST
+      Perform all clean up necessary before returning from ``rootFinderFind``: re-enable GSL's abort-on-error handler if this invocation disabled it, unwind the active-finder stack, and close the report indent.
+
+      Every exit from ``rootFinderFind`` - including the early returns taken when the root is out of range - must pass through this routine. Returning directly would leave the (thread-local) abort handler disabled for the remainder of the run, so that later GSL errors anywhere in the code - including in callers which pass no ``status`` and so rely on GSL aborting - would fail silently instead of aborting.
+      !!}
+      implicit none
+
+      if (errorHandlerDisabled) then
+         call GSL_Error_Handler_Abort_On()
+         errorHandlerDisabled=.false.
+      end if
+      call popCurrentFinder()
+      if (report_) call displayUnindent("done")
+      return
+    end subroutine finalizeFind
 
     subroutine popCurrentFinder()
       !!{RST

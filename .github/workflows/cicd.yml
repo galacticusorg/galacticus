@@ -1197,6 +1197,17 @@ jobs:
       # tabulation gained value reuse (13.4 GB, 28 minutes).
       ompNumThreads: 1
     secrets: inherit
+  Validate-Fuzzy-Dark-Matter-Heated:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-fuzzyDarkMatterHeated.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      cacheData: 1
+      ompNumThreads: 2
+    secrets: inherit
   # Tests
   ## Linux
   ### Test Codes
@@ -1315,11 +1326,15 @@ jobs:
                       tests.dark_matter_profiles.finite_resolution.exe,
                       tests.dark_matter_profiles.Zhao1996.exe,
                       tests.dark_matter_profiles.fuzzy_dark_matter.exe,
+                      tests.satellites.tidal_stripping.radius.soliton_limited.exe,
                       tests.decaying_dark_matter.exe,
                       tests.decaying_dark_matter_spherical_collapse.exe,
                       tests.spectra.postprocess.Inoue2014.exe,
                       tests.recombination_computed.exe,
                       tests.recombination_cooling.Hummer.exe,
+                      tests.intergalactic_medium_state.exe,
+                      tests.radiation_fields.exe,
+                      tests.conditional_mass_functions.exe,
                       tests.locks.exe,
                       tests.warnings.exe,
                       tests.initial_mass_functions.exe,

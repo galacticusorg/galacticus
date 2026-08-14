@@ -23,6 +23,7 @@ Implements a merger tree branching probability class using the algorithm of :cit
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: Numerical_Integration     , only : integrator
+  use :: Numerical_Ranges          , only : rangeLattice
   use :: Tables                    , only : table1DLogarithmicLinear
 
   !![
@@ -52,6 +53,10 @@ Implements a merger tree branching probability class using the algorithm of :cit
      logical                                                  :: hypergeometricTabulate                           , cdmAssumptions                             , &
           &                                                      hypergeometricFailureWarned                      , tolerateRoundOffErrors
      type            (table1DLogarithmicLinear     )          :: subresolutionHypergeometric                      , upperBoundHypergeometric
+     ! Lattices to which the tabulated abscissae are pinned. These are the source of truth for the extent of each tabulation. The
+     ! abscissae of the upper bound tabulation are masses in units of twice the mass resolution - see
+     ! `parkinsonColeHellyUpperBoundHypergeometricTabulate`.
+     type            (rangeLattice                 )          :: latticeSubresolution                             , latticeUpperBound
      logical                                                  :: subresolutionHypergeometricInitialized =  .false., upperBoundHypergeometricInitialized=.false.
      double precision                                         :: massResolutionTabulated                          , factorG0Gamma2                             , &
           &                                                      branchingProbabilityPreFactor                    , sigmaParentSquared                         , &
@@ -812,7 +817,9 @@ contains
              ! tables already include the difference between the upper and lower integrand, we simply set the lower
              ! integrand to zero here.
              call parkinsonColeHellyUpperBoundHypergeometricTabulate(self,self%massHaloParent,massResolution)
-             probabilityIntegrandUpper=self%factorG0Gamma2*self%upperBoundHypergeometric%interpolate(self%massHaloParent)/self%resolutionSigma
+             ! The upper bound tabulation is made against mass in units of twice the mass resolution - see
+             ! `parkinsonColeHellyUpperBoundHypergeometricTabulate`.
+             probabilityIntegrandUpper=self%factorG0Gamma2*self%upperBoundHypergeometric%interpolate(self%massHaloParent/(2.0d0*self%massResolutionTabulated))/self%resolutionSigma
              probabilityIntegrandLower=0.0d0
           else
              ! Use a direct calculation of the hypergeometric factors in this case.
@@ -1001,65 +1008,182 @@ contains
     return
   end subroutine parkinsonColeHellyComputeCommonFactors
 
+  double precision function parkinsonColeHellyHypergeometricFactor(x,gamma,toleranceRelative) result(factor)
+    !!{RST
+    Evaluate the factor
+
+    .. math::
+
+       (1+x)^{\gamma-1} \, {}_2F_1\left(\frac{3}{2},\frac{1-\gamma}{2};\frac{3-\gamma}{2};\frac{1}{(1+x)^2}\right) \Big/ (1-\gamma)
+
+    which appears in the subresolution merger fraction, as a function of :math:`x`---the excess of the ratio of
+    :math:`\sigma(M_\mathrm{res})` to :math:`\sigma(M_\mathrm{parent})` over unity.
+
+    Evaluating this directly is impossible for small :math:`x`. The argument of the hypergeometric function,
+    :math:`z=1/(1+x)^2`, approaches its singular point :math:`z=1` as :math:`x \rightarrow 0`, and since
+    :math:`1+x` cannot be distinguished from :math:`1` once :math:`x` falls below the machine epsilon, :math:`z`
+    becomes *exactly* :math:`1` and the evaluation fails outright with a domain error. Well before that it loses
+    precision: what the function depends on is :math:`1-z`, which is formed by a subtraction from unity and so
+    carries an absolute error of order the machine epsilon---a relative error of order
+    :math:`\epsilon/2x`, which reaches a part in :math:`10^8` by :math:`x=10^{-8}`.
+
+    The cure is to evaluate in terms of :math:`w \equiv 1-z = x(2+x)/(1+x)^2`, which suffers no such cancellation,
+    using the connection formula between :math:`z` and :math:`1-z` (:cite:t:`olver_nist_2010`, eq. 15.8.4). Here
+    :math:`c-a-b=-1/2` exactly---never an integer, so that formula is always valid---and two simplifications
+    follow: the first of its two hypergeometric functions has equal first numerator and denominator parameters, so
+    it collapses to :math:`(1-w)^{(\gamma-1)/2}=(1+x)^{1-\gamma}` and cancels the prefactor entirely, leaving a
+    constant; and the second reduces to :math:`{}_2F_1(-\gamma/2,1;1/2;w)`, whose series in :math:`w` has the
+    simple ratio of successive terms used below. The result is
+
+    .. math::
+
+       \frac{-2\sqrt{\pi}\,\Gamma\left(\frac{3-\gamma}{2}\right)}{(1-\gamma)\Gamma\left(-\frac{\gamma}{2}\right)}
+       + \frac{(1+x)^{\gamma-1}}{\sqrt{w}} \, {}_2F_1\left(-\frac{\gamma}{2},1;\frac{1}{2};w\right),
+
+    which is exact, not asymptotic. The series is used below :math:`x=1/10`, where it needs some twenty terms and
+    agrees with the direct evaluation to a part in :math:`10^{15}`; above that the direct evaluation is used, as
+    the series converges ever more slowly while the direct evaluation is at its most accurate.
+    !!}
+    use :: Gamma_Functions         , only : Gamma_Function
+    use :: Hypergeometric_Functions, only : Hypergeometric_2F1
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    double precision, intent(in   ) :: x                         , gamma         , &
+         &                             toleranceRelative
+    ! Value of x below which the series in w is used in place of a direct evaluation.
+    double precision, parameter     :: xSeriesMaximum    =0.1d+00
+    ! Maximum number of terms to accumulate in that series. Twenty are needed at the switch-over, so this is never
+    ! approached - it exists only to bound the loop.
+    integer         , parameter     :: countTermsMaximum =1000
+    ! Tolerance within which -γ/2 is judged to sit on a pole of the Γ function.
+    double precision, parameter     :: toleranceGammaPole=1.0d-12
+    double precision                :: w                         , term          , &
+         &                             seriesSum                 , factorConstant
+    integer                         :: i
+
+    if (x > xSeriesMaximum) then
+       ! Away from the singular point evaluate directly.
+       factor=+(1.0d0+x)**(+gamma-1.0d0)                                       &
+            & /             (-gamma+1.0d0)                                     &
+            & *Hypergeometric_2F1(                                             &
+            &                                       [1.5d0,0.5d0-0.5d0*gamma], &
+            &                                       [      1.5d0-0.5d0*gamma], &
+            &                                       1.0d0/(1.0d0+x)**2       , &
+            &                     toleranceRelative=toleranceRelative          &
+            &                    )
+    else
+       ! Close to the singular point evaluate through the connection formula, in terms of w=1-z, which is free of
+       ! the cancellation that destroys z.
+       w      =+       x     &
+            &  *(2.0d0+x)    &
+            &  /(1.0d0+x)**2
+       ! Accumulate ₂F₁(-γ/2,1;1/2;w). Since the second numerator parameter is unity the factorial in the series
+       ! cancels the Pochhammer symbol it would otherwise carry, leaving this ratio of successive terms.
+       term     =1.0d0
+       seriesSum=1.0d0
+       do i=0,countTermsMaximum-1
+          term     =+term                   &
+               &    *(-0.5d0*gamma+dble(i)) &
+               &    /(+0.5d0      +dble(i)) &
+               &    *w
+          seriesSum=seriesSum+term
+          if (abs(term) <= toleranceRelative*abs(seriesSum)) exit
+       end do
+       ! The constant term. Γ(-γ/2) has poles at γ=0,2,4,…, at which this term vanishes.
+       if (gamma >= -toleranceGammaPole .and. abs(gamma-2.0d0*dble(nint(gamma/2.0d0))) < toleranceGammaPole) then
+          factorConstant=+0.0d0
+       else
+          factorConstant=-2.0d0                             &
+               &         *sqrt(Pi)                          &
+               &         *Gamma_Function(1.5d0-0.5d0*gamma) &
+               &         /Gamma_Function(     -0.5d0*gamma) &
+               &         /             (-gamma+1.0d0)
+       end if
+       factor=+factorConstant            &
+            & +(1.0d0+x)**(+gamma-1.0d0) &
+            & *seriesSum                 &
+            & /sqrt(w)
+    end if
+    return
+  end function parkinsonColeHellyHypergeometricFactor
+
   subroutine parkinsonColeHellySubresolutionHypergeometricTabulate(self,x,xMinimumIn,xMaximumIn)
     !!{RST
     Tabulate the hypergeometric term appearing in the subresolution merger fraction expression.
     !!}
-    use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Ranges        , only : Range_Pinned          , gridSchemePerDecade
     use :: Table_Labels            , only : extrapolationTypeAbort
     implicit none
-    class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout)           :: self
-    double precision                                                  , intent(in   )           :: x
-    double precision                                                  , intent(in   ), optional :: xMinimumIn                    , xMaximumIn
-    integer                                                           , parameter               :: xCountPerDecade=10
-    double precision                                                  , parameter               :: sqrtTwoOverPi  =sqrt(2.0d0/Pi)
-    double precision                                                                            :: xMinimum                      , xMaximum
-    integer                                                                                     :: xCount                        , i
-    logical                                                                                     :: tabulate
+    class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout)               :: self
+    double precision                                                  , intent(in   )               :: x
+    double precision                                                  , intent(in   ), optional     :: xMinimumIn                    , xMaximumIn
+    ! The tabulation is made at twenty points per decade. Ten points per decade leaves an interpolation error of order two parts
+    ! in a thousand in the subresolution accretion rate, which is the accuracy to which that rate is checked against a direct
+    ! evaluation of the hypergeometric functions - so the tabulated result sat exactly at the limit of its own tolerance, and any
+    ! change in where the tabulated points fall relative to the value being interpolated could carry it over. The error falls as
+    ! the square of the spacing, so this places it comfortably within that tolerance instead.
+    integer                                                           , parameter                   :: xCountPerDecade=20
+    double precision                                                  , parameter                   :: sqrtTwoOverPi  =sqrt(2.0d0/Pi)
+    double precision                                                  , parameter                   :: xSeedMinimum   =1.0d-9        , xSeedMaximum=12.5d0
+    double precision                                                                                :: xMinimum                      , xMaximum
+    type            (rangeLattice                                    )                              :: latticeX
+    logical                                                           , allocatable  , dimension(:) :: isComputed
+    integer                                                                                         :: i
+    logical                                                                                         :: tabulate
 
-    tabulate=.false.
+    ! Discard any previous tabulation which has been marked as invalid, so that no stale value is carried over into the new one.
     if (.not.self%subresolutionHypergeometricInitialized) then
-       tabulate=.true.
-       if (present(xMinimumIn)) then
-          xMinimum=xMinimumIn
-       else
-          xMinimum=min( 1.0d-9 ,     (x-1.0d0))
-       end if
-       if (present(xMaximumIn)) then
-          xMaximum=xMaximumIn
-       else
-          xMaximum=max(12.5d+0,2.0d0*(x-1.0d0))
-       end if
-    else
-       if     (                                                    &
-            &   (x-1.0d0) < self%subresolutionHypergeometric%x(+1) &
-            &  .or.                                                &
-            &   (x-1.0d0) > self%subresolutionHypergeometric%x(-1) &
-            & ) then
-          tabulate=.true.
-          xMinimum=min(self%subresolutionHypergeometric%x(+1),      (x-1.0d0))
-          xMaximum=max(self%subresolutionHypergeometric%x(-1),2.0d0*(x-1.0d0))
-       end if
+       call self%subresolutionHypergeometric%destroy()
+       self%latticeSubresolution=rangeLattice()
     end if
+    ! Find the range to tabulate, pinning it to an absolute lattice so that the abscissae evaluated - and therefore every value
+    ! interpolated between them - depend only on which lattice points are spanned, and not on the sequence of requests. The
+    ! safety margin is one-sided - a factor of two above the request and none below it - so it is applied through the target
+    ! rather than through `marginFactor`. The seed range is folded into the target, which is safe as it is a constant; the range
+    ! already tabulated is unioned in through `latticeCurrent`, and never through the target, which would apply the margin to an
+    ! already margined bound and so ratchet the range outward on every retabulation. The bounds are anchored to half decades
+    ! rather than to whole decades because the tabulated function approaches the singular point of the hypergeometric function
+    ! as its abscissa approaches zero, so the range should not be carried further into that limit than is needed.
+    if (present(xMinimumIn)) then
+       xMinimum=    xMinimumIn
+    else
+       xMinimum=min(xSeedMinimum,      (x-1.0d0))
+    end if
+    if (present(xMaximumIn)) then
+       xMaximum=    xMaximumIn
+    else
+       xMaximum=max(xSeedMaximum,2.0d0*(x-1.0d0))
+    end if
+    latticeX=Range_Pinned(                                           &
+         &                              [xMinimum,xMaximum]        , &
+         &                               xCountPerDecade           , &
+         &                               gridSchemePerDecade       , &
+         &                marginFactor  = 1.0d0                    , &
+         &                anchorEvery   = xCountPerDecade/2        , &
+         &                latticeCurrent= self%latticeSubresolution  &
+         &               )
+    ! Decide whether the tabulation must be built or extended. The decision is taken from the pinned lattice rather than from the
+    ! bounds directly, so that the decision and the range cannot disagree.
+    tabulate=.not.self%subresolutionHypergeometricInitialized
+    if (.not.tabulate) tabulate=.not.self%latticeSubresolution%covers(latticeX)
     if (tabulate) then
-       xCount=max(int(log10(xMaximum/xMinimum)*dble(xCountPerDecade))+1,2)
-       if (.not.self%subresolutionHypergeometricInitialized) call self%subresolutionHypergeometric%destroy()
-       call self%subresolutionHypergeometric%create(xMinimum,xMaximum,xCount,1,extrapolationType=spread(extrapolationTypeAbort,1,2))
-       do i=1,xCount
-          call self%subresolutionHypergeometric%populate(                                                                                              &
-               &                                         +sqrtTwoOverPi                                                                                &
-               &                                         *(self%subresolutionHypergeometric%x(i)+1.0d0)**(+self%gamma1-1.0d0)                          &
-               &                                         /                                               (-self%gamma1+1.0d0)                          &
-               &                                         *Hypergeometric_2F1(                                                                          &
-               &                                                                               self%hypergeometricA(self%gamma1)                     , &
-               &                                                                               [      1.5d0-0.5d0*self%gamma1]                       , &
-               &                                                                               1.0d0/(self%subresolutionHypergeometric%x(i)+1.0d0)**2, &
-               &                                                             toleranceRelative=self%precisionHypergeometric                            &
-               &                                                            )                                                                        , &
-               &                                         i                                                                                             &
+       ! Extend the tabulation onto the new lattice, preserving the values already computed - each depends only on its own
+       ! abscissa and on γ₁, which is fixed, so a value carried over is precisely the value which would be computed afresh.
+       call self%subresolutionHypergeometric%extend(latticeX,isComputed,tableCount=1,extrapolationType=spread(extrapolationTypeAbort,1,2))
+       do i=1,latticeX%count
+          if (isComputed(i)) cycle
+          call self%subresolutionHypergeometric%populate(                                                                               &
+               &                                         +sqrtTwoOverPi                                                                 &
+               &                                         *parkinsonColeHellyHypergeometricFactor(                                       &
+               &                                                                                 self%subresolutionHypergeometric%x(i), &
+               &                                                                                 self%gamma1                          , &
+               &                                                                                 self%precisionHypergeometric           &
+               &                                                                                )                                     , &
+               &                                         i                                                                              &
                &                                        )
        end do
+       self%latticeSubresolution                  =latticeX
        self%subresolutionHypergeometricInitialized=.true.
     end if
     return
@@ -1071,60 +1195,81 @@ contains
     !!}
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Ranges        , only : Range_Pinned          , gridSchemePerDecade
     use :: Table_Labels            , only : extrapolationTypeAbort
     use :: Display                 , only : displayGreen          , displayBlue, displayYellow, displayReset
     use :: Error                   , only : Error_Report
     implicit none
-    class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout)           :: self
-    double precision                                                  , intent(in   )           :: mass                              , massResolution
-    double precision                                                  , intent(in   ), optional :: massMinimumIn                     , massMaximumIn
-    integer                                                           , parameter               :: massCountPerDecade =30
-    double precision                                                  , parameter               :: sqrtTwoOverPi      =sqrt(2.0d0/Pi)
-    double precision                                                                            :: massMinimum                       , massMaximum
-    integer                                                                                     :: massCount                         , i
-    logical                                                                                     :: tabulate
-    double precision                                                                            :: massSigma                         , gammaEffective     , &
-         &                                                                                         halfMassSigma                     , halfMassAlpha      , &
-         &                                                                                         resolutionMassSigma               , resolutionMassAlpha
+    class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout)               :: self
+    double precision                                                  , intent(in   )               :: mass                              , massResolution
+    double precision                                                  , intent(in   ), optional     :: massMinimumIn                     , massMaximumIn
+    integer                                                           , parameter                   :: massCountPerDecade =30
+    double precision                                                  , parameter                   :: sqrtTwoOverPi      =sqrt(2.0d0/Pi)
+    double precision                                                  , parameter                   :: massSeedMaximum    =1.0d16
+    double precision                                                                                :: massMinimum                       , massMaximum        , &
+         &                                                                                             massScale                         , massTabulated
+    type            (rangeLattice                                    )                              :: latticeMass
+    logical                                                           , allocatable  , dimension(:) :: isComputed
+    integer                                                                                         :: i
+    logical                                                                                         :: tabulate
+    double precision                                                                                :: massSigma                         , gammaEffective     , &
+         &                                                                                             halfMassSigma                     , halfMassAlpha      , &
+         &                                                                                             resolutionMassSigma               , resolutionMassAlpha
 
-    tabulate=.false.
+    ! Discard any previous tabulation which has been marked as invalid - the mass resolution on which it was built may have
+    ! changed, or the growth of the mass variance may be mass dependent, in which case no value in it may be carried over.
     if (.not.self%upperBoundHypergeometricInitialized) then
-       tabulate=.true.
-       if (present(massMinimumIn)) then
-          massMinimum=massMinimumIn
-       else
-          massMinimum=           2.0d0*massResolution
-       end if
-       if (present(massMaximumIn)) then
-          massMaximum=massMaximumIn
-       else
-          massMaximum=max(1.0d16,2.0d0*mass          )
-       end if
-    else
-       if     (                                            &
-            &   mass < self%upperBoundHypergeometric%x(+1) &
-            &  .or.                                        &
-            &   mass > self%upperBoundHypergeometric%x(-1) &
-            & ) then
-          tabulate=.true.
-          massMinimum=                                        2.0d0*massResolution
-          massMaximum=max(self%upperBoundHypergeometric%x(-1),2.0d0*mass          )
-       end if
-    end if
-    if (tabulate) then
+       call self%upperBoundHypergeometric%destroy()
+       self%latticeUpperBound      =rangeLattice()
        self%massResolutionTabulated=massResolution
-       massCount=int(log10(massMaximum/massMinimum)*dble(massCountPerDecade))+1
-       if (.not.self%upperBoundHypergeometricInitialized) call self%upperBoundHypergeometric%destroy()
-       call self%upperBoundHypergeometric%create(massMinimum,massMaximum,massCount,1,extrapolationType=spread(extrapolationTypeAbort,1,2))
+    end if
+    ! Find the range of masses to tabulate. Masses are tabulated *in units of twice the mass resolution*, and not as masses
+    ! themselves. The lower end of this tabulation is not free: at twice the mass resolution the arguments of both hypergeometric
+    ! functions below reach unity, beyond which they do not converge, so the range must begin exactly there. No lattice point
+    ! coincides with that mass, but in units of it the lower bound is exactly the lattice point of index zero - which is what
+    ! allows the axis to be pinned while still beginning precisely where it must. The mass resolution is fixed for the lifetime
+    ! of the tabulation, being what invalidates it above, so these units do not shift under it.
+    massScale  =2.0d0*self%massResolutionTabulated
+    if (present(massMinimumIn)) then
+       massMinimum=    massMinimumIn  /massScale
+    else
+       massMinimum=    1.0d0
+    end if
+    if (present(massMaximumIn)) then
+       massMaximum=    massMaximumIn  /massScale
+    else
+       massMaximum=max(massSeedMaximum,2.0d0*mass)/massScale
+    end if
+    latticeMass=Range_Pinned(                                         &
+         &                                 [massMinimum,massMaximum], &
+         &                                  massCountPerDecade      , &
+         &                                  gridSchemePerDecade     , &
+         &                   marginFactor  = 1.0d0                  , &
+         &                   limitMinimum  = 1.0d0                  , &
+         &                   anchorEvery   = massCountPerDecade/2   , &
+         &                   latticeCurrent= self%latticeUpperBound   &
+         &                  )
+    ! Decide whether the tabulation must be built or extended. The decision is taken from the pinned lattice rather than from the
+    ! bounds directly, so that the decision and the range cannot disagree.
+    tabulate=.not.self%upperBoundHypergeometricInitialized
+    if (.not.tabulate) tabulate=.not.self%latticeUpperBound%covers(latticeMass)
+    if (tabulate) then
+       ! Extend the tabulation onto the new lattice, preserving the values already computed. Each depends only on its own mass
+       ! and on the mass resolution - the ratios of σ which appear below are independent of epoch unless the growth of the mass
+       ! variance is mass dependent, in which case the tabulation is invalidated on every use above - so a value carried over is
+       ! precisely the value which would be computed afresh.
+       call self%upperBoundHypergeometric%extend(latticeMass,isComputed,tableCount=1,extrapolationType=spread(extrapolationTypeAbort,1,2))
        ! Evaluate σ and α at the mass resolution.
        call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massResolution,self%timeParent,resolutionMassSigma,resolutionMassAlpha)
-       do i=1,massCount
+       do i=1,latticeMass%count
+          if (isComputed(i)) cycle
           ! Evaluate σ and α.
-          call           self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*self%upperBoundHypergeometric%x(i),self%timeParent,halfMassSigma,halfMassAlpha)
-          massSigma     =self%cosmologicalMassVariance_%rootVariance                      (      self%upperBoundHypergeometric%x(i),self%timeParent                            )
+          massTabulated =massScale*self%upperBoundHypergeometric%x(i)
+          call           self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*massTabulated,self%timeParent,halfMassSigma,halfMassAlpha)
+          massSigma     =self%cosmologicalMassVariance_%rootVariance                      (      massTabulated,self%timeParent                            )
           if (abs(halfMassAlpha) <= alphaMinimum)                                                                                                                                                                                                                      &
                & call Error_Report(                                                                                                                                                                                                                                    &
-               &                   'CDM assumptions were requested, but seem to be violated: unexpected |α| = |dlogσ/dlogM| ≪ 1'//char(10)                                                                                                                                         // &
+               &                   'CDM assumptions were requested, but seem to be violated: unexpected |α| = |dlogσ/dlogM| ≪ 1'//char(10)                                                                                                                         // &
                &                   displayGreen()//'HELP:'//displayReset()//' set <'//displayBlue()//'cdmAssumptions'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"false"'//displayReset()//'/> '                         // &
                &                   'in class <'//displayBlue()//'mergerTreeBranchingProbability'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"parkinsonColeHelly"'//displayReset()//'/> to avoid making these assumptions'// &
                &                   {introspection:location}                                                                                                                                                                                                            &
@@ -1155,6 +1300,7 @@ contains
                &                                      i                                                                            &
                &                                     )
        end do
+       self%latticeUpperBound                  =latticeMass
        self%upperBoundHypergeometricInitialized=.true.
     end if
     return

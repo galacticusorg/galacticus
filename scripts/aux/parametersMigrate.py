@@ -1517,7 +1517,46 @@ def splashback_radius_accretion_flow(input_doc, parameters, is_grid):
         node.append(splashback_node)
 
 
+def prompt_cusp_require_collapse_before_halo(input_doc, parameters, is_grid):
+    """Special handling for the introduction of the `requireCollapseBeforeHalo` parameter.
+
+    The `darkMatterProfilePromptCusps` node operator previously assigned a prompt cusp to every
+    halo, accepting collapse epochs which postdate the halo itself and, where no collapse epoch
+    existed at all, taking the collapse to occur at the limiting time of the search. It now follows
+    the reference implementation of Delos & White (2025) instead: since prompt cusp formation is,
+    by definition, the formation event of a halo, halos failing that condition can not have formed,
+    and are labeled so that they may be pruned from the merger tree.
+
+    This changes the physics of existing models, so we pin the original behavior here. Users who
+    want the new (more realistic) behavior should set `requireCollapseBeforeHalo` to true and add a
+    merger tree operator which prunes the labeled halos - see the documentation for the
+    `nodeOperatorDarkMatterProfilePromptCusps` class.
+    """
+    for node in parameters.xpath(".//nodeOperator[@value='darkMatterProfilePromptCusps']"):
+        # Do not override a choice which has already been made explicitly.
+        if len(node.xpath("./requireCollapseBeforeHalo[@value]")) > 0:
+            continue
+        print("   insert special 'requireCollapseBeforeHalo' into 'darkMatterProfilePromptCusps'")
+        require_node = etree.Element("requireCollapseBeforeHalo")
+        require_node.set("value", "false")
+        if is_grid:
+            require_node.set("iterable", "no")
+        # Append as the final child, preserving the indentation of the existing children.
+        children = list(node)
+        if children:
+            require_node.tail = children[-1].tail
+            children[-1].tail = node.text
+        else:
+            # The indentation of this node is carried by the whitespace which precedes it.
+            previous = node.getprevious()
+            indentation = (previous.tail if previous is not None else node.getparent().text) or "\n  "
+            require_node.tail = indentation
+            node.text = indentation + "  "
+        node.append(require_node)
+
+
 SPECIAL_FUNCTIONS = {
+    "prompt_cusp_require_collapse_before_halo": prompt_cusp_require_collapse_before_halo,
     "radiation_field_intergalactic_background_cmb": radiation_field_intergalactic_background_cmb,
     "black_hole_seed_mass": black_hole_seed_mass,
     "black_hole_physics": black_hole_physics,

@@ -17,8 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson. The bounded accumulation of warning messages for issue #1359 was
-!+    drafted with assistance from Claude, and reviewed and verified by Andrew Benson.
+!+    Contributions to this file made by: Andrew Benson. The bounded accumulation of warning messages for issue #1359 and
+!+    the "GSL_Error_Handler_Aborting" function added for issue #1360 were drafted with assistance from Claude, and
+!+    reviewed and verified by Andrew Benson.
 
 !!{RST
 Contains a module which implements error reporting for the  Galacticus package.
@@ -39,7 +40,9 @@ module Error
        &    GSL_Error_Handler_Abort_Off, GSL_Error_Status          , &
        &    Warn                       , Error_Wait_Set            , &
        &    GSL_Error_Details          , signalHandlerDeregister   , &
-       &    signalHandlerRegister      , signalHandlerInterface
+       &    signalHandlerRegister      , signalHandlerInterface    , &
+       &    GSL_Error_Handler_Aborting
+
   interface Error_Report
      module procedure Error_Report_Char
      module procedure Error_Report_VarStr
@@ -777,6 +780,19 @@ contains
     abortOnErrorGSL=abortOnErrorGSL-1
     return
   end subroutine GSL_Error_Handler_Abort_Off
+
+  logical function GSL_Error_Handler_Aborting()
+    !!{RST
+    Return true if GSL errors will currently cause an abort, false otherwise.
+
+    Intended for assertions and debugging: calls to ``GSL_Error_Handler_Abort_Off()`` and ``GSL_Error_Handler_Abort_On()`` must
+    balance, so any routine which disables aborting should find this restored to true once it has re-enabled it.
+    !!}
+    implicit none
+
+    GSL_Error_Handler_Aborting=(abortOnErrorGSL == 0)
+    return
+  end function GSL_Error_Handler_Aborting
 
   integer function GSL_Error_Status()
     !!{RST

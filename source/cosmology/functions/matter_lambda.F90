@@ -513,13 +513,22 @@ contains
        ! from expansion of the table. Therefore, we attempt to identify the index of the entry in the table by directly computing
        ! it from the logarithm of the effective time, but allow for the possibility that we might have to adjust that initial
        ! guess to find the correct index. After that, a standard linear interpolation is used.
-       ! Initial guess at the index for interpolation.
+       ! Initial guess at the index for interpolation. The guess assumes a spacing which is perfectly uniform in log(time), which
+       ! the table only approximates - and the discrepancy accumulates as the table is extended, so that after sufficiently many
+       ! extensions the guess can fall beyond the end of the table altogether. It is therefore clamped to a valid interval before
+       ! the search below, which walks from it to the correct index.
        i=int((log(timeEffective)-self%ageTableTimeLogarithmicMinimum)*self%ageTableInverseDeltaLogTime)+1
-       ! Check that we've found the correct index, adjust as necessary.
+       i=max(1,min(i,self%ageTableNumberPoints-1))
+       ! Check that we've found the correct index, adjust as necessary. Each search is bounded, so that neither a drifted spacing
+       ! nor a time lying fractionally outside the tabulated range can walk past an end of the table and read beyond it. The bound
+       ! is tested inside each loop rather than as part of its condition because Fortran does not guarantee short-circuit
+       ! evaluation, so a compound condition could reference the table at the very index being rejected.
        do while (timeEffective < self%ageTableTime(i  ))
+          if (i <= 1                           ) exit
           i=i-1
        end do
        do while (timeEffective > self%ageTableTime(i+1))
+          if (i >= self%ageTableNumberPoints-1) exit
           i=i+1
        end do
        ! Compute interpolating factor.

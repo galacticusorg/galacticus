@@ -27,6 +27,7 @@ module Radiation_Fields
   !!}
   use :: Galacticus_Nodes       , only : treeNode
   use :: Numerical_Interpolation, only : interpolator
+  use :: Numerical_Ranges       , only : rangeLattice
   implicit none
   private
   public :: crossSectionFunctionTemplate
@@ -44,10 +45,13 @@ module Radiation_Fields
      Type used to store tables of rate coefficients.
      !!}
      private
-     procedure       (crossSectionFunctionTemplate), pointer     , nopass :: crossSectionFunction => null(     )
-     double precision                              , dimension(2)         :: wavelengthRange
-     double precision                                                     :: timeMinimum          =  huge(0.0d0), timeMaximum=-huge(0.0d0)
-     type            (interpolator                )                       :: interpolator_
+     procedure       (crossSectionFunctionTemplate), pointer     , nopass      :: crossSectionFunction => null()
+     double precision                              , dimension(2)              :: wavelengthRange
+     ! Lattice to which the tabulated times are pinned, and the rate coefficients tabulated on it. The lattice is the source of
+     ! truth for the extent of the tabulation, and is undefined until the first tabulation is made.
+     type            (rangeLattice                )                            :: latticeTime
+     double precision                              , dimension(:), allocatable :: rateCoefficient_
+     type            (interpolator                )                            :: interpolator_
    contains
      !![
      <methods docformat="rst">
@@ -140,8 +144,8 @@ contains
     use :: Numerical_Constants_Math    , only : Pi
     use :: Numerical_Constants_Physical, only : plancksConstant
     use :: Numerical_Constants_Units   , only : ergs
-    use :: Numerical_Integration       , only : integrator     , GSL_Integ_Gauss15
-    use :: Numerical_Ranges            , only : Make_Range     , rangeTypeLogarithmic
+    use :: Numerical_Integration       , only : integrator          , GSL_Integ_Gauss15
+    use :: Numerical_Ranges            , only : Range_Lattice_Extend, Range_Pinned     , gridSchemePerDecade
     implicit none
     class           (radiationFieldClass         ), target      , intent(inout) :: self
     double precision                              , dimension(2), intent(in   ) :: wavelengthRange
@@ -149,13 +153,14 @@ contains
     type            (treeNode                    ), target      , intent(inout) :: node
     type            (integrator                  ), save                        :: integrator_
     type            (rateCoefficient             ), dimension(:), allocatable   :: rateCoefficients
-    double precision                              , dimension(:), allocatable   :: time                         , rateCoefficient_
-    double precision                              , parameter                   :: countTimesPerDecade  =30.0d0
-    logical                                                                     :: integratorInitialized=.false., matched         , &
+    double precision                              , dimension(:), allocatable   :: time
+    logical                                       , dimension(:), allocatable   :: isComputed
+    type            (rangeLattice                )                              :: latticeTime
+    integer                                       , parameter                   :: countTimesPerDecade  =30
+    logical                                                                     :: integratorInitialized=.false., matched             , &
          &                                                                         recompute
     double precision                                                            :: timeCurrent
-    integer                                                                     :: countTimes                   , i               , &
-         &                                                                         indexRateCoefficient
+    integer                                                                     :: i                            , indexRateCoefficient
     !$omp threadprivate(integrator_,integratorInitialized)
 
     ! Construct the integrator if necessary.
@@ -193,12 +198,7 @@ contains
        ! Store the current time for the radiation field.
        timeCurrent=self%time()
        ! Determine if we need to (re)compute the rate coefficient.
-       if (matched) then
-          recompute= timeCurrent < self%rateCoefficients(indexRateCoefficient)%timeMinimum &
-               &    .or.                                                                   &
-               &     timeCurrent > self%rateCoefficients(indexRateCoefficient)%timeMaximum
-       else
-          recompute=.true.
+       if (.not.matched) then
           if (allocated(self%rateCoefficients)) then
              call move_alloc(self%rateCoefficients,rateCoefficients)
              allocate(self%rateCoefficients(size(rateCoefficients)+1))
@@ -214,23 +214,51 @@ contains
           self%rateCoefficients(indexRateCoefficient)%crossSectionFunction => crossSectionFunction
           self%rateCoefficients(indexRateCoefficient)%wavelengthRange      =  wavelengthRange
        end if
+       ! Find the range of times to tabulate, pinning it to an absolute lattice so that the times at which the integral is
+       ! evaluated - and therefore every rate coefficient interpolated between them - depend only on which lattice points are
+       ! spanned, and not on the sequence of times at which this rate coefficient happened to be asked for. The request is passed
+       ! as the target and the range already tabulated is unioned in through `latticeCurrent`; folding the latter into the target
+       ! instead - as the `min`/`max` against the current bounds formerly did - would apply the safety margin to an already
+       ! margined bound and so ratchet the range outward on every retabulation. The margin is the factor of two either side of
+       ! the request that was applied before this tabulation was pinned. The bounds are anchored to half decades rather than to
+       ! whole decades because this is a cosmic time axis, on which a whole decade is a large fraction of the history of the
+       ! universe, and each additional point costs an integration of the radiation field over the cross section.
+       latticeTime=Range_Pinned(                                                                         &
+            &                                  [timeCurrent]                                           , &
+            &                                   countTimesPerDecade                                    , &
+            &                                   gridSchemePerDecade                                    , &
+            &                   marginFactor  = 2.0d0                                                  , &
+            &                   anchorEvery   = countTimesPerDecade/2                                  , &
+            &                   latticeCurrent= self%rateCoefficients(indexRateCoefficient)%latticeTime  &
+            &                  )
+       ! Decide whether the tabulation must be built or extended. The decision is taken from the pinned lattice rather than from
+       ! the bounds directly: the safety margin is applied to the request, so testing the request against the bounds would apply
+       ! that margin only when the request happened to arrive outside them. The range reached would then depend on the order in
+       ! which times were asked for - which is precisely the dependence that pinning the lattice exists to remove.
+       recompute=.not.self%rateCoefficients(indexRateCoefficient)%latticeTime%isDefined()
+       if (.not.recompute) recompute=.not.self%rateCoefficients(indexRateCoefficient)%latticeTime%covers(latticeTime)
        ! (Re)compute the table if necessary.
        if (recompute) then
-          self%rateCoefficients(indexRateCoefficient)%timeMinimum=min(self%rateCoefficients(indexRateCoefficient)%timeMinimum,timeCurrent/2.0d0)
-          self%rateCoefficients(indexRateCoefficient)%timeMaximum=max(self%rateCoefficients(indexRateCoefficient)%timeMaximum,timeCurrent*2.0d0)
-          countTimes=int(log10(self%rateCoefficients(indexRateCoefficient)%timeMaximum/self%rateCoefficients(indexRateCoefficient)%timeMinimum)*countTimesPerDecade+1.0d0)
-          allocate(time            (countTimes))
-          allocate(rateCoefficient_(countTimes))
-          time=Make_Range(self%rateCoefficients(indexRateCoefficient)%timeMinimum,self%rateCoefficients(indexRateCoefficient)%timeMaximum,countTimes,rangeType=rangeTypeLogarithmic)
-          do i=1,countTimes
+          ! Extend the tabulation onto the new lattice, preserving the rate coefficients already computed - each is an integral
+          ! over the radiation field at its own time, which does not change when the range of times tabulated does.
+          call Range_Lattice_Extend(                                                              &
+               &                    self%rateCoefficients(indexRateCoefficient)%latticeTime     , &
+               &                    latticeTime                                                 , &
+               &                    self%rateCoefficients(indexRateCoefficient)%rateCoefficient_, &
+               &                    isComputed                                                    &
+               &                   )
+          time=latticeTime%values()
+          do i=1,latticeTime%count
+             if (isComputed(i)) cycle
              call self%timeSet(time(i))
-             rateCoefficient_(i)=+integrator_%integrate(wavelengthRange(1),wavelengthRange(2)) &
-                  &              *4.0d0                                                        &
-                  &              *Pi                                                           &
-                  &              *ergs                                                         &
-                  &              /plancksConstant
+             self%rateCoefficients(indexRateCoefficient)%rateCoefficient_(i)=+integrator_%integrate(wavelengthRange(1),wavelengthRange(2)) &
+                  &                                                          *4.0d0                                                        &
+                  &                                                          *Pi                                                           &
+                  &                                                          *ergs                                                         &
+                  &                                                          /plancksConstant
           end do
-          self%rateCoefficients(indexRateCoefficient)%interpolator_=interpolator(time,rateCoefficient_)
+          self%rateCoefficients(indexRateCoefficient)%latticeTime  =latticeTime
+          self%rateCoefficients(indexRateCoefficient)%interpolator_=interpolator(time,self%rateCoefficients(indexRateCoefficient)%rateCoefficient_)
           ! Restore the time in the radiation field.
           call self%timeSet(timeCurrent)
        end if

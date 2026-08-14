@@ -32,7 +32,25 @@
   !![
   <nodeOperator name="nodeOperatorDarkMatterProfilePromptCusps" docformat="rst">
    <description>
-   A node operator class that evaluates the properties of prompt cusps following the model of :cite:t:`delos_cusp-halo_2025`, with a log-normal scatter of :math:`\mu \exp(-1/\sigma_0)` dex added to the cusp amplitude, where :math:`\mu=`\ ``[coefficientScatter]``.
+   A node operator class that evaluates the properties of prompt cusps following the model of :cite:t:`delos_cusp-halo_2025`, with
+   a log-normal scatter of :math:`\mu \exp(-1/\sigma_0)` dex added to the cusp amplitude, where :math:`\mu=`\
+   ``[coefficientScatter]``.
+
+   Prompt cusp formation is, by definition, the formation event of a halo. A halo for which the cusp collapse epoch would lie in
+   its own future can therefore not have formed: such halos are assigned no cusp and are labeled ``promptCuspUnformed``. **This
+   class must be used together with a merger tree operator which prunes those labeled halos from the tree**, for example
+
+   .. code-block:: xml
+
+      &lt;mergerTreeOperator value="pruneByFilter"&gt;
+        &lt;preservePrimaryProgenitor value="false"/&gt;
+        &lt;galacticFilter value="labelled"&gt;
+          &lt;label value="promptCuspUnformed"/&gt;
+        &lt;/galacticFilter&gt;
+      &lt;/mergerTreeOperator&gt;
+
+   placed ahead of any other merger tree operator which depends on tree structure. Without it, halos which can not have formed are
+   retained and evolved, and the branches above them are assigned cusp properties inconsistent with those halos.
    </description>
   </nodeOperator>
   !!]
@@ -49,13 +67,15 @@
      class           (darkMatterProfileDMOClass ), pointer                   :: darkMatterProfileDMO_       => null()
      class           (virialDensityContrastClass), pointer                   :: virialDensityContrast_      => null()
      double precision                            , allocatable, dimension(:) :: sigma_
-     logical                                                                 :: growthIsWavenumberDependent          , nonConvergenceIsFatal
+     logical                                                                 :: growthIsWavenumberDependent          , nonConvergenceIsFatal , &
+          &                                                                     requireCollapseBeforeHalo
      double precision                                                        :: alpha                                , beta                  , &
           &                                                                     kappa                                , C                     , &
           &                                                                     p                                    , coefficientScatter
      integer                                                                 :: promptCuspMassID                     , promptCuspAmplitudeID , &
           &                                                                     promptCuspNFWYID                     , promptCuspNFWScaleID  , &
-          &                                                                     promptCuspNFWGrowthRateID            , promptCuspNFWDensityID
+          &                                                                     promptCuspNFWGrowthRateID            , promptCuspNFWDensityID, &
+          &                                                                     labelUnformedID
    contains
      !![
      <methods docformat="rst">
@@ -90,7 +110,25 @@
   ! Maximum allowed value of the y-parameter in the cusp-NFW profile. Values of 1 or greater are not valid. We limit here to a
   ! value close to 1.
   double precision                                          , parameter :: yMaximum        =0.99999d0
-  
+
+  ! Minimum value of the y-parameter for which the cusp-NFW expressions are evaluated; below this the NFW limit is used instead,
+  ! and y is stored as zero so that the cusp-NFW mass distribution class (which contains the same expressions, and so the same
+  ! problems) likewise takes its NFW branch.
+  !
+  ! The asinh and atanh terms of the enclosed mass each diverge logarithmically as y→0. Their divergences cancel, so the enclosed
+  ! mass remains finite - but the cancellation is increasingly ill-conditioned as y decreases, because the argument of the atanh
+  ! approaches 1 and so loses precision. Two limits follow:
+  !
+  !  * Once y ≲ 10⁻⁹ that argument rounds to exactly 1 in double precision, giving atanh(1) = ∞ and hence a floating point
+  !    exception.
+  !  * Well before that, the evaluation is simply inaccurate: the relative error grows as 1/y², reaching ~10⁻⁴ by y = 10⁻⁶.
+  !
+  ! Meanwhile the cusp itself contributes to the enclosed mass only at order y², so the error incurred by taking the NFW limit
+  ! *falls* as y². The two curves cross at y ≈ 10⁻⁴, where each is of order 10⁻⁸ - far below the tolerance to which the density
+  ! normalization is solved, and so the point at which the switch is least visible. Note that this is also far below the y of any
+  ! halo with a real cusp (values of order 10⁻² and above), so the threshold is never approached in practice.
+  double precision                                          , parameter :: yMinimum        =1.00000d-4
+
 contains
   
   function darkMatterProfilePromptCuspsConstructorParameters(parameters) result(self)
@@ -108,9 +146,9 @@ contains
     class           (darkMatterHaloScaleClass                ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass               ), pointer       :: darkMatterProfileDMO_
     class           (virialDensityContrastClass              ), pointer       :: virialDensityContrast_
-    logical                                                                   :: nonConvergenceIsFatal
-    double precision                                                          :: alpha                 , beta              , &
-         &                                                                       kappa                 , C                 , &
+    logical                                                                   :: nonConvergenceIsFatal , requireCollapseBeforeHalo
+    double precision                                                          :: alpha                 , beta                     , &
+         &                                                                       kappa                 , C                        , &
          &                                                                       p                     , coefficientScatter
 
     !![
@@ -120,6 +158,23 @@ contains
       <defaultValue>.true.</defaultValue>
       <description>
       If true, failure to converge on a solution for the scale radius, :math:`r_\mathrm{s}`, will result in a fatal error. Otherwise, only warnings are issued.
+      </description>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>requireCollapseBeforeHalo</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>
+      If true, a prompt cusp is assigned only to halos for which the cusp collapse epoch precedes the epoch of the halo itself, as
+      in the reference implementation of :cite:t:`delos_cusp-halo_2025`. Since prompt cusp formation is, by definition, the
+      formation event of a halo, halos failing this condition can not have formed: they are assigned no cusp and are labeled
+      ``promptCuspUnformed`` so that they may be pruned from the merger tree (see the class description above). Halos for which no
+      collapse epoch exists at all are treated identically, again matching the reference implementation.
+
+      If false, the original behavior of this class is used instead: any collapse epoch found is accepted, even where it postdates
+      the halo, and halos with no solution are assigned a collapse epoch at the limiting time of the search. No halo is labeled,
+      and so none is pruned. This is provided only to allow existing models to reproduce their previous results; it is not
+      physically preferable.
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
@@ -196,7 +251,7 @@ contains
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     !!]
-    self=nodeOperatorDarkMatterProfilePromptCusps(nonConvergenceIsFatal,alpha,beta,kappa,C,p,coefficientScatter,linearGrowth_,powerSpectrum_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterHaloScale_,darkMatterProfileDMO_)
+    self=nodeOperatorDarkMatterProfilePromptCusps(nonConvergenceIsFatal,requireCollapseBeforeHalo,alpha,beta,kappa,C,p,coefficientScatter,linearGrowth_,powerSpectrum_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterHaloScale_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="linearGrowth_"         />
@@ -210,11 +265,12 @@ contains
     return
   end function darkMatterProfilePromptCuspsConstructorParameters
 
-  function darkMatterProfilePromptCuspsConstructorInternal(nonConvergenceIsFatal,alpha,beta,kappa,C,p,coefficientScatter,linearGrowth_,powerSpectrum_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
+  function darkMatterProfilePromptCuspsConstructorInternal(nonConvergenceIsFatal,requireCollapseBeforeHalo,alpha,beta,kappa,C,p,coefficientScatter,linearGrowth_,powerSpectrum_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{RST
     Constructor for the :galacticus-class:`nodeOperatorDarkMatterProfilePromptCusps` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
+    use :: Nodes_Labels    , only : nodeLabelRegister
     implicit none
     type            (nodeOperatorDarkMatterProfilePromptCusps)                        :: self
     class           (linearGrowthClass                       ), intent(in   ), target :: linearGrowth_
@@ -224,12 +280,12 @@ contains
     class           (darkMatterHaloScaleClass                ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass               ), intent(in   ), target :: darkMatterProfileDMO_
     class           (virialDensityContrastClass              ), intent(in   ), target :: virialDensityContrast_
-    logical                                                   , intent(in   )         :: nonConvergenceIsFatal
-    double precision                                          , intent(in   )         :: alpha                 , beta              , &
-         &                                                                               kappa                 , C                 , &
+    logical                                                   , intent(in   )         :: nonConvergenceIsFatal , requireCollapseBeforeHalo
+    double precision                                          , intent(in   )         :: alpha                 , beta                     , &
+         &                                                                               kappa                 , C                        , &
          &                                                                               p                     , coefficientScatter
     !![
-    <constructorAssign variables="nonConvergenceIsFatal, alpha, beta, kappa, C, p, coefficientScatter, *linearGrowth_, *powerSpectrum_, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *virialDensityContrast_"/>
+    <constructorAssign variables="nonConvergenceIsFatal, requireCollapseBeforeHalo, alpha, beta, kappa, C, p, coefficientScatter, *linearGrowth_, *powerSpectrum_, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *virialDensityContrast_"/>
     !!]
 
     !![
@@ -241,6 +297,14 @@ contains
     <addMetaProperty component="darkMatterProfile" name="promptCuspNFWGrowthRateID" id="self%promptCuspNFWGrowthRateID" isEvolvable="no" isCreator="yes"/>
     !!]
     self%growthIsWavenumberDependent=self%linearGrowth_%isWavenumberDependent()
+    ! Register the label used to identify halos in which no prompt cusp can form and which, therefore, can not themselves have
+    ! formed. Such nodes are expected to be pruned from the tree prior to evolution - see
+    ! `darkMatterProfilePromptCuspsNodeTreeInitialize()` for details.
+    self%labelUnformedID=nodeLabelRegister(                                                                                                         &
+         &                                 'promptCuspUnformed'                                                                                   , &
+         &                                 'Halos for which the prompt cusp collapse epoch is later than the epoch of the halo itself, and which'// &
+         &                                 ' therefore can not have formed.'                                                                        &
+         &                                )
     return
   end function darkMatterProfilePromptCuspsConstructorInternal
 
@@ -274,13 +338,14 @@ contains
     use :: Lambert_Ws                          , only : Lambert_W0
     use :: Numerical_Constants_Math            , only : Pi
     use :: Numerical_Comparison                , only : Values_Agree
+    use :: Nodes_Labels                        , only : nodeLabelSet
     use :: Root_Finder                         , only : rootFinder                         , rangeExpandMultiplicative     , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
     use :: ISO_Varying_String                  , only : var_str
     use :: String_Handling                     , only : operator(//)
     implicit none
     class           (nodeOperatorDarkMatterProfilePromptCusps), intent(inout), target  :: self
     type            (treeNode                                ), intent(inout), target  :: node
-    type            (treeNode                                )               , pointer :: nodeChild
+    type            (treeNode                                )               , pointer :: nodeChild                        , nodeTip
     class           (nodeComponentBasic                      )               , pointer :: basic
     class           (nodeComponentDarkMatterProfile          )               , pointer :: darkMatterProfile
     integer                                                   , parameter              :: iterationCountMaximum    =10000
@@ -288,15 +353,13 @@ contains
     type            (rootFinder                              )               , save    :: finderCollapse                   , finderRadius
     logical                                                                  , save    :: finderCollapseInitialized=.false., finderRadiusInitialized=.false.
     !$omp threadprivate(finderCollapse,finderRadius,finderCollapseInitialized,finderRadiusInitialized)
-    integer                                                                  , save    :: countNoCollapse          =0
-    !$omp threadprivate(countNoCollapse)
     ! Factor by which the collapse time is allowed to exceed the present age of the Universe before the search is abandoned. σ₀(t)
     ! grows only until the Universe becomes Λ-dominated and is then constant to far better than double precision by this epoch, so
     ! no root can exist beyond it.
     double precision                                          , parameter              :: factorTimeCollapseMaximum=1.0d1
     double precision                                                                   :: timeCollapseMaximum
-    double precision                                                         , save    :: errorFractionalMaximum=  0.0d+0
-    logical                                                                            :: computeCusp
+    double precision                                                         , save    :: errorFractionalMaximum   =0.0d+0
+    logical                                                                            :: computeCusp                      , cuspCanForm
     integer                                                                            :: iterationCount                   , statusCollapse
     double precision                                                                   :: sigma0                           , sigma2                         , &
          &                                                                                densityMean                      , densityMeanCollapse            , &
@@ -310,20 +373,25 @@ contains
          &                                                                                scatterRandom                    , errorFractional                , &
          &                                                                                densityScalePrevious             , massPrevious
     
-    ! Compute cusp properties for leaf nodes.
-    computeCusp=.not.associated(node%firstChild)
+    ! Compute cusp properties for branch tip nodes. Note that "branch tip" here means a node with no progenitors *which remain
+    ! after pruning* - i.e. progenitors which have themselves been identified as unable to form are ignored. Since the tree is
+    ! walked depth-first, all progenitors of this node have already been processed, so their status is known.
+    nodeChild   =>      progenitorPrimary(self%labelUnformedID,node     )
+    computeCusp = .not.associated        (                     nodeChild)
     if (.not.computeCusp) then
-       ! For non-leaf nodes, use the cusp properties from the leaf node.
-       nodeChild => node
-       do while (associated(nodeChild%firstChild))
-          nodeChild => nodeChild%firstChild
+       ! For non-branch tip nodes, use the cusp properties from the branch tip node.
+       nodeTip   => nodeChild
+       nodeChild => progenitorPrimary(self%labelUnformedID,nodeTip)
+       do while (associated(nodeChild))
+          nodeTip   => nodeChild
+          nodeChild => progenitorPrimary(self%labelUnformedID,nodeTip)
        end do
-       darkMatterProfile =>  nodeChild        %darkMatterProfile        (                          )
+       darkMatterProfile =>  nodeTip          %darkMatterProfile        (                          )
        amplitude         =   darkMatterProfile%floatRank0MetaPropertyGet(self%promptCuspAmplitudeID)
        mass              =   darkMatterProfile%floatRank0MetaPropertyGet(self%promptCuspMassID     )
        y                 =   darkMatterProfile%floatRank0MetaPropertyGet(self%promptCuspNFWYID     )
     else
-       ! For leaf nodes, assume no cusp on the initial iteration.
+       ! For branch tip nodes, assume no cusp on the initial iteration.
        y                 =   0.0d0
     end if
     ! Initialize the root finder.
@@ -348,7 +416,7 @@ contains
     ! out to ever later times, and the cosmological functions eventually raise a floating point exception when a³ overflows -
     ! which is diagnosed far from its cause. The limit is placed well beyond any epoch at which σ₀ is still growing, so it does
     ! not alter any collapse time that is found; it only converts the runaway into a clean out-of-range status here.
-    timeCollapseMaximum=+factorTimeCollapseMaximum                                &
+    timeCollapseMaximum=+factorTimeCollapseMaximum                                  &
          &              *self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0)
     call finderCollapse%rangeExpand(                                                             &
          &                          rangeExpandUpward            =2.0d+0                       , &
@@ -367,10 +435,19 @@ contains
     radiusMinus2        =darkMatterProfile%scale()
     radiusScale         =radiusMinus2
     radiusScalePrevious =huge(0.0d0)
+    densityScale        =     0.0d0
     densityScalePrevious=huge(0.0d0)
     massPrevious        =huge(0.0d0)
     iterationCount      =0
-    scatterRandom       =0.0d0
+    cuspCanForm         =.true.
+    ! Draw the deviate used to scatter the cusp amplitude. This is drawn here, prior to any test of whether a prompt cusp can form
+    ! in this halo, so that the sequence of random numbers consumed from the tree's generator does not depend on the outcome of
+    ! that test.
+    if (computeCusp .and. self%coefficientScatter > 0.0d0) then
+       scatterRandom=node%hostTree%randomNumberGenerator_%standardNormalSample()
+    else
+       scatterRandom=0.0d0
+    end if
     ! Begin iteration.
     do while (                                                                                 &
          &     (                                                                               &
@@ -415,29 +492,34 @@ contains
                &                           )**((2.0d0*self%p-1.0d0)/3.0d0)                    &
                &                         )
           timeCollapse       =finderCollapse            %find(                  rootGuess=basic%time        (),status=statusCollapse)
-          if (statusCollapse /= errorStatusSuccess) then
-             ! No collapse time exists for this halo - σ₀Collapse exceeds σ₀(t) at every epoch. Take the collapse to occur at the
-             ! limiting time, which is the continuous limit of the solution as σ₀Collapse approaches the asymptotic value of σ₀.
-             timeCollapse   =timeCollapseMaximum
-             countNoCollapse=countNoCollapse+1
-             ! Report on the first occurrence and then at each decade, so that the incidence is visible without the reporting
-             ! itself dominating the run.
-             if (countNoCollapse == 10**int(log10(dble(countNoCollapse))+0.5d0)) then
-                block
-                  character(len=256) :: labelDiagnostic
-                  write (labelDiagnostic,'(a,i9,a,e12.6,a,e12.6,a,e12.6,a,e12.6,a,e12.6)') "prompt cusp: no collapse time solution (occurrence ",countNoCollapse," on this thread): t=",basic%time(),", M=",basic%mass(),", M200c=",mass200Critical,", sigma0=",sigma0,", sigma0Collapse=",sigma0Collapse
-                  call Warn(trim(labelDiagnostic))
-                end block
+          ! Test whether a prompt cusp can form in this halo. Following Delos (2025), a cusp exists only if the collapse epoch
+          ! precedes that of the halo itself - `CuspHalo.collapse_a()` in the reference implementation
+          ! (https://github.com/galacticusorg/cusp-halo-relation) returns NaN otherwise. Since prompt cusp formation is, by
+          ! definition, the formation event of a halo, a halo in which no cusp can form is one which can not itself exist. Such
+          ! nodes are assigned no cusp and are labeled, so that they may subsequently be pruned from the tree (for example by a
+          ! `mergerTreeOperatorPruneByFilter` operator using a `galacticFilterLabelled` filter). The case in which no solution
+          ! exists at all (σ₀Collapse exceeds σ₀(t) at every epoch, which occurs for sufficiently low mass halos, since σ₀(t)
+          ! grows only until the Universe becomes Λ-dominated and is constant thereafter) is treated identically - just as in the
+          ! reference implementation, where such halos fall off the end of the interpolating table and are likewise assigned no
+          ! cusp.
+          if (statusCollapse /= errorStatusSuccess .or. timeCollapse > basic%time()) then
+             if (self%requireCollapseBeforeHalo) then
+                cuspCanForm=.false.
+                exit
+             else if (statusCollapse /= errorStatusSuccess) then
+                ! Original behavior: no collapse time exists for this halo, so take the collapse to occur at the limiting time,
+                ! which is the continuous limit of the solution as σ₀Collapse approaches the asymptotic value of σ₀. Where a
+                ! solution does exist it is accepted unchanged, even though it postdates the halo.
+                timeCollapse=timeCollapseMaximum
              end if
           end if
-          sigma2Collapse     =self                      %sigma               (2,time     =      timeCollapse  )
-          densityMeanCollapse=self  %cosmologyFunctions_%matterDensityEpochal(  time     =      timeCollapse  )
+          sigma2Collapse     =self                      %sigma               (2,time=timeCollapse)
+          densityMeanCollapse=self  %cosmologyFunctions_%matterDensityEpochal(  time=timeCollapse)
           ! Evaluate the prompt cusp parameters.
           amplitude=self%alpha*(self%alpha/self%C/self%beta**self%p)**(1.0d0/(2.0d0*self%p-1.0d0))*densityMeanCollapse*sigma0Collapse**((9.0d0-6.0d0*self%p)/(4.0d0-8.0d0*self%p))/sigma2Collapse**0.75d0
           mass     =self%beta *(self%alpha/self%C/self%beta**self%p)**(2.0d0/(2.0d0*self%p-1.0d0))*densityMeanCollapse*sigma0Collapse**((9.0d0-6.0d0*self%p)/(2.0d0-4.0d0*self%p))/sigma2Collapse**1.50d0
           ! Add scatter to the cusp amplitude.
           if (self%coefficientScatter > 0.0d0) then
-             if (iterationCount == 1) scatterRandom=node%hostTree%randomNumberGenerator_%standardNormalSample()
              amplitude=+amplitude                         &
                   &    *10.0d0**(                         &
                   &              +self%coefficientScatter &
@@ -486,31 +568,15 @@ contains
           densityScalePrevious=      densityScale
           massPrevious        =basic%mass        ()
        else
-          ! Compute the normalization of the cusp-NFW profile. Handle the case of y=0 here (which is assumed on the first iteration).
+          ! Compute the normalization of the cusp-NFW profile. The y=0 case (which is assumed on the first iteration) is handled
+          ! by `factorMassCuspNFW()`, which takes the NFW limit for negligible y.
           concentration=+self%darkMatterHaloScale_%radiusVirial(node) &
                &        /                          radiusScale
-          if (y > 0.0d0) then
-             ! Cusp-NFW (y>0) case.
-             densityScale=+basic%mass()                                                                                 &
-                  &       /radiusScale**3                                                                               &
-                  &       /4.0d0                                                                                        &
-                  &       /Pi                                                                                           &
-                  &       /(                                                                                            &
-                  &         + 2.0d0                       *asinh(sqrt(concentration            )/               y     ) &
-                  &         -(2.0d0-y**2)/sqrt(1.0d0-y**2)*atanh(sqrt(concentration*(1.0d0-y**2)/(concentration+y**2))) &
-                  &         -sqrt(concentration*(concentration+y**2))/(1.0d0+concentration)                             &
-                  &        )
-          else
-             ! NFW (y=0) case.
-             densityScale=+basic%mass()                             &
-                  &       /4.0d0                                    &
-                  &       /Pi                                       &                                 
-                  &       /radiusScale**3                           &
-                  &       /(                                        &
-                  &         +              log(1.0d0+concentration) &
-                  &         -concentration/   (1.0d0+concentration) &
-                  &        )
-          end if
+          densityScale =+basic            %mass(               ) &
+               &        /radiusScale**3                          &
+               &        /4.0d0                                   &
+               &        /Pi                                      &
+               &        /factorMassCuspNFW     (concentration,y)
           ! Compute a new scale radius to obtain the target r₋₂, using equations (23) from Delos (2025).
           gamma      =+amplitude           &
                &      /densityScale        &
@@ -532,20 +598,18 @@ contains
                &      *radiusMinus2
           ! Enforce a maximum scale radius (minimum concentration) as required to ensure that y<1 in the cusp-NFW profile.
           radiusScale=max(radiusScale,(amplitude/densityScale/yMaximum)**(2.0d0/3.0d0))
-          ! Evaluate the prompt cusp y-parameter.
+          ! Evaluate the prompt cusp y-parameter. Values below `yMinimum` are indistinguishable from a cuspless (i.e. NFW) profile
+          ! and are set to zero, so that no negligible - but non-zero - y is stored for use by the cusp-NFW mass distribution.
           y          =+amplitude           &
                &      /densityScale        &
                &      /radiusScale **1.5d0
+          if (y < yMinimum) y=0.0d0
           ! Evaluate the mass to use in convergence checks.
-          massPrevious=+4.0d0                                                                                        &
-               &       *Pi                                                                                           &
-               &       *radiusScale**3                                                                               &
-               &       *densityScale                                                                                 &
-               &       *(                                                                                            &
-               &         + 2.0d0                       *asinh(sqrt(concentration            )/               y     ) &
-               &         -(2.0d0-y**2)/sqrt(1.0d0-y**2)*atanh(sqrt(concentration*(1.0d0-y**2)/(concentration+y**2))) &
-               &         -sqrt(concentration*(concentration+y**2))/(1.0d0+concentration)                             &
-               &        )
+          massPrevious=+4.0d0                              &
+               &       *Pi                                 &
+               &       *radiusScale**3                     &
+               &       *densityScale                       &
+               &       *factorMassCuspNFW(concentration,y)
        end if
        ! Store prompt cusp parameters.
        call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspAmplitudeID ,amplitude   )
@@ -554,6 +618,42 @@ contains
        call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWScaleID  ,radiusScale )
        call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWDensityID,densityScale)
     end do
+    ! Handle halos in which no prompt cusp can form, and which therefore can not themselves have formed. Such nodes are given a
+    ! cusp-free (i.e. NFW) profile - for which r₋₂ is simply the scale radius - and are labeled so that they may be pruned from
+    ! the tree prior to evolution.
+    if (.not.cuspCanForm) then
+       amplitude    =+0.0d0
+       mass         =+0.0d0
+       y            =+0.0d0
+       radiusScale  =+radiusMinus2
+       concentration=+self %darkMatterHaloScale_%radiusVirial(node) &
+            &        /                           radiusScale
+       densityScale =+basic%mass       ()                           &
+            &        /4.0d0                                         &
+            &        /Pi                                            &
+            &        /radiusScale**3                                &
+            &        /(                                             &
+            &          +              log(1.0d0+concentration)      &
+            &          -concentration/   (1.0d0+concentration)      &
+            &         )
+       call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspAmplitudeID ,amplitude   )
+       call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspMassID      ,mass        )
+       call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWYID      ,y           )
+       call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWScaleID  ,radiusScale )
+       call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWDensityID,densityScale)
+       call nodeLabelSet                              (self%labelUnformedID        ,node        )
+       ! If this is the base node of the tree then no halo in the tree could have formed. The base node can not be pruned, so warn
+       ! that this tree will be reduced to an inert base node.
+       if (.not.associated(node%parent)) then
+          block
+            type(varying_string) :: message
+            message=var_str('no prompt cusp can form in the base node of a tree {node index = ')//node%index()//'}'//char(10)// &
+                 &  '  no halo in this tree can have formed - the tree will be reduced to an inert base node'
+            call Warn(message)
+          end block
+       end if
+       return
+    end if
     ! Check for convergence.
     if     (                                                                               &
          &   .not.Values_Agree(radiusScale ,radiusScalePrevious ,relTol=toleranceRelative) &
@@ -604,6 +704,49 @@ contains
     return
   end subroutine darkMatterProfilePromptCuspsNodeTreeInitialize
 
+  function progenitorPrimary(labelUnformedID,node) result(nodeProgenitor)
+    !!{RST
+    Return a pointer to the primary progenitor which ``node`` will have once all halos identified as unable to form have been
+    pruned from the merger tree, or a ``null()`` pointer if ``node`` will have no progenitors. Pruning unlinks such nodes without
+    preserving primary progenitor status (i.e. ``firstChild`` is replaced by ``sibling``), so the primary progenitor after pruning
+    is simply the first progenitor which is not labeled as being unable to form.
+    !!}
+    use :: Nodes_Labels, only : nodeLabelIsPresent
+    implicit none
+    type   (treeNode), pointer                :: nodeProgenitor
+    integer          , intent(in   )          :: labelUnformedID
+    type   (treeNode), intent(inout), target  :: node
+
+    nodeProgenitor => node%firstChild
+    do while (associated(nodeProgenitor))
+       if (.not.nodeLabelIsPresent(labelUnformedID,nodeProgenitor)) return
+       nodeProgenitor => nodeProgenitor%sibling
+    end do
+    return
+  end function progenitorPrimary
+
+  double precision function factorMassCuspNFW(concentration,y)
+    !!{RST
+    Evaluate the dimensionless factor :math:`M/4 \pi \rho_\mathrm{s} r_\mathrm{s}^3` giving the mass enclosed within a radius
+    :math:`c r_\mathrm{s}` of a cusp-NFW density profile of parameter :math:`y`. For :math:`y` below ``yMinimum`` the NFW limit
+    of this expression is used instead---see the discussion accompanying that parameter.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: concentration, y
+
+    if (y > yMinimum) then
+       ! Cusp-NFW case.
+       factorMassCuspNFW=+ 2.0d0                       *asinh(sqrt(concentration            )/               y     ) &
+            &            -(2.0d0-y**2)/sqrt(1.0d0-y**2)*atanh(sqrt(concentration*(1.0d0-y**2)/(concentration+y**2))) &
+            &            -sqrt(concentration*(concentration+y**2))/(1.0d0+concentration)
+    else
+       ! NFW limit.
+       factorMassCuspNFW=+              log(1.0d0+concentration) &
+            &            -concentration/   (1.0d0+concentration)
+    end if
+    return
+  end function factorMassCuspNFW
+
   double precision function timeCollapseRoot(timeCollapse)
     !!{RST
     Root function used to find the time of collapse.
@@ -650,7 +793,7 @@ contains
     logical                                                   , save                        :: integratorInitialized               =.false.
     !$omp threadprivate(integrator_,integratorInitialized)
     double precision                                          , allocatable  , dimension(:) :: sigmaTmp
-    double precision                                                                        :: wavenumberPhysicalLogarithmicMinimum        , wavenumberPhysicalLogarithmicMaximum, &
+    double precision                                                                        :: wavenumberPhysicalLogarithmicMinimum        , wavenumberPhysicalLogarithmicMaximum       , &
          &                                                                                     sigmaPrevious
 
     ! Initialize an integrator if necessary.
@@ -791,6 +934,12 @@ contains
 
     darkMatterProfile       => node       %darkMatterProfile()
     darkMatterProfileParent => node%parent%darkMatterProfile()
+    ! Note that the cusp amplitude and mass must be copied along with the remaining cusp properties. Along any branch which
+    ! remains after halos unable to form have been pruned these are constant, so copying them is a no-op. They are not constant if
+    ! such halos are left in the tree, however, in which case failing to copy them leaves the promoted node with the zero
+    ! amplitude of an unformed halo alongside the non-zero y-parameter of its parent - a state which is not self-consistent.
+    call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspAmplitudeID    ,darkMatterProfileParent%floatRank0MetaPropertyGet(self%promptCuspAmplitudeID    ))
+    call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspMassID         ,darkMatterProfileParent%floatRank0MetaPropertyGet(self%promptCuspMassID         ))
     call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWYID         ,darkMatterProfileParent%floatRank0MetaPropertyGet(self%promptCuspNFWYID         ))
     call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWGrowthRateID,darkMatterProfileParent%floatRank0MetaPropertyGet(self%promptCuspNFWGrowthRateID))
     call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWScaleID     ,darkMatterProfileParent%floatRank0MetaPropertyGet(self%promptCuspNFWScaleID     ))
@@ -847,23 +996,31 @@ contains
          &                     *darkMatterProfile                           %floatRank0MetaPropertyGet(self%promptCuspNFWGrowthRateID)
     concentration_          =  +self                   %darkMatterHaloScale_%radiusVirial             (node                          ) &
          &                     /                                             radiusScale_
-    densityScale            =  +massHalo_                                                                                      &
-         &                     /radiusScale_**3                                                                                &
-         &                     /4.0d0                                                                                          &
-         &                     /Pi                                                                                             &
-         &                     /(                                                                                              &
-         &                       + 2.0d0                       *asinh(sqrt(concentration_            )/                y     ) &
-         &                       -(2.0d0-y**2)/sqrt(1.0d0-y**2)*atanh(sqrt(concentration_*(1.0d0-y**2)/(concentration_+y**2))) &
-         &                       -sqrt(concentration_*(concentration_+y**2))/(1.0d0+concentration_)                            &
-         &                      )
-    densityScale            =   finder%find(rootGuess=densityScale)
-    ! Compute the cusp y parameter.
-    y                     =min(                      &
-         &                     +amplitudeCusp_       &
-         &                     /densityScale         &
-         &                     /radiusScale_**1.5d0, &
-         &                     +yMaximum             &
-         &                    )
+    if (amplitudeCusp_ > 0.0d0) then
+       ! Cusp-NFW (y>0) case - the density normalization must be found by solving for a self-consistent y.
+       densityScale         =  +massHalo_                           &
+            &                  /radiusScale_**3                     &
+            &                  /4.0d0                               &
+            &                  /Pi                                  &
+            &                  /factorMassCuspNFW(concentration_,y)
+       densityScale         =   finder%find(rootGuess=densityScale)
+       ! Compute the cusp y parameter, treating negligible values as zero - see the discussion accompanying `yMinimum`.
+       y                    =min(                      &
+            &                    +amplitudeCusp_       &
+            &                    /densityScale         &
+            &                    /radiusScale_**1.5d0, &
+            &                    +yMaximum             &
+            &                   )
+       if (y < yMinimum) y=0.0d0
+    else
+       ! NFW (y=0) case - the profile has no cusp, so the density normalization follows directly and no root find is needed.
+       densityScale         =  +massHalo_                               &
+            &                  /4.0d0                                   &
+            &                  /Pi                                      &
+            &                  /radiusScale_**3                         &
+            &                  /factorMassCuspNFW(concentration_,0.0d0)
+       y                    =  +0.0d0
+    end if
     call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWYID      ,y           )
     call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWScaleID  ,radiusScale_)    
     call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWDensityID,densityScale)    
@@ -885,15 +1042,11 @@ contains
          &                 /radiusScale_**1.5d0, &
          &                 +yMaximum             &
          &                )
-    densityNormalizationRoot=+massHalo_                                                                                      &
-         &                   /radiusScale_**3                                                                                &
-         &                   /4.0d0                                                                                          &
-         &                   /Pi                                                                                             &
-         &                   /(                                                                                              &
-         &                     + 2.0d0                       *asinh(sqrt(concentration_            )/                y     ) &
-         &                     -(2.0d0-y**2)/sqrt(1.0d0-y**2)*atanh(sqrt(concentration_*(1.0d0-y**2)/(concentration_+y**2))) &
-         &                     -sqrt(concentration_*(concentration_+y**2))/(1.0d0+concentration_)                            &
-         &                    )                                                                                              &
+    densityNormalizationRoot=+massHalo_                           &
+         &                   /radiusScale_**3                     &
+         &                   /4.0d0                               &
+         &                   /Pi                                  &
+         &                   /factorMassCuspNFW(concentration_,y) &
          &                   -densityScale
     return
   end function densityNormalizationRoot

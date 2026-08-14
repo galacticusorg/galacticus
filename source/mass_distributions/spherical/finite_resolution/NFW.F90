@@ -713,24 +713,24 @@ contains
        ! through `latticeCurrent`; folding the latter into the target instead - as the `min`/`max` against the current bounds
        ! formerly did - would apply the factor-of-two margin to an already-margined bound and so ratchet the range outward on
        ! every retabulation.
-       latticeMass                                  =Range_Pinned(                                                                          &
-            &                                                                    [mass                                                   ], &
-            &                                                                     radiusEnclosingMassTableMassPointsPerDecade             , &
-            &                                                                     gridSchemePerDecade                                     , &
-            &                                                     marginFactor  = 2.0d0                                                   , &
-            &                                                     anchorEvery   =+radiusEnclosingMassTableMassPointsPerDecade               &
-            &                                                                    /tabulationAnchorsPerDecade                              , &
-            &                                                     latticeCurrent= radiusEnclosingMassLatticeMass                            &
-            &                                                    )
-       latticeLengthResolution                      =Range_Pinned(                                                                          &
-            &                                                                    [lengthResolution                                       ], &
-            &                                                                     radiusEnclosingMassTableLengthResolutionPointsPerDecade , &
-            &                                                                     gridSchemePerDecade                                     , &
-            &                                                     marginFactor  = 2.0d0                                                   , &
-            &                                                     anchorEvery   =+radiusEnclosingMassTableLengthResolutionPointsPerDecade   &
-            &                                                                    /tabulationAnchorsPerDecade                              , &
-            &                                                     latticeCurrent= radiusEnclosingMassLatticeLengthResolution                &
-            &                                                    )
+       latticeMass            =Range_Pinned(                                                                          &
+            &                                              [mass                                                   ], &
+            &                                               radiusEnclosingMassTableMassPointsPerDecade             , &
+            &                                               gridSchemePerDecade                                     , &
+            &                               marginFactor  = 2.0d0                                                   , &
+            &                               anchorEvery   =+radiusEnclosingMassTableMassPointsPerDecade               &
+            &                                              /tabulationAnchorsPerDecade                              , &
+            &                               latticeCurrent= radiusEnclosingMassLatticeMass                            &
+            &                              )
+       latticeLengthResolution=Range_Pinned(                                                                          &
+            &                                              [lengthResolution                                       ], &
+            &                                               radiusEnclosingMassTableLengthResolutionPointsPerDecade , &
+            &                                               gridSchemePerDecade                                     , &
+            &                               marginFactor  = 2.0d0                                                   , &
+            &                               anchorEvery   =+radiusEnclosingMassTableLengthResolutionPointsPerDecade   &
+            &                                              /tabulationAnchorsPerDecade                              , &
+            &                               latticeCurrent= radiusEnclosingMassLatticeLengthResolution                &
+            &                              )
        ! Extend the table onto the new lattices, carrying over the solutions already found. Every offset is computed in exact
        ! integer arithmetic from the lattice indices, so no abscissa is compared.
        call Range_Lattice_Extend_2D(radiusEnclosingMassLatticeMass,latticeMass,radiusEnclosingMassLatticeLengthResolution,latticeLengthResolution,radiusEnclosingMassTable,isComputed)
@@ -1015,24 +1015,24 @@ contains
        ! Find the range to tabulate, pinning each axis to an absolute lattice - see the corresponding comment in
        ! `sphericalFiniteResolutionNFWRadiusEnclosingMassTabulate` for why the request, and not the range already tabulated, is
        ! passed as the target.
-       latticeDensity                                  =Range_Pinned(                                                                             &
-            &                                                                       [density                                                   ], &
-            &                                                                        radiusEnclosingDensityTableDensityPointsPerDecade          , &
-            &                                                                        gridSchemePerDecade                                        , &
-            &                                                        marginFactor  = 2.0d0                                                      , &
-            &                                                        anchorEvery   =+radiusEnclosingDensityTableDensityPointsPerDecade            &
-            &                                                                       /tabulationAnchorsPerDecade                                 , &
-            &                                                        latticeCurrent= radiusEnclosingDensityLatticeDensity                         &
-            &                                                       )
-       latticeLengthResolution                         =Range_Pinned(                                                                             &
-            &                                                                       [lengthResolution                                          ], &
-            &                                                                        radiusEnclosingDensityTableLengthResolutionPointsPerDecade , &
-            &                                                                        gridSchemePerDecade                                        , &
-            &                                                        marginFactor  = 2.0d0                                                      , &
-            &                                                        anchorEvery   =+radiusEnclosingDensityTableLengthResolutionPointsPerDecade   &
-            &                                                                       /tabulationAnchorsPerDecade                                 , &
-            &                                                        latticeCurrent= radiusEnclosingDensityLatticeLengthResolution                &
-            &                                                       )
+       latticeDensity         =Range_Pinned(                                                                             &
+            &                                              [density                                                   ], &
+            &                                               radiusEnclosingDensityTableDensityPointsPerDecade          , &
+            &                                               gridSchemePerDecade                                        , &
+            &                               marginFactor  = 2.0d0                                                      , &
+            &                               anchorEvery   =+radiusEnclosingDensityTableDensityPointsPerDecade            &
+            &                                              /tabulationAnchorsPerDecade                                 , &
+            &                               latticeCurrent= radiusEnclosingDensityLatticeDensity                         &
+            &                              )
+       latticeLengthResolution=Range_Pinned(                                                                             &
+            &                                              [lengthResolution                                          ], &
+            &                                               radiusEnclosingDensityTableLengthResolutionPointsPerDecade , &
+            &                                               gridSchemePerDecade                                        , &
+            &                               marginFactor  = 2.0d0                                                      , &
+            &                               anchorEvery   =+radiusEnclosingDensityTableLengthResolutionPointsPerDecade   &
+            &                                              /tabulationAnchorsPerDecade                                 , &
+            &                               latticeCurrent= radiusEnclosingDensityLatticeLengthResolution                &
+            &                              )
        ! Extend the table onto the new lattices, carrying over the solutions already found.
        call Range_Lattice_Extend_2D(radiusEnclosingDensityLatticeDensity,latticeDensity,radiusEnclosingDensityLatticeLengthResolution,latticeLengthResolution,radiusEnclosingDensityTable,isComputed)
        radiusEnclosingDensityLatticeDensity            =latticeDensity
@@ -1528,7 +1528,7 @@ contains
          & isUsable=      size(tableStored,dim=1) == latticeRadiusOuter     %count &
          &          .and. size(tableStored,dim=2) == latticeLengthResolution%count
     if (isUsable .and. energyTableInitialized)                                                                                                &
-         & isUsable=      (.not.energyLatticeRadiusOuter      %isDefined() .or. latticeRadiusOuter    %covers(energyLatticeRadiusOuter     )) &
+         & isUsable=      (.not.energyLatticeRadiusOuter     %isDefined() .or. latticeRadiusOuter     %covers(energyLatticeRadiusOuter     )) &
          &          .and. (.not.energyLatticeLengthResolution%isDefined() .or. latticeLengthResolution%covers(energyLatticeLengthResolution))
     if (.not.isUsable) return
     ! Adopt the stored tabulation, recovering everything which describes its extent from the lattices rather than from the
@@ -1539,7 +1539,7 @@ contains
     call Move_Alloc(tableStored,energyTable)
     energyLatticeRadiusOuter        =latticeRadiusOuter
     energyLatticeLengthResolution   =latticeLengthResolution
-    energyTableRadiusOuter          =latticeRadiusOuter%     values ()
+    energyTableRadiusOuter          =latticeRadiusOuter     %values ()
     energyTableLengthResolution     =latticeLengthResolution%values ()
     energyTableRadiusOuterCount     =latticeRadiusOuter     %count
     energyTableLengthResolutionCount=latticeLengthResolution%count

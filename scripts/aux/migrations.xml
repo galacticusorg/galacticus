@@ -325,6 +325,25 @@
     <!-- behavior of existing parameter files.                                                  -->
     <translation function="splashback_radius_accretion_flow"/>
   </migration>
+  <migration commit="def071a0fd5184deb821b30d7f382e27cbafa49e">
+    <!-- The fuzzy dark matter tidal stripping classes were renamed, so that their names indicate  -->
+    <!-- that they apply only to solitonic halos.                                                  -->
+    <translation xpath="//nodeOperator[@value]">
+      <value old="satelliteConditionalMassLoss" new="satelliteTidalMassLossSoliton"/>
+    </translation>
+    <translation xpath="//satelliteTidalStrippingRadius[@value]">
+      <value old="limited" new="solitonLimited"/>
+    </translation>
+  </migration>
+
+  <migration commit="ece0d28426e2797fbd0042eadab736710304dec1">
+    <!-- The `darkMatterProfilePromptCusps` node operator now follows the reference implementation of Delos & White (2025) in  -->
+    <!-- assigning no cusp to halos for which the cusp collapse epoch postdates the halo itself - such halos can not have      -->
+    <!-- formed, and are pruned from the merger tree. This changes the physics of existing models, so pin the original         -->
+    <!-- behavior here. Models which want the new behavior should set `requireCollapseBeforeHalo` to true and add a merger     -->
+    <!-- tree operator to prune the labeled halos.                                                                            -->
+    <translation function="prompt_cusp_require_collapse_before_halo"/>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />

@@ -61,7 +61,25 @@
       <kappa                 value=" 4.500"/>
       <coefficientScatter    value=" 0.195"/>
       <nonConvergenceIsFatal value="false" />
+      <!-- Halos in which no prompt cusp can form can not themselves have formed, and are pruned (below). This is the default,   -->
+      <!-- but is set explicitly here so that the parameter migration which pins the original behavior for existing user      -->
+      <!-- parameter files leaves these reference models on the new, more realistic, physics.                                 -->
+      <requireCollapseBeforeHalo value="true" />
     </nodeOperator>
+  </change>
+
+  <!-- Prune halos in which no prompt cusp can form. Prompt cusp formation is, by definition, the formation event of a halo, so a
+       halo for which the cusp collapse epoch would lie in its own future can not have formed. Such halos are labeled by the
+       `darkMatterProfilePromptCusps` node operator during tree initialization, and are removed from the tree here. Primary
+       progenitor status is not preserved: where the primary progenitor is pruned it is precisely because it could not have
+       formed, so the surviving progenitor is the true primary progenitor. -->
+  <change type="append" path="">
+    <mergerTreeOperator value="pruneByFilter">
+      <preservePrimaryProgenitor value="false"/>
+      <galacticFilter value="labelled">
+	<label value="promptCuspUnformed"/>
+      </galacticFilter>
+    </mergerTreeOperator>
   </change>
 
 </changes>
