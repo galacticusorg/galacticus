@@ -1,5 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<!-- Compute prompt cusp parameters - used in testing the calculation again Sten Delos' implementation. -->
+<!-- Test that halos in which no prompt cusp can form are pruned from merger trees. A 3 keV thermal warm dark matter particle
+     with a merger tree mass resolution of 5e6 Msun places this model in the regime where such halos arise. See
+     https://github.com/galacticusorg/galacticus/issues/1362 -->
 
 <parameters>
   <lastModified revision="f62df0c3b1d868c052eedef79c20488955a738c9" time="2026-08-12T22:48:39"/>
@@ -36,7 +38,7 @@
   <!-- Dark matter particle type -->  
   <darkMatterParticle value="WDMThermal">
     <degreesOfFreedomEffective value="1.5"/>
-    <mass value="10.0"/>
+    <mass value="3.0"/>
   </darkMatterParticle>  
 
   <!-- Cosmological parameters and options -->
@@ -141,8 +143,8 @@
   </mergerTreeBranchingProbability>
 
   <mergerTreeBuildMasses value="fixedMass">
-    <massTree value="1.0e12"/>
-    <treeCount value="1"/>
+    <massTree value="1.0e11"/>
+    <treeCount value="2"/>
   </mergerTreeBuildMasses>
   <mergerTreeBuildMassDistribution value="haloMassFunction">
     <abundanceMinimum value="1.0e-6"/>
@@ -152,7 +154,7 @@
   <!-- Halo mass resolution -->
   <mergerTreeMassResolution value="fixed">
     <!-- All trees are set to have the same halo mass resolution. -->
-    <massResolution value="1.0e8"/>
+    <massResolution value="5.0e6"/>
   </mergerTreeMassResolution>
   
   <!-- Dark matter only halo structure options -->
@@ -448,7 +450,7 @@
   </mergerTreeOperator>
 
   <!-- Output file -->
-  <outputFileName value="testSuite/outputs/testPromptCuspNFW.hdf5"/>
+  <outputFileName value="testSuite/outputs/promptCuspsUnformed.hdf5"/>
 
   <!-- Output properties -->
   <nodePropertyExtractor value="multi">
@@ -460,6 +462,7 @@
     <nodePropertyExtractor value="uniqueIDBranchTip"/>
     <nodePropertyExtractor value="promptCusps"/>
     <nodePropertyExtractor value="radiusVirialLastDefined"/>
+    <nodePropertyExtractor value="labels"/>
   </nodePropertyExtractor>
 
   <powerSpectrumWindowFunction value="sharpKSpace">
