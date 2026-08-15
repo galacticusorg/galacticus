@@ -6,8 +6,11 @@
   <!-- Set the host halo masses. The replication count is higher than for the other COZMIC WDM models: with 2 host halos and
        12 replications (24 trees) the model occasionally produced no subhalo at all in the massRatio=0.136 bin, where the target
        contains a single (LMC analog) subhalo, which makes the subhaloMassFunction likelihood impossible. 32 replications (64
-       trees) reduces the rate of that to a negligible level. -->
-  <change type="update" path="mergerTreeBuildMasses/replicationCount" value="32"/>
+       trees) reduced the rate of that, but not far enough: pooled over the published history the model places 114 subhalos in
+       that bin across 34 runs of 64 trees, a rate of 0.051 per tree, leaving a 4% chance of an empty bin on any given run. This
+       is the lowest rate of any of the COZMIC WDM models at this resolution, so it needs the most trees of any of them: 96
+       replications (192 trees) bring the chance of an empty bin to 5e-05. -->
+  <change type="update" path="mergerTreeBuildMasses/replicationCount" value="96"/>
   <change type="update" path="mergerTreeBuildMasses/mergerTreeBuildMasses/fileName" value="%DATASTATICPATH%/darkMatter/COZMIC/MilkyWay/resolutionX8/WDM:4keV/hostHaloMasses_z0.000.hdf5"/>
   <!-- Set a suitable name for the output file. -->
   <change type="update" path="outputFileName" value="testSuite/outputs/validate_darkMatterOnlySubhalos_COZMIC_MilkyWay_resolutionX8_WDM:4keV.hdf5"/>
