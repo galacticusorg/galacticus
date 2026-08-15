@@ -89,13 +89,14 @@ program Tests_Merger_Tree_Branching
   ! that constancy - see the comments at the head of each group.
   integer                                                                       , parameter                :: countIdentity             =6      , countRatio     = 6, &
        &                                                                                                      countClosedForm           =6      , countX         =16, &
-       &                                                                                                      countAlpha                =5      , countQuantile  = 3, &
+       &                                                                                                      countAlpha                =5      , countGrid      =50, &
        &                                                                                                      countSample               =20000   , countInverse   = 3
   type            (mergerTreeBranchingProbabilityParkinsonColeHelly            ), dimension(countIdentity  ) :: branchingIdentity_
   type            (mergerTreeBranchingProbabilityParkinsonColeHelly            ), dimension(countClosedForm) :: branchingClosedForm_
   type            (mergerTreeBranchingProbabilityParkinsonColeHelly            )                           :: branchingOrdering_                , branchingPole_    , &
        &                                                                                                      branchingGeneric_                 , branchingSampler_ , &
-       &                                                                                                      branchingFresh_                   , branchingReference_
+       &                                                                                                      branchingFresh_                   , branchingReference_, &
+       &                                                                                                      branchingSamplerGeneric_
   type            (mergerTreeBranchingProbabilityPCHPlus                       ), dimension(            3) :: branchingPCHPlus_
   type            (randomNumberGeneratorGSL                                    )                           :: randomNumberGenerator_
   ! Parameters of the configurations swept over. The values of γ₁ are chosen so that the effective exponent γ₁-1/α (=γ₁+3 here)
@@ -114,12 +115,17 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                  gamma5PCHPlus       =[0.0d0,0.3d0,0.0d0]
   double precision                                                              , dimension(countAlpha     ), parameter :: massAlpha           =[1.0d8,1.0d10,1.0d12,1.0d14,1.0d16]
   double precision                                                              , dimension(countInverse   ), parameter :: fractionInverse     =[0.25d0,0.50d0,0.75d0]
-  double precision                                                              , dimension(countQuantile  ), parameter :: fractionQuantile    =[0.25d0,0.50d0,0.75d0]
   double precision                                                              , dimension(countX         ), parameter :: xTarget             =[1.00d-7,1.00d-6,1.00d-5,1.00d-4,1.00d-3,1.00d-2,5.00d-2,9.90d-2,1.00d-1,1.01d-1,5.00d-1,1.00d0,5.00d0,1.25d1,1.00d2,1.00d3]
   ! Tolerances. These are set from the accuracy actually achieved - see the comment at each assertion for what limits it.
   double precision                                                              , parameter                :: toleranceIdentityTabulated=1.0d-3 , toleranceIdentityDirect   =3.0d-3, &
        &                                                                                                      toleranceRateIntegral     =3.0d-3 , toleranceMassBranchInverse=1.0d-3, &
-       &                                                                                                      toleranceSampledFraction  =2.0d-2 , toleranceReduction        =1.0d-9
+       &                                                                                                      toleranceReduction        =1.0d-9
+  ! Critical value of the Kolmogorov-Smirnov statistic. For a sample of this size the probability that a correctly drawn sample
+  ! exceeds this is 2exp(-2Nd²) ≈ 2·10⁻⁷, so this cannot flap - and, the random sequence being seeded deterministically, the
+  ! statistic is in any case identical from run to run of the same executable. The values actually attained are 4.9·10⁻³ and
+  ! 6.3·10⁻³ for the two samplers, against the 8.6·10⁻³/√N ≈ 6.1·10⁻³ expected of a correctly drawn sample of this size, so both
+  ! agree with the analytic distribution to within the sampling noise and this limit is left with a margin of some three times.
+  double precision                                                              , parameter                :: toleranceKolmogorovSmirnov=2.0d-2
   ! Tolerances for the closed-form comparisons, one per configuration. The tabulated evaluation interpolates linearly between
   ! twenty points per decade, so its error grows as the square of the logarithmic gradient of the tabulated function: that
   ! function falls as x^{-1} for γ₁=0 but as x^{-4} for γ₁=-3, which is what makes the last of these so much the loosest. Values
@@ -131,14 +137,15 @@ program Tests_Merger_Tree_Branching
        &                                                                                                      probabilityFull                   , &
        &                                                                                                      massBranchTest                    , massTargetCurrent , &
        &                                                                                                      probabilityPartial                , stepExpected      , &
-       &                                                                                                      modifierExpected                  , massQuantile
+       &                                                                                                      modifierExpected
   double precision                                                              , dimension(countRatio     ) :: probabilityIdentity             , boundLowerIdentity, &
        &                                                                                                      boundUpperIdentity
   double precision                                                              , dimension(countX         ) :: fractionActual                  , fractionExpected  , &
        &                                                                                                      xActual
   double precision                                                              , dimension(countAlpha     ) :: alphaMeasured                   , sigmaScratch
   double precision                                                              , dimension(countInverse   ) :: massBranchReturned              , massBranchTarget
-  double precision                                                              , dimension(countQuantile  ) :: fractionSampled                 , fractionPredicted
+  double precision                                                              , dimension(countGrid      ) :: massGrid                        , cdfAnalytic       , &
+       &                                                                                                      cdfSampled
   double precision                                                              , dimension(countSample    ) :: massSample
   integer                                                                                                  :: k
 
@@ -703,18 +710,45 @@ program Tests_Merger_Tree_Branching
        &                                                             cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                                    , &
        &                                                             criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_              &
        &                                                            )
+  branchingSamplerGeneric_=mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                                              &
+       &                                                             G0                       =0.57d0                                                                   , &
+       &                                                             gamma1                   =0.38d0                                                                   , &
+       &                                                             gamma2                   =-0.01d0                                                                  , &
+       &                                                             accuracyFirstOrder       =1.0d-1                                                                   , &
+       &                                                             precisionHypergeometric  =1.0d-6                                                                   , &
+       &                                                             hypergeometricTabulate   =.false.                                                                  , &
+       &                                                             cdmAssumptions           =.false.                                                                  , &
+       &                                                             tolerateRoundOffErrors   =.false.                                                                  , &
+       &                                                             cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                                    , &
+       &                                                             criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_              &
+       &                                                            )
+  ! The cumulative distribution of the branch mass requires no special functions of its own: the branching probability evaluated
+  ! for a resolution m is precisely the integral of the branching rate from m up to half the parent mass, so the fraction of
+  ! branches below m is one minus the ratio of that to the same quantity evaluated at the true resolution.
+  do j=1,countGrid
+     massGrid   (j)=massResolution_*(0.5d0*massParent/massResolution_)**(dble(j)/dble(countGrid+1))
+     cdfAnalytic(j)=+1.0d0                                                                                                  &
+          &         -branchingGeneric_%probability(massParent,deltaAnalytic,timeAnalytic,massGrid(j),node)/probabilityFull
+  end do
   randomNumberGenerator_=randomNumberGeneratorGSL(8213_c_long)
+  ! Under the CDM assumptions the branch mass is drawn by rejection sampling from the function S(q) of Parkinson et al. (2008),
+  ! which does not reference the branching rate at all - so this compares two entirely independent constructions.
   do k=1,countSample
-     massSample(k)=branchingSampler_%massBranch(massParent,deltaAnalytic,timeAnalytic,massResolution_,0.0d0,randomNumberGenerator_,node)
+     massSample(k)=branchingSampler_       %massBranch(massParent,deltaAnalytic,timeAnalytic,massResolution_,0.0d0,randomNumberGenerator_,node)
   end do
-  do j=1,countQuantile
-     massQuantile        =massResolution_*(0.5d0*massParent/massResolution_)**fractionQuantile(j)
-     fractionSampled  (j)=dble(count(massSample < massQuantile))/dble(countSample)
-     fractionPredicted(j)=rateIntegral(branchingGeneric_,massResolution_,massQuantile)/probabilityFull
+  do j=1,countGrid
+     cdfSampled(j)=dble(count(massSample < massGrid(j)))/dble(countSample)
   end do
-  ! The tolerance is set by the sampling noise: with twenty thousand samples the standard deviation of each fraction is at most
-  ! 0.0035, so this is a little under six standard deviations.
-  call Assert('sampled branch mass distribution',fractionSampled,fractionPredicted,absTol=toleranceSampledFraction)
+  call Assert('Kolmogorov-Smirnov statistic, S(q) rejection sampler',maxval(abs(cdfSampled-cdfAnalytic)),toleranceKolmogorovSmirnov,compareLessThan)
+  ! Without them the branch mass is instead found by inverting the integral of the rate, so a uniform deviate scaled by the total
+  ! branching probability samples the same distribution by a wholly different route.
+  do k=1,countSample
+     massSample(k)=branchingSamplerGeneric_%massBranch(massParent,deltaAnalytic,timeAnalytic,massResolution_,randomNumberGenerator_%uniformSample()*probabilityFull,randomNumberGenerator_,node)
+  end do
+  do j=1,countGrid
+     cdfSampled(j)=dble(count(massSample < massGrid(j)))/dble(countSample)
+  end do
+  call Assert('Kolmogorov-Smirnov statistic, rate inversion sampler',maxval(abs(cdfSampled-cdfAnalytic)),toleranceKolmogorovSmirnov,compareLessThan)
   call Unit_Tests_End_Group  (                                   )
 
   ! ----------------------------------------------------------------------------------------------------------------------------------

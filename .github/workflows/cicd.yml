@@ -1343,6 +1343,8 @@ jobs:
                       tests.excursion_sets.exe,
                       tests.merger_tree_branching.exe,
                       tests.merger_tree_branching_CDM.exe,
+                      tests.merger_tree_branching_WDM.exe,
+                      tests.merger_tree_branching_modifiers.exe,
                       tests.merger_tree_census.exe,
                       tests.event_hooks.exe,
                       tests.tree_branch_destroy.exe,
