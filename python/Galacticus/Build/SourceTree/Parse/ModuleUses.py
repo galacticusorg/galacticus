@@ -10,6 +10,14 @@ import copy
 
 from Galacticus.Build.FortranUtils import get_fortran_line
 
+# Formatting rules for emitted `use` statements.  `SYMBOLS_PER_ROW_MAX` is the
+# usual number of `only` symbols per row; `LINE_LENGTH_MAX` is the column
+# beyond which `update_uses()` drops to fewer symbols per row.  132 is the
+# Fortran free-form standard limit — not enforced here (the build passes
+# `-ffree-line-length-none`) but kept as the house style.
+SYMBOLS_PER_ROW_MAX = 4
+LINE_LENGTH_MAX     = 132
+
 # NB: the `(?![a-zA-Z0-9_])` after `use` is essential — without it, an
 # assignment to a variable whose name merely *starts* with "use" (e.g.
 # `useCache=lastCache`) parses as `use Cache, only : =lastCache`, fabricating
@@ -42,6 +50,29 @@ def _as_entry_list(value):
 def _condition_key(entry):
     """A hashable identity for an entry's preprocessor condition set."""
     return tuple((c['name'], c['invert']) for c in entry.get('conditions', []))
+
+
+def _insert_module_ordered(module_order, module_uses, mod_name, is_intrinsic):
+    """Record `mod_name` in `module_order`, intrinsic modules first.
+
+    Intrinsic modules (`use, intrinsic :: ISO_C_Binding`) are hoisted ahead of
+    the rest, but keep their order of appearance *among themselves* — they are
+    inserted after any intrinsic modules already recorded, not at index zero.
+
+    Inserting at index zero instead would reverse the intrinsic modules on
+    every pass, so a block naming two of them oscillated between two layouts
+    and reformatting never reached a fixed point.
+    """
+    if not is_intrinsic:
+        module_order.append(mod_name)
+        return
+    index = 0
+    for name in module_order:
+        if not any(entry.get('intrinsic')
+                   for entry in _as_entry_list(module_uses.get(name, []))):
+            break
+        index += 1
+    module_order.insert(index, mod_name)
 
 
 def parse_module_uses(tree):
@@ -168,10 +199,8 @@ def parse_module_uses(tree):
                 entries = module_uses.setdefault(mod_name, [])
                 if not entries:
                     # First occurrence of this module name fixes its order.
-                    if is_intrinsic:
-                        module_order.insert(0, mod_name)
-                    else:
-                        module_order.append(mod_name)
+                    _insert_module_ordered(
+                        module_order, module_uses, mod_name, is_intrinsic)
 
                 entry = next(
                     (e for e in entries if _condition_key(e) == cond_key), None)
@@ -252,17 +281,31 @@ def update_uses(uses_node):
     """
     from Galacticus.Build.FortranUtils import get_fortran_line
 
-    # Determine indentation from the existing raw content.
-    indent = ""
+    # Determine the block's indentation from the existing raw content: the
+    # smallest indent of any `use` statement in it.
+    #
+    # The minimum is what makes this function idempotent.  When a block mixes
+    # OpenMP-conditional and unconditional uses, the emitter below indents the
+    # unconditional ones by a further three columns so that `use` lines up
+    # with the `use` after a `!$ ` sentinel.  Reading the indent off the first
+    # line of an already-formatted block would therefore pick up that padding
+    # and add three more columns on every pass.  Taking the minimum over the
+    # `use` lines recovers the base indent whether or not the block has been
+    # formatted before, since the `!$ ` lines sit at the base indent and are
+    # never padded.
+    #
+    # Only `use` lines are considered: any `#ifdef` guards in the block start
+    # at column zero and would otherwise drag the indent to nothing.
     raw_content = uses_node['firstChild']['content'] if uses_node.get('firstChild') else ""
+    indents = []
     fh = io.StringIO(raw_content)
-    while indent == "":
+    while True:
         raw_line, processed_line, _ = get_fortran_line(fh)
         if not raw_line and not processed_line:
             break
-        m = re.match(r'^(\s*)', raw_line)
-        if m:
-            indent = m.group(1)
+        if _MODULE_USE_RE.match(processed_line):
+            indents.append(re.match(r'^(\s*)', raw_line).group(1))
+    indent = min(indents, key=len) if indents else ""
 
     module_use  = uses_node.get('moduleUse', {})
     module_order = uses_node.get('moduleOrder', list(module_use.keys()))
@@ -276,18 +319,22 @@ def update_uses(uses_node):
 
     name_len_max = max((len(n) for n in module_use), default=0)
 
-    # Compute 4-column max widths for 'only' symbols.
-    col_max = [0, 0, 0, 0]
-    for v in module_use.values():
-        for entry in _as_entry_list(v):
-            only = entry.get('only', {})
-            if only:
-                for i, sym in enumerate(sorted(only.keys())):
-                    j = i % 4
+    def _column_widths(symbols_per_row):
+        """Max width of each symbol column, over every `use` in the block.
+
+        Widths are shared across the whole block so that symbols line up
+        between `use` statements, not merely within one.
+        """
+        col_max = [0] * symbols_per_row
+        for v in module_use.values():
+            for entry in _as_entry_list(v):
+                for i, sym in enumerate(sorted(entry.get('only', {}).keys())):
+                    j = i % symbols_per_row
                     if len(sym) > col_max[j]:
                         col_max[j] = len(sym)
+        return col_max
 
-    def _emit_entry(mod_name, entry):
+    def _emit_entry(mod_name, entry, symbols_per_row, col_max):
         text = ""
 
         # Emit preprocessor conditions.
@@ -319,13 +366,13 @@ def update_uses(uses_node):
             symbols = sorted(only.keys())
             remaining = symbol_count
             for i, sym in enumerate(symbols):
-                j = i % 4
+                j = i % symbols_per_row
                 use_line += sym
                 remaining -= 1
                 if remaining > 0:
                     use_line += " " * (col_max[j] - len(sym))
                     use_line += ", "
-                    if j == 3:
+                    if j == symbols_per_row - 1:
                         use_line += "&\n"
                         if entry.get('openMP'):
                             cont_prefix = indent + "!$ "
@@ -343,10 +390,29 @@ def update_uses(uses_node):
             text += "#endif\n"
         return text
 
-    content = ""
-    for mod_name in module_order:
-        for entry in _as_entry_list(module_use.get(mod_name, [])):
-            content += _emit_entry(mod_name, entry)
+    def _emit_block(symbols_per_row):
+        col_max = _column_widths(symbols_per_row)
+        text = ""
+        for mod_name in module_order:
+            for entry in _as_entry_list(module_use.get(mod_name, [])):
+                text += _emit_entry(mod_name, entry, symbols_per_row, col_max)
+        return text
+
+    # Use as many symbols per row as fit: SYMBOLS_PER_ROW_MAX normally, fewer
+    # when the resulting rows would run past LINE_LENGTH_MAX.  The count is
+    # chosen once for the whole block rather than per statement, because the
+    # column widths are shared across the block — varying it per statement
+    # would destroy the alignment the widths exist to produce.
+    #
+    # A block whose symbols are too long to fit even one per row still emits
+    # one per row and overflows: there is nowhere to break a single symbol,
+    # and Galacticus compiles with `-ffree-line-length-none`, so the limit is
+    # a style rule rather than a constraint.
+    for symbols_per_row in range(SYMBOLS_PER_ROW_MAX, 0, -1):
+        content = _emit_block(symbols_per_row)
+        if max((len(line) for line in content.splitlines()),
+               default=0) <= LINE_LENGTH_MAX:
+            break
 
     if uses_node.get('firstChild') is None:
         uses_node['firstChild'] = {
@@ -420,10 +486,9 @@ def add_uses(node, module_uses_node):
             entries  = uses_node['moduleUse'].setdefault(mod_name, [])
 
             if mod_name not in uses_node['moduleOrder']:
-                if new_entry.get('intrinsic'):
-                    uses_node['moduleOrder'].insert(0, mod_name)
-                else:
-                    uses_node['moduleOrder'].append(mod_name)
+                _insert_module_ordered(
+                    uses_node['moduleOrder'], uses_node['moduleUse'],
+                    mod_name, new_entry.get('intrinsic'))
 
             # Merge into the entry with the *same* condition set.  An
             # unconditional `use` thus joins (or creates) the unconditional
