@@ -113,6 +113,14 @@ Implements a merger tree branching probability class using the algorithm of :cit
   ! Limit on α for use in effective γ parameters.
   double precision                                                  , parameter :: alphaMinimum             =5.0d-3
 
+  ! Closest approach permitted to a pole of the hypergeometric functions used to bound the branching probability. The third
+  ! parameter of those functions is c=(3-γ_eff)/2, which passes through zero and the negative integers as the effective exponent
+  ! γ_eff reaches the odd integers 3, 5, 7, …. Both hypergeometric factors diverge as 1/c there while the bound - their difference
+  ! - stays finite, so precision is lost to the cancellation at a rate of roughly 0.018/|c| relative to the tolerance to which the
+  ! functions themselves are evaluated. At the limit set here that costs at most a part in 10⁵ at the default precision, which is
+  ! far below the accuracy of the bound itself.
+  double precision                                                  , parameter :: cParameterPoleMinimum    =1.0d-3
+
 contains
 
   function parkinsonColeHellyConstructorParameters(parameters) result(self)
@@ -232,6 +240,7 @@ contains
     ! Initialize.
     self%subresolutionHypergeometricInitialized=.false.
     self%upperBoundHypergeometricInitialized   =.false.
+    self%hypergeometricFailureWarned           =.false.
     self%massResolutionTabulated               =-1.0d0
     self%haloMassPrevious                      =-1.0d0
     self%deltaCriticalPrevious                 =-1.0d0
@@ -512,12 +521,15 @@ contains
     double precision                                                  , parameter     :: largeStep          =1.0d10                 !   Effectively infinitely large step in w(=delta_crit).
     double precision                                                                  :: parentHalfMassSigma       , parentSigma, &
          &                                                                               varianceResidual
-    !$GLC attributes unused :: deltaCritical, time
+    !$GLC attributes unused :: deltaCritical
 
-    ! Get σ and δ_critical for the parent halo.
+    ! Get σ for the parent halo. The epoch is taken from the `time` argument, and not from `self%timeParent`, so that this
+    ! function does not depend on some other function having been called first to set that state - `self%timeParent` is set only
+    ! by `computeCommonFactors` (and by the mass sampling algorithm). Both are the same epoch when the caller is consistent, so
+    ! this changes no result.
     if (haloMass > 2.0d0*massResolution) then
-       parentSigma                  =+self%cosmologicalMassVariance_%rootVariance(      haloMass,self%timeParent)
-       parentHalfMassSigma          =+self%cosmologicalMassVariance_%rootVariance(0.5d0*haloMass,self%timeParent)
+       parentSigma                  =+self%cosmologicalMassVariance_%rootVariance(      haloMass,time           )
+       parentHalfMassSigma          =+self%cosmologicalMassVariance_%rootVariance(0.5d0*haloMass,time           )
        varianceResidual             =+parentHalfMassSigma**2 &
             &                        -parentSigma        **2
        if (varianceResidual > 0.0d0) then
@@ -733,7 +745,7 @@ contains
     double precision                                                  , parameter             :: sqrtTwoOverPi                 =sqrt(2.0d0/Pi)
     double precision                                                                          :: probabilityIntegrandLower                    , probabilityIntegrandUpper, &
          &                                                                                       halfParentSigma                              , halfParentAlpha          , &
-         &                                                                                       gammaEffective
+         &                                                                                       gammaEffective                               , cParameter
     double precision                                                                          :: hyperGeometricFactorLower                    , hyperGeometricFactorUpper, &
          &                                                                                       resolutionSigmaOverParentSigma
     integer         (c_int                                           )                        :: statusLower                                  , statusUpper
@@ -787,6 +799,25 @@ contains
           case (mergerTreeBranchingBoundUpper%ID)
              gammaEffective=gammaEffective-1.0d0/     halfParentAlpha
           end select
+          ! The bound is formed below as the difference of two hypergeometric factors whose third parameter is c=(3-γ_eff)/2. That
+          ! parameter passes through zero and the negative integers as γ_eff reaches the odd integers 3, 5, 7, …, and there both
+          ! factors diverge as 1/c while their difference - the quantity actually wanted - stays finite, the pole being
+          ! independent of the abscissa and so cancelling. Sufficiently close to such a point the evaluation fails outright and is
+          ! caught below; short of that it succeeds but returns a bound so degraded by the cancellation that it may no longer
+          ! bound the probability at all - which, since the upper bound sets the rate at which candidate branching events are
+          ! drawn, would bias every tree built rather than announce itself. This is not an unreachable corner: for a CDM power
+          ! spectrum γ_eff = γ₁-1/α sweeps through those odd integers as the halo mass runs over the range tabulated. So decline
+          ! the CDM assumptions in a neighborhood of each, and revert to the exponent which does not use them; the bound so
+          ! obtained is looser, but always valid.
+          cParameter=+1.5d0-0.5d0*gammaEffective
+          if     (                                                              &
+               &   cParameter                       <= +0.5d0                   &
+               &  .and.                                                         &
+               &   abs(cParameter-dnint(cParameter)) < cParameterPoleMinimum    &
+               & ) then
+             usingCDMAssumptions=.false.
+             gammaEffective     =self%gamma1
+          end if
        end if
        ! Compute probability factors. The logic here becomes complicated, as we use various optimizations and tabulations to
        ! speed up calculation.
