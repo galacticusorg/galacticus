@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786740919064,
+  "lastUpdate": 1786826723256,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c82cd8d961c222107301b114219410391efe83b7",
-          "message": "Merge pull request #856 from galacticusorg/featReplaceWith\n\n Add new options for parameter change files",
-          "timestamp": "2025-06-05T14:36:21Z",
-          "tree_id": "8da64d63f71164953ec4955cda565d02bd394d9c",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c82cd8d961c222107301b114219410391efe83b7"
-        },
-        "date": 1749158125462,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 90.582,
-            "unit": "seconds",
-            "range": 0.150677138279244
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10728,6 +10698,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 18.374371171455007,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9b6b0b129609b20637577dad446f2cdc9013b325",
+          "message": "Merge pull request #1380 from galacticusorg/chore/gh-pages-thresholds-2026-08-14\n\nRe-anchor gh-pages analysis thresholds after the 2026-08-14 run",
+          "timestamp": "2026-08-15T15:04:23Z",
+          "tree_id": "2622d555d1bb8ae1967c3cf5362eafb5424908f2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9b6b0b129609b20637577dad446f2cdc9013b325"
+        },
+        "date": 1786826722323,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 44.178,
+            "range": "0.0709196728700861",
+            "unit": "seconds"
           }
         ]
       }
