@@ -34,6 +34,61 @@ write:
     logical, intent(  out) :: diskRequired        , spheroidRequired   , &
          &                    radiusVirialRequired, radiusScaleRequired
 
+Like ``use`` blocks, a run of declarations is laid out as a table so that it can be scanned down a column. The conventions are:
+
+* The intrinsic type, its parenthetical (kind specifier, type name, ``len=``), the ``::`` and the variables each occupy a column, whose width is shared by every declaration in the run. A declaration with no parenthetical still leaves room for one, so its ``::`` lines up with the rest.
+* The intrinsic is padded before the bracket opens — ``double precision``, ``type            (treeNode)`` — rather than the padding going inside the brackets.
+* Attributes occupy positional columns: whichever attribute comes first on a row sits in the first attribute column, so one column may hold ``pointer`` on one row and ``intent(inout)`` on the next, sized to the wider.
+* Attributes are written in a canonical order — ``intent``, ``pointer``, ``allocatable``, ``dimension``, ``target``, ``optional``, ``parameter``, ``save``, ``value``, ``public``, ``private``, then anything else alphabetically. Fortran attaches no meaning to the order; fixing one is what lets a given attribute reliably land in the same column.
+* The argument of ``intent`` is padded to the width of the longest spelling, so that ``intent(in   )``, ``intent(inout)`` and ``intent(  out)`` form one column.
+* At most two variables per row, aligned in columns, with any ``=`` or ``=>`` initializer aligned down each column. Continuation rows carry ``&`` five columns in from the block indent.
+* A declaration needed only under OpenMP carries the ``!$`` sentinel; unconditional declarations in the same run are indented three further columns so the intrinsic types still line up.
+* Rows hold fewer variables where two would push the line past 132 columns.
+
+For example:
+
+.. code-block:: fortran
+
+       type            (treeNode), intent(inout)                            :: node
+       double precision          , intent(in   ), allocatable, dimension(:) :: radii
+       logical                   , intent(  out)                            :: isComputed
+       double precision                                                     :: massStellar        , massGas              , &
+         &                                                                     radiusScale        , velocityVirial
+       integer                                                              :: i
+    !$ integer                                                              :: threadCount
+       logical                                                              :: converged  =.false., iterating     =.true.
+
+A comment or a ``#ifdef`` between two runs of declarations does not break the alignment — the columns span it. These conventions are applied automatically by :ref:`manual-sec-formatDeclarations`.
+
+Module ``use`` statements
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Blocks of ``use`` statements are laid out as a table, so that the module names and the symbols imported from them can be scanned down a column. The conventions are:
+
+* Every ``use`` carries an explicit ``::`` and an ``only`` clause naming the symbols imported. One statement per module.
+* Within a block, the ``use``, ``::`` and ``, only :`` tokens are vertically aligned, which means module names are padded to the width of the longest.
+* At most four symbols per row, using continuation lines for more — but fewer per row where four would push the line past 132 columns. The count is chosen once for the whole block, so the symbol columns stay aligned between statements.
+* Symbols are sorted alphabetically and aligned in columns whose widths are shared across the entire block. The sort is case-sensitive, which groups ``Capitalized_With_Underscores`` procedure names ahead of ``camelCase`` types and variables.
+* Modules imported with the ``intrinsic`` attribute come first, keeping their order relative to one another.
+* A ``use`` needed only under OpenMP carries the ``!$`` sentinel. Where a block mixes these with unconditional ``use`` statements, the latter are indented three further columns so that the ``use`` keywords still line up.
+* A ``use`` guarded by a preprocessor conditional keeps its own ``#ifdef``/``#endif`` wrapper.
+
+For example:
+
+.. code-block:: fortran
+
+       use, intrinsic :: ISO_C_Binding     , only : c_size_t
+       use            :: Error             , only : Error_Report
+       use            :: Display           , only : displayIndent         , displayMessage, displayUnindent, displayVerbositySet, &
+       &                                            verbosityLevelStandard
+       use            :: ISO_Varying_String, only : assignment(=)         , varying_string
+   #ifdef USEMPI
+       use            :: MPI_Utilities     , only : mpiBarrier            , mpiSelf
+   #endif
+    !$ use            :: OMP_Lib           , only : OMP_Get_Max_Threads
+
+These conventions are applied automatically by :ref:`manual-sec-formatModuleUses`, so there is no need to align them by hand.
+
 Constants
 ~~~~~~~~~
 
