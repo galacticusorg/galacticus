@@ -246,10 +246,9 @@ contains
     massResolution=self%mergerTreeMassResolution_%resolution(tree)
     ! Find the critical overdensity at the earliest time to which we will build this tree. We evaluate this here to ensure that
     ! δc(t) is already evaluated over the full range of epochs that we will require - this prevents any possible retabulation
-    ! during tree construction which can potentially lead to misordering of branches. This is not the ideal solution - ideally,
-    ! critical overdensity classes which rely on tabulation and which have to retabulate themselves should ensure that they simply
-    ! expand their range without changing any of the previous computed values (as we do for expansion factor vs. time in the
-    ! cosmology function class).
+    ! during tree construction which can potentially lead to misordering of branches. The result is deliberately unused: the call
+    ! exists only for that side effect. See the equivalent call in the parent class for why pinning tabulation ranges does not
+    ! remove the need for it.
     deltaCriticalEarliest   =+self%criticalOverdensity_     %value          (time              =self%timeEarliest/2.0d0,mass=basic%mass(),node=node) &
          &                   *self%cosmologicalMassVariance_%rootVariance   (time              =self%timeNow           ,mass=basic%mass()          ) &
          &                   /self%cosmologicalMassVariance_%rootVariance   (time              =self%timeEarliest/2.0d0,mass=basic%mass()          )

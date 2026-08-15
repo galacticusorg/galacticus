@@ -175,7 +175,12 @@ program Test_Cooling_Functions
        &            /ergs                  &
        &            /coolantCMBCompton     &
        &            /gigaYear
-  call Assert('CMB Compton cooling timescale at z=0',timescaleCooling,980.09784110508792d0,relTol=1.0d-6)
+  ! The expected value was updated when the cosmology function tabulations were pinned to an absolute lattice (#1317). The
+  ! Compton cooling rate goes as the fourth power of the temperature of the cosmic microwave background, and so as the
+  ! inverse fourth power of the expansion factor at the epoch set above - a quantity interpolated from a tabulation whose
+  ! abscissae that change moved, and whose initial condition is now imposed at a fixed, earlier epoch. The timescale shifted
+  ! by 1.9 parts per million, just past the tolerance asserted here.
+  call Assert('CMB Compton cooling timescale at z=0',timescaleCooling,980.09973759556078d0,relTol=1.0d-6)
   ! Compute Cloudy cooling time.
   coolantAtomicCIECloudy=+coolingFunctionAtomicCIECloudy_%coolingFunction(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
   call Assert('Cloudy CIE cooling function',coolantAtomicCIECloudy,1.4198000000000027d-30,relTol=1.0d-6)
