@@ -97,6 +97,8 @@ contains
          &                            displayCounter, displayCounterClear
     use :: Error             , only : Error_Report
     use :: Points_Convex_Hull, only : convexHull
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class           (nbodyOperatorFilterConvexHull), intent(inout)                 :: self
     type            (nBodyData                    ), intent(inout), dimension(  :) :: simulations
@@ -179,8 +181,10 @@ contains
           ! Set the convex hull volume for this simulation.
           call simulations(i)%attributesReal%set('convexHullVolume',hull%volume())
        end do
+    class is (functionClass)
+       call Error_Report('object is not of [convexHull] class, but of ['//char(hull%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [convexHull] class'//{introspection:location})
     end select
     nullify(hull)
     call displayUnindent('done',verbosityLevelStandard)

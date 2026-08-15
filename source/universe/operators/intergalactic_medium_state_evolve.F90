@@ -375,7 +375,9 @@ contains
      !!{RST
      Attach an initial event to a merger tree to cause the properties update function to be called.
      !!}
-     use :: Galacticus_Nodes, only : universe, universeEvent
+     use :: Galacticus_Nodes  , only : universe     , universeEvent
+     use :: ISO_Varying_String, only : char
+     use :: Function_Classes  , only : functionClass
      implicit none
      class(universeOperatorIntergalacticMediumStateEvolve), intent(inout), target :: self
      type (universe                                      ), intent(inout)         :: universe_
@@ -538,8 +540,10 @@ contains
         call self%stateSet(iNow)
         ! Display message.
         call displayUnindent('done')
-        class default
-        call Error_Report('incorrect class'//{introspection:location})
+     class is (functionClass)
+        call Error_Report('object is not of [universeOperatorIntergalacticMediumStateEvolve] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
+     class default
+        call Error_Report('object is not of [universeOperatorIntergalacticMediumStateEvolve] class'//{introspection:location})
      end select
      ! Return true since we've performed our task.
      success=.true.

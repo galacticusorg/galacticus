@@ -231,8 +231,9 @@ contains
     !!{RST
     Zero any in-situ star formation history for the galaxy about to merge.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : nodeComponentDisk, nodeComponentSpheroid, treeNode
+    use :: ISO_Varying_String, only : char
     implicit none
     class(starFormationHistoryInSitu), intent(inout) :: self
     type (treeNode                  ), intent(inout) :: node
@@ -255,7 +256,7 @@ contains
           call spheroid%starFormationHistorySet(historyStarFormationSpheroid)
        end if
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [starFormationHistoryInSitu] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     end select
     return
   end subroutine inSituSatelliteMerger

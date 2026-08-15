@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<!-- A parameter file with an outdated revision and no strict compliance requested -->
+<!-- A parameter file with an outdated revision and strict compliance requested    -->
 
 <!-- 02-December-2025                                                              -->
 
 <parameters>
-  <lastModified revision="262562000c251ee5b935019673f606a8a8c47c10" time="2026-07-28T17:29:21"/>
+  <lastModified revision="262562000c251ee5b935019673f606a8a8c47c10" time="2026-07-28T17:29:21" strict="true"/>
   <formatVersion>2</formatVersion>
 
   <!-- Component selection -->

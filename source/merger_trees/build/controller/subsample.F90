@@ -118,7 +118,7 @@ contains
        </inputParameter>
        !!]
     else
-       call Error_Report('either [massThreshold] or [fractionMassThreshold] must be present')
+       call Error_Report('either [massThreshold] or [fractionMassThreshold] must be present'//{introspection:location})
     end if
     !![
     <inputParameter docformat="rst">

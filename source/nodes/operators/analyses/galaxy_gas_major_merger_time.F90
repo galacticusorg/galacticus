@@ -141,6 +141,8 @@ contains
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentBasic              , nodeComponentDisk, nodeComponentSpheroid
     use :: Satellite_Merging_Mass_Movements, only : enumerationDestinationMergerType
+    use :: ISO_Varying_String              , only : char
+    use :: Function_Classes                , only : functionClass
     implicit none
     class           (*                    ), intent(inout)              :: self
     type            (treeNode             ), intent(inout), target      :: node
@@ -177,8 +179,10 @@ contains
        majorMergerTimesNew(size(majorMergerTimesNew))=basicHost%time()
        call basicHost%floatRank1MetaPropertySet(self%galaxyGasMajorMergerTimeID,majorMergerTimesNew)
     end if
+    class is (functionClass)
+       call Error_Report('object is not of [nodeOperatorGalaxyGasMajorMergerTime] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [nodeOperatorGalaxyGasMajorMergerTime] class'//{introspection:location})
     end select
     return
   end subroutine satelliteMerger
