@@ -558,7 +558,7 @@ contains
        return
     end if
     ! Validate.
-    if (radius <= 0.0d0) call Error_Report('non-positive radius')
+    if (radius <= 0.0d0) call Error_Report('non-positive radius'//{introspection:location})
     ! Compute initial radius, and derivatives of initial and final mean radii.
     radiusInitial                  =self                  %radiusInitial              (radius                )
     radiusInitialMeanSelfDerivative=self                  %radiusOrbitalMeanDerivative(radiusInitial         )

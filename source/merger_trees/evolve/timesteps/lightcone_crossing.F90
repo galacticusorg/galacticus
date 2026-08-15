@@ -211,6 +211,8 @@ contains
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use :: Merger_Tree_Outputters             , only : outputGroupTypeLightcone
     use :: Galacticus_Nodes                   , only : nodeComponentBasic
+    use :: ISO_Varying_String                 , only : char
+    use :: Function_Classes                   , only : functionClass
     implicit none
     class           (*                            ), intent(inout)               :: self
     type            (mergerTree                   ), intent(in   )               :: tree
@@ -235,8 +237,10 @@ contains
        call basic%floatRank1MetaPropertySet(self%timesCrossingID,timesCrossing(2:size(timesCrossing)))
        ! The tree was changed, so mark that it is not deadlocked.
        deadlockStatus=deadlockStatusIsNotDeadlocked
+    class is (functionClass)
+       call Error_Report('object is not of [mergerTreeEvolveTimestepLightconeCrossing] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [mergerTreeEvolveTimestepLightconeCrossing] class'//{introspection:location})
     end select
     return
   end subroutine lightconeCrossingProcess

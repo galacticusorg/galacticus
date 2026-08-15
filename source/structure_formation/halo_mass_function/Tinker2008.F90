@@ -127,6 +127,7 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`haloMassFunctionTinker2008` halo mass function class.
     !!}
+    use :: Display           , only : displayGreen                , displayReset
     use :: File_Utilities    , only : File_Exists
     use :: FoX_DOM           , only : destroy                     , node
     use :: Error             , only : Error_Report
@@ -156,7 +157,15 @@ contains
     self%massParameters=-1.0d0
     ! Read the data file which gives fitting parameters as a function of halo overdensity.
     parameterFileName=inputPath(pathTypeDataStatic)//"darkMatter/Halo_Mass_Function_Parameters_Tinker_2008.xml"
-    if (.not.File_Exists(parameterFileName)) call Error_Report('Unable to find data file "'//parameterFileName//'"'//{introspection:location})
+    if (.not.File_Exists(parameterFileName)) call Error_Report(                                                                                    &
+         &                                                      'Unable to find data file "'//parameterFileName//'"'                  //char(10)// &
+         &                                                      displayGreen()//'HELP:'//displayReset()                                         // &
+         &                                                      ' this file is provided by the Galacticus datasets repository. If the'          // &
+         &                                                      ' path above begins with "./" then the `GALACTICUS_DATA_PATH`'                  // &
+         &                                                      ' environment variable is not set; set it to the location of your'              // &
+         &                                                      ' clone of https://github.com/galacticusorg/datasets'                           // &
+         &                                                      {introspection:location}                                                           &
+         &                                                     )
     !$omp critical (FoX_DOM_Access)
     doc => XML_Parse(parameterFileName,ioStat=ioStatus)
     if (ioStatus /= 0) call Error_Report('Unable to parse data file "'//parameterFileName//'"'//{introspection:location})

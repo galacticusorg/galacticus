@@ -168,17 +168,17 @@ contains
      if (present(radiusCore   )) then
         self%radiusCore             =+radiusCore
      else
-        call Error_Report('core radius must be specified')
+        call Error_Report('core radius must be specified'//{introspection:location})
      end if
      if (present(radiusSoliton   )) then
         self%radiusSoliton          =+radiusSoliton
      else
-        call Error_Report('soliton radius must be specified')
+        call Error_Report('soliton radius must be specified'//{introspection:location})
      end if
      if (present(densitySolitonCentral)) then
         self%densitySolitonCentral  =+densitySolitonCentral
      else
-        call Error_Report('densitySolitonCentral must be specified')
+        call Error_Report('densitySolitonCentral must be specified'//{introspection:location})
      end if
      if (present(toleranceRelativePotential)) then
         self%toleranceRelativePotential = toleranceRelativePotential

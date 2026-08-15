@@ -301,7 +301,14 @@ contains
        allocate(opticalDepthFullyIonized(latticeTime%count))
        ! Loop over times, carrying over the optical depths already computed and evaluating only those which are new. Also find
        ! where the optical depth last decreases: only the monotonic tail beyond that point can be inverted.
-       integrator_               =integrator(intergalacticMediumStateElectronScatteringIntegrand,toleranceRelative=1.0d-6)
+       ! An absolute tolerance is given as well as a relative one. Before reionization the electron fraction is the residual left
+       ! by recombination, so the optical depth accumulated over these epochs is of order 10⁻⁵ - four orders of magnitude below
+       ! the fully ionized case computed alongside it - and its integrand is sharply peaked toward the earliest epochs. Asking
+       ! for a purely relative accuracy of 10⁻⁶ on such an integral requires an absolute accuracy of order 10⁻¹¹ across an
+       ! interval spanning most of the history of the universe, which the quadrature cannot deliver: it reports that roundoff
+       ! prevents the tolerance from being achieved. The absolute tolerance below is still negligible against the optical depths
+       ! this tabulation is used to compare - which are of order 10⁻² - but it stops that demand being made.
+       integrator_               =integrator(intergalacticMediumStateElectronScatteringIntegrand,toleranceRelative=1.0d-6,toleranceAbsolute=1.0d-9)
        iTimeMonotonic            =1
        iTimeMonotonicFullyIonized=1
        do iTime=1,latticeTime%count

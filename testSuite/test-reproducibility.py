@@ -23,9 +23,15 @@ tests = [
         "assertions": [
             {
                 "name":              "hot halo mass",
+                # Updated when the cosmology function tabulations were pinned to an absolute lattice (#1317). That moved the
+                # abscissae of the expansion factor tabulation, and placed the initial condition of the ordinary differential
+                # equation it solves at a fixed, earlier epoch at which the analytic approximation used for that condition is
+                # more accurate. Both shift interpolated cosmological quantities at the level of their own interpolation error;
+                # this value moved by 6.5 parts per million, just past the 4 part per million tolerance below. That is the
+                # one-time shift anticipated by the issue - the tabulations are deterministic from here on.
                 "output":            1,
                 "property":          "hotHaloMass",
-                "values":            np.array([7.99799857410098e10]),
+                "values":            np.array([7.998050315988728e10]),
                 "toleranceRelative": 4.0e-6,
             }
         ],

@@ -164,13 +164,13 @@
         self%radiusCore             =+radiusCore
      else
         self%radiusCore             =+0.0d0
-        call Error_Report('no means to determine core radius')
+        call Error_Report('no means to determine core radius'//{introspection:location})
      end if
      if (present(densitySolitonCentral)) then
         self%densitySolitonCentral  =+densitySolitonCentral
      else
         self%densitySolitonCentral  =+0.0d0
-        call Error_Report('densitySolitonCentral must be specified')
+        call Error_Report('densitySolitonCentral must be specified'//{introspection:location})
      end if
      if (present(dimensionless)) then
         self%dimensionless          =dimensionless
