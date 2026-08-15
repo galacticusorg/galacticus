@@ -49,8 +49,13 @@ Implements a merger tree branching probability class using the algorithm of :cit
      procedure :: modifier                     => pchPlusModifier
      procedure :: progenitorMassFunctionFactor => pchPlusProgenitorMassFunctionFactor
      procedure :: hypergeometricA              => pchPlusHypergeometricA
+     procedure :: hypergeometricGamma3         => pchPlusHypergeometricGamma3
      procedure :: computeCommonFactors         => pchPlusComputeCommonFactors
   end type mergerTreeBranchingProbabilityPCHPlus
+
+  ! Closest approach permitted to γ₃=½, at which the evaluation of the bound integral is indeterminate. At this separation the
+  ! precision lost to the cancellation is of order a part in 10¹³, which is negligible.
+  double precision, parameter :: gamma3ToleranceHalf=1.0d-3
 
   interface mergerTreeBranchingProbabilityPCHPlus
      !!{RST
@@ -205,6 +210,10 @@ contains
 
     ! Validate.
     if (cdmAssumptions .and. gamma3 > 1.5d0) call Error_Report('γ₃>³/₂ violates CDM assumptions'//{introspection:location})
+    ! The integral from which the bounds on the branching probability are formed is evaluated through an integration by parts
+    ! which carries a factor 1/(γ₃-½) - see `parkinsonColeHellyBoundIntegral`. The two terms it multiplies cancel as that factor
+    ! diverges, so the result is finite at γ₃=½ but is not computable there, and loses precision in a neighborhood of it.
+    if (abs(gamma3-0.5d0) < gamma3ToleranceHalf) call Error_Report('γ₃=½ cannot be evaluated - displace it slightly'//{introspection:location})
     ! Initialize.
     self%mergerTreeBranchingProbabilityParkinsonColeHelly=mergerTreeBranchingProbabilityParkinsonColeHelly(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,tolerateRoundOffErrors,cosmologicalMassVariance_,criticalOverdensity_)
     ! Precompute the exponents used by the fused merging-rate × modifier form (see pchPlusProgenitorMassFunctionFactor):
@@ -297,6 +306,17 @@ contains
     a=[1.5d0-self%gamma3,0.5d0-0.5d0*gamma]
     return
   end function pchPlusHypergeometricA
+
+  double precision function pchPlusHypergeometricGamma3(self) result(gamma3)
+    !!{RST
+    Return the additional exponent :math:`\gamma_3` appearing in the progenitor mass function.
+    !!}
+    implicit none
+    class(mergerTreeBranchingProbabilityPCHPlus), intent(inout) :: self
+
+    gamma3=self%gamma3
+    return
+  end function pchPlusHypergeometricGamma3
 
   subroutine pchPlusComputeCommonFactors(self,deltaParent,time,massHaloParent,node)
     !!{RST

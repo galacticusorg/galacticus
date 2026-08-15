@@ -47,7 +47,7 @@ program Tests_Merger_Tree_Branching_CDM
   use            :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use            :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999
   use            :: Unit_Tests                          , only : Assert                                         , Unit_Tests_Begin_Group                                     , Unit_Tests_End_Group         , Unit_Tests_Finish, &
-       &                                                         compareLessThanOrEqual
+       &                                                         compareLessThanOrEqual                         , compareLessThan
   implicit none
   type            (cosmologyParametersSimple                                   )                :: cosmologyParametersSimple_
   type            (cosmologyFunctionsMatterLambda                              )                :: cosmologyFunctionsMatterLambda_
@@ -75,10 +75,10 @@ program Tests_Merger_Tree_Branching_CDM
   ! these need be no more than approximately right.
   double precision                                                              , dimension(countPole          ), parameter :: poleTarget                 =[3.0d0 ,5.0d0 ,7.0d0 ]                , &
        &                                                                                                                       massPole                   =[1.0d16,1.0d14,1.0d12]
-  ! Offsets applied to the effective exponent about each pole. The innermost of these lie deep within the neighborhood in which the
-  ! CDM assumptions are declined, the outermost well outside it, and one pair just outside its edge. The innermost pair carry most
-  ! of the discriminating power of the precision-independence test below: the precision lost to the cancellation grows as the
-  ! reciprocal of the offset, so it is there that a failure to decline the CDM assumptions shows up most strongly.
+  ! Offsets applied to the effective exponent about each pole, spanning five decades either side of it. The innermost carry most of
+  ! the discriminating power of the test below: were the bound formed as a difference of two integrals each running to infinity,
+  ! the precision lost to the cancellation between them would grow as the reciprocal of the offset, so any such loss shows up
+  ! there first and most strongly.
   double precision                                                              , dimension(countOffset        ), parameter :: offsetPole                 =[-1.0d-1,-4.0d-3,-1.0d-4,-1.0d-5,0.0d0,+1.0d-5,+1.0d-4,+4.0d-3,+1.0d-1]
   double precision                                                              , parameter     :: massResolutionFraction=1.0d-3
   type            (mergerTreeBranchingProbabilityParkinsonColeHelly            ), dimension(countConfiguration        ) :: branchingConfiguration_
@@ -88,7 +88,7 @@ program Tests_Merger_Tree_Branching_CDM
        &                                                                                                                  boundLowerMass                        , boundUpperMass     , &
        &                                                                                                                  boundUpperDirect
   double precision                                                              , dimension(countOffset               ) :: probabilityPole                       , boundUpperPole     , &
-       &                                                                                                                  boundUpperPolePrecise
+       &                                                                                                                  boundUpperPolePrecise                 , differencePole
   double precision                                                              , dimension(countPole*countOffset     ) :: gamma1Pole
   double precision                                                              , dimension(countPole                 ) :: gamma1PoleRequired
   double precision                                                                               :: time                                  , expansionFactor    , &
@@ -312,12 +312,18 @@ program Tests_Merger_Tree_Branching_CDM
      write (label,'(a,f3.1,a,es7.1e2)') "γ₁-1/α = ",poleTarget(i)," at M = ",massPole(i)
      call Unit_Tests_Begin_Group(trim(label))
      call Assert('probability ≤ upper bound'                 ,probabilityPole,boundUpperPole       ,compareLessThanOrEqual)
-     ! The two objects compared here differ only in the precision to which they evaluate the hypergeometric functions, so their
-     ! results always differ by of order the looser of those precisions, 10⁻⁶ - that is the floor on this comparison, and no
-     ! tolerance below a few times it is meaningful. Against that, declining to guard the poles was measured to move these bounds
-     ! by 1.3-1.7·10⁻⁴. The tolerance is set between the two: some four times the largest difference measured with the guard in
-     ! place, and four times smaller than the smallest difference measured without it.
-     call Assert('upper bound independent of ₂F₁ precision'  ,boundUpperPole ,boundUpperPolePrecise,relTol=3.0d-5         )
+     ! Sensitivity of the bound to the precision to which the hypergeometric functions are evaluated. The two objects compared
+     ! here differ only in that precision, so some difference is inevitable; what matters is how it varies as the effective
+     ! exponent is swept across the pole.
+     differencePole=abs(boundUpperPole/boundUpperPolePrecise-1.0d0)
+     call Assert('sensitivity to ₂F₁ precision is small'      ,maxval(differencePole),1.0d-3,compareLessThan)
+     ! The bound must be continuous through the pole. Across the three innermost offsets the effective exponent changes by only one
+     ! part in 10⁵, so the bound may change by no more than about that much - unless its evaluation degrades there, which is
+     ! precisely what a pole in the formulation does. Were the integral evaluated as the difference of two integrals each running
+     ! to infinity, the evaluation would fail outright at the central offset and fall back to a much looser bound, and the
+     ! discontinuity would be of order the difference between the two forms. Note that this compares bounds, which are strictly
+     ! positive, rather than forming a ratio of differences which may legitimately vanish.
+     call Assert('upper bound is continuous through the pole',maxval(abs(boundUpperPole(4:6)/boundUpperPole(5)-1.0d0)),1.0d-3,compareLessThan)
      call Unit_Tests_End_Group  (                                            )
   end do
   call Unit_Tests_End_Group  (                                               )

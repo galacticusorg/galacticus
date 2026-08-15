@@ -592,10 +592,13 @@ program Tests_Merger_Tree_Branching
      boundLowerIdentity (j)=branchingPole_%probabilityBound(massParent,deltaAnalytic,timeAnalytic,massResolution_,mergerTreeBranchingBoundLower,node)
      boundUpperIdentity (j)=branchingPole_%probabilityBound(massParent,deltaAnalytic,timeAnalytic,massResolution_,mergerTreeBranchingBoundUpper,node)
   end do
-  call Unit_Tests_Begin_Group("Singular effective exponent (γ₁-1/α = 3)")
-  call Assert('lower bound ≤ probability',boundLowerIdentity ,probabilityIdentity,compareLessThanOrEqual)
-  call Assert('probability ≤ upper bound',probabilityIdentity,boundUpperIdentity ,compareLessThanOrEqual)
-  call Unit_Tests_End_Group  (                                         )
+  ! γ₁=0 places the effective exponent exactly on the odd integer 3. That was once a singular point of the evaluation, at which
+  ! the bounds had to fall back to a looser form; the integral is now evaluated between its limits directly, which has no such
+  ! point, so the bounds here are as exact as anywhere else and are checked against the same identity.
+  call Unit_Tests_Begin_Group("Formerly singular effective exponent (γ₁-1/α = 3)")
+  call Assert('lower bound = probability',boundLowerIdentity,probabilityIdentity,relTol=toleranceIdentityDirect)
+  call Assert('upper bound = probability',boundUpperIdentity,probabilityIdentity,relTol=toleranceIdentityDirect)
+  call Unit_Tests_End_Group  (                                                   )
   call Unit_Tests_End_Group  (                                         )
 
   ! ----------------------------------------------------------------------------------------------------------------------------------
