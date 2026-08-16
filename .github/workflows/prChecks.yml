@@ -217,6 +217,69 @@ jobs:
             fi
           done
           exit $status
+  # Source formatting. `use` blocks and variable declaration blocks follow the
+  # column layout described in the developer guide, applied by the formatters in
+  # `scripts/aux/`. Only files touched by the pull request are checked, so a
+  # change is never blocked by formatting elsewhere in the tree.
+  Check-Source-Formatting:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Mark directory safe
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
+        with:
+          # Vendored third-party code under `source/external/` is excluded, so
+          # that it stays comparable with its upstream original.
+          files: |
+            source/**/*.F90
+            source/**/*.Inc
+          files_ignore: |
+            source/external/**
+          safe_output: false
+      - name: Check formatting of Fortran sources
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          set -f
+          status=0
+          for file in ${CHANGED_FILES}; do
+            # Deleted or renamed-away files still appear in the changed list.
+            [ -f "$file" ] || continue
+            for tool in formatModuleUses formatDeclarations; do
+              # `run:` executes under `bash -e`, so the exit status has to be
+              # captured somewhere errexit does not apply — a bare call
+              # followed by `case $?` would abort the step on the first
+              # unformatted file, before any annotation was emitted.
+              rc=0
+              PYTHONPATH=$GITHUB_WORKSPACE/python python3 "scripts/aux/$tool.py" "$file" --check || rc=$?
+              case $rc in
+                0)
+                  ;;
+                1)
+                  echo "::error file=$file::Formatting differs from the house style. Run: ./scripts/aux/$tool.py $file"
+                  status=1
+                  ;;
+                *)
+                  # Exit 2 means the tool declined to touch the file — it does
+                  # not round-trip, or reformatting would change what it
+                  # declares or unbalance its preprocessor guards. That is a
+                  # tool limitation rather than a style problem, so report it
+                  # without failing the check.
+                  echo "::warning file=$file::$tool.py could not process this file; formatting not verified"
+                  ;;
+              esac
+            done
+          done
+          exit $status
   # Embedded XML directive validation (the LaTeX checks were retired with the
   # migration of the embedded documentation to reStructuredText).
   Validate-Embedded-XML:
