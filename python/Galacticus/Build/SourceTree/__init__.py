@@ -73,6 +73,72 @@ def parse_code(code, name='<string>', source=None, instrument=True):
     return root
 
 
+def parse_code_for_format(code, name='<string>', source=None):
+    """Build an AST suitable for *reformatting* a source file.
+
+    `parse_code()` is built for code generation: it is free to rewrite parts
+    of the file that the compiler will not care about, and it does.  Three of
+    those rewrites make its trees unusable for a formatter, and this entry
+    point suppresses each:
+
+    * `{introspection:location}` placeholders are **not** instrumented with
+      their line numbers (`parse_code(instrument=True)` rewrites them in
+      place, so `…:location}` comes back as `…:location:338}`).
+    * The directives pass is **not** run.  It splits a multi-directive
+      `!![ … !!]` block into one node per directive, each re-emitting its own
+      `!![`/`!!]` marker pair — invisible to the compiler, but it means a
+      block holding three `<objectDestructor>` directives serializes back as
+      three separate blocks.
+    * Only the module-use and declaration passes run, since those are the
+      only node types a formatter rewrites.  The visibility and OpenMP passes
+      are pure overhead here.
+
+    Embedded LaTeX/XML blocks are still commented out by
+    `_comment_embedded()`, because their bodies would otherwise be scanned
+    for Fortran unit openers and declarations; pair this with
+    `serialize_for_format()`, which undoes that on the way out.
+
+    The result is a tree that serializes back to a byte-identical copy of
+    `code` until something deliberately modifies it.
+    """
+    root = {
+        'type':       'file',
+        'name':       name,
+        'content':    _comment_embedded(code),
+        'parent':     None,
+        'firstChild': None,
+        'sibling':    None,
+        'source':     source if source is not None else name,
+        'line':       0,
+    }
+    _link_children(root, _parse_units(root))
+    _pass_module_uses(root)
+    _pass_declarations(root)
+    return root
+
+
+def parse_file_for_format(filename):
+    """Read a Fortran source file and return a tree suitable for reformatting.
+
+    See `parse_code_for_format()`.
+    """
+    with open(filename, 'r', errors='replace') as fh:
+        content = fh.read()
+    return parse_code_for_format(content,
+                                 name=_name_relative_to_source(filename),
+                                 source=filename)
+
+
+def serialize_for_format(node):
+    """Serialize a tree from `parse_code_for_format()` back to source text.
+
+    Undoes the `!< ` marker that `_comment_embedded()` adds to embedded
+    LaTeX/XML block bodies, which plain `serialize()` deliberately leaves in
+    place for the benefit of the compiler.
+    """
+    return uncomment_embedded(serialize(node))
+
+
 def walk_tree(node):
     """Depth-first generator over all nodes in the tree.
 
@@ -159,7 +225,64 @@ def _comment_embedded(content):
         if re.match(r'^\s*!!\[',line):
             in_XML = True
     return code_commented
-        
+
+
+def uncomment_embedded(content):
+    """Invert `_comment_embedded()`, restoring embedded LaTeX/XML block bodies.
+
+    `_comment_embedded()` prefixes every line inside a `!!{ … !!}` (LaTeX) or
+    `!![ … !!]` (XML) block with `"!< "`, so that the body cannot be mistaken
+    for Fortran when the tree is serialized straight to the compiler.  The
+    build's code generators serialize *to the compiler* and so want that
+    prefix left in place; anything that serializes back to *source* — a
+    formatter — must undo it, or every directive and documentation block in
+    the file is rewritten.
+
+    The state machine below mirrors `_comment_embedded()` line for line, so
+    only lines that function would have prefixed are stripped.  Note that
+    `_comment_embedded()` skips lines that already begin with `!<`, which
+    makes it non-injective in principle; in practice no Galacticus source
+    file contains such a line (the marker is internal to the parser), and
+    callers that care should verify the round-trip per file rather than
+    assume it — see `scripts/aux/formatModuleUses.py`.
+    """
+    import io
+
+    code_uncommented = ""
+    in_LaTeX = False
+    in_XML   = False
+    for line in io.StringIO(content):
+        # Both state transitions are tested against the line as it appears in
+        # the *commented* content, i.e. before the marker is stripped.  That
+        # is what makes this an exact mirror of `_comment_embedded()`: there,
+        # the end test runs before the prefix is added and the start test
+        # runs after, so in both functions a marker nested inside a block
+        # (which `_comment_embedded()` will have prefixed to `!< !!{`) fails
+        # to match and correctly does not open a second block.
+        marker = line
+
+        # Detect the end of a LaTeX section and change state.
+        if re.match(r'^\s*!!\}', marker):
+            in_LaTeX = False
+        # Detect the end of an XML section and change state.
+        if re.match(r'^\s*!!\]', marker):
+            in_XML = False
+        # Strip the marker from lines inside a block.  Only the exact `"!< "`
+        # prefix that `_comment_embedded()` adds is removed, and only at the
+        # very start of the line — it prepends, so the body's own indentation
+        # follows the marker untouched.
+        if (in_LaTeX or in_XML) and line.startswith("!< "):
+            line = line[3:]
+        code_uncommented = code_uncommented + line
+        # Detect the start of a LaTeX section and change state.
+        if re.match(r'^\s*!!\{', marker):
+            in_LaTeX = True
+        # Detect the start of an XML section and change state.
+        if re.match(r'^\s*!!\[', marker):
+            in_XML = True
+    return code_uncommented
+
+
 def _make_code_node(content, source, line, parent=None):
     return {
         'type':       'code',
@@ -717,6 +840,13 @@ def _pass_declarations(tree):
             if decl:
                 is_decl = True
                 decl['line'] = start_line
+                # Keep the statement exactly as written.  Continuation lines
+                # are joined away by `get_fortran_line`, so a declaration whose
+                # author wrapped a long initializer by hand cannot be put back
+                # the way it was from the parsed fields alone; the formatter
+                # falls back to this text for statements it cannot lay out
+                # within the line-length ruler.
+                decl['rawText'] = raw_line
 
             if is_decl:
                 flush_code()

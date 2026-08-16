@@ -27,8 +27,10 @@ def parse_declaration(line):
           'type'          : str or None — kind/type spec (parentheses stripped)
           'openMP'        : bool
           'attributes'    : list of str — e.g. ['intent(in)', 'allocatable']
+          'attributesOriginal' : list of str — as above, original case
           'variables'     : list of str — lowercase names, qualifiers preserved
           'variableNames' : list of str — original-case names, no qualifiers
+          'variablesOriginal' : list of str — original-case, qualifiers preserved
     """
     # Use a unified approach: match declaration pattern, then split manually
     # This avoids complex capture group indexing issues.
@@ -67,6 +69,7 @@ def parse_declaration(line):
     # Parse type and attributes
     type_val = None
     attributes = []
+    attributes_original = []
     if type_attrs_raw:
         # Carve a leading balanced parenthesised group off `type_attrs_raw` if
         # one is present.  Uses `extract_bracketed` so that nested parens
@@ -102,25 +105,43 @@ def parse_declaration(line):
             type_val = first_part[1:-1].strip()
             consumed_as_type = True
 
+        # Attributes are extracted twice for the same reason as the variables
+        # below: the lower-cased form is what the code generators match
+        # against, but a formatter must write `dimension(nBins)` back with its
+        # original case rather than `dimension(nbins)`.
         if rest:
-            attributes = extract_variables(rest, keep_qualifiers=True)
+            attributes          = extract_variables(rest, keep_qualifiers=True)
+            attributes_original = extract_variables(rest, keep_qualifiers=True,
+                                                    lower_case=False)
         elif not consumed_as_type and first_part:
             # `first_part` carries parens that aren't a type-spec (rare —
             # `dimension(:)` written without a leading comma).
-            attributes = extract_variables(first_part, keep_qualifiers=True)
+            attributes          = extract_variables(first_part, keep_qualifiers=True)
+            attributes_original = extract_variables(first_part, keep_qualifiers=True,
+                                                    lower_case=False)
         else:
-            attributes = []
+            attributes          = []
+            attributes_original = []
 
     variables = extract_variables(variables_raw, keep_qualifiers=True, lower_case=True)
     variable_names = extract_variables(variables_raw, keep_qualifiers=False, lower_case=False)
+    # `variables` is lower-cased (the code generators match against it
+    # case-insensitively) and `variableNames` drops qualifiers.  A formatter
+    # needs both preserved at once — it must write `massStellar` back as
+    # `massStellar`, initializer and dimension qualifiers included — so keep a
+    # third rendering rather than perturbing either existing one.
+    variables_original = extract_variables(
+        variables_raw, keep_qualifiers=True, lower_case=False)
 
     return {
-        'intrinsic':     intrinsic,
-        'type':          type_val,
-        'openMP':        bool(openmp_marker),
-        'attributes':    attributes,
-        'variables':     variables,
-        'variableNames': variable_names,
+        'intrinsic':          intrinsic,
+        'type':               type_val,
+        'openMP':             bool(openmp_marker),
+        'attributes':         attributes,
+        'attributesOriginal': attributes_original,
+        'variables':          variables,
+        'variableNames':      variable_names,
+        'variablesOriginal':  variables_original,
     }
 
 
@@ -330,3 +351,483 @@ def declaration_exists(node, variable_name):
                         return True
         child = child.get('sibling')
     return False
+
+
+# ---------------------------------------------------------------------------
+# Formatting
+#
+# `build_declarations()` above serializes declarations for the *code
+# generators*: fixed indent, no alignment, minimal spacing.  The functions
+# below instead reproduce the hand-maintained house style described in the
+# developer guide, for use by `scripts/aux/formatDeclarations.py`.  They are
+# deliberately separate so that changing the formatting rules cannot perturb
+# generated code.
+# ---------------------------------------------------------------------------
+
+# Line width beyond which the emitter packs fewer variables per row, and the
+# usual maximum number of variables on one row.
+LINE_LENGTH_MAX      = 132
+VARIABLES_PER_ROW_MAX = 2
+
+# Canonical ordering of declaration attributes.
+#
+# Fortran attaches no meaning to attribute order, but fixing one turns "the
+# same attribute should sit in the same column" from a multiple-sequence
+# alignment problem into a per-position maximum width.  This order was derived
+# from pairwise precedence counts over the whole source tree — for every pair
+# of attributes, which one appears first more often — and reorders about 17% of
+# the multi-attribute declarations in the tree (roughly 3% of all
+# declarations).  Attributes not listed sort last, alphabetically.
+ATTRIBUTE_ORDER = (
+    'intent',
+    'pointer',
+    'allocatable',
+    'dimension',
+    'target',
+    'optional',
+    'parameter',
+    'save',
+    'value',
+    'public',
+    'private',
+)
+
+_ATTRIBUTE_RANK = {name: index for index, name in enumerate(ATTRIBUTE_ORDER)}
+
+# Type-bound declarations (`procedure :: name => target`) carry no attribute or
+# variable columns and are laid out on their own axis.
+_TYPE_BOUND_INTRINSICS = frozenset(('procedure', 'generic', 'final'))
+
+# The `intent` field is padded to the width of the longest spelling, `inout`,
+# so that the three forms occupy one column: `in` is left-aligned within it and
+# `out` right-aligned, giving `intent(in   )`, `intent(inout)`, `intent(  out)`.
+_INTENT_FIELD = {'in': 'in   ', 'out': '  out', 'inout': 'inout'}
+
+
+def _attribute_name(attribute):
+    """The bare name of an attribute, without any parenthesized argument."""
+    return re.sub(r'\(.*', '', attribute).strip().lower()
+
+
+def _normalize_attribute(attribute):
+    """Return `attribute` in canonical spelling."""
+    name = _attribute_name(attribute)
+    if name == 'intent':
+        match = re.match(r'^\s*intent\s*\(\s*([a-zA-Z]*)\s*\)\s*$', attribute,
+                         re.IGNORECASE)
+        if match:
+            field = _INTENT_FIELD.get(match.group(1).lower())
+            if field is not None:
+                return 'intent(' + field + ')'
+    return attribute
+
+
+def _ordered_attributes(declaration):
+    """Attributes of `declaration`, canonically ordered and spelled.
+
+    The sort is stable on the canonical rank, so attributes sharing a rank
+    (only those outside `ATTRIBUTE_ORDER`, which all rank last) keep their
+    source order relative to one another apart from the alphabetical tie-break.
+    """
+    source = (declaration.get('attributesOriginal')
+              or declaration.get('attributes')
+              or [])
+    attributes = [_normalize_attribute(a) for a in source]
+    return sorted(
+        attributes,
+        key=lambda a: (_ATTRIBUTE_RANK.get(_attribute_name(a), len(ATTRIBUTE_ORDER)),
+                       _attribute_name(a)),
+    )
+
+
+def _split_initializer(variable):
+    """Split `variable` into (name, operator, value).
+
+    `operator` is `'=>'`, `'='` or `''`.  The scan ignores `=` characters
+    inside brackets, so that a dimension qualifier such as `x(kind=c_int)` is
+    not mistaken for an initializer.
+    """
+    depth = 0
+    for index, character in enumerate(variable):
+        if character in '([':
+            depth += 1
+        elif character in ')]':
+            depth -= 1
+        elif depth == 0 and character == '=':
+            if variable[index + 1:index + 2] == '>':
+                return variable[:index], '=>', variable[index + 2:]
+            return variable[:index], '=', variable[index + 1:]
+    return variable, '', ''
+
+
+def _paren_body(declaration):
+    """The body of a declaration's parenthetical, without its brackets.
+
+    `parse_declaration` strips the outer brackets from most type-specs but
+    leaves them on some, so normalize both spellings here.
+    """
+    type_value = declaration.get('type')
+    if type_value is None:
+        return ''
+    if type_value.startswith('(') and type_value.endswith(')'):
+        return type_value[1:-1].strip()
+    return type_value.strip()
+
+
+def _variables_of(declaration):
+    """The declaration's variables, original case and qualifiers preserved.
+
+    Falls back to the lower-cased `variables` for declaration dicts built by
+    the code generators, which do not carry `variablesOriginal`.
+    """
+    return (declaration.get('variablesOriginal')
+            or declaration.get('variables')
+            or [])
+
+
+def _operator_text(operator):
+    """The operator as written, including any spaces around it.
+
+    `=>` is spaced on both sides (`x => null()`) while `=` is written tight
+    against both name and value (`x=0.0d0`).  The spaces belong to the operator
+    rather than to the name column, so that the widest name in a column keeps
+    its separator too — `nameThatIsLongest => target`, not `nameThatIsLongest=>`.
+    """
+    return ' => ' if operator == '=>' else operator
+
+
+def _variable_fields(declaration, variable):
+    """Split one variable into its (name, operator, value) columns.
+
+    A `final` binding names no target, and the house style places it in the
+    *target* column rather than the name column so that it lines up with the
+    targets of the `procedure` bindings beside it — `final :: fooDestructor`
+    sits under `procedure :: bar => fooBar`'s `fooBar`.
+    """
+    if declaration['intrinsic'] == 'final':
+        return '', '', variable
+    return _split_initializer(variable)
+
+
+def _variables_per_row(declaration, per_row):
+    """How many variables share one row for this declaration.
+
+    Type-bound declarations (`procedure :: name => target`) take one binding
+    per row regardless of the group's setting; everything else takes `per_row`.
+    """
+    if declaration['intrinsic'] in _TYPE_BOUND_INTRINSICS:
+        return 1
+    return per_row
+
+
+class _Layout:
+    """Column widths shared by every declaration in one alignment group.
+
+    Attribute columns are *positional*, not per-attribute: column 0 holds
+    whichever attribute comes first on each row, so a row with `pointer` and a
+    row with `intent(inout)` share one column sized to the wider of the two.
+    Canonical ordering (`ATTRIBUTE_ORDER`) is what makes that produce a
+    coherent table — without it, position 0 would hold an arbitrary attribute
+    on each row.
+    """
+
+    def __init__(self, declarations, per_row):
+        self.intrinsic = max((len(d['intrinsic']) for d in declarations), default=0)
+
+        parenthesized = [d for d in declarations if d.get('type') is not None]
+        self.paren = max((len(_paren_body(d)) for d in parenthesized), default=0)
+        # Width of the whole parenthetical field, brackets included.  Zero when
+        # no declaration in the group has one, so that a group of plain
+        # `double precision` declarations carries no dead column.
+        self.paren_field = self.paren + 2 if parenthesized else 0
+
+        attribute_lists = [_ordered_attributes(d) for d in declarations]
+        self.attributes = [
+            max(a[column] and len(a[column]) or 0
+                for a in attribute_lists if len(a) > column)
+            for column in range(max((len(a) for a in attribute_lists), default=0))
+        ]
+
+        # Variable columns.  Name, operator and value are sized independently
+        # so that `=` and `=>` line up down each column.
+        self.names     = []
+        self.operators = []
+        self.values    = []
+        for declaration in declarations:
+            columns = _variables_per_row(declaration, per_row)
+            for index, variable in enumerate(_variables_of(declaration)):
+                column = index % columns
+                while len(self.names) <= column:
+                    self.names.append(0)
+                    self.operators.append(0)
+                    self.values.append(0)
+                name, operator, value = _variable_fields(declaration, variable)
+                self.names[column]     = max(self.names[column], len(name))
+                self.operators[column] = max(self.operators[column],
+                                             len(_operator_text(operator)))
+                self.values[column]    = max(self.values[column], len(value))
+
+    def prefix_width(self, indent, openmp_any):
+        """The column at which the variable list starts."""
+        width = len(indent) + (3 if openmp_any else 0)
+        width += self.intrinsic + self.paren_field
+        for column_width in self.attributes:
+            width += 2 + column_width
+        return width + 4          # " :: "
+
+
+def _emit_variable(declaration, variable, layout, column, pad):
+    """Render one variable into its column.
+
+    `pad` is False for the last variable on the last row, so that the line ends
+    ragged rather than carrying trailing whitespace.  The *name* is still
+    padded whenever the column holds any initializer, since otherwise the `=`
+    and `=>` of a column would not line up.
+    """
+    name, operator, value = _variable_fields(declaration, variable)
+    # Anything after the name — an operator column shared with other rows, or
+    # this row's own value — means the name must be padded out to its column so
+    # that what follows lines up.  A `final` binding has *only* a value, so the
+    # value must be emitted whether or not the column carries an operator.
+    trailing = bool(layout.operators[column]) or bool(value)
+    text = name.ljust(layout.names[column]) if (pad or trailing) else name
+    if trailing:
+        text += _operator_text(operator).ljust(layout.operators[column])
+        text += value.ljust(layout.values[column]) if pad else value
+    return text
+
+
+def _emit_declaration(declaration, layout, indent, openmp_any, per_row):
+    """Render one declaration statement, with continuation lines as needed."""
+    prefix = indent
+    if declaration.get('openMP'):
+        prefix += '!$ '
+    elif openmp_any:
+        prefix += '   '
+
+    head = prefix + declaration['intrinsic'].ljust(layout.intrinsic)
+
+    if layout.paren_field:
+        if declaration.get('type') is not None:
+            head += '(' + _paren_body(declaration).ljust(layout.paren) + ')'
+        else:
+            head += ' ' * layout.paren_field
+
+    attributes = _ordered_attributes(declaration)
+    for column, width in enumerate(layout.attributes):
+        if column < len(attributes):
+            head += ', ' + attributes[column].ljust(width)
+        else:
+            head += ' ' * (2 + width)
+    head += ' :: '
+
+    variables = _variables_of(declaration)
+    if not variables:
+        # No variables to lay out — emit the head alone rather than dropping
+        # the statement.  `parse_declaration` should not produce this, but a
+        # declaration dict synthesized by a code generator can.
+        return head.rstrip() + '\n'
+    columns = _variables_per_row(declaration, per_row)
+    # Continuation lines carry the `&` five columns in from the block indent,
+    # then run out to the variable column.
+    continuation = (indent + ' ' * 5 + '&').ljust(
+        layout.prefix_width(indent, openmp_any))
+
+    lines = []
+    for start in range(0, len(variables), columns):
+        row      = variables[start:start + columns]
+        last_row = start + columns >= len(variables)
+        text     = head if start == 0 else continuation
+        for column, variable in enumerate(row):
+            is_last = last_row and column == len(row) - 1
+            text += _emit_variable(
+                declaration, variable, layout, column, pad=not is_last)
+            if not is_last:
+                text += ', '
+        lines.append(text.rstrip() if last_row else text + '&')
+    return ''.join(line + '\n' for line in lines)
+
+
+def _choose_variables_per_row(declarations, indent, openmp_any):
+    """Largest variables-per-row (up to the maximum) whose rows fit the ruler.
+
+    Chosen once for the whole group, because the variable column widths are
+    shared across it — varying it per statement would break the alignment those
+    widths exist to produce.  A group that cannot fit even one variable per row
+    emits one per row and overflows; there is nowhere else to break.
+    """
+    for per_row in range(VARIABLES_PER_ROW_MAX, 0, -1):
+        layout = _Layout(declarations, per_row)
+        widest = 0
+        for declaration in declarations:
+            text = _emit_declaration(
+                declaration, layout, indent, openmp_any, per_row)
+            widest = max(widest,
+                         max((len(line) for line in text.splitlines()),
+                             default=0))
+        if widest <= LINE_LENGTH_MAX:
+            return per_row
+    return 1
+
+
+def _minimum_width(declaration, indent):
+    """Width of this declaration at its narrowest — every column unpadded."""
+    width = len(indent) + len(declaration['intrinsic'])
+    if declaration.get('type') is not None:
+        width += len(_paren_body(declaration)) + 2
+    for attribute in _ordered_attributes(declaration):
+        width += 2 + len(attribute)
+    width += 4                                        # " :: "
+    longest = 0
+    for variable in _variables_of(declaration):
+        name, operator, value = _variable_fields(declaration, variable)
+        longest = max(longest,
+                      len(name) + len(_operator_text(operator)) + len(value))
+    return width + longest
+
+
+def _is_unformattable(declaration, indent):
+    """True if no layout of this declaration can fit within the ruler.
+
+    A single variable carrying a large initializer — a `reshape([...])` data
+    table, say — cannot be broken by a formatter that only breaks *between*
+    variables.  `get_fortran_line` has already joined away the continuation
+    lines its author used, so re-emitting it from the parsed fields would
+    collapse a carefully wrapped table onto one enormous line.  Such
+    declarations are written back verbatim instead, and are kept out of the
+    column-width calculation so that they cannot pad their neighbours out to
+    their own width.
+    """
+    return (declaration.get('rawText') is not None
+            and _minimum_width(declaration, indent) > LINE_LENGTH_MAX)
+
+
+def _is_type_definition(declaration):
+    """True if this is a derived-type *definition*, not a variable declaration.
+
+    `type, bind(c) :: unitType` opens a derived type; `type(unitType) :: x`
+    declares a variable of one.  The unit parser normally claims the former, so
+    it never reaches a declaration node — but it recognizes the statement by
+    pattern, and a few in the tree carry enough internal padding
+    (`type, extends(hdf5Group             ) :: hdf5File`) to slip past it and
+    land here instead.
+
+    Reformatting such a statement would tidy away exactly the padding that hid
+    it, so on the next parse the unit parser *would* claim it and the shape of
+    the tree would change underneath the formatter.  There are four in the tree;
+    leaving them untouched is simpler and safer than teaching the emitter to
+    reproduce their disguise.
+    """
+    return (declaration.get('intrinsic') in ('type', 'class')
+            and declaration.get('type') is None)
+
+
+def _is_separator(node):
+    """True if `node` is code that may sit *inside* an alignment group.
+
+    `_pass_declarations` ends a declaration block at any line it does not
+    recognize as a declaration, so a comment or `#ifdef` between two runs of
+    declarations splits them into separate nodes.  Hand-formatted Galacticus
+    source aligns straight through both, so the formatter rejoins runs
+    separated only by comments, preprocessor directives and blank lines.
+    Anything else — a real statement — genuinely ends the group.
+    """
+    if node.get('type') != 'code':
+        return False
+    for line in node.get('content', '').splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if not stripped.startswith(('!', '#')):
+            return False
+    return True
+
+
+def declaration_groups(node):
+    """Yield runs of sibling declaration nodes that share one alignment.
+
+    Each group is a list of `declaration` nodes, in source order, which may be
+    separated in the sibling chain by comment/preprocessor/blank code nodes.
+    """
+    from Galacticus.Build.SourceTree import children
+
+    group     = []
+    pending   = []          # separators seen since the last declaration node
+    for child in children(node):
+        if child.get('type') == 'declaration':
+            group.append(child)
+            pending = []
+        elif group and _is_separator(child):
+            pending.append(child)
+        else:
+            if group:
+                yield group
+            group   = []
+            pending = []
+    if group:
+        yield group
+
+
+def format_declarations(group):
+    """Re-emit a group of declaration nodes in the house style.
+
+    Rewrites each node's `firstChild['content']` in place.  Column widths are
+    computed across the whole group so that declarations separated by a comment
+    or a `#ifdef` still line up with one another.
+    """
+    declarations = [d for node in group for d in node.get('declarations', [])]
+    if not declarations:
+        return
+    if any(_is_type_definition(d) for d in declarations):
+        # Leave the whole group alone — see `_is_type_definition`.
+        return
+
+    # The block indent is the smallest indent of any declaration line in the
+    # group.  As with `use` blocks, the minimum is what makes this idempotent:
+    # the emitter indents non-OpenMP declarations three further columns when
+    # the group also contains `!$` ones, and reading the indent off the first
+    # line would pick that padding up again on every pass.
+    indents = []
+    for node in group:
+        for line in node['firstChild']['content'].splitlines():
+            stripped = line.lstrip()
+            if not stripped or stripped.startswith('#'):
+                continue
+            # `!$` is an OpenMP sentinel, not a comment: such a line *is* a
+            # declaration and sits at the base indent, while its unconditional
+            # neighbours are padded three columns past it.  Skipping it here
+            # would leave only the padded lines to measure, and the block would
+            # march three columns right on every pass.
+            if stripped.startswith('!') and not stripped.startswith('!$'):
+                continue
+            indents.append(re.match(r'^(\s*)', line).group(1))
+    indent = min(indents, key=len) if indents else '  '
+
+    openmp_any = any(d.get('openMP') for d in declarations)
+
+    # Declarations too wide for any layout are written back as they were, and
+    # take no part in sizing the columns.
+    laid_out = [d for d in declarations if not _is_unformattable(d, indent)]
+    if not laid_out:
+        return
+    per_row = _choose_variables_per_row(laid_out, indent, openmp_any)
+    layout  = _Layout(laid_out, per_row)
+
+    for node in group:
+        content = indent + 'implicit none\n' if node.get('implicitNone') else ''
+        for declaration in node.get('declarations', []):
+            if _is_unformattable(declaration, indent):
+                content += declaration['rawText']
+            else:
+                content += _emit_declaration(
+                    declaration, layout, indent, openmp_any, per_row)
+        node['firstChild']['content'] = content
+
+
+def format_declarations_tree(tree):
+    """Apply `format_declarations` to every alignment group in `tree`."""
+    from Galacticus.Build.SourceTree import walk_tree
+
+    for node in list(walk_tree(tree)):
+        for group in declaration_groups(node):
+            format_declarations(group)
