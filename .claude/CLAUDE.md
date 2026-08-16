@@ -182,6 +182,11 @@ change that.
   so expect more than alignment to change in a file not formatted before. It
   skips vendored code under `source/external/`, and leaves declarations with
   hand-wrapped oversized initializers exactly as written.
+- **The tree was not reformatted in one sweep**, so most files still predate the
+  formatters. The first change to such a file will also reformat it, often by
+  far more lines than the change itself — make that a separate `style(...)`
+  commit so the two can be reviewed apart. Both the pre-commit hook and the
+  *Check-Source-Formatting* CI job enforce this on the files a change touches.
 
 ## Spelling
 

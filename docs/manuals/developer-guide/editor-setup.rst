@@ -169,6 +169,34 @@ would collapse the table onto one enormous line.
    declarations of more than two variables across rows, so a file that has not
    been formatted before may change by more than alignment alone.
 
+.. _manual-sec-formattingAdoption:
+
+How the formatting is rolled out
+--------------------------------
+
+The source tree has deliberately *not* been reformatted in one sweep. Doing so
+would have rewritten around 1500 files at once, wrecking ``git blame`` and
+conflicting with every branch open at the time. Instead the formatters are
+enforced going forward: both the pre-commit hook and the *Check-Source-Formatting*
+job on pull requests run them in ``--check`` mode over the files a change
+touches, so the tree converges on the house style file by file as it is worked
+on.
+
+The practical consequence is that the first change to a file which predates the
+formatters will also reformat it, and that reformatting may be considerably
+larger than the change itself. Run the tools as a separate commit from your
+substantive change so that reviewers can read the two apart:
+
+.. code-block:: bash
+
+   ./scripts/aux/formatModuleUses.py  source/path/to/file.F90
+   ./scripts/aux/formatDeclarations.py source/path/to/file.F90
+   git commit -m "style(...): format <file>"
+
+A file that either tool declines to process is reported as a warning rather
+than a failure, and needs no action — see
+:ref:`manual-sec-formatDeclarations` for the statements the tools leave alone.
+
 .. _manual-sec-editorEmbedded:
 
 Embedded languages in Fortran source
