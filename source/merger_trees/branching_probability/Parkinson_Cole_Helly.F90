@@ -79,6 +79,7 @@ Implements a merger tree branching probability class using the algorithm of :cit
        <method description="Compute the function :math:`V(q)` from :cite:t:`parkinson_generating_2008`."          method="V"                   />
        <method description="Compute the part of the modifier term which depends on :math:`\sigma_\mathrm{s}`." method="modifier"            />
        <method description="Compute the :math:`a` parameter of the hypergeometric function."                   method="hypergeometricA"     />
+       <method description="Return the additional exponent :math:`\gamma_3`, which is zero unless a subclass supplies one." method="hypergeometricGamma3"/>
      </methods>
      !!]
      final     ::                                 parkinsonColeHellyDestructor
@@ -86,6 +87,7 @@ Implements a merger tree branching probability class using the algorithm of :cit
      procedure :: modifier                     => parkinsonColeHellyModifier
      procedure :: progenitorMassFunctionFactor => parkinsonColeHellyProgenitorMassFunctionFactor
      procedure :: hypergeometricA              => parkinsonColeHellyHypergeometricA
+     procedure :: hypergeometricGamma3         => parkinsonColeHellyHypergeometricGamma3
      procedure :: rate                         => parkinsonColeHellyRate
      procedure :: probability                  => parkinsonColeHellyProbability
      procedure :: probabilityBound             => parkinsonColeHellyProbabilityBound
@@ -112,6 +114,7 @@ Implements a merger tree branching probability class using the algorithm of :cit
 
   ! Limit on α for use in effective γ parameters.
   double precision                                                  , parameter :: alphaMinimum             =5.0d-3
+
 
 contains
 
@@ -232,6 +235,7 @@ contains
     ! Initialize.
     self%subresolutionHypergeometricInitialized=.false.
     self%upperBoundHypergeometricInitialized   =.false.
+    self%hypergeometricFailureWarned           =.false.
     self%massResolutionTabulated               =-1.0d0
     self%haloMassPrevious                      =-1.0d0
     self%deltaCriticalPrevious                 =-1.0d0
@@ -512,12 +516,15 @@ contains
     double precision                                                  , parameter     :: largeStep          =1.0d10                 !   Effectively infinitely large step in w(=delta_crit).
     double precision                                                                  :: parentHalfMassSigma       , parentSigma, &
          &                                                                               varianceResidual
-    !$GLC attributes unused :: deltaCritical, time
+    !$GLC attributes unused :: deltaCritical
 
-    ! Get σ and δ_critical for the parent halo.
+    ! Get σ for the parent halo. The epoch is taken from the `time` argument, and not from `self%timeParent`, so that this
+    ! function does not depend on some other function having been called first to set that state - `self%timeParent` is set only
+    ! by `computeCommonFactors` (and by the mass sampling algorithm). Both are the same epoch when the caller is consistent, so
+    ! this changes no result.
     if (haloMass > 2.0d0*massResolution) then
-       parentSigma                  =+self%cosmologicalMassVariance_%rootVariance(      haloMass,self%timeParent)
-       parentHalfMassSigma          =+self%cosmologicalMassVariance_%rootVariance(0.5d0*haloMass,self%timeParent)
+       parentSigma                  =+self%cosmologicalMassVariance_%rootVariance(      haloMass,time           )
+       parentHalfMassSigma          =+self%cosmologicalMassVariance_%rootVariance(0.5d0*haloMass,time           )
        varianceResidual             =+parentHalfMassSigma**2 &
             &                        -parentSigma        **2
        if (varianceResidual > 0.0d0) then
@@ -713,6 +720,19 @@ contains
     a=[1.5d0,0.5d0-0.5d0*gamma]
     return
   end function parkinsonColeHellyHypergeometricA
+
+  double precision function parkinsonColeHellyHypergeometricGamma3(self) result(gamma3)
+    !!{RST
+    Return the additional exponent :math:`\gamma_3` appearing in the progenitor mass function. It is zero for the algorithm of
+    :cite:t:`parkinson_generating_2008`, and is overridden by those subclasses which introduce it.
+    !!}
+    implicit none
+    class(mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    gamma3=0.0d0
+    return
+  end function parkinsonColeHellyHypergeometricGamma3
   
   double precision function parkinsonColeHellyProbabilityBound(self,haloMass,deltaCritical,time,massResolution,bound,node)
     !!{RST
@@ -720,7 +740,6 @@ contains
     !!}
     use            :: Display                 , only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset
     use            :: Error                   , only : Error_Report
-    use            :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use, intrinsic :: ISO_C_Binding           , only : c_int
     use            :: Interface_GSL           , only : GSL_Success
     use            :: Numerical_Constants_Math, only : Pi
@@ -734,8 +753,7 @@ contains
     double precision                                                                          :: probabilityIntegrandLower                    , probabilityIntegrandUpper, &
          &                                                                                       halfParentSigma                              , halfParentAlpha          , &
          &                                                                                       gammaEffective
-    double precision                                                                          :: hyperGeometricFactorLower                    , hyperGeometricFactorUpper, &
-         &                                                                                       resolutionSigmaOverParentSigma
+    double precision                                                                          :: resolutionSigmaOverParentSigma
     integer         (c_int                                           )                        :: statusLower                                  , statusUpper
     logical                                                                                   :: usingCDMAssumptions
     integer                                                                                   :: iBound
@@ -822,14 +840,21 @@ contains
              probabilityIntegrandUpper=self%factorG0Gamma2*self%upperBoundHypergeometric%interpolate(self%massHaloParent/(2.0d0*self%massResolutionTabulated))/self%resolutionSigma
              probabilityIntegrandLower=0.0d0
           else
-             ! Use a direct calculation of the hypergeometric factors in this case.
-             hyperGeometricFactorLower=Hypergeometric_2F1(                                                           &
-                  &                                                         self%hypergeometricA(gammaEffective)   , &
-                  &                                                         [      1.5d0-0.5d0*gammaEffective]     , &
-                  &                                                         1.0d0/resolutionSigmaOverParentSigma**2, &
-                  &                                       toleranceRelative=self%precisionHypergeometric           , &
-                  &                                       status           =statusLower                              &
-                  &                                      )
+             ! Evaluate the integral between the two limits directly. Doing so avoids the poles which afflict its expression as a
+             ! difference of two integrals each running out to infinity - see `parkinsonColeHellyBoundIntegral`. Since that
+             ! single evaluation yields the whole difference, the lower integrand is set to zero here.
+             probabilityIntegrandUpper=+sqrtTwoOverPi                                                     &
+                  &                    *(self%factorG0Gamma2/self%sigmaParent)                            &
+                  &                    *parkinsonColeHellyBoundIntegral(                                  &
+                  &                                                     halfParentSigma/self%sigmaParent, &
+                  &                                                     resolutionSigmaOverParentSigma  , &
+                  &                                                     gammaEffective                  , &
+                  &                                                     self%hypergeometricGamma3()     , &
+                  &                                                     self%precisionHypergeometric    , &
+                  &                                                     statusLower                       &
+                  &                                                    )
+             probabilityIntegrandLower=+0.0d0
+             statusUpper              = statusLower
              if (statusLower /= GSL_Success) then
                 if (usingCDMAssumptions) then
                    if (.not.self%hypergeometricFailureWarned) then
@@ -847,41 +872,6 @@ contains
                    call Error_Report('hypergeometric function evaluation failed'//{introspection:location})
                 end if
              end if
-             probabilityIntegrandLower=+sqrtTwoOverPi                                            &
-                  &                    *(self%factorG0Gamma2/self%sigmaParent)                   &
-                  &                    *(resolutionSigmaOverParentSigma**(gammaEffective-1.0d0)) &
-                  &                    /(1.0d0-gammaEffective)                                   &
-                  &                    *hyperGeometricFactorLower
-             ! Check if we can use a table to compute the upper factor.
-             hyperGeometricFactorUpper=Hypergeometric_2F1(                                                          &
-                  &                                                         self%hypergeometricA(gammaEffective)  , &
-                  &                                                         [      1.5d0-0.5d0*gammaEffective]    , &
-                  &                                                         self%sigmaParent**2/halfParentSigma**2, &
-                  &                                       toleranceRelative=self%precisionHypergeometric          , &
-                  &                                       status           =statusUpper                             &
-                  &                                      )
-             if (statusUpper /= GSL_Success) then
-                if (usingCDMAssumptions) then
-                   if (.not.self%hypergeometricFailureWarned) then
-                      self%hypergeometricFailureWarned=.true.
-                      call displayMessage(                                                                                                                      &
-                           &              displayMagenta()//'WARNING:'//displayReset()//' hypergeometric function evaluation failed when computing'//char(10)// &
-                           &              'merger tree branching probability bounds - will revert to more'                                         //char(10)// &
-                           &              'robust (but less stringent) bound in this and future cases'                                                       ,  &
-                           &              verbosityLevelWarn                                                                                                    &
-                           &             )
-                   end if
-                   cycle
-                else
-                   parkinsonColeHellyProbabilityBound=0.0d0
-                   call Error_Report('hypergeometric function evaluation failed'//{introspection:location})
-                end if
-             end if
-             probabilityIntegrandUpper=+sqrtTwoOverPi                                                &
-                  &                    *(self%factorG0Gamma2/self%sigmaParent)                       &
-                  &                    *((halfParentSigma/self%sigmaParent)**(gammaEffective-1.0d0)) &
-                  &                    /(1.0d0-gammaEffective)                                       &
-                  &                    *hyperGeometricFactorUpper
           end if
        end if
        ! Compute the bound.
@@ -1007,6 +997,115 @@ contains
     self%branchingProbabilityPreFactor=sqrtTwoOverPi*self%massHaloParent*self%factorG0Gamma2/self%sigmaParent**self%gamma1
     return
   end subroutine parkinsonColeHellyComputeCommonFactors
+
+  double precision function parkinsonColeHellyBoundIntegral(uInner,uOuter,gamma,gamma3,toleranceRelative,status) result(integral)
+    !!{RST
+    Evaluate the integral
+
+    .. math::
+
+       \int_{u_\mathrm{i}}^{u_\mathrm{o}} {s^{1+\gamma-2\gamma_3} \over (s^2-1)^{3/2-\gamma_3}} \, \d s,
+
+    in which :math:`u=\sigma/\sigma_\mathrm{p}`, which is the quantity from which both bounds on the branching probability are
+    formed. Here :math:`\gamma` is the effective exponent :math:`\gamma_1-1/\alpha` and :math:`\gamma_3` the additional exponent
+    of the PCH+ algorithm, which is zero for :cite:t:`parkinson_generating_2008` itself.
+
+    The obvious evaluation---as the difference of the two integrals which run from each limit out to infinity, each of which has a
+    closed form in terms of :math:`{}_2F_1`---is not usable. Each of those carries a third hypergeometric parameter
+    :math:`(3-\gamma)/2`, which passes through zero and the negative integers as :math:`\gamma` reaches the odd integers
+    :math:`3, 5, 7, \ldots`. There both diverge while their difference, which is what is wanted, stays finite: the pole is
+    independent of the limit and so cancels. That is of no help numerically. Exactly on such a point the evaluation fails
+    outright, and in a neighborhood of it the result is destroyed by the cancellation---and, since :math:`\gamma=\gamma_1-1/\alpha`
+    varies with mass, a tabulation of this quantity crosses several of those points as a matter of course.
+
+    Splitting the integral at infinity is what introduces the poles, and it is avoidable. Substituting :math:`w=1-1/s^2` gives
+
+    .. math::
+
+       {1 \over 2} \int_{w_\mathrm{i}}^{w_\mathrm{o}} w^{\kappa-1} (1-w)^{-(\gamma+1)/2} \, \d w, \qquad \kappa \equiv \gamma_3-{1\over2},
+
+    whose integrand is singular at :math:`w=0`---the image of :math:`s=\infty`---and it is that singularity, not anything in the
+    integral itself, which forces the split. Integrating by parts removes it, leaving a boundary term and an integral whose
+    integrand is integrable at the origin:
+
+    .. math::
+
+       {1 \over 2} \left\{ {\left[ w^\kappa (1-w)^{-(\gamma-1)/2} \right]_{w_\mathrm{i}}^{w_\mathrm{o}} \over \kappa}
+       - {\lambda \over \kappa} \left[ K(w) \right]_{w_\mathrm{i}}^{w_\mathrm{o}} \right\}, \qquad \lambda \equiv {\gamma\over2}-\gamma_3,
+
+    with :math:`K(w) = \int_0^w t^\kappa (1-t)^{-(\gamma+1)/2} \d t = w^{\kappa+1} {}_2F_1(\kappa+1,{\gamma+1\over2};\kappa+2;w)/(\kappa+1)`.
+    The third parameter is now :math:`\kappa+2=\gamma_3+3/2`, which depends only on :math:`\gamma_3` and not at all on
+    :math:`\gamma`---so the poles in :math:`\gamma` are gone, not merely avoided. What remains is a cancellation as
+    :math:`\kappa \rightarrow 0`, that is as :math:`\gamma_3 \rightarrow 1/2`; but :math:`\gamma_3` is a single constant of the
+    model rather than a quantity varying over the tabulation, and the PCH+ constructor refuses values close to that point.
+    !!}
+    use            :: Hypergeometric_Functions, only : Hypergeometric_2F1
+    use, intrinsic :: ISO_C_Binding           , only : c_int
+    use            :: Interface_GSL           , only : GSL_Success
+    implicit none
+    double precision, intent(in   ) :: uInner        , uOuter        , &
+         &                             gamma         , gamma3        , &
+         &                             toleranceRelative
+    integer         (c_int), intent(  out) :: status
+    double precision                :: kappa         , lambda_       , &
+         &                             integralInner , integralOuter
+    integer         (c_int)         :: statusInner   , statusOuter
+
+    kappa        =+gamma3     -0.5d0
+    lambda_      =+0.5d0*gamma-gamma3
+    integralInner=antiderivative(uInner,statusInner)
+    integralOuter=antiderivative(uOuter,statusOuter)
+    if      (statusInner /= GSL_Success) then
+       status=statusInner
+    else if (statusOuter /= GSL_Success) then
+       status=statusOuter
+    else
+       status=GSL_Success
+    end if
+    integral     =+0.5d0                     &
+         &        *(                         &
+         &          +integralOuter           &
+         &          -integralInner           &
+         &         )
+    return
+
+  contains
+
+    double precision function antiderivative(u,status_) result(value_)
+      !!{RST
+      The antiderivative of the integrand, evaluated at :math:`u`---the sum of the boundary term and the integral :math:`K`, each
+      divided by :math:`\kappa`. Note that :math:`1-w=1/u^2` exactly, so the factor :math:`(1-w)^{-(\gamma-1)/2}` of the boundary
+      term is simply :math:`u^{\gamma-1}`.
+      !!}
+      implicit none
+      double precision       , intent(in   ) :: u
+      integer         (c_int), intent(  out) :: status_
+      double precision                       :: w, boundary, K
+
+      ! Form w=1-1/u² as (u-1)(u+1)/u², which suffers no cancellation as u approaches unity.
+      w       =+(u-1.0d0)*(u+1.0d0) &
+           &   /u**2
+      boundary=+w**kappa            &
+           &   *u**(gamma-1.0d0)
+      K       =+w**(kappa+1.0d0)                                                     &
+           &   /   (kappa+1.0d0)                                                     &
+           &   *Hypergeometric_2F1(                                                  &
+           &                                         [kappa+1.0d0,0.5d0*(gamma+1.0d0)], &
+           &                                         [kappa+2.0d0]                     , &
+           &                                         w                                , &
+           &                       toleranceRelative=toleranceRelative               , &
+           &                       status           =status_                           &
+           &                      )
+      value_  =+(                    &
+           &     +boundary           &
+           &     -lambda_            &
+           &     *K                  &
+           &    )                    &
+           &   /kappa
+      return
+    end function antiderivative
+
+  end function parkinsonColeHellyBoundIntegral
 
   double precision function parkinsonColeHellyHypergeometricFactor(x,gamma,toleranceRelative) result(factor)
     !!{RST
@@ -1193,12 +1292,13 @@ contains
     !!{RST
     Tabulate the hypergeometric term appearing in the upper bound branching probability rate expression.
     !!}
-    use :: Hypergeometric_Functions, only : Hypergeometric_2F1
-    use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Ranges        , only : Range_Pinned          , gridSchemePerDecade
-    use :: Table_Labels            , only : extrapolationTypeAbort
-    use :: Display                 , only : displayGreen          , displayBlue, displayYellow, displayReset
-    use :: Error                   , only : Error_Report
+    use            :: Numerical_Constants_Math, only : Pi
+    use            :: Numerical_Ranges        , only : Range_Pinned          , gridSchemePerDecade
+    use            :: Table_Labels            , only : extrapolationTypeAbort
+    use            :: Display                 , only : displayGreen          , displayBlue, displayYellow, displayReset
+    use            :: Error                   , only : Error_Report
+    use, intrinsic :: ISO_C_Binding           , only : c_int
+    use            :: Interface_GSL           , only : GSL_Success
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout)               :: self
     double precision                                                  , intent(in   )               :: mass                              , massResolution
@@ -1212,6 +1312,8 @@ contains
     logical                                                           , allocatable  , dimension(:) :: isComputed
     integer                                                                                         :: i
     logical                                                                                         :: tabulate
+    integer         (c_int                                           )                              :: statusIntegral
+    double precision                                                                                :: boundIntegral
     double precision                                                                                :: massSigma                         , gammaEffective     , &
          &                                                                                             halfMassSigma                     , halfMassAlpha      , &
          &                                                                                             resolutionMassSigma               , resolutionMassAlpha
@@ -1274,29 +1376,25 @@ contains
                &                   'in class <'//displayBlue()//'mergerTreeBranchingProbability'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"parkinsonColeHelly"'//displayReset()//'/> to avoid making these assumptions'// &
                &                   {introspection:location}                                                                                                                                                                                                            &
                &                  )
+          ! Evaluate the integral between the two limits directly. Note that the effective exponent here is formed from α at each
+          ! tabulated mass in turn, so it sweeps through the odd integers as the tabulation runs over mass - which is precisely
+          ! why this must not be evaluated as a difference of two integrals running out to infinity. See
+          ! `parkinsonColeHellyBoundIntegral`.
           gammaEffective=self%gamma1-1.0d0/halfMassAlpha
+          boundIntegral =parkinsonColeHellyBoundIntegral(                                     &
+               &                                         halfMassSigma      /massSigma      , &
+               &                                         resolutionMassSigma/massSigma      , &
+               &                                         gammaEffective                     , &
+               &                                         self%hypergeometricGamma3()        , &
+               &                                         self%precisionHypergeometric       , &
+               &                                         statusIntegral                       &
+               &                                        )
+          if (statusIntegral /= GSL_Success) call Error_Report('hypergeometric function evaluation failed while tabulating the branching probability bound'//{introspection:location})
           call self%upperBoundHypergeometric%populate(                                                                             &
                &                                      +sqrtTwoOverPi                                                               &
                &                                      *resolutionMassSigma                                                         &
                &                                      /massSigma                                                                   &
-               &                                      *(                                                                           &
-               &                                        +(halfMassSigma/massSigma)**(+gammaEffective-1.0d0)                        &
-               &                                        /                           (-gammaEffective+1.0d0)                        &
-               &                                        *Hypergeometric_2F1(                                                       &
-               &                                                                             self%hypergeometricA(gammaEffective), &
-               &                                                                             [      1.5d0-0.5d0*gammaEffective]  , &
-               &                                                                             (massSigma/halfMassSigma)**2        , &
-               &                                                           toleranceRelative=self%precisionHypergeometric          &
-               &                                                          )                                                        &
-               &                                        -(resolutionMassSigma/massSigma)**(+gammaEffective-1.0d0)                  &
-               &                                        /                                 (-gammaEffective+1.0d0)                  &
-               &                                        *Hypergeometric_2F1(                                                       &
-               &                                                                             self%hypergeometricA(gammaEffective), &
-               &                                                                             [      1.5d0-0.5d0*gammaEffective]  , &
-               &                                                                             (massSigma/resolutionMassSigma)**2  , &
-               &                                                           toleranceRelative=self%precisionHypergeometric          &
-               &                                                          )                                                        &
-               &                                       )                                                                         , &
+               &                                      *boundIntegral                                                             , &
                &                                      i                                                                            &
                &                                     )
        end do
