@@ -176,16 +176,19 @@ How the formatting is rolled out
 
 The source tree has deliberately *not* been reformatted in one sweep. Doing so
 would have rewritten around 1500 files at once, wrecking ``git blame`` and
-conflicting with every branch open at the time. Instead the formatters are
-enforced going forward: both the pre-commit hook and the *Check-Source-Formatting*
-job on pull requests run them in ``--check`` mode over the files a change
-touches, so the tree converges on the house style file by file as it is worked
-on.
+conflicting with every branch open at the time. Instead the tree converges on
+the house style file by file as it is worked on: both the pre-commit hook and
+the *Check-Source-Formatting* job on pull requests run the formatters in
+``--check`` mode over the files a change touches, and report what differs.
 
-The practical consequence is that the first change to a file which predates the
-formatters will also reformat it, and that reformatting may be considerably
-larger than the change itself. Run the tools as a separate commit from your
-substantive change so that reviewers can read the two apart:
+Both are **advisory** — neither blocks a commit or fails a pull request. Since
+most files still predate the formatters, blocking would force the first change
+to any of them to carry a whole-file reformat in the same commit, mixed in with
+the substantive change. Reporting instead leaves the choice of when to reformat
+with you.
+
+When you do reformat, make it a commit of its own, so that reviewers can read
+the reformatting and the substantive change apart:
 
 .. code-block:: bash
 

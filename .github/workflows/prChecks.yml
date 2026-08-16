@@ -219,8 +219,14 @@ jobs:
           exit $status
   # Source formatting. `use` blocks and variable declaration blocks follow the
   # column layout described in the developer guide, applied by the formatters in
-  # `scripts/aux/`. Only files touched by the pull request are checked, so a
-  # change is never blocked by formatting elsewhere in the tree.
+  # `scripts/aux/`. Only files touched by the pull request are checked.
+  #
+  # Advisory: this job reports through annotations and never fails. The tree was
+  # not reformatted in one sweep, so most files still predate the formatters;
+  # failing here would force the first change to any of them to carry a
+  # whole-file reformat in the same pull request, mixing it with the substantive
+  # change. Reporting instead lets that reformat be made as a separate
+  # follow-up commit.
   Check-Source-Formatting:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
@@ -250,7 +256,6 @@ jobs:
           CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
           set -f
-          status=0
           for file in ${CHANGED_FILES}; do
             # Deleted or renamed-away files still appear in the changed list.
             [ -f "$file" ] || continue
@@ -265,21 +270,20 @@ jobs:
                 0)
                   ;;
                 1)
-                  echo "::error file=$file::Formatting differs from the house style. Run: ./scripts/aux/$tool.py $file"
-                  status=1
+                  echo "::warning file=$file::Formatting differs from the house style. Run ./scripts/aux/$tool.py $file, ideally as a separate follow-up commit."
                   ;;
                 *)
                   # Exit 2 means the tool declined to touch the file — it does
                   # not round-trip, or reformatting would change what it
                   # declares or unbalance its preprocessor guards. That is a
-                  # tool limitation rather than a style problem, so report it
-                  # without failing the check.
+                  # tool limitation rather than a style problem.
                   echo "::warning file=$file::$tool.py could not process this file; formatting not verified"
                   ;;
               esac
             done
           done
-          exit $status
+          # Advisory only — see the comment on this job.
+          exit 0
   # Embedded XML directive validation (the LaTeX checks were retired with the
   # migration of the embedded documentation to reStructuredText).
   Validate-Embedded-XML:

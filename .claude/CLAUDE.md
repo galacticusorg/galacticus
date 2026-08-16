@@ -183,10 +183,11 @@ change that.
   skips vendored code under `source/external/`, and leaves declarations with
   hand-wrapped oversized initializers exactly as written.
 - **The tree was not reformatted in one sweep**, so most files still predate the
-  formatters. The first change to such a file will also reformat it, often by
-  far more lines than the change itself — make that a separate `style(...)`
-  commit so the two can be reviewed apart. Both the pre-commit hook and the
-  *Check-Source-Formatting* CI job enforce this on the files a change touches.
+  formatters. Reformatting such a file changes far more lines than the edit that
+  prompted it, so make it a separate `style(...)` commit rather than folding it
+  into a substantive change. The pre-commit hook and the *Check-Source-Formatting*
+  CI job both report unformatted files, but are **advisory** — neither blocks a
+  commit nor fails a pull request.
 
 ## Spelling
 
