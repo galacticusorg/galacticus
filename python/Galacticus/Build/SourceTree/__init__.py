@@ -139,6 +139,33 @@ def serialize_for_format(node):
     return uncomment_embedded(serialize(node))
 
 
+_GUARD_OPEN_RE  = re.compile(r'^\s*#\s*(?:ifdef|ifndef|if)\b')
+_GUARD_CLOSE_RE = re.compile(r'^\s*#\s*endif\b')
+
+
+def preprocessor_guard_balance(text):
+    """Net count of opened-minus-closed preprocessor conditionals in `text`.
+
+    Reformatting must never change this.  `update_uses()` re-emits a guard
+    around each `use` statement it owns, so where a `#ifdef` in the source
+    covered a `use` *and* the code following it, the rebuilt block closes its
+    own guard while the original `#endif` survives in the following code —
+    leaving an unbalanced `#endif` that fails to compile.
+
+    Comparing the whole-file balance before and after catches that class of
+    error whatever its cause, which a check on the parsed structure alone does
+    not: the structure round-trips perfectly, and it is the *interleaving* of
+    the rebuilt block with its surroundings that goes wrong.
+    """
+    balance = 0
+    for line in text.splitlines():
+        if _GUARD_OPEN_RE.match(line):
+            balance += 1
+        elif _GUARD_CLOSE_RE.match(line):
+            balance -= 1
+    return balance
+
+
 def walk_tree(node):
     """Depth-first generator over all nodes in the tree.
 

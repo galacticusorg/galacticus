@@ -35,6 +35,7 @@ import pytest
 
 from Galacticus.Build.SourceTree import (
     _comment_embedded,
+    preprocessor_guard_balance,
     uncomment_embedded,
     parse_code_for_format,
     serialize_for_format,
@@ -374,3 +375,41 @@ def test_formatting_every_source_file_is_idempotent():
         if _format(once) != once:
             failures.append(path)
     assert not failures, '\n'.join(failures[:20])
+
+
+# ---------------------------------------------------------------------------
+# 6. Preprocessor guard balance
+# ---------------------------------------------------------------------------
+
+def test_guard_balance_counts_conditionals():
+    text = (
+        "#ifdef A\n"
+        "  use :: X, only : y\n"
+        "#endif\n"
+    )
+    assert preprocessor_guard_balance(text) == 0
+    assert preprocessor_guard_balance(text + "#endif\n") == -1
+    assert preprocessor_guard_balance("#ifndef B\n") == 1
+
+
+def test_guard_spanning_use_and_code_is_detected():
+    """A `#ifdef` covering a `use` *and* the code after it is the case the
+    balance check exists for: `update_uses` re-emits its own guard around the
+    `use` it owns, and the original `#endif` is left stranded in the following
+    code. The parsed structure round-trips perfectly, so only a whole-file
+    balance comparison sees it."""
+    source = (
+        "  subroutine s\n"
+        "#ifdef USEMPI\n"
+        "    use :: MPI_F08, only : MPI_Comm_Rank\n"
+        "    implicit none\n"
+        "    integer :: rank\n"
+        "#endif\n"
+        "    return\n"
+        "  end subroutine s\n"
+    )
+    assert preprocessor_guard_balance(source) == 0
+    out = _format(source)
+    # The formatter itself does not repair this; the driver script refuses to
+    # write when the balance changes. Assert the detector fires.
+    assert preprocessor_guard_balance(out) != preprocessor_guard_balance(source), out
