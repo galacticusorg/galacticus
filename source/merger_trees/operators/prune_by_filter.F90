@@ -21,8 +21,7 @@
 Implements a pruning-by-filter operator on merger trees.
 !!}
 
-!+ Contributions to this file made by: Andrew Benson
-!+ This file was generated with assistance from Claude, and reviewed and tested by Andrew Benson.
+!+ Contributions to this file made by: Andrew Benson, Claude.
 
   use :: Galactic_Filters, only : galacticFilterClass
 

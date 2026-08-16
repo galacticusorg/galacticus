@@ -17,8 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson. The analytic evaluation of the smoothed power spectrum slope was
-!+    drafted with assistance from Claude, and reviewed and verified by Andrew Benson.
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
   !!{RST
   Implements a generalization of the ETHOS power spectrum window function class from :cite:t:`bohr_halo_2021`.

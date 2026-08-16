@@ -17,8 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson. This class was drafted with assistance from Claude, and reviewed and
-!+    verified by Andrew Benson.
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
   !!{RST
   An implementation of the cosmological functions class for cosmologies consisting of collisionless matter and dark energy with an equation of state of the form: :math:`P=\rho^w` with :math:`w(a)=w_0+w_\mathrm{a}(1-a)`.

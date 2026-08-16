@@ -17,9 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    The fallback from `wget` to `curl` within a single download attempt, and the use of `--ciphers=DEFAULT` to avoid hosts which
-!+    reject `wget` on the basis of its TLS handshake, were diagnosed and drafted with assistance from Claude, and reviewed and
-!+    verified by Andrew Benson.
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
 !!{RST
 Contains a module which downloads content from a supplied URL (or list of URLs).

@@ -17,10 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson. The fix to the deduplication of reports of the use of default
-!+    parameter values, the marking of defaulted parameters in the output file, and the removal of the then-unused
-!+    per-object OpenMP lock, for issue #1353, were drafted with assistance from Claude, and reviewed and verified by
-!+    Andrew Benson.
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
 !!{RST
 Contains a module which implements reading of parameters from an XML data file.
