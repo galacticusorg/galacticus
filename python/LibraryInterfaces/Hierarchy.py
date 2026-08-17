@@ -18,17 +18,17 @@ registered functionClass set.
 import re
 from pathlib import Path
 
-# `type, [optional attrs (abstract, public, private, extends(...))]
-#  [::] <name>` — same shape Fortran.Utils.UNIT_OPENERS['type'] recognises,
-# but with the parent name captured.  Only matches when the `extends(...)`
-# attribute is present; types without it have no parent edge to record.
-_TYPE_EXTENDS_RX = re.compile(
-    r'^\s*type\s*'
-    r'(?:,\s*(?:abstract|public|private|extends\s*\([A-Za-z][A-Za-z0-9_]*\))\s*)*'
-    r',\s*extends\s*\(\s*([A-Za-z][A-Za-z0-9_]*)\s*\)\s*'
-    r'(?:,\s*(?:abstract|public|private)\s*)*'
-    r'(?:::)?\s*([A-Za-z][A-Za-z0-9_]*)\s*$',
-    re.IGNORECASE | re.MULTILINE,
+from Fortran.Utils import TYPE_ATTRIBUTES_TAGGED, type_opener_regex
+
+# `type, [optional attrs (abstract, bind(c), public, private, extends(...))]
+#  [::] <name>` — the shared shape from `Fortran.Utils`, scanned over whole
+# file text rather than a parsed tree, hence `re.MULTILINE`.  The `extends`
+# group is optional in the shared pattern, so the caller skips matches that
+# leave it `None`: a type without a parent has no edge to record.
+_TYPE_EXTENDS_RX = type_opener_regex(
+    name=r'[A-Za-z][A-Za-z0-9_]*',
+    attributes=TYPE_ATTRIBUTES_TAGGED,
+    flags=re.IGNORECASE | re.MULTILINE,
 )
 _MODULE_RX = re.compile(
     r'^\s*module\s+([A-Za-z][A-Za-z0-9_]*)\s*$',
@@ -62,7 +62,9 @@ def build_type_hierarchy(source_dir):
         module_anchors = [(m.start(), m.group(1))
                           for m in _MODULE_RX.finditer(text)]
         for tm in _TYPE_EXTENDS_RX.finditer(text):
-            parent, child = tm.group(1), tm.group(2)
+            parent, child = tm.group('extends'), tm.group('name')
+            if parent is None:
+                continue
             mod = ''
             for off, name in module_anchors:
                 if off < tm.start():

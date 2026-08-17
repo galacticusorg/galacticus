@@ -2,6 +2,8 @@
 import re
 import sys
 
+from Fortran.Utils import type_opener_regex
+
 # Perform static analysis of Fortran files.
 # Andrew Benson (28-February-2023)
 #
@@ -34,12 +36,7 @@ _VAR_DECL = re.compile(
 )
 
 # Derived-type definition opener: "type [,attrs] [::] name"  (not "type(...)").
-_TYPE_DEF = re.compile(
-    r'^\s*type'
-    r'(?:\s*,\s*(?:abstract|public|private|extends\s*\([^)]+\))\s*)*'
-    r'(?:\s*::)?\s*([a-zA-Z0-9_]+)\s*$',
-    re.IGNORECASE,
-)
+_TYPE_DEF = type_opener_regex()
 _END_TYPE      = re.compile(r'^\s*end\s+type\b',      re.IGNORECASE)
 _INTERFACE     = re.compile(r'^\s*interface\s+([a-zA-Z0-9_]+)\s*$', re.IGNORECASE)
 _END_INTERFACE = re.compile(r'^\s*end\s+interface\b', re.IGNORECASE)
@@ -329,7 +326,7 @@ for line in lines:
     # type definition
     m = _TYPE_DEF.match(line)
     if m and not in_function and not in_subroutine:
-        type_name = m.group(1).lower()
+        type_name = m.group('name').lower()
         known_types.append(type_name)
         in_type_block     = True
         current_type_name = type_name
