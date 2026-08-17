@@ -457,8 +457,14 @@ jobs:
           ! ldd dynamic/RecFast/recfast.exe
           ! ldd dynamic/fsps-${fspsVersion}/src/autosps.exe
           ! ldd dynamic/mangle-${mangleVersion}/bin/ransack
+          # The `forutils` stamp file must be packaged alongside the `camb` executable. At run time
+          # `Interface_CAMB_Initialize` (source/interface/CAMB.F90) rebuilds CAMB unless *both* the
+          # executable and a stamp matching the required `forutils` version are present. Installs made from
+          # the packaged tools (e.g. via PyPI) typically have no Fortran compiler, so a missing stamp turns
+          # into a fatal build attempt rather than a simple use of the pre-built binary.
           tar cfj tools.tar.bz2 \
             dynamic/CAMB-${cambVersion}/fortran/camb \
+            dynamic/CAMB-${cambVersion}/forutils/.galacticusForUtilsVersion_${forutilsVersion} \
             dynamic/axionCAMB-${axioncambVersion}/camb \
             dynamic/class_public-${classVersion}/class \
             dynamic/RecFast/recfast.exe \
@@ -600,8 +606,15 @@ jobs:
           # CDMS/JPL catalogs at data-build time. It is never run by Galacticus, and it is not code-signed
           # above, so leaving it in the archive causes notarization to reject the whole archive ("the binary
           # is not signed", "no secure timestamp", "no hardened runtime"). Exclude it and its debug symbols.
+          #
+          # The `forutils` stamp file must be packaged alongside the `camb` executable. At run time
+          # `Interface_CAMB_Initialize` (source/interface/CAMB.F90) rebuilds CAMB unless *both* the
+          # executable and a stamp matching the required `forutils` version are present. Installs made from
+          # the packaged tools (e.g. via PyPI) typically have no Fortran compiler, so a missing stamp turns
+          # into a fatal build attempt rather than a simple use of the pre-built binary.
           toolProducts=(
             dynamic/CAMB-${cambVersion}/fortran/camb
+            dynamic/CAMB-${cambVersion}/forutils/.galacticusForUtilsVersion_${forutilsVersion}
             dynamic/axionCAMB-${axioncambVersion}/camb
             dynamic/class_public-${classVersion}/class
             dynamic/RecFast/recfast.exe
@@ -758,8 +771,15 @@ jobs:
           # CDMS/JPL catalogs at data-build time. It is never run by Galacticus, and it is not code-signed
           # above, so leaving it in the archive causes notarization to reject the whole archive ("the binary
           # is not signed", "no secure timestamp", "no hardened runtime"). Exclude it and its debug symbols.
+          #
+          # The `forutils` stamp file must be packaged alongside the `camb` executable. At run time
+          # `Interface_CAMB_Initialize` (source/interface/CAMB.F90) rebuilds CAMB unless *both* the
+          # executable and a stamp matching the required `forutils` version are present. Installs made from
+          # the packaged tools (e.g. via PyPI) typically have no Fortran compiler, so a missing stamp turns
+          # into a fatal build attempt rather than a simple use of the pre-built binary.
           toolProducts=(
             dynamic/CAMB-${cambVersion}/fortran/camb
+            dynamic/CAMB-${cambVersion}/forutils/.galacticusForUtilsVersion_${forutilsVersion}
             dynamic/axionCAMB-${axioncambVersion}/camb
             dynamic/class_public-${classVersion}/class
             dynamic/RecFast/recfast.exe
