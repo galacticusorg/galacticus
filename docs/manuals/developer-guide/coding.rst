@@ -70,20 +70,20 @@ Blocks of ``use`` statements are laid out as a table, so that the module names a
 * At most four symbols per row, using continuation lines for more — but fewer per row where four would push the line past 132 columns. The count is chosen once for the whole block, so the symbol columns stay aligned between statements.
 * Symbols are sorted alphabetically and aligned in columns whose widths are shared across the entire block. The sort is case-sensitive, which groups ``Capitalized_With_Underscores`` procedure names ahead of ``camelCase`` types and variables.
 * Modules imported with the ``intrinsic`` attribute come first, keeping their order relative to one another.
-* A ``use`` needed only under OpenMP carries the ``!$`` sentinel. Where a block mixes these with unconditional ``use`` statements, the latter are indented three further columns so that the ``use`` keywords still line up.
+* A ``use`` needed only under OpenMP carries the ``!$`` sentinel. Every statement still begins at the block's own indent, so the sentinel sits out to the left of the ``use`` keyword; the three columns it occupies are made up after the module attributes, keeping the ``::`` column aligned across the block.
 * A ``use`` guarded by a preprocessor conditional keeps its own ``#ifdef``/``#endif`` wrapper.
 
 For example:
 
 .. code-block:: fortran
 
-       use, intrinsic :: ISO_C_Binding     , only : c_size_t
-       use            :: Error             , only : Error_Report
-       use            :: Display           , only : displayIndent         , displayMessage, displayUnindent, displayVerbositySet, &
-       &                                            verbosityLevelStandard
-       use            :: ISO_Varying_String, only : assignment(=)         , varying_string
+    use, intrinsic    :: ISO_C_Binding     , only : c_size_t
+    use               :: Error             , only : Error_Report
+    use               :: Display           , only : displayIndent         , displayMessage, displayUnindent, displayVerbositySet, &
+    &                                               verbosityLevelStandard
+    use               :: ISO_Varying_String, only : assignment(=)         , varying_string
    #ifdef USEMPI
-       use            :: MPI_Utilities     , only : mpiBarrier            , mpiSelf
+    use               :: MPI_Utilities     , only : mpiBarrier            , mpiSelf
    #endif
     !$ use            :: OMP_Lib           , only : OMP_Get_Max_Threads
 

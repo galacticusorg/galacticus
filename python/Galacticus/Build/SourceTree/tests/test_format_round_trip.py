@@ -252,10 +252,11 @@ def test_ruler_keeps_columns_aligned_across_statements():
 # ---------------------------------------------------------------------------
 
 def test_openmp_block_indent_is_stable():
-    """Unconditional uses in a block that also has `!$ use` lines are indented
-    three columns further, so that `use` lines up across the sentinel.  Reading
-    the block indent off its first line picked that padding up and added three
-    more columns on every pass."""
+    """Every statement in a block that mixes `!$ use` with unconditional uses
+    starts at the block's own indent — the columns the `!$ ` sentinel occupies
+    are made up after the module attributes.  Reading the block indent off its
+    first line used to pick up padding the previous pass had added, shifting
+    the block three columns further right each time."""
     source = (
         "  subroutine s\n"
         "    use :: Error, only : Error_Report\n"
@@ -373,4 +374,48 @@ def test_formatting_every_source_file_is_idempotent():
         once = _format(original)
         if _format(once) != once:
             failures.append(path)
+    assert not failures, '\n'.join(failures[:20])
+
+
+def _guard_trace(text):
+    """`(closing balance, deepest excursion)` of the conditional preprocessor
+    directives in `text`.
+
+    Deliberately a whole-file *text* measure rather than anything read off the
+    parse: the failure it exists to catch (issue #1385) round-trips through
+    the parsed structure perfectly, and goes wrong only in how a rebuilt block
+    interleaves with the code around it.
+    """
+    depth   = 0
+    minimum = 0
+    for line in text.splitlines():
+        if re.match(r'^#\s*if', line):
+            depth += 1
+        elif re.match(r'^#\s*endif', line):
+            depth -= 1
+        minimum = min(minimum, depth)
+    return depth, minimum
+
+
+@pytest.mark.slow
+def test_formatting_every_source_file_preserves_preprocessor_guards():
+    """Reformatting must not add, drop, or reorder a preprocessor guard.
+
+    Issue #1385: a `#ifdef` covering a `use` *and* the code after it was
+    recorded as a condition on that `use`, so the rebuilt block emitted its
+    own `#ifdef … #endif` while the original `#endif` stayed behind in the
+    following code node.  The file then had one `#endif` too many and would
+    not compile — but every check on the parsed structure passed.
+    """
+    files = _source_files()
+    assert files, 'no source files found — is GALACTICUS_EXEC_PATH set?'
+
+    failures = []
+    for path in files:
+        with open(path, errors='replace') as fh:
+            original = fh.read()
+        formatted = _format(original)
+        if _guard_trace(formatted) != _guard_trace(original):
+            failures.append(f'{path}: {_guard_trace(original)} -> '
+                            f'{_guard_trace(formatted)}')
     assert not failures, '\n'.join(failures[:20])
