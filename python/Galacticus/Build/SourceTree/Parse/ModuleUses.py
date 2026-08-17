@@ -153,7 +153,12 @@ def _classify_preprocessor_directives(content):
                 if regions:
                     region = regions.pop()
                     region['lines'].append(index)
-                    verdict = region['claimable'] and kind == 'close'
+                    # Record the verdict on the region itself, not only on its
+                    # lines: `enclosing` holds these same dicts, and a block
+                    # inside a region rejected for its *closer* alone must
+                    # still count as sitting inside a left-in-place guard.
+                    region['claimable'] = verdict = (
+                        region['claimable'] and kind == 'close')
                     for i in region['lines']:
                         claimable[i] = verdict
                     if not verdict:

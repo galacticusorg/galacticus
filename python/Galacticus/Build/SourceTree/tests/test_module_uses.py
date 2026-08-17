@@ -563,3 +563,28 @@ def test_guard_whose_else_branch_holds_code_is_not_claimed():
     assert out.count('#else')         == 1, out
     assert out.count('#endif')        == 1, out
     assert _guard_balance(out) == (0, 0), out
+
+
+def test_endif_with_trailing_text_is_not_claimed():
+    """`#endif // USEMPI` cannot be reproduced from an entry's conditions —
+    the comment would be lost — so the region it closes is left in place, and
+    the block inside it is flagged as guarded even though it is the *closer*,
+    not the region's contents, that disqualified it."""
+    source = (
+        "subroutine s()\n"
+        "#ifdef USEMPI\n"
+        "  use :: mpi\n"
+        "#endif // USEMPI\n"
+        "  implicit none\n"
+        "end subroutine s\n"
+    )
+    tree = _parse_with_module_uses(source)
+    node = _module_use_node(tree)
+    assert 'conditions' not in node['moduleUse']['mpi'][0]
+    assert node.get('inUnclaimedGuard'), node
+
+    out = _rebuild(tree)
+    assert '#endif // USEMPI' in out, out
+    assert out.count('#ifdef USEMPI') == 1, out
+    assert out.count('#endif')        == 1, out
+    assert _guard_balance(out) == (0, 0), out
