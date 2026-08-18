@@ -235,6 +235,7 @@ contains
     use            :: Node_Components         , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use            :: Merger_Tree_Construction, only : mergerTreeStateFromFile
     use            :: File_Utilities          , only : File_Lock                        , File_Unlock                        , lockDescriptor
+    !$ use         :: OMP_Lib                 , only : OMP_Get_Thread_Num
     implicit none
     class           (taskPostprocessForests), intent(inout), target   :: self
     integer                                 , intent(  out), optional :: status
@@ -248,6 +249,8 @@ contains
     !$omp threadprivate(statusRead)
     integer         (c_size_t              )               , save     :: indexOutput
     !$omp threadprivate(indexOutput)
+    logical                                                , save     :: recordParameters
+    !$omp threadprivate(recordParameters)
     integer                                                           :: fileUnit
     logical                                                           :: finished
     
@@ -268,9 +271,15 @@ contains
     !!]
     !$omp end critical(postprocessForestsDeepCopy)
     !$omp barrier
-    ! Call routines to perform initialization which must occur for all threads if run in parallel.
+    ! Call routines to perform initialization which must occur for all threads if run in parallel. Thread initialization is run
+    ! against a per-thread copy of the parameter set. Output is enabled on the master thread's copy only, so that the parameters
+    ! read during thread initialization (some of which are read nowhere else) are recorded in the output file. Every thread reads
+    ! the same parameters, so a single writer suffices---and, since it is the only writer, needs no locking beyond the lock on
+    ! HDF5 access through which all parameter output passes.
     allocate(parameters)
-    parameters=inputParameters(self%parameters)
+    recordParameters=.true.
+    !$ recordParameters=OMP_Get_Thread_Num() == 0
+    parameters=inputParameters(self%parameters,noOutput=.not.recordParameters)
     call Node_Components_Thread_Initialize(parameters)
     !$omp barrier
     ! Begin loop to read and post-process trees.

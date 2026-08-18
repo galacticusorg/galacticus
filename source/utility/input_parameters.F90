@@ -749,18 +749,42 @@ contains
     return
   end function inputParametersConstructorFileChar
 
-  function inputParametersConstructorCopy(parameters) result(self)
+  function inputParametersConstructorCopy(parameters,noOutput) result(self)
     !!{RST
     Constructor for the ``inputParameters`` class from an existing parameters object.
+
+    Copies are made primarily to give each OpenMP thread its own parameter set for node component
+    thread initialization. By default (``noOutput=.true.``) the copy has no output group, so
+    parameters read through it are *not* recorded in the ``Parameters`` group of the output
+    file---if every thread's copy wrote, all threads would race to write the same values. Passing
+    ``noOutput=.false.`` instead shares the output group of the parameter set being copied, so
+    that parameters read through the copy *are* recorded. Precisely one copy should be created
+    this way (in practice, the copy made on the master thread), so that there is a single writer;
+    since every thread reads the same parameters, recording from one is sufficient.
     !!}
     implicit none
-    type (inputParameters)                :: self
-    type (inputParameters), intent(in   ) :: parameters
+    type   (inputParameters)                          :: self
+    type   (inputParameters), intent(in   )           :: parameters
+    logical                 , intent(in   ), optional :: noOutput
+    !![
+    <optionalArgument name="noOutput" defaultsTo=".true." />
+    !!]
 
     self            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.,documentManager=parameters%documentManager,document=parameters%document)
     self%parameters =>                 parameters%parameters
     self%parent     =>                 parameters%parent
     self%original   =>                 parameters%original
+    if (.not.noOutput_.and.associated(parameters%outputParameters)) then
+       ! Share the output group of the parameter set being copied so that parameters read through this copy are recorded in the
+       ! output file. The resource managers are assigned (not pointer assigned) so that the reference counts of the shared HDF5
+       ! objects are incremented---the shared group therefore remains valid for as long as this copy exists.
+       self%outputParameters                 => parameters%outputParameters
+       self%outputParametersContainer        => parameters%outputParametersContainer
+       self%outputParametersCopied           =  parameters%outputParametersCopied
+       self%outputParametersTemporary        =  parameters%outputParametersTemporary
+       self%outputParametersManager          =  parameters%outputParametersManager
+       self%outputParametersContainerManager =  parameters%outputParametersContainerManager
+    end if
     return
   end function inputParametersConstructorCopy
 

@@ -520,14 +520,14 @@ contains
     !$omp threadprivate(event_)
     type            (treeNode                ), pointer                  , save :: node
     class           (nodeComponentBasic      ), pointer                  , save :: basic
-    logical                                                              , save :: treesFinished
+    logical                                                              , save :: treesFinished        , recordParameters
     integer         (c_size_t                )                           , save :: treeNumber
     type            (inputParameters         ), allocatable              , save :: parameters
     integer         (c_size_t                )                                  :: treeCount
     integer         (omp_lock_kind           )                                  :: initializationLock
     integer         (kind_int8               )                                  :: systemClockRate      , systemClockMaximum
     integer                                                              , save :: statusForest
-    !$omp threadprivate(node,basic,treeNumber,treesFinished,parameters,statusForest)
+    !$omp threadprivate(node,basic,treeNumber,treesFinished,parameters,statusForest,recordParameters)
     logical                                                                     :: checkpointRestored   , checkpointing         , &
          &                                                                         universeUpdated      , failed
     ! Whole-run progress and run-time estimation accumulators. The counts, work sums, and clock references below are shared across
@@ -625,7 +625,13 @@ contains
     ! master constructor and then inherited by each thread's copy.
     !$omp critical(evolveForestsInitialize)
     allocate(parameters)
-    parameters=inputParameters(self%parameters)
+    ! Thread initialization is run against a per-thread copy of the parameter set. Output is enabled on the master thread's copy
+    ! only, so that the parameters read during thread initialization (some of which---e.g. the mass distributions of the disk and
+    ! spheroid components---are read nowhere else) are recorded in the output file. Every thread reads the same parameters, so a
+    ! single writer suffices, and the enclosing critical section serializes that writer against everything else.
+    recordParameters=.true.
+    !$ recordParameters=OMP_Get_Thread_Num() == 0
+    parameters=inputParameters(self%parameters,noOutput=.not.recordParameters)
     call Node_Components_Thread_Initialize(parameters)
     !$omp end critical(evolveForestsInitialize)
     !$omp barrier
