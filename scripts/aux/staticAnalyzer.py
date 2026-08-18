@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
+import os
 import re
 import sys
 
-from Fortran.Utils import type_opener_regex
+# Make the in-tree Python packages importable when run directly, without a
+# `pip install -e .` or an externally-set `PYTHONPATH`.  This script is an aux
+# tool run standalone (and its tests invoke it as a bare subprocess), so it
+# cannot rely on either being in place.
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), os.pardir, os.pardir, 'python'))
+
+from Fortran.Utils import type_opener_regex                          # noqa: E402
 
 # Perform static analysis of Fortran files.
 # Andrew Benson (28-February-2023)
