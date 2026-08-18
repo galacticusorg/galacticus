@@ -332,16 +332,19 @@ contains
        ! Tabulate the χ_d factor.
        ! Pin both axes to absolute lattices, so that the tabulation - and every value interpolated from it - depends only on
        ! which anchored intervals the request fell in, rather than on the requested x and speed themselves. The x axis is
-       ! linear and runs from zero, so it uses the per-unit gridding scheme with its lower edge clamped there; the speed axis
+       ! linear and runs from zero, so the *whole* range [0,xMaximum] is the target - `limitMinimum` only clamps a range which
+       ! would otherwise extend below zero, it does not make one reach down to it - and its lower edge is clamped there; the
+       ! speed axis
        ! is logarithmic. Taking the union with the lattices already in use guarantees the tabulated range never shrinks.
        !
        ! The table is rebuilt rather than extended. Each entry depends only on its own two abscissae, so entries could in
        ! principle be carried over, but the computed values are held only inside the `interpolator2D` built from them and are
        ! not recoverable from it; doing so would mean storing the raw array alongside. Left as a possible follow-up.
        self%latticeX       =Range_Pinned(                                                          &
-            &                                           xMaximum                                 , &
+            &                                           [0.0d0,xMaximum]                         , &
             &                                           countPerUnit                             , &
             &                                           gridSchemePerUnit                        , &
+            &                            marginOffset  =0.0d0                                    , &
             &                            limitMinimum  =0.0d0                                    , &
             &                            latticeCurrent=self%latticeX                              &
             &                           )

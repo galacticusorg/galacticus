@@ -1107,6 +1107,49 @@ program Test_Mass_Distributions
   end block
   call Unit_Tests_End_Group()
 
+  ! Test that the tabulations which are pinned to absolute lattices behave as intended. These properties are what pinning is
+  ! for, and none of the tests above constrain them: they exercise the profiles at fixed radii, never driving a tabulation to
+  ! extend and so never revealing whether extension moves values already computed.
+  call Unit_Tests_Begin_Group("Pinned tabulations")
+  block
+    type            (massDistributionExponentialDisk) :: diskExtended        , diskDirect
+    type            (massDistributionSersic         ) :: sersicA             , sersicB
+    type            (coordinateSpherical            ) :: coordinates_
+    double precision                                  :: velocityProbe       , velocityAfterExtension, &
+         &                                               velocityDirect      , densityA              , &
+         &                                               densityB            , velocityFar
+    ! The exponential disk rotation curve. The radii are chosen to avoid the three paths which bypass the tabulation: the
+    ! small-argument series expansion below a half-radius of 1e-3, the cached factor used at exactly one scale radius, and the
+    ! point-mass approximation beyond `radiusMaximum`=30 scale radii. r=4 gives a half-radius of 2, inside the seed range;
+    ! r=28 gives 14, outside it, and so forces a genuine extension.
+    diskExtended         =massDistributionExponentialDisk(scaleRadius=1.0d0,mass=1.0d0)
+    velocityProbe        =diskExtended%rotationCurve( 4.0d0)
+    velocityFar          =diskExtended%rotationCurve(28.0d0)
+    velocityAfterExtension=diskExtended%rotationCurve( 4.0d0)
+    call Assert("exponential disk: extension preserves a tabulated rotation curve",velocityAfterExtension == velocityProbe,.true.)
+    ! A disk driven straight to the wider range must agree bit-for-bit with one which reached it by extension.
+    diskDirect           =massDistributionExponentialDisk(scaleRadius=1.0d0,mass=1.0d0)
+    velocityDirect       =diskDirect  %rotationCurve(28.0d0)
+    call Assert("exponential disk: rotation curve is independent of the order of requests",velocityDirect == velocityFar,.true.)
+    call Assert("exponential disk: probe value is independent of the order of requests",diskDirect%rotationCurve(4.0d0) == velocityProbe,.true.)
+    ! The Sersic profile. Nothing computed for it can be carried over when its range moves - the densities are Abel integrals
+    ! taken out to a bound-derived radius, and the enclosed masses accumulate from the innermost point - so what is tested is
+    ! reproducibility: two profiles driven to nearby radii must build identical tables. The radii are large enough to push the
+    ! bounds beyond the seed range, where under the previous scheme they would have differed by the ratio of the two radii.
+    sersicA     =massDistributionSersic(index=4.0d0,radiusHalfMass=1.0d0,mass=1.0d0)
+    sersicB     =massDistributionSersic(index=4.0d0,radiusHalfMass=1.0d0,mass=1.0d0)
+    coordinates_=[900.0d0,0.0d0,0.0d0]
+    densityA    =sersicA%density(coordinates_)
+    coordinates_=[901.0d0,0.0d0,0.0d0]
+    densityB    =sersicB%density(coordinates_)
+    coordinates_=[  1.0d0,0.0d0,0.0d0]
+    densityA    =sersicA%density(coordinates_)
+    densityB    =sersicB%density(coordinates_)
+    call Assert("Sersic: tabulation is reproducible across nearby requested radii",densityA == densityB,.true.)
+    call Assert("Sersic: enclosed mass is reproducible across nearby requested radii",sersicA%massEnclosedBySphere(1.0d0) == sersicB%massEnclosedBySphere(1.0d0),.true.)
+  end block
+  call Unit_Tests_End_Group()
+
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
