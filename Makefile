@@ -272,6 +272,22 @@ ALLSOURCESINC = $(ALLSOURCES) $(call rwildcard,source,*.Inc)
 rsubdirs = $(foreach d,$(wildcard $1/*),$(if $(wildcard $d/.),$d $(call rsubdirs,$d)))
 SOURCEDIRS := source $(call rsubdirs,source)
 
+# All first-party Python sources. The build's code generators are Python programs, so their
+# behavior is defined by these files just as surely as the Fortran sources define the model — see
+# the preprocessor source digest below.
+#
+# Note the deliberate absence of a $(SOURCEDIRS)-style list of the *directories*: the interpreter
+# writes `__pycache__` into them whenever any Python runs — including the ~1800 preprocess.py
+# invocations of the build itself — which bumps their mtimes and would leave the digest rule
+# permanently out of date, re-running its recipe on every build. And not only on every build: the
+# preprocessed `_class.p.F90` is a prerequisite of the generated Makefile_Use_Dependencies, so this
+# digest is remade inside make's *makefile-remaking* phase, and a rule that re-arms itself there
+# runs again in every restart pass. Directory mtimes are what catches a DELETED source elsewhere in
+# this file, but deleting a Python module the preprocessor imports cannot go unnoticed: the next
+# preprocess.py run fails with an ImportError. Deleting one it does not import changes nothing to
+# catch.
+PYTHONSOURCES := $(call rwildcard,python,*.py)
+
 # General suffix rules: i.e. rules for making a file of one suffix from files of another suffix.
 
 # Object (*.o) files are built by preprocessing and then compiling Fortran 90 (*.F90) source
@@ -290,7 +306,15 @@ vpath %.F90 $(SOURCEDIRS)
 # re-preprocess sweep only when catalog content actually changes (e.g. a stateStorable type or a
 # directive is added or removed), and the `.up` sentinel then limits recompilation to files whose
 # preprocessed output really differs.
-$(BUILDPATH)/%.p.F90.up : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml $(BUILDPATH)/directiveLocations.xml
+#
+# It depends on preprocessorSources.digest for the same reason: the preprocessor is a Python
+# program, so editing preprocess.py or any module it imports changes the Fortran it emits. Without
+# this prerequisite that edit was invisible to make — no `.p.F90` was regenerated, the build
+# reported success, and the stale generated Fortran was compiled into the binary, which made
+# "change a generator, rebuild, diff the generated code" report a false "no change". The digest
+# is likewise written only-if-changed, and covers only the modules the preprocessor actually
+# imports, so unrelated Python edits do not trigger the sweep.
+$(BUILDPATH)/%.p.F90.up : source/%.F90 $(BUILDPATH)/preprocessorSources.digest $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml $(BUILDPATH)/directiveLocations.xml
 	./scripts/build/preprocess.py source/$*.F90 $(BUILDPATH)/$*.p.F90
 $(BUILDPATH)/%.p.F90 : $(BUILDPATH)/%.p.F90.up
 	@true
@@ -536,7 +560,7 @@ $(BUILDPATH)/external/pFq/pfq.new.o : ./source/external/pFq/pfq.new.f Makefile
 # by case, so on case-insensitive filesystems (macOS APFS) the `mv` in the `%.inc` recipe below
 # overwrote the intermediate in place, and every incremental build re-preprocessed its own cpp
 # output under a perpetually-bumped timestamp.
-$(BUILDPATH)/%.p.Inc.up : ./source/%.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
+$(BUILDPATH)/%.p.Inc.up : ./source/%.Inc $(BUILDPATH)/preprocessorSources.digest $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
 	./scripts/build/preprocess.py ./source/$*.Inc $(BUILDPATH)/$*.p.Inc
 $(BUILDPATH)/%.p.Inc : $(BUILDPATH)/%.p.Inc.up
 	@true
@@ -708,7 +732,7 @@ $(BUILDPATH)/Makefile_Library_Dependencies: $(BUILDPATH)/libgalacticus.Inc ./scr
 	./scripts/build/libraryInterfacesDependencies.py
 $(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml ./source/libraryClasses.xml ./scripts/build/libraryInterfaces.py ./python/LibraryInterfaces/Pipeline.py ./python/LibraryInterfaces/Emitters.py ./python/LibraryInterfaces/ArgSpec.py ./python/LibraryInterfaces/Hierarchy.py ./python/LibraryInterfaces/Classification.py
 	./scripts/build/libraryInterfaces.py
-$(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
+$(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/preprocessorSources.digest $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
 	./scripts/build/preprocess.py $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
 $(BUILDPATH)/libgalacticus.p.Inc : $(BUILDPATH)/libgalacticus.p.Inc.up
 	@true
@@ -772,6 +796,22 @@ $(BUILDPATH)/openMPCriticalSections.xml.up: ./scripts/build/enumerateOpenMPCriti
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/enumerateOpenMPCriticalSections.py `pwd`
 $(BUILDPATH)/openMPCriticalSections.xml: $(BUILDPATH)/openMPCriticalSections.xml.up
+	@true
+
+# Digest of the Python sources that implement the Fortran preprocessor: `./scripts/build/preprocess.py`
+# together with every first-party module in its transitive import closure. The rule is triggered by
+# *any* Python source, because the closure can only be known by inspecting the imports, which is
+# what the script does; but the digest it writes covers only the closure, and is written
+# only-if-changed, so the expensive consequence — re-running the preprocessor over every source
+# file — follows only from an edit to a module the preprocessor really uses. Editing, say, an
+# analysis script or the library-interface generator recomputes the digest, finds it unchanged, and
+# stops there. Every prerequisite here is a file the build never writes, so the recipe runs exactly
+# once per clean build and never again until a Python source really changes — see the note on
+# $(PYTHONSOURCES) above for why the containing directories are deliberately not listed.
+$(BUILDPATH)/preprocessorSources.digest.up: ./scripts/build/preprocessorSources.py ./scripts/build/preprocess.py $(PYTHONSOURCES)
+	@mkdir -p $(BUILDPATH)
+	./scripts/build/preprocessorSources.py `pwd`
+$(BUILDPATH)/preprocessorSources.digest: $(BUILDPATH)/preprocessorSources.digest.up
 	@true
 
 # Dependency on dependencies.

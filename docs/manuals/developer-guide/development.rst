@@ -300,6 +300,16 @@ Before being compiled, all Fortran source files are passed through a tree-based 
 
 marking the start of a run of lines in the preprocessed file that maps back to the given original location. The full set of source-tree process hooks is registered by importing ``Galacticus.Build.SourceTree.Process.all`` — every driver that runs the preprocessor imports this one module, so a new Process submodule is added in exactly one place.
 
+.. _manual-sec-buildPreprocessorSources:
+
+Because the preprocessor is itself a Python program, the Fortran it emits depends on ``preprocess.py`` and on every first-party module that script imports — the source-tree parser, all of the ``Process`` hooks, the node-component generator, and so on — just as much as it depends on the Fortran input. Make cannot see that dependency, since the closure is discovered by Python's import machinery rather than declared anywhere, so ``scripts/build/preprocessorSources.py`` computes it: it walks the import graph statically (using ``ast``, so nothing is imported and no side effects are triggered), resolving module names against ``python/`` and against the directory of the entry-point script, and writes ``$(BUILDPATH)/preprocessorSources.digest`` — one MD5 per file in the closure — only-if-changed (see :galacticus-ref:`buildUpdateFiles`). The three preprocessing rules take that digest as a prerequisite.
+
+The two granularities are deliberately different. The *digest rule* is triggered by any Python source at all, because the closure can only be known by inspecting the imports. The *digest itself* covers only the closure, so re-running the preprocessor over every source file — the expensive consequence — follows only from editing a module the preprocessor really uses; editing, say, an analysis script recomputes the digest, finds it unchanged, and stops there. Run ``./scripts/build/preprocessorSources.py <galacticusPath> --list`` to print the closure.
+
+Unlike the source-scanning rules above, this rule does **not** list the directories containing its prerequisites. Those rules use directory mtimes to notice a *deleted* source, but the interpreter writes ``__pycache__`` into every directory it imports from — including during the build's own ~1800 ``preprocess.py`` invocations — so listing them would bump their mtimes mid-build and leave the rule permanently out of date, re-running its recipe on every build. And not only on every build: because the preprocessed ``_class.p.F90`` is a prerequisite of the generated ``Makefile_Use_Dependencies``, this digest is remade inside make's *makefile-remaking* phase, so a rule that re-arms itself there runs again in every restart pass. Nothing is lost by omitting them: deleting a module the preprocessor imports fails loudly at the next ``preprocess.py`` run, and deleting one it does not import changes nothing to catch.
+
+Without this, editing a generator and rebuilding regenerated nothing: make reported success, the binary relinked, and the stale preprocessed Fortran was compiled — which also made "change a generator, rebuild, and diff the generated code", the natural way to verify a code-generation change, report a false "no change".
+
 Output from the compiler is captured to a diagnostics file and fed through the ``postprocess.py`` script, which:
 
 * uses the ``.lmap`` to translate line numbers in errors and warnings from the preprocessed source back to the original source;
@@ -385,6 +395,9 @@ Scripts (all under ``scripts/build/``):
 ``preprocess.py``
    Preprocesses Fortran source code to provide various extended functionality (see Section :galacticus-ref:`codeBuildPrePostProcess`);
 
+``preprocessorSources.py``
+   Digests the Python sources implementing the preprocessor, so that editing one re-preprocesses the Fortran (see Section :galacticus-ref:`buildPreprocessorSources`);
+
 ``profiler.sh``
    SHELL wrapper used by ``compileprof`` builds to time every recipe (see Section :galacticus-ref:`buildProfiling`);
 
@@ -461,6 +474,9 @@ Generated files (all under ``$(BUILDPATH)`` unless noted):
 
 ``*.up``
    Update sentinels recording when a generator last ran (see :galacticus-ref:`buildUpdateFiles`);
+
+``preprocessorSources.digest``
+   MD5s of the Python sources implementing the preprocessor (see Section :galacticus-ref:`buildPreprocessorSources`);
 
 ``*.blob``, ``*.md5.blob``
    Per-file pickle caches used by the cataloging and metadata scripts (see :galacticus-ref:`buildBlobCaches`);
