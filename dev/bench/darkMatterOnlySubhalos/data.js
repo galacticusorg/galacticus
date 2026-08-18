@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786826728562,
+  "lastUpdate": 1787093042809,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "id": "0bbebfa537baba1f793f8b0698531b9c69f62663",
-          "message": "fix: Match case in keywords in `Dockerfile` to avoid warnings",
-          "timestamp": "2025-06-06T17:27:18Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/0bbebfa537baba1f793f8b0698531b9c69f62663"
-        },
-        "date": 1749268497709,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 60.102,
-            "unit": "seconds",
-            "range": 0.0471126310035896
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8788,6 +8760,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 14994.326362057514,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ad3a4b3b14ecdd61e790a46a8db65373d9510e17",
+          "message": "Merge pull request #1394 from galacticusorg/fix/derived-type-opener-regex\n\nfix(build): recognize `bind(c)` and spaced `extends(...)` in derived-type openers",
+          "timestamp": "2026-08-18T18:06:32Z",
+          "tree_id": "85b1feffe7df956af19e61e18157f4a7b47879ca",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ad3a4b3b14ecdd61e790a46a8db65373d9510e17"
+        },
+        "date": 1787093036360,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 28.565000000000005,
+            "range": "0.08372872864196607",
+            "unit": "seconds"
           }
         ]
       }
