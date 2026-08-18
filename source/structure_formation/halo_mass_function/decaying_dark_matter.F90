@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements a dark matter halo mass function class for decaying dark matter (DDM)
 models, following the revised spherical collapse model of :cite:t:`montandon_decaying_2026`.
@@ -24,6 +26,7 @@ models, following the revised spherical collapse model of :cite:t:`montandon_dec
 
   use :: Dark_Matter_Particles  , only : darkMatterParticleClass
   use :: Numerical_Interpolation, only : interpolator
+  use :: Numerical_Ranges                       , only : rangeLattice
 
   !![
   <haloMassFunction name="haloMassFunctionDecayingDarkMatter" docformat="rst">
@@ -80,8 +83,9 @@ models, following the revised spherical collapse model of :cite:t:`montandon_dec
      class           (haloMassFunctionClass  ), pointer                   :: massFunction_       => null()
      class           (darkMatterParticleClass), pointer                   :: darkMatterParticle_ => null()
      double precision                                                     :: lifetime                           , velocityKick         , &
-          &                                                                  massMinimum                        , massMaximum          , &
-          &                                                                  pointsPerDecade
+          &                                                                  massMinimum                        , massMaximum
+     integer                                                              :: pointsPerDecade
+     type            (rangeLattice           )                            :: massLattice
      ! Cache of the (epoch-dependent) M_coll(M₀) mapping. The grid of Lagrangian masses spans
      ! [massMinimum,massMaximum], which are expanded dynamically as needed; massCollapsedMinimum and
      ! massCollapsedMaximum are the corresponding limits of the (monotonic) mapped collapsed mass, used to
@@ -118,8 +122,8 @@ contains
     class           (haloMassFunctionClass             ), pointer       :: massFunction_
     class           (cosmologyParametersClass          ), pointer       :: cosmologyParameters_
     class           (darkMatterParticleClass           ), pointer       :: darkMatterParticle_
-    double precision                                                    :: massMinimum         , massMaximum, &
-         &                                                                 pointsPerDecade
+    double precision                                                    :: massMinimum         , massMaximum
+    integer                                                             :: pointsPerDecade
 
     !![
     <inputParameter docformat="rst">
@@ -137,8 +141,8 @@ contains
     <inputParameter docformat="rst">
       <name>pointsPerDecade</name>
       <source>parameters</source>
-      <defaultValue>100.0d0</defaultValue>
-      <description>The number of points per decade of mass used in tabulating the mapping between Lagrangian and collapsed mass.</description>
+      <defaultValue>100</defaultValue>
+      <description>The number of points per decade of mass used in tabulating the mapping between Lagrangian and collapsed mass. The tabulation is built on an absolute lattice of this many points per decade, so the value must be an integer.</description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="haloMassFunction"    name="massFunction_"        source="parameters"/>
@@ -165,8 +169,8 @@ contains
     class           (haloMassFunctionClass             ), target, intent(in   ) :: massFunction_
     class           (cosmologyParametersClass          ), target, intent(in   ) :: cosmologyParameters_
     class           (darkMatterParticleClass           ), target, intent(in   ) :: darkMatterParticle_
-    double precision                                            , intent(in   ) :: massMinimum         , massMaximum, &
-         &                                                                         pointsPerDecade
+    double precision                                            , intent(in   ) :: massMinimum         , massMaximum
+    integer                                                     , intent(in   ) :: pointsPerDecade
     !![
     <constructorAssign variables="*massFunction_, *cosmologyParameters_, *darkMatterParticle_, massMinimum, massMaximum, pointsPerDecade"/>
     !!]
@@ -222,7 +226,7 @@ contains
     !!}
     use :: Decaying_Dark_Matter_Spherical_Collapse, only : decayingDarkMatterMassCollapsed
     use :: Numerical_Interpolation                , only : GSL_Interp_Linear
-    use :: Numerical_Ranges                       , only : Make_Range                     , rangeTypeLogarithmic
+    use :: Numerical_Ranges                       , only : Range_Pinned                   , gridSchemePerDecade
     use :: Table_Labels                           , only : extrapolationTypeExtrapolate
     implicit none
     class           (haloMassFunctionDecayingDarkMatter), intent(inout)           :: self
@@ -231,6 +235,7 @@ contains
     integer                                                                       :: i          , countTable
     double precision                                                              :: massMinimum, massMaximum, &
          &                                                                           stepFactor
+    type            (rangeLattice                      )                          :: lattice
 
     massMinimum=self%massMinimum
     massMaximum=self%massMaximum
@@ -247,15 +252,29 @@ contains
           massMaximum=massMaximum*stepFactor
        end do
     end if
-    self%massMinimum=massMinimum
-    self%massMaximum=massMaximum
-    ! Build the grid of Lagrangian masses at the fixed resolution.
-    countTable=int(log10(massMaximum/massMinimum)*self%pointsPerDecade)+1
+    ! Pin the expanded bounds to an absolute lattice. The stepping above walks outward from the bounds already in use, so its
+    ! endpoints drift off the grid as the rounding of repeated division accumulates, and the grid it defines is anchored on the
+    ! initial `massMinimum` parameter rather than on anything absolute. Snapping to the lattice - with no further margin, the
+    ! stepping having already provided one - makes the bounds exact powers of ten, identical for any object using the same
+    ! resolution, and taking the union with the lattice in use keeps the range monotonic.
+    lattice         =Range_Pinned(                                              &
+         &                                       [massMinimum,massMaximum]    , &
+         &                                       self%pointsPerDecade         , &
+         &                                       gridSchemePerDecade          , &
+         &                        marginFactor  =1.0d0                        , &
+         &                        anchorEvery   =1                            , &
+         &                        latticeCurrent=self%massLattice               &
+         &                       )
+    self%massLattice=lattice
+    self%massMinimum=lattice%minimum()
+    self%massMaximum=lattice%maximum()
+    ! Build the grid of Lagrangian masses, taking the abscissae from the lattice rather than by subdividing the range so that
+    ! they are bit-identical to those of any other tabulation built on the same lattice.
+    countTable      =lattice%count
     if (allocated(self%logMass0Table        )) deallocate(self%logMass0Table        )
     if (allocated(self%logMassCollapsedTable)) deallocate(self%logMassCollapsedTable)
-    allocate(self%logMass0Table        (countTable))
     allocate(self%logMassCollapsedTable(countTable))
-    self%logMass0Table=log(Make_Range(massMinimum,massMaximum,countTable,rangeTypeLogarithmic))
+    self%logMass0Table=log(lattice%values())
     do i=1,countTable
        self%logMassCollapsedTable(i)=+log(decayingDarkMatterMassCollapsed(exp(self%logMass0Table(i)),time,self%lifetime,self%velocityKick))
     end do
