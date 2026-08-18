@@ -421,6 +421,12 @@ contains
        timer_=timer()
        call timer_%start()
     end if
+    ! The per-thread copies of the parameter set are made with output suppressed (the default), so parameters read during thread
+    ! initialization are not recorded in the output file from here. That is deliberate: this parallel region is nested inside the
+    ! parallel region of the task driving the evolution, so the master thread of this team is not unique---enabling output on it
+    ! would give one writer per outer thread, and would repeat that write for every tree evolved. It is also unnecessary, since
+    ! `self%parameters` is the root parameter set, on which the driving task has already performed thread initialization with
+    ! output enabled, so exactly these parameters are recorded there.
     allocate(parameters)
     parameters=inputParameters(self%parameters)
     call Node_Components_Thread_Initialize(parameters)   

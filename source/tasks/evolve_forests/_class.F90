@@ -520,14 +520,14 @@ contains
     !$omp threadprivate(event_)
     type            (treeNode                ), pointer                  , save :: node
     class           (nodeComponentBasic      ), pointer                  , save :: basic
-    logical                                                              , save :: treesFinished
+    logical                                                              , save :: treesFinished        , recordParameters
     integer         (c_size_t                )                           , save :: treeNumber
     type            (inputParameters         ), allocatable              , save :: parameters
     integer         (c_size_t                )                                  :: treeCount
     integer         (omp_lock_kind           )                                  :: initializationLock
     integer         (kind_int8               )                                  :: systemClockRate      , systemClockMaximum
     integer                                                              , save :: statusForest
-    !$omp threadprivate(node,basic,treeNumber,treesFinished,parameters,statusForest)
+    !$omp threadprivate(node,basic,treeNumber,treesFinished,parameters,statusForest,recordParameters)
     logical                                                                     :: checkpointRestored   , checkpointing         , &
          &                                                                         universeUpdated      , failed
     ! Whole-run progress and run-time estimation accumulators. The counts, work sums, and clock references below are shared across
@@ -623,11 +623,31 @@ contains
     ! Perform initialization which must occur for all threads if run in parallel. This is done first---before the per-thread deep
     ! copies below---so that the tree census (which, for some mass distributions, requires building nodes) can be computed on the
     ! master constructor and then inherited by each thread's copy.
-    !$omp critical(evolveForestsInitialize)
-    allocate(parameters)
-    parameters=inputParameters(self%parameters)
-    call Node_Components_Thread_Initialize(parameters)
-    !$omp end critical(evolveForestsInitialize)
+    ! Thread initialization is run against a per-thread copy of the parameter set. Output is enabled on the master thread's copy
+    ! only, so that the parameters read during thread initialization (some of which---e.g. the mass distributions of the disk and
+    ! spheroid components---are read nowhere else) are recorded in the output file. Every thread reads the same parameters, so a
+    ! single writer suffices.
+    !
+    ! The master must initialize *first*, and alone. Building an object from its default class inserts that default into the
+    ! parameter tree---which every thread's copy shares---so only the thread which initializes first sees such a parameter as
+    ! absent, and only that thread marks it as defaulted. Were the master not that thread, those markers would never be written,
+    ! and which parameters carried one would depend on the number of threads.
+    recordParameters=.true.
+    !$ recordParameters=OMP_Get_Thread_Num() == 0
+    if (recordParameters) then
+       allocate(parameters)
+       parameters=inputParameters(self%parameters,noOutput=.false.)
+       call Node_Components_Thread_Initialize(parameters)
+    end if
+    !$omp barrier
+    ! The remaining threads now initialize against copies with output suppressed.
+    if (.not.recordParameters) then
+       !$omp critical(evolveForestsInitialize)
+       allocate(parameters)
+       parameters=inputParameters(self%parameters)
+       call Node_Components_Thread_Initialize(parameters)
+       !$omp end critical(evolveForestsInitialize)
+    end if
     !$omp barrier
     ! Compute the tree census and (if a cost model is available) the total predicted work, then report the start-of-run estimate.
     ! This is performed on the master constructor, before the per-thread deep copies below, so that each thread's copy inherits the

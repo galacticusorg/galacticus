@@ -235,6 +235,7 @@ contains
     use            :: Node_Components         , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use            :: Merger_Tree_Construction, only : mergerTreeStateFromFile
     use            :: File_Utilities          , only : File_Lock                        , File_Unlock                        , lockDescriptor
+    !$ use         :: OMP_Lib                 , only : OMP_Get_Thread_Num
     implicit none
     class           (taskPostprocessForests), intent(inout), target   :: self
     integer                                 , intent(  out), optional :: status
@@ -248,6 +249,8 @@ contains
     !$omp threadprivate(statusRead)
     integer         (c_size_t              )               , save     :: indexOutput
     !$omp threadprivate(indexOutput)
+    logical                                                , save     :: recordParameters
+    !$omp threadprivate(recordParameters)
     integer                                                           :: fileUnit
     logical                                                           :: finished
     
@@ -268,10 +271,30 @@ contains
     !!]
     !$omp end critical(postprocessForestsDeepCopy)
     !$omp barrier
-    ! Call routines to perform initialization which must occur for all threads if run in parallel.
-    allocate(parameters)
-    parameters=inputParameters(self%parameters)
-    call Node_Components_Thread_Initialize(parameters)
+    ! Call routines to perform initialization which must occur for all threads if run in parallel. Thread initialization is run
+    ! against a per-thread copy of the parameter set. Output is enabled on the master thread's copy only, so that the parameters
+    ! read during thread initialization (some of which are read nowhere else) are recorded in the output file. Every thread reads
+    ! the same parameters, so a single writer suffices---and, since it is the only writer, needs no locking beyond the lock on
+    ! HDF5 access through which all parameter output passes.
+    !
+    ! The master must initialize *first*, and alone. Building an object from its default class inserts that default into the
+    ! parameter tree---which every thread's copy shares---so only the thread which initializes first sees such a parameter as
+    ! absent, and only that thread marks it as defaulted. Were the master not that thread, those markers would never be written,
+    ! and which parameters carried one would depend on the number of threads.
+    recordParameters=.true.
+    !$ recordParameters=OMP_Get_Thread_Num() == 0
+    if (recordParameters) then
+       allocate(parameters)
+       parameters=inputParameters(self%parameters,noOutput=.false.)
+       call Node_Components_Thread_Initialize(parameters)
+    end if
+    !$omp barrier
+    ! The remaining threads now initialize against copies with output suppressed.
+    if (.not.recordParameters) then
+       allocate(parameters)
+       parameters=inputParameters(self%parameters)
+       call Node_Components_Thread_Initialize(parameters)
+    end if
     !$omp barrier
     ! Begin loop to read and post-process trees.
     do while (.not.finished)
