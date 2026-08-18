@@ -43,7 +43,7 @@ Implements a pruning-by-filter operator on merger trees.
      !!}
      private
      class  (galacticFilterClass), pointer :: galacticFilter_           => null()
-     logical                               :: preservePrimaryProgenitor
+     logical                               :: preservePrimaryProgenitor          , pruneAllProgenitors
    contains
      final     ::                        pruneByFilterDestructor
      procedure :: operatePreEvolution => pruneByFilterOperatePreEvolution
@@ -68,7 +68,7 @@ contains
     type   (mergerTreeOperatorPruneByFilter)                :: self
     type   (inputParameters                ), intent(inout) :: parameters
     class  (galacticFilterClass            ), pointer       :: galacticFilter_
-    logical                                                 :: preservePrimaryProgenitor
+    logical                                                 :: preservePrimaryProgenitor, pruneAllProgenitors
 
     !![
     <inputParameter docformat="rst">
@@ -79,9 +79,22 @@ contains
       If true, primary progenitor status is preserved even if the primary progenitor is pruned from the tree.
       </description>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>pruneAllProgenitors</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>
+      If true, when the primary progenitor of a node is pruned every remaining progenitor of that node is pruned also, leaving it
+      with no progenitors at all. This is appropriate where passing ``[galacticFilter]`` means that the branch could not have
+      formed: for example, halos labeled ``promptCuspUnformed`` by
+      :galacticus-class:`nodeOperatorDarkMatterProfilePromptCusps`, since a prompt cusp forms from a smooth patch of the initial
+      density field and so the halo which forms with it can have no progenitors. If false (the default), only the branch which
+      passes the filter is pruned, and any remaining progenitor inherits primary progenitor status.
+      </description>
+    </inputParameter>
     <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
     !!]
-    self=mergerTreeOperatorPruneByFilter(preservePrimaryProgenitor,galacticFilter_)
+    self=mergerTreeOperatorPruneByFilter(preservePrimaryProgenitor,pruneAllProgenitors,galacticFilter_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="galacticFilter_"/>
@@ -89,16 +102,16 @@ contains
     return
   end function pruneByFilterConstructorParameters
 
-  function pruneByFilterConstructorInternal(preservePrimaryProgenitor,galacticFilter_) result(self)
+  function pruneByFilterConstructorInternal(preservePrimaryProgenitor,pruneAllProgenitors,galacticFilter_) result(self)
     !!{RST
     Internal constructor for the prune-by-filter merger tree operator class.
     !!}
     implicit none
     type   (mergerTreeOperatorPruneByFilter)                        :: self
     class  (galacticFilterClass            ), intent(in   ), target :: galacticFilter_
-    logical                                 , intent(in   )         :: preservePrimaryProgenitor
+    logical                                 , intent(in   )         :: preservePrimaryProgenitor, pruneAllProgenitors
     !![
-    <constructorAssign variables="preservePrimaryProgenitor, *galacticFilter_"/>
+    <constructorAssign variables="preservePrimaryProgenitor, pruneAllProgenitors, *galacticFilter_"/>
     !!]
 
     return
@@ -127,8 +140,8 @@ contains
     implicit none
     class  (mergerTreeOperatorPruneByFilter), intent(inout), target :: self
     type   (mergerTree                     ), intent(inout), target :: tree
-    type   (treeNode                       ), pointer               :: nodeNext   , nodeWork, &
-         &                                                             node
+    type   (treeNode                       ), pointer               :: nodeNext   , nodeWork          , &
+         &                                                             node       , nodeParent
     type   (mergerTree                     ), pointer               :: currentTree
     type   (mergerTreeWalkerIsolatedNodes  )                        :: treeWalker
     logical                                                         :: didPruning , parentWillBePruned
@@ -175,13 +188,31 @@ contains
                    ! Determine whether the parent will also be pruned - if it will, there is no need to preserve primary
                    ! progenitor status within it.
                    parentWillBePruned=self%galacticFilter_%passes(node%parent)
-                   ! Decouple from other nodes.
-                   call Merger_Tree_Prune_Unlink_Parent(node,node%parent,parentWillBePruned,self%preservePrimaryProgenitor)
-                   ! Clean the branch.
-                   call Merger_Tree_Prune_Clean_Branch (node)
-                   ! Destroy the branch.
-                   call node%destroyBranch()
-                   deallocate(node)
+                   if (self%pruneAllProgenitors .and. node%isPrimaryProgenitorOf(node%parent)) then
+                      ! The primary progenitor could not have formed, so neither could the node it is a progenitor of have had
+                      ! any progenitor: prune every progenitor of the parent, leaving it with none. Retaining the siblings here
+                      ! would instead make one of them the de facto primary progenitor while it still carries the virial orbit
+                      ! assigned to it as a secondary progenitor - an orbit which is then carried up the branch by successive
+                      ! node promotions until it meets a parent holding an orbit of its own.
+                      nodeParent => node%parent
+                      nodeWork   => nodeParent%firstChild
+                      do while (associated(nodeWork))
+                         nodeNext => nodeWork%sibling
+                         call Merger_Tree_Prune_Clean_Branch(nodeWork)
+                         call nodeWork%destroyBranch()
+                         deallocate(nodeWork)
+                         nodeWork => nodeNext
+                      end do
+                      nullify(nodeParent%firstChild)
+                   else
+                      ! Decouple from other nodes.
+                      call Merger_Tree_Prune_Unlink_Parent(node,node%parent,parentWillBePruned,self%preservePrimaryProgenitor)
+                      ! Clean the branch.
+                      call Merger_Tree_Prune_Clean_Branch (node)
+                      ! Destroy the branch.
+                      call node%destroyBranch()
+                      deallocate(node)
+                   end if
                 end if
              end do
           end if
