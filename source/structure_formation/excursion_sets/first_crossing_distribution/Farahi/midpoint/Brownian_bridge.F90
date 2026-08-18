@@ -17,9 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson, Ethan Nadler. The separation of the hard upper limit on the tabulated
-!+    variance from the range requested, for the pinning of the first crossing rate tabulation for issue #1317, was drafted with
-!+    assistance from Claude, and reviewed and verified by Andrew Benson.
+!+    Contributions to this file made by: Andrew Benson, Ethan Nadler, Claude.
 
 !!{RST
 Implements an excursion set first crossing statistics class using the algorithm of :cite:t:`benson_dark_2012`, but using a midpoint method to perform the integrations :cite:p:`du_substructure_2017`, and with a Brownian bridge constraint.

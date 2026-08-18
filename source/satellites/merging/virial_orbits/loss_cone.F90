@@ -17,9 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson. The fixes for issue #1321, and the pinning of the mass tabulation to an
-!+    absolute lattice for issue #1317, were diagnosed and drafted with assistance from Claude, and reviewed and verified by
-!+    Andrew Benson.
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
   !!{RST
   An implementation of virial orbits using a loss cone model.

@@ -17,9 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Arya Farahi, Andrew Benson, Christoph Behrens, Xiaolong Du. The pinning of the first
-!+    crossing probability and rate tabulations to absolute lattices for issue #1317 was drafted with assistance from Claude, and
-!+    reviewed and verified by Andrew Benson.
+!+    Contributions to this file made by: Arya Farahi, Andrew Benson, Christoph Behrens, Xiaolong Du, Claude.
 
 !!{RST
 Implements a excursion set first crossing statistics class using the algorithm of :cite:t:`benson_dark_2012`.

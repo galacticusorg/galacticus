@@ -17,8 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson
-!+    Implemented with assistance from Claude (Anthropic).
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
 !!{RST
 Contains a module which provides the data structures used to describe emission to be attenuated by dust.

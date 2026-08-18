@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+ This file was generated with Claude and verified by Andrew Benson
+!+ Contributions to this file made by: Andrew Benson, Claude.
 
   !!{RST
   Implements an output analysis class that computes the :math:`V`-band luminosity function of Local Group satellite galaxies.

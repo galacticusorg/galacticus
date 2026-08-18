@@ -264,6 +264,19 @@ reference values for validating `source/tests.prompt_cusps.F90`).
 - **New source files need the GPL v3 header** (copy the block from any existing
   `source/**/*.F90`). Galacticus is licensed under GPL-3.0 (`COPYING`).
 - **Attribution:** add inline `!+` markers to record contributors (auto-extracted
-  by `scripts/doc/extractContributors.py`), and note AI assistance where used —
-  see the *Contributor Attribution* and *AI-Assisted Contributions* sections of
-  [`CONTRIBUTING.md`](../CONTRIBUTING.md).
+  by `scripts/doc/extractContributors.py`) — see the *Contributor Attribution*
+  and *AI-Assisted Contributions* sections of
+  [`CONTRIBUTING.md`](../CONTRIBUTING.md). A marker records **names only**, in
+  the canonical form
+  ```fortran
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+  ```
+  Where an AI tool contributed, add its bare name (`Claude`, `Copilot`, …) to
+  that list — **never** a description of what it contributed, and never a
+  sentence such as "drafted with assistance from Claude and verified by …".
+  The marker is parsed as a comma-separated list of names, so prose leaks into
+  the generated contributor list in the documentation's Acknowledgments, and
+  makes the in-source line needlessly long. Put the description of *what* the AI
+  contributed, and how it was verified, in the **commit message** instead.
+  `python3 scripts/doc/extractContributors.py --check` enforces this (as does
+  the *Validate-Contributor-Markers* CI job); run it after editing a marker.

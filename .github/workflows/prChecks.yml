@@ -182,6 +182,25 @@ jobs:
       - name: Check no LaTeX remains inside converted docstrings
         run: |
           python3 scripts/doc/convertDocstringsToRST.py --check-residual source
+  # Contributor markers must record names only. Everything after the label in a
+  # `!+` marker is parsed as a comma-separated list of contributors, so a
+  # description of what was contributed (by a person or by an AI tool - that
+  # belongs in the commit message) is published in the documentation's
+  # Acknowledgments as if it were a person's name.
+  Validate-Contributor-Markers:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Mark directory safe
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+      - name: Check contributor markers record names only
+        run: |
+          python3 scripts/doc/extractContributors.py --check $GITHUB_WORKSPACE
   # Fortran static analysis
   Fortran-Static-Analysis:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}

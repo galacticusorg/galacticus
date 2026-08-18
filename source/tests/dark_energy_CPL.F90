@@ -17,8 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson. This test was drafted with assistance from Claude, and reviewed and
-!+    verified by Andrew Benson.
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
 program Tests_Dark_Energy_CPL
   !!{RST
