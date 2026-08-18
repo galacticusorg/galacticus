@@ -1545,6 +1545,7 @@ contains
     use :: ISO_Varying_String, only : operator(//)        , var_str            , varying_string
     use :: Numerical_Ranges  , only : gridSchemePerUnit   , gridSchemePerDecade
     use :: String_Handling   , only : operator(//)
+    use :: Table_Caches      , only : Table_Cache_Lattice_Read
     use :: Table_Labels      , only : extrapolationTypeFix
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)                   :: self
@@ -1592,8 +1593,8 @@ contains
          ! lattices, or whose lattices do not match the datasets stored alongside them or the grid densities this object would
          ! use, is not usable: everything read from it is discarded and the tabulation is rebuilt, rather than leaving a
          ! partially restored tabulation behind which could neither be extended nor trusted.
-         call farahiLatticeRead(dataGroup,'variance',gridSchemePerUnit  ,self%varianceNumberPerUnitProbability,self%countVariance+1,self%latticeVariance)
-         call farahiLatticeRead(dataGroup,'time'    ,gridSchemePerDecade,self%timeNumberPerDecade             ,self%countTime      ,self%latticeTime    )
+         call Table_Cache_Lattice_Read(dataGroup,'variance',gridSchemePerUnit  ,self%varianceNumberPerUnitProbability,self%latticeVariance,self%countVariance+1)
+         call Table_Cache_Lattice_Read(dataGroup,'time'    ,gridSchemePerDecade,self%timeNumberPerDecade             ,self%latticeTime    ,self%countTime      )
          if (self%latticeVariance%isDefined() .and. self%latticeTime%isDefined()) then
             self%variance        =self%latticeVariance%values ()
             self%time            =self%latticeTime    %values ()
@@ -1683,9 +1684,9 @@ contains
          ! it is discarded. The two transition-spaced axes carry no lattice of their own, so they are checked instead against the
          ! lengths which the pinned bounds imply: were they to disagree, the tabulation could not be extended without moving
          ! points which the stored solutions were computed at.
-         call farahiLatticeRead(dataGroup,'varianceCurrent',gridSchemePerUnit  ,self%varianceNumberPerUnit     ,self%countVarianceCurrentRate+1,self%latticeVarianceCurrentRate)
-         call farahiLatticeRead(dataGroup,'time'           ,gridSchemePerDecade,self%timeNumberPerDecade       ,self%countTimeRate             ,self%latticeTimeRate           )
-         call farahiLatticeRead(dataGroup,'varianceMinimum',gridSchemePerDecade,varianceMinimumAnchorsPerDecade,lattice=self%latticeVarianceMinimumRate                        )
+         call Table_Cache_Lattice_Read(dataGroup,'varianceCurrent',gridSchemePerUnit  ,self%varianceNumberPerUnit     ,self%latticeVarianceCurrentRate,self%countVarianceCurrentRate+1)
+         call Table_Cache_Lattice_Read(dataGroup,'time'           ,gridSchemePerDecade,self%timeNumberPerDecade       ,self%latticeTimeRate           ,self%countTimeRate             )
+         call Table_Cache_Lattice_Read(dataGroup,'varianceMinimum',gridSchemePerDecade,varianceMinimumAnchorsPerDecade,self%latticeVarianceMinimumRate                                )
          if     (                                                  &
               &        self%latticeVarianceCurrentRate%isDefined() &
               &  .and. self%latticeTimeRate           %isDefined() &
@@ -1760,6 +1761,7 @@ contains
     use :: HDF5              , only : hsize_t
     use :: ISO_Varying_String, only : operator(//) , var_str       , varying_string
     use :: String_Handling   , only : operator(//)
+    use :: Table_Caches      , only : Table_Cache_Lattice_Write
     implicit none
     class    (excursionSetFirstCrossingFarahi), intent(inout) :: self
     type     (varying_string                 )                :: message
@@ -1783,8 +1785,8 @@ contains
          call dataGroup%writeDataset(self%firstCrossingProbability,'firstCrossingProbability','The probability of first crossing as a function of variance and time.')
          ! Record the lattices alongside the tabulation. The bounds follow from the lattice, but the converse does not, and it
          ! is the lattice which determines whether what is read back can be extended to cover a new range without recomputation.
-         call farahiLatticeWrite(dataGroup,'variance',self%latticeVariance)
-         call farahiLatticeWrite(dataGroup,'time'    ,self%latticeTime    )
+         call Table_Cache_Lattice_Write(dataGroup,'variance',self%latticeVariance)
+         call Table_Cache_Lattice_Write(dataGroup,'time'    ,self%latticeTime    )
          ! Report.
          message=var_str('write excursion set first crossing probability to: ')//self%fileName
          call displayIndent  (message,verbosityLevelWorking)
@@ -1816,9 +1818,9 @@ contains
          ! Record the lattices alongside the tabulation. Only two of the four axes lie on a lattice; the third lattice carries no
          ! tabulated points at all, and records the pinned lower bound from which the remaining two axes are generated. All three
          ! are needed to establish whether what is read back can be extended without recomputation.
-         call farahiLatticeWrite(dataGroup,'varianceCurrent',self%latticeVarianceCurrentRate)
-         call farahiLatticeWrite(dataGroup,'time'           ,self%latticeTimeRate           )
-         call farahiLatticeWrite(dataGroup,'varianceMinimum',self%latticeVarianceMinimumRate)
+         call Table_Cache_Lattice_Write(dataGroup,'varianceCurrent',self%latticeVarianceCurrentRate)
+         call Table_Cache_Lattice_Write(dataGroup,'time'           ,self%latticeTimeRate           )
+         call Table_Cache_Lattice_Write(dataGroup,'varianceMinimum',self%latticeVarianceMinimumRate)
          ! Report.
          message=var_str('wrote excursion set first crossing rates to: ')//self%fileName
          call displayIndent  (message,verbosityLevelWorking)
@@ -1842,72 +1844,6 @@ contains
     !$ call hdf5Access%unset()
     return
   end subroutine farahiFileWrite
-
-  subroutine farahiLatticeWrite(dataGroup,axisName,lattice)
-    !!{RST
-    Record the ``rangeLattice`` on which an axis of a stored tabulation is built, as attributes named for that axis.
-    !!}
-    use :: IO_HDF5, only : hdf5Group
-    implicit none
-    type     (hdf5Group   ), intent(inout) :: dataGroup
-    character(len=*       ), intent(in   ) :: axisName
-    type     (rangeLattice), intent(in   ) :: lattice
-
-    call dataGroup%writeAttribute(lattice%scheme%ID   ,axisName//'GridScheme'  )
-    call dataGroup%writeAttribute(lattice%pointsPer   ,axisName//'PointsPer'   )
-    call dataGroup%writeAttribute(lattice%indexMinimum,axisName//'IndexMinimum')
-    call dataGroup%writeAttribute(lattice%count       ,axisName//'Count'       )
-    return
-  end subroutine farahiLatticeWrite
-
-  subroutine farahiLatticeRead(dataGroup,axisName,scheme,pointsPer,countExpected,lattice)
-    !!{RST
-    Restore the ``rangeLattice`` on which an axis of a stored tabulation was built. The lattice is returned undefined---which
-    the caller must treat as the tabulation being unusable---unless the file records one, and that lattice is self-consistent,
-    uses the gridding scheme and density of points which this object would use, and has the same number of points as the
-    datasets stored alongside it. Older files, written before the lattices were recorded, therefore report an undefined lattice
-    rather than being misread.
-
-    ``countExpected`` is omitted for a lattice which carries no tabulated points---one recorded solely to pin a bound---since
-    there is then no dataset whose length it should match.
-    !!}
-    use :: IO_HDF5         , only : hdf5Group
-    use :: Numerical_Ranges, only : enumerationGridSchemeType
-    implicit none
-    type     (hdf5Group                ), intent(inout)           :: dataGroup
-    character(len=*                    ), intent(in   )           :: axisName
-    type     (enumerationGridSchemeType), intent(in   )           :: scheme
-    integer                             , intent(in   )           :: pointsPer
-    integer                             , intent(in   ), optional :: countExpected
-    type     (rangeLattice             ), intent(  out)           :: lattice
-    integer                                                       :: schemeStored , pointsPerStored, &
-         &                                                           indexMinimum , count_
-
-    lattice=rangeLattice()
-    if     (                                                       &
-         &   .not.dataGroup%hasAttribute(axisName//'GridScheme'  ) &
-         &  .or.                                                   &
-         &   .not.dataGroup%hasAttribute(axisName//'PointsPer'   ) &
-         &  .or.                                                   &
-         &   .not.dataGroup%hasAttribute(axisName//'IndexMinimum') &
-         &  .or.                                                   &
-         &   .not.dataGroup%hasAttribute(axisName//'Count'       ) &
-         & ) return
-    call dataGroup%readAttribute(axisName//'GridScheme'  ,schemeStored   )
-    call dataGroup%readAttribute(axisName//'PointsPer'   ,pointsPerStored)
-    call dataGroup%readAttribute(axisName//'IndexMinimum',indexMinimum   )
-    call dataGroup%readAttribute(axisName//'Count'       ,count_         )
-    ! Comparing the stored scheme against the one expected is stronger than merely checking that it is a valid member of the
-    ! enumeration, so no separate validity test is needed.
-    if (enumerationGridSchemeType(schemeStored) /= scheme       ) return
-    if (pointsPerStored                         /= pointsPer    ) return
-    if (present(countExpected)) then
-       if (count_                               /= countExpected) return
-    end if
-    lattice=rangeLattice(enumerationGridSchemeType(schemeStored),pointsPerStored,indexMinimum,count_)
-    if (.not.lattice%isDefined()) lattice=rangeLattice()
-    return
-  end subroutine farahiLatticeRead
 
   function farahiVarianceRange(self,rangeMinimum,rangeMaximum,rangeNumber,exponent) result (rangeValues)
     !!{RST
