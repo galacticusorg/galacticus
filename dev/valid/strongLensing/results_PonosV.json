@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "9b6b0b129609b20637577dad446f2cdc9013b325",
-        "message": "Merge pull request #1380 from galacticusorg/chore/gh-pages-thresholds-2026-08-14\n\nRe-anchor gh-pages analysis thresholds after the 2026-08-14 run\n",
-        "timestamp": "2026-08-15 15:04:23+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/9b6b0b129609b20637577dad446f2cdc9013b325"
+        "id": "ad3a4b3b14ecdd61e790a46a8db65373d9510e17",
+        "message": "Merge pull request #1394 from galacticusorg/fix/derived-type-opener-regex\n\nfix(build): recognize `bind(c)` and spaced `extends(...)` in derived-type openers\n",
+        "timestamp": "2026-08-18 18:06:32+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/ad3a4b3b14ecdd61e790a46a8db65373d9510e17"
     },
     "surfaceDensity": {
-        "percentageBelow": 53.57142857142857,
-        "percentageAbove": 46.42857142857143,
+        "percentageBelow": 57.142857142857146,
+        "percentageAbove": 42.857142857142854,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 93.33333333333333,
-        "percentageAbove": 6.666666666666667,
+        "percentageBelow": 83.33333333333333,
+        "percentageAbove": 16.666666666666668,
         "target": 0.85
     }
 }
