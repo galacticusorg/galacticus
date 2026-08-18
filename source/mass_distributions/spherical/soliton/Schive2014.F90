@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Contains a module which provides utility variables for the :cite:t:`schive_understanding_2014` soliton density profile.
   !!}
@@ -30,8 +32,6 @@
 
     ! Coefficient of the dimensionless radius in the soliton profile.
     double precision, parameter, public  :: coefficientCore              =0.091d0 ! Schive et al. (2014; https://ui.adsabs.harvard.edu/abs/2014PhRvL.113z1302S; equation 3).
-
-    !+ The closed-form expression for coefficientMassCore below was derived with assistance from Claude (Anthropic).
 
     ! Coefficient relating the solitonic core mass to the central density and core radius, such that
     !

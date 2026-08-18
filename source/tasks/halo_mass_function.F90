@@ -774,7 +774,10 @@ contains
     end do
     !$omp end critical(taskHaloMassFunctionDeepCopy)
     !$omp barrier
-    ! Call routines to perform initialization which must occur for all threads if run in parallel.
+    ! Call routines to perform initialization which must occur for all threads if run in parallel. The per-thread copies of the
+    ! parameter set are made with output suppressed (the default), so parameters read during thread initialization are not
+    ! recorded in the output file from here. That is not a loss: the same initialization has already been performed, above, on
+    ! `self%parameters` itself---which does have an output group---so those parameters are recorded there.
     allocate(parameters)
     parameters=inputParameters(self%parameters)
     call Node_Components_Thread_Initialize(parameters)

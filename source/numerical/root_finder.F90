@@ -17,8 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson. The routing of all exits through a common finalization for issue #1360
-!+    was drafted with assistance from Claude, and reviewed and verified by Andrew Benson.
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
 ! Specify an explicit dependence on the interface.GSL.C.root_finding.o object file.
 !: $(BUILDPATH)/interface/GSL/C/root_finding.o

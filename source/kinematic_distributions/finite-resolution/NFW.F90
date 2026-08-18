@@ -17,8 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Andrew Benson. The pinning of the tabulation range to absolute lattices for issue
-  !+    #1317 was drafted with assistance from Claude, and reviewed and verified by Andrew Benson.
+  !+    Contributions to this file made by: Andrew Benson, Claude.
 
   !!{RST
   Implementation of a kinematic distribution class for finite-resolution NFW mass distributions.

@@ -17,8 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson
-!+    Implemented with assistance from Claude (Anthropic).
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
 !!{RST
 Contains a module which implements multilinear interpolation in tables of arbitrary dimensionality.

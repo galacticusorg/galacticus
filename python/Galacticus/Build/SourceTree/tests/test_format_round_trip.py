@@ -35,6 +35,7 @@ import pytest
 
 from Galacticus.Build.SourceTree import (
     _comment_embedded,
+    preprocessor_guard_balance,
     uncomment_embedded,
     parse_code_for_format,
     serialize_for_format,
@@ -377,35 +378,59 @@ def test_formatting_every_source_file_is_idempotent():
     assert not failures, '\n'.join(failures[:20])
 
 
-def _guard_trace(text):
-    """`(closing balance, deepest excursion)` of the conditional preprocessor
-    directives in `text`.
+# ---------------------------------------------------------------------------
+# 6. Preprocessor guard balance
+# ---------------------------------------------------------------------------
 
-    Deliberately a whole-file *text* measure rather than anything read off the
-    parse: the failure it exists to catch (issue #1385) round-trips through
-    the parsed structure perfectly, and goes wrong only in how a rebuilt block
-    interleaves with the code around it.
-    """
-    depth   = 0
-    minimum = 0
-    for line in text.splitlines():
-        if re.match(r'^#\s*if', line):
-            depth += 1
-        elif re.match(r'^#\s*endif', line):
-            depth -= 1
-        minimum = min(minimum, depth)
-    return depth, minimum
+def test_guard_balance_counts_conditionals():
+    text = (
+        "#ifdef A\n"
+        "  use :: X, only : y\n"
+        "#endif\n"
+    )
+    assert preprocessor_guard_balance(text) == 0
+    assert preprocessor_guard_balance(text + "#endif\n") == -1
+    assert preprocessor_guard_balance("#ifndef B\n") == 1
+
+
+def test_guard_spanning_use_and_code_survives_formatting():
+    """A `#ifdef` covering a `use` *and* the code after it used to lose its
+    balance when the block was rebuilt: `update_uses` re-emitted its own guard
+    around the `use` it owned, and the original `#endif` was left stranded in
+    the following code.
+
+    Such a guard is no longer claimed as a condition on the `use` statements it
+    covers (issue #1385), so it stays where it is and the balance is preserved.
+    The whole-file balance check remains the invariant the drivers enforce —
+    the parsed structure round-trips perfectly either way, so only comparing
+    the text sees this class of error."""
+    source = (
+        "  subroutine s\n"
+        "#ifdef USEMPI\n"
+        "    use :: MPI_F08, only : MPI_Comm_Rank\n"
+        "    implicit none\n"
+        "    integer :: rank\n"
+        "#endif\n"
+        "    return\n"
+        "  end subroutine s\n"
+    )
+    assert preprocessor_guard_balance(source) == 0
+    out = _format(source)
+    assert preprocessor_guard_balance(out) == preprocessor_guard_balance(source), out
+    # The guard is emitted exactly once, and still covers the declarations.
+    assert out.count("#ifdef USEMPI") == 1, out
+    assert out.count("#endif")        == 1, out
+    assert re.search(r'#ifdef USEMPI\n.*MPI_Comm_Rank.*\n\s*implicit none\n'
+                     r'\s*integer :: rank\n#endif\n', out), out
 
 
 @pytest.mark.slow
 def test_formatting_every_source_file_preserves_preprocessor_guards():
-    """Reformatting must not add, drop, or reorder a preprocessor guard.
+    """Reformatting must not add or drop a preprocessor guard, in any file.
 
-    Issue #1385: a `#ifdef` covering a `use` *and* the code after it was
-    recorded as a condition on that `use`, so the rebuilt block emitted its
-    own `#ifdef … #endif` while the original `#endif` stayed behind in the
-    following code node.  The file then had one `#endif` too many and would
-    not compile — but every check on the parsed structure passed.
+    Issue #1385 reached the tree because nothing checked this over the corpus:
+    two files reformatted to one `#endif` too many and would not compile, while
+    every check on the parsed structure passed.
     """
     files = _source_files()
     assert files, 'no source files found — is GALACTICUS_EXEC_PATH set?'
@@ -415,7 +440,8 @@ def test_formatting_every_source_file_preserves_preprocessor_guards():
         with open(path, errors='replace') as fh:
             original = fh.read()
         formatted = _format(original)
-        if _guard_trace(formatted) != _guard_trace(original):
-            failures.append(f'{path}: {_guard_trace(original)} -> '
-                            f'{_guard_trace(formatted)}')
+        if preprocessor_guard_balance(formatted) != preprocessor_guard_balance(original):
+            failures.append(
+                f'{path}: {preprocessor_guard_balance(original)} -> '
+                f'{preprocessor_guard_balance(formatted)}')
     assert not failures, '\n'.join(failures[:20])

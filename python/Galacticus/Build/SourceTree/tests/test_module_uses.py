@@ -35,7 +35,9 @@ Bug classes covered:
 
 import re
 
-from Galacticus.Build.SourceTree                  import parse_code, serialize, walk_tree
+from Galacticus.Build.SourceTree                  import (
+    parse_code, preprocessor_guard_balance, serialize, walk_tree,
+)
 from Galacticus.Build.SourceTree.Parse.ModuleUses import parse_module_uses, add_uses, update_uses
 
 
@@ -67,16 +69,17 @@ def _rebuild(tree):
 
 
 def _guard_balance(text):
-    """`(closing balance, deepest negative excursion)` of the conditional
-    directives in `text`.  Both are zero for well-formed source; either
-    going negative means an `#endif` without a matching `#if`."""
-    depth   = 0
-    minimum = 0
+    """`(closing balance, deepest excursion below zero)` of the conditional
+    directives in `text`.  Both are zero for well-formed source.
+
+    The balance is `preprocessor_guard_balance` — the invariant the formatter
+    drivers enforce — accumulated a line at a time, which that function scores
+    as +1, -1 or 0 per line.  The excursion adds what a net count cannot see:
+    an `#endif` emitted *before* the `#ifdef` it closes balances to zero but
+    still fails to compile."""
+    minimum = depth = 0
     for line in text.splitlines():
-        if re.match(r'^#\s*if', line):
-            depth += 1
-        elif re.match(r'^#\s*endif', line):
-            depth -= 1
+        depth  += preprocessor_guard_balance(line)
         minimum = min(minimum, depth)
     return depth, minimum
 

@@ -21,7 +21,7 @@
 Contains a program to test the fitting functions used by the splashback radius classes.
 !!}
 
-!+ Implemented by Andrew Benson with assistance from Claude.
+!+ Contributions to this file made by: Andrew Benson, Claude.
 
 program Test_Splashback_Radii
   !!{RST

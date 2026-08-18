@@ -17,8 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    The truncation of the integration range at the radius where the molecular fraction becomes negligible was implemented with
-  !+    assistance from Claude and verified by Andrew Benson.
+  !+    Contributions to this file made by: Andrew Benson, Claude.
 
   !!{RST
   Implementation of the :cite:t:`krumholz_star_2009` star formation rate surface density law for galactic disks.

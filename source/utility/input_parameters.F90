@@ -17,10 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson. The fix to the deduplication of reports of the use of default
-!+    parameter values, the marking of defaulted parameters in the output file, and the removal of the then-unused
-!+    per-object OpenMP lock, for issue #1353, were drafted with assistance from Claude, and reviewed and verified by
-!+    Andrew Benson.
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
 !!{RST
 Contains a module which implements reading of parameters from an XML data file.
@@ -749,18 +746,47 @@ contains
     return
   end function inputParametersConstructorFileChar
 
-  function inputParametersConstructorCopy(parameters) result(self)
+  function inputParametersConstructorCopy(parameters,noOutput) result(self)
     !!{RST
     Constructor for the ``inputParameters`` class from an existing parameters object.
+
+    Copies are made primarily to give each OpenMP thread its own parameter set for node component
+    thread initialization. By default (``noOutput=.true.``) the copy has no output group, so
+    parameters read through it are *not* recorded in the ``Parameters`` group of the output
+    file---if every thread's copy wrote, all threads would race to write the same values. Passing
+    ``noOutput=.false.`` instead shares the output group of the parameter set being copied, so
+    that parameters read through the copy *are* recorded. Precisely one copy should be created
+    this way (in practice, the copy made on the master thread), so that there is a single writer;
+    since every thread reads the same parameters, recording from one is sufficient.
+
+    That copy must also be the *first* to be used. Building an object from its default class adds
+    that default to the parameter tree, which all copies share, so only whichever copy is used
+    first sees such a parameter as absent and marks it as defaulted. A recording copy used after
+    some other copy would therefore silently omit those markers.
     !!}
     implicit none
-    type (inputParameters)                :: self
-    type (inputParameters), intent(in   ) :: parameters
+    type   (inputParameters)                          :: self
+    type   (inputParameters), intent(in   )           :: parameters
+    logical                 , intent(in   ), optional :: noOutput
+    !![
+    <optionalArgument name="noOutput" defaultsTo=".true." />
+    !!]
 
     self            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.,documentManager=parameters%documentManager,document=parameters%document)
     self%parameters =>                 parameters%parameters
     self%parent     =>                 parameters%parent
     self%original   =>                 parameters%original
+    if (.not.noOutput_.and.associated(parameters%outputParameters)) then
+       ! Share the output group of the parameter set being copied so that parameters read through this copy are recorded in the
+       ! output file. The resource managers are assigned (not pointer assigned) so that the reference counts of the shared HDF5
+       ! objects are incremented---the shared group therefore remains valid for as long as this copy exists.
+       self%outputParameters                 => parameters%outputParameters
+       self%outputParametersContainer        => parameters%outputParametersContainer
+       self%outputParametersCopied           =  parameters%outputParametersCopied
+       self%outputParametersTemporary        =  parameters%outputParametersTemporary
+       self%outputParametersManager          =  parameters%outputParametersManager
+       self%outputParametersContainerManager =  parameters%outputParametersContainerManager
+    end if
     return
   end function inputParametersConstructorCopy
 
@@ -913,7 +939,9 @@ contains
        !![
        </workaround>
        !!]
-       call File_Remove(self%outputParametersContainer%name())
+       ! Immediately remove the temporary file. The file remains accessible to us (as it is open), but will be automatically
+       ! removed from the file system once we close it - even if this run is killed before it can close the file cleanly.
+       call File_Remove(self%outputParametersContainer%fileName())
     end if
     ! Get allowed parameter names.
     if (.not.allocated(allowedParameterNamesGlobal)) &

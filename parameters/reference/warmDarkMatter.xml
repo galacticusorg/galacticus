@@ -76,6 +76,7 @@
   <change type="append" path="">
     <mergerTreeOperator value="pruneByFilter">
       <preservePrimaryProgenitor value="false"/>
+      <pruneAllProgenitors       value="true" />
       <galacticFilter value="labelled">
 	<label value="promptCuspUnformed"/>
       </galacticFilter>

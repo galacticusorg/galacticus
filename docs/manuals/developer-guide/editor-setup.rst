@@ -122,12 +122,16 @@ which makes it usable as a pre-commit or continuous-integration check.
 Run it after any edit that adds, removes, or renames imported symbols, rather
 than realigning the columns by hand.
 
-The script refuses to write unless two conditions hold: parsing the file and
-writing it straight back out reproduces it exactly, and re-parsing its own
-output yields the same set of symbols imported from each module under each
-preprocessor condition. A file that fails the first check contains something
+The script refuses to write unless three conditions hold: parsing the file and
+writing it straight back out reproduces it exactly; re-parsing its own output
+yields the same set of symbols imported from each module under each
+preprocessor condition; and the file's preprocessor conditionals balance the
+same way before and after. A file that fails the first check contains something
 the parser cannot represent, and is left untouched rather than rewritten on a
-guess.
+guess. The last is a whole-file text comparison rather than a check on the
+parse, because the failure it guards against is invisible to the parse: the
+structure round-trips perfectly and it is the interleaving of a rebuilt ``use``
+block with the code around it that goes wrong.
 
 .. note::
 
@@ -168,6 +172,37 @@ would collapse the table onto one enormous line.
    Reformatting reorders attributes into the canonical order and splits
    declarations of more than two variables across rows, so a file that has not
    been formatted before may change by more than alignment alone.
+
+.. _manual-sec-formattingAdoption:
+
+How the formatting is rolled out
+--------------------------------
+
+The source tree has deliberately *not* been reformatted in one sweep. Doing so
+would have rewritten around 1500 files at once, wrecking ``git blame`` and
+conflicting with every branch open at the time. Instead the tree converges on
+the house style file by file as it is worked on: both the pre-commit hook and
+the *Check-Source-Formatting* job on pull requests run the formatters in
+``--check`` mode over the files a change touches, and report what differs.
+
+Both are **advisory** — neither blocks a commit or fails a pull request. Since
+most files still predate the formatters, blocking would force the first change
+to any of them to carry a whole-file reformat in the same commit, mixed in with
+the substantive change. Reporting instead leaves the choice of when to reformat
+with you.
+
+When you do reformat, make it a commit of its own, so that reviewers can read
+the reformatting and the substantive change apart:
+
+.. code-block:: bash
+
+   ./scripts/aux/formatModuleUses.py  source/path/to/file.F90
+   ./scripts/aux/formatDeclarations.py source/path/to/file.F90
+   git commit -m "style(...): format <file>"
+
+A file that either tool declines to process is reported as a warning rather
+than a failure, and needs no action — see
+:ref:`manual-sec-formatDeclarations` for the statements the tools leave alone.
 
 .. _manual-sec-editorEmbedded:
 
