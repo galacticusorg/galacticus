@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a dark matter halo mass function class which modifies another mass function by accounting for cosmic variance in a simulation cube.
 !!}
@@ -185,13 +187,13 @@ contains
          self%timePrevious=time
          write (lengthCubeLabel,'(e12.6)') self%lengthSimulationCube
          write (      timeLabel,'(e12.6)')      time
-         fileNameVariance=inputPath(pathTypeDataDynamic)                                  // &
-              &           'largeScaleStructure/'                                          // &
-              &           self%objectType()                                               // &
-              &           'CubeVariance_'                                                 // &
-              &           'lengthSimulationCube_'//trim(lengthCubeLabel)//'_'             // &
-              &           'time_'                //trim(      timeLabel)//'_'             // &
-              &           self%powerSpectrum_%hashedDescriptor(includeSourceDigest=.true.)// &
+         fileNameVariance=inputPath(pathTypeDataDynamic)                                                                      // &
+              &           'largeScaleStructure/'                                                                              // &
+              &           self%objectType()                                                                                   // &
+              &           'CubeVariance_'                                                                                     // &
+              &           'lengthSimulationCube_'//trim(lengthCubeLabel)//'_'                                                 // &
+              &           'time_'                //trim(      timeLabel)//'_'                                                 // &
+              &           self%powerSpectrum_%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
               &           '.hdf5'
          !$omp critical(haloMassFunctionSimulationVarianceCache)
          useCache=0

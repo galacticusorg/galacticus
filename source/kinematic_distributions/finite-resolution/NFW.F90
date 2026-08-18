@@ -394,11 +394,11 @@ contains
     type (lockDescriptor                           )                :: fileLock
     type (varying_string                           )                :: fileName
 
-    fileName=inputPath(pathTypeDataDynamic)                   // &
-         &   'darkMatter/'                                    // &
-         &   self%objectType      (                          )// &
-         &   'VelocityDispersion_'                            // &
-         &   self%hashedDescriptor(includeSourceDigest=.true.)// &
+    fileName=inputPath(pathTypeDataDynamic)                                                       // &
+         &   'darkMatter/'                                                                        // &
+         &   self%objectType      (                                                              )// &
+         &   'VelocityDispersion_'                                                                // &
+         &   self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &   '.hdf5'
     call Directory_Make(File_Path(fileName))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
@@ -447,11 +447,11 @@ contains
     double precision                                           , allocatable, dimension(:  ) :: jeansIntegralStored
     logical                                                                                  :: isUsable
 
-    fileName=inputPath(pathTypeDataDynamic)                   // &
-         &   'darkMatter/'                                    // &
-         &   self%objectType      (                          )// &
-         &   'VelocityDispersion_'                            // &
-         &   self%hashedDescriptor(includeSourceDigest=.true.)// &
+    fileName=inputPath(pathTypeDataDynamic)                                                       // &
+         &   'darkMatter/'                                                                        // &
+         &   self%objectType      (                                                              )// &
+         &   'VelocityDispersion_'                                                                // &
+         &   self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &   '.hdf5'
     if (.not.File_Exists(fileName)) return
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads. Note that the file is
