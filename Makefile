@@ -272,15 +272,21 @@ ALLSOURCESINC = $(ALLSOURCES) $(call rwildcard,source,*.Inc)
 rsubdirs = $(foreach d,$(wildcard $1/*),$(if $(wildcard $d/.),$d $(call rsubdirs,$d)))
 SOURCEDIRS := source $(call rsubdirs,source)
 
-# All first-party Python sources, and all directories containing them. The build's code generators
-# are Python programs, so their behavior is defined by these files just as surely as the Fortran
-# sources define the model — see the preprocessor source digest below. `__pycache__` directories
-# are filtered out: their mtimes are bumped by the interpreter itself, which would otherwise make
-# the digest rule appear out of date on every build. As with $(SOURCEDIRS), the directories are
-# listed alongside the files because $(PYTHONSOURCES) enumerates only files that still exist, so
-# DELETING a module changes no listed mtime — but it does bump the containing directory's.
+# All first-party Python sources. The build's code generators are Python programs, so their
+# behavior is defined by these files just as surely as the Fortran sources define the model — see
+# the preprocessor source digest below.
+#
+# Note the deliberate absence of a $(SOURCEDIRS)-style list of the *directories*: the interpreter
+# writes `__pycache__` into them whenever any Python runs — including the ~1800 preprocess.py
+# invocations of the build itself — which bumps their mtimes and would leave the digest rule
+# permanently out of date, re-running its recipe on every build. And not only on every build: the
+# preprocessed `_class.p.F90` is a prerequisite of the generated Makefile_Use_Dependencies, so this
+# digest is remade inside make's *makefile-remaking* phase, and a rule that re-arms itself there
+# runs again in every restart pass. Directory mtimes are what catches a DELETED source elsewhere in
+# this file, but deleting a Python module the preprocessor imports cannot go unnoticed: the next
+# preprocess.py run fails with an ImportError. Deleting one it does not import changes nothing to
+# catch.
 PYTHONSOURCES := $(call rwildcard,python,*.py)
-PYTHONDIRS    := $(filter-out %__pycache__,python $(call rsubdirs,python))
 
 # General suffix rules: i.e. rules for making a file of one suffix from files of another suffix.
 
@@ -794,13 +800,15 @@ $(BUILDPATH)/openMPCriticalSections.xml: $(BUILDPATH)/openMPCriticalSections.xml
 
 # Digest of the Python sources that implement the Fortran preprocessor: `./scripts/build/preprocess.py`
 # together with every first-party module in its transitive import closure. The rule is triggered by
-# *any* Python source (or a change to the set of them, hence $(PYTHONDIRS)) because the closure can
-# only be known by inspecting the imports, which is what the script does; but the digest it writes
-# covers only the closure, and is written only-if-changed, so the expensive consequence — re-running
-# the preprocessor over every source file — follows only from an edit to a module the preprocessor
-# really uses. Editing, say, an analysis script or the library-interface generator recomputes the
-# digest, finds it unchanged, and stops there.
-$(BUILDPATH)/preprocessorSources.digest.up: ./scripts/build/preprocessorSources.py ./scripts/build/preprocess.py $(PYTHONSOURCES) $(PYTHONDIRS)
+# *any* Python source, because the closure can only be known by inspecting the imports, which is
+# what the script does; but the digest it writes covers only the closure, and is written
+# only-if-changed, so the expensive consequence — re-running the preprocessor over every source
+# file — follows only from an edit to a module the preprocessor really uses. Editing, say, an
+# analysis script or the library-interface generator recomputes the digest, finds it unchanged, and
+# stops there. Every prerequisite here is a file the build never writes, so the recipe runs exactly
+# once per clean build and never again until a Python source really changes — see the note on
+# $(PYTHONSOURCES) above for why the containing directories are deliberately not listed.
+$(BUILDPATH)/preprocessorSources.digest.up: ./scripts/build/preprocessorSources.py ./scripts/build/preprocess.py $(PYTHONSOURCES)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/preprocessorSources.py `pwd`
 $(BUILDPATH)/preprocessorSources.digest: $(BUILDPATH)/preprocessorSources.digest.up
