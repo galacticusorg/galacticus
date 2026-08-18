@@ -47,8 +47,8 @@
    contains
      !![
      <methods docformat="rst">
-       <method description="Get the requested table."                method="getTable"    />
-       <method description="Construct a tabulated solution."         method="tabulate"    />
+       <method description="Get the requested table."        method="getTable"/>
+       <method description="Construct a tabulated solution." method="tabulate"/>
      </methods>
      !!]
      final     ::                          cllsnlssMttCsmlgclCnstntDestructor
@@ -266,9 +266,9 @@ contains
     ! therefore differ from one computed wholly afresh: measured at up to 3e-9 relative, on the restored points only, which is
     ! of order the 1e-9 relative tolerance to which each point's root is found in the first place. Discarding the cache instead
     ! would hide this, at the cost of recomputing every point whenever the requested range grows.
-    if (tableStore) call Table_Cache_Restore(table_,fileName,status)
-    call                 self%tabulate      (time,table_,calculationType)
-    if (tableStore) call Table_Cache_Store  (table_,fileName)
+    if (tableStore) call Table_Cache_Restore(     table_,fileName       ,status)
+    call                 self%tabulate      (time,table_,calculationType       )
+    if (tableStore) call Table_Cache_Store  (     table_,fileName              )
     !$omp critical(sphrclCllpsCllsnlssMttrCsmlgclCnstntCache)
     useCache=0
     if (countCache(calculationType%ID) > 0) then
@@ -988,4 +988,3 @@ contains
     end if
     return
   end function cllsnlssMttCsmlgclCnstntRadiusRoot
-
