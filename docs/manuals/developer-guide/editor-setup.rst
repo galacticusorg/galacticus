@@ -122,12 +122,16 @@ which makes it usable as a pre-commit or continuous-integration check.
 Run it after any edit that adds, removes, or renames imported symbols, rather
 than realigning the columns by hand.
 
-The script refuses to write unless two conditions hold: parsing the file and
-writing it straight back out reproduces it exactly, and re-parsing its own
-output yields the same set of symbols imported from each module under each
-preprocessor condition. A file that fails the first check contains something
+The script refuses to write unless three conditions hold: parsing the file and
+writing it straight back out reproduces it exactly; re-parsing its own output
+yields the same set of symbols imported from each module under each
+preprocessor condition; and the file's preprocessor conditionals balance the
+same way before and after. A file that fails the first check contains something
 the parser cannot represent, and is left untouched rather than rewritten on a
-guess.
+guess. The last is a whole-file text comparison rather than a check on the
+parse, because the failure it guards against is invisible to the parse: the
+structure round-trips perfectly and it is the interleaving of a rebuilt ``use``
+block with the code around it that goes wrong.
 
 .. note::
 

@@ -253,10 +253,11 @@ def test_ruler_keeps_columns_aligned_across_statements():
 # ---------------------------------------------------------------------------
 
 def test_openmp_block_indent_is_stable():
-    """Unconditional uses in a block that also has `!$ use` lines are indented
-    three columns further, so that `use` lines up across the sentinel.  Reading
-    the block indent off its first line picked that padding up and added three
-    more columns on every pass."""
+    """Every statement in a block that mixes `!$ use` with unconditional uses
+    starts at the block's own indent — the columns the `!$ ` sentinel occupies
+    are made up after the module attributes.  Reading the block indent off its
+    first line used to pick up padding the previous pass had added, shifting
+    the block three columns further right each time."""
     source = (
         "  subroutine s\n"
         "    use :: Error, only : Error_Report\n"
@@ -392,12 +393,17 @@ def test_guard_balance_counts_conditionals():
     assert preprocessor_guard_balance("#ifndef B\n") == 1
 
 
-def test_guard_spanning_use_and_code_is_detected():
-    """A `#ifdef` covering a `use` *and* the code after it is the case the
-    balance check exists for: `update_uses` re-emits its own guard around the
-    `use` it owns, and the original `#endif` is left stranded in the following
-    code. The parsed structure round-trips perfectly, so only a whole-file
-    balance comparison sees it."""
+def test_guard_spanning_use_and_code_survives_formatting():
+    """A `#ifdef` covering a `use` *and* the code after it used to lose its
+    balance when the block was rebuilt: `update_uses` re-emitted its own guard
+    around the `use` it owned, and the original `#endif` was left stranded in
+    the following code.
+
+    Such a guard is no longer claimed as a condition on the `use` statements it
+    covers (issue #1385), so it stays where it is and the balance is preserved.
+    The whole-file balance check remains the invariant the drivers enforce —
+    the parsed structure round-trips perfectly either way, so only comparing
+    the text sees this class of error."""
     source = (
         "  subroutine s\n"
         "#ifdef USEMPI\n"
@@ -410,6 +416,32 @@ def test_guard_spanning_use_and_code_is_detected():
     )
     assert preprocessor_guard_balance(source) == 0
     out = _format(source)
-    # The formatter itself does not repair this; the driver script refuses to
-    # write when the balance changes. Assert the detector fires.
-    assert preprocessor_guard_balance(out) != preprocessor_guard_balance(source), out
+    assert preprocessor_guard_balance(out) == preprocessor_guard_balance(source), out
+    # The guard is emitted exactly once, and still covers the declarations.
+    assert out.count("#ifdef USEMPI") == 1, out
+    assert out.count("#endif")        == 1, out
+    assert re.search(r'#ifdef USEMPI\n.*MPI_Comm_Rank.*\n\s*implicit none\n'
+                     r'\s*integer :: rank\n#endif\n', out), out
+
+
+@pytest.mark.slow
+def test_formatting_every_source_file_preserves_preprocessor_guards():
+    """Reformatting must not add or drop a preprocessor guard, in any file.
+
+    Issue #1385 reached the tree because nothing checked this over the corpus:
+    two files reformatted to one `#endif` too many and would not compile, while
+    every check on the parsed structure passed.
+    """
+    files = _source_files()
+    assert files, 'no source files found — is GALACTICUS_EXEC_PATH set?'
+
+    failures = []
+    for path in files:
+        with open(path, errors='replace') as fh:
+            original = fh.read()
+        formatted = _format(original)
+        if preprocessor_guard_balance(formatted) != preprocessor_guard_balance(original):
+            failures.append(
+                f'{path}: {preprocessor_guard_balance(original)} -> '
+                f'{preprocessor_guard_balance(formatted)}')
+    assert not failures, '\n'.join(failures[:20])

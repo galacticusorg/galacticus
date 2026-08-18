@@ -164,8 +164,9 @@ change that.
   wrong. Note it also sorts symbols alphabetically and merges repeated `use`
   statements for the same module, so expect more than alignment to change in a
   file that has not been formatted before. The tool refuses to write if the file
-  does not round-trip exactly or if the reformat would alter which symbols are
-  imported.
+  does not round-trip exactly, if the reformat would alter which symbols are
+  imported, or if it would change how the file's preprocessor conditionals
+  balance.
 - **Likewise run `scripts/aux/formatDeclarations.py` after any change to a
   variable declaration block** — adding or removing a variable, changing a type,
   attribute, or initializer. Same options (`--check`, `--no-backup`, `--suffix`)
