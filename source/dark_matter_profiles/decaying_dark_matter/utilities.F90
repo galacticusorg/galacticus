@@ -336,17 +336,17 @@ contains
 
        f =  \int_{-1}^{+_1} \mathrm{d}\cos\theta \int_{v_\mathrm{min}(\theta)}^{v_\mathrm{max}(\theta)} \mathrm{d}v p(v,\theta|s).
     !!}
-    use :: Display                 , only : displayCounter, displayCounterClear          , displayIndent                , displayUnindent          , &
-         &                                  displayMessage, verbosityLevelStandard
-    use :: ISO_Varying_String      , only : varying_string, operator(//)                 , assignment(=)
+    use :: Display                 , only : displayCounter     , displayCounterClear          , displayIndent                , displayUnindent          , &
+         &                                  displayMessage     , verbosityLevelStandard
+    use :: ISO_Varying_String      , only : varying_string     , operator(//)                 , assignment(=)
     use :: Numerical_Constants_Math, only : Pi
-    use :: Root_Finder             , only : rootFinder    , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rangeExpandMultiplicative
+    use :: Root_Finder             , only : rootFinder         , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rangeExpandMultiplicative
     use :: Numerical_Integration   , only : integrator
-    use :: Numerical_Ranges        , only : Range_Pinned  , rangeLattice                 , gridSchemePerDecade          , Range_Lattice_Offset
-    use :: File_Utilities          , only : File_Exists   , Directory_Make               , File_Path, File_Lock         , File_Unlock, lockDescriptor
+    use :: Numerical_Ranges        , only : Range_Pinned       , rangeLattice                 , gridSchemePerDecade          , Range_Lattice_Offset
+    use :: File_Utilities          , only : File_Exists        , Directory_Make               , File_Path, File_Lock         , File_Unlock, lockDescriptor
     use :: HDF5_Access             , only : hdf5Access
     use :: IO_HDF5                 , only : hdf5File
-    use :: Input_Paths             , only : inputPath     , pathTypeDataDynamic
+    use :: Input_Paths             , only : inputPath          , pathTypeDataDynamic
     use :: String_Handling         , only : String_C_To_Fortran
     implicit none
     double precision              , intent(inout)               :: velocityEscapeScaleFree
@@ -405,9 +405,9 @@ contains
       end if
       ! Re-evaluate the ranges required in the light of anything restored.
       call rangesRequired()
-      if     (                                                &
+      if     (                                                 &
            &  .not.latticeVelocityEscape%covers(latticeEscape) &
-           &  .or.                                            &
+           &  .or.                                             &
            &  .not.latticeVelocityKick  %covers(latticeKick  ) &
            & ) then
          ! Extend the tabulation onto the new lattices, preserving every solution already found. Both axes may grow, so the
