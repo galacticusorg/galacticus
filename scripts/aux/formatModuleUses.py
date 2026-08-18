@@ -11,6 +11,7 @@ import argparse
 from Galacticus.Build.SourceTree import (
     parse_code_for_format,
     serialize_for_format,
+    preprocessor_guard_balance,
     walk_tree,
 )
 from Galacticus.Build.SourceTree.Parse.ModuleUses import update_uses
@@ -24,6 +25,7 @@ parser.add_argument('--check', action='store_true',
 parser.add_argument('--no-backup', action='store_true',
                     help='Overwrite the input file without leaving a backup')
 args = parser.parse_args()
+
 
 
 def module_use_summary(tree):
@@ -81,6 +83,12 @@ content = serialize_for_format(tree['firstChild'])
 # formatted text rather than trusting the tree it came from, so a bug in the
 # emitter is caught too.
 after = module_use_summary(parse_code_for_format(content, source=args.infile))
+if preprocessor_guard_balance(content) != preprocessor_guard_balance(original):
+    sys.stderr.write(
+        f'{args.infile}: reformatting would leave the preprocessor conditionals '
+        f'unbalanced — refusing to write.\n')
+    sys.exit(2)
+
 if after != before:
     sys.stderr.write(
         f'{args.infile}: reformatting would change the module uses — refusing to '

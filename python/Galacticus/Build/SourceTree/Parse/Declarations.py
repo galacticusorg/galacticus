@@ -398,6 +398,10 @@ _ATTRIBUTE_RANK = {name: index for index, name in enumerate(ATTRIBUTE_ORDER)}
 # variable columns and are laid out on their own axis.
 _TYPE_BOUND_INTRINSICS = frozenset(('procedure', 'generic', 'final'))
 
+# Generic-programming placeholders, e.g. `{Type¦label}`.  Statements carrying
+# one are line-structure-sensitive — see `_has_generic_placeholder`.
+_GENERIC_PLACEHOLDER_RE = re.compile(r'\{[^{}]*\}')
+
 # The `intent` field is padded to the width of the longest spelling, `inout`,
 # so that the three forms occupy one column: `in` is left-aligned within it and
 # `out` right-aligned, giving `intent(in   )`, `intent(inout)`, `intent(  out)`.
@@ -686,20 +690,45 @@ def _minimum_width(declaration, indent):
     return width + longest
 
 
-def _is_unformattable(declaration, indent):
-    """True if no layout of this declaration can fit within the ruler.
+def _has_generic_placeholder(declaration):
+    """True if the statement carries a generic-programming placeholder.
 
-    A single variable carrying a large initializer — a `reshape([...])` data
-    table, say — cannot be broken by a formatter that only breaks *between*
-    variables.  `get_fortran_line` has already joined away the continuation
-    lines its author used, so re-emitting it from the parsed fields would
-    collapse a carefully wrapped table onto one enormous line.  Such
-    declarations are written back verbatim instead, and are kept out of the
-    column-width calculation so that they cannot pad their neighbours out to
-    their own width.
+    `Process.Generics` expands `{Type¦label}` placeholders one *physical line*
+    at a time (`_expand_content_lines`): a line containing one is emitted once
+    per instance, and lines without one are copied through. A statement split
+    across a continuation would therefore expand into N copies of its first
+    line followed by N copies of its second, and the trailing `&` of each copy
+    of the first line would glue it to the *next* copy rather than to its own
+    second line — silently fusing N statements into one.
+
+    All 106 such declarations in the tree are written on a single line, which
+    is precisely what makes the existing expansion work; the formatter must
+    not be the thing that breaks that.
     """
-    return (declaration.get('rawText') is not None
-            and _minimum_width(declaration, indent) > LINE_LENGTH_MAX)
+    return bool(_GENERIC_PLACEHOLDER_RE.search(declaration.get('rawText') or ''))
+
+
+def _emit_verbatim(declaration, indent):
+    """True if this declaration must be written back exactly as it was.
+
+    Two cases, both of which turn on line structure the emitter cannot safely
+    reproduce:
+
+    * A statement carrying a generic-programming placeholder, whose expansion
+      is line-based — see `_has_generic_placeholder`.
+    * A single variable carrying a large initializer — a `reshape([...])` data
+      table, say — which cannot be broken by a formatter that only breaks
+      *between* variables. `get_fortran_line` has already joined away the
+      continuation lines its author used, so re-emitting it from the parsed
+      fields would collapse a carefully wrapped table onto one enormous line.
+
+    Such declarations are also kept out of the column-width calculation, so
+    that they cannot pad their neighbours out to their own width.
+    """
+    if declaration.get('rawText') is None:
+        return False
+    return (_has_generic_placeholder(declaration)
+            or _minimum_width(declaration, indent) > LINE_LENGTH_MAX)
 
 
 def _is_type_definition(declaration):
@@ -807,7 +836,7 @@ def format_declarations(group):
 
     # Declarations too wide for any layout are written back as they were, and
     # take no part in sizing the columns.
-    laid_out = [d for d in declarations if not _is_unformattable(d, indent)]
+    laid_out = [d for d in declarations if not _emit_verbatim(d, indent)]
     if not laid_out:
         return
     per_row = _choose_variables_per_row(laid_out, indent, openmp_any)
@@ -816,7 +845,7 @@ def format_declarations(group):
     for node in group:
         content = indent + 'implicit none\n' if node.get('implicitNone') else ''
         for declaration in node.get('declarations', []):
-            if _is_unformattable(declaration, indent):
+            if _emit_verbatim(declaration, indent):
                 content += declaration['rawText']
             else:
                 content += _emit_declaration(

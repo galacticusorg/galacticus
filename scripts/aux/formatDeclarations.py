@@ -12,6 +12,7 @@ import argparse
 from Galacticus.Build.SourceTree import (
     parse_code_for_format,
     serialize_for_format,
+    preprocessor_guard_balance,
     walk_tree,
 )
 from Galacticus.Build.SourceTree.Parse.Declarations import format_declarations_tree
@@ -43,6 +44,7 @@ def is_vendored(path):
         if parts[index] == 'source' and parts[index + 1] == 'external':
             return True
     return False
+
 
 
 def declaration_summary(tree):
@@ -102,6 +104,12 @@ content = serialize_for_format(tree['firstChild'])
 # re-parses the formatted text rather than trusting the tree it came from, so a
 # bug in the emitter is caught too.
 after = declaration_summary(parse_code_for_format(content, source=args.infile))
+if preprocessor_guard_balance(content) != preprocessor_guard_balance(original):
+    sys.stderr.write(
+        f'{args.infile}: reformatting would leave the preprocessor conditionals '
+        f'unbalanced — refusing to write.\n')
+    sys.exit(2)
+
 if after != before:
     sys.stderr.write(
         f'{args.infile}: reformatting would change the declarations — refusing '

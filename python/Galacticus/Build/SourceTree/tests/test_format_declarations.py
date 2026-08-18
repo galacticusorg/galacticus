@@ -290,6 +290,30 @@ def test_unfittable_initializer_keeps_its_hand_wrapping():
             assert line in out.splitlines(), (line, out)
 
 
+def test_generic_placeholder_statement_is_never_wrapped():
+    """`Process.Generics` expands `{Type¦label}` placeholders one *physical
+    line* at a time, emitting a line carrying one once per instance. A
+    statement split across a continuation would expand into N copies of its
+    first line followed by N copies of its second, and the trailing `&` of each
+    copy of the first line would glue it to the *next* copy — fusing N
+    statements into one. Such statements must come back exactly as written."""
+    source = (
+        "  type t\n"
+        "   contains\n"
+        "     generic :: readAttribute => IO_HDF5_Read_Attribute_{Type\u00a6label}_Scalar, "
+        "IO_HDF5_Read_Attribute_{Type\u00a6label}_1D_Array_Allocatable\n"
+        "     procedure :: shortOne => fooShortOne\n"
+        "  end type t\n"
+    )
+    out = _format(source)
+    generic = [l for l in out.splitlines() if 'generic' in l]
+    assert len(generic) == 1, out
+    assert not generic[0].rstrip().endswith('&'), generic[0]
+    # Both specific procedures remain on that one line.
+    assert 'IO_HDF5_Read_Attribute_{Type\u00a6label}_Scalar' in generic[0], generic[0]
+    assert 'IO_HDF5_Read_Attribute_{Type\u00a6label}_1D_Array_Allocatable' in generic[0], generic[0]
+
+
 def test_oversized_declaration_does_not_pad_its_neighbours():
     """A declaration left verbatim takes no part in sizing the columns — one
     huge data table used to pad every declaration beside it out to its width."""
