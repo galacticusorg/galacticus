@@ -747,7 +747,7 @@ contains
           message="unable to close file object '"//self%objectFile//"'"
           call Error_Report(message//{introspection:location})
        end if
-       if (self%isTemporary) call File_Remove(char(self%objectName))
+       if (self%isTemporary) call File_Remove(char(self%objectFile))
        ! Uninitialize the HDF5 library (will only uninitialize if this is the last file to be closed).
        call IO_HDF5_Uninitialize()
     end if
@@ -977,18 +977,13 @@ contains
     !!{RST
     Returns the name of the file containing ``self``.
     !!}
-    use :: ISO_Varying_String, only : operator(//)
     implicit none
-    class(hdf5Object    ), intent(in   ), target  :: self
-    type (varying_string)                         :: fileName
-    class(hdf5Object    )               , pointer :: parent
+    class(hdf5Object    ), intent(in   ) :: self
+    type (varying_string)                :: fileName
 
-    ! Walk up the chain of parent objects to the file, which is the unique object with no parent (its ``parentObject`` is null).
-    parent  => self
-    do while (associated(parent%parentObject))
-       parent => parent%parentObject
-    end do
-    fileName=parent%objectName
+    ! Every object records the name of the file which contains it - a file object records it when the file is opened, and all
+    ! other objects inherit it from their parent object.
+    fileName=self%objectFile
     return
   end function IO_HDF5_File_Name
 
@@ -1279,25 +1274,25 @@ contains
     ! Create an access list.
     call h5pcreate_f(H5P_FILE_ACCESS_F,accessList,errorCode)
     if (errorCode /= 0) then
-       message="failed to create file access list HDF5 file '"//self%objectName//"'"
+       message="failed to create file access list HDF5 file '"//self%objectFile//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5pset_fclose_degree_f(accessList,H5F_CLOSE_SEMI_F,errorCode)
     if (errorCode /= 0) then
-       message="failed to set close degree for HDF5 file '"//self%objectName//"'"
+       message="failed to set close degree for HDF5 file '"//self%objectFile//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Specify file driver (buffered I/O).
     call h5pset_fapl_stdio_f(accessList,errorCode)
     if (errorCode /= 0) then
-       message="failed to set I/O driver for HDF5 file '"//self%objectName//"'"
+       message="failed to set I/O driver for HDF5 file '"//self%objectFile//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Set sieve buffer size.
     if (present(sieveBufferSize)) then
        call h5pset_sieve_buf_size_f(accessList,sieveBufferSize,errorCode)
        if (errorCode /= 0) then
-          message="failed to set sieve buffer size for HDF5 file '"//self%objectName//"'"
+          message="failed to set sieve buffer size for HDF5 file '"//self%objectFile//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
@@ -1312,14 +1307,14 @@ contains
           call h5pset_libver_bounds_f(accessList,H5F_LIBVER_V18_F   ,H5F_LIBVER_V114_F  ,errorCode)
        end if
        if (errorCode /= 0) then
-          message="failed to set file format for HDF5 file '"//self%objectName//"'"
+          message="failed to set file format for HDF5 file '"//self%objectFile//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        call    h5pset_libver_bounds_f(accessList,H5F_LIBVER_V18_F   ,H5F_LIBVER_V114_F  ,errorCode)
     end if
     if (errorCode /= 0) then
-       message="failed to set file format for HDF5 file '"//self%objectName//"'"
+       message="failed to set file format for HDF5 file '"//self%objectFile//"'"
        call Error_Report(message//{introspection:location})
     end if
     if (present(cacheElementsCount).or.present(cacheSizeBytes)) then
@@ -1366,7 +1361,7 @@ contains
        ! If read only was specified, creating the file is not allowed.
        if (present(readOnly)) then
           if (readOnly) then
-             message="can not create/overwrite read only file '"//self%objectName//"'"
+             message="can not create/overwrite read only file '"//self%objectFile//"'"
              call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
@@ -1380,7 +1375,7 @@ contains
     ! Finished with our property list.
     call h5pclose_f(accessList,errorCode)
     if (errorCode /= 0) then
-       message="failed to close access property list for HDF5 file '"//self%objectName//"'"
+       message="failed to close access property list for HDF5 file '"//self%objectFile//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Store the file ID.
@@ -1540,6 +1535,9 @@ contains
     self%objectFile    =self%parentObject%objectFile
     self%objectLocation=self%parentObject%pathTo    (includeFileName=.false.)
     self%objectName    =trim(groupName)
+    ! Inherit the temporary status of the containing file - whichever object holds the final reference to the file is the
+    ! one which closes it, and so the one which must remove it from the file system (see `IO_HDF5_Finalize_Shared`).
+    self%isTemporary   =self%parentObject%isTemporary
 
     ! Set the chunk size if provided.
     if (present(chunkSize)) then
@@ -1759,6 +1757,9 @@ contains
     self%objectFile    =self%parentObject%objectFile
     self%objectLocation=self%parentObject%pathTo    (includeFileName=.false.)
     self%objectName    =trim(attributeName)
+    ! Inherit the temporary status of the containing file - whichever object holds the final reference to the file is the
+    ! one which closes it, and so the one which must remove it from the file system (see `IO_HDF5_Finalize_Shared`).
+    self%isTemporary   =self%parentObject%isTemporary
 
     ! Mark whether attribute is overwritable.
     if (present(isOverwritable)) then
@@ -3708,6 +3709,9 @@ attributeValue=trim(attributeValue)
     self%objectFile    =self%parentObject%objectFile
     self%objectLocation=self%parentObject%pathTo    (includeFileName=.false.)
     self%objectName    =trim(datasetName)
+    ! Inherit the temporary status of the containing file - whichever object holds the final reference to the file is the
+    ! one which closes it, and so the one which must remove it from the file system (see `IO_HDF5_Finalize_Shared`).
+    self%isTemporary   =self%parentObject%isTemporary
     ! Check if the dataset exists.
     if (inObject%hasDataset(datasetName)) then
        ! Open the dataset.

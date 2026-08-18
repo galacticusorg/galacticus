@@ -913,7 +913,9 @@ contains
        !![
        </workaround>
        !!]
-       call File_Remove(self%outputParametersContainer%name())
+       ! Immediately remove the temporary file. The file remains accessible to us (as it is open), but will be automatically
+       ! removed from the file system once we close it - even if this run is killed before it can close the file cleanly.
+       call File_Remove(self%outputParametersContainer%fileName())
     end if
     ! Get allowed parameter names.
     if (.not.allocated(allowedParameterNamesGlobal)) &
