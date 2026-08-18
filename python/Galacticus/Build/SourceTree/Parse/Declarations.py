@@ -735,17 +735,16 @@ def _is_type_definition(declaration):
     """True if this is a derived-type *definition*, not a variable declaration.
 
     `type, bind(c) :: unitType` opens a derived type; `type(unitType) :: x`
-    declares a variable of one.  The unit parser normally claims the former, so
-    it never reaches a declaration node — but it recognizes the statement by
-    pattern, and a few in the tree carry enough internal padding
-    (`type, extends(hdf5Group             ) :: hdf5File`) to slip past it and
-    land here instead.
+    declares a variable of one.  The unit parser claims the former, so it
+    should never reach a declaration node.
 
-    Reformatting such a statement would tidy away exactly the padding that hid
-    it, so on the next parse the unit parser *would* claim it and the shape of
-    the tree would change underneath the formatter.  There are four in the tree;
-    leaving them untouched is simpler and safer than teaching the emitter to
-    reproduce their disguise.
+    It once could: the opener pattern missed `bind(c)` and padded
+    `extends(...)`, so four such statements in the tree slipped past the unit
+    parser and landed here, where reformatting would have tidied away exactly
+    the padding that hid them — changing the tree shape underneath the
+    formatter on the next parse.  That gap is fixed (the pattern now lives once
+    in `Fortran.Utils`), so this guard is expected to be inert; it stays as a
+    cheap backstop, since the failure it prevents is silent.
     """
     return (declaration.get('intrinsic') in ('type', 'class')
             and declaration.get('type') is None)
