@@ -276,11 +276,25 @@ contains
     ! read during thread initialization (some of which are read nowhere else) are recorded in the output file. Every thread reads
     ! the same parameters, so a single writer suffices---and, since it is the only writer, needs no locking beyond the lock on
     ! HDF5 access through which all parameter output passes.
-    allocate(parameters)
+    !
+    ! The master must initialize *first*, and alone. Building an object from its default class inserts that default into the
+    ! parameter tree---which every thread's copy shares---so only the thread which initializes first sees such a parameter as
+    ! absent, and only that thread marks it as defaulted. Were the master not that thread, those markers would never be written,
+    ! and which parameters carried one would depend on the number of threads.
     recordParameters=.true.
     !$ recordParameters=OMP_Get_Thread_Num() == 0
-    parameters=inputParameters(self%parameters,noOutput=.not.recordParameters)
-    call Node_Components_Thread_Initialize(parameters)
+    if (recordParameters) then
+       allocate(parameters)
+       parameters=inputParameters(self%parameters,noOutput=.false.)
+       call Node_Components_Thread_Initialize(parameters)
+    end if
+    !$omp barrier
+    ! The remaining threads now initialize against copies with output suppressed.
+    if (.not.recordParameters) then
+       allocate(parameters)
+       parameters=inputParameters(self%parameters)
+       call Node_Components_Thread_Initialize(parameters)
+    end if
     !$omp barrier
     ! Begin loop to read and post-process trees.
     do while (.not.finished)

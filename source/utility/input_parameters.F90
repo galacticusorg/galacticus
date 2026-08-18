@@ -761,6 +761,11 @@ contains
     that parameters read through the copy *are* recorded. Precisely one copy should be created
     this way (in practice, the copy made on the master thread), so that there is a single writer;
     since every thread reads the same parameters, recording from one is sufficient.
+
+    That copy must also be the *first* to be used. Building an object from its default class adds
+    that default to the parameter tree, which all copies share, so only whichever copy is used
+    first sees such a parameter as absent and marks it as defaulted. A recording copy used after
+    some other copy would therefore silently omit those markers.
     !!}
     implicit none
     type   (inputParameters)                          :: self
