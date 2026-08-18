@@ -1519,11 +1519,13 @@ contains
     !!{RST
     Read tabulated data on mass variance from file.
     !!}
-    use :: Display       , only : displayMessage           , verbosityLevelWorking
-    use :: File_Utilities, only : File_Exists
-    use :: HDF5_Access   , only : hdf5Access
-    use :: IO_HDF5       , only : hdf5File
-    use :: Tables        , only : table1DLogarithmicCSpline, table1DLogarithmicMonotoneCSpline
+    use :: Display         , only : displayMessage           , verbosityLevelWorking
+    use :: File_Utilities  , only : File_Exists
+    use :: HDF5_Access     , only : hdf5Access
+    use :: IO_HDF5         , only : hdf5File
+    use :: Numerical_Ranges, only : gridSchemePerDecade
+    use :: Table_Caches    , only : Table_Cache_Lattice_Read
+    use :: Tables          , only : table1DLogarithmicCSpline, table1DLogarithmicMonotoneCSpline
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , dimension(:  ), allocatable :: massTmp        , timesTmp
@@ -1572,8 +1574,11 @@ contains
          ! Recover the lattices on which the stored tabulation was built. A file which does not record them, or which records
          ! lattices incommensurate with those this object would use, is simply ignored - and, since the file name carries a
          ! digest of this source file, such a file can in any case only be one written by a different build.
-         call filteredPowerLatticeRead(dataFile,'mass',pointsPerDecade    ,latticeMass)
-         call filteredPowerLatticeRead(dataFile,'time',timePointsPerDecade,latticeTime)
+         ! Note that an undefined time lattice is a legitimate record - it is what is written where growth is mass-independent
+         ! and sigma(M) is tabulated at a single epoch - so a missing record is told apart from that one through the mass axis,
+         ! which is never undefined in a usable file.
+         call Table_Cache_Lattice_Read(dataFile,'mass',gridSchemePerDecade,pointsPerDecade    ,latticeMass)
+         call Table_Cache_Lattice_Read(dataFile,'time',gridSchemePerDecade,timePointsPerDecade,latticeTime)
          if (latticeMass%isDefined()) then
             call dataFile%readDataset  ('times'             ,     timesTmp             )
             call dataFile%readDataset  ('mass'              ,     massTmp              )
@@ -1669,74 +1674,15 @@ contains
     return
   end subroutine filteredPowerFileRead
 
-  subroutine filteredPowerLatticeWrite(dataFile,axisName,lattice)
-    !!{RST
-    Record the ``rangeLattice`` on which an axis of the stored tabulation is built, as attributes named for that axis. An
-    undefined lattice - as the time axis has where growth is mass-independent, and σ(M) is tabulated at a single epoch - is
-    recorded as such, so that it can be told apart from a file written before the lattices were recorded at all.
-    !!}
-    use :: IO_HDF5, only : hdf5File
-    implicit none
-    type     (hdf5File    ), intent(inout) :: dataFile
-    character(len=*       ), intent(in   ) :: axisName
-    type     (rangeLattice), intent(in   ) :: lattice
-
-    call dataFile%writeAttribute(lattice%scheme%ID   ,axisName//'GridScheme'  )
-    call dataFile%writeAttribute(lattice%pointsPer   ,axisName//'PointsPer'   )
-    call dataFile%writeAttribute(lattice%indexMinimum,axisName//'IndexMinimum')
-    call dataFile%writeAttribute(lattice%count       ,axisName//'Count'       )
-    return
-  end subroutine filteredPowerLatticeWrite
-
-  subroutine filteredPowerLatticeRead(dataFile,axisName,pointsPer,lattice)
-    !!{RST
-    Restore the ``rangeLattice`` on which an axis of the stored tabulation was built. The lattice is returned undefined unless
-    the file records one which is self-consistent and which uses the density of points that this object would use---so that a
-    file written before the lattices were recorded, or with a different grid density, reports an undefined lattice rather than
-    being misread. Note that an undefined lattice is a legitimate record for the time axis, and is distinguished from a missing
-    one by the caller through the mass axis, which is never undefined in a usable file.
-    !!}
-    use :: IO_HDF5         , only : hdf5File
-    use :: Numerical_Ranges, only : enumerationGridSchemeType, gridSchemePerDecade
-    implicit none
-    type     (hdf5File    ), intent(inout) :: dataFile
-    character(len=*       ), intent(in   ) :: axisName
-    integer                , intent(in   ) :: pointsPer
-    type     (rangeLattice), intent(  out) :: lattice
-    integer                                :: schemeStored, pointsPerStored, &
-         &                                    indexMinimum, count_
-
-    lattice=rangeLattice()
-    if     (                                                      &
-         &   .not.dataFile%hasAttribute(axisName//'GridScheme'  ) &
-         &  .or.                                                  &
-         &   .not.dataFile%hasAttribute(axisName//'PointsPer'   ) &
-         &  .or.                                                  &
-         &   .not.dataFile%hasAttribute(axisName//'IndexMinimum') &
-         &  .or.                                                  &
-         &   .not.dataFile%hasAttribute(axisName//'Count'       ) &
-         & ) return
-    call dataFile%readAttribute(axisName//'GridScheme'  ,schemeStored   )
-    call dataFile%readAttribute(axisName//'PointsPer'   ,pointsPerStored)
-    call dataFile%readAttribute(axisName//'IndexMinimum',indexMinimum   )
-    call dataFile%readAttribute(axisName//'Count'       ,count_         )
-    ! Comparing the stored scheme against the one expected is stronger than merely checking that it is a valid member of the
-    ! enumeration, so no separate validity test is needed.
-    if (enumerationGridSchemeType(schemeStored) /= gridSchemePerDecade) return
-    if (pointsPerStored                         /= pointsPer          ) return
-    lattice=rangeLattice(enumerationGridSchemeType(schemeStored),pointsPerStored,indexMinimum,count_)
-    if (.not.lattice%isDefined()) lattice=rangeLattice()
-    return
-  end subroutine filteredPowerLatticeRead
-
   subroutine filteredPowerFileWrite(self)
     !!{RST
     Write tabulated data on mass variance to file.
     !!}
-    use :: Display    , only : displayMessage, verbosityLevelWorking
-    use :: HDF5       , only : hsize_t
-    use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5File
+    use :: Display     , only : displayMessage           , verbosityLevelWorking
+    use :: HDF5        , only : hsize_t
+    use :: HDF5_Access , only : hdf5Access
+    use :: IO_HDF5     , only : hdf5File
+    use :: Table_Caches, only : Table_Cache_Lattice_Write
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , dimension(:  ), allocatable :: massTmp
@@ -1815,8 +1761,8 @@ contains
          ! Record the lattices on which the two axes are built. The bounds and interpolating factors which were formerly stored
          ! alongside them are not: each is a function of the lattices and of the epochs, and is recomputed when the file is read,
          ! so that a restored tabulation cannot come to be described differently from a freshly built one.
-         call filteredPowerLatticeWrite(dataFile,'mass',self%latticeMass)
-         call filteredPowerLatticeWrite(dataFile,'time',self%latticeTime)
+         call Table_Cache_Lattice_Write(dataFile,'mass',self%latticeMass)
+         call Table_Cache_Lattice_Write(dataFile,'time',self%latticeTime)
        end block hdf5WriteScope
        !$ call hdf5Access%unset()
     end if
