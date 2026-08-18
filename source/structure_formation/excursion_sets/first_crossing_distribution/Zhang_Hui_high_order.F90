@@ -231,7 +231,8 @@ contains
        ! Pin both axes to absolute lattices, so that the tabulation depends only on which anchored intervals the request fell in
        ! rather than on the variance and time at which it was first built. The bounds are already widened monotonically above,
        ! so no further margin is applied; pinning only snaps them outward onto lattice points. The variance axis is linear and
-       ! runs from zero, so it uses the per-unit scheme with its lower edge clamped there.
+       ! runs from zero, so the *whole* range [0,varianceMaximum] is the target: `limitMinimum` only clamps a range which would
+       ! otherwise extend below zero, it does not make one reach down to it.
        !
        ! This is done *before* the extendability test below, which compares the time bounds against those of the previous
        ! tabulation for exact equality: the comparison must be between pinned bounds, or it would test a raw bound against a
@@ -241,7 +242,7 @@ contains
        self%timeMinimum       =latticeTime%minimum()
        self%timeMaximum       =latticeTime%maximum()
        self%varianceMaximum   =max(self%varianceMaximum,variance)
-       latticeVariance        =Range_Pinned(self%varianceMaximum,varianceTableNumberPerUnit,gridSchemePerUnit,marginOffset=0.0d0,limitMinimum=0.0d0)
+       latticeVariance        =Range_Pinned([0.0d0,self%varianceMaximum],varianceTableNumberPerUnit,gridSchemePerUnit,marginOffset=0.0d0,limitMinimum=0.0d0)
        self%varianceMaximum   =latticeVariance%maximum()
        ! Make a copy of the current table if possible.
        tableIsExtendable=(self%timeMinimum == self%timeMinimumPrevious .and. self%timeMaximum == self%timeMaximumPrevious .and. self%tableInitialized)

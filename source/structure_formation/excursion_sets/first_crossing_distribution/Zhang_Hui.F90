@@ -184,7 +184,7 @@ contains
        ! lattice points. The variance axis is linear and runs from zero, so it uses the per-unit scheme with its lower edge
        ! clamped there.
        self%varianceMaximum   =max(self%varianceMaximum,variance)
-       latticeVariance        =Range_Pinned(self%varianceMaximum,varianceTableNumberPerUnit,gridSchemePerUnit,marginOffset=0.0d0,limitMinimum=0.0d0)
+       latticeVariance        =Range_Pinned([0.0d0,self%varianceMaximum],varianceTableNumberPerUnit,gridSchemePerUnit,marginOffset=0.0d0,limitMinimum=0.0d0)
        self%varianceMaximum   =latticeVariance%maximum()
        self%varianceTableCount=latticeVariance%count-1
        if (self%tableInitialized) then
