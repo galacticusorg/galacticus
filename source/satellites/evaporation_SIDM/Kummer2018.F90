@@ -28,6 +28,7 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Numerical_Interpolation , only : interpolator2D
+  use :: Numerical_Ranges        , only : rangeLattice
 
   !![
   <satelliteEvaporationSIDM name="satelliteEvaporationSIDMKummer2018" docformat="rst">
@@ -49,6 +50,7 @@
      double precision                                         :: rateScatteringNormalization          , xMaximum       , &
           &                                                      velocityMinimum                      , velocityMaximum, &
           &                                                      fractionDarkMatter
+     type            (rangeLattice             )              :: latticeX                             , latticeVelocity
    contains
      !![
      <methods docformat="rst">
@@ -306,7 +308,7 @@ contains
     !!}
     use :: Dark_Matter_Particles   , only : darkMatterParticleSelfInteractingDarkMatter
     use :: Numerical_Integration   , only : integrator
-    use :: Numerical_Ranges        , only : Make_Range                                 , rangeTypeLinear, rangeTypeLogarithmic
+    use :: Numerical_Ranges        , only : Range_Pinned                               , gridSchemePerUnit, gridSchemePerDecade
     use :: Numerical_Constants_Math, only : Pi
     use :: Error                   , only : Error_Report
     implicit none
@@ -325,16 +327,37 @@ contains
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleSelfInteractingDarkMatter)
        ! Tabulate the χ_d factor.
-       self%xMaximum=xMaximum
-       self%velocityMaximum=velocityMaximum
-       self%velocityMinimum=velocityMinimum
-       countX       =int(      xMaximum                        *dble(countPerUnit))+1
-       countVelocity=int(log10(velocityMaximum/velocityMinimum)*     countPerDex  )+1
+       ! Pin both axes to absolute lattices, so that the tabulation - and every value interpolated from it - depends only on
+       ! which anchored intervals the request fell in, rather than on the requested x and speed themselves. The x axis is
+       ! linear and runs from zero, so it uses the per-unit gridding scheme with its lower edge clamped there; the speed axis
+       ! is logarithmic. Taking the union with the lattices already in use guarantees the tabulated range never shrinks.
+       !
+       ! The table is rebuilt rather than extended. Each entry depends only on its own two abscissae, so entries could in
+       ! principle be carried over, but the computed values are held only inside the `interpolator2D` built from them and are
+       ! not recoverable from it; doing so would mean storing the raw array alongside. Left as a possible follow-up.
+       self%latticeX       =Range_Pinned(                                                          &
+            &                                           xMaximum                                 , &
+            &                                           countPerUnit                             , &
+            &                                           gridSchemePerUnit                        , &
+            &                            limitMinimum  =0.0d0                                    , &
+            &                            latticeCurrent=self%latticeX                              &
+            &                           )
+       self%latticeVelocity=Range_Pinned(                                                          &
+            &                                           [velocityMinimum,velocityMaximum]        , &
+            &                                           countPerDex                              , &
+            &                                           gridSchemePerDecade                      , &
+            &                            latticeCurrent=self%latticeVelocity                       &
+            &                           )
+       self%xMaximum       =self%latticeX       %maximum()
+       self%velocityMaximum=self%latticeVelocity%maximum()
+       self%velocityMinimum=self%latticeVelocity%minimum()
+       countX       =self%latticeX       %count
+       countVelocity=self%latticeVelocity%count
        allocate(x                 (countX              ))
        allocate(velocity          (       countVelocity))
        allocate(evaporationFactor_(countX,countVelocity))
-       x                       =  Make_Range(0.0d0          ,xMaximum       ,countX       ,rangeTypeLinear     )
-       velocity                =  Make_Range(velocityMinimum,velocityMaximum,countVelocity,rangeTypeLogarithmic)
+       x           =self%latticeX       %values()
+       velocity    =self%latticeVelocity%values()
        darkMatterParticleSIDM_ => darkMatterParticle_
        integrator_             =  integrator(integrandEvaporationFactor,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
        do i=1,countX
