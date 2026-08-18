@@ -139,6 +139,7 @@ jobs:
             tools.tar.bz2
             toolsMacOS.zip
             toolsMacOSM1.zip
+            parameters.catalog.json
           )
           mkdir -p release-assets
           for asset in "${assets[@]}"; do

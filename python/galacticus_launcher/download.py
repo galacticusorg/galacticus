@@ -13,9 +13,21 @@ Four components make up a runnable install:
 * **tools**    -- the pre-built run-time tools archive.  Its entries are
   prefixed ``dynamic/`` (the location the un-relocated binary expects); we strip
   that prefix so the contents land directly under ``GALACTICUS_TOOLS_PATH``.
+  This is by far the largest artefact, and models which use none of the tools it
+  carries (CAMB, CLASS, Cloudy, ...) do not need it, so it is the one component
+  which can be skipped -- see :func:`provision`.
+* **parameter catalog** -- the machine-readable catalog of accepted input
+  parameters used by ``galacticus validate``, downloaded from the release when it
+  publishes one and generated from the installed source otherwise.
+
+Archives are staged alongside their destination rather than in the system
+temporary directory, so that unpacking is followed by a rename rather than a
+copy across filesystems, and so that a multi-gigabyte download does not have to
+fit in a (often small, often ``tmpfs``) ``/tmp``.
 """
 
 import hashlib
+import json
 import os
 import shutil
 import subprocess
@@ -34,6 +46,12 @@ DATASETS_REPO = "galacticusorg/datasets"
 # Release asset listing the SHA-256 of each of the other assets, used to verify what we download.
 CHECKSUM_ASSET = "SHA256SUMS"
 
+# Release asset carrying the pre-built parameter catalog (see `_provision_catalog`).
+CATALOG_ASSET = "parameters.catalog.json"
+
+# Sentinel recording that the tools archive is deliberately not wanted.
+TOOLS_SKIPPED = "tools-skipped"
+
 # Tool executables in the pre-built tools archive whose execute bit must be
 # restored after unpacking a zip (macOS tools ship as .zip; tar archives already
 # preserve permissions). This list matches the binaries the CI `Build-Tools`
@@ -44,6 +62,12 @@ _TOOL_EXECUTABLE_NAMES = frozenset({
 })
 
 _CHUNK = 1 << 20  # 1 MiB
+
+# Prefix for the staging directories archives are downloaded into and unpacked
+# in. They sit beside their destination rather than in the system temporary
+# directory (see the module docstring), so name them recognizably: an install
+# killed part way through leaves one behind, and it should be obvious what it is.
+_STAGING = ".galacticus-staging-"
 
 
 def asset_url(tag, asset):
@@ -152,8 +176,13 @@ def _verify(path, name, checksums, *, log=print):
     log(f"  verified {name} (SHA-256).")
 
 
-def provision(install, *, force=False, log=print):
+def provision(install, *, force=False, log=print, tools=None):
     """Download and unpack any missing components of a managed `install`.
+
+    `tools` selects whether the (large) pre-built tools archive is fetched:
+    ``True`` fetches it, ``False`` skips it and records that choice, and ``None``
+    (the default) fetches it unless an earlier ``--no-tools`` install recorded
+    that it is not wanted.
 
     Returns the list of component names that were (re)provisioned.  Raises if
     `install` is not managed.
@@ -178,27 +207,101 @@ def provision(install, *, force=False, log=print):
         done.append("exec")
     if _provision_datasets(install, force=force, log=log):
         done.append("datasets")
-    if _provision_tools(install, force=force, log=log, checksums=checksums):
+    if _tools_wanted(install, tools, log=log) and \
+            _provision_tools(install, force=force, log=log, checksums=checksums):
         done.append("tools")
-    if _provision_catalog(install, force=force, log=log):
+    if _provision_catalog(install, force=force, log=log, checksums=checksums):
         done.append("parameter catalog")
     return done
 
 
-def _provision_catalog(install, *, force, log):
-    """Generate the parameter catalog from the just-provisioned source tree.
+def tools_installed(install):
+    """True if the pre-built tools archive has been unpacked for `install`."""
+    return install.tools_path is not None and _sentinel(install.tools_path, "tools").exists()
 
-    The catalog (used by ``galacticus validate``) is NOT a committed/shipped
-    artifact; it is generated on demand here so it always matches the installed
-    source. Best-effort: a failure is logged but does not fail the install
-    (validation then falls back to the executable's ``--dry-run``).
+
+def tools_skipped(install):
+    """True if the tools archive was deliberately skipped for `install`."""
+    return install.tools_path is not None and _sentinel(install.tools_path, TOOLS_SKIPPED).exists()
+
+
+def _tools_wanted(install, tools, *, log):
+    """Decide whether to fetch the tools archive, recording an explicit choice.
+
+    The choice has to persist, because `run` and `validate` provision on demand:
+    without a marker on disk the very next command would download the archive the
+    user just asked to skip.  Asking for tools clears the marker; asking to skip
+    them when they are already installed leaves them alone (nothing is deleted).
     """
-    catalog = Path(install.exec_path) / "parameters.catalog.json"
+    marker = _sentinel(install.tools_path, TOOLS_SKIPPED)
+    if tools is None:
+        return not marker.exists()          # silent: this runs on every `run`
+    if tools:
+        marker.unlink(missing_ok=True)
+        return True
+    if tools_installed(install):
+        log("  tools are already installed; leaving them in place.")
+        return False
+    marker.write_text(install.tag)
+    log(f"Skipping {install.assets.tools}; models needing CAMB, CLASS, Cloudy, "
+        "or the other pre-built tools will not run.\n"
+        "  Run `galacticus install --tools` to add them later.")
+    return False
+
+
+def _provision_catalog(install, *, force, log, checksums=None):
+    """Install the parameter catalog used by ``galacticus validate``.
+
+    The catalog is not a committed artifact -- it is derived from the source
+    tree -- but each release publishes one built from the very commit it was cut
+    from, so it is downloaded when available.  Generating it instead costs tens
+    of seconds of CPU on a modest machine, which would otherwise be paid on the
+    first ``galacticus run``.  A release which publishes no catalog (or any
+    failure to fetch one) falls back to generating it locally, and that in turn
+    is best effort: without a catalog, validation falls back to the executable's
+    ``--dry-run``.
+    """
+    catalog = Path(install.exec_path) / CATALOG_ASSET
+    if catalog.is_file() and not force:
+        return False
+    if _fetch_catalog(install, catalog, log=log, checksums=checksums):
+        return True
+    return _generate_catalog(install, catalog, log=log)
+
+
+def _fetch_catalog(install, catalog, *, log, checksums):
+    """Download the pre-built parameter catalog published by the release.
+
+    Returns True if `catalog` was written.  Every failure mode -- the release
+    publishing no catalog, a download error, a checksum mismatch, or a file which
+    is not valid JSON -- returns False so the caller can generate one instead.
+    Unlike the executable and the tools, the catalog is data and is never run, so
+    a bad copy is a reason to fall back rather than to abort the install; the
+    generator reproduces the same catalog from the source tree just installed.
+    """
+    log("Fetching parameter catalog ...")
+    staged = Path(str(catalog) + ".part-download")
+    try:
+        if not _download(asset_url(install.tag, CATALOG_ASSET), staged, log=log,
+                         missing_ok=True):
+            log(f"  release {install.tag} publishes no {CATALOG_ASSET}.")
+            return False
+        _verify(staged, CATALOG_ASSET, checksums, log=log)
+        with open(staged) as handle:
+            json.load(handle)
+    except (RuntimeError, OSError, ValueError) as error:
+        log(f"  could not use the published parameter catalog ({error}).")
+        staged.unlink(missing_ok=True)
+        return False
+    staged.replace(catalog)
+    return True
+
+
+def _generate_catalog(install, catalog, *, log):
+    """Generate the parameter catalog from the installed source tree."""
     generator = Path(install.exec_path) / "scripts" / "build" / "parameterCatalog.py"
     if not generator.is_file():
         return False                       # source tree not present
-    if catalog.is_file() and not force:
-        return False
     log("Generating parameter catalog ...")
     try:
         subprocess.run(
@@ -221,10 +324,10 @@ def _provision_exec(install, *, force, log, checksums=None):
     if sentinel.exists() and not force:
         return False
     log(f"Fetching Galacticus source ({install.tag}) ...")
-    with tempfile.TemporaryDirectory() as work:
+    with tempfile.TemporaryDirectory(dir=install.exec_path.parent, prefix=_STAGING) as work:
         archive = Path(work) / "source.zip"
         _download(source_url(install.tag), archive, log=log)
-        _extract_strip_top(archive, install.exec_path)
+        _extract_strip_top(archive, install.exec_path, log=log)
     log(f"Fetching executable {install.assets.binary} ...")
     binary = install.exec_path / "Galacticus.exe"
     _download(asset_url(install.tag, install.assets.binary), binary, log=log)
@@ -241,10 +344,10 @@ def _provision_datasets(install, *, force, log):
         return False
     ref = resolve_datasets_ref(install.tag, log=log)
     log(f"Fetching datasets ({ref}) ...")
-    with tempfile.TemporaryDirectory() as work:
+    with tempfile.TemporaryDirectory(dir=install.data_path.parent, prefix=_STAGING) as work:
         archive = Path(work) / "datasets.zip"
         _download(datasets_url(ref), archive, log=log)
-        _extract_strip_top(archive, install.data_path)
+        _extract_strip_top(archive, install.data_path, log=log)
     sentinel.write_text(ref)
     return True
 
@@ -254,13 +357,14 @@ def _provision_tools(install, *, force, log, checksums=None):
     if sentinel.exists() and not force:
         return False
     log(f"Fetching tools {install.assets.tools} ...")
-    with tempfile.TemporaryDirectory() as work:
+    with tempfile.TemporaryDirectory(dir=install.tools_path.parent, prefix=_STAGING) as work:
         archive = Path(work) / install.assets.tools
         _download(asset_url(install.tag, install.assets.tools), archive, log=log)
         # Verify before unpacking: this archive contains executables which are later run.
         _verify(archive, install.assets.tools, checksums, log=log)
         staging = Path(work) / "unpacked"
-        _extract(archive, staging, install.assets.tools_format)
+        log(f"Unpacking {install.assets.tools} ...")
+        _extract(archive, staging, install.assets.tools_format, log=log)
         # Tools archives are rooted at "dynamic/"; lift that subtree up so the
         # contents sit directly under GALACTICUS_TOOLS_PATH.
         root = staging / "dynamic"
@@ -275,12 +379,19 @@ def _provision_tools(install, *, force, log, checksums=None):
     return True
 
 
-def _download(url, dest, *, log=print, retries=4):
-    """Stream `url` to `dest` with exponential-backoff retries and progress."""
+def _download(url, dest, *, log=print, retries=4, missing_ok=False):
+    """Stream `url` to `dest` with exponential-backoff retries and progress.
+
+    Returns True once `dest` is written.  With `missing_ok`, a 404 -- the release
+    simply does not publish this asset -- returns False immediately instead of
+    retrying an absence through the full backoff schedule.
+    """
     last_error = None
     for attempt in range(retries):
         try:
             with requests.get(url, stream=True, timeout=60) as response:
+                if missing_ok and response.status_code == 404:
+                    return False
                 response.raise_for_status()
                 total = _content_length(response)
                 tmp = Path(str(dest) + ".part")
@@ -292,7 +403,7 @@ def _download(url, dest, *, log=print, retries=4):
                             progress.update(len(chunk))
                 progress.finish()
                 tmp.replace(dest)
-            return
+            return True
         except (requests.RequestException, OSError) as error:  # pragma: no cover - network
             last_error = error
             if attempt == retries - 1:
@@ -349,6 +460,11 @@ class _Progress:
                 self._log(f"  ... {int(fraction * 100)}% "
                           f"({_human(self._done)} / {_human(self._total)})")
 
+    def set_position(self, position):
+        """Advance to an absolute `position`, in bytes; never moves backwards."""
+        if position > self._done:
+            self.update(position - self._done)
+
     def finish(self):
         if self._tty and self._active:
             self._render_bar(force=True)
@@ -381,7 +497,7 @@ def _human(num_bytes):
         value /= 1024.0
 
 
-def _extract(archive, dest, fmt):
+def _extract(archive, dest, fmt, *, log=print):
     """Unpack `archive` (`fmt` in {'zip','tar.bz2','tar.gz'}) into `dest`.
 
     Tar archives are unpacked with the ``data`` filter, which refuses members whose paths would escape `dest` (via an absolute
@@ -389,25 +505,70 @@ def _extract(archive, dest, fmt):
     choose where its contents land -- see https://docs.python.org/3/library/tarfile.html#tarfile-extraction-filter . Python 3.14
     makes this the default; setting it explicitly means the behaviour does not depend on the interpreter version. ``zipfile``
     already sanitizes member paths itself, so needs no equivalent.
+
+    Unpacking the release archives takes long enough to look like a hang, so both
+    formats report progress through the same bar the downloads use.
     """
     dest.mkdir(parents=True, exist_ok=True)
     if fmt == "zip":
-        with zipfile.ZipFile(archive) as zf:
-            zf.extractall(dest)
+        _extract_zip(archive, dest, log=log)
     else:
-        mode = "r:bz2" if fmt == "tar.bz2" else "r:gz"
-        with tarfile.open(archive, mode) as tf:
-            tf.extractall(dest, filter="data")
+        _extract_tar(archive, dest, "r:bz2" if fmt == "tar.bz2" else "r:gz", log=log)
 
 
-def _extract_strip_top(archive, dest):
+def _extract_zip(archive, dest, *, log=print):
+    """Unpack a zip member by member, reporting progress by unpacked bytes.
+
+    Equivalent to ``ZipFile.extractall`` -- which is itself this loop -- other
+    than the progress reporting; member paths are sanitized by ``zipfile`` in
+    either case.  The member list comes from the central directory, so the total
+    is known up front without reading the archive.
+    """
+    with zipfile.ZipFile(archive) as zf:
+        members = zf.infolist()
+        progress = _Progress(sum(member.file_size for member in members), log=log)
+        for member in members:
+            zf.extract(member, dest)
+            progress.update(member.file_size)
+        progress.finish()
+
+
+def _extract_tar(archive, dest, mode, *, log=print):
+    """Unpack a compressed tar with the ``data`` filter, reporting progress.
+
+    Progress is measured by how far into the *compressed* file the reader has
+    reached, because the member list of a compressed tar is only knowable by
+    decompressing the whole archive -- counting unpacked bytes instead would mean
+    paying for the expensive part twice.  Members are pulled through a generator
+    so the offset can be sampled as each one is reached, while ``extractall``
+    still applies the extraction filter to every member.
+    """
+    total = Path(archive).stat().st_size
+    progress = _Progress(total, log=log)
+    with open(archive, "rb") as handle:
+        with tarfile.open(fileobj=handle, mode=mode) as tf:
+            def members():
+                for member in tf:
+                    progress.set_position(handle.tell())
+                    yield member
+            tf.extractall(dest, members=members(), filter="data")
+    progress.set_position(total)
+    progress.finish()
+
+
+def _extract_strip_top(archive, dest, *, log=print):
     """Extract a GitHub source/datasets zip, stripping its single top-level
     directory (``galacticus-master/`` / ``datasets-master/``) so contents land
-    directly in `dest`."""
+    directly in `dest`.
+
+    The staging directory sits beside `dest` (not in the system temporary
+    directory) so that lifting the contents out of it is a rename rather than a
+    copy of the whole tree onto another filesystem.
+    """
     dest.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory() as work:
-        with zipfile.ZipFile(archive) as zf:
-            zf.extractall(work)
+    log(f"Unpacking {Path(archive).name} ...")
+    with tempfile.TemporaryDirectory(dir=dest.parent, prefix=_STAGING) as work:
+        _extract_zip(archive, Path(work), log=log)
         entries = [child for child in Path(work).iterdir()]
         top = entries[0] if len(entries) == 1 and entries[0].is_dir() else Path(work)
         for child in top.iterdir():

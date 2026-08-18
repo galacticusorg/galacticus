@@ -66,6 +66,14 @@ jobs:
           export GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE
           python3 scripts/build/parameterCatalog.py `pwd` parameters.catalog.json
           python3 scripts/build/parameterCatalogCheck.py parameters.catalog.json
+      # Hand the catalog to the `Deploy` job, which publishes it as a release asset. The launcher installs it instead of
+      # generating its own, which costs tens of seconds of CPU on the user's first `galacticus run`. Built here from the very
+      # commit being deployed, so it matches the source archive the launcher unpacks alongside it.
+      - name: Upload artifacts (parameter catalog)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: galacticus-parameter-catalog
+          path: parameters.catalog.json
       - name: Validate parameter files
         run: |
           cd $GITHUB_WORKSPACE
@@ -2487,7 +2495,8 @@ jobs:
     permissions:
       contents: write # required to upload build artifacts as `bleeding-edge` release assets
       actions:  read
-    needs: [ Build-Executable-Linux,
+    needs: [ Test-Preprocessor,
+             Build-Executable-Linux,
              Build-Executables-Instrumented-Linux,
              Build-Executables-MPI-Linux,
              Build-Library-Linux,
@@ -2625,6 +2634,17 @@ jobs:
         run: |
           gh release upload bleeding-edge ./darkMatterOnlySubHalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubHalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2 --clobber
           rm ./darkMatterOnlySubHalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubHalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2
+      - name: Download artifacts (parameter catalog)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: galacticus-parameter-catalog
+      - name: Upload assets to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload bleeding-edge ./parameters.catalog.json --clobber
+          sha256sum parameters.catalog.json >> "${GITHUB_WORKSPACE}/SHA256SUMS"
+          rm ./parameters.catalog.json
       # Publish the checksums collected by the upload steps above. The launcher fetches this asset and checks the executable and
       # tools archives it downloads against it, so that a corrupted or substituted asset is caught rather than being run. It is
       # written last so that it always describes the assets just uploaded.

@@ -298,6 +298,18 @@ def test_progress_milestones_non_tty(capsys):
     assert any("50%" in line for line in lines)
 
 
+def test_progress_set_position_never_moves_backwards():
+    """Unpacking reports an absolute offset into the archive; a sample that has
+    not advanced (or has gone backwards) must not rewind the bar."""
+    lines = []
+    progress = download._Progress(1000, log=lines.append)
+    progress.set_position(600)
+    progress.set_position(500)
+    progress.set_position(1000)
+    assert progress._done == 1000
+    assert any("100%" in line for line in lines)
+
+
 def test_progress_unknown_total_no_crash():
     lines = []
     progress = download._Progress(None, log=lines.append)

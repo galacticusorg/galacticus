@@ -31,11 +31,13 @@ Running a model
    galacticus run parameters/quickTest.xml
 
 On first use you will see the launcher fetch the executable, datasets, and tools,
-with a progress bar for each download; subsequent runs reuse the cached copies.
-``galacticus run`` validates the parameter file before dispatching it; pass
-``--no-validate`` to skip that, and any other arguments (e.g. ``--dry-run``) are
-passed straight through to the executable. ``galacticus <file>`` is shorthand for
-``galacticus run <file>``.
+with a progress bar for each download and for unpacking each archive; subsequent
+runs reuse the cached copies. ``galacticus run`` validates the parameter file
+before dispatching it; pass ``--no-validate`` to skip that, and any other
+arguments (e.g. ``--dry-run``) are passed straight through to the executable.
+``galacticus <file>`` is shorthand for ``galacticus run <file>``. If you do not
+need the run-time tools, ``galacticus install --no-tools`` makes that first-use
+download substantially smaller and faster — see :ref:`pip-no-tools`.
 
 The bundled example parameter files (such as ``parameters/quickTest.xml``)
 resolve against the install, so the command above works from any directory --
@@ -51,7 +53,9 @@ Commands
 --------
 
 ``galacticus install``
-   Download (or complete) the install without running a model.
+   Download (or complete) the install without running a model. Pass
+   ``--no-tools`` to skip the pre-built tools archive — see
+   :ref:`pip-no-tools` below.
 
 ``galacticus update``
    Re-download the install for the current package version.
@@ -93,6 +97,27 @@ Commands
    Show the resolved install, the environment variables it sets, and the current
    cache size.
 
+.. _pip-no-tools:
+
+Installing without the pre-built tools
+--------------------------------------
+
+The ``tools`` archive (CAMB, CLASS, Cloudy, FSPS, …) is by far the largest thing
+the launcher downloads, and many models never touch it — a model reading a
+tabulated transfer function or a pre-computed stellar population, for example,
+needs none of it. Skip it for a faster, smaller install::
+
+   galacticus install --no-tools
+
+The choice is remembered, so a later ``galacticus run`` will not silently
+download the archive you just declined. Add the tools at any time with::
+
+   galacticus install --tools
+
+A model that *does* need a tool will fail without it: a binary-only install has
+no compilers, so Galacticus cannot build the missing tool itself. ``galacticus
+info`` reports whether tools are installed or were skipped.
+
 Where things are stored
 -----------------------
 
@@ -118,11 +143,21 @@ executable is present, or if ``GALACTICUS_HOME`` points at a build/clone tree
 containing ``Galacticus.exe``, the launcher uses that install and skips all
 downloads. Run ``galacticus info`` to see which install is in effect.
 
-For such a build, catalog-aware validation needs the parameter catalog, which a
-managed install generates automatically but a source build does not. Generate it
-once with ``make parameters-catalog`` (it is written to the build tree where the
-launcher looks for it); without it, ``galacticus validate`` falls back to the
+For such a build, catalog-aware validation needs the parameter catalog. A managed
+install downloads a pre-built one from the release (falling back to generating it
+if the release publishes none), but a source build has to make its own: generate
+it once with ``make parameters-catalog`` (it is written to the build tree where
+the launcher looks for it). Without it, ``galacticus validate`` falls back to the
 executable's ``--dry-run``.
+
+.. note::
+
+   The parameter catalog is not the same thing as ``schema/parameters.xsd``,
+   which *is* committed and so arrives with the source archive. That is a
+   deliberately lax schema for editor assistance; validation of a parameter
+   file against the parameters each selected implementation actually accepts
+   uses the catalog, which is derived from the source and published as a
+   release asset.
 
 .. note::
 
