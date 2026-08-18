@@ -158,8 +158,8 @@ contains
     integer                             , intent(in   )           :: pointsPer
     type     (rangeLattice             ), intent(  out)           :: lattice
     integer                             , intent(in   ), optional :: countExpected
-    integer                                                       :: schemeStored, pointsPerStored, &
-         &                                                           indexMinimum, countPoints
+    integer                                                       :: schemeStored , pointsPerStored, &
+         &                                                           indexMinimum , countPoints
 
     lattice=rangeLattice()
     if     (                                                  &

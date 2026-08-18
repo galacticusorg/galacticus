@@ -1631,14 +1631,14 @@ contains
        ! Place the restored tabulation on its lattice. If the file is not self-consistent---the datasets not matching the lattice
        ! recorded alongside them, or that lattice not one which this object could have built---then discard everything read from
        ! it and retabulate from scratch, rather than leave a partially-restored tabulation behind.
-       if     (                                                                  &
-            &   latticeCached%isDefined  (                 )                     &
-            &  .and.                                                             &
-            &   size(self%mass                      ) == latticeCached%count     &
-            &  .and.                                                             &
-            &   size(self%velocityRadialMeanVirial,1) == latticeCached%count     &
-            &  .and.                                                             &
-            &   size(self%velocityRadialMeanVirial,2) == latticeCached%count     &
+       if     (                                                              &
+            &   latticeCached%isDefined()                                    &
+            &  .and.                                                         &
+            &   size(self%mass                      ) == latticeCached%count &
+            &  .and.                                                         &
+            &   size(self%velocityRadialMeanVirial,1) == latticeCached%count &
+            &  .and.                                                         &
+            &   size(self%velocityRadialMeanVirial,2) == latticeCached%count &
             & ) then
           self%latticeMass=latticeCached
           ! Take the abscissae from the lattice rather than from the file, so that they are bit-identical to those of any other
@@ -1672,7 +1672,7 @@ contains
     !!{RST
     Store the tabulated solution to file.
     !!}
-    use :: File_Utilities    , only : Directory_Make, File_Lock, File_Path, File_Unlock, &
+    use :: File_Utilities    , only : Directory_Make           , File_Lock, File_Path, File_Unlock, &
           &                           lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File
