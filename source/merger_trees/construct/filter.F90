@@ -27,7 +27,12 @@
   !![
   <mergerTreeConstructor name="mergerTreeConstructorFilter" docformat="rst">
    <description>
-   A merger tree constructor class filters trees from another constructor. Trees which do not pass the filter are dropped. Those that do pass the filter are returned.
+   A merger tree constructor class filters trees from another constructor. Trees which do not pass the filter are dropped. Those
+   that do pass the filter are returned. Note that this means that this class typically can not provide, in advance, the total
+   number of trees to be run and their masses (since some will be filtered out, but that is not determinable until the trees are
+   constructed), which prevents total and remaining run time estimations. In the case that a
+   :galacticus-class:`mergerTreeFilterAlways` is used---such that *all* trees pass the filter---total number of trees and masses
+   are simply those from the decorated constructor, and are passed through allowing run time estimates to be made.
    </description>
   </mergerTreeConstructor>
   !!]
@@ -36,13 +41,16 @@
      A class implementing merger tree construction by filtering out trees from another constructor.
      !!}
      private
-     class(mergerTreeConstructorClass), pointer :: mergerTreeConstructor_ => null()
-     class(mergerTreeFilterClass     ), pointer :: mergerTreeFilter_      => null()
-     class(nodeOperatorClass         ), pointer :: nodeOperator_          => null()
-     class(mergerTreeOperatorClass   ), pointer :: mergerTreeOperator_    => null()
+     class  (mergerTreeConstructorClass), pointer :: mergerTreeConstructor_ => null()
+     class  (mergerTreeFilterClass     ), pointer :: mergerTreeFilter_      => null()
+     class  (nodeOperatorClass         ), pointer :: nodeOperator_          => null()
+     class  (mergerTreeOperatorClass   ), pointer :: mergerTreeOperator_    => null()
+     logical                                      :: filterAlwaysPasses
    contains
-     final     ::              filterDestructor
-     procedure :: construct => filterConstruct
+     final     ::               filterDestructor
+     procedure :: construct  => filterConstruct
+     procedure :: countTrees => filterCountTrees
+     procedure :: treeMasses => filterTreeMasses
   end type mergerTreeConstructorFilter
 
   interface mergerTreeConstructorFilter
@@ -89,6 +97,7 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`mergerTreeConstructorFilter` merger tree constructor class.
     !!}
+    use :: Merger_Tree_Filters, only : mergerTreeFilterAlways 
     implicit none
     type (mergerTreeConstructorFilter)                        :: self
     class(mergerTreeConstructorClass ), intent(in   ), target :: mergerTreeConstructor_
@@ -99,6 +108,14 @@ contains
     <constructorAssign variables="*mergerTreeConstructor_, *mergerTreeFilter_, *mergerTreeOperator_, *nodeOperator_"/>
     !!]
 
+    ! Record if our filter is an "always" filter. For that case, and that case only, every tree will be passed, so we can report
+    ! the number of trees, and their masses, by simply defering to our decorated tree constructor.
+    select type (mergerTreeFilter_)
+    type is (mergerTreeFilterAlways)
+       self%filterAlwaysPasses=.true.
+    class default
+       self%filterAlwaysPasses=.false.
+    end select
     return
   end function filterConstructorInternal
 
@@ -151,3 +168,31 @@ contains
     end if
     return
   end function filterConstruct
+
+  function filterCountTrees(self) result(countTrees)
+    !!{RST
+    Return the total number of trees that will be built. This is possible if, and only if, our filter always passes.
+    !!}
+    implicit none
+    integer(c_size_t                   )                :: countTrees
+    class  (mergerTreeConstructorFilter), intent(inout) :: self
+
+    if (self%filterAlwaysPasses) then
+       countTrees=self%mergerTreeConstructor_%countTrees()
+    else
+       countTrees=-1_c_size_t
+    end if
+    return
+  end function filterCountTrees
+
+  subroutine filterTreeMasses(self,masses)
+    !!{RST
+    Return the root masses of the trees that will be built. This is possible if, and only if, our filter always passes.
+    !!}
+    implicit none
+    class           (mergerTreeConstructorFilter), intent(inout)                            :: self
+    double precision                             , intent(  out), allocatable, dimension(:) :: masses
+
+    if (self%filterAlwaysPasses) call self%mergerTreeConstructor_%treeMasses(masses)
+    return
+  end subroutine filterTreeMasses
