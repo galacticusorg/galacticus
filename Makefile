@@ -272,6 +272,16 @@ ALLSOURCESINC = $(ALLSOURCES) $(call rwildcard,source,*.Inc)
 rsubdirs = $(foreach d,$(wildcard $1/*),$(if $(wildcard $d/.),$d $(call rsubdirs,$d)))
 SOURCEDIRS := source $(call rsubdirs,source)
 
+# All first-party Python sources, and all directories containing them. The build's code generators
+# are Python programs, so their behavior is defined by these files just as surely as the Fortran
+# sources define the model — see the preprocessor source digest below. `__pycache__` directories
+# are filtered out: their mtimes are bumped by the interpreter itself, which would otherwise make
+# the digest rule appear out of date on every build. As with $(SOURCEDIRS), the directories are
+# listed alongside the files because $(PYTHONSOURCES) enumerates only files that still exist, so
+# DELETING a module changes no listed mtime — but it does bump the containing directory's.
+PYTHONSOURCES := $(call rwildcard,python,*.py)
+PYTHONDIRS    := $(filter-out %__pycache__,python $(call rsubdirs,python))
+
 # General suffix rules: i.e. rules for making a file of one suffix from files of another suffix.
 
 # Object (*.o) files are built by preprocessing and then compiling Fortran 90 (*.F90) source
@@ -290,7 +300,15 @@ vpath %.F90 $(SOURCEDIRS)
 # re-preprocess sweep only when catalog content actually changes (e.g. a stateStorable type or a
 # directive is added or removed), and the `.up` sentinel then limits recompilation to files whose
 # preprocessed output really differs.
-$(BUILDPATH)/%.p.F90.up : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml $(BUILDPATH)/directiveLocations.xml
+#
+# It depends on preprocessorSources.digest for the same reason: the preprocessor is a Python
+# program, so editing preprocess.py or any module it imports changes the Fortran it emits. Without
+# this prerequisite that edit was invisible to make — no `.p.F90` was regenerated, the build
+# reported success, and the stale generated Fortran was compiled into the binary, which made
+# "change a generator, rebuild, diff the generated code" report a false "no change". The digest
+# is likewise written only-if-changed, and covers only the modules the preprocessor actually
+# imports, so unrelated Python edits do not trigger the sweep.
+$(BUILDPATH)/%.p.F90.up : source/%.F90 $(BUILDPATH)/preprocessorSources.digest $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml $(BUILDPATH)/directiveLocations.xml
 	./scripts/build/preprocess.py source/$*.F90 $(BUILDPATH)/$*.p.F90
 $(BUILDPATH)/%.p.F90 : $(BUILDPATH)/%.p.F90.up
 	@true
@@ -536,7 +554,7 @@ $(BUILDPATH)/external/pFq/pfq.new.o : ./source/external/pFq/pfq.new.f Makefile
 # by case, so on case-insensitive filesystems (macOS APFS) the `mv` in the `%.inc` recipe below
 # overwrote the intermediate in place, and every incremental build re-preprocessed its own cpp
 # output under a perpetually-bumped timestamp.
-$(BUILDPATH)/%.p.Inc.up : ./source/%.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
+$(BUILDPATH)/%.p.Inc.up : ./source/%.Inc $(BUILDPATH)/preprocessorSources.digest $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
 	./scripts/build/preprocess.py ./source/$*.Inc $(BUILDPATH)/$*.p.Inc
 $(BUILDPATH)/%.p.Inc : $(BUILDPATH)/%.p.Inc.up
 	@true
@@ -708,7 +726,7 @@ $(BUILDPATH)/Makefile_Library_Dependencies: $(BUILDPATH)/libgalacticus.Inc ./scr
 	./scripts/build/libraryInterfacesDependencies.py
 $(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml ./source/libraryClasses.xml ./scripts/build/libraryInterfaces.py ./python/LibraryInterfaces/Pipeline.py ./python/LibraryInterfaces/Emitters.py ./python/LibraryInterfaces/ArgSpec.py ./python/LibraryInterfaces/Hierarchy.py ./python/LibraryInterfaces/Classification.py
 	./scripts/build/libraryInterfaces.py
-$(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
+$(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/preprocessorSources.digest $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
 	./scripts/build/preprocess.py $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
 $(BUILDPATH)/libgalacticus.p.Inc : $(BUILDPATH)/libgalacticus.p.Inc.up
 	@true
@@ -772,6 +790,20 @@ $(BUILDPATH)/openMPCriticalSections.xml.up: ./scripts/build/enumerateOpenMPCriti
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/enumerateOpenMPCriticalSections.py `pwd`
 $(BUILDPATH)/openMPCriticalSections.xml: $(BUILDPATH)/openMPCriticalSections.xml.up
+	@true
+
+# Digest of the Python sources that implement the Fortran preprocessor: `./scripts/build/preprocess.py`
+# together with every first-party module in its transitive import closure. The rule is triggered by
+# *any* Python source (or a change to the set of them, hence $(PYTHONDIRS)) because the closure can
+# only be known by inspecting the imports, which is what the script does; but the digest it writes
+# covers only the closure, and is written only-if-changed, so the expensive consequence — re-running
+# the preprocessor over every source file — follows only from an edit to a module the preprocessor
+# really uses. Editing, say, an analysis script or the library-interface generator recomputes the
+# digest, finds it unchanged, and stops there.
+$(BUILDPATH)/preprocessorSources.digest.up: ./scripts/build/preprocessorSources.py ./scripts/build/preprocess.py $(PYTHONSOURCES) $(PYTHONDIRS)
+	@mkdir -p $(BUILDPATH)
+	./scripts/build/preprocessorSources.py `pwd`
+$(BUILDPATH)/preprocessorSources.digest: $(BUILDPATH)/preprocessorSources.digest.up
 	@true
 
 # Dependency on dependencies.
