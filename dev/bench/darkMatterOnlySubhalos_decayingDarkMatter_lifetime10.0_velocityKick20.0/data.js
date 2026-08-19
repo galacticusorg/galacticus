@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787093192103,
+  "lastUpdate": 1787117851599,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=10 Gyr; vₖ=20 km/s)": [
@@ -6363,6 +6363,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": 36.90616857668601,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "544daf1fc5eafad397a6143d479501f1129ee2a3",
+          "message": "Merge pull request #1398 from galacticusorg/fix/preprocessor-generator-prerequisites\n\nfix(build): re-preprocess when the preprocessor's own Python sources change",
+          "timestamp": "2026-08-18T23:38:46Z",
+          "tree_id": "0514f3253b97556c90ddaa92e9002a55d383bd42",
+          "url": "https://github.com/galacticusorg/galacticus/commit/544daf1fc5eafad397a6143d479501f1129ee2a3"
+        },
+        "date": 1787117850442,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": 13.407372346281724,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": 45.79418407528744,
             "unit": "-logℒ"
           }
         ]
