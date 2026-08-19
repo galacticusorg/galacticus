@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements a class that provides mass distributions.
 !!}
@@ -1384,7 +1386,7 @@ contains
     use            :: Display                , only : displayIndent       , displayUnindent     , displayMessage
     use            :: Error                  , only : Error_Report        , errorStatusSuccess  , GSL_Error_Details
     use            :: Numerical_Integration  , only : integrator
-    use            :: Numerical_Ranges       , only : Make_Range          , rangeTypeLogarithmic
+    use            :: Numerical_Ranges       , only : Range_Pinned        , rangeLattice        , gridSchemePerOctave
     use            :: Table_Labels           , only : extrapolationTypeFix
     use            :: Numerical_Interpolation, only : gsl_interp_linear
     use            :: String_Handling        , only : operator(//)
@@ -1394,9 +1396,10 @@ contains
     double precision                             , intent(in   )              :: radius
     class           (massDistributionClass      ), intent(inout), target      :: massDistribution_               , massDistributionEmbedding
     double precision                                            , parameter   :: radiusTinyFactor        =1.0d-9 , factorDensityLarge       =1.0d+5
-    double precision                                            , parameter   :: countPointsPerOctave    =2.0d0
+    integer                                                     , parameter   :: countPointsPerOctave    =2
     double precision                                            , parameter   :: toleranceFactor         =2.0d0
     double precision                             , dimension(:) , allocatable :: velocityDispersions             , radii
+    type            (rangeLattice               )                             :: lattice
     double precision                                                          :: radiusMinimum                   , radiusMaximum                   , &
          &                                                                       toleranceRelative               , density                         , &
          &                                                                       jeansIntegral                   , radiusOuter_                    , &
@@ -1425,17 +1428,27 @@ contains
        toleranceRelativePrevious=self%toleranceRelativeVelocityDispersion
        ! Find the range of radii at which to compute the velocity dispersion, and construct the arrays.
        call self%solverSet(massDistribution_,massDistributionEmbedding)
-       !! Set an initial range of radii that brackets the requested radius.
-       radiusMinimum=0.5d0*radius
-       radiusMaximum=2.0d0*radius
-       !! Round to the nearest factor of 2.
-       radiusMinimum=2.0d0**floor  (log(radiusMinimum)/log(2.0d0))
-       radiusMaximum=2.0d0**ceiling(log(radiusMaximum)/log(2.0d0))
-       !! Expand to encompass any pre-existing range.
+       !! Find the range of radii to tabulate, pinned to an absolute lattice of whole octaves. This is what the bracketing by a
+       !! factor of two, the rounding to powers of two, and the expansion to encompass any pre-existing range did by hand: the
+       !! default safety margin is a factor of two at each end, and anchoring defaults to whole octaves, so the bounds are the
+       !! same ones - now obtained from the shared helper rather than reproduced here.
        if (allocated(self%velocityDispersionRadialRadius__)) then
-          radiusMinimum=min(radiusMinimum,self%velocityDispersionRadialRadiusMinimum__)
-          radiusMaximum=max(radiusMaximum,self%velocityDispersionRadialRadiusMaximum__)
+          lattice=Range_Pinned(                                                                                       &
+               &                              radius                                                                , &
+               &                              countPointsPerOctave                                                  , &
+               &                              gridSchemePerOctave                                                   , &
+               &               rangeCurrent  =[self%velocityDispersionRadialRadiusMinimum__,                           &
+               &                               self%velocityDispersionRadialRadiusMaximum__]                          &
+               &              )
+       else
+          lattice=Range_Pinned(                                                                                       &
+               &                              radius                                                                , &
+               &                              countPointsPerOctave                                                  , &
+               &                              gridSchemePerOctave                                                     &
+               &              )
        end if
+       radiusMinimum=lattice%minimum()
+       radiusMaximum=lattice%maximum()
        !! Set a suitable outer radius for integration. We require that the density at the outer radius be much smaller than that
        !! at the maximum radius. This should ensure that any constribution to the Jeans integral from beyond this outer radius is
        !! negligible.
@@ -1450,10 +1463,12 @@ contains
           densityOuter_=massDistribution_%density(coordinates)
        end do
        !! Construct arrays.
-       countRadii=nint(log(radiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave+1.0d0)
+       countRadii=lattice%count
        allocate(radii              (countRadii))
        allocate(velocityDispersions(countRadii))
-       radii=Make_Range(radiusMinimum,radiusMaximum,int(countRadii),rangeTypeLogarithmic)
+       !! Take the abscissae from the lattice rather than by subdividing the range, so that they are bit-identical to those of
+       !! any other tabulation built on the same lattice.
+       radii=lattice%values()
        ! Copy in any usable results from any previous solution.
        !! Assume by default that no previous solutions are usable.
        iMinimum=+huge(0_c_size_t)

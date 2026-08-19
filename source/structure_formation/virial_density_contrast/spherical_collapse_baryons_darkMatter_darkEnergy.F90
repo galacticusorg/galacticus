@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus cosmological constant universe.
   !!}
@@ -46,10 +48,6 @@
      !!}
      private
      logical                                                                           :: tableInitialized                  =  .false., turnaroundInitialized              =  .false.
-     double precision                                                                  :: tableClusteredTimeMinimum                   , tableClusteredTimeMaximum                    , &
-          &                                                                               tableUnclusteredTimeMinimum                 , tableUnclusteredTimeMaximum                  , &
-          &                                                                               turnaroundClusteredTimeMinimum              , turnaroundClusteredTimeMaximum               , &
-          &                                                                               turnaroundUnclusteredTimeMinimum            , turnaroundUnclusteredTimeMaximum
      integer                                                                           :: tablePointsPerOctave
      double precision                                                                  :: perturbationSmall
      logical                                                                           :: tableStore
@@ -216,7 +214,17 @@ contains
 
     ! Check if we need to recompute our table.
     if (self%tableInitialized) then
-       remakeTable=(time < self%tableClusteredTimeMinimum .or. time > self%tableClusteredTimeMaximum .or. time < self%tableUnclusteredTimeMinimum .or. time > self%tableUnclusteredTimeMaximum)
+       ! Test the request against the tabulations' own bounds - see the critical overdensity variant of this class for why a
+       ! copy of them is not kept here.
+       remakeTable=(                                                                &
+            &        time < self%deltaVirialClustered  %x(+1)&
+            &       .or.                                                            &
+            &        time > self%deltaVirialClustered  %x(-1)&
+            &       .or.                                                            &
+            &        time < self%deltaVirialUnclustered%x(+1)&
+            &       .or.                                                            &
+            &        time > self%deltaVirialUnclustered%x(-1)&
+            &      )
     else
        remakeTable=.true.
     end if
@@ -224,10 +232,6 @@ contains
        call self%sphericalCollapseSolverUnclustered_%virialDensityContrast(time,self%tableStore,self%deltaVirialUnclustered)
        call self%sphericalCollapseSolverClustered_  %virialDensityContrast(time,self%tableStore,self%deltaVirialClustered  )
        self%tableInitialized=.true.
-       self%tableClusteredTimeMinimum  =self%deltaVirialClustered  %x(+1)
-       self%tableClusteredTimeMaximum  =self%deltaVirialClustered  %x(-1)
-       self%tableUnclusteredTimeMinimum=self%deltaVirialUnclustered%x(+1)
-       self%tableUnclusteredTimeMaximum=self%deltaVirialUnclustered%x(-1)
     end if
     return
   end subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyRetabulate
@@ -300,7 +304,15 @@ contains
 
     ! Check if we need to recompute our table.
     if (self%turnaroundInitialized) then
-       remakeTable=(time < self%turnaroundClusteredTimeMinimum .or. time > self%turnaroundClusteredTimeMaximum .or. time < self%turnaroundUnclusteredTimeMinimum .or. time > self%turnaroundUnclusteredTimeMaximum)
+       remakeTable=(                                                                &
+            &        time < self%turnaroundClustered  %x(+1)&
+            &       .or.                                                            &
+            &        time > self%turnaroundClustered  %x(-1)&
+            &       .or.                                                            &
+            &        time < self%turnaroundUnclustered%x(+1)&
+            &       .or.                                                            &
+            &        time > self%turnaroundUnclustered%x(-1)&
+            &      )
     else
        remakeTable=.true.
     end if
@@ -308,10 +320,6 @@ contains
        call self%sphericalCollapseSolverUnclustered_%radiusTurnaround(time,self%tableStore,self%turnaroundUnclustered)
        call self%sphericalCollapseSolverClustered_  %radiusTurnaround(time,self%tableStore,self%turnaroundClustered  )
        self%turnaroundInitialized=.true.
-       self%turnaroundClusteredTimeMinimum  =self%turnaroundClustered  %x(+1)
-       self%turnaroundClusteredTimeMaximum  =self%turnaroundClustered  %x(-1)
-       self%turnaroundUnclusteredTimeMinimum=self%turnaroundUnclustered%x(+1)
-       self%turnaroundUnclusteredTimeMaximum=self%turnaroundUnclustered%x(-1)
     end if
     return
   end subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyRetabulateTurnaround
