@@ -29,9 +29,16 @@ tests = [
                 # more accurate. Both shift interpolated cosmological quantities at the level of their own interpolation error;
                 # this value moved by 6.5 parts per million, just past the 4 part per million tolerance below. That is the
                 # one-time shift anticipated by the issue - the tabulations are deterministic from here on.
+                #
+                # Updated again when the halo mean density tabulation of darkMatterHaloScaleVirialDensityContrastDefinition was
+                # pinned (#1375). That table is interpolated linearly in the logarithm of time at a hundred points per decade, so
+                # it carries an error against the exact density contrast of order one part in ten thousand; moving its abscissae
+                # changes only where in that error a given requested time falls. Measured here, the interpolated mean density went
+                # from 23 parts per million below the exact value to 98 parts per million above it. The virial radius follows the
+                # inverse cube root of that density and moved by 41 parts per million, and this value by 18 parts per million.
                 "output":            1,
                 "property":          "hotHaloMass",
-                "values":            np.array([7.998050315988728e10]),
+                "values":            np.array([7.997904546876071e10]),
                 "toleranceRelative": 4.0e-6,
             }
         ],

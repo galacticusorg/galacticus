@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of the dark matter halo spin distribution which modifies another spin distribution to account for the effects of particle noise errors in spins measured in N-body simulations.
   !!}
@@ -244,6 +246,7 @@ contains
     use :: Galacticus_Nodes      , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile, nodeComponentSpin, treeNode, &
          &                                mergerTree
     use :: Numerical_Integration , only : integrator
+    use :: Numerical_Ranges      , only : Range_Pinned                           , rangeLattice                  , gridSchemePerDecade
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout)                    :: self
     double precision                                 , intent(in   )         , optional :: massRequired                        , spinRequired               , &
@@ -258,6 +261,7 @@ contains
     type            (integrator                     )                                   :: integratorMass                      , integratorSpin             , &
          &                                                                                 integratorMassSpin                  , integratorProduct
     logical                                                                             :: retabulate                          , fixedPoint
+    type            (rangeLattice                   )                                   :: lattice
     integer                                                                             :: iSpin                               , iMass
     double precision                                                                    :: spinMeasured                        , massMeasured               , &
          &                                                                                 densityRatioInternalToSurface       , massError                  , &
@@ -330,6 +334,13 @@ contains
     else
        retabulate=.true.
        if (fixedPoint) then
+          ! Record the fixed point. The branch above, taken once a table exists, sets these when it finds them changed - but on
+          ! the first call there is no table to compare against, and without setting them here the tabulation below is built at
+          ! whatever `massMinimum` the defaults left, not at the mass requested, and the fixed spin is never recorded at all.
+          ! The first evaluation for a fresh object then returned a distribution for the wrong halo mass, and the second - which
+          ! found the mismatch and rebuilt - returned a different answer for identical arguments.
+          self%massMinimum=massFixed
+          self%spinFixed  =spinFixed
           self%spinMinimum=min(self%spinMinimum,0.5d0*spinFixed)
           self%spinMaximum=max(self%spinMaximum,2.0d0*spinFixed)
           if (present(spinFixedMeasuredMinimum)) then
@@ -361,11 +372,24 @@ contains
        self%massCount=    1
        self%massDelta=    0.0d0
     else
-       self%massCount=int(log10(self%massMaximum/self%massMinimum)*dble(massPointsPerDecade))+1
-       self%massDelta=    log10(self%massMaximum/self%massMinimum)/dble(self%massCount-1)
+       ! Pin the mass range to an absolute lattice. Previously the spacing was derived from the range - `log10(max/min)`
+       ! divided by one less than a count which was itself rounded down from that ratio - so the resolution, and with it every
+       ! tabulated value, shifted slightly whenever the range grew. On the lattice the spacing is exactly one step per
+       ! `massPointsPerDecade`, and the bounds take only discrete values, so the grid depends solely on which anchored
+       ! intervals the request fell in. No further margin is applied: the factors of two above have already provided one.
+       lattice         =Range_Pinned([self%massMinimum,self%massMaximum],massPointsPerDecade,gridSchemePerDecade,marginFactor=1.0d0)
+       self%massMinimum=lattice%minimum()
+       self%massMaximum=lattice%maximum()
+       self%massCount  =lattice%count
+       self%massDelta  =1.0d0/dble(massPointsPerDecade)
     end if
-    self   %spinCount=int(log10(self%spinMaximum/self%spinMinimum)*dble(spinPointsPerDecade))+1
-    self   %spinDelta=    log10(self%spinMaximum/self%spinMinimum)/dble(self%spinCount-1)
+    ! As for the mass axis. Note that neither lattice is unioned with one previously in use: the fixed-point path replaces
+    ! `massMinimum` outright rather than widening it, so the mass range is not monotonic across successive fixed points.
+    lattice          =Range_Pinned([self%spinMinimum,self%spinMaximum],spinPointsPerDecade,gridSchemePerDecade,marginFactor=1.0d0)
+    self   %spinMinimum=lattice%minimum()
+    self   %spinMaximum=lattice%maximum()
+    self   %spinCount  =lattice%count
+    self   %spinDelta  =1.0d0/dble(spinPointsPerDecade)
     allocate(self%distributionTable(self%massCount,self%spinCount))
     ! Build a work node.
     node                  => treeNode                  (                 )

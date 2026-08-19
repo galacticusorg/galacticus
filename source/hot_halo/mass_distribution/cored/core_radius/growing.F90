@@ -17,12 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.
   !!}
 
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Numerical_Ranges       , only : rangeLattice
   use :: Tables                 , only : table1D                 , table1DLogarithmicLinear
 
   !![
@@ -41,6 +44,7 @@
      class           (darkMatterHaloScaleClass), pointer     :: darkMatterHaloScale_            => null()
      double precision                                        :: coreRadiusOverScaleRadius                 , coreRadiusOverVirialRadiusMaximum
      double precision                                        :: coreRadiusMaximum                         , coreRadiusMinimum
+     type            (rangeLattice                    )      :: coreRadiusLattice
      double precision                                        :: hotGasFractionSaved                       , coreRadiusOverVirialRadiusInitialSaved, &
           &                                                     coreRadiusOverVirialRadiusSaved
      integer                                                 :: coreRadiusTableCount
@@ -61,6 +65,9 @@
   end interface hotHaloMassDistributionCoreRadiusGrowing
 
   integer, parameter :: tablePointsPerDecade=100
+
+  ! Interval, in lattice steps, to which the lower bound of the core radius tabulation is pinned - tenths of a decade.
+  integer, parameter :: tableAnchorEvery    =tablePointsPerDecade/10
 
 contains
 
@@ -150,6 +157,7 @@ contains
     Return the core radius of the hot halo mass distribution.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, nodeComponentHotHalo, treeNode
+    use :: Numerical_Ranges, only : Range_Pinned      , gridSchemePerDecade
     implicit none
     class           (hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node
@@ -158,6 +166,7 @@ contains
     class           (nodeComponentDarkMatterProfile          ), pointer       :: darkMatterProfile
     double precision                                                          :: hotGasFraction                   , coreRadiusOverVirialRadius, &
          &                                                                       coreRadiusOverVirialRadiusInitial, targetValue
+    type            (rangeLattice                            )                :: lattice
     logical                                                                   :: makeTable
 
     ! Get components.
@@ -188,10 +197,31 @@ contains
          &       )                                                                                  &
          & ) then
        ! Create a tabulation of core radius vs. virial density factor if necessary.
+       ! Find the range to tabulate, pinned to an absolute lattice, so that the tabulation depends only on which anchored
+       ! interval the requested core radius fell in rather than on that radius itself.
+       !
+       ! Only the *lower* bound is taken from the lattice. The upper bound is fixed by the parameter
+       ! `coreRadiusOverVirialRadiusMaximum` and so never varies, needing no pinning - and must not be pinned: snapping it onto
+       ! a lattice point would move it inward, below the maximum core radius that parameter is documented to set.
+       !
+       ! The table is rebuilt rather than extended. It is deliberately built in *descending* order - which is why the guard
+       ! below tests `%x(-1)`, its lower bound - and `extend` builds ascending, which would invert it and with it the inverse
+       ! table and the bound tests which use it. Nothing is lost by rebuilding: the tabulated function is a single elementwise
+       ! analytic expression, so recomputing it is far cheaper than the tabulation machinery it would replace.
+       lattice=Range_Pinned(                                                         &
+            &                              coreRadiusOverVirialRadiusInitial       , &
+            &                              tablePointsPerDecade                    , &
+            &                              gridSchemePerDecade                     , &
+            &               rangeCurrent  =[self%coreRadiusOverScaleRadius         , &
+            &                               self%coreRadiusOverVirialRadiusMaximum], &
+            &               latticeCurrent=self%coreRadiusLattice                  , &
+            &               anchorEvery   =tableAnchorEvery                          &
+            &              )
        makeTable=.not.self%coreRadiusTableInitialized
-       if (.not.makeTable) makeTable=(coreRadiusOverVirialRadiusInitial < self%coreRadiusTable%x(-1))
+       if (.not.makeTable) makeTable=.not.self%coreRadiusLattice%covers(lattice)
        if (makeTable) then
-          self%coreRadiusMinimum   =min(self%coreRadiusOverScaleRadius,coreRadiusOverVirialRadiusInitial)
+          self%coreRadiusLattice   =lattice
+          self%coreRadiusMinimum   =lattice%minimum()
           self%coreRadiusMaximum   =self%coreRadiusOverVirialRadiusMaximum
           self%coreRadiusTableCount=int(log10(self%coreRadiusMaximum/self%coreRadiusMinimum)*dble(tablePointsPerDecade))+1
           call self%coreRadiusTable%destroy (                                                                       )
