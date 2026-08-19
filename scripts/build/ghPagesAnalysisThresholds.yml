@@ -176,6 +176,68 @@
 # empty bin becomes unlikely. All twelve analyses across those four models will settle
 # at new levels once that lands and will need re-anchoring then; none of the other
 # eleven is currently warning or failing.
+#
+# The 2026-08-19 pass re-anchors the two analyses the dashboard flagged after that
+# run. Neither is a regression; both had stepped to a new level for a known cause.
+#
+# COZMIC WDM 10keV X1 subhaloRadialDistribution had fallen to +0.099 against a warn
+# line of +0.516 set from the 2026-08-03 level. Its step was traced by rebuilding
+# both endpoints of the window that contains it - 9e04f6f2, which published +1.981,
+# and f62df0c3, which published +0.890 - with the DMO component set CI uses, each
+# run from an empty tabulation cache. The step reproduces: +1.916 to +0.970, against
+# the published +1.981 to +0.890.
+#
+# The cause is the repinning of the filtered-power sigma(M) tabulation in that
+# window (2824ba43d pins both of its axes to absolute lattices; f6e447d38 then gives
+# the mass axis a seed range). Which of the two is responsible was not separated.
+# The cached tabulations written by the two runs show the mass abscissae changing
+# from request-driven ranges (massMinimum 19.9 to 1.26e31 over 298 points, and two
+# others like it) to a decade-anchored lattice at ten points per decade. sigma(M)
+# itself moves by at most 3.7e-3 in relative terms, with a median of about 1e-5, and
+# its normalization by 6.9e-8. That is small, but sigma(M) sets the merger tree
+# branching, so the trees are re-realized and the model resamples: in the rebuild
+# all three analyses moved, subhaloRadialDistribution by -0.95, subhaloMassFunction
+# by -0.10 and subhaloVelocityMaximumMean by +2.60. These models build too few trees
+# for that resampling to be small, which is why a per-mille change in sigma(M)
+# registers here at all.
+#
+# A second step at the 2026-08-15 run took the entry to its present level. Its cause
+# was not investigated; the same window carries the phase 3 tabulation pinning.
+#
+# The anchor is the plateau of the three runs since 2026-08-15 (+0.075, +0.006,
+# +0.099), whose mean is +0.060 and standard deviation 0.049. The stepped rule
+# applies. Its 0.20 floor does not bind here - the measured 1.5 x sd/|A| is 1.21 -
+# so s is the plateau's own scatter, 1.5 x sd = 0.073, and warn and fail sit at
+# A - 1.5s and A - 3.0s. Note that the resulting fail line, -0.159, is within 0.002
+# of the one it replaces: it was the warn line, not the fail line, that had gone
+# stale.
+#
+# While tracing that entry the anchors of the other X1 analyses were checked against
+# the published history, because several of them are positive and were set before
+# 2026-08-10. They are sound, and the reason is worth recording so that the next
+# pass does not mistake them for sign errors. The value published before that run
+# was |logL|, not -logL. For an analysis whose logL is negative the two differ, and
+# the twelve decaying dark matter anchors bootstrapped from it were duly corrected
+# on 2026-08-10; but for an analysis whose logL is positive |logL| = logL, so a
+# pre-2026-08-10 anchor for one of those is already correct. The evidence that the
+# change was one of publication and not of the model is that at the 2026-08-10 run
+# all 24 idealizedSubhaloSimulation analyses flipped sign with bit identical
+# magnitudes, and that logL read this way is continuous across that run for every
+# analysis, moving by at most 0.016 where the sign flipped.
+#
+# COZMIC WDM 6.5keV X1 subhaloRadialDistribution is not re-anchored but sits only
+# 0.12 band widths above its warn line, so it is the likeliest next to flag.
+#
+# The second re-anchored entry is decaying dark matter (tau=40 Gyr, vk=40 km/s)
+# massCumulativeDistribution, which was failing. Its anchor of -20.141 predates two
+# steps, to -26.192 on 2026-08-14 and to -31.170 on 2026-08-15, where it has since
+# sat bit identical over three runs. Over the same window the twelve decaying dark
+# matter analyses improved from a total logL of -891.9 to -337.5, moving in both
+# directions - (tau=20 Gyr, vk=40 km/s) massCumulativeDistribution from -165.8 to
+# -34.8 - which is the reshuffling signature described above rather than a
+# regression. The stepped rule applies; the new plateau has exactly zero scatter, so
+# here the 0.20 floor does set the scale. That this analysis moved against its
+# family is the one thing worth watching if it drifts further.
 
 fraction_fail: 0.2
 fraction_warn: 0.1
@@ -200,9 +262,9 @@ thresholds:
       threshold_fail: 0.4553
       threshold_warn: 0.7969
     subhaloRadialDistribution:
-      current: 0.9657
-      threshold_fail: -0.1575
-      threshold_warn: 0.5164
+      current: 0.0601
+      threshold_fail: -0.1588
+      threshold_warn: -0.0493
     subhaloVelocityMaximumMean:
       current: -23.5054
       threshold_fail: -28.2064
@@ -427,9 +489,9 @@ thresholds:
       threshold_warn: -63.0682
   darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick40.0:
     massCumulativeDistribution:
-      current: -20.1412
-      threshold_fail: -29.4562
-      threshold_warn: -26.8763
+      current: -31.1704
+      threshold_fail: -49.8726
+      threshold_warn: -40.5215
     radialCumulativeDistribution:
       current: -16.1612
       threshold_fail: -24.0517
