@@ -1,0 +1,87 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- N-body spin distribution with measurement errors.
+
+     Wires up `haloSpinDistributionNbodyErrors` and the objects it needs, for
+     `source/tests/spin_distribution_nbody_errors.F90`. That test checks that the class's tabulation of
+     the error-convolved spin distribution is pinned to absolute lattices: the tabulated values must not
+     move when the range is extended, and must not depend on the order in which masses and spins were
+     requested. The class had no test coverage of any kind before that test was added.
+
+     The cosmology and power spectrum are standard LCDM; nothing here is tuned, since the test asserts
+     properties of the tabulation rather than particular spin distribution values. -->
+
+<parameters>
+  <formatVersion>2</formatVersion>
+
+  <!-- Component selection. The class builds a `treeNode` of its own while tabulating, and sets its basic,
+       spin and dark matter profile components. -->
+  <componentBasic             value="standard"/>
+  <componentSpin              value="scalar"  />
+  <componentDarkMatterProfile value="scale"   />
+
+  <!-- Cosmology. -->
+  <cosmologyFunctions  value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="67.76000"/>
+    <OmegaMatter     value=" 0.30700"/>
+    <OmegaDarkEnergy value=" 0.69300"/>
+    <OmegaBaryon     value=" 0.04860"/>
+    <temperatureCMB  value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum, needed by the halo mass function below. -->
+  <transferFunction value="eisensteinHu1999">
+    <darkMatterParticle      value="CDM"  />
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed      value="0.000"/>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index               value="0.9665"/>
+    <wavenumberReference value="1.0000"/>
+    <running             value="0.0000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.8825"/>
+  </cosmologicalMassVariance>
+
+  <!-- Structure formation. -->
+  <linearGrowth          value="collisionlessMatter"                     />
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <criticalOverdensity   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
+    <darkMatterParticle value="CDM"/>
+  </criticalOverdensity>
+  <haloMassFunction value="shethTormen">
+    <a             value="0.707"/>
+    <p             value="0.300"/>
+    <normalization value="0.322"/>
+  </haloMassFunction>
+
+  <!-- Halo structure. -->
+  <darkMatterProfileDMO           value="NFW"          />
+  <darkMatterProfileConcentration value="fixed">
+    <concentration value="8.0"/>
+  </darkMatterProfileConcentration>
+  <darkMatterProfileScaleRadius   value="concentration"/>
+  <darkMatterHaloScale            value="virialDensityContrastDefinition"/>
+
+  <!-- The spin distribution under test. `nbodyErrors` convolves an intrinsic distribution with the
+       measurement errors expected for haloes resolved by a given number of particles. -->
+  <haloSpinDistribution value="nbodyErrors">
+    <massParticle                       value="1.0e8"/>
+    <particleCountMinimum               value="100"  />
+    <energyEstimateParticleCountMaximum value="1.0e6"/>
+    <redshift                           value="0.0"  />
+    <haloSpinDistribution value="logNormal">
+      <median value="0.03687"/>
+      <sigma  value="0.57690"/>
+    </haloSpinDistribution>
+    <nbodyHaloMassError value="trenti2010">
+      <massParticle          value="1.0e8"/>
+      <correlationNormalization value="1.0"/>
+      <correlationMassExponent  value="0.0"/>
+      <correlationRedshiftExponent value="0.0"/>
+    </nbodyHaloMassError>
+  </haloSpinDistribution>
+
+</parameters>

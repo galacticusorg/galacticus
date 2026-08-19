@@ -261,7 +261,7 @@ contains
     type            (integrator                     )                                   :: integratorMass                      , integratorSpin             , &
          &                                                                                 integratorMassSpin                  , integratorProduct
     logical                                                                             :: retabulate                          , fixedPoint
-    type            (rangeLattice)                                    :: lattice
+    type            (rangeLattice                   )                                   :: lattice
     integer                                                                             :: iSpin                               , iMass
     double precision                                                                    :: spinMeasured                        , massMeasured               , &
          &                                                                                 densityRatioInternalToSurface       , massError                  , &
@@ -334,6 +334,13 @@ contains
     else
        retabulate=.true.
        if (fixedPoint) then
+          ! Record the fixed point. The branch above, taken once a table exists, sets these when it finds them changed - but on
+          ! the first call there is no table to compare against, and without setting them here the tabulation below is built at
+          ! whatever `massMinimum` the defaults left, not at the mass requested, and the fixed spin is never recorded at all.
+          ! The first evaluation for a fresh object then returned a distribution for the wrong halo mass, and the second - which
+          ! found the mismatch and rebuilt - returned a different answer for identical arguments.
+          self%massMinimum=massFixed
+          self%spinFixed  =spinFixed
           self%spinMinimum=min(self%spinMinimum,0.5d0*spinFixed)
           self%spinMaximum=max(self%spinMaximum,2.0d0*spinFixed)
           if (present(spinFixedMeasuredMinimum)) then
