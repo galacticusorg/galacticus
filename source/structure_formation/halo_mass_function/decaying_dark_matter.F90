@@ -52,10 +52,10 @@ models, following the revised spherical collapse model of :cite:t:`montandon_dec
       In the model of :cite:t:`montandon_decaying_2026` the DDM suppression is carried by a
       mass-dependent critical overdensity for collapse (see
       :galacticus-class:`criticalOverdensityDecayingDarkMatter`), with the variance :math:`\sigma(M)` computed from
-      the *unmodified* :math:`\Lambda`CDM linear power spectrum. The wrapped halo mass function must
+      the *unmodified* :math:`\Lambda`\ CDM linear power spectrum. The wrapped halo mass function must
       therefore (i) be an :math:`f(\nu)`-type mass function that consumes a
       :galacticus-class:`criticalOverdensityDecayingDarkMatter` critical overdensity (this class emits a warning if
-      it does not; see ``isCriticalOverdensityDependent``), and (ii) use a standard :math:`\Lambda`CDM
+      it does not; see ``isCriticalOverdensityDependent``), and (ii) use a standard :math:`\Lambda`\ CDM
       ``cosmologicalMassVariance``/``transferFunction`` (combining with a suppressed transfer function
       would double-count the suppression).
 
