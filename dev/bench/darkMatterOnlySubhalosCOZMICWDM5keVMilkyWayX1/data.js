@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787093087629,
+  "lastUpdate": 1787117747850,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 5keV resolutionX1)": [
@@ -3380,6 +3380,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 10.332988527436646,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "544daf1fc5eafad397a6143d479501f1129ee2a3",
+          "message": "Merge pull request #1398 from galacticusorg/fix/preprocessor-generator-prerequisites\n\nfix(build): re-preprocess when the preprocessor's own Python sources change",
+          "timestamp": "2026-08-18T23:38:46Z",
+          "tree_id": "0514f3253b97556c90ddaa92e9002a55d383bd42",
+          "url": "https://github.com/galacticusorg/galacticus/commit/544daf1fc5eafad397a6143d479501f1129ee2a3"
+        },
+        "date": 1787117746607,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": -1.5251524485532806,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": -0.7298269196925964,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 10.189253772981306,
             "unit": "-logℒ"
           }
         ]
