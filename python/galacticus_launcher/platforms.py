@@ -11,12 +11,23 @@ import platform
 from collections import namedtuple
 
 # Describes the release assets for one platform.
-#   binary       -- name of the executable asset (e.g. "Galacticus.exe").
-#   tools        -- name of the run-time tools archive asset.
-#   tools_format -- "tar.bz2" or "zip"; how to unpack `tools`.
-#   key          -- short human label for the platform (used in messages).
+#   binary        -- name of the executable asset (e.g. "Galacticus.exe").
+#   tools         -- name of the run-time tools archive asset.
+#   tools_format  -- "tar.zst", "tar.bz2", or "zip"; how to unpack `tools`.
+#   tools_legacy  -- name of the tools archive published by releases predating
+#                    the switch to zstd, or None if there is no earlier name.
+#   tools_legacy_format -- how to unpack `tools_legacy`.
+#   key           -- short human label for the platform (used in messages).
+#
+# Two tools archives are named per platform because a release only ever carries
+# the format that was current when it was cut: releases published before the
+# switch have `tools_legacy` and nothing else, and those assets can not be
+# regenerated after the fact.  Provisioning therefore prefers `tools` and falls
+# back to `tools_legacy` (see `download._tools_archive`), which keeps every
+# already-published version tag installable.
 PlatformAssets = namedtuple(
-    "PlatformAssets", ["binary", "tools", "tools_format", "key"]
+    "PlatformAssets",
+    ["binary", "tools", "tools_format", "tools_legacy", "tools_legacy_format", "key"],
 )
 
 
@@ -41,7 +52,10 @@ def detect(system=None, machine=None):
 
     if system == "Linux":
         if machine in ("x86_64", "amd64"):
-            return PlatformAssets("Galacticus.exe", "tools.tar.bz2", "tar.bz2", "Linux x86-64")
+            return PlatformAssets("Galacticus.exe",
+                                  "tools.tar.zst", "tar.zst",
+                                  "tools.tar.bz2", "tar.bz2",
+                                  "Linux x86-64")
         raise UnsupportedPlatform(
             f"Galacticus provides no pre-built Linux binary for machine '{machine}'. "
             "Build from source: https://galacticus.readthedocs.io/en/latest/"
@@ -49,9 +63,15 @@ def detect(system=None, machine=None):
         )
     if system == "Darwin":
         if machine in ("x86_64", "amd64"):
-            return PlatformAssets("Galacticus_MacOS.exe", "toolsMacOS.zip", "zip", "macOS x86-64")
+            return PlatformAssets("Galacticus_MacOS.exe",
+                                  "toolsMacOS.tar.zst", "tar.zst",
+                                  "toolsMacOS.zip", "zip",
+                                  "macOS x86-64")
         if machine in ("arm64", "aarch64"):
-            return PlatformAssets("Galacticus_MacOS-M1.exe", "toolsMacOSM1.zip", "zip", "macOS Apple Silicon")
+            return PlatformAssets("Galacticus_MacOS-M1.exe",
+                                  "toolsMacOSM1.tar.zst", "tar.zst",
+                                  "toolsMacOSM1.zip", "zip",
+                                  "macOS Apple Silicon")
         raise UnsupportedPlatform(
             f"Galacticus provides no pre-built macOS binary for machine '{machine}'."
         )

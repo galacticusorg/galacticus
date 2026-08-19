@@ -21,17 +21,20 @@ from galacticus_launcher import platforms, paths, cli, download, macos
 
 # --- platform mapping ------------------------------------------------------
 
-@pytest.mark.parametrize("system,machine,binary,fmt", [
-    ("Linux", "x86_64", "Galacticus.exe", "tar.bz2"),
-    ("Linux", "AMD64", "Galacticus.exe", "tar.bz2"),
-    ("Darwin", "x86_64", "Galacticus_MacOS.exe", "zip"),
-    ("Darwin", "arm64", "Galacticus_MacOS-M1.exe", "zip"),
-    ("Darwin", "aarch64", "Galacticus_MacOS-M1.exe", "zip"),
+@pytest.mark.parametrize("system,machine,binary,tools,legacy", [
+    ("Linux", "x86_64", "Galacticus.exe", "tools.tar.zst", "tools.tar.bz2"),
+    ("Linux", "AMD64", "Galacticus.exe", "tools.tar.zst", "tools.tar.bz2"),
+    ("Darwin", "x86_64", "Galacticus_MacOS.exe", "toolsMacOS.tar.zst", "toolsMacOS.zip"),
+    ("Darwin", "arm64", "Galacticus_MacOS-M1.exe", "toolsMacOSM1.tar.zst", "toolsMacOSM1.zip"),
+    ("Darwin", "aarch64", "Galacticus_MacOS-M1.exe", "toolsMacOSM1.tar.zst", "toolsMacOSM1.zip"),
 ])
-def test_detect_supported(system, machine, binary, fmt):
+def test_detect_supported(system, machine, binary, tools, legacy):
     assets = platforms.detect(system, machine)
     assert assets.binary == binary
-    assert assets.tools_format == fmt
+    # Every platform now ships tools as a zstd tar; the archive each release
+    # published before that switch is still named, so old tags stay installable.
+    assert (assets.tools, assets.tools_format) == (tools, "tar.zst")
+    assert assets.tools_legacy == legacy
 
 
 @pytest.mark.parametrize("system,machine", [
@@ -76,7 +79,8 @@ def _clear_galacticus_env(monkeypatch):
 def test_resolve_managed(monkeypatch):
     _clear_galacticus_env(monkeypatch)
     monkeypatch.setattr(platforms, "detect",
-                        lambda: platforms.PlatformAssets("Galacticus.exe", "tools.tar.bz2", "tar.bz2", "test"))
+                        lambda: platforms.PlatformAssets("Galacticus.exe", "tools.tar.zst", "tar.zst",
+                                                        "tools.tar.bz2", "tar.bz2", "test"))
     install = paths.resolve("1.2.3")
     assert install.source == paths.SOURCE_MANAGED
     assert install.managed
@@ -132,7 +136,8 @@ def test_resolve_environment_separated_tools(monkeypatch, tmp_path):
 def test_resolve_environment_without_binary_falls_through(monkeypatch, tmp_path):
     _clear_galacticus_env(monkeypatch)
     monkeypatch.setattr(platforms, "detect",
-                        lambda: platforms.PlatformAssets("Galacticus.exe", "tools.tar.bz2", "tar.bz2", "test"))
+                        lambda: platforms.PlatformAssets("Galacticus.exe", "tools.tar.zst", "tar.zst",
+                                                        "tools.tar.bz2", "tar.bz2", "test"))
     monkeypatch.setenv("GALACTICUS_EXEC_PATH", str(tmp_path / "nope"))
     monkeypatch.setenv("GALACTICUS_DATA_PATH", str(tmp_path / "datasets"))
     install = paths.resolve("1.2.3")
@@ -288,21 +293,24 @@ def test_resolve_parameter_file_absolute_untouched(tmp_path):
 
 def test_progress_milestones_non_tty(capsys):
     lines = []
-    progress = download._Progress(1000, log=lines.append)
-    assert not progress._tty  # custom log is never treated as a TTY
+    display = download._Display(log=lines.append)
+    assert not display._tty  # custom log is never treated as a TTY
+    progress = display.add("asset", 1000)
     for _ in range(10):
         progress.update(100)
     progress.finish()
-    # Milestone lines report percentage as the download advances.
+    # Milestone lines report percentage as the download advances, and name the
+    # item they belong to -- several downloads report into one display at once.
     assert any("100%" in line for line in lines)
     assert any("50%" in line for line in lines)
+    assert all("asset" in line for line in lines)
 
 
 def test_progress_set_position_never_moves_backwards():
     """Unpacking reports an absolute offset into the archive; a sample that has
     not advanced (or has gone backwards) must not rewind the bar."""
     lines = []
-    progress = download._Progress(1000, log=lines.append)
+    progress = download._Display(log=lines.append).add("archive", 1000)
     progress.set_position(600)
     progress.set_position(500)
     progress.set_position(1000)
@@ -312,9 +320,25 @@ def test_progress_set_position_never_moves_backwards():
 
 def test_progress_unknown_total_no_crash():
     lines = []
-    progress = download._Progress(None, log=lines.append)
+    display = download._Display(log=lines.append)
+    progress = display.add("asset")
     progress.update(500)
     progress.finish()  # must not raise when the total is unknown
+    # A size learned from the response headers starts the bar reporting.
+    progress.set_total(1000)
+    progress.update(500)
+    assert any("100%" in line for line in lines)
+
+
+def test_progress_reset_restarts_after_a_failed_attempt():
+    """A retried download starts its bar again rather than counting on top."""
+    lines = []
+    progress = download._Display(log=lines.append).add("asset", 1000)
+    progress.update(400)
+    progress.reset()
+    progress.update(1000)
+    assert progress._done == 1000
+    assert any("100%" in line for line in lines)
 
 
 def test_download_human_readable():

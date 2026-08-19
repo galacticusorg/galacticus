@@ -132,13 +132,22 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
+          # Both the current and the superseded name of each tools archive are listed. A tag cut before the
+          # next `master` deploy finds only the older names on `bleeding-edge`, and the launcher installs
+          # either -- so mirroring whichever exists keeps such a tag usable, rather than leaving it with no
+          # tools at all. Missing names are warned about and skipped below.
           assets=(
             Galacticus.exe
             Galacticus_MacOS.exe
             Galacticus_MacOS-M1.exe
+            tools.tar.zst
+            toolsMacOS.tar.zst
+            toolsMacOSM1.tar.zst
             tools.tar.bz2
             toolsMacOS.zip
             toolsMacOSM1.zip
+            datasets.tar.zst
+            datasets.ref
             parameters.catalog.json
           )
           mkdir -p release-assets
@@ -148,12 +157,22 @@ jobs:
               --pattern "${asset}" --dir release-assets || \
               echo "WARNING: ${asset} not found on bleeding-edge; skipping."
           done
-          # Pin the datasets version: record the current datasets master HEAD
-          # commit so this release always installs against the same data. The
-          # launcher reads the `datasets.ref` asset; the value is also written
-          # into the release notes for users installing manually (not via pip).
-          datasets_sha=$(git ls-remote https://github.com/galacticusorg/datasets.git HEAD | cut -f1)
-          echo "datasets pinned to ${datasets_sha}"
+          # Pin the datasets version, so this release always installs against the same data. The launcher
+          # reads the `datasets.ref` asset; the value is also written into the release notes for users
+          # installing manually (not via pip).
+          #
+          # The pin has to name the commit the mirrored `datasets.tar.zst` snapshot was taken from, not
+          # whatever `master` happens to be right now -- otherwise the recorded commit and the data actually
+          # published here would disagree. Only when no snapshot was mirrored (a tag cut before the next
+          # `master` deploy) is the current remote HEAD used, which is what the repository-archive fallback
+          # would then fetch anyway.
+          if [ -s release-assets/datasets.ref ]; then
+            datasets_sha=$(cut -d' ' -f1 < release-assets/datasets.ref | tr -d '[:space:]')
+            echo "datasets pinned to ${datasets_sha} (from the mirrored snapshot)"
+          else
+            datasets_sha=$(git ls-remote https://github.com/galacticusorg/datasets.git HEAD | cut -f1)
+            echo "datasets pinned to ${datasets_sha} (no snapshot mirrored; using remote HEAD)"
+          fi
           printf '%s\n' "${datasets_sha}" > release-assets/datasets.ref
           # Create the release (with generated notes) if it does not yet exist.
           gh release view "${TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1 || \
