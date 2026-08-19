@@ -92,12 +92,12 @@ convention is the literal text ``HELP:`` in green, followed by the advice:
 
    use :: Display, only : displayGreen, displayReset
    ...
-   call Error_Report(                                                                        &
-        &            'Unable to find data file "'//char(fileName)//'"'           //char(10)// &
-        &            displayGreen()//'HELP:'//displayReset()                              // &
-        &            ' this file is provided by the Galacticus datasets repository. If the' // &
-        &            ' path above begins with "./" then the `GALACTICUS_DATA_PATH`'         // &
-        &            ' environment variable is not set'                                     // &
+   call Error_Report(                                                                         &
+        &            'Unable to find data file "'//char(fileName)//'"'//char(10)           // &
+        &            displayGreen()//'HELP:'//displayReset()                               // &
+        &            ' this file is provided by the Galacticus datasets repository. If the'// &
+        &            ' path above begins with "./" then the `GALACTICUS_DATA_PATH`'        // &
+        &            ' environment variable is not set'                                    // &
         &            {introspection:location}                                                 &
         &           )
 
@@ -126,7 +126,7 @@ returns a status code instead when it is present. The canonical form is:
       status=errorStatusUnderflow
       return
    else
-      call Error_Report  ('ODE integration failed '//{introspection:location})
+      call Error_Report('ODE integration failed '//{introspection:location})
    end if
 
 Two properties of this idiom matter. Existing callers are unaffected, since they
@@ -244,8 +244,8 @@ This costs a scalar integer and one branch. Note what it deliberately does *not*
 do: it does not build a message reporting the size requested, because doing so
 requires a ``type(varying_string)`` local, which is then constructed and
 destroyed on every call rather than only on the failure that never normally
-happens. Where the size is worth reporting, it belongs in a helper called only
-on the failing branch.
+happens. Where the size is worth reporting, it belongs in a ``block`` or a helper
+called only on the failing branch.
 
 .. _manual-sec-errorHandlingSignals:
 
