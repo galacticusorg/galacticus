@@ -813,11 +813,13 @@ contains
     !!{RST
     Read tabulated data on linear growth factor from file.
     !!}
-    use :: Display       , only : displayMessage        , verbosityLevelWorking
-    use :: File_Utilities, only : File_Exists
-    use :: HDF5_Access   , only : hdf5Access
-    use :: IO_HDF5       , only : hdf5File
-    use :: Table_Labels  , only : extrapolationTypeAbort, extrapolationTypeFix
+    use :: Display         , only : displayMessage          , verbosityLevelWorking
+    use :: File_Utilities  , only : File_Exists
+    use :: HDF5_Access     , only : hdf5Access
+    use :: IO_HDF5         , only : hdf5File
+    use :: Numerical_Ranges, only : gridSchemePerDecade
+    use :: Table_Caches    , only : Table_Cache_Lattice_Read
+    use :: Table_Labels    , only : extrapolationTypeAbort  , extrapolationTypeFix
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout)               :: self
     double precision                               , dimension(:,:), allocatable :: growthFactorDarkMatter, growthFactorBaryons
@@ -836,8 +838,8 @@ contains
     dataFile=hdf5File(self%fileName,overWrite=.false.,readOnly=.true.)
     ! Recover the lattices on which the stored tabulation was built. A file which records none, or which records lattices this
     ! object would not use, is ignored - as is one written before the derivatives needed to resume the integration were stored.
-    call baryonsDarkMatterLatticeRead(dataFile,'time'      ,growthTablePointsPerDecadeTime      ,latticeTime      )
-    call baryonsDarkMatterLatticeRead(dataFile,'wavenumber',growthTablePointsPerDecadeWavenumber,latticeWavenumber)
+    call Table_Cache_Lattice_Read(dataFile,'time'      ,gridSchemePerDecade,growthTablePointsPerDecadeTime      ,latticeTime      )
+    call Table_Cache_Lattice_Read(dataFile,'wavenumber',gridSchemePerDecade,growthTablePointsPerDecadeWavenumber,latticeWavenumber)
     if (latticeTime%isDefined() .and. latticeWavenumber%isDefined()) then
        call dataFile%readDataset('growthFactorDarkMatter',growthFactorDarkMatter)
        call dataFile%readDataset('growthFactorBaryons'   ,growthFactorBaryons   )
@@ -904,71 +906,15 @@ contains
     return
   end subroutine baryonsDarkMatterFileRead
 
-  subroutine baryonsDarkMatterLatticeWrite(dataFile,axisName,lattice)
-    !!{RST
-    Record the ``rangeLattice`` on which an axis of the stored tabulation is built, as attributes named for that axis.
-    !!}
-    use :: IO_HDF5, only : hdf5File
-    implicit none
-    type     (hdf5File    ), intent(inout) :: dataFile
-    character(len=*       ), intent(in   ) :: axisName
-    type     (rangeLattice), intent(in   ) :: lattice
-
-    call dataFile%writeAttribute(lattice%scheme%ID   ,axisName//'GridScheme'  )
-    call dataFile%writeAttribute(lattice%pointsPer   ,axisName//'PointsPer'   )
-    call dataFile%writeAttribute(lattice%indexMinimum,axisName//'IndexMinimum')
-    call dataFile%writeAttribute(lattice%count       ,axisName//'Count'       )
-    return
-  end subroutine baryonsDarkMatterLatticeWrite
-
-  subroutine baryonsDarkMatterLatticeRead(dataFile,axisName,pointsPer,lattice)
-    !!{RST
-    Restore the ``rangeLattice`` on which an axis of the stored tabulation was built. The lattice is returned undefined---which
-    the caller must treat as the tabulation being unusable---unless the file records one which is self-consistent and which
-    uses the density of points that this object would use, so that a file written before the lattices were recorded reports an
-    undefined lattice rather than being misread.
-    !!}
-    use :: IO_HDF5         , only : hdf5File
-    use :: Numerical_Ranges, only : enumerationGridSchemeType, gridSchemePerDecade
-    implicit none
-    type     (hdf5File    ), intent(inout) :: dataFile
-    character(len=*       ), intent(in   ) :: axisName
-    integer                , intent(in   ) :: pointsPer
-    type     (rangeLattice), intent(  out) :: lattice
-    integer                                :: schemeStored, pointsPerStored, &
-         &                                    indexMinimum, count_
-
-    lattice=rangeLattice()
-    if     (                                                      &
-         &   .not.dataFile%hasAttribute(axisName//'GridScheme'  ) &
-         &  .or.                                                  &
-         &   .not.dataFile%hasAttribute(axisName//'PointsPer'   ) &
-         &  .or.                                                  &
-         &   .not.dataFile%hasAttribute(axisName//'IndexMinimum') &
-         &  .or.                                                  &
-         &   .not.dataFile%hasAttribute(axisName//'Count'       ) &
-         & ) return
-    call dataFile%readAttribute(axisName//'GridScheme'  ,schemeStored   )
-    call dataFile%readAttribute(axisName//'PointsPer'   ,pointsPerStored)
-    call dataFile%readAttribute(axisName//'IndexMinimum',indexMinimum   )
-    call dataFile%readAttribute(axisName//'Count'       ,count_         )
-    ! Comparing the stored scheme against the one expected is stronger than merely checking that it is a valid member of the
-    ! enumeration, so no separate validity test is needed.
-    if (enumerationGridSchemeType(schemeStored) /= gridSchemePerDecade) return
-    if (pointsPerStored                         /= pointsPer          ) return
-    lattice=rangeLattice(enumerationGridSchemeType(schemeStored),pointsPerStored,indexMinimum,count_)
-    if (.not.lattice%isDefined()) lattice=rangeLattice()
-    return
-  end subroutine baryonsDarkMatterLatticeRead
-
   subroutine baryonsDarkMatterFileWrite(self)
     !!{RST
     Write tabulated data on linear growth factor to file.
     !!}
-    use :: Display    , only : displayMessage, verbosityLevelWorking
-    use :: HDF5       , only : hsize_t
-    use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5File
+    use :: Display     , only : displayMessage           , verbosityLevelWorking
+    use :: HDF5        , only : hsize_t
+    use :: HDF5_Access , only : hdf5Access
+    use :: IO_HDF5     , only : hdf5File
+    use :: Table_Caches, only : Table_Cache_Lattice_Write
     implicit none
     class(linearGrowthBaryonsDarkMatter), intent(inout) :: self
     type (hdf5File                     )                :: dataFile
@@ -990,8 +936,8 @@ contains
     ! Record the lattices on which the two axes are built. The bounds formerly stored alongside them are not: each is a function
     ! of the lattices, and is recovered from them when the file is read, so that a restored tabulation cannot come to be
     ! described differently from a freshly built one.
-    call baryonsDarkMatterLatticeWrite(dataFile,'time'      ,self%latticeTime      )
-    call baryonsDarkMatterLatticeWrite(dataFile,'wavenumber',self%latticeWavenumber)
+    call Table_Cache_Lattice_Write(dataFile,'time'      ,self%latticeTime      )
+    call Table_Cache_Lattice_Write(dataFile,'wavenumber',self%latticeWavenumber)
     !$ call hdf5Access%unset()
     return
   end subroutine baryonsDarkMatterFileWrite

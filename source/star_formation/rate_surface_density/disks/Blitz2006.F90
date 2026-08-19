@@ -57,6 +57,15 @@
   integer         , parameter :: anchorEveryFactorBoost           = 3, anchorEveryFactorBoostStellar    = 3, &
        &                         anchorEveryRadius                = 3
 
+  ! Generate a source digest. The tabulated integral depends on only two of this class's parameters, so its file name is built
+  ! from those alone rather than from a full hashed descriptor - see the constructor. But it depends also on the code which
+  ! generates it: the integrand, the integration tolerance and rule, the floors applied to the two boost coefficients, and the
+  ! densities of tabulation points above. None of those are visible to a descriptor of the parameters, so the digest is folded
+  ! into the name to keep a tabulation built by earlier code from being silently reused.
+  !![
+  <sourceDigest name="blitz2006SourceDigest"/>
+  !!]
+
   !![
   <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksBlitz2006" docformat="rst">
    <description>
@@ -284,6 +293,7 @@ contains
     use :: Numerical_Constants_Prefixes    , only : giga                     , hecto                        , kilo                         , mega
     use :: Root_Finder                     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     use :: Hashes_Cryptographic            , only : Hash_MD5
+    use :: String_Handling                 , only : String_C_To_Fortran
     implicit none
     type            (starFormationRateSurfaceDensityDisksBlitz2006)                :: self
     double precision                                               , intent(in   ) :: velocityDispersionDiskGas          , heightToRadialScaleDisk, &
@@ -333,11 +343,16 @@ contains
     self%radiusScaleFreeMinimum              =+huge(0.0d0)
     self%radiusScaleFreeMaximum              =-huge(0.0d0)
     ! Generate a file name for the table using the two parameters upon which it depends to create a hashed descriptor suffix.
+    ! Deliberately only these two: the tabulated integral is scale free in every other parameter of this class, so including
+    ! them would force the table - which is three-dimensional, and each of whose points is a numerical integral - to be rebuilt
+    ! on changes which cannot affect it. The source digest is included because the tabulated values do depend on the code which
+    ! generates them, which no descriptor of the parameters would capture.
     descriptorString=""
     write (parameterLabel,'(e17.10)') self%pressureExponent
     descriptorString=descriptorString//parameterLabel//" "
     write (parameterLabel,'(e17.10)') self%surfaceDensityExponent
     descriptorString=descriptorString//parameterLabel//" "
+    descriptorString=descriptorString//String_C_To_Fortran(blitz2006SourceDigest)
     self%filenameTable                       =     inputPath  (pathTypeDataDynamic)// &
          &                                    'starFormation/'                     // &
          &                                    self%objectType (                   )// &

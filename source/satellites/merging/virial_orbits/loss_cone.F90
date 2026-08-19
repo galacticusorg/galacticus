@@ -1577,18 +1577,17 @@ contains
     !!{RST
     Attempt to restore a table from file.
     !!}
-    use :: File_Utilities    , only : File_Exists              , File_Lock          , File_Unlock, lockDescriptor
+    use :: File_Utilities    , only : File_Exists             , File_Lock, File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File
     use :: ISO_Varying_String, only : char
-    use :: Numerical_Ranges  , only : enumerationGridSchemeType, gridSchemePerDecade
+    use :: Numerical_Ranges  , only : gridSchemePerDecade
+    use :: Table_Caches      , only : Table_Cache_Lattice_Read
     implicit none
     class  (virialOrbitLossCone), intent(inout) :: self
     type   (hdf5File           )                :: file
     type   (lockDescriptor     )                :: fileLock
     type   (rangeLattice       )                :: latticeCached
-    integer                                     :: schemeCached      , pointsPerCached, &
-         &                                         indexMinimumCached, countCached
 
     if (.not.self%fileRead.and.File_Exists(self%fileName)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
@@ -1613,10 +1612,9 @@ contains
        ! it concurrently---which the shared file lock taken above explicitly permits---would fail to open it at all.
        file=hdf5File(self%fileName,overWrite=.false.,readOnly=.true.)
        call file%readAttribute('time'                                ,     self%time                                )
-       call file%readAttribute('massGridScheme'                      ,     schemeCached                             )
-       call file%readAttribute('massPointsPer'                       ,     pointsPerCached                          )
-       call file%readAttribute('massIndexMinimum'                    ,     indexMinimumCached                       )
-       call file%readAttribute('massCount'                           ,     countCached                              )
+       ! Recover the lattice on which the stored tabulation was built. One which the file does not record, or which this object
+       ! would not have built, is returned undefined and so rejected below.
+       call Table_Cache_Lattice_Read(file,'mass',gridSchemePerDecade,self%countMassesPerDecade,latticeCached)
        call file%readDataset  ('mass'                                ,     self%mass                                )
        call file%readDataset  ('velocityRadialMeanVirial'            ,     self%velocityRadialMeanVirial            )
        call file%readDataset  ('velocityRadialDispersionVirial'      ,     self%velocityRadialDispersionVirial      )
@@ -1633,19 +1631,14 @@ contains
        ! Place the restored tabulation on its lattice. If the file is not self-consistent---the datasets not matching the lattice
        ! recorded alongside them, or that lattice not one which this object could have built---then discard everything read from
        ! it and retabulate from scratch, rather than leave a partially-restored tabulation behind.
-       latticeCached=rangeLattice(enumerationGridSchemeType(schemeCached),pointsPerCached,indexMinimumCached,countCached)
-       if     (                                                        &
-            &   latticeCached%isDefined  (                 )           &
-            &  .and.                                                   &
-            &   latticeCached%scheme      ==      gridSchemePerDecade  &
-            &  .and.                                                   &
-            &   pointsPerCached           == self%countMassesPerDecade &
-            &  .and.                                                   &
-            &   size(self%mass                      ) == countCached   &
-            &  .and.                                                   &
-            &   size(self%velocityRadialMeanVirial,1) == countCached   &
-            &  .and.                                                   &
-            &   size(self%velocityRadialMeanVirial,2) == countCached   &
+       if     (                                                              &
+            &   latticeCached%isDefined()                                    &
+            &  .and.                                                         &
+            &   size(self%mass                      ) == latticeCached%count &
+            &  .and.                                                         &
+            &   size(self%velocityRadialMeanVirial,1) == latticeCached%count &
+            &  .and.                                                         &
+            &   size(self%velocityRadialMeanVirial,2) == latticeCached%count &
             & ) then
           self%latticeMass=latticeCached
           ! Take the abscissae from the lattice rather than from the file, so that they are bit-identical to those of any other
@@ -1679,11 +1672,12 @@ contains
     !!{RST
     Store the tabulated solution to file.
     !!}
-    use :: File_Utilities    , only : Directory_Make, File_Lock, File_Path, File_Unlock, &
+    use :: File_Utilities    , only : Directory_Make           , File_Lock, File_Path, File_Unlock, &
           &                           lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File
     use :: ISO_Varying_String, only : char
+    use :: Table_Caches      , only : Table_Cache_Lattice_Write
     implicit none
     class(virialOrbitLossCone), intent(inout) :: self
     type (hdf5File           )                :: file
@@ -1697,10 +1691,7 @@ contains
     call file%writeAttribute(self%time                                ,'time'                                )
     ! Record the lattice, not the bounds: the bounds follow from the lattice, but the converse does not, and it is the lattice
     ! which determines whether a tabulation read back later can be extended to cover a new range without recomputation.
-    call file%writeAttribute(self%latticeMass%scheme%ID               ,'massGridScheme'                      )
-    call file%writeAttribute(self%latticeMass%pointsPer               ,'massPointsPer'                       )
-    call file%writeAttribute(self%latticeMass%indexMinimum            ,'massIndexMinimum'                    )
-    call file%writeAttribute(self%latticeMass%count                   ,'massCount'                           )
+    call Table_Cache_Lattice_Write(file,'mass',self%latticeMass)
     call file%writeDataset  (self%mass                                ,'mass'                                )
     call file%writeDataset  (self%velocityRadialMeanVirial            ,'velocityRadialMeanVirial'            )
     call file%writeDataset  (self%velocityRadialDispersionVirial      ,'velocityRadialDispersionVirial'      )

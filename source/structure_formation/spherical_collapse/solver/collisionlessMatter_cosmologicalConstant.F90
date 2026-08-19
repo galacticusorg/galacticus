@@ -47,10 +47,8 @@
    contains
      !![
      <methods docformat="rst">
-       <method description="Get the requested table."                method="getTable"    />
-       <method description="Restore a tabulated solution from file." method="restoreTable"/>
-       <method description="Store a tabulated solution to file."     method="storeTable"  />
-       <method description="Construct a tabulated solution."         method="tabulate"    />
+       <method description="Get the requested table."        method="getTable"/>
+       <method description="Construct a tabulated solution." method="tabulate"/>
      </methods>
      !!]
      final     ::                          cllsnlssMttCsmlgclCnstntDestructor
@@ -59,8 +57,6 @@
      procedure :: radiusTurnaround      => cllsnlssMttCsmlgclCnstntRadiusTurnaround
      procedure :: linearNonlinearMap    => cllsnlssMttCsmlgclCnstntLinearNonlinearMap
      procedure :: getTable              => cllsnlssMttCsmlgclCnstntGetTable
-     procedure :: restoreTable          => cllsnlssMttCsmlgclCnstntRestoreTable
-     procedure :: storeTable            => cllsnlssMttCsmlgclCnstntStoreTable
      procedure :: tabulate              => cllsnlssMttCsmlgclCnstntTabulate
   end type sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
 
@@ -178,11 +174,11 @@ contains
          &                             'TurnaroundRadius_'                                                                  // &
          &                             self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &                             '.hdf5'
-    self%fileNameNonLinearMap         =inputPath(pathTypeDataDynamic)                   // &
-         &                             'largeScaleStructure/'                           // &
-         &                             self%objectType      (                          )// &
-         &                             'NonLinearMap_'                                  // &
-         &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
+    self%fileNameNonLinearMap         =inputPath(pathTypeDataDynamic)                                                       // &
+         &                             'largeScaleStructure/'                                                               // &
+         &                             self%objectType      (                                                              )// &
+         &                             'NonLinearMap_'                                                                      // &
+         &                             self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &                             '.hdf5'
     return
   end function cllsnlssMttCsmlgclCnstntConstructorInternal
@@ -205,10 +201,8 @@ contains
     !!{RST
     Get the requested table for collapse for the spherical collapse model---either restoring from cache, from file, or computing as necessary.
     !!}
-    use :: Error         , only : errorStatusSuccess
-    use :: File_Utilities, only : File_Lock         , File_Unlock             , lockDescriptor, Directory_Make, &
-         &                        File_Path
-    use :: Tables        , only : table1D           , table1DLogarithmicLinear
+    use :: Table_Caches, only : Table_Cache_Restore, Table_Cache_Store
+    use :: Tables      , only : table1D            , table1DLogarithmicLinear
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
     double precision                                                               , intent(in   ) :: time
@@ -217,7 +211,6 @@ contains
     type            (enumerationCllsnlssMttCsmlgclCnstntClcltnType   )             , intent(in   ) :: calculationType
     class           (table1D                                         ), allocatable, intent(inout) :: table_
     integer                                                                                        :: status
-    type            (lockDescriptor                                  )                             :: fileLock
     integer                                                                                        :: useCache       , i
     logical                                                           , allocatable, dimension(:)  :: isComputed
 
@@ -257,24 +250,25 @@ contains
     end if
     !$omp end critical(sphrclCllpsCllsnlssMttrCsmlgclCnstntCache)
     if (useCache /=0 ) return
-    if (tableStore) then
-       call     Directory_Make(File_Path(fileName)                              )
-       call     File_Lock     (          fileName ,fileLock,lockIsShared=.true. )
-    end if
-    call       self%restoreTable(time,table_,fileName       ,tableStore,status)
-    if (status /= errorStatusSuccess) then
-       if (tableStore) then
-          call  File_Unlock   (fileLock                    ,sync        =.false.)
-          call  File_Lock     (          fileName ,fileLock,lockIsShared=.false.)
-       end if
-       call    self%restoreTable(time,table_,fileName       ,tableStore,status)
-       if (status /= errorStatusSuccess) then
-          call self%tabulate    (time,table_,calculationType                  )
-          call self%storeTable  (     table_,fileName       ,tableStore       )
-       end if
-    end if
-    if (tableStore) &
-         & call File_Unlock   (fileLock                                                     )
+    ! Merge in whatever is already cached on disk, compute only the points which the request still needs, and write the union
+    ! back. Since each tabulated point is the result of an independent root find - not of an integration carried forward from
+    ! the earliest tabulated epoch - the cached and freshly computed solutions agree wherever they overlap, so a cached file
+    ! whose range does not cover the request can be merged rather than discarded and recomputed wholesale.
+    !
+    ! `Table_Cache_Restore` takes the shared lock and `Table_Cache_Store` the exclusive one, each for the duration of its own
+    ! file access only - never across the tabulation. `Table_Cache_Store` re-reads under its exclusive lock before writing, so a
+    ! range written by another process since our own read is merged rather than overwritten, which is what the second restore
+    ! under an upgraded lock used to guard against.
+    !
+    ! Note one consequence of merging rather than discarding. A restored point keeps the value it was given by the run which
+    ! computed it, and that run may have held a narrower tabulation of the expansion factor than this one does - that tabulation
+    ! is rebuilt, not extended, when its earliest epoch moves, so its values shift slightly when it grows. A merged table can
+    ! therefore differ from one computed wholly afresh: measured at up to 3e-9 relative, on the restored points only, which is
+    ! of order the 1e-9 relative tolerance to which each point's root is found in the first place. Discarding the cache instead
+    ! would hide this, at the cost of recomputing every point whenever the requested range grows.
+    if (tableStore) call Table_Cache_Restore(     table_,fileName       ,status)
+    call                 self%tabulate      (time,table_,calculationType       )
+    if (tableStore) call Table_Cache_Store  (     table_,fileName              )
     !$omp critical(sphrclCllpsCllsnlssMttrCsmlgclCnstntCache)
     useCache=0
     if (countCache(calculationType%ID) > 0) then
@@ -505,6 +499,8 @@ contains
              end select
           end select
        end do
+    class default
+       call Error_Report('tabulation requires a `table1DLogarithmicLinear` table'//{introspection:location})
     end select
     return
   end subroutine cllsnlssMttCsmlgclCnstntTabulate
@@ -992,111 +988,3 @@ contains
     end if
     return
   end function cllsnlssMttCsmlgclCnstntRadiusRoot
-
-  subroutine cllsnlssMttCsmlgclCnstntRestoreTable(self,time,restoredTable,fileName,tableStore,status)
-    !!{RST
-    Attempt to restore a table from file. The table is rebuilt on the absolute lattice recorded in the file, so that its
-    abscissae are identical to those of the table which was stored. Files which do not record a lattice (i.e. those written by
-    earlier versions of this code) are rejected, causing the table to be recomputed and stored afresh.
-    !!}
-    use :: Error               , only : errorStatusFail, errorStatusSuccess
-    use :: File_Utilities      , only : File_Exists
-    use :: HDF5_Access         , only : hdf5Access
-    use :: IO_HDF5             , only : hdf5File
-    use :: ISO_Varying_String  , only : char           , varying_string
-    use :: Numerical_Comparison, only : Values_Agree
-    use :: Numerical_Ranges    , only : rangeLattice   , enumerationGridSchemeType
-    use :: Tables              , only : table1D        , table1DLogarithmicLinear
-    implicit none
-    class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
-    double precision                                                               , intent(in   ) :: time
-    class           (table1D                                         ), allocatable, intent(inout) :: restoredTable
-    type            (varying_string                                  )             , intent(in   ) :: fileName
-    logical                                                                        , intent(in   ) :: tableStore
-    integer                                                                        , intent(  out) :: status
-    type            (hdf5File                                        )                             :: file
-    type            (rangeLattice                                    )                             :: lattice
-    logical                                                           , allocatable, dimension(:)  :: isComputed
-    double precision                                                  , allocatable, dimension(:)  :: timeTable    , valueTable
-    integer                                                                                        :: gridScheme   , pointsPer , &
-         &                                                                                            indexMinimum
-    !$GLC attributes unused :: self
-
-    status=errorStatusFail
-    if (.not.tableStore) return
-    if (File_Exists(fileName)) then
-       !$ call hdf5Access%set()
-       file=hdf5File(fileName,readOnly=.true.)
-       if (file%hasAttribute('gridScheme')) then
-          call file%readDataset('time',timeTable)
-          if     (                                    &
-               &   timeTable(1              ) <= time &
-               &  .and.                               &
-               &   timeTable(size(timeTable)) >= time &
-               & ) then
-             call file%readAttribute('gridScheme'  ,gridScheme  )
-             call file%readAttribute('pointsPer'   ,pointsPer   )
-             call file%readAttribute('indexMinimum',indexMinimum)
-             call file%readDataset  ('value'       ,valueTable  )
-             lattice=rangeLattice(enumerationGridSchemeType(gridScheme),pointsPer,indexMinimum,size(timeTable))
-             ! Guard against a file whose recorded lattice is inconsistent with its stored abscissae - such a file can not be
-             ! restored onto the lattice, so treat it as unusable and allow the table to be recomputed.
-             if     (                                                                          &
-                  &   lattice%isDefined()                                                      &
-                  &  .and.                                                                     &
-                  &   Values_Agree(lattice%minimum(),timeTable(1              ),relTol=1.0d-6) &
-                  &  .and.                                                                     &
-                  &   Values_Agree(lattice%maximum(),timeTable(size(timeTable)),relTol=1.0d-6) &
-                  & ) then
-                ! Deallocate table if currently allocated.
-                if (allocated(restoredTable)) then
-                   call restoredTable%destroy()
-                   deallocate(restoredTable)
-                end if
-                allocate(table1DLogarithmicLinear :: restoredTable)
-                select type (restoredTable)
-                type is (table1DLogarithmicLinear)
-                   call restoredTable%extend  (lattice,isComputed)
-                   call restoredTable%populate(valueTable        )
-                end select
-                status=errorStatusSuccess
-             end if
-          end if
-       end if
-       !$ call hdf5Access%unset()
-    end if
-    return
-  end subroutine cllsnlssMttCsmlgclCnstntRestoreTable
-
-  subroutine cllsnlssMttCsmlgclCnstntStoreTable(self,storeTable,fileName,tableStore)
-    !!{RST
-    Store a table to file, recording the absolute lattice on which it was built so that it can be restored onto exactly the same
-    abscissae.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: File_Utilities    , only : Directory_Make, File_Path
-    use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5File
-    use :: ISO_Varying_String, only : char          , varying_string
-    use :: Tables            , only : table1D
-    implicit none
-    class  (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), intent(inout) :: self
-    class  (table1D                                         ), intent(in   ) :: storeTable
-    type   (varying_string                                  ), intent(in   ) :: fileName
-    logical                                                  , intent(in   ) :: tableStore
-    type   (hdf5File                                        )                :: file
-    !$GLC attributes unused :: self
-
-    if (.not.tableStore) return
-    if (.not.storeTable%lattice%isDefined()) call Error_Report('table was not built on an absolute lattice'//{introspection:location})
-    call Directory_Make(File_Path(fileName))
-    !$ call hdf5Access%set()
-    file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
-    call file%writeDataset  (        storeTable%xs()                     ,'time'        )
-    call file%writeDataset  (reshape(storeTable%ys(),[storeTable%size()]),'value'       )
-    call file%writeAttribute(storeTable%lattice%scheme%ID                ,'gridScheme'  )
-    call file%writeAttribute(storeTable%lattice%pointsPer                ,'pointsPer'   )
-    call file%writeAttribute(storeTable%lattice%indexMinimum             ,'indexMinimum')
-    !$ call hdf5Access%unset()
-    return
-  end subroutine cllsnlssMttCsmlgclCnstntStoreTable

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements useful shared utilities for calculations of decaying dark matter.
 !!}
@@ -53,6 +55,14 @@ module Decaying_Dark_Matter
   ! dispersion and essentially all particles are retained. Seeding matters because it guarantees that any two tabulations - built
   ! in different runs, at different requested velocities - overlap, and so can always be merged onto the common lattice.
   double precision                              , parameter   :: velocityKickScaleFreeSeed     =+  1.0d0
+
+  ! Generate a source digest. The tabulation below is a property of the truncated Maxwell-Boltzmann distribution alone, so no
+  ! object's parameters enter it and none belong in its file name. It does depend on the code which generates it - the
+  ! integrands, the integration and root-finding tolerances, and the constants above - so the digest is what its cache file must
+  ! be keyed on. Without it a tabulation computed by an earlier version would be silently reused after the code was changed.
+  !![
+  <sourceDigest name="decayingDarkMatterSourceDigest"/>
+  !!]
 
 contains
 
@@ -326,17 +336,18 @@ contains
 
        f =  \int_{-1}^{+_1} \mathrm{d}\cos\theta \int_{v_\mathrm{min}(\theta)}^{v_\mathrm{max}(\theta)} \mathrm{d}v p(v,\theta|s).
     !!}
-    use :: Display                 , only : displayCounter, displayCounterClear          , displayIndent                , displayUnindent          , &
-         &                                  displayMessage, verbosityLevelStandard
-    use :: ISO_Varying_String      , only : varying_string, operator(//)                 , assignment(=)
+    use :: Display                 , only : displayCounter     , displayCounterClear          , displayIndent                , displayUnindent          , &
+         &                                  displayMessage     , verbosityLevelStandard
+    use :: ISO_Varying_String      , only : varying_string     , operator(//)                 , assignment(=)
     use :: Numerical_Constants_Math, only : Pi
-    use :: Root_Finder             , only : rootFinder    , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rangeExpandMultiplicative
+    use :: Root_Finder             , only : rootFinder         , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rangeExpandMultiplicative
     use :: Numerical_Integration   , only : integrator
-    use :: Numerical_Ranges        , only : Range_Pinned  , rangeLattice                 , gridSchemePerDecade          , Range_Lattice_Offset
-    use :: File_Utilities          , only : File_Exists   , Directory_Make               , File_Path, File_Lock         , File_Unlock, lockDescriptor
+    use :: Numerical_Ranges        , only : Range_Pinned       , rangeLattice                 , gridSchemePerDecade          , Range_Lattice_Offset
+    use :: File_Utilities          , only : File_Exists        , Directory_Make               , File_Path, File_Lock         , File_Unlock, lockDescriptor
     use :: HDF5_Access             , only : hdf5Access
     use :: IO_HDF5                 , only : hdf5File
-    use :: Input_Paths             , only : inputPath     , pathTypeDataDynamic
+    use :: Input_Paths             , only : inputPath          , pathTypeDataDynamic
+    use :: String_Handling         , only : String_C_To_Fortran
     implicit none
     double precision              , intent(inout)               :: velocityEscapeScaleFree
     double precision              , intent(in   )               :: velocityKickScaleFree
@@ -375,13 +386,17 @@ contains
       character(len=8         ) :: labelMinimum, labelMaximum
       type     (lockDescriptor) :: fileLock
 
-      fileName=inputPath(pathTypeDataDynamic)//'darkMatter/decayingDarkMatterRetention.hdf5'
+      fileName=inputPath(pathTypeDataDynamic)                     // &
+           &   'darkMatter/decayingDarkMatterRetention_'          // &
+           &   String_C_To_Fortran(decayingDarkMatterSourceDigest)// &
+           &   '.hdf5'
       call Directory_Make(File_Path(fileName))
       ! Adopt any tabulation already cached on disk. Since the tabulation lies on absolute lattices the cached and in-memory
       ! solutions share abscissae wherever they overlap, so the cache is adopted whenever it spans everything we already hold -
       ! rather than, as previously, being read over the top of whatever is in memory, which could discard a wider range. Note
       ! that the file name deliberately carries no descriptor of any object's parameters: the retained fractions and energies are
-      ! a property of the truncated Maxwell-Boltzmann distribution alone, and so are common to every model.
+      ! a property of the truncated Maxwell-Boltzmann distribution alone, and so are common to every model. It is keyed instead
+      ! on this module's source digest, since the code which generates the tabulation is the only thing its values depend on.
       if (File_Exists(fileName)) then
          ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
          call File_Lock(fileName,fileLock,lockIsShared=.true.)
@@ -390,9 +405,9 @@ contains
       end if
       ! Re-evaluate the ranges required in the light of anything restored.
       call rangesRequired()
-      if     (                                                &
+      if     (                                                 &
            &  .not.latticeVelocityEscape%covers(latticeEscape) &
-           &  .or.                                            &
+           &  .or.                                             &
            &  .not.latticeVelocityKick  %covers(latticeKick  ) &
            & ) then
          ! Extend the tabulation onto the new lattices, preserving every solution already found. Both axes may grow, so the

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Provides a mass distribution implementing the "isothermal" approximation to the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023`.
   !!}
@@ -25,6 +27,14 @@
   use            :: Numerical_Interpolation, only : interpolator
   use            :: Numerical_ODE_Solvers  , only : odeSolver
   use            :: Numerical_Ranges       , only : rangeLattice
+
+  ! Generate a source digest. The tabulation cached by this class carries no descriptor of any object's parameters - see
+  ! `sphericalSIDMIsothermalTabulationExtend` - because its solutions depend on ξ alone. They do depend on the code which
+  ! generates them, including the ODE tolerances and the densities of tabulation points, so the digest is what the cache file is
+  ! keyed on instead.
+  !![
+  <sourceDigest name="massDistributionSIDMIsothermalSourceDigest"/>
+  !!]
 
   !![
   <massDistribution name="massDistributionSphericalSIDMIsothermal" docformat="rst">
@@ -302,17 +312,18 @@ contains
     Extend this thread's tabulation of :math:`y_0(\xi)`, :math:`z_0(\xi)`, and of the dimensionless density and mass profiles,
     so that it spans ``xiRequired``, merging with - and writing back to - the copy of it cached on disk.
     !!}
-    use :: Display                   , only : displayIndent    , displayUnindent     , displayMessage, verbosityLevelWorking, &
-         &                                    displayCounter   , displayCounterClear
-    use :: File_Utilities            , only : Directory_Make   , File_Exists         , File_Lock     , File_Path            , &
-         &                                    File_Unlock      , lockDescriptor
+    use :: Display                   , only : displayIndent      , displayUnindent     , displayMessage, verbosityLevelWorking, &
+         &                                    displayCounter     , displayCounterClear
+    use :: File_Utilities            , only : Directory_Make     , File_Exists         , File_Lock     , File_Path            , &
+         &                                    File_Unlock        , lockDescriptor
     use :: HDF5_Access               , only : hdf5Access
     use :: IO_HDF5                   , only : hdf5File
     use :: ISO_Varying_String        , only : char
-    use :: Numerical_Ranges          , only : Make_Range       , rangeTypeLinear     , Range_Pinned  , rangeLattice         , &
-         &                                    gridSchemePerUnit, Range_Lattice_Extend                , Range_Lattice_Offset
-    use :: Input_Paths               , only : inputPath        , pathTypeDataDynamic
+    use :: Numerical_Ranges          , only : Make_Range         , rangeTypeLinear     , Range_Pinned  , rangeLattice         , &
+         &                                    gridSchemePerUnit  , Range_Lattice_Extend                , Range_Lattice_Offset
+    use :: Input_Paths               , only : inputPath          , pathTypeDataDynamic
     use :: Multidimensional_Minimizer, only : multiDMinimizer
+    use :: String_Handling           , only : String_C_To_Fortran
     implicit none
     class           (massDistributionSphericalSIDMIsothermal), intent(inout)                             :: self
     double precision                                         , intent(in   )                             :: xiRequired
@@ -381,10 +392,12 @@ contains
     ! Construct a file name for the table. Note that this deliberately carries no descriptor of the parameters of this object:
     ! the tabulated solutions y₀(ξ) and z₀(ξ), and the dimensionless profiles, depend on ξ alone and so are common to every
     ! halo. Only the extent in ξ differs between users, and that is handled by extending and merging the tabulation rather than
-    ! by separating it into distinct files.
-    fileName=inputPath(pathTypeDataDynamic)// &
-         &   'darkMatter/'                 // &
-         &   self%objectType()             // &
+    ! by separating it into distinct files. It is keyed on this file's source digest instead, so that a tabulation built by
+    ! earlier code is not silently reused.
+    fileName=inputPath(pathTypeDataDynamic)                                 // &
+         &   'darkMatter/'                                                  // &
+         &   self%objectType()//'_'                                         // &
+         &   String_C_To_Fortran(massDistributionSIDMIsothermalSourceDigest)// &
          &   '.hdf5'
     call Directory_Make(File_Path(fileName))
     ! Merge in any tabulation already cached on disk. Since the tabulation lies on an absolute lattice the cached and in-memory
