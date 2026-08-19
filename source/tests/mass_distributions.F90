@@ -1093,6 +1093,20 @@ program Test_Mass_Distributions
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
 
+  ! The potential tabulation rounds its bounds outward to whole octaves of an absolute lattice. A radius which already lies on
+  ! one is the case where those bounds can coincide, which is rejected as a range of fewer than two points - so evaluate there.
+  call Unit_Tests_Begin_Group("Potential at a radius on a whole octave")
+  block
+    type            (massDistributionHernquist) :: hernquist_
+    type            (coordinateSpherical      ) :: coordinatesOctave
+    double precision                            :: potentialOctave
+    hernquist_       =massDistributionHernquist(mass=1.0d0,scaleLength=1.0d0)
+    coordinatesOctave=[1.0d0,0.0d0,0.0d0]
+    potentialOctave  =hernquist_%potential(coordinatesOctave)
+    call Assert("the potential is finite at a radius lying on a whole octave",potentialOctave < 0.0d0,.true.)
+  end block
+  call Unit_Tests_End_Group()
+
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
