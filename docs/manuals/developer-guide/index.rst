@@ -7,6 +7,7 @@ Developer Guide
    development
    editor-setup
    coding
+   error-handling
    continuous-integration
    methods
    creating-a-new-class
