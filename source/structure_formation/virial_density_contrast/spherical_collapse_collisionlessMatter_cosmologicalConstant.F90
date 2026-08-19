@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus cosmological constant universe.
   !!}
@@ -38,8 +40,6 @@
      !!}
      private
      logical                                                                         :: tableInitialized        =  .false., turnaroundInitialized=.false.
-     double precision                                                                :: tableTimeMinimum                  , tableTimeMaximum             , &
-          &                                                                             turnaroundTimeMinimum             , turnaroundTimeMaximum
      logical                                                                         :: tableStore
      class           (table1D                                         ), allocatable :: deltaVirial                       , turnaround
      class           (cosmologyFunctionsClass                         ), pointer     :: cosmologyFunctions_      => null()
@@ -154,15 +154,15 @@ contains
 
     ! Check if we need to recompute our table.
     if (self%tableInitialized) then
-       remakeTable=(time < self%tableTimeMinimum .or. time > self%tableTimeMaximum)
+       ! Test the request against the tabulation's own bounds - see the critical overdensity variant of this class for why a
+       ! copy of them is not kept here.
+       remakeTable=(time < self%deltaVirial%x(+1) .or. time > self%deltaVirial%x(-1))
     else
        remakeTable=.true.
     end if
     if (remakeTable) then
        call self%sphericalCollapseSolver_%virialDensityContrast(time,self%tableStore,self%deltaVirial)
        self%tableInitialized=.true.
-       self%tableTimeMinimum=self%deltaVirial%x(+1)
-       self%tableTimeMaximum=self%deltaVirial%x(-1)
     end if
     return
   end subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntRetabulate
@@ -263,15 +263,13 @@ contains
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     ! Check if we need to recompute our table.
     if (self%turnaroundInitialized) then
-       remakeTable=(time_ < self%turnaroundTimeMinimum .or. time_ > self%turnaroundTimeMaximum)
+       remakeTable=(time_ < self%turnaround%x(+1) .or. time_ > self%turnaround%x(-1))
     else
        remakeTable=.true.
     end if
     if (remakeTable) then
        call self%sphericalCollapseSolver_%radiusTurnaround(time_,self%tableStore,self%turnaround)
        self%turnaroundInitialized=.true.
-       self%turnaroundTimeMinimum=self%turnaround%x(+1)
-       self%turnaroundTimeMaximum=self%turnaround%x(-1)
     end if
     ! Interpolate to get the ratio.
     sphericalCollapseClsnlssMttrCsmlgclCnstntTrnrndVrlRd=self%turnaround%interpolate(time_)
