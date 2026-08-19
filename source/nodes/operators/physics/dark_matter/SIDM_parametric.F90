@@ -65,8 +65,8 @@
      final     ::                                        SIDMParametricDestructor
      procedure :: nodeTreeInitialize                  => SIDMParametricNodeTreeInitialize
      procedure :: nodePromote                         => SIDMParametricNodePromote
-     procedure :: differentialEvolutionScales         => SIDMParametriCalculateTauDifferentialEvolutionScale
-     procedure :: differentialEvolution               => SIDMParametriCalculateTauDifferentialEvolution
+     procedure :: differentialEvolutionScales         => SIDMParametricDifferentialEvolutionScale
+     procedure :: differentialEvolution               => SIDMParametricDifferentialEvolution
      procedure :: differentialEvolutionAnalytics      => SIDMParametriDifferentialVmaxAnalytics
      procedure :: differentialEvolutionSolveAnalytics => SIDMParametriDifferentialVmaxSolveAnalytics
   end type nodeOperatorSIDMParametric
@@ -488,7 +488,7 @@ contains
     return
   end subroutine SIDMParametricNodePromote
 
-  subroutine SIDMParametriCalculateTauDifferentialEvolutionScale(self, node)
+  subroutine SIDMParametricDifferentialEvolutionScale(self, node)
     !!{RST
     Set the ODE solver scales for the :math:`\tau` parameter.
     !!}
@@ -501,9 +501,9 @@ contains
     darkMatterProfile => node%darkMatterProfile()
     call darkMatterProfile%floatRank0MetaPropertyScale(self%tauID,1.0d0)
     return
-  end subroutine SIDMParametriCalculateTauDifferentialEvolutionScale
+  end subroutine SIDMParametricDifferentialEvolutionScale
 
-  subroutine SIDMParametriCalculateTauDifferentialEvolution(self, node,interrupt,functionInterrupt,propertyType)
+  subroutine SIDMParametricDifferentialEvolution(self, node,interrupt,functionInterrupt,propertyType)
     !!{RST
     Perform differential evolution of the parameters of the SIDM parametric model.
     !!}
@@ -555,4 +555,4 @@ contains
        call darkMatterProfile%floatRank0MetaPropertyRate(self%radiusMaximumSIDMID  ,0.0d0)       
     end if    
     return
-  end subroutine SIDMParametriCalculateTauDifferentialEvolution
+  end subroutine SIDMParametricDifferentialEvolution
