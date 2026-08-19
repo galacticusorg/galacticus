@@ -26,7 +26,7 @@ models, following the revised spherical collapse model of :cite:t:`montandon_dec
 
   use :: Dark_Matter_Particles  , only : darkMatterParticleClass
   use :: Numerical_Interpolation, only : interpolator
-  use :: Numerical_Ranges                       , only : rangeLattice
+  use :: Numerical_Ranges       , only : rangeLattice
 
   !![
   <haloMassFunction name="haloMassFunctionDecayingDarkMatter" docformat="rst">
@@ -257,13 +257,13 @@ contains
     ! initial `massMinimum` parameter rather than on anything absolute. Snapping to the lattice - with no further margin, the
     ! stepping having already provided one - makes the bounds exact powers of ten, identical for any object using the same
     ! resolution, and taking the union with the lattice in use keeps the range monotonic.
-    lattice         =Range_Pinned(                                              &
-         &                                       [massMinimum,massMaximum]    , &
-         &                                       self%pointsPerDecade         , &
-         &                                       gridSchemePerDecade          , &
-         &                        marginFactor  =1.0d0                        , &
-         &                        anchorEvery   =1                            , &
-         &                        latticeCurrent=self%massLattice               &
+    lattice         =Range_Pinned(                                          &
+         &                                       [massMinimum,massMaximum], &
+         &                                       self%pointsPerDecade     , &
+         &                                       gridSchemePerDecade      , &
+         &                        marginFactor  =1.0d0                    , &
+         &                        anchorEvery   =1                        , &
+         &                        latticeCurrent=self%massLattice           &
          &                       )
     self%massLattice=lattice
     self%massMinimum=lattice%minimum()

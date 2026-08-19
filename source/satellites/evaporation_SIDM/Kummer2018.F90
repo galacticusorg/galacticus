@@ -337,19 +337,19 @@ contains
        ! The table is rebuilt rather than extended. Each entry depends only on its own two abscissae, so entries could in
        ! principle be carried over, but the computed values are held only inside the `interpolator2D` built from them and are
        ! not recoverable from it; doing so would mean storing the raw array alongside. Left as a possible follow-up.
-       self%latticeX       =Range_Pinned(                                                          &
-            &                                           [0.0d0,xMaximum]                         , &
-            &                                           countPerUnit                             , &
-            &                                           gridSchemePerUnit                        , &
-            &                            marginOffset  =0.0d0                                    , &
-            &                            limitMinimum  =0.0d0                                    , &
-            &                            latticeCurrent=self%latticeX                              &
+       self%latticeX       =Range_Pinned(                                                  &
+            &                                           [0.0d0,xMaximum]                 , &
+            &                                           countPerUnit                     , &
+            &                                           gridSchemePerUnit                , &
+            &                            marginOffset  =0.0d0                            , &
+            &                            limitMinimum  =0.0d0                            , &
+            &                            latticeCurrent=self%latticeX                      &
             &                           )
-       self%latticeVelocity=Range_Pinned(                                                          &
-            &                                           [velocityMinimum,velocityMaximum]        , &
-            &                                           countPerDex                              , &
-            &                                           gridSchemePerDecade                      , &
-            &                            latticeCurrent=self%latticeVelocity                       &
+       self%latticeVelocity=Range_Pinned(                                                  &
+            &                                           [velocityMinimum,velocityMaximum], &
+            &                                           countPerDex                      , &
+            &                                           gridSchemePerDecade              , &
+            &                            latticeCurrent=self%latticeVelocity               &
             &                           )
        self%xMaximum       =self%latticeX       %maximum()
        self%velocityMaximum=self%latticeVelocity%maximum()

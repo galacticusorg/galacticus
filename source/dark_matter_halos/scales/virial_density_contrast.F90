@@ -357,16 +357,16 @@ contains
     !!{RST
     Returns the mean density for ``node``.
     !!}
-    use :: Galacticus_Nodes , only : nodeComponentBasic, treeNode
-    use :: Numerical_Ranges , only : Range_Pinned      , gridSchemePerDecade
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Numerical_Ranges, only : Range_Pinned      , gridSchemePerDecade
     implicit none
-    class           (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)               :: self
-    type            (treeNode                                          ), intent(inout)               :: node
-    class           (nodeComponentBasic                                ), pointer                     :: basic
-    integer                                                                                           :: i
-    type            (rangeLattice                                      )                              :: lattice
-    logical                                                             , allocatable, dimension(:)   :: isComputed
-    double precision                                                                                  :: time
+    class           (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)             :: self
+    type            (treeNode                                          ), intent(inout)             :: node
+    class           (nodeComponentBasic                                ), pointer                   :: basic
+    integer                                                                                         :: i
+    type            (rangeLattice                                      )                            :: lattice
+    logical                                                             , allocatable, dimension(:) :: isComputed
+    double precision                                                                                :: time
 
     ! Get the basic component.
     basic => node%basic()
@@ -387,12 +387,12 @@ contains
        ! extended without recomputing any value already found. The safety margin `Range_Pinned` applies by default is a factor of
        ! two at each end, which is the margin this tabulation always used. Anchoring is to half decades rather than whole ones:
        ! on a cosmic time axis a whole decade spans most of the history of the universe.
-       lattice=Range_Pinned(                                                          &
-            &                              time                                     , &
-            &                              meanDensityTablePointsPerDecade          , &
-            &                              gridSchemePerDecade                      , &
-            &               latticeCurrent=self%densityMeanTable%lattice             , &
-            &               anchorEvery   =meanDensityTableAnchorEvery                 &
+       lattice=Range_Pinned(                                                &
+            &                              time                           , &
+            &                              meanDensityTablePointsPerDecade, &
+            &                              gridSchemePerDecade            , &
+            &               latticeCurrent=self%densityMeanTable%lattice  , &
+            &               anchorEvery   =meanDensityTableAnchorEvery      &
             &              )
        if (.not.self%densityMeanTable%lattice%covers(lattice)) then
           ! Extend the tabulation onto the new lattice, preserving every value already computed. Each tabulated value depends

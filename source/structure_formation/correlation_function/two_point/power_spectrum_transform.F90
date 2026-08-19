@@ -168,7 +168,7 @@ contains
     !!}
     use :: FFTLogs                 , only : FFTLogSineTransform, fftLogForward
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Ranges        , only : Range_Pinned       , rangeLattice        , gridSchemePerDecade
+    use :: Numerical_Ranges        , only : Range_Pinned       , rangeLattice , gridSchemePerDecade
     implicit none
     class           (correlationFunctionTwoPointPowerSpectrumTransform), intent(inout)             :: self
     double precision                                                   , intent(in   )             :: time                      , separation
@@ -261,7 +261,7 @@ contains
     use :: FFTLogs                 , only : FFTLog      , fftLogForward
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Interpolation , only : interpolator
-    use :: Numerical_Ranges        , only : Range_Pinned       , rangeLattice        , gridSchemePerDecade
+    use :: Numerical_Ranges        , only : Range_Pinned, rangeLattice , gridSchemePerDecade
     implicit none
     class           (correlationFunctionTwoPointPowerSpectrumTransform), intent(inout)             :: self
     double precision                                                   , intent(in   )             :: time                      , separation
@@ -269,7 +269,7 @@ contains
          &                                                                                            correlation               , separations
     integer                                                            , parameter                 :: wavenumbersPerDecade=125
     double precision                                                   , parameter                 :: wavenumbersRange    =1.0d4
-    type            (rangeLattice                                     )                           :: lattice
+    type            (rangeLattice                                     )                            :: lattice
     double precision                                                                               :: wavenumberMinimum         , wavenumberMaximum, &
          &                                                                                            time_
     integer         (c_size_t                                         )                            :: countWavenumbers          , i

@@ -316,15 +316,15 @@ contains
     use :: Numerical_Ranges     , only : Range_Pinned                               , gridSchemePerUnit, gridSchemePerDecade
     implicit none
     class           (satelliteDecelerationSIDMKummer2018        ), intent(inout)                 :: self
-    double precision                                             , intent(in   )                 :: xMaximum                  , velocityMinimum      , &
+    double precision                                             , intent(in   )                 :: xMaximum                  , velocityMinimum   , &
          &                                                                                          velocityMaximum
     class           (darkMatterParticleSelfInteractingDarkMatter), pointer                       :: darkMatterParticleSIDM_
     double precision                                             , allocatable  , dimension(:,:) :: decelerationFactor_
     double precision                                             , allocatable  , dimension(:  ) :: x                         , velocity 
-    integer                                                      , parameter                     :: countPerUnit           =10, countPerDex=10
+    integer                                                      , parameter                     :: countPerUnit           =10, countPerDex    =10
     type            (integrator                                 )                                :: integrator_
     double precision                                                                             :: thetaCritical
-    integer                                                                                      :: i                         , j             , &
+    integer                                                                                      :: i                         , j                 , &
          &                                                                                          countX                    , countVelocity
 
     select type (darkMatterParticle_ => self%darkMatterParticle_)
@@ -340,19 +340,19 @@ contains
        ! The table is rebuilt rather than extended. Each entry depends only on its own two abscissae, so entries could in
        ! principle be carried over, but the computed values are held only inside the `interpolator2D` built from them and are
        ! not recoverable from it; doing so would mean storing the raw array alongside. Left as a possible follow-up.
-       self%latticeX       =Range_Pinned(                                                          &
-            &                                           [0.0d0,xMaximum]                         , &
-            &                                           countPerUnit                             , &
-            &                                           gridSchemePerUnit                        , &
-            &                            marginOffset  =0.0d0                                    , &
-            &                            limitMinimum  =0.0d0                                    , &
-            &                            latticeCurrent=self%latticeX                              &
+       self%latticeX       =Range_Pinned(                                                  &
+            &                                           [0.0d0,xMaximum]                 , &
+            &                                           countPerUnit                     , &
+            &                                           gridSchemePerUnit                , &
+            &                            marginOffset  =0.0d0                            , &
+            &                            limitMinimum  =0.0d0                            , &
+            &                            latticeCurrent=self%latticeX                      &
             &                           )
-       self%latticeVelocity=Range_Pinned(                                                          &
-            &                                           [velocityMinimum,velocityMaximum]        , &
-            &                                           countPerDex                              , &
-            &                                           gridSchemePerDecade                      , &
-            &                            latticeCurrent=self%latticeVelocity                       &
+       self%latticeVelocity=Range_Pinned(                                                  &
+            &                                           [velocityMinimum,velocityMaximum], &
+            &                                           countPerDex                      , &
+            &                                           gridSchemePerDecade              , &
+            &                            latticeCurrent=self%latticeVelocity               &
             &                           )
        self%xMaximum       =self%latticeX       %maximum()
        self%velocityMaximum=self%latticeVelocity%maximum()

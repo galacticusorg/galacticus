@@ -37,23 +37,23 @@
      The exponential disk mass distribution: :math:`\rho(r,z)=\rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})`.
      !!}
      private
-     double precision                                                        :: scaleRadius                                   , scaleHeight                                   , &
-          &                                                                     densityNormalization                          , surfaceDensityNormalization                   , &
+     double precision                                                        :: scaleRadius                              , scaleHeight                              , &
+          &                                                                     densityNormalization                     , surfaceDensityNormalization              , &
           &                                                                     mass
      ! Tables used for rotation curves and potential.
-     logical                                                                 :: scaleLengthFactorSet                          , rotationCurveInitialized              =.false., &
-          &                                                                     rotationCurveGradientInitialized      =.false., potentialInitialized                  =.false., &
-          &                                                                     accelerationInitialized               =.false.
+     logical                                                                 :: scaleLengthFactorSet                     , rotationCurveInitialized         =.false., &
+          &                                                                     rotationCurveGradientInitialized =.false., potentialInitialized             =.false., &
+          &                                                                     accelerationInitialized          =.false.
      double precision                                                        :: scaleLengthFactor
-     type            (table1DLogarithmicLinear)                              :: rotationCurveTable                            , rotationCurveGradientTable                    , &
+     type            (table1DLogarithmicLinear)                              :: rotationCurveTable                       , rotationCurveGradientTable               , &
           &                                                                     potentialTable
-     double precision                          , allocatable, dimension(:  ) :: accelerationRadii                             , accelerationHeights
-     double precision                          , allocatable, dimension(:,:) :: accelerationRadial                            , accelerationVertical                          , &
-          &                                                                     tidalTensorRadialRadial                       , tidalTensorVerticalVertical                   , &
+     double precision                          , allocatable, dimension(:  ) :: accelerationRadii                        , accelerationHeights
+     double precision                          , allocatable, dimension(:,:) :: accelerationRadial                       , accelerationVertical                     , &
+          &                                                                     tidalTensorRadialRadial                  , tidalTensorVerticalVertical              , &
           &                                                                     tidalTensorCross
-     double precision                                                        :: accelerationRadiusMinimumLog                  , accelerationRadiusMaximumLog                  , &
-          &                                                                     accelerationHeightMinimumLog                  , accelerationHeightMaximumLog                  , &
-          &                                                                     accelerationRadiusInverseInterval             , accelerationHeightInverseInterval
+     double precision                                                        :: accelerationRadiusMinimumLog             , accelerationRadiusMaximumLog             , &
+          &                                                                     accelerationHeightMinimumLog             , accelerationHeightMaximumLog             , &
+          &                                                                     accelerationRadiusInverseInterval        , accelerationHeightInverseInterval
    contains
      !![
      <methods docformat="rst">
@@ -204,7 +204,7 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (massDistributionExponentialDisk)                          :: self
-    double precision                                 , intent(in   ), optional :: scaleRadius                                 , scaleHeight                                 , &
+    double precision                                 , intent(in   ), optional :: scaleRadius  , scaleHeight, &
          &                                                                        mass
     logical                                          , intent(in   ), optional :: dimensionless
     type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
@@ -250,12 +250,12 @@ contains
        self%densityNormalization=0.0d0
     end if
     ! Initialize rotation curve tables.
-    self%scaleLengthFactorSet                  =.false.
-    self%rotationCurveInitialized              =.false.
-    self%rotationCurveGradientInitialized      =.false.
-    self%potentialInitialized                  =.false.
-    self%accelerationInitialized               =.false.
-    self%scaleLengthFactor                     =0.0d0
+    self%scaleLengthFactorSet            =.false.
+    self%rotationCurveInitialized        =.false.
+    self%rotationCurveGradientInitialized=.false.
+    self%potentialInitialized            =.false.
+    self%accelerationInitialized         =.false.
+    self%scaleLengthFactor               =0.0d0
     return
   end function exponentialDiskConstructorInternal
 
@@ -687,7 +687,7 @@ contains
     integer                                                                        :: iPoint
     double precision                                                               :: x
     type            (rangeLattice                   )                              :: lattice
-    logical                                                         , allocatable, dimension(:) :: isComputed
+    logical                                          , allocatable  , dimension(:) :: isComputed
 
     ! For small half-radii, use a series expansion for a more accurate result.
     if (halfRadius <= 0.0d0) then
@@ -701,12 +701,12 @@ contains
     ! interpolated from it - is independent of the half-radius at which it happened to be first requested, and so that it can be
     ! extended without recomputing any value already found. The safety margin which `Range_Pinned` applies by default is a factor
     ! of two at each end, which is the margin this tabulation always used.
-    lattice=Range_Pinned(                                                                                       &
-         &                              halfRadius                                                            , &
-         &                              rotationCurvePointsPerDecade                                          , &
-         &                              gridSchemePerDecade                                                   , &
+    lattice=Range_Pinned(                                                                                              &
+         &                              halfRadius                                                                   , &
+         &                              rotationCurvePointsPerDecade                                                 , &
+         &                              gridSchemePerDecade                                                          , &
          &               rangeCurrent  =[rotationCurveHalfRadiusMinimumDefault,rotationCurveHalfRadiusMaximumDefault], &
-         &               latticeCurrent=self%rotationCurveTable%lattice                                          &
+         &               latticeCurrent=self%rotationCurveTable%lattice                                                &
          &              )
     if (.not.self%rotationCurveInitialized.or..not.self%rotationCurveTable%lattice%covers(lattice)) then
        ! Extend the tabulation onto the new lattice, preserving every value already computed.
@@ -736,19 +736,19 @@ contains
     !!{RST
     Compute Bessel function factors appearing in the expression for a razor-thin exponential disk rotation curve gradient.
     !!}
-    use :: Bessel_Functions        , only : Bessel_Function_I0, Bessel_Function_I1, Bessel_Function_K0, Bessel_Function_K1
+    use :: Bessel_Functions        , only : Bessel_Function_I0, Bessel_Function_I1, Bessel_Function_K0 , Bessel_Function_K1
     use :: Numerical_Constants_Math, only : eulersConstant    , ln2
     use :: Numerical_Ranges        , only : Range_Pinned      , rangeLattice      , gridSchemePerDecade
     implicit none
-    class           (massDistributionExponentialDisk), intent(inout)                            :: self
-    double precision                                 , intent(in   )                            :: halfRadius
-    double precision                                 , parameter                                :: halfRadiusSmall                     =1.0d-3
-    double precision                                 , parameter                                :: halfRadiusLarge                     =1.0d+2
-    integer                                          , parameter                                :: rotationCurveGradientPointsPerDecade=100
-    integer                                                                                     :: iPoint
-    double precision                                                                            :: x
-    type            (rangeLattice                   )                                           :: lattice
-    logical                                                          , allocatable, dimension(:) :: isComputed
+    class           (massDistributionExponentialDisk), intent(inout)               :: self
+    double precision                                 , intent(in   )               :: halfRadius
+    double precision                                 , parameter                   :: halfRadiusSmall                     =1.0d-3
+    double precision                                 , parameter                   :: halfRadiusLarge                     =1.0d+2
+    integer                                          , parameter                   :: rotationCurveGradientPointsPerDecade=100
+    integer                                                                        :: iPoint
+    double precision                                                               :: x
+    type            (rangeLattice                   )                              :: lattice
+    logical                                          , allocatable  , dimension(:) :: isComputed
 
     ! For small and large half-radii, use a series expansion for a more accurate result.
     if (halfRadius == 0.0d0) then
@@ -764,12 +764,12 @@ contains
     end if
     ! As for the rotation curve itself, pin the range to an absolute lattice so that the tabulation does not depend on the
     ! half-radius at which it was first requested, and can be extended without recomputing any value already found.
-    lattice=Range_Pinned(                                                                                                   &
-         &                              halfRadius                                                                        , &
-         &                              rotationCurveGradientPointsPerDecade                                              , &
-         &                              gridSchemePerDecade                                                               , &
-         &               rangeCurrent  =[rotationCurveHalfRadiusMinimumDefault,rotationCurveHalfRadiusMaximumDefault]     , &
-         &               latticeCurrent=self%rotationCurveGradientTable%lattice                                             &
+    lattice=Range_Pinned(                                                                                              &
+         &                              halfRadius                                                                   , &
+         &                              rotationCurveGradientPointsPerDecade                                         , &
+         &                              gridSchemePerDecade                                                          , &
+         &               rangeCurrent  =[rotationCurveHalfRadiusMinimumDefault,rotationCurveHalfRadiusMaximumDefault], &
+         &               latticeCurrent=self%rotationCurveGradientTable%lattice                                        &
          &              )
     if (.not.self%rotationCurveGradientInitialized.or..not.self%rotationCurveGradientTable%lattice%covers(lattice)) then
        ! Extend the tabulation onto the new lattice, preserving every value already computed.

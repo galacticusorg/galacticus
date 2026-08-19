@@ -149,10 +149,10 @@ contains
     !!{RST
     Return the excursion set barrier at the given variance and time.
     !!}
-    use            :: Display          , only : displayCounter       , displayCounterClear, displayIndent       , displayUnindent, &
-          &                                     verbosityLevelWorking
-    use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Numerical_Ranges , only : Range_Pinned         , rangeLattice       , gridSchemePerUnit, gridSchemePerDecade
+    use            :: Display         , only : displayCounter       , displayCounterClear, displayIndent    , displayUnindent    , &
+          &                                    verbosityLevelWorking
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    use            :: Numerical_Ranges, only : Range_Pinned         , rangeLattice       , gridSchemePerUnit, gridSchemePerDecade
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout)  :: self
     double precision                                   , intent(in   )  :: variance         , time

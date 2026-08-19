@@ -91,8 +91,8 @@ program Tests_SIDM_Kummer_Deceleration
   ! and the tabulation is never consulted. The assertions below use x below that threshold, and so exercise the tabulated
   ! branch: without them the tabulation - and the absolute lattices its axes are pinned to - would be entirely untested.
   block
-    double precision :: factorTabulated, factorAfterExtension, factorDirect
-    type(satelliteDecelerationSIDMKummer2018) :: decelerationReverse
+    double precision                                      :: factorTabulated    , factorAfterExtension, factorDirect
+    type            (satelliteDecelerationSIDMKummer2018) :: decelerationReverse
     ! A value from the tabulated branch must differ from the analytic large-x form, which tends to unity.
     factorTabulated=decelerationVelocityDependent%decelerationFactor(5.0d0,73.0d0)
     call Assert("tabulated branch is reached at x=5",factorTabulated < 9.9d-1,.true.)

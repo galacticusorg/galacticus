@@ -1112,12 +1112,12 @@ program Test_Mass_Distributions
   ! extend and so never revealing whether extension moves values already computed.
   call Unit_Tests_Begin_Group("Pinned tabulations")
   block
-    type            (massDistributionExponentialDisk) :: diskExtended        , diskDirect
-    type            (massDistributionSersic         ) :: sersicA             , sersicB
+    type            (massDistributionExponentialDisk) :: diskExtended  , diskDirect
+    type            (massDistributionSersic         ) :: sersicA       , sersicB
     type            (coordinateSpherical            ) :: coordinates_
-    double precision                                  :: velocityProbe       , velocityAfterExtension, &
-         &                                               velocityDirect      , densityA              , &
-         &                                               densityB            , velocityFar
+    double precision                                  :: velocityProbe , velocityAfterExtension, &
+         &                                               velocityDirect, densityA              , &
+         &                                               densityB      , velocityFar
     ! The exponential disk rotation curve. The radii are chosen to avoid the three paths which bypass the tabulation: the
     ! small-argument series expansion below a half-radius of 1e-3, the cached factor used at exactly one scale radius, and the
     ! point-mass approximation beyond `radiusMaximum`=30 scale radii. r=4 gives a half-radius of 2, inside the seed range;

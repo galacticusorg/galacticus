@@ -192,10 +192,10 @@ contains
     !!{RST
     Return the excursion set barrier at the given variance and time.
     !!}
-    use            :: Display          , only : displayCounter       , displayCounterClear, displayIndent       , displayUnindent, &
-          &                                     verbosityLevelWorking
-    use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Numerical_Ranges , only : Range_Pinned         , rangeLattice       , gridSchemePerUnit, gridSchemePerDecade
+    use            :: Display         , only : displayCounter       , displayCounterClear, displayIndent    , displayUnindent    , &
+          &                                    verbosityLevelWorking
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    use            :: Numerical_Ranges, only : Range_Pinned         , rangeLattice       , gridSchemePerUnit, gridSchemePerDecade
     implicit none
     class           (excursionSetFirstCrossingZhangHuiHighOrder), intent(inout)                 :: self
     double precision                                            , intent(in   )                 :: variance                             , time
@@ -203,7 +203,7 @@ contains
     double precision                                                           , dimension(0:1) :: hTime                                , hVariance
     double precision                                            , allocatable  , dimension(:,:) :: firstCrossingProbabilityTablePrevious
     logical                                                                                     :: makeTable                            , tableIsExtendable
-    type            (rangeLattice                                        )                      :: latticeVariance                      , latticeTime
+    type            (rangeLattice                              )                                :: latticeVariance                      , latticeTime
     integer         (c_size_t                                  )                                :: iVariance                            , iTime
     integer                                                                                     :: i                                    , j                         , &
          &                                                                                         jTime                                , jVariance                 , &

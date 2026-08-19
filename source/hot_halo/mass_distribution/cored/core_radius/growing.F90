@@ -208,14 +208,14 @@ contains
        ! below tests `%x(-1)`, its lower bound - and `extend` builds ascending, which would invert it and with it the inverse
        ! table and the bound tests which use it. Nothing is lost by rebuilding: the tabulated function is a single elementwise
        ! analytic expression, so recomputing it is far cheaper than the tabulation machinery it would replace.
-       lattice=Range_Pinned(                                                                            &
-            &                              coreRadiusOverVirialRadiusInitial                          , &
-            &                              tablePointsPerDecade                                       , &
-            &                              gridSchemePerDecade                                        , &
-            &               rangeCurrent  =[self%coreRadiusOverScaleRadius,                              &
-            &                               self%coreRadiusOverVirialRadiusMaximum]                    , &
-            &               latticeCurrent=self%coreRadiusLattice                                      , &
-            &               anchorEvery   =tableAnchorEvery                                              &
+       lattice=Range_Pinned(                                                         &
+            &                              coreRadiusOverVirialRadiusInitial       , &
+            &                              tablePointsPerDecade                    , &
+            &                              gridSchemePerDecade                     , &
+            &               rangeCurrent  =[self%coreRadiusOverScaleRadius         , &
+            &                               self%coreRadiusOverVirialRadiusMaximum], &
+            &               latticeCurrent=self%coreRadiusLattice                  , &
+            &               anchorEvery   =tableAnchorEvery                          &
             &              )
        makeTable=.not.self%coreRadiusTableInitialized
        if (.not.makeTable) makeTable=.not.self%coreRadiusLattice%covers(lattice)

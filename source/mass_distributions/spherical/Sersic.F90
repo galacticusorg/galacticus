@@ -78,15 +78,15 @@
   end interface massDistributionSersic
 
   ! Table granularity for Sersic profiles.
-  integer                        , parameter :: tablePointsPerDecade=1000
+  integer                        , parameter :: tablePointsPerDecade     =1000
 
   ! Seed range for the tabulation. Every range begins from this one, so that any two tabulations - built at different requested
   ! radii - start from a common set of bounds.
-  double precision               , parameter :: tableRadiusMinimumDefault=1.0d-3, tableRadiusMaximumDefault=1.0d+3
+  double precision               , parameter :: tableRadiusMinimumDefault=1.0d-3                 , tableRadiusMaximumDefault=1.0d+3
 
   ! Interval, in lattice steps, to which the tabulation bounds are pinned. A whole decade of this tabulation is a thousand
   ! points, each an Abel integral, so the bounds are anchored to tenths of a decade instead.
-  integer                        , parameter :: tableAnchorEvery    =tablePointsPerDecade/10
+  integer                        , parameter :: tableAnchorEvery         =tablePointsPerDecade/10
 
   ! Module scope variables used in integration and root finding.
   class  (massDistributionSersic), pointer   :: self_
@@ -487,13 +487,13 @@ contains
           ! radius fell in, not on the radius itself. Two runs which request slightly different radii falling in the same
           ! interval build identical tables. Taking the union with the lattice already in use also guarantees the range never
           ! shrinks, so this loop terminates.
-          self%tableLattice      =Range_Pinned(                                                                          &
-               &                                              radiusActual*self%table3dRadiusHalfMass                  , &
-               &                                              tablePointsPerDecade                                     , &
-               &                                              gridSchemePerDecade                                      , &
-               &                               rangeCurrent  =[tableRadiusMinimumDefault,tableRadiusMaximumDefault]    , &
-               &                               latticeCurrent=self%tableLattice                                        , &
-               &                               anchorEvery   =tableAnchorEvery                                           &
+          self%tableLattice      =Range_Pinned(                                                                      &
+               &                                              radiusActual*self%table3dRadiusHalfMass              , &
+               &                                              tablePointsPerDecade                                 , &
+               &                                              gridSchemePerDecade                                  , &
+               &                               rangeCurrent  =[tableRadiusMinimumDefault,tableRadiusMaximumDefault], &
+               &                               latticeCurrent=self%tableLattice                                    , &
+               &                               anchorEvery   =tableAnchorEvery                                       &
                &                              )
           self%tableRadiusMinimum=self%tableLattice%minimum()
           self%tableRadiusMaximum=self%tableLattice%maximum()
