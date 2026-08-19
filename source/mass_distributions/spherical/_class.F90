@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of an abstract mass distribution class for spherically symmetric distributions.
   !!}
@@ -244,18 +246,19 @@ contains
     use, intrinsic :: ISO_C_Binding           , only : c_size_t
     use            :: Numerical_Constants_Math, only : Pi
     use            :: Numerical_Integration   , only : integrator
-    use            :: Numerical_Ranges        , only : Make_Range                  , rangeTypeLogarithmic
+    use            :: Numerical_Ranges        , only : Range_Pinned                , rangeLattice        , gridSchemePerOctave
     use            :: Table_Labels            , only : extrapolationTypeExtrapolate
     use            :: Numerical_Interpolation , only : gsl_interp_linear
     use            :: Error                   , only : Error_Report                , errorStatusSuccess
     implicit none
     class           (massDistributionSpherical), intent(inout), target     :: self
     double precision                           , intent(in   )             :: radius
-    double precision                                         , parameter   :: countPointsPerOctave     =4.0d+00
+    integer                                                  , parameter   :: countPointsPerOctave     =4
     double precision                                         , parameter   :: radiusVirialFractionSmall=1.0d-12
     double precision                          , dimension(:) , allocatable :: masses                           , radii              , &
          &                                                                    masses_                          , radii_
     type            (integrator              )                             :: integrator_
+    type            (rangeLattice             )                             :: lattice
     integer         (c_size_t                )                             :: countRadii                       , iMinimum           , &
          &                                                                    iMaximum                         , i                  , &
          &                                                                    iPrevious
@@ -283,22 +286,32 @@ contains
        ! Initialize integrator.
        integrator_=integrator(sphericalMassEnclosedBySphereIntegrand,toleranceRelative=1.0d-2)
        ! Find the range of radii at which to compute the enclosed mass, and construct the arrays.
-       !! Set an initial range of radii that brackets the requested radii.
-       radiusMinimum=0.5d0*radius
-       radiusMaximum=2.0d0*radius
-       !! Round to the nearest factor of 2.
-       radiusMinimum=2.0d0**floor  (log(radiusMinimum)/log(2.0d0))
-       radiusMaximum=2.0d0**ceiling(log(radiusMaximum)/log(2.0d0))
-       !! Expand to encompass any pre-existing range.
+       !! Find the range of radii to tabulate, pinned to an absolute lattice of whole octaves. This is what the bracketing by a
+       !! factor of two, the rounding to powers of two, and the expansion to encompass any pre-existing range did by hand: the
+       !! default safety margin is a factor of two at each end, and anchoring defaults to whole octaves, so the bounds are the
+       !! same ones - now obtained from the shared helper rather than reproduced here.
        if (allocated(self%massProfileRadius__)) then
-          radiusMinimum=min(radiusMinimum,self%massProfileRadiusMinimum__)
-          radiusMaximum=max(radiusMaximum,self%massProfileRadiusMaximum__)
+          lattice=Range_Pinned(                                                                                 &
+               &                              radius                                                          , &
+               &                              countPointsPerOctave                                            , &
+               &                              gridSchemePerOctave                                             , &
+               &               rangeCurrent  =[self%massProfileRadiusMinimum__,self%massProfileRadiusMaximum__] &
+               &              )
+       else
+          lattice=Range_Pinned(                                                                                 &
+               &                              radius                                                          , &
+               &                              countPointsPerOctave                                            , &
+               &                              gridSchemePerOctave                                               &
+               &              )
        end if
-       !! Construct arrays.
-       countRadii=nint(log(radiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave+1.0d0)
+       radiusMinimum=lattice%minimum()
+       radiusMaximum=lattice%maximum()
+       !! Construct arrays, taking the abscissae from the lattice rather than by subdividing the range so that they are
+       !! bit-identical to those of any other tabulation built on the same lattice.
+       countRadii=lattice%count
        allocate(radii (countRadii))
        allocate(masses(countRadii))
-       radii=Make_Range(radiusMinimum,radiusMaximum,int(countRadii),rangeTypeLogarithmic)
+       radii=lattice%values()
        ! Copy in any usable results from any previous solution.
        !! Assume by default that no previous solutions are usable.
        iMinimum=+huge(0_c_size_t)
