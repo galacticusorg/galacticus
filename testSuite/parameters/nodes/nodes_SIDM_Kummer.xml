@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameter file used by the SIDM Kummer (2018) satellite unit test (source/tests/SIDM_Kummer_satellites.F90).       -->
+<!-- It enables the basic, dark matter profile (with a settable scale radius), and orbiting satellite (which carries the   -->
+<!-- position and velocity of the satellite relative to its host) components, and pins the objects which those components -->
+<!-- build so that they match those constructed directly by the test.                                                     -->
+
+<parameters>
+  <lastModified revision="0f386049a46fce7fce1c459a8c53cd79fa5e8c0b" time="2026-08-20T18:06:17"/>
+  <formatVersion>2</formatVersion>
+
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+  <componentSatellite         value="orbiting"/>
+
+  <cosmologyParameters value="simple">
+    <OmegaMatter     value="0.2815"/>
+    <OmegaBaryon     value="0.0465"/>
+    <OmegaDarkEnergy value="0.7185"/>
+    <temperatureCMB  value="2.78"  />
+    <HubbleConstant  value="70.0"  />
+  </cosmologyParameters>
+  <cosmologyFunctions    value="matterLambda"                   />
+  <virialDensityContrast value="bryanNorman1998"                />
+  <darkMatterHaloScale   value="virialDensityContrastDefinition"/>
+  <darkMatterProfile     value="darkMatterOnly"                 />
+  <darkMatterProfileDMO  value="NFW">
+    <velocityDispersionUseSeriesExpansion value="false"/>
+  </darkMatterProfileDMO>
+</parameters>
