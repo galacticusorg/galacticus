@@ -1346,6 +1346,7 @@ contains
     Suspend processing of a tree.
     !!}
 #ifdef USEMPI
+    use :: Display                 , only : displayGreen        , displayReset
     use :: Error                   , only : Error_Report
 #endif
     use :: ISO_Varying_String      , only : operator(//)        , varying_string
@@ -1360,7 +1361,21 @@ contains
     type   (varying_string   )                         :: fileName
 
 #ifdef USEMPI
-    call Error_Report('suspending trees is not supported under MPI'//{introspection:location})
+    ! A tree is suspended when its evolution is limited by a *universal* event - one which requires every tree to reach a common
+    ! cosmic time before it can be performed. Trees reaching that time first are suspended while the others catch up. The user
+    ! never asks for a tree to be suspended directly, so the message names the classes which create such events instead: those are
+    ! the parameters that can be changed. Each of those classes also guards against MPI itself, so reaching here means one has been
+    ! added without such a guard.
+    call Error_Report(                                                                                                  &
+         &            'evolution requires suspending a tree, which is not supported under MPI'//char(10)             // &
+         &            displayGreen()//'HELP:'//displayReset()                                                        // &
+         &            ' a tree must be suspended when its evolution is limited by an event which requires all trees' // &
+         &            ' to reach a common cosmic time. Such events are created by the self-consistent intergalactic' // &
+         &            ' medium state evolver (`universeOperator`) and by the internal intergalactic background'      // &
+         &            ' radiation field (`radiationField`). Either select alternatives for those, or run as a single'// &
+         &            ' process using OpenMP threads, which is unaffected'                                           // &
+         &            {introspection:location}                                                                          &
+         &           )
 #endif
     ! If the tree is to be suspended to file do so now.
     if (.not.self%suspendToRAM) then
