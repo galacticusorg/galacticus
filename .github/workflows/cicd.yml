@@ -1649,6 +1649,7 @@ jobs:
                 test-constraint-deterministic-spins.py,
                 test-constraint-mass-function.py,
                 test-halo-mass-functions.py,
+                test-dust-attenuation-parity.py,
                 test-inactive_luminosities.py,
                 test-interoutput-star-formation-rate.py,
                 test-mass-host-maximum.py,

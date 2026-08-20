@@ -91,6 +91,7 @@ contains
     type            (varying_string                        ), allocatable  , dimension(:) :: postprocessChains
     double precision                                                                      :: redshiftBand
     logical                                                                               :: redshiftBandIsPresent, postprocessChainIsPresent
+    integer                                                                               :: countChains
 
     redshiftBandIsPresent    =parameters%isPresent('redshiftBand'    )
     postprocessChainIsPresent=parameters%isPresent('postprocessChain')
@@ -108,21 +109,6 @@ contains
       <description>
       The filter type (rest or observed) to select.
       </description>
-    </inputParameter>
-    <inputParameter docformat="rst">
-      <name>postprocessChains</name>
-      <defaultValue>[var_str('')]</defaultValue>
-      <description>
-      The names of the postprocessing chains to use when resolving this luminosity into bins of stellar population
-      age, as required when applying a dust model which attenuates young and old populations differently. Each named
-      chain must already be defined by the ``[stellarPopulationSpectraPostprocessorBuilder]``, and a luminosity using
-      it must be tracked for this filter.
-
-      The age range spanned by each chain is obtained from the chain itself, not declared here, so it can not drift
-      out of step with the chain's configuration. Leave this unset---the default---for a dust model which does not
-      distinguish populations by age.
-      </description>
-      <source>parameters</source>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>component</name>
@@ -153,6 +139,28 @@ contains
          <source>parameters</source>
          <description>
          The postprocessing chain to use.
+         </description>
+       </inputParameter>
+       !!]
+    end if
+    ! The age-resolving chains are read only if given: a deferred-shape parameter can not be read into an unallocated
+    ! array, so its extent is established first.
+    countChains=parameters%count('postprocessChains',zeroIfNotPresent=.true.)
+    allocate(postprocessChains(countChains))
+    if (countChains > 0) then
+       !![
+       <inputParameter docformat="rst">
+         <name>postprocessChains</name>
+         <source>parameters</source>
+         <description>
+         The names of the postprocessing chains to use when resolving this luminosity into bins of stellar population
+         age, as required when applying a dust model which attenuates young and old populations differently. Each
+         named chain must already be defined by the ``[stellarPopulationSpectraPostprocessorBuilder]``, and a
+         luminosity using it must be tracked for this filter.
+
+         The age range spanned by each chain is obtained from the chain itself, not declared here, so it can not drift
+         out of step with the chain's configuration. Leave this unset---the default---for a dust model which does not
+         distinguish populations by age.
          </description>
        </inputParameter>
        !!]

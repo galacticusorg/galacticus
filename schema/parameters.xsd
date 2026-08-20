@@ -2556,6 +2556,7 @@
           <xs:enumeration value="densityProfile"/>
           <xs:enumeration value="descendantNode"/>
           <xs:enumeration value="descendants"/>
+          <xs:enumeration value="dustAttenuation"/>
           <xs:enumeration value="excursion"/>
           <xs:enumeration value="finalDescendant"/>
           <xs:enumeration value="fluxFromLuminosity"/>

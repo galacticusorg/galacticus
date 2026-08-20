@@ -23,6 +23,8 @@
   Implements the two-component dust attenuation model of :cite:t:`charlot_simple_2000`.
   !!}
 
+  use :: Dust_Extinction_Curves, only : dustExtinctionCurvePowerLaw, wavelengthVBand
+
   !![
   <dustAttenuation name="dustAttenuationCharlotFall2000" docformat="rst">
    <description>
@@ -60,7 +62,8 @@
      ! Retained so that the object can describe itself back into a parameter file; the physics is carried entirely by
      ! the two component attenuators above.
      double precision                                            :: coefficientBirthCloud, coefficientISM, &
-          &                                                         timescale            , exponent_
+          &                                                         timescale            , exponent_     , &
+          &                                                         wavelengthReference
    contains
      procedure :: transmission => charlotFall2000Transmission
      procedure :: request      => charlotFall2000Request
@@ -86,7 +89,8 @@ contains
     type            (dustAttenuationCharlotFall2000)                :: self
     type            (inputParameters               ), intent(inout) :: parameters
     double precision                                                :: coefficientBirthCloud, coefficientISM, &
-         &                                                             timescale            , exponent_
+         &                                                             timescale            , exponent_     , &
+         &                                                             wavelengthReference
 
     !![
     <inputParameter docformat="rst">
@@ -125,15 +129,24 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>wavelengthReference</name>
+      <defaultValue>wavelengthVBand</defaultValue>
+      <description>
+      The wavelength, in Å, at which the power-law extinction curve is normalized to unity. Set it to
+      :math:`5500\,`Å to reproduce the ``lmnstyStllrCF2000`` property extractor exactly.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
-    self=dustAttenuationCharlotFall2000(coefficientBirthCloud,coefficientISM,timescale,exponent_)
+    self=dustAttenuationCharlotFall2000(coefficientBirthCloud,coefficientISM,timescale,exponent_,wavelengthReference)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function charlotFall2000ConstructorParameters
 
-  function charlotFall2000ConstructorInternal(coefficientBirthCloud,coefficientISM,timescale,exponent_) result(self)
+  function charlotFall2000ConstructorInternal(coefficientBirthCloud,coefficientISM,timescale,exponent_,wavelengthReference) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`dustAttenuationCharlotFall2000` dust attenuation class. Both
     components are given their own power-law extinction curve of the same exponent.
@@ -141,15 +154,28 @@ contains
     implicit none
     type            (dustAttenuationCharlotFall2000)                :: self
     double precision                                , intent(in   ) :: coefficientBirthCloud, coefficientISM, &
-         &                                                             timescale            , exponent_
-    type            (dustExtinctionCurvePowerLaw   )                :: curvePowerLaw
+         &                                                             timescale            , exponent_     , &
+         &                                                             wavelengthReference
+    class(dustExtinctionCurveClass), pointer :: curvePowerLaw
     !![
-    <constructorAssign variables="coefficientBirthCloud, coefficientISM, timescale, exponent_"/>
+    <constructorAssign variables="coefficientBirthCloud, coefficientISM, timescale, exponent_, wavelengthReference"/>
     !!]
 
-    curvePowerLaw   =dustExtinctionCurvePowerLaw              (exponent_                                    )
+    ! The curve is shared by both components, so it must be a reference-counted heap object rather than a local: each
+    ! component takes a reference to it, and a stack object would be destroyed while those references were still held.
+    ! A freshly allocated object carries no references, so one is established here for the reference this constructor
+    ! itself holds, and released once both components have taken theirs.
+    allocate(dustExtinctionCurvePowerLaw :: curvePowerLaw)
+    select type (curvePowerLaw)
+    type is (dustExtinctionCurvePowerLaw)
+       curvePowerLaw=dustExtinctionCurvePowerLaw(exponent_,wavelengthReference)
+    end select
+    call curvePowerLaw%referenceCountReset()
     self%birthCloud_=dustAttenuationBirthCloud                (coefficientBirthCloud,timescale,curvePowerLaw)
     self%screenISM_ =dustAttenuationScreenSurfaceDensityMetals(coefficientISM                 ,curvePowerLaw)
+    !![
+    <objectDestructor name="curvePowerLaw"/>
+    !!]
     return
   end function charlotFall2000ConstructorInternal
 

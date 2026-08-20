@@ -40,7 +40,7 @@
      A power-law dust extinction curve.
      !!}
      private
-     double precision :: exponent_
+     double precision :: exponent_, wavelengthReference
    contains
      procedure :: attenuationRelative => powerLawAttenuationRelative
   end type dustExtinctionCurvePowerLaw
@@ -64,7 +64,7 @@ contains
     implicit none
     type            (dustExtinctionCurvePowerLaw)                :: self
     type            (inputParameters            ), intent(inout) :: parameters
-    double precision                                             :: exponent_
+    double precision                                             :: exponent_ , wavelengthReference
 
     !![
     <inputParameter docformat="rst">
@@ -78,23 +78,34 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>wavelengthReference</name>
+      <defaultValue>wavelengthVBand</defaultValue>
+      <description>
+      The wavelength, in Å, at which the power law is normalized to unity. The default is the effective wavelength of
+      the Buser :math:`V` filter, which is the definition used throughout this framework. Set it to
+      :math:`5500\,`Å to reproduce results from the ``lmnstyStllrCF2000`` property extractor, which adopted that
+      round value instead.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
-    self=dustExtinctionCurvePowerLaw(exponent_)
+    self=dustExtinctionCurvePowerLaw(exponent_,wavelengthReference)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function powerLawConstructorParameters
 
-  function powerLawConstructorInternal(exponent_) result(self)
+  function powerLawConstructorInternal(exponent_,wavelengthReference) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`dustExtinctionCurvePowerLaw` dust extinction curve class.
     !!}
     implicit none
     type            (dustExtinctionCurvePowerLaw)                :: self
-    double precision                             , intent(in   ) :: exponent_
+    double precision                             , intent(in   ) :: exponent_, wavelengthReference
     !![
-    <constructorAssign variables="exponent_"/>
+    <constructorAssign variables="exponent_, wavelengthReference"/>
     !!]
 
     return
@@ -108,9 +119,9 @@ contains
     class           (dustExtinctionCurvePowerLaw), intent(inout) :: self
     double precision                             , intent(in   ) :: wavelength
 
-    attenuationRelative=+(                    &
-         &                +wavelength         &
-         &                /wavelengthVBand    &
+    attenuationRelative=+(                          &
+         &                +     wavelength          &
+         &                /self%wavelengthReference &
          &               )**(-self%exponent_)
     return
   end function powerLawAttenuationRelative

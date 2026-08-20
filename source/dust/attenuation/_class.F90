@@ -55,6 +55,10 @@ module Dust_Attenuations
   use :: Galactic_Structure_Options  , only : componentTypeAll    , enumerationComponentTypeType
   use :: Galacticus_Nodes            , only : treeNode
   private
+  ! Made public so that it survives into the object file: it is called only from the submodules into which the
+  ! implementations of this class are generated, never from this module itself, and a private procedure with no
+  ! caller in its own module can be discarded before those submodules are linked against it.
+  public :: componentGasProperties
 
   ! Metallicity of the local interstellar medium, by mass. Dust-to-gas ratios are scaled relative to this value, on
   ! the assumption that the dust-to-metals ratio is universal. Declared here, rather than in an implementation file,
