@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "544daf1fc5eafad397a6143d479501f1129ee2a3",
-        "message": "Merge pull request #1398 from galacticusorg/fix/preprocessor-generator-prerequisites\n\nfix(build): re-preprocess when the preprocessor's own Python sources change\n",
-        "timestamp": "2026-08-18 23:38:46+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/544daf1fc5eafad397a6143d479501f1129ee2a3"
+        "id": "0f386049a46fce7fce1c459a8c53cd79fa5e8c0b",
+        "message": "chore(ci): raise the COZMIC WDM 3keV X1 benchmark threshold to 750%\n",
+        "timestamp": "2026-08-20 06:10:12-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/0f386049a46fce7fce1c459a8c53cd79fa5e8c0b"
     },
     "results": [
         {
@@ -22,7 +22,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Simulations",
                 "comment": "Analysis of the satellite bound mass vs. time.",
                 "description": "Satellite bound mass fraction vs. time.",
-                "logLikelihood": "26.852226742697617",
+                "logLikelihood": "26.852048863235915",
                 "type": "function1D",
                 "xDataset": "time",
                 "yDataset": "fractionBoundMass",
@@ -41,13 +41,13 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     1.0,
-                    0.24938002746091376,
-                    0.12463363688126448,
-                    0.06672156520345168,
-                    0.03570779283878028,
-                    0.018445362199678725,
-                    0.008445042209238474,
-                    0.0024648402134022423
+                    0.24938002603523104,
+                    0.12463361770255715,
+                    0.06672156533291412,
+                    0.03570779169686334,
+                    0.018445362174667065,
+                    0.008445042222430393,
+                    0.0024649899698524413
                 ],
                 "yDatasetTarget": [
                     1.0,
@@ -71,7 +71,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Simulations",
                 "comment": "Analysis of the satellite maximum circular velocity radius vs. time.",
                 "description": "Satellite maximum circular velocity radius fraction vs. time.",
-                "logLikelihood": "12.856479838971731",
+                "logLikelihood": "12.85647984127457",
                 "type": "function1D",
                 "xDataset": "time",
                 "yDataset": "fractionRadiusVelocityMaximum",
@@ -90,13 +90,13 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     1.0,
-                    0.6305587832397057,
-                    0.5047112519853539,
-                    0.44290471873345505,
-                    0.4133866936351724,
-                    0.40497767029822657,
-                    0.4204544506178941,
-                    0.4821448658217553
+                    0.6305587832275499,
+                    0.5047112519859601,
+                    0.44290471875011195,
+                    0.41338669365045616,
+                    0.4049776702953359,
+                    0.42045445055818703,
+                    0.48214486581485133
                 ],
                 "yDatasetTarget": [
                     1.0,
@@ -120,7 +120,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Simulations",
                 "comment": "Analysis of the satellite maximum circular velocity vs. time.",
                 "description": "Satellite maximum circular velocity fraction vs. time.",
-                "logLikelihood": "11.535714160882103",
+                "logLikelihood": "11.535714168220675",
                 "type": "function1D",
                 "xDataset": "time",
                 "yDataset": "fractionVelocityMaximum",
@@ -139,13 +139,13 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     1.0,
-                    0.8254565108905102,
-                    0.669650933243093,
-                    0.5345246391951166,
-                    0.42391858144985317,
-                    0.3287509709823909,
-                    0.24633870483219694,
-                    0.17218122123021168
+                    0.8254565108796833,
+                    0.6696509332441425,
+                    0.5345246392429124,
+                    0.42391858153397666,
+                    0.3287509710993353,
+                    0.24633870497794633,
+                    0.17218122123489774
                 ],
                 "yDatasetTarget": [
                     1.0,

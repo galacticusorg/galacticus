@@ -4,18 +4,18 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "544daf1fc5eafad397a6143d479501f1129ee2a3",
-        "message": "Merge pull request #1398 from galacticusorg/fix/preprocessor-generator-prerequisites\n\nfix(build): re-preprocess when the preprocessor's own Python sources change\n",
-        "timestamp": "2026-08-18 23:38:46+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/544daf1fc5eafad397a6143d479501f1129ee2a3"
+        "id": "0f386049a46fce7fce1c459a8c53cd79fa5e8c0b",
+        "message": "chore(ci): raise the COZMIC WDM 3keV X1 benchmark threshold to 750%\n",
+        "timestamp": "2026-08-20 06:10:12-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/0f386049a46fce7fce1c459a8c53cd79fa5e8c0b"
     },
     "results": [
         {
             "attributes": {
                 "name": "Symphony MilkyWay CDM resolutionX1 z=0.990 (47 realizations)",
-                "logLikelihood": "-3960.56595167948",
+                "logLikelihood": "-3960.5659516794803",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -42,7 +42,7 @@ window.ANALYSES_DATA = {
                     89125093813.37473
                 ],
                 "yDataset": [
-                    4.920162570091288,
+                    4.92016257009129,
                     3.314939469745167,
                     2.230578794387061,
                     1.4994001749231183,
