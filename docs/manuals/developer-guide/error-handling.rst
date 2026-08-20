@@ -249,17 +249,36 @@ called only on the failing branch.
 
 .. _manual-sec-errorHandlingSignals:
 
-Signals and crash context
--------------------------
+Failure context
+---------------
 
-Handlers registered with ``signalHandlerRegister`` are called when the process
-receives ``SIGSEGV``, ``SIGFPE``, ``SIGBUS``, ``SIGILL`` or ``SIGXCPU``, and are
-passed the signal number. They exist so that a crash can dump context which would
-otherwise be lost --- the posterior-sampling likelihood, for example, registers a
-handler which writes the parameter set being evaluated to a file, so that a crash
-can be reproduced.
+Handlers registered with ``signalHandlerRegister`` are called when the run
+fails, and exist so that context which would otherwise be lost can be dumped ---
+the posterior-sampling likelihood, for example, registers a handler which writes
+the parameter set being evaluated to a file, so that the failure can be
+reproduced.
 
-Handlers are ``threadprivate``, so a crash dumps the context of the thread which
-crashed, and that thread only. A handler must be careful to do as little as
-possible: it runs in a process which has already failed, and anything it does
-which itself fails will replace the original diagnosis with its own.
+They are called in two circumstances:
+
+* when the process receives ``SIGSEGV``, ``SIGFPE``, ``SIGBUS``, ``SIGILL`` or
+  ``SIGXCPU``, in which case the handler is passed the signal number; and
+* from ``Error_Report``, in which case it is passed ``signalNone``.
+
+The second matters more often than the first. A crash is rare; a deliberate
+fatal error is not, and a handler called only on a signal would discard its
+context in precisely the usual case.
+
+.. warning::
+
+   A handler which interprets the signal it is passed must account for
+   ``signalNone``, which is **not** a member of the ``signal`` enumeration.
+   Decoding it --- with ``enumerationSignalDecode``, say, to name a file after
+   the cause --- raises an error of its own, and since that error is raised from
+   *inside* the handler it replaces the error actually being reported. Test for
+   ``signalNone`` first.
+
+Handlers are ``threadprivate``, so a failure dumps the context of the thread
+which failed, and that thread only --- which is what is wanted, since that is
+the thread whose state is relevant. A handler must otherwise be careful to do as
+little as possible: it runs in a process which has already failed, and anything
+it does which itself fails will replace the original diagnosis with its own.
