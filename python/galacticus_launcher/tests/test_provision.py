@@ -2,10 +2,12 @@
 
 Network-free: `_download` is replaced by a copy out of a locally built fixture
 "release", so the component selection logic, the ``--no-tools`` choice and its
-persistence, and the parameter-catalog download/generate fallback are all
-exercised against real archives on disk.
+persistence, the choice between an artefact's current and legacy form, and the
+parameter-catalog download/generate fallback are all exercised against real
+archives on disk.
 """
 
+import io
 import json
 import tarfile
 import zipfile
@@ -50,11 +52,35 @@ def release(tmp_path):
     (tools / "camb").write_text("#!/bin/sh\n")
     with tarfile.open(assets / "tools.tar.bz2", "w:bz2") as archive:
         archive.add(tools, arcname="dynamic")
+    _tar_zst(assets / "tools.tar.zst",
+             lambda archive: archive.add(tools, arcname="dynamic"))
+
+    # The datasets snapshot is packed from the root of the datasets tree, so it
+    # has no top-level directory to strip (unlike the repository archive above).
+    _tar_zst(assets / "datasets.tar.zst",
+             lambda archive: archive.add(data, arcname="static"))
 
     (assets / "Galacticus.exe").write_text("#!/bin/true\n")
     (assets / "parameters.catalog.json").write_text(
         json.dumps({"source": "published"}))
     return assets
+
+
+def _tar_zst(path, add):
+    """Write a zstd-compressed tar built by `add`, as the release assets are."""
+    buffer = io.BytesIO()
+    with tarfile.open(fileobj=buffer, mode="w") as archive:
+        add(archive)
+    path.write_bytes(_zstd(buffer.getvalue()))
+
+
+def _zstd(data):
+    try:
+        from compression.zstd import compress        # Python 3.14 and later
+    except ImportError:
+        import zstandard
+        return zstandard.ZstdCompressor().compress(data)
+    return compress(data)
 
 
 def _zip(path, root):
@@ -71,8 +97,9 @@ def install(tmp_path):
         exec_path=root / "exec", data_path=root / "datasets",
         tools_path=root / "tools", dynamic_path=tmp_path / "cache" / "dynamic",
         binary=root / "exec" / "Galacticus.exe",
-        assets=platforms.PlatformAssets("Galacticus.exe", "tools.tar.bz2",
-                                        "tar.bz2", "test"),
+        assets=platforms.PlatformAssets("Galacticus.exe",
+                                        "tools.tar.zst", "tar.zst",
+                                        "tools.tar.bz2", "tar.bz2", "test"),
     )
 
 
@@ -81,7 +108,8 @@ def fetched(monkeypatch, release):
     """Serve `_download` from the fixture release; record every URL requested."""
     requested = []
 
-    def _fake_download(url, dest, *, log=print, retries=4, missing_ok=False):
+    def _fake_download(url, dest, *, log=print, retries=4, missing_ok=False,
+                       progress=None):
         requested.append(url)
         # Both repository archives are `.../archive/...zip`, so key on the repo;
         # every other URL is named for the release asset it carries.
@@ -103,6 +131,9 @@ def fetched(monkeypatch, release):
     monkeypatch.setattr(download, "load_checksums", lambda tag, log=print: None)
     monkeypatch.setattr(download, "resolve_datasets_ref",
                         lambda tag, log=print: "master")
+    # Nothing may reach the network: the small text assets (the datasets pin)
+    # are read through this, and a release which publishes none is the default.
+    monkeypatch.setattr(download, "_read_remote_text", lambda url: None)
     return requested
 
 
@@ -192,4 +223,95 @@ def test_bad_catalog_checksum_falls_back_to_generating_one(install, fetched,
 def test_malformed_catalog_falls_back_to_generating_one(install, fetched, release):
     (release / "parameters.catalog.json").write_text("{ not json")
     download.provision(install, log=_quiet)
+    assert _catalog(install) == {"source": "generated"}
+
+
+# --- choosing between an artefact's current and legacy form ----------------
+
+def _checksums(*assets):
+    """A release asset listing, with digests no test verifies against."""
+    return {asset: "" for asset in assets}
+
+
+def test_tools_come_from_the_zstd_archive_when_the_release_publishes_one(
+        install, fetched, monkeypatch):
+    monkeypatch.setattr(download, "load_checksums",
+                        lambda tag, log=print: _checksums("tools.tar.zst"))
+    monkeypatch.setattr(download, "_verify", lambda *a, **k: None)
+    assert "tools" in download.provision(install, log=_quiet)
+    assert any(url.endswith("tools.tar.zst") for url in fetched)
+    assert not any(url.endswith("tools.tar.bz2") for url in fetched)
+    assert (install.tools_path / "camb").is_file()
+
+
+def test_tools_fall_back_to_the_archive_an_older_release_published(
+        install, fetched, monkeypatch):
+    """A release cut before the switch to zstd carries only the older archive,
+    and it can not be regenerated, so its name has to remain reachable."""
+    monkeypatch.setattr(download, "load_checksums",
+                        lambda tag, log=print: _checksums("tools.tar.bz2"))
+    monkeypatch.setattr(download, "_verify", lambda *a, **k: None)
+    assert "tools" in download.provision(install, log=_quiet)
+    assert any(url.endswith("tools.tar.bz2") for url in fetched)
+    assert not any(url.endswith("tools.tar.zst") for url in fetched)
+    assert (install.tools_path / "camb").is_file()
+
+
+# --- the datasets snapshot -------------------------------------------------
+
+def test_datasets_come_from_the_release_snapshot_when_published(
+        install, fetched, monkeypatch):
+    monkeypatch.setattr(download, "load_checksums",
+                        lambda tag, log=print: _checksums("datasets.tar.zst"))
+    monkeypatch.setattr(download, "_verify", lambda *a, **k: None)
+    monkeypatch.setattr(download, "_snapshot_ref", lambda tag: "abc123")
+    assert "datasets" in download.provision(install, log=_quiet)
+    assert any(url.endswith("datasets.tar.zst") for url in fetched)
+    assert not any(f"/{download.DATASETS_REPO}/archive/" in url for url in fetched)
+    assert (install.data_path / "static" / "table.txt").is_file()
+    # The sentinel records the commit the snapshot was taken from, so that
+    # `galacticus info` and a later `update` can tell which data is installed.
+    assert (install.data_path / ".galacticus-datasets").read_text() == "abc123"
+
+
+def test_datasets_fall_back_to_the_repository_archive(install, fetched,
+                                                      monkeypatch):
+    monkeypatch.setattr(download, "load_checksums",
+                        lambda tag, log=print: _checksums("Galacticus.exe"))
+    monkeypatch.setattr(download, "_verify", lambda *a, **k: None)
+    assert "datasets" in download.provision(install, log=_quiet)
+    assert any(f"/{download.DATASETS_REPO}/archive/" in url for url in fetched)
+    assert (install.data_path / "static" / "table.txt").is_file()
+
+
+def test_an_explicit_datasets_ref_bypasses_the_snapshot(install, fetched,
+                                                        monkeypatch):
+    """`GALACTICUS_DATASETS_REF` asks for a specific commit, which the release's
+    own snapshot can not satisfy -- so that request must reach the repository."""
+    monkeypatch.setenv("GALACTICUS_DATASETS_REF", "somebranch")
+    monkeypatch.setattr(download, "load_checksums",
+                        lambda tag, log=print: _checksums("datasets.tar.zst"))
+    monkeypatch.setattr(download, "_verify", lambda *a, **k: None)
+    download.provision(install, log=_quiet)
+    assert any(f"/{download.DATASETS_REPO}/archive/" in url for url in fetched)
+    assert not any(url.endswith("datasets.tar.zst") for url in fetched)
+
+
+def test_a_failed_catalog_download_does_not_abort_the_install(install, fetched,
+                                                              monkeypatch):
+    """The catalog is the one artefact provisioning can rebuild itself, so a
+    transfer failure has to fall back to generating it -- not discard the
+    components which already downloaded."""
+    real = download._download
+
+    def failing(url, dest, **kwargs):
+        if url.endswith(download.CATALOG_ASSET):
+            raise RuntimeError("connection reset by peer")
+        return real(url, dest, **kwargs)
+
+    monkeypatch.setattr(download, "_download", failing)
+    done = download.provision(install, log=_quiet)
+    assert done == ["exec", "datasets", "tools", "parameter catalog"]
+    assert (install.exec_path / "parameters" / "quickTest.xml").is_file()
+    assert (install.tools_path / "camb").is_file()
     assert _catalog(install) == {"source": "generated"}

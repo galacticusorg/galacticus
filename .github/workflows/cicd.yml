@@ -54,7 +54,10 @@ jobs:
         # platformdirs + requests are needed by the galacticus_launcher tests and
         # lxml by the parameter-resolver tests (the third-party deps in the
         # python/ pytest suite); all are small wheels so the job stays fast.
-        run: python -m pip install --upgrade pip pytest platformdirs requests lxml
+        # zstandard supplies zstd where the standard library has none (before
+        # Python 3.14), so the launcher's archive tests do not depend on which
+        # interpreter this job happens to resolve `3.x` to.
+        run: python -m pip install --upgrade pip pytest platformdirs requests lxml zstandard
       - name: Run Python regression tests
         run: |
           cd $GITHUB_WORKSPACE
@@ -439,6 +442,11 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS+=\ -static" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
+      - name: "Install archiving tools"
+        # The tools archive is packed with zstd (see the packaging step below), which the build container
+        # does not carry. The other jobs which pack a zstd archive run directly on a runner image, where it
+        # is already present.
+        run: apt-get install --yes zstd || { apt-get update && apt-get install --yes zstd ; }
       - name: Download executables
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
@@ -470,7 +478,14 @@ jobs:
           # executable and a stamp matching the required `forutils` version are present. Installs made from
           # the packaged tools (e.g. via PyPI) typically have no Fortran compiler, so a missing stamp turns
           # into a fatal build attempt rather than a simple use of the pre-built binary.
-          tar cfj tools.tar.bz2 \
+          # zstd rather than bzip2. The archive is roughly the same size, but bzip2 decompresses at around
+          # 13 MB/s of compressed input single-threaded, so unpacking the ~1.7 GB archive took over two
+          # minutes on the installing machine -- several times longer than downloading it. zstd unpacks the
+          # same payload in a few seconds. Level 12 is chosen over the slower levels because this payload is
+          # ~9 GB uncompressed: the higher levels buy a few percent of size at the cost of many minutes of
+          # runner time, whereas -12 is both smaller and faster to produce than the bzip2 it replaces.
+          set -o pipefail
+          tar cf - \
             dynamic/CAMB-${cambVersion}/fortran/camb \
             dynamic/CAMB-${cambVersion}/forutils/.galacticusForUtilsVersion_${forutilsVersion} \
             dynamic/axionCAMB-${axioncambVersion}/camb \
@@ -486,12 +501,59 @@ jobs:
             dynamic/fsps-${fspsVersion}/SPECTRA \
             dynamic/fsps-${fspsVersion}/OUTPUTS \
             dynamic/fsps-${fspsVersion}/ISOCHRONES \
-            dynamic/mangle-${mangleVersion}/bin/harmonize
+            dynamic/mangle-${mangleVersion}/bin/harmonize \
+            | zstd -12 -T0 -q -o tools.tar.zst
       - name: Upload tools
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-tools
-          path: ./datasets/tools.tar.bz2
+          # Already compressed: re-zipping it in the artifact costs minutes and saves nothing.
+          compression-level: 0
+          path: ./datasets/tools.tar.zst
+      - run: echo "This job's status is ${{ job.status }}."
+  ## Run-time datasets
+  Package-Datasets:
+    # Publish a snapshot of the datasets repository as a release asset.
+    #
+    # Without one, an install has to fetch `galacticusorg/datasets` from GitHub's repository-archive endpoint,
+    # which generates the zip on the fly: it advertises no content length, refuses byte ranges, and is
+    # throttled per connection to a fraction of the rate a release asset is served at. That single download
+    # dominates the wall-clock time of a first install. As a release asset the same data can be split across
+    # connections, verified against the release checksums, and unpacked from zstd rather than deflate.
+    #
+    # It also pins the data: the snapshot is taken at a known commit, recorded in `datasets.ref`, so an
+    # install gets the data this build was tested against instead of whatever `master` has moved on to.
+    # Setting GALACTICUS_DATASETS_REF still asks the launcher for a specific ref via the repository archive.
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository datasets
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+          # Only the working tree is packaged, so there is no use for the history.
+          fetch-depth: 1
+      - name: Package datasets snapshot
+        run: |
+          set -o pipefail
+          cd datasets
+          git rev-parse HEAD > "${GITHUB_WORKSPACE}/datasets.ref"
+          echo "datasets snapshot at $(cat "${GITHUB_WORKSPACE}/datasets.ref")"
+          # Packed from the root of the tree, with no top-level directory: the launcher unpacks this straight
+          # into GALACTICUS_DATA_PATH, unlike the repository archive whose single `datasets-<ref>/` wrapper
+          # has to be stripped. Level 12 for the same reason as the tools archive -- see `Build-Tools`.
+          tar cf - --exclude=./.git . | zstd -12 -T0 -q -o "${GITHUB_WORKSPACE}/datasets.tar.zst"
+          ls -lh "${GITHUB_WORKSPACE}/datasets.tar.zst"
+      - name: Upload datasets snapshot
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: galacticus-datasets
+          # Already compressed: re-zipping it in the artifact costs minutes and saves nothing.
+          compression-level: 0
+          path: |
+            ./datasets.tar.zst
+            ./datasets.ref
       - run: echo "This job's status is ${{ job.status }}."
   ## MacOS
   ### Static executable
@@ -652,6 +714,24 @@ jobs:
           zip -r toolsMacOS.zip "${toolProducts[@]}" \
             -x "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm" \
                "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm.dSYM/*"
+          # The same signed products, packed again as a zstd tar -- which is what the release publishes and
+          # the launcher installs. The zip stays because it is the submission format: `xcrun notarytool
+          # submit` accepts only .zip/.pkg/.dmg, and the signature verification step below reads it too. That
+          # costs nothing at distribution time, because a notarization ticket for loose signed binaries lives
+          # on Apple's servers and is looked up by the code-directory hash of each binary -- it is not stapled
+          # into the archive, so the archive's format is free. The tar wins twice over the zip: it unpacks far
+          # faster, and it records file modes, so the launcher does not have to guess afterwards which of the
+          # unpacked files were meant to be executable.
+          #
+          # COPYFILE_DISABLE stops bsdtar writing AppleDouble `._*` members for extended attributes. Mach-O
+          # code signatures live inside the binaries themselves, so nothing signed is lost; what would be
+          # carried over is quarantine and Finder metadata, which the installed tools have no use for.
+          set -o pipefail
+          COPYFILE_DISABLE=1 tar cf - \
+            --exclude "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm" \
+            --exclude "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm.dSYM*" \
+            "${toolProducts[@]}" \
+            | zstd -12 -T0 -q -o toolsMacOS.tar.zst
       - name: Verify all packaged binaries are code-signed
         uses: ./.github/actions/verifySignedMacOS
         with:
@@ -662,7 +742,11 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-tools-MacOS
-          path: './datasets/toolsMacOS.zip'
+          # Already compressed: re-zipping them in the artifact costs minutes and saves nothing.
+          compression-level: 0
+          path: |
+            ./datasets/toolsMacOS.zip
+            ./datasets/toolsMacOS.tar.zst
   ### Apple Silicon build
   Build-Executable-MacOS-M1:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
@@ -817,6 +901,24 @@ jobs:
           zip -r toolsMacOSM1.zip "${toolProducts[@]}" \
             -x "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm" \
                "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm.dSYM/*"
+          # The same signed products, packed again as a zstd tar -- which is what the release publishes and
+          # the launcher installs. The zip stays because it is the submission format: `xcrun notarytool
+          # submit` accepts only .zip/.pkg/.dmg, and the signature verification step below reads it too. That
+          # costs nothing at distribution time, because a notarization ticket for loose signed binaries lives
+          # on Apple's servers and is looked up by the code-directory hash of each binary -- it is not stapled
+          # into the archive, so the archive's format is free. The tar wins twice over the zip: it unpacks far
+          # faster, and it records file modes, so the launcher does not have to guess afterwards which of the
+          # unpacked files were meant to be executable.
+          #
+          # COPYFILE_DISABLE stops bsdtar writing AppleDouble `._*` members for extended attributes. Mach-O
+          # code signatures live inside the binaries themselves, so nothing signed is lost; what would be
+          # carried over is quarantine and Finder metadata, which the installed tools have no use for.
+          set -o pipefail
+          COPYFILE_DISABLE=1 tar cf - \
+            --exclude "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm" \
+            --exclude "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm.dSYM*" \
+            "${toolProducts[@]}" \
+            | zstd -12 -T0 -q -o toolsMacOSM1.tar.zst
       - name: Verify all packaged binaries are code-signed
         uses: ./.github/actions/verifySignedMacOS
         with:
@@ -827,7 +929,11 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-tools-MacOS-M1
-          path: './datasets/toolsMacOSM1.zip'
+          # Already compressed: re-zipping them in the artifact costs minutes and saves nothing.
+          compression-level: 0
+          path: |
+            ./datasets/toolsMacOSM1.zip
+            ./datasets/toolsMacOSM1.tar.zst
   ## Library
   Build-Library-MacOS:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
@@ -2503,6 +2609,7 @@ jobs:
              Build-Library-Linux,
              Build-Docker-Linux,
              Build-Tools,
+             Package-Datasets,
              Build-Executable-MacOS,
              Build-Executable-MacOS-M1,
              Build-Library-MacOS,
@@ -2561,11 +2668,24 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.bz2 --clobber
+          gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.zst --clobber
           # Record the checksums of the assets the launcher downloads and executes, before the local copies are removed. These are
-          # collected across the upload steps of this job and published as a single `SHA256SUMS` asset at the end of it.
-          sha256sum Galacticus.exe tools.tar.bz2 >> "${GITHUB_WORKSPACE}/SHA256SUMS"
-          rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.bz2
+          # collected across the upload steps of this job and published as a single `SHA256SUMS` asset at the end of it. The
+          # launcher also reads this file as the release's asset manifest -- an artefact listed here is one the release carries,
+          # which is how it chooses between the current and the legacy form of an archive without probing for a 404.
+          sha256sum Galacticus.exe tools.tar.zst >> "${GITHUB_WORKSPACE}/SHA256SUMS"
+          rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.zst
+      - name: Download artifacts (datasets)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: galacticus-datasets
+      - name: Upload datasets snapshot to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload bleeding-edge ./datasets.tar.zst ./datasets.ref --clobber
+          sha256sum datasets.tar.zst datasets.ref >> "${GITHUB_WORKSPACE}/SHA256SUMS"
+          rm ./datasets.tar.zst ./datasets.ref
       - name: Download artifacts (executable-macos)
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
@@ -2602,9 +2722,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json --clobber
-          sha256sum Galacticus_MacOS.exe Galacticus_MacOS-M1.exe toolsMacOS.zip toolsMacOSM1.zip >> "${GITHUB_WORKSPACE}/SHA256SUMS"
-          rm -f ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json
+          # The tools zips are deliberately not published: they exist only as the format `xcrun notarytool
+          # submit` accepts, and the release carries the same signed products as the zstd tars the launcher
+          # installs. Publishing both would add ~4 GB of duplicate assets to every release.
+          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.tar.zst ./toolsMacOSM1.tar.zst ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json --clobber
+          sha256sum Galacticus_MacOS.exe Galacticus_MacOS-M1.exe toolsMacOS.tar.zst toolsMacOSM1.tar.zst >> "${GITHUB_WORKSPACE}/SHA256SUMS"
+          rm -f ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./toolsMacOS.tar.zst ./toolsMacOSM1.tar.zst ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json
       - name: Download artifacts (perf-darkMatterOnlySubHalos)
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:

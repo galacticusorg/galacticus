@@ -31,8 +31,10 @@ Running a model
    galacticus run parameters/quickTest.xml
 
 On first use you will see the launcher fetch the executable, datasets, and tools,
-with a progress bar for each download and for unpacking each archive; subsequent
-runs reuse the cached copies. ``galacticus run`` validates the parameter file
+with a progress bar for each download and for unpacking each archive; the
+downloads run concurrently, and each large one is split across several
+connections, so the whole set arrives at roughly the speed of your link rather
+than of one stream. Subsequent runs reuse the cached copies. ``galacticus run`` validates the parameter file
 before dispatching it; pass ``--no-validate`` to skip that, and any other
 arguments (e.g. ``--dry-run``) are passed straight through to the executable.
 ``galacticus <file>`` is shorthand for ``galacticus run <file>``. If you do not
@@ -163,8 +165,17 @@ executable's ``--dry-run``.
 
    The launcher fetches assets from the GitHub release matching the installed
    package version (development installs track the rolling ``bleeding-edge``
-   release). For a versioned release the run-time datasets are pinned to a
-   specific ``datasets`` commit, recorded on the release, so a given package
-   version always installs the same data. ``GALACTICUS_RELEASE_TAG`` and
+   release). The run-time datasets are installed from a snapshot published on
+   the release and pinned to the ``datasets`` commit it was taken from, so a
+   given release always installs the same data — the commit is recorded on the
+   release as ``datasets.ref``. ``GALACTICUS_RELEASE_TAG`` and
    ``GALACTICUS_DATASETS_REF`` override the release tag and datasets ref
-   respectively.
+   respectively; asking for a specific ref fetches that commit from the
+   ``datasets`` repository instead of using the release snapshot, which is
+   slower but is how you track ``master`` or test an unreleased data change.
+
+.. note::
+
+   ``GALACTICUS_DOWNLOAD_CONNECTIONS`` sets how many byte-range requests a
+   single large asset is split across (default 4). Set it to ``1`` if a
+   network or proxy handles ranged requests badly.
