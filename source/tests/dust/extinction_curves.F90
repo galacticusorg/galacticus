@@ -79,7 +79,9 @@ program Test_Dust_Extinction_Curves
   call Unit_Tests_Begin_Group("normalization in the V-band")
   curveCalzetti2000=dustExtinctionCurveCalzetti2000(     )
   curveCardelli1989=dustExtinctionCurveCardelli1989(3.1d0)
-  curvePowerLaw    =dustExtinctionCurvePowerLaw    (0.7d0)
+  ! The reference wavelength is given explicitly: the curve is compared below against
+  ! `stellarSpectraDustAttenuationCharlotFall2000`, which normalizes at the Buser V effective wavelength.
+  curvePowerLaw    =dustExtinctionCurvePowerLaw    (0.7d0,wavelengthVBand)
   call Assert("calzetti2000",curveCalzetti2000%attenuationRelative(wavelengthVBand),1.0d0,relTol=3.0d-3)
   call Assert("cardelli1989",curveCardelli1989%attenuationRelative(wavelengthVBand),1.0d0,relTol=3.0d-3)
   ! The power law is exactly unity by construction.
