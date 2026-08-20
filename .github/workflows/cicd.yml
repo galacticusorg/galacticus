@@ -54,7 +54,10 @@ jobs:
         # platformdirs + requests are needed by the galacticus_launcher tests and
         # lxml by the parameter-resolver tests (the third-party deps in the
         # python/ pytest suite); all are small wheels so the job stays fast.
-        run: python -m pip install --upgrade pip pytest platformdirs requests lxml
+        # zstandard supplies zstd where the standard library has none (before
+        # Python 3.14), so the launcher's archive tests do not depend on which
+        # interpreter this job happens to resolve `3.x` to.
+        run: python -m pip install --upgrade pip pytest platformdirs requests lxml zstandard
       - name: Run Python regression tests
         run: |
           cd $GITHUB_WORKSPACE
@@ -439,6 +442,11 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS+=\ -static" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
+      - name: "Install archiving tools"
+        # The tools archive is packed with zstd (see the packaging step below), which the build container
+        # does not carry. The other jobs which pack a zstd archive run directly on a runner image, where it
+        # is already present.
+        run: apt-get install --yes zstd || { apt-get update && apt-get install --yes zstd ; }
       - name: Download executables
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
