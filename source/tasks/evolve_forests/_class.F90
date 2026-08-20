@@ -1366,15 +1366,15 @@ contains
     ! never asks for a tree to be suspended directly, so the message names the classes which create such events instead: those are
     ! the parameters that can be changed. Each of those classes also guards against MPI itself, so reaching here means one has been
     ! added without such a guard.
-    call Error_Report(                                                                                                &
-         &            'evolution requires suspending a tree, which is not supported under MPI'            //char(10)// &
-         &            displayGreen()//'HELP:'//displayReset()                                                       // &
-         &            ' a tree must be suspended when its evolution is limited by an event which requires all trees'  // &
-         &            ' to reach a common cosmic time. Such events are created by the self-consistent intergalactic'  // &
-         &            ' medium state evolver (`universeOperator`) and by the internal intergalactic background'       // &
-         &            ' radiation field (`radiationField`). Either select alternatives for those, or run as a single' // &
-         &            ' process using OpenMP threads, which is unaffected'                                            // &
-         &            {introspection:location}                                                                         &
+    call Error_Report(                                                                                                  &
+         &            'evolution requires suspending a tree, which is not supported under MPI'//char(10)             // &
+         &            displayGreen()//'HELP:'//displayReset()                                                        // &
+         &            ' a tree must be suspended when its evolution is limited by an event which requires all trees' // &
+         &            ' to reach a common cosmic time. Such events are created by the self-consistent intergalactic' // &
+         &            ' medium state evolver (`universeOperator`) and by the internal intergalactic background'      // &
+         &            ' radiation field (`radiationField`). Either select alternatives for those, or run as a single'// &
+         &            ' process using OpenMP threads, which is unaffected'                                           // &
+         &            {introspection:location}                                                                          &
          &           )
 #endif
     ! If the tree is to be suspended to file do so now.

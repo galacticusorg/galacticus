@@ -245,14 +245,14 @@ contains
     ! suspended while the others catch up, and suspending a tree is not supported under MPI. The guard is placed here, rather than
     ! being left to the point at which a tree must first be suspended, so that the run fails immediately with a message naming the
     ! parameter responsible rather than partway through evolution naming an internal mechanism.
-    call Error_Report(                                                                                                &
-         &            'the internal intergalactic background radiation field is not supported under MPI'  //char(10)// &
-         &            displayGreen()//'HELP:'//displayReset()                                                       // &
-         &            ' this radiation field is evolved self-consistently with the galaxy population, which requires' // &
-         &            ' suspending trees that reach a universal event before the others, and that is not supported'   // &
-         &            ' under MPI. Either select a different `radiationField`, or run as a single process using'      // &
-         &            ' OpenMP threads, which is unaffected'                                                          // &
-         &            {introspection:location}                                                                         &
+    call Error_Report(                                                                                                  &
+         &            'the internal intergalactic background radiation field is not supported under MPI'//char(10)   // &
+         &            displayGreen()//'HELP:'//displayReset()                                                        // &
+         &            ' this radiation field is evolved self-consistently with the galaxy population, which requires'// &
+         &            ' suspending trees that reach a universal event before the others, and that is not supported'  // &
+         &            ' under MPI. Either select a different `radiationField`, or run as a single process using'     // &
+         &            ' OpenMP threads, which is unaffected'                                                         // &
+         &            {introspection:location}                                                                          &
          &           )
 #endif
     ! Build tables of wavelength and time for cosmic background radiation.
