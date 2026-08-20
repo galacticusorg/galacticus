@@ -1665,6 +1665,7 @@ jobs:
                 test-parameters-extract.py,
                 test-parameters-changes.py,
                 test-parameters-default-reporting.py,
+                test-error-report-handlers.py,
                 test-temporary-parameter-file.py,
                 test-output-datasets-suffixes.py,
                 test-star-formation-histories.py,
