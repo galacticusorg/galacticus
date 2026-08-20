@@ -33,18 +33,28 @@ module Error
           &                                    GSL_eUndrFlw  , GSL_eZeroDiv, GSL_eMaxIter, GSL_eRound
   implicit none
   private
-  public :: Error_Report               , Error_Handler_Register    , &
-       &    Component_List             , GSL_Error_Handler_Abort_On, &
-       &    GSL_Error_Handler_Abort_Off, GSL_Error_Status          , &
-       &    Warn                       , Error_Wait_Set            , &
-       &    GSL_Error_Details          , signalHandlerDeregister   , &
-       &    signalHandlerRegister      , signalHandlerInterface    , &
-       &    GSL_Error_Handler_Aborting
+  public :: Error_Report               , Error_Handler_Register         , &
+       &    Component_List             , GSL_Error_Handler_Abort_On     , &
+       &    GSL_Error_Handler_Abort_Off, GSL_Error_Status               , &
+       &    Warn                       , Error_Wait_Set                 , &
+       &    GSL_Error_Details          , signalHandlerDeregister        , &
+       &    signalHandlerRegister      , signalHandlerInterface         , &
+       &    GSL_Error_Handler_Aborting , Error_Report_Allocation_Failure 
 
   interface Error_Report
      module procedure Error_Report_Char
      module procedure Error_Report_VarStr
   end interface Error_Report
+
+  interface Error_Report_Allocation_Failure
+     !!{RST
+        Report a failure to allocate memory. The element count is accepted as either a default integer or
+        a ``c_size_t``, since the counts which size such allocations are read from files and so are of
+        both kinds.
+     !!}
+     module procedure Error_Report_Allocation_Failure_Integer
+     module procedure Error_Report_Allocation_Failure_SizeT
+  end interface Error_Report_Allocation_Failure
 
   interface Warn
      module procedure Warn_Char
@@ -120,6 +130,55 @@ module Error
   !$omp threadprivate(signalHandlers,signalHandlerLast,inErrorHandling)
   
 contains
+
+  subroutine Error_Report_Allocation_Failure_Integer(name,elementCount,location)
+    !!{RST
+    Report a failure to allocate memory, for an element count given as a default integer.
+    !!}
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    implicit none
+    character(len=*), intent(in   ) :: name        , location
+    integer         , intent(in   ) :: elementCount
+
+    call Error_Report_Allocation_Failure_SizeT(name,int(elementCount,kind=c_size_t),location)
+    return
+  end subroutine Error_Report_Allocation_Failure_Integer
+
+  subroutine Error_Report_Allocation_Failure_SizeT(name,elementCount,location)
+    !!{RST
+    Report a failure to allocate memory.
+
+    An ``allocate`` which fails without ``stat=`` aborts the process with no indication of what was
+    being allocated, which is of no help at all in deciding what to do about it. This reports the
+    name of the object and the number of elements requested.
+
+    It exists so that the cost at each call site is a scalar integer and one branch: the message is
+    built here, on the failing branch, and not in the caller where the machinery to build it would be
+    constructed and destroyed on every call including the overwhelming majority which succeed.
+    !!}
+    use            :: Display      , only : displayGreen, displayReset
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    implicit none
+    character(len=*        ), intent(in   )              :: name        , location
+    integer  (c_size_t     ), intent(in   )              :: elementCount
+    character(len=32       )                             :: countLabel
+    character(len=:        ), allocatable                :: message
+
+    ! The message is assembled before being reported, rather than being built in the call to
+    ! `Error_Report`, because the location is supplied by the caller here: a call which builds its
+    ! message from literals is required to append `{introspection:location}` itself, and check 5 of
+    ! `staticAnalyzer.py` enforces that.
+    write (countLabel,'(i0)') elementCount
+    message='unable to allocate `'//name//'` ('//trim(countLabel)//' elements)'//char(10)        // &
+         &  displayGreen()//'HELP:'//displayReset()                                              // &
+         &  ' the run needs more memory than is available to it. Reduce the size of the problem' // &
+         &  ' (for example, the number of trees or particles being processed), reduce the number'// &
+         &  ' of OpenMP threads, since each holds its own copy of much of the state, or run'     // &
+         &  ' where more memory is available'                                                    // &
+         &  location
+    call Error_Report(message)
+    return
+  end subroutine Error_Report_Allocation_Failure_SizeT
 
   subroutine Error_Report_VarStr(message)
     !!{RST
