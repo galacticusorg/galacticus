@@ -32,17 +32,17 @@ in :math:`\mathrm{M}_\odot`) are exposed.
 
 *Note on the Einstein--de Sitter (EdS) internal relations.* Following
 :cite:t:`montandon_decaying_2026`, the DDM corrections are evaluated using EdS relations *internally*
-even when the host cosmology is :math:`\Lambda`CDM: the turnaround time is :math:`t_\mathrm{ta}=t_\mathrm{coll}/2`,
+even when the host cosmology is :math:`\Lambda`\ CDM: the turnaround time is :math:`t_\mathrm{ta}=t_\mathrm{coll}/2`,
 the turnaround radius follows from Kepler's relation :math:`G M_0 = \pi^2 R_\mathrm{ta}^3/(8 t_\mathrm{ta}^2)`,
 the linear extrapolation uses the EdS growth factor, and :math:`\delta_\mathrm{c}` is normalized to
 :math:`\delta_\mathrm{c}^\mathrm{EdS}=(3/5)(3\pi/2)^{2/3}\approx1.686`. This is a deliberate choice, not an
 approximation of convenience: the fitting constants (:math:`A`, :math:`\beta`, :math:`\gamma`, :math:`\nu`, :math:`M_2/M_1`, and the
 :math:`M_1` normalization) were calibrated against numerical solutions that fold *all* DDM physics
-through the EdS cycloid. Substituting the true :math:`\Lambda`CDM turnaround/growth relations here would be
-inconsistent with that calibration. The :math:`\Lambda`CDM baseline instead re-enters only where these
+through the EdS cycloid. Substituting the true :math:`\Lambda`\ CDM turnaround/growth relations here would be
+inconsistent with that calibration. The :math:`\Lambda`\ CDM baseline instead re-enters only where these
 functions are consumed---the DDM critical overdensity is applied as a multiplicative correction,
-:math:`\delta_\mathrm{c}^\mathrm{EdS}`-normalized, to a base :math:`\Lambda`CDM critical overdensity, so that the
-:math:`\Lambda`CDM limit (:math:`v_k\rightarrow0` or :math:`\Gamma\rightarrow0`) is recovered exactly.
+:math:`\delta_\mathrm{c}^\mathrm{EdS}`-normalized, to a base :math:`\Lambda`\ CDM critical overdensity, so that the
+:math:`\Lambda`\ CDM limit (:math:`v_k\rightarrow0` or :math:`\Gamma\rightarrow0`) is recovered exactly.
 
 *Note on the calibration of* :math:`M_1`. The transition mass scale uses the calibrated fit of
 :cite:t:`montandon_decaying_2026`, their eq. 44, and *not* the analytic estimate of their eq. 45---the
@@ -164,7 +164,7 @@ contains
     with :math:`\tilde{t}(\theta)=(\theta-\sin\theta)/\pi` the EdS cycloid time and
     :math:`I(\theta)=\sin\theta-3\theta+4\tan(\theta/2)` (their eq. 36). The integrand is bounded on
     :math:`(0,2\pi)`---the apparent singularities at :math:`\theta=0`, :math:`\pi`, and :math:`2\pi` are removable---and :math:`J<0`,
-    reflecting the delay of collapse relative to :math:`\Lambda`CDM.
+    reflecting the delay of collapse relative to :math:`\Lambda`\ CDM.
     !!}
     use :: Numerical_Integration   , only : integrator
     use :: Numerical_Constants_Math, only : Pi

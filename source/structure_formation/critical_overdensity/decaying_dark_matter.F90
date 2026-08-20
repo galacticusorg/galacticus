@@ -45,8 +45,8 @@ dark matter (DDM) of :cite:t:`montandon_decaying_2026`.
 
       In the model of :cite:t:`montandon_decaying_2026` all DDM physics is encoded through the critical
       overdensity (and, for the halo mass function, a mass remapping); the variance
-      :math:`\sigma(M)` is computed from the *unmodified* :math:`\Lambda`CDM linear power
-      spectrum. This class must therefore be used with a standard :math:`\Lambda`CDM
+      :math:`\sigma(M)` is computed from the *unmodified* :math:`\Lambda`\ CDM linear power
+      spectrum. This class must therefore be used with a standard :math:`\Lambda`\ CDM
       ``cosmologicalMassVariance``/``transferFunction`` --- combining it with a suppressed
       (DDM/:term:`WDM`) transfer function would double-count the small-scale suppression.
    </description>
