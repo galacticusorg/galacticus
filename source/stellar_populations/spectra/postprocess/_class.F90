@@ -44,6 +44,47 @@ module Stellar_Population_Spectra_Postprocess
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavelength, age, redshift</argument>
    </method>
+   <method name="ageRange" >
+    <description>
+    Return the range of stellar population ages, in Gyr, over which this postprocessor's multiplier is non-zero. The
+    default is unbounded; postprocessors which suppress emission outside a range of ages override it.
+
+    This is what allows a consumer to discover which of a set of named postprocessing chains corresponds to which
+    range of ages---so that, for example, a luminosity computed with a chain restricted to young populations can be
+    subtracted from one computed with an unrestricted chain to isolate the light of old populations---rather than
+    requiring the user to declare that correspondence and keep it consistent by hand.
+    </description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(  out) :: ageMinimum, ageMaximum</argument>
+    <code>
+     !$GLC attributes unused :: self
+     ageMinimum=0.0d0
+     ageMaximum=huge(0.0d0)
+    </code>
+   </method>
+   <method name="ageWindowIsSharp" >
+    <description>
+    Return true if the age dependence of this postprocessor's multiplier is a sharp window: that is, if the multiplier
+    is independent of age within the range reported by ``ageRange`` and zero outside it.
+
+    Postprocessors which have no age dependence at all satisfy this trivially, and so the default is true. Those which
+    taper---:galacticus-class:`stellarPopulationSpectraPostprocessorBirthCloudsLacey2016`, which declines linearly
+    between one and two birth cloud lifetimes, and
+    :galacticus-class:`stellarPopulationSpectraPostprocessorUnescaped`, which decays exponentially with age---do not,
+    and must return false.
+
+    The distinction matters because only a sharp window lets a luminosity be split cleanly into age bins by
+    differencing chains. Applying that construction to a tapering postprocessor would silently mis-apportion light
+    between the bins, so a consumer must check this before relying on ``ageRange``.
+    </description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+     stellarPopulationSpectraPostprocessorAgeWindowIsSharp=.true.
+    </code>
+   </method>
    <method name="isRedshiftDependent" >
     <description>
     Return true if this postprocessor's correction factor depends on the source redshift, allowing the ODE solver to determine whether the luminosity must be recomputed when the redshift changes rather than using a cached value.

@@ -36,6 +36,7 @@
      double precision :: timescale
    contains
      procedure :: multiplier          => unescapedMultiplier
+     procedure :: ageWindowIsSharp    => unescapedAgeWindowIsSharp
      procedure :: isRedshiftDependent => unescapedIsRedshiftDependent
   end type stellarPopulationSpectraPostprocessorUnescaped
 
@@ -115,3 +116,16 @@ contains
     isRedshiftDependent=.false.
     return
   end function unescapedIsRedshiftDependent
+
+  logical function unescapedAgeWindowIsSharp(self) result(ageWindowIsSharp)
+    !!{RST
+    Return false: the multiplier decays exponentially with age and is never exactly zero, so this chain can not be
+    used to define an age bin for decomposition.
+    !!}
+    implicit none
+    class(stellarPopulationSpectraPostprocessorUnescaped), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    ageWindowIsSharp=.false.
+    return
+  end function unescapedAgeWindowIsSharp

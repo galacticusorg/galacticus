@@ -1382,6 +1382,7 @@ jobs:
                       tests.interpolation.2D.exe,
                       tests.interpolation.multiD.exe,
                       tests.dust.attenuation_descriptors.exe,
+                      tests.dust.extinction_curves.exe,
                       tests.make_ranges.exe,
                       tests.tabulations_inverse.exe,
                       tests.cosmology_functions.exe,

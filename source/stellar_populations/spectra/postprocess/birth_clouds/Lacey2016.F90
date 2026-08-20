@@ -36,6 +36,8 @@
      double precision :: timescale
    contains
      procedure :: multiplier          => birthCloudsLacey2016Multiplier
+     procedure :: ageRange            => birthCloudsLacey2016AgeRange
+     procedure :: ageWindowIsSharp    => birthCloudsLacey2016AgeWindowIsSharp
      procedure :: isRedshiftDependent => birthCloudsLacey2016IsRedshiftDependent
   end type stellarPopulationSpectraPostprocessorBirthCloudsLacey2016
 
@@ -122,3 +124,30 @@ contains
     isRedshiftDependent=.false.
     return
   end function birthCloudsLacey2016IsRedshiftDependent
+
+  subroutine birthCloudsLacey2016AgeRange(self,ageMinimum,ageMaximum)
+    !!{RST
+    Return the range of ages over which emission is retained. Equation (A5) of :cite:t:`lacey_unified_2016` declines
+    linearly from one to two birth cloud lifetimes, and vanishes beyond.
+    !!}
+    implicit none
+    class           (stellarPopulationSpectraPostprocessorBirthCloudsLacey2016), intent(inout) :: self
+    double precision                                                           , intent(  out) :: ageMinimum, ageMaximum
+
+    ageMinimum=0.0d0
+    ageMaximum=2.0d0*self%timescale
+    return
+  end subroutine birthCloudsLacey2016AgeRange
+
+  logical function birthCloudsLacey2016AgeWindowIsSharp(self) result(ageWindowIsSharp)
+    !!{RST
+    Return false: the multiplier tapers linearly between one and two birth cloud lifetimes rather than switching
+    sharply, so this chain can not be used to define an age bin for decomposition.
+    !!}
+    implicit none
+    class(stellarPopulationSpectraPostprocessorBirthCloudsLacey2016), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    ageWindowIsSharp=.false.
+    return
+  end function birthCloudsLacey2016AgeWindowIsSharp

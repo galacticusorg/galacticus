@@ -43,6 +43,8 @@ Implements a stellar population spectra postprocessor class which applies a sequ
    contains
      final     ::                        sequenceDestructor
      procedure :: multiplier          => sequenceMultiplier
+     procedure :: ageRange            => sequenceAgeRange
+     procedure :: ageWindowIsSharp    => sequenceAgeWindowIsSharp
      procedure :: isRedshiftDependent => sequenceIsRedshiftDependent
   end type stellarPopulationSpectraPostprocessorSequence
 
@@ -168,3 +170,72 @@ contains
     end do
     return
   end function sequenceIsRedshiftDependent
+
+  subroutine sequenceAgeRange(self,ageMinimum,ageMaximum)
+    !!{RST
+    Return the range of ages retained by a sequence of postprocessors, which is the *intersection* of the ranges
+    retained by its members---the multiplier of a sequence being the product of those of its members, emission
+    survives only if it survives every one.
+
+    Because each member's range is a single interval, and the intersection of intervals is an interval, the result can
+    never contain a gap. Members whose ranges do not overlap at all intersect to nothing, which is reported as an
+    empty range: **on return, ``ageMaximum`` :math:`\le` ``ageMinimum`` means that no age survives the sequence, and
+    consumers must test for this** rather than treating the result as a narrow but usable window. Such a sequence
+    suppresses all emission at every age, and is almost always a misconfiguration.
+    !!}
+    implicit none
+    class           (stellarPopulationSpectraPostprocessorSequence), intent(inout) :: self
+    double precision                                               , intent(  out) :: ageMinimum      , ageMaximum
+    type            (postprocessorList                            ), pointer       :: postprocessor_
+    double precision                                                               :: ageMinimumMember, ageMaximumMember
+
+    ageMinimum     =  0.0d0
+    ageMaximum     =  huge(0.0d0)
+    postprocessor_ => self%postprocessors
+    do while (associated(postprocessor_))
+       call postprocessor_%postprocessor_%ageRange(ageMinimumMember,ageMaximumMember)
+       ageMinimum     =  max(ageMinimum,ageMinimumMember)
+       ageMaximum     =  min(ageMaximum,ageMaximumMember)
+       postprocessor_ => postprocessor_%next
+    end do
+    ! An empty intersection retains nothing. Report it as a zero-width range rather than an inverted one, so that the
+    ! test `ageMaximum <= ageMinimum` identifies the empty case whichever way it arose.
+    if (ageMaximum < ageMinimum) ageMaximum=ageMinimum
+    return
+  end subroutine sequenceAgeRange
+
+  logical function sequenceAgeWindowIsSharp(self) result(ageWindowIsSharp)
+    !!{RST
+    Return true only if every member of the sequence has a sharp age window.
+
+    Sharpness composes: writing a sharp member's multiplier as :math:`c_i(\lambda,z)` within its window and zero
+    outside, the product over members is :math:`\prod_i c_i(\lambda,z)` throughout the intersection---still
+    independent of age---and zero outside it, since at least one factor vanishes there. Note that "sharp" means
+    independent of age within the window, *not* equal to unity, so members with differing multipliers still compose to
+    a sharp window; that is precisely why a wavelength-dependent but age-independent member such as
+    :galacticus-class:`stellarPopulationSpectraPostprocessorInoue2014` cancels when two chains differing only in an
+    age window are divided.
+
+    The test is sufficient but not necessary, and so is conservative. A tapering member whose taper lies entirely
+    outside the intersection contributes only its flat part, and the product is then sharp despite this method
+    reporting otherwise---for example
+    :galacticus-class:`stellarPopulationSpectraPostprocessorBirthCloudsLacey2016` combined with a
+    :galacticus-class:`stellarPopulationSpectraPostprocessorRecent` whose limit is below one birth cloud lifetime.
+    Erring this way causes a consumer to decline to split a luminosity it could in fact have split, rather than to
+    split one it should not have.
+    !!}
+    implicit none
+    class(stellarPopulationSpectraPostprocessorSequence), intent(inout) :: self
+    type (postprocessorList                            ), pointer       :: postprocessor_
+
+    ageWindowIsSharp =  .true.
+    postprocessor_   => self%postprocessors
+    do while (associated(postprocessor_))
+       if (.not.postprocessor_%postprocessor_%ageWindowIsSharp()) then
+          ageWindowIsSharp=.false.
+          return
+       end if
+       postprocessor_ => postprocessor_%next
+    end do
+    return
+  end function sequenceAgeWindowIsSharp
