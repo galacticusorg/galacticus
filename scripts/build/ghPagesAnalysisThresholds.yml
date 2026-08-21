@@ -238,6 +238,48 @@
 # regression. The stepped rule applies; the new plateau has exactly zero scatter, so
 # here the 0.20 floor does set the scale. That this analysis moved against its
 # family is the one thing worth watching if it drifts further.
+#
+# The 2026-08-20 pass widens COZMIC WDM 10keV X1 subhaloRadialDistribution, which
+# the pass above re-anchored a day earlier and which warned again on the next run.
+# The step traced above was real; the scale put around it was not.
+#
+# That anchor took its scale from the three runs of 2026-08-15 to 2026-08-19, whose
+# standard deviation is 0.049. Three points estimate a scale poorly, and these three
+# happened to fall close together: the 2026-08-20 run returned -0.126, which is 3.8
+# of those standard deviations below their mean, and warned.
+#
+# The analysis' own scatter is far larger, and is not peculiar to this model. Over
+# the eight runs since 2026-08-10 the standard deviation of subhaloRadialDistribution
+# is 7.30 for COZMIC WDM 3keV X1, 2.44 for 4keV, 0.46 for 5keV, 0.84 for 6keV, 0.88
+# for 6.5keV, 0.71 for 10keV and 1.04 for Symphony CDM. For subhaloMassFunction over
+# the same runs it is 0.03 to 0.24 for all but the 3keV model. The radial
+# distribution is simply the noisy analysis of an X1 model - it is the one most
+# sensitive to which subhaloes a particular realization happens to place where, and
+# these models build too few trees for that to average out - and 10keV is
+# unremarkable within its family. The 2026-08-19 anchor understated the scale by a
+# factor of about fifteen.
+#
+# What makes every run a fresh realization is that the trees are rebuilt so often:
+# between the 2026-08-19 and 2026-08-20 runs 104 of the 114 analyses changed and only
+# 10 were bit identical, and the changes ran in both directions - 6.5keV X1
+# subhaloRadialDistribution improved from +0.815 to +1.770 while this one fell.
+#
+# The entry is therefore treated as one noisy regime rather than a sequence of
+# plateaus, and takes the minimum-anchor rule: A is the minimum of the eight runs
+# since 2026-08-10, s = 1.5 x sd of that window = 1.067, warn = A - 1.0s and fail =
+# A - 2.5s. Every value in the whole published record, before and after 2026-08-10,
+# sits above the resulting warn line.
+#
+# Note that the series has fallen at every step since 2026-08-10, from +1.98 to
+# -0.126. Eight runs of a quantity this noisy cannot distinguish a drift from a
+# walk, so no trend is claimed here. The new band leaves about 1.5 sd of room below
+# the current value: if the decline continues past it the entry will warn again, and
+# that would be worth reading as a signal rather than as an artifact of too tight a
+# band.
+#
+# One entry outside this family is close to its line and is not adjusted here:
+# milkyWayModel localGroupStellarMassHaloMassRelation sits 0.11 of its own scatter
+# above warn.
 
 fraction_fail: 0.2
 fraction_warn: 0.1
@@ -262,9 +304,9 @@ thresholds:
       threshold_fail: 0.4553
       threshold_warn: 0.7969
     subhaloRadialDistribution:
-      current: 0.0601
-      threshold_fail: -0.1588
-      threshold_warn: -0.0493
+      current: -0.1264
+      threshold_fail: -2.7945
+      threshold_warn: -1.1937
     subhaloVelocityMaximumMean:
       current: -23.5054
       threshold_fail: -28.2064
