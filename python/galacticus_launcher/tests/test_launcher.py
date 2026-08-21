@@ -183,8 +183,22 @@ def test_resolve_datasets_ref_env_override(monkeypatch):
 
 def test_resolve_datasets_ref_bleeding(monkeypatch):
     monkeypatch.delenv("GALACTICUS_DATASETS_REF", raising=False)
-    # bleeding-edge tracks master and never hits the network for a pin.
-    assert download.resolve_datasets_ref("bleeding-edge") == "master"
+    # `bleeding-edge` is pinned by its own `datasets.ref` asset exactly as a tagged release is: the
+    # snapshot published alongside it is the data that build was tested against. The fetch is stubbed
+    # because asserting against the live release would make this test depend on what is published at
+    # the moment it runs.
+    monkeypatch.setattr(download, "_read_remote_text", lambda url: "abc123def\n")
+    assert download.resolve_datasets_ref("bleeding-edge") == "abc123def"
+
+
+def test_resolve_datasets_ref_bleeding_unpinned(monkeypatch):
+    monkeypatch.delenv("GALACTICUS_DATASETS_REF", raising=False)
+    monkeypatch.setattr(download, "_read_remote_text", lambda url: None)
+    # With no pin published, datasets `master` is used - and, unlike a tagged release, the absence of
+    # a pin is not reported, since it is unremarkable for a rolling build.
+    logged = []
+    assert download.resolve_datasets_ref("bleeding-edge", log=logged.append) == "master"
+    assert logged == []
 
 
 def test_resolve_datasets_ref_pinned(monkeypatch):
