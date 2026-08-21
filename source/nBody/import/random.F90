@@ -141,21 +141,26 @@ contains
     !!{RST
     Import data from a Random file.
     !!}
-    use :: Display     , only : displayIndent           , displayUnindent         , verbosityLevelStandard
-    use :: Dictionaries, only : rank1DoublePtrDictionary, rank1IntegerSizeTPtrDictionary, rank2DoublePtrDictionary    , rank2IntegerSizeTPtrDictionary, &
-         &                      doubleDictionary        , integerSizeTDictionary        , varyingStringDictionary     , genericDictionary
+    use :: Display     , only : displayIndent                  , displayUnindent               , verbosityLevelStandard
+    use :: Error       , only : Error_Report_Allocation_Failure
+    use :: Dictionaries, only : rank1DoublePtrDictionary       , rank1IntegerSizeTPtrDictionary, rank2DoublePtrDictionary, rank2IntegerSizeTPtrDictionary, &
+         &                      doubleDictionary               , integerSizeTDictionary        , varyingStringDictionary , genericDictionary
     implicit none
     class           (nbodyImporterRandom), intent(inout)                              :: self
     type            (nBodyData          ), intent(  out), dimension(  :), allocatable :: simulations
     double precision                                    , dimension(:,:), pointer     :: position   , velocity
     integer         (c_size_t           )               , dimension(  :), pointer     :: particleID
     integer         (c_size_t           )                                             :: i
+    integer                                                                           :: allocErr
 
     call displayIndent('import simulation from Random file',verbosityLevelStandard)
     allocate(simulations(1                 ))
-    allocate(particleID (  self%countPoints))
-    allocate(position   (3,self%countPoints))
-    allocate(velocity   (3,self%countPoints))
+    allocate(particleID (  self%countPoints),stat=allocErr)
+    if (allocErr /= 0) call Error_Report_Allocation_Failure('particleID',  self%countPoints,{introspection:location})
+    allocate(position   (3,self%countPoints),stat=allocErr)
+    if (allocErr /= 0) call Error_Report_Allocation_Failure('position'  ,3*self%countPoints,{introspection:location})
+    allocate(velocity   (3,self%countPoints),stat=allocErr)
+    if (allocErr /= 0) call Error_Report_Allocation_Failure('velocity'  ,3*self%countPoints,{introspection:location})
     simulations(1)%label='random'
     simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrDictionary()
     simulations(1)%propertiesReal        =rank1DoublePtrDictionary      ()
