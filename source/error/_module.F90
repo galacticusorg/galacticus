@@ -73,6 +73,12 @@ module Error
   integer, parameter, public :: errorStatusMaxIterations=GSL_eMaxIter ! Maximum iterations exceeded.
   integer, parameter, public :: errorStatusXCPU         =1025         ! CPU time limit exceeded.
   integer, parameter, public :: errorStatusNotExist     =1026         ! Entity does not exist.
+
+  ! Value passed to registered signal handlers when they are called other than in response to a
+  ! signal - that is, from `Error_Report`. Zero is not a valid POSIX signal number, so it cannot be
+  ! confused with one, and it is the value which a handler recording "no signal has been seen" would
+  ! hold anyway.
+  integer, parameter, public :: signalNone              =   0         ! Not a signal.
   
   !![
   <constant variable="Kernel_EACCES"       kernelSymbol="EACCES"       kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for permission denied."             group="Kernel"/>
@@ -224,11 +230,17 @@ contains
     !$    write (error_unit,*) " => Error occurred in master thread"
     !$ end if
     write (error_unit,*) " => Command line was: ",char(commandLine())
-    call BackTrace  (           )
-    call Warn_Review(           )
-    call Error_Help_Message()
-    call Flush      (output_unit)
-    call Flush      ( error_unit)
+    ! Call any registered signal handlers, so that a deliberate fatal error dumps the same context a
+    ! crash would. Handlers are `threadprivate`, so this reports the context of the thread which
+    ! failed and of no other - which is what is wanted, since that is the thread whose state is
+    ! relevant. `signalHandlersCall` will not re-enter the handlers if one of them itself raises an
+    ! error.
+    call signalHandlersCall(signalNone )
+    call BackTrace         (           )
+    call Warn_Review       (           )
+    call Error_Help_Message(           )
+    call Flush             (output_unit)
+    call Flush             ( error_unit)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else

@@ -1476,6 +1476,7 @@ jobs:
                       tests.conditional_mass_functions.exe,
                       tests.locks.exe,
                       tests.warnings.exe,
+                      tests.error_report_handlers.exe,
                       tests.initial_mass_functions.exe,
                       tests.stellar_populations.exe,
                       tests.stellar_populations.luminosities.exe,
