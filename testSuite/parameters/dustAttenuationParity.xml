@@ -315,6 +315,15 @@
     <redshifts value="0.0"/>
   </outputTimes>
 
+  <!-- A star formation history must be stored for the spectral energy distribution extractor to have anything to
+       convolve; the default is to store none. The time resolution is set finer than the birth cloud lifetime so that
+       the young/old split falls on a bin boundary rather than inside a bin. -->
+  <starFormationHistory value="adaptive">
+    <timeStepMinimum       value="2.0e-3"/>
+    <countTimeStepsMaximum value="16"    />
+    <countMetallicities    value="4"     />
+  </starFormationHistory>
+
   <!-- Each luminosity is tracked twice: once unrestricted, once restricted to populations younger than the birth
        cloud lifetime. Differencing the two isolates the light of old stars. -->
   <luminosityFilter         value="SDSS_r  SDSS_r"/>
@@ -341,6 +350,7 @@
     <nodePropertyExtractor value="dustAttenuation">
       <outputUnattenuated value="true"/>
       <outputSum          value="true"/>
+      <sumName            value="luminosityTotal"/>
       <dustAttenuation value="charlotFall2000">
         <coefficientBirthCloud value="1.0e0" />
         <coefficientISM        value="1.0e0" />
@@ -361,6 +371,101 @@
         <filterType        value="rest"          />
         <component         value="spheroid"      />
         <postprocessChains value="default recent"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="true"/>
+      <outputSum          value="true"/>
+      <sumName            value="sedTotal"/>
+      <dustAttenuation value="charlotFall2000">
+        <coefficientBirthCloud value="1.0e0" />
+        <coefficientISM        value="1.0e0" />
+        <timescale             value="1.0e-2"/>
+        <exponent              value="0.7e0" />
+        <wavelengthReference   value="5500.0"/>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component         value="disk"    />
+        <frame             value="rest"    />
+        <wavelengthMinimum value="3.0e3"   />
+        <wavelengthMaximum value="9.0e3"   />
+        <resolution        value="20.0"    />
+        <toleranceRelative value="1.0e-2"  />
+      </nodePropertyExtractor>
+      <nodePropertyExtractor value="SED">
+        <component         value="spheroid"/>
+        <frame             value="rest"    />
+        <wavelengthMinimum value="3.0e3"   />
+        <wavelengthMaximum value="9.0e3"   />
+        <resolution        value="20.0"    />
+        <toleranceRelative value="1.0e-2"  />
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <!-- Round-trip check: `zero` attenuates nothing, so decomposing a spectrum and recombining it must return the
+         spectrum unchanged. This tests the decomposition itself, independently of any dust physics. -->
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum          value="false"/>
+      <dustAttenuation value="zero"/>
+      <nodePropertyExtractor value="SED">
+        <component         value="disk"    />
+        <frame             value="rest"    />
+        <wavelengthMinimum value="3.0e3"   />
+        <wavelengthMaximum value="9.0e3"   />
+        <resolution        value="20.0"    />
+        <toleranceRelative value="1.0e-2"  />
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <!-- Branch check: these two must agree exactly. The first attenuator is age-independent, so the spectrum is
+         decomposed with one parcel per wavelength; the second requests a young/old split through its birth cloud
+         member, so the spectrum is decomposed per star formation history bin, but that member has zero optical
+         depth, so it attenuates nothing. Any light dropped or double counted by the age-resolved path shows up here. -->
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum          value="false"/>
+      <dustAttenuation value="screenSurfaceDensityMetals">
+        <coefficient value="1.0"/>
+        <dustExtinctionCurve value="powerLaw">
+          <exponent            value="0.7"   />
+          <wavelengthReference value="5500.0"/>
+        </dustExtinctionCurve>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component         value="disk"    />
+        <frame             value="rest"    />
+        <wavelengthMinimum value="3.0e3"   />
+        <wavelengthMaximum value="9.0e3"   />
+        <resolution        value="20.0"    />
+        <toleranceRelative value="1.0e-2"  />
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum          value="false"/>
+      <dustAttenuation value="sequence">
+        <dustAttenuation value="birthCloud">
+          <coefficient value="0.0"  />
+          <timescale   value="2.0e-3"/>
+          <dustExtinctionCurve value="powerLaw">
+            <exponent            value="0.7"   />
+            <wavelengthReference value="5500.0"/>
+          </dustExtinctionCurve>
+        </dustAttenuation>
+        <dustAttenuation value="screenSurfaceDensityMetals">
+          <coefficient value="1.0"/>
+          <dustExtinctionCurve value="powerLaw">
+            <exponent            value="0.7"   />
+            <wavelengthReference value="5500.0"/>
+          </dustExtinctionCurve>
+        </dustAttenuation>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component         value="disk"    />
+        <frame             value="rest"    />
+        <wavelengthMinimum value="3.0e3"   />
+        <wavelengthMaximum value="9.0e3"   />
+        <resolution        value="20.0"    />
+        <toleranceRelative value="1.0e-2"  />
       </nodePropertyExtractor>
     </nodePropertyExtractor>
   </nodePropertyExtractor>
