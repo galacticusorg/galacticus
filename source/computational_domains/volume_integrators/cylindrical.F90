@@ -99,8 +99,8 @@ contains
 
     self%rBoundaries=boundaries(1,:)
     self%zBoundaries=boundaries(2,:)
-    self%volume_    =+2.0d0                                   &
-         &           *Pi                                      &
+    ! The cell is an annulus, spanning the full 2π in azimuth. Its volume is therefore ∫r dr ∫dφ ∫dz = π (r₂²-r₁²) (z₂-z₁).
+    self%volume_    =+Pi                                      &
          &           *(boundaries(1,2)**2-boundaries(1,1)**2) &
          &           *(boundaries(2,2)   -boundaries(2,1)   )
     return
