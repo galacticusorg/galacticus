@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Niusha Ahvazi
+  !+    Contributions to this file made by: Niusha Ahvazi, Andrew Benson, Claude.
 
   !!{RST
   Implementation of a satellite evaporation due to dark matter self-interactions using the model of :cite:t:`kummer_effective_2018`.
@@ -42,15 +42,14 @@
      Implementation of a satellite evaporation due to dark matter self-interactions using the model of :cite:t:`kummer_effective_2018`.
      !!}
      private
-     class           (cosmologyParametersClass ), pointer     :: cosmologyParameters_        => null()
-     class           (darkMatterParticleClass  ), pointer     :: darkMatterParticle_         => null()
-     class           (darkMatterHaloScaleClass ), pointer     :: darkMatterHaloScale_        => null()
-     class           (darkMatterProfileDMOClass), pointer     :: darkMatterProfileDMO_       => null()
+     class           (cosmologyParametersClass ), pointer     :: cosmologyParameters_  => null()
+     class           (darkMatterParticleClass  ), pointer     :: darkMatterParticle_   => null()
+     class           (darkMatterHaloScaleClass ), pointer     :: darkMatterHaloScale_  => null()
+     class           (darkMatterProfileDMOClass), pointer     :: darkMatterProfileDMO_ => null()
      type            (interpolator2D           ), allocatable :: evaporationFactor_
-     double precision                                         :: rateScatteringNormalization          , xMaximum       , &
-          &                                                      velocityMinimum                      , velocityMaximum, &
-          &                                                      fractionDarkMatter
-     type            (rangeLattice             )              :: latticeX                             , latticeVelocity
+     double precision                                         :: xMaximum                       , velocityMinimum   , &
+          &                                                      velocityMaximum                , fractionDarkMatter
+     type            (rangeLattice             )              :: latticeX                       , latticeVelocity
    contains
      !![
      <methods docformat="rst">
@@ -173,10 +172,11 @@ contains
     double precision                                                    :: radiusOrbital         , speedOrbital               , &
          &                                                                 densityHost           , rateScattering             , &
          &                                                                 massBoundary          , radiusBoundary             , &
-         &                                                                 velocityEscape        , speedHalfMass              , &
+         &                                                                 velocityEscape        , speedRelative              , &
          &                                                                 velocityDispersionHost, velocityDispersionSatellite, &
          &                                                                 x                     , radiusHalfMass             , &
-         &                                                                 velocityDispersion    , potentialEscape
+         &                                                                 velocityDispersion    , potentialEscape            , &
+         &                                                                 speedHalfMass         , rateScatteringNormalization
     type            (coordinateSpherical                )                :: coordinates          , coordinatesHost            , &
          &                                                                  coordinatesBoundary  , coordinatesHalfMass
     type            (coordinateCartesian                )                :: coordinatesCartesian
@@ -196,22 +196,15 @@ contains
     !![
     <objectDestructor name="massDistributionHost_"/>
     !!]
-    ! repositioned select block + if-expersion
+    ! If the dark matter particle is not self-interacting there is no scattering, so we can return immediately. The
+    ! normalization of the scattering rate itself can not be evaluated here, as the cross section must be evaluated at the speed
+    ! with which host particles arrive at the half-mass radius of the subhalo, which is not yet known.
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleSelfInteractingDarkMatter)
-       ! Compute the normalization of the scattering rate in units such that when multiplied by a velocity in km s⁻¹, and a
-       ! density in units of M⊙ Mpc⁻³, we get a rate in units of Gyr⁻¹.
-       self%rateScatteringNormalization=+darkMatterParticle_%crossSectionSelfInteraction(speedOrbital) &
-            &                           *centi    **2/milli                                            & ! Convert cross-section from cm² g⁻¹ to m² kg⁻¹.
-            &                           *kilo                                                          & ! Convert velocity from km s⁻¹ to m s⁻¹.
-            &                           *massSolar   /megaParsec**3                                    & ! Convert density from M⊙ Mpc⁻³ to kg m⁻³.
-            &                           *gigaYear                                                        ! Convert rate from s⁻¹ to Gyr⁻¹.
+       ! Self-interacting, so scattering can occur.
     class default
-       ! No scattering.
-       self%rateScatteringNormalization=+0.0d0
+       return
     end select
-    ! If the scattering cross section is zero, we can return immediately.
-    if (self%rateScatteringNormalization == 0.0d0) return
     ! Find the escape velocity from the half-mass radius of the subhalo. This is equal to the potential difference between the
     ! half-mass radius and outer boundary of the subhalo, plus the potential difference from the outer boundary to infinity (for
     ! which we can treat the subhalo as a point mass).
@@ -277,26 +270,55 @@ contains
        <objectDestructor name="kinematics_"          />
        <objectDestructor name="kinematicsHost_"      />
        !!]
-       ! Get the speed of a host particle at the half-mass radius of the subhalo - this is the sum of the kinetic energy of host
-       ! particles in the rest-frame of the subhalo, plus the energy they gain by falling in to the half-mass radius of the
-       ! subhalo. We include the correction factor of the velocity dispersion as suggested in equation (A4) of Kummer et
-       ! al. (2018).
-       speedHalfMass=+sqrt(                       &
+       ! Find the effective speed of the subhalo relative to the host - this is the speed of host particles in the rest frame of
+       ! the subhalo far from the subhalo, broadened by the velocity dispersion as suggested in equation (A4) of Kummer et
+       ! al. (2018). Host particles reaching the half-mass radius of the subhalo are further boosted by the energy they gain in
+       ! falling in, arriving with speed √(speedRelative²+velocityEscape²).
+       speedRelative=+sqrt(                       &
             &              +speedOrbital      **2 &
-            &              +velocityEscape    **2 &
             &              +velocityDispersion**2 &
             &             )
-       x            =+      speedHalfMass         &
-            &        /      speedOrbital
+       ! Evaluate the ratio, x, of the escape velocity from the subhalo to that relative speed. Note that x is defined in terms
+       ! of the relative speed far from the subhalo, and *not* the speed at the point of scattering: the infall boost is already
+       ! accounted for within the definitions of the critical scattering angle and of the evaporation factor, both of which are
+       ! functions of this x. To see this, note that a subhalo particle recoiling with speed √(speedRelative²+velocityEscape²)
+       ! sin(θ/2) escapes the subhalo only for θ > π-θ_c, while the scattered host particle escapes only for θ < θ_c, where
+       ! θ_c = cos⁻¹([x²-1]/[x²+1]) is the critical angle tabulated in `kummer2018Tabulate`. Net evaporation therefore requires
+       ! π-θ_c < θ < θ_c - the range integrated over in that tabulation - which is non-empty only for x < 1. For a constant
+       ! cross section the tabulated integral is χ_e = (1-x²)/(1+x²), the closed form given by Kummer et al. (2018), which fixes
+       ! the sense of x: small x is a weakly bound subhalo moving quickly through its host, from which every scattering
+       ! evaporates a particle.
+       x            =+velocityEscape &
+            &        /speedRelative
        ! Evaporation occurs for x<1.
-       if (x < 1.0d0) then 
-          ! Evaluate the scattering rate and mass loss rate.
-          rateScattering               =  +     speedOrbital                     &
-               &                          *     densityHost                      &
-               &                          *self%rateScatteringNormalization
-          kummer2018MassLossRate       =  -     massBoundary                     &
-               &                          *     rateScattering                   &
-               &                          *self%evaporationFactor(x,speedOrbital)
+       if (x < 1.0d0) then
+          ! Find the speed with which host particles arrive at the half-mass radius of the subhalo: the effective relative speed,
+          ! boosted by the energy they gain in falling in. This is the typical speed of the particles which actually scatter, and
+          ! so is the speed at which the cross section - which may be velocity dependent - is evaluated, both here and in the
+          ! tabulation of the evaporation factor.
+          speedHalfMass=+sqrt(                   &
+               &              +speedRelative **2 &
+               &              +velocityEscape**2 &
+               &             )
+          ! Compute the normalization of the scattering rate in units such that when multiplied by a velocity in km s⁻¹, and a
+          ! density in units of M⊙ Mpc⁻³, we get a rate in units of Gyr⁻¹.
+          rateScatteringNormalization=0.0d0
+          select type (darkMatterParticle_ => self%darkMatterParticle_)
+          class is (darkMatterParticleSelfInteractingDarkMatter)
+             rateScatteringNormalization=+darkMatterParticle_%crossSectionSelfInteraction(speedHalfMass) &
+                  &                      *centi    **2/milli                                             & ! Convert cross-section from cm² g⁻¹ to m² kg⁻¹.
+                  &                      *kilo                                                           & ! Convert velocity from km s⁻¹ to m s⁻¹.
+                  &                      *massSolar   /megaParsec**3                                     & ! Convert density from M⊙ Mpc⁻³ to kg m⁻³.
+                  &                      *gigaYear                                                         ! Convert rate from s⁻¹ to Gyr⁻¹.
+          end select
+          ! Evaluate the scattering rate and mass loss rate. Note that the flux of host particles through the subhalo is set by
+          ! the speed with which the subhalo moves through its host, not by the speed at the point of scattering.
+          rateScattering        =+speedOrbital                             &
+               &                 *densityHost                              &
+               &                 *rateScatteringNormalization
+          kummer2018MassLossRate=-massBoundary                             &
+               &                 *rateScattering                           &
+               &                 *self%evaporationFactor(x,speedHalfMass)
        end if
     end if
     return
@@ -396,32 +418,32 @@ contains
 
   end subroutine kummer2018Tabulate
   
-  double precision function kummer2018EvaporationFactor(self,x,speedOrbital)
+  double precision function kummer2018EvaporationFactor(self,x,velocityRelative)
     !!{RST
     Evaluate the evaporation factor from :cite:t:`kummer_effective_2018`.
     !!}
     implicit none
     class           (satelliteEvaporationSIDMKummer2018), intent(inout) :: self
     double precision                                    , intent(in   ) :: x
-    double precision                                    , intent(in   ) :: speedOrbital
-    double precision                                                    :: xCritical   =1.0d0
+    double precision                                    , intent(in   ) :: velocityRelative
+    double precision                                    , parameter     :: xCritical       =1.0d0
 
-    if     (                                                                   &
-         &   x            > self%xMaximum                                      &
-         &  .or.                                                               &
-         &   speedOrbital > self%velocityMaximum                               &
-         &  .or.                                                               &
-         &   speedOrbital < self%velocityMinimum                               &
-         & ) then 
-       if (x < xCritical)                                                      &
-            & call self%tabulate(                                              &
-            &                    x+1.0d0                                     , &
-            &                    min(0.5d0*speedOrbital,self%velocityMinimum), &
-            &                    max(2.0d0*speedOrbital,self%velocityMaximum)  &
+    if     (                                         &
+         &   x                > self%xMaximum        &
+         &  .or.                                     &
+         &   velocityRelative > self%velocityMaximum &
+         &  .or.                                     &
+         &   velocityRelative < self%velocityMinimum &
+         & ) then
+       if (x < xCritical)                                                          &
+            & call self%tabulate(                                                  &
+            &                    x+1.0d0                                         , &
+            &                    min(0.5d0*velocityRelative,self%velocityMinimum), &
+            &                    max(2.0d0*velocityRelative,self%velocityMaximum)  &
             &                   )
     end if
     if (x < xCritical) then
-       kummer2018EvaporationFactor=self%evaporationFactor_%interpolate(x,speedOrbital)
+       kummer2018EvaporationFactor=self%evaporationFactor_%interpolate(x,velocityRelative)
     else
        kummer2018EvaporationFactor=0.0d0
     end if
