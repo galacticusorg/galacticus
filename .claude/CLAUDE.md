@@ -149,46 +149,6 @@ change that.
   surrounding style. (See
   [`docs/manuals/developer-guide/editor-setup.rst`](../docs/manuals/developer-guide/editor-setup.rst)
   and [`coding.rst`](../docs/manuals/developer-guide/coding.rst).)
-- **Do run `scripts/aux/formatModuleUses.py` after any change that touches a
-  `use` block** — adding, removing, or renaming an imported symbol, or adding a
-  `use` statement. Unlike the whole-file formatters above it is Galacticus-aware
-  and safe: it rewrites only `use` blocks and leaves the rest of the file, the
-  embedded directive blocks included, byte for byte unchanged.
-  ```bash
-  ./scripts/aux/formatModuleUses.py source/path/to/file.F90   # writes file.F90~ backup
-  ./scripts/aux/formatModuleUses.py source/path/to/file.F90 --check   # exit 1 if it would change
-  ```
-  It aligns `use`/`::`/`, only :`, puts at most four symbols per row (fewer to
-  stay within 132 columns), and aligns the symbol columns across the block —
-  conventions that are tedious to reproduce by hand and easy to get subtly
-  wrong. Note it also sorts symbols alphabetically and merges repeated `use`
-  statements for the same module, so expect more than alignment to change in a
-  file that has not been formatted before. The tool refuses to write if the file
-  does not round-trip exactly, if the reformat would alter which symbols are
-  imported, or if it would change how the file's preprocessor conditionals
-  balance.
-- **Likewise run `scripts/aux/formatDeclarations.py` after any change to a
-  variable declaration block** — adding or removing a variable, changing a type,
-  attribute, or initializer. Same options (`--check`, `--no-backup`, `--suffix`)
-  and the same refuse-to-write safety checks, against the declarations rather
-  than the imports.
-  ```bash
-  ./scripts/aux/formatDeclarations.py source/path/to/file.F90
-  ```
-  It aligns the intrinsic type, its parenthetical, the attribute columns, the
-  `::`, and up to two variables per row with their `=`/`=>` initializers —
-  spanning comments and `#ifdef` guards. It also reorders attributes into the
-  canonical order (`intent`, `pointer`, `allocatable`, `dimension`, `target`,
-  `optional`, …) and splits declarations of more than two variables across rows,
-  so expect more than alignment to change in a file not formatted before. It
-  skips vendored code under `source/external/`, and leaves declarations with
-  hand-wrapped oversized initializers exactly as written.
-- **The tree was not reformatted in one sweep**, so most files still predate the
-  formatters. Reformatting such a file changes far more lines than the edit that
-  prompted it, so make it a separate `style(...)` commit rather than folding it
-  into a substantive change. The pre-commit hook and the *Check-Source-Formatting*
-  CI job both report unformatted files, but are **advisory** — neither blocks a
-  commit nor fails a pull request.
 
 ## Spelling
 
