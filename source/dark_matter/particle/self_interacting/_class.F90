@@ -112,34 +112,16 @@ Implements a selfInteracting dark matter particle class.
      end function crossSectionSelfInteractionViscosityTemplate
   end interface
    
-  double precision :: velocityEffective_
-  !$omp threadprivate (velocityEffective_)
-
-  class (darkMatterParticleSelfInteractingDarkMatter) , pointer :: self_
-  !$omp threadprivate (self_)
-
   ! Range (in km s⁻¹) and resolution of the tabulation of the effective cross section as a function of maximum circular velocity.
   double precision, parameter :: crossSectionEffectiveVelocityMinimum=1.0d-1, crossSectionEffectiveVelocityMaximum=1.0d+4
   integer         , parameter :: crossSectionEffectiveCountPerDecade =10
+  ! Relative tolerance to which the numerator of the effective cross section is integrated. The effective cross section is
+  ! tabulated once per run over a few tens of velocities, so the cost of the integration is immaterial and a tolerance far
+  ! tighter than the tabulation itself warrants is used, in order that results match those of the nested integrator this
+  ! replaced---which, asked for 1%, in fact delivered close to machine precision.
+  double precision, parameter :: toleranceRelativeNumerator          =1.0d-9
 
 contains
-
-  double precision function integrandNumerator(velocity,cosTheta)
-    !!{RST
-    Integrand of the numerator of the effective cross section, :math:`\sigma_\mathrm{eff}`, of :cite:t:`yang_parametric_2024` (their eqn. 1.1). The integrand is :math:`(\mathrm{d}\sigma/\mathrm{d}\cos\theta)\,\sin^2\theta\,v^5\,f_\mathrm{MB}(v)`, where the kinetic-theory conductivity kernel contributes :math:`\sin^2\theta\,v^5` and the Maxwell--Boltzmann relative-velocity distribution contributes :math:`f_\mathrm{MB}(v) \propto v^2 \exp[-v^2/(4 v_\mathrm{eff}^2)]`. The two factors of :math:`v` combine to give the :math:`v^7` below, and :math:`\sin^2\theta = 1-\cos^2\theta`.
-    !!}
-    double precision, intent(in   ) :: velocity, cosTheta
-
-    integrandNumerator=+self_%crossSectionSelfInteractionDifferentialCos(cosTheta,velocity) &
-         &             *velocity**7                                                         &
-         &             *(1.0d0-cosTheta**2)                                                 &
-         &             *exp(                                                                &
-         &                  -velocity          **2                                          &
-         &                  /4.0d0                                                          &
-         &                  /velocityEffective_**2                                          &
-         &              )
-    return
-  end function integrandNumerator
 
   double precision function crossSectionEffective_(self,velocityMaximum)
     !!{RST
@@ -192,33 +174,52 @@ contains
     !!{RST
     Evaluate the effective self-interaction cross section at a single maximum circular velocity by direct 2-D integration of eqn. 1.1 of :cite:t:`yang_parametric_2024`.
     !!}
-    use :: Numerical_Integration_2D, only : integrator2D
+    use :: Numerical_Integration_nD, only : integratorGenzMalikND
     implicit none
-    class           (darkMatterParticleSelfInteractingDarkMatter), intent(inout) , target :: self
-    double precision                                             , intent(in   )          :: velocityMaximum
-    double precision                                             , parameter              :: factorVelocityEffective=0.64d0
-    type            (integrator2D                               )                         :: integratorNumerator
-    double precision                                             , dimension(2,2)         :: boundaries
-    double precision                                                                      :: velocityEffective
-    double precision                                                                      :: numeratorIntegral
+    class           (darkMatterParticleSelfInteractingDarkMatter), intent(inout), target :: self
+    double precision                                             , intent(in   )         :: velocityMaximum
+    double precision                                             , parameter             :: factorVelocityEffective=0.64d0
+    type            (integratorGenzMalikND                      )                        :: integratorNumerator
+    double precision                                                                     :: velocityEffective              , &
+         &                                                                                  numeratorIntegral
 
     ! Effective velocity dispersion of the Maxwell-Boltzmann weighting: ν_eff = 0.64*Vmax for an NFW halo
     ! (Yang et al. 2024; JCAP; 2; 32).
-    velocityEffective=factorVelocityEffective*velocityMaximum
-    ! Set integration boundaries.
-    boundaries(1,:)=[+0.0d0,+10.0d0*velocityEffective]
-    boundaries(2,:)=[-1.0d0,+ 1.0d0                  ]
-    ! Set sub-module scope copies.
-    velocityEffective_ =  velocityEffective
-    self_              => self
-    ! Build the integrator for the numerator and compute it.
-    integratorNumerator=integrator2D(integrandNumerator)
-    numeratorIntegral  =integratorNumerator%integrate(boundaries)
+    velocityEffective          =factorVelocityEffective*velocityMaximum
+    ! Build the integrator for the numerator and compute it. The integrand is smooth, so the cubature reaches the requested
+    ! tolerance in far fewer evaluations than would a nest of one-dimensional integrators, which must apply their rule at least
+    ! once per dimension whatever the integrand.
+    integratorNumerator        =integratorGenzMalikND(2,integrandNumerator,toleranceRelative=toleranceRelativeNumerator)
+    numeratorIntegral          =integratorNumerator%evaluate(                                                      &
+         &                                                   [ 0.0d0                    ,-1.0d0],                  &
+         &                                                   [10.0d0*velocityEffective  ,+1.0d0]                   &
+         &                                                  )
     ! Normalize by the (cross-section-independent) denominator of eqn.~1.1 of Yang et al. (2024; JCAP; 2; 32), evaluated
     ! analytically: ½ * ∫ sin²(θ) v⁷ exp(-v²/4 Veff²) = ½ * (4/3) * 768 Veff⁸ = 512 Veff⁸, where the factor of ½ is the leading
     ! "2" in the numerator of that equation, (4/3) = integral over cos(θ) of sin²(θ), and 768 Veff⁸ = integral over v of v⁷
     ! exp(-v²/4 Veff²).
-    crossSectionEffectiveCompute=numeratorIntegral/(512.0d0*velocityEffective_**8)
+    crossSectionEffectiveCompute=numeratorIntegral/(512.0d0*velocityEffective**8)
     return
+
+  contains
+
+    double precision function integrandNumerator(x)
+      !!{RST
+      Integrand of the numerator of the effective cross section, :math:`\sigma_\mathrm{eff}`, of :cite:t:`yang_parametric_2024` (their eqn. 1.1). The integrand is :math:`(\mathrm{d}\sigma/\mathrm{d}\cos\theta)\,\sin^2\theta\,v^5\,f_\mathrm{MB}(v)`, where the kinetic-theory conductivity kernel contributes :math:`\sin^2\theta\,v^5` and the Maxwell--Boltzmann relative-velocity distribution contributes :math:`f_\mathrm{MB}(v) \propto v^2 \exp[-v^2/(4 v_\mathrm{eff}^2)]`. The two factors of :math:`v` combine to give the :math:`v^7` below, and :math:`\sin^2\theta = 1-\cos^2\theta`. The argument ``x`` holds the relative velocity, :math:`v`, and :math:`\cos\theta` in that order.
+      !!}
+      implicit none
+      double precision, intent(in   ), dimension(:) :: x
+
+      integrandNumerator=+self%crossSectionSelfInteractionDifferentialCos(x(2),x(1)) &
+           &             *x(1)**7                                                    &
+           &             *(1.0d0-x(2)**2)                                            &
+           &             *exp(                                                       &
+           &                  -x(1)             **2                                  &
+           &                  /4.0d0                                                 &
+           &                  /velocityEffective**2                                  &
+           &              )
+      return
+    end function integrandNumerator
+
   end function crossSectionEffectiveCompute
 
