@@ -475,8 +475,7 @@ contains
     double precision                                      , intent(in   )               :: time
     double precision                                      , allocatable  , dimension(:) :: unitsChild
     type            (multiExtractorList                  ), pointer                     :: extractor_
-    integer                                                                             :: offset     , countChild, &
-         &                                                                                 i
+    integer                                                                             :: offset     , countChild
 
     allocate(unitsInSI(self%elementCount(elementType,time)))
     if (elementType /= elementTypeDouble) return
