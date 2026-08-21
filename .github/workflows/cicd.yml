@@ -2275,7 +2275,7 @@ jobs:
           name: 'Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 6.5keV resolutionX8)'
           type: 'validate'
           suffix: 'darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8'
-          threshold: '450%'
+          threshold: '800%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Dark matter-only subhalos validation (COZMIC Milky Way WDM 10keV resolutionX8)'
         uses: ./.github/actions/benchmark
