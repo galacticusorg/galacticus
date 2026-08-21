@@ -180,8 +180,7 @@ contains
     double precision                                             , intent(in   )         :: velocityMaximum
     double precision                                             , parameter             :: factorVelocityEffective=0.64d0
     type            (integratorGenzMalikND                      )                        :: integratorNumerator
-    double precision                                                                     :: velocityEffective              , &
-         &                                                                                  numeratorIntegral
+    double precision                                                                     :: velocityEffective              , numeratorIntegral
 
     ! Effective velocity dispersion of the Maxwell-Boltzmann weighting: ν_eff = 0.64*Vmax for an NFW halo
     ! (Yang et al. 2024; JCAP; 2; 32).
@@ -190,9 +189,9 @@ contains
     ! tolerance in far fewer evaluations than would a nest of one-dimensional integrators, which must apply their rule at least
     ! once per dimension whatever the integrand.
     integratorNumerator        =integratorGenzMalikND(2,integrandNumerator,toleranceRelative=toleranceRelativeNumerator)
-    numeratorIntegral          =integratorNumerator%evaluate(                                                      &
-         &                                                   [ 0.0d0                    ,-1.0d0],                  &
-         &                                                   [10.0d0*velocityEffective  ,+1.0d0]                   &
+    numeratorIntegral          =integratorNumerator%evaluate(                                   &
+         &                                                   [ 0.0d0                  ,-1.0d0], &
+         &                                                   [10.0d0*velocityEffective,+1.0d0]  &
          &                                                  )
     ! Normalize by the (cross-section-independent) denominator of eqn.~1.1 of Yang et al. (2024; JCAP; 2; 32), evaluated
     ! analytically: ½ * ∫ sin²(θ) v⁷ exp(-v²/4 Veff²) = ½ * (4/3) * 768 Veff⁸ = 512 Veff⁸, where the factor of ½ is the leading
