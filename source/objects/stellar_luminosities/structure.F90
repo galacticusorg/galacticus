@@ -110,6 +110,7 @@ module Stellar_Luminosities_Structure
        <method description="Return the effective wavelength (in Å, in the frame of the filter) of a luminosity specified by index." method="wavelengthEffective" />
        <method description="Return the redshift to which the filter of a luminosity specified by index is shifted (zero for rest-frame filters)." method="bandRedshift" />
        <method description="Return the rest-frame effective wavelength (in Å) of a luminosity specified by index." method="wavelengthRestFrame" />
+       <method description="Return the range of stellar population ages contributing to a luminosity specified by index, and whether that range is a sharp window." method="ageWindow" />
        <method description="Truncate the number of stellar luminosities stored to match that in the given ``templateLuminosities``." method="truncate" />
        <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
      </methods>
@@ -152,6 +153,7 @@ module Stellar_Luminosities_Structure
      procedure, nopass :: wavelengthEffective   => Stellar_Luminosities_Wavelength_Effective
      procedure, nopass :: bandRedshift          => Stellar_Luminosities_Band_Redshift
      procedure, nopass :: wavelengthRestFrame   => Stellar_Luminosities_Wavelength_Rest_Frame
+     procedure, nopass :: ageWindow             => Stellar_Luminosities_Age_Window
      procedure         :: truncate              => Stellar_Luminosities_Truncate
   end type stellarLuminosities
   
@@ -934,6 +936,37 @@ contains
          &                                      )
     return
   end function Stellar_Luminosities_Wavelength_Rest_Frame
+
+  subroutine Stellar_Luminosities_Age_Window(index,ageMinimum,ageMaximum,isSharp)
+    !!{RST
+    Return the range of stellar population ages (in Gyr) which contribute to the specified entry in the stellar
+    luminosities structure, together with whether that range is a *sharp* window---that is, whether the postprocessing
+    chain applied to this luminosity suppresses ages outside the range while leaving the age dependence within it
+    untouched.
+
+    The range is that reported by the postprocessing chain itself, so it stays correct if the chain is reconfigured.
+    Only a sharp window may be used to isolate the light of a range of ages by differencing luminosities computed with
+    different chains; ``isSharp`` must therefore be tested before the range is relied upon. An empty window, signalled
+    by ``ageMaximum`` :math:`\le` ``ageMinimum``, means that the chain suppresses emission at every age.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    integer                       , intent(in   ) :: index
+    double precision              , intent(  out) :: ageMinimum, ageMaximum
+    logical                       , intent(  out) :: isSharp
+
+    ! Check for index in range.
+    if (index > 0 .and. index <= luminosityCount) then
+       call luminosityPostprocessor(index)%stellarPopulationSpectraPostprocessor_%ageRange(ageMinimum,ageMaximum)
+       isSharp=luminosityPostprocessor(index)%stellarPopulationSpectraPostprocessor_%ageWindowIsSharp()
+    else
+       ageMinimum=0.0d0
+       ageMaximum=0.0d0
+       isSharp   =.false.
+       call Error_Report('index out of range'//{introspection:location})
+    end if
+    return
+  end subroutine Stellar_Luminosities_Age_Window
 
   subroutine Stellar_Luminosities_Create(self)
     !!{RST

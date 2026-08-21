@@ -978,6 +978,50 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="dustAttenuation">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="birthCloud"/>
+          <xs:enumeration value="charlotFall2000"/>
+          <xs:enumeration value="mixedSlab"/>
+          <xs:enumeration value="screen"/>
+          <xs:enumeration value="screenFixed"/>
+          <xs:enumeration value="screenSurfaceDensityMetals"/>
+          <xs:enumeration value="sequence"/>
+          <xs:enumeration value="zero"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="dustExtinctionCurve">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="calzetti2000"/>
+          <xs:enumeration value="cardelli1989"/>
+          <xs:enumeration value="gordon2003"/>
+          <xs:enumeration value="noll2009"/>
+          <xs:enumeration value="powerLaw"/>
+          <xs:enumeration value="prevotBouchet"/>
+          <xs:enumeration value="tabulated"/>
+          <xs:enumeration value="wittGordon2000"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="evolveForestsWorkShare">
    <xs:complexType mixed="true">
     <xs:sequence>
@@ -2512,6 +2556,7 @@
           <xs:enumeration value="densityProfile"/>
           <xs:enumeration value="descendantNode"/>
           <xs:enumeration value="descendants"/>
+          <xs:enumeration value="dustAttenuation"/>
           <xs:enumeration value="excursion"/>
           <xs:enumeration value="finalDescendant"/>
           <xs:enumeration value="fluxFromLuminosity"/>
