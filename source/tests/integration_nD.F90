@@ -32,21 +32,22 @@ program Test_Integration_ND
   degree, since an adaptive scheme built on a lower-degree rule still converges to the correct answer---it simply costs more.
   The remaining tests exercise the adaptive scheme itself against analytically-known integrals.
   !!}
-  use :: Display                     , only : displayMessage      , displayVerbositySet  , verbosityLevelStandard
-  use :: Error                       , only : errorStatusSuccess
-  use :: ISO_Varying_String          , only : varying_string      , var_str              , operator(//)          , assignment(=)
-  use :: Numerical_Constants_Math    , only : Pi
-  use :: Numerical_Integration_nD    , only : integratorGenzMalikND
-  use :: String_Handling             , only : operator(//)
-  use :: Test_Integration_ND_Functions, only : integrandPolynomial5, integrandPolynomial7 , integrandProduct4D    , &
-       &                                       integrandRootXYSquare,integrandSeparable3D , integrandSinCos       , &
-       &                                       integrandSphere     , integrandXSquaredCos , integrandYOverRootX
-  use :: Unit_Tests                  , only : Assert              , Unit_Tests_Begin_Group, Unit_Tests_End_Group  , &
-       &                                      Unit_Tests_Finish
+  use :: Display                      , only : displayMessage       , displayVerbositySet   , verbosityLevelStandard
+  use :: Error                        , only : errorStatusSuccess
+  use :: ISO_Varying_String           , only : varying_string       , var_str               , operator(//)          , &
+       &                                       assignment(=)
+  use :: Numerical_Constants_Math     , only : Pi
+  use :: Numerical_Integration_nD     , only : integratorGenzMalikND
+  use :: String_Handling              , only : operator(//)
+  use :: Test_Integration_ND_Functions, only : integrandPolynomial5 , integrandPolynomial7  , integrandProduct4D    , &
+       &                                       integrandRootXYSquare,integrandSeparable3D   , integrandSinCos       , &
+       &                                       integrandSphere      , integrandXSquaredCos  , integrandYOverRootX
+  use :: Unit_Tests                   , only : Assert               , Unit_Tests_Begin_Group, Unit_Tests_End_Group  , &
+       &                                       Unit_Tests_Finish
   implicit none
-  type            (integratorGenzMalikND)               :: integrator_
-  double precision                                      :: integral
-  integer                                               :: status
+  type            (integratorGenzMalikND) :: integrator_
+  double precision                        :: integral
+  integer                                 :: status
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -59,12 +60,12 @@ program Test_Integration_ND
   !! error estimate is their difference, so it must vanish, and the integration must therefore converge after a single region.
   integrator_=integratorGenzMalikND(3,integrandPolynomial5,toleranceRelative=1.0d-6)
   integral   =integrator_%evaluate([0.0d0,0.0d0,0.0d0],[1.0d0,1.0d0,1.0d0])
-  call Assert("degree-5 polynomial over the unit cube is integrated exactly"      ,integral                     ,29.0d0/9.0d0     ,relTol=1.0d-12)
-  call Assert("degree-5 polynomial converges after a single region"               ,integrator_%countEvaluated(),33                             )
+  call Assert("degree-5 polynomial over the unit cube is integrated exactly",integral                    ,29.0d0/9.0d0,relTol=1.0d-12)
+  call Assert("degree-5 polynomial converges after a single region"         ,integrator_%countEvaluated(),33                         )
   !! The degree-7 rule integrates a polynomial of total degree seven exactly.
   integrator_=integratorGenzMalikND(3,integrandPolynomial7,toleranceRelative=1.0d-6,countEvaluationsMaximum=33)
   integral   =integrator_%evaluate([0.0d0,0.0d0,0.0d0],[1.0d0,1.0d0,1.0d0],status=status)
-  call Assert("degree-7 polynomial is integrated exactly by a single application of the rule",integral         ,829.0d0/2520.0d0 ,relTol=1.0d-12)
+  call Assert("degree-7 polynomial is integrated exactly by a single application of the rule",integral,829.0d0/2520.0d0 ,relTol=1.0d-12)
   call Unit_Tests_End_Group()
 
   ! Two-dimensional integrals, using the integrands of the nested two-dimensional integrator's own tests.
@@ -82,7 +83,7 @@ program Test_Integration_ND
   !! never evaluated, but convergence is slow and only a loose tolerance is asked for.
   integrator_=integratorGenzMalikND(2,integrandYOverRootX  ,toleranceRelative=1.0d-4)
   integral   =integrator_%evaluate([+0.0d0,+0.0d0],[+1.0d0,+2.0d0])
-  call report("∫y/√x dxdy over 0<x<1, 0<y<2"          ,integral,4.0d0               ,integrator_%countEvaluated(),toleranceTest=1.0d-4)
+  call report("∫y/√x dxdy over 0<x<1, 0<y<2",integral,4.0d0,integrator_%countEvaluated(),toleranceTest=1.0d-4)
   call Unit_Tests_End_Group()
 
   ! Three-dimensional integrals.

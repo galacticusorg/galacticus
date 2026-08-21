@@ -60,7 +60,7 @@ module Numerical_Integration_nD
   abstract interface
      double precision function integrandND(x)
        !!{RST
-       Interface for multi-dimensional integrands. The argument  x holds the coordinates of the point at which the integrand is
+       Interface for multi-dimensional integrands. The argument ``x`` holds the coordinates of the point at which the integrand is
        to be evaluated, and has extent equal to the dimensionality of the integral.
        !!}
        double precision, intent(in   ), dimension(:) :: x
@@ -83,26 +83,26 @@ module Numerical_Integration_nD
      A multi-dimensional integrator using the adaptive degree-7 cubature rule of :cite:t:`genz_remarks_1980`.
      !!}
      private
-     procedure       (integrandND), pointer, nopass :: integrand              => null()
-     integer                                        :: countDimensions                 , countEvaluationsMaximum, &
+     procedure       (integrandND), pointer, nopass :: integrand        => null()
+     integer                                        :: countDimensions           , countEvaluationsMaximum, &
           &                                            countEvaluations
      ! Weights of the degree-7 rule and of the embedded degree-5 rule, for, in order: the center point; points with a single
      ! non-zero coordinate at ±λ₂; points with a single non-zero coordinate at ±λ₃; points with two non-zero coordinates at ±λ₄;
      ! and the 2ᵈ points with every coordinate at ±λ₅. The degree-5 rule does not use the last of these sets.
-     double precision                               :: weight7Center                   , weight7Lambda2         , &
-          &                                            weight7Lambda3                  , weight7Lambda4         , &
-          &                                            weight7Lambda5                  , weight5Center          , &
-          &                                            weight5Lambda2                  , weight5Lambda3         , &
+     double precision                               :: weight7Center             , weight7Lambda2         , &
+          &                                            weight7Lambda3            , weight7Lambda4         , &
+          &                                            weight7Lambda5            , weight5Center          , &
+          &                                            weight5Lambda2            , weight5Lambda3         , &
           &                                            weight5Lambda4
    contains
      !![
      <methods docformat="rst">
-       <method description="Set the integrand function to be integrated."                              method="integrandSet"     />
-       <method description="Evaluate the integral over a hyper-rectangular region."                     method="evaluate"         />
-       <method description="Return the number of integrand evaluations used by the most recent integral." method="countEvaluated" />
-       <method description="Apply the cubature rules over a single region."                             method="regionEvaluate"   />
-       <method description="Evaluate the integrand, counting the evaluation."                           method="integrandEvaluate"/>
-       <method description="Test whether estimates of the integral and its error meet the tolerances."   method="hasConverged"     />
+       <method description="Set the integrand function to be integrated."                                 method="integrandSet"     />
+       <method description="Evaluate the integral over a hyper-rectangular region."                       method="evaluate"         />
+       <method description="Return the number of integrand evaluations used by the most recent integral." method="countEvaluated"   />
+       <method description="Apply the cubature rules over a single region."                               method="regionEvaluate"   />
+       <method description="Evaluate the integrand, counting the evaluation."                             method="integrandEvaluate"/>
+       <method description="Test whether estimates of the integral and its error meet the tolerances."    method="hasConverged"     />
      </methods>
      !!]
      procedure :: integrandSet      => genzMalikNDIntegrandSet
@@ -122,17 +122,17 @@ module Numerical_Integration_nD
 
   ! Squares of the generators of the rule---these are how the generators are specified, and λ₃²/λ₂² is used directly in forming
   ! the fourth differences which select the coordinate along which a region is split.
-  double precision, parameter :: lambda2Squared    =9.0d0/70.0d0             , lambda3Squared=9.0d0/10.0d0, &
-       &                         lambda4Squared    =9.0d0/10.0d0             , lambda5Squared=9.0d0/19.0d0
+  double precision, parameter :: lambda2Squared    =9.0d0/70.0d0                 , lambda3Squared=9.0d0/10.0d0, &
+       &                         lambda4Squared    =9.0d0/10.0d0                 , lambda5Squared=9.0d0/19.0d0
   double precision, parameter :: ratioLambdaSquared=lambda3Squared/lambda2Squared
 
 contains
 
   function genzMalikNDConstructor(countDimensions,integrand,toleranceAbsolute,toleranceRelative,countEvaluationsMaximum) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`integratorGenzMalikND` class.  countDimensions is the dimensionality of the integral,
+    Constructor for the :galacticus-class:`integratorGenzMalikND` class. ``countDimensions`` is the dimensionality of the integral,
     which must be at least two---in one dimension the integrators of :galacticus-mod:`Numerical_Integration2` should be used
-    instead. At least one of  toleranceAbsolute and  toleranceRelative must be given.  countEvaluationsMaximum limits the number
+    instead. At least one of ``toleranceAbsolute`` and ``toleranceRelative`` must be given. ``countEvaluationsMaximum`` limits the number
     of integrand evaluations performed before the integration is abandoned.
     !!}
     use :: Error, only : Error_Report
@@ -158,14 +158,14 @@ contains
     ! of the integrand over the points of the rule.
     countDimensions_   =dble(countDimensions)
     self%weight7Center =+(12824.0d0-9120.0d0*countDimensions_+400.0d0*countDimensions_**2)/19683.0d0
-    self%weight7Lambda2=+  980.0d0                                                        / 6561.0d0
+    self%weight7Lambda2=+   980.0d0                                                       / 6561.0d0
     self%weight7Lambda3=+( 1820.0d0- 400.0d0*countDimensions_                            )/19683.0d0
-    self%weight7Lambda4=+  200.0d0                                                        /19683.0d0
-    self%weight7Lambda5=+ 6859.0d0                                                        /19683.0d0/2.0d0**countDimensions
+    self%weight7Lambda4=+   200.0d0                                                       /19683.0d0
+    self%weight7Lambda5=+  6859.0d0                                                       /19683.0d0/2.0d0**countDimensions
     self%weight5Center =+(  729.0d0- 950.0d0*countDimensions_+ 50.0d0*countDimensions_**2)/  729.0d0
-    self%weight5Lambda2=+  245.0d0                                                        /  486.0d0
+    self%weight5Lambda2=+   245.0d0                                                       /  486.0d0
     self%weight5Lambda3=+(  265.0d0- 100.0d0*countDimensions_                            )/ 1458.0d0
-    self%weight5Lambda4=+   25.0d0                                                        /  729.0d0
+    self%weight5Lambda4=+    25.0d0                                                       /  729.0d0
     return
   end function genzMalikNDConstructor
 
@@ -200,8 +200,8 @@ contains
     class           (integratorGenzMalikND), intent(in   ) :: self
     double precision                       , intent(in   ) :: integral, error
 
-    genzMalikNDHasConverged=  abs(error) <= self%toleranceAbsolute                &
-         &                  .or.                                                  &
+    genzMalikNDHasConverged=  abs(error) <= self%toleranceAbsolute               &
+         &                  .or.                                                 &
          &                    abs(error) <= self%toleranceRelative*abs(integral)
     return
   end function genzMalikNDHasConverged
@@ -228,10 +228,10 @@ contains
     double precision                                                     :: error         , boundarySplit
     logical                                                              :: converged
 
-    if     (                                                                                                             &
-         &   size(lower) /= self%countDimensions                                                                         &
-         &  .or.                                                                                                         &
-         &   size(upper) /= self%countDimensions                                                                         &
+    if     (                                                                                                                    &
+         &   size(lower) /= self%countDimensions                                                                                &
+         &  .or.                                                                                                                &
+         &   size(upper) /= self%countDimensions                                                                                &
          & ) call Error_Report('bounds must have extent equal to the dimensionality of the integral'//{introspection:location})
     if (present(status)) status=errorStatusSuccess
     self%countEvaluations=0
@@ -267,10 +267,10 @@ contains
             &                               +regionParent%lower(dimensionSplit) &
             &                               +regionParent%upper(dimensionSplit) &
             &                              )
-       regionChild1%lower                =regionParent%lower
-       regionChild1%upper                =regionParent%upper
-       regionChild2%lower                =regionParent%lower
-       regionChild2%upper                =regionParent%upper
+       regionChild1%lower                =   regionParent%lower
+       regionChild1%upper                =   regionParent%upper
+       regionChild2%lower                =   regionParent%lower
+       regionChild2%upper                =   regionParent%upper
        regionChild1%upper(dimensionSplit)=boundarySplit
        regionChild2%lower(dimensionSplit)=boundarySplit
        call self%regionEvaluate(regionChild1)
@@ -296,10 +296,10 @@ contains
        end if
        countRegions      =countRegions+1
        heap(countRegions)=regionChild1
-       call heapSiftUp  (heap,             countRegions)
+       call heapSiftUp  (heap,countRegions)
        countRegions      =countRegions+1
        heap(countRegions)=regionChild2
-       call heapSiftUp  (heap,             countRegions)
+       call heapSiftUp  (heap,countRegions)
     end do
     return
   end function genzMalikNDEvaluate
@@ -311,20 +311,20 @@ contains
     is to be split if refined is that of largest fourth difference.
     !!}
     implicit none
-    class           (integratorGenzMalikND), intent(inout)                            :: self
-    type            (region               ), intent(inout)                            :: region_
-    double precision                       , dimension(self%countDimensions)          :: center          , halfWidth       , &
-         &                                                                               x               , differenceFourth
-    double precision                                                                  :: sum7            , sum5            , &
-         &                                                                               volume          , integrand0      , &
-         &                                                                               integrandPlus2  , integrandMinus2 , &
-         &                                                                               integrandPlus3  , integrandMinus3 , &
-         &                                                                               sumLambda2      , sumLambda3      , &
-         &                                                                               sumLambda4      , sumLambda5      , &
-         &                                                                               lambda2         , lambda3         , &
-         &                                                                               lambda4         , lambda5
-    integer                                                                           :: i               , j               , &
-         &                                                                               k               , signs
+    class           (integratorGenzMalikND), intent(inout)                   :: self
+    type            (region               ), intent(inout)                   :: region_
+    double precision                       , dimension(self%countDimensions) :: center        , halfWidth       , &
+         &                                                                      x             , differenceFourth
+    double precision                                                         :: sum7          , sum5            , &
+         &                                                                      volume        , integrand0      , &
+         &                                                                      integrandPlus2, integrandMinus2 , &
+         &                                                                      integrandPlus3, integrandMinus3 , &
+         &                                                                      sumLambda2    , sumLambda3      , &
+         &                                                                      sumLambda4    , sumLambda5      , &
+         &                                                                      lambda2       , lambda3         , &
+         &                                                                      lambda4       , lambda5
+    integer                                                                  :: i             , j               , &
+         &                                                                      k             , signs
 
     lambda2  =sqrt(lambda2Squared)
     lambda3  =sqrt(lambda3Squared)
@@ -350,12 +350,12 @@ contains
        integrandPlus3     =self%integrandEvaluate(x)
        x               (i)=center(i)-halfWidth(i)*lambda3
        integrandMinus3    =self%integrandEvaluate(x)
-       sumLambda2         =+sumLambda2                                                           &
+       sumLambda2         =+sumLambda2                     &
             &              +integrandPlus2+integrandMinus2
-       sumLambda3         =+sumLambda3                                                           &
+       sumLambda3         =+sumLambda3                     &
             &              +integrandPlus3+integrandMinus3
-       differenceFourth(i)=+abs(                                                                 &
-            &                   +                  integrandPlus3+integrandMinus3-2.0d0*integrand0  &
+       differenceFourth(i)=+abs(                                                                      &
+            &                   +                    integrandPlus3+integrandMinus3-2.0d0*integrand0  &
             &                   -ratioLambdaSquared*(integrandPlus2+integrandMinus2-2.0d0*integrand0) &
             &                  )
     end do
@@ -388,31 +388,31 @@ contains
        sumLambda5=sumLambda5+self%integrandEvaluate(x)
     end do
     ! Form the two rules.
-    sum7=+self%weight7Center *integrand0 &
-         &     +self%weight7Lambda2*sumLambda2 &
-         &     +self%weight7Lambda3*sumLambda3 &
-         &     +self%weight7Lambda4*sumLambda4 &
-         &     +self%weight7Lambda5*sumLambda5
-    sum5=+self%weight5Center *integrand0 &
-         &     +self%weight5Lambda2*sumLambda2 &
-         &     +self%weight5Lambda3*sumLambda3 &
-         &     +self%weight5Lambda4*sumLambda4
-    region_%integral      =volume*    sum7
-    region_%error         =volume*abs(sum7-sum5)
+    sum7   =+self%weight7Center *integrand0 &
+         &  +self%weight7Lambda2*sumLambda2 &
+         &  +self%weight7Lambda3*sumLambda3 &
+         &  +self%weight7Lambda4*sumLambda4 &
+         &  +self%weight7Lambda5*sumLambda5
+    sum5   =+self%weight5Center *integrand0 &
+         &  +self%weight5Lambda2*sumLambda2 &
+         &  +self%weight5Lambda3*sumLambda3 &
+         &  +self%weight5Lambda4*sumLambda4
+    region_%integral=volume*    sum7
+    region_%error   =volume*abs(sum7-sum5)
     ! Select the coordinate along which the region is to be split if it is refined: that of largest fourth difference, with ties
     ! broken in favor of the longest edge. Tie-breaking matters: for a discontinuous integrand the fourth differences take only a
     ! few discrete values and so tie frequently, and always resolving a tie the same way would split the region along a single
     ! coordinate forever, slivering it instead of refining it.
     region_%dimensionSplit=1
     do i=2,self%countDimensions
-       if     (                                                                                 &
-            &        differenceFourth(i) >  differenceFourth(region_%dimensionSplit)             &
-            &  .or.                                                                             &
-            &   (                                                                               &
-            &        differenceFourth(i) == differenceFourth(region_%dimensionSplit)             &
-            &    .and.                                                                          &
-            &        halfWidth       (i) >  halfWidth       (region_%dimensionSplit)             &
-            &   )                                                                               &
+       if     (                                                                      &
+            &        differenceFourth(i) >  differenceFourth(region_%dimensionSplit) &
+            &  .or.                                                                  &
+            &   (                                                                    &
+            &        differenceFourth(i) == differenceFourth(region_%dimensionSplit) &
+            &    .and.                                                               &
+            &        halfWidth       (i) >  halfWidth       (region_%dimensionSplit) &
+            &   )                                                                    &
             & ) region_%dimensionSplit=i
     end do
     return
@@ -433,7 +433,7 @@ contains
 
   subroutine heapSiftUp(heap,i)
     !!{RST
-    Restore the heap property by sifting the element at position  i towards the root.
+    Restore the heap property by sifting the element at position ``i`` towards the root.
     !!}
     implicit none
     type   (region), intent(inout), dimension(:) :: heap
@@ -455,7 +455,7 @@ contains
 
   subroutine heapSiftDown(heap,countRegions,i)
     !!{RST
-    Restore the heap property by sifting the element at position  i away from the root.
+    Restore the heap property by sifting the element at position ``i`` away from the root.
     !!}
     implicit none
     type   (region), intent(inout), dimension(:) :: heap

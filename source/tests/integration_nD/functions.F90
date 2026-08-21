@@ -48,10 +48,10 @@ contains
     implicit none
     double precision, intent(in   ), dimension(:) :: x
 
-    integrandPolynomial5=+1.0d0                       &
-         &               +2.0d0*x(1)                  &
-         &               +3.0d0*x(1)**2*x(2)          &
-         &               +      x(1)**2*x(2)**2*x(3)  &
+    integrandPolynomial5=+1.0d0                      &
+         &               +2.0d0*x(1)                 &
+         &               +3.0d0*x(1)**2*x(2)         &
+         &               +      x(1)**2*x(2)**2*x(3) &
          &               +4.0d0*        x(2)**5
     return
   end function integrandPolynomial5
@@ -64,9 +64,9 @@ contains
     implicit none
     double precision, intent(in   ), dimension(:) :: x
 
-    integrandPolynomial7=+x(1)**7                     &
-         &               +x(1)**4*x(2)**2*x(3)        &
-         &               +x(1)**3*x(2)**2*x(3)**2     &
+    integrandPolynomial7=+x(1)**7                 &
+         &               +x(1)**4*x(2)**2*x(3)    &
+         &               +x(1)**3*x(2)**2*x(3)**2 &
          &               +        x(2)**6
     return
   end function integrandPolynomial7
