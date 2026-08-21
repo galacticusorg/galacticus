@@ -149,4 +149,58 @@ if not bool(np.all(np.diff(transmission) >= -TOLERANCE)):
 print(f"SUCCESS: transmission increases with wavelength, from {transmission[0]:.4f} at"
       f" {wavelengths[emittingHere][0]:.0f} A to {transmission[-1]:.4f} at {wavelengths[emittingHere][-1]:.0f} A")
 
+# ---------------------------------------------------------------------------------------------------------------------
+# Emission lines. The extractor sums over disk and spheroid internally, so a correct decomposition has to split by
+# component and recombine after attenuation; a multi-line extractor is also a child emitting several elements.
+# ---------------------------------------------------------------------------------------------------------------------
+lineWavelengths = {"oxygenII3727": 3727.0, "balmerBeta4863": 4863.0, "balmerAlpha6565": 6565.0}
+
+with h5py.File(outputPath, "r") as f:
+    nodes = f["Outputs/Output1/nodeData"]
+    lineRaw        = {}
+    lineAttenuated = {}
+    try:
+        for line in lineWavelengths:
+            lineRaw       [line] = nodes[f"luminosityEmissionLineTotal:{line}"][:]
+            lineAttenuated[line] = nodes[f"luminosityEmissionLineTotal:{line}:dustAttenuated:charlotFall2000"][:]
+    except KeyError as e:
+        print(f"FAILED: expected emission line dataset missing from the output: {e}")
+        sys.exit(0)
+
+emittingLines = lineRaw["balmerAlpha6565"] > 0.0
+if not emittingLines.any():
+    print("FAILED: every emission line luminosity is zero, so nothing is being tested")
+    sys.exit(0)
+print(f"SUCCESS: emission lines are non-zero for {int(emittingLines.sum())} galaxies")
+
+# Attenuation can only remove light.
+for line in lineWavelengths:
+    if not bool(np.all(lineAttenuated[line][emittingLines] <= lineRaw[line][emittingLines] * (1.0 + TOLERANCE))):
+        print(f"FAILED: the attenuated {line} luminosity exceeds the unattenuated one")
+        sys.exit(0)
+
+# A power-law extinction curve must transmit more of a redder line than of a bluer one.
+ordered = sorted(lineWavelengths, key=lambda line: lineWavelengths[line])
+lineTransmission = {
+    line: lineAttenuated[line][emittingLines] / lineRaw[line][emittingLines] for line in ordered
+}
+for bluer, redder in zip(ordered[:-1], ordered[1:]):
+    if not bool(np.all(lineTransmission[bluer] <= lineTransmission[redder] * (1.0 + TOLERANCE))):
+        print(f"FAILED: {bluer} is transmitted more than {redder}, but it is the bluer line")
+        sys.exit(0)
+print(f"SUCCESS: emission line transmission increases with wavelength, from"
+      f" {lineTransmission[ordered[0]].mean():.4f} at {lineWavelengths[ordered[0]]:.0f} A to"
+      f" {lineTransmission[ordered[-1]].mean():.4f} at {lineWavelengths[ordered[-1]]:.0f} A")
+
+# Reddening must raise the Balmer decrement: Halpha is absorbed less than Hbeta, so their observed ratio exceeds the
+# intrinsic one. This is the standard observational signature of dust, and gets the sign of the effect right rather
+# than merely its monotonicity.
+decrementIntrinsic  = lineRaw       ["balmerAlpha6565"][emittingLines] / lineRaw       ["balmerBeta4863"][emittingLines]
+decrementAttenuated = lineAttenuated["balmerAlpha6565"][emittingLines] / lineAttenuated["balmerBeta4863"][emittingLines]
+if not bool(np.all(decrementAttenuated > decrementIntrinsic * (1.0 - TOLERANCE))):
+    print("FAILED: dust does not redden the Balmer decrement")
+    sys.exit(0)
+print(f"SUCCESS: dust reddens the Balmer decrement, from {decrementIntrinsic.mean():.4f} to"
+      f" {decrementAttenuated.mean():.4f}")
+
 sys.exit(0)

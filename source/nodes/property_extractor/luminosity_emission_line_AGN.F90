@@ -68,6 +68,8 @@
      procedure :: unitsInSI    => lmnstyEmssnLineAGNUnitsInSI
      procedure :: metaData     => lmnstyEmssnLineAGNMetaData
      procedure :: units       => lmnstyEmssnLineAGNUnits
+     procedure :: supportsAttenuation => lmnstyEmssnLineAGNSupportsAttenuation
+     procedure :: decompose           => lmnstyEmssnLineAGNDecompose
   end type nodePropertyExtractorLmnstyEmssnLineAGN
 
   interface nodePropertyExtractorLmnstyEmssnLineAGN
@@ -622,3 +624,57 @@ contains
     end do
     return
   end function lmnstyEmssnLineAGNUnits
+
+  logical function lmnstyEmssnLineAGNSupportsAttenuation(self) result(supportsAttenuation)
+    !!{RST
+    Return true: active galactic nucleus emission line luminosities can be decomposed for attenuation by dust.
+    !!}
+    implicit none
+    class(nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    supportsAttenuation=.true.
+    return
+  end function lmnstyEmssnLineAGNSupportsAttenuation
+
+  function lmnstyEmssnLineAGNDecompose(self,node,time,request) result(decomposition)
+    !!{RST
+    Decompose active galactic nucleus emission line luminosities into parcels of emission which may be attenuated
+    separately---one parcel per line.
+
+    The parcels are attributed to the black hole component and marked as nebular in origin: the lines are
+    recombination lines from gas photoionized by the accretion disk, but the emitting gas lies at the very centre of
+    the galaxy. That placement is what distinguishes them for the purposes of dust attenuation, since light from the
+    centre traverses the whole column of the host rather than the fraction a typical star sees, and it is why an
+    attenuator which derives its optical depth from the properties of a *stellar* component will decline to attenuate
+    them.
+
+    Age is not meaningful for this emission---it is not powered by a stellar population---so each parcel is marked as
+    arising at zero age, which subjects it to any birth cloud component of the attenuator. That is the conservative
+    choice: emission from the nucleus is at least as obscured as that from young stars.
+    !!}
+    use :: Dust_Attenuation_Descriptors, only : emissionSourceNebular
+    use :: Galactic_Structure_Options  , only : componentTypeBlackHole
+    implicit none
+    type            (luminosityDecomposition             )                              :: decomposition
+    class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout), target     :: self
+    type            (treeNode                            ), intent(inout), target       :: node
+    double precision                                      , intent(in   )               :: time
+    type            (decompositionRequest                ), intent(in   )               :: request
+    double precision                                      , allocatable  , dimension(:) :: luminosity
+    integer                                                                             :: iLine
+    !$GLC attributes unused :: request
+
+    luminosity=self%extract(node,time)
+    call decomposition%initialize(self%countLines,self%countLines)
+    do iLine=1,self%countLines
+       decomposition%luminosities(iLine)              =luminosity     (iLine)
+       decomposition%elementIndex(iLine)              =iLine
+       decomposition%descriptors (iLine)%wavelength   =self%wavelengths(iLine)
+       decomposition%descriptors (iLine)%componentType=componentTypeBlackHole
+       decomposition%descriptors (iLine)%sourceType   =emissionSourceNebular
+       decomposition%descriptors (iLine)%ageMinimum   =0.0d0
+       decomposition%descriptors (iLine)%ageMaximum   =0.0d0
+    end do
+    return
+  end function lmnstyEmssnLineAGNDecompose

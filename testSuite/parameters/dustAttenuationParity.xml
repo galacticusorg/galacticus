@@ -468,6 +468,25 @@
         <toleranceRelative value="1.0e-2"  />
       </nodePropertyExtractor>
     </nodePropertyExtractor>
+    <!-- Emission lines. The extractor sums over disk and spheroid internally, so decomposition must split by
+         component for the result to be attenuable at all; the parcels of each line are recombined into that line's
+         single output element after attenuation. A multi-line extractor also exercises a child emitting several
+         elements, which is the case in which the rank of a summed property could disagree with its shape. -->
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="true"/>
+      <outputSum          value="false"/>
+      <dustAttenuation value="charlotFall2000">
+        <coefficientBirthCloud value="1.0e0" />
+        <coefficientISM        value="1.0e0" />
+        <timescale             value="1.0e-2"/>
+        <exponent              value="0.7e0" />
+        <wavelengthReference   value="5500.0"/>
+      </dustAttenuation>
+      <nodePropertyExtractor value="luminosityEmissionLine">
+        <component value="all"/>
+        <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
   </nodePropertyExtractor>
 
   <outputFileName value="testSuite/outputs/dustAttenuationParity.hdf5"/>
