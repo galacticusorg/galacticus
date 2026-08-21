@@ -33,40 +33,45 @@ program Test_Error_Report_Handlers
   evaluated to a file. A deliberate fatal error is far more common than a crash, so a handler which
   ran only on a signal discarded that context in precisely the usual case.
 
-  The handler is passed ``signalNone`` when called other than in response to a signal. This is
-  checked too: a handler which switches on the signal number must be able to distinguish the two,
-  and one which decodes it must not attempt to decode a value which is not a signal.
+  That the handler is passed ``signalNone`` is checked too: a handler which interprets the signal
+  must be able to distinguish "no signal" from a real one, and must not attempt to decode a value
+  which is not a member of the signal enumeration.
 
-  The program necessarily aborts, since that is what ``Error_Report`` does, so the handler records
-  what it saw in a file which ``test-error-report-handlers.py`` then checks. Reporting the result
-  from the program itself is not possible: nothing it writes after ``Error_Report`` is reached.
+  The handler exits the process, which is what makes this testable. ``Error_Report`` aborts, so
+  nothing this program writes after calling it is ever reached, and the only channel the test
+  harness observes is the exit status and the output. Exiting from the handler puts "the handler
+  ran" into that exit status: reaching the end of ``Error_Report`` instead means it did not run, and
+  the process exits non-zero, failing the test.
   !!}
-  use :: Display, only : displayVerbositySet   , verbosityLevelStandard
-  use :: Error  , only : Error_Report          , signalHandlerInterface, signalHandlerRegister, signalNone
+  use, intrinsic :: ISO_Fortran_Env, only : output_unit
+  use            :: Display        , only : displayVerbositySet   , verbosityLevelStandard
+  use            :: Error          , only : Error_Report          , signalHandlerInterface, signalHandlerRegister, signalNone
   implicit none
   procedure(signalHandlerInterface), pointer :: handler
-  character(len=*                 ), parameter :: fileNameRecord='testSuite/outputs/errorReportHandlers.record'
 
   call displayVerbositySet   (verbosityLevelStandard)
   handler                    => testHandler
   call signalHandlerRegister (handler               )
-  ! Abort. The handler must run before the process exits, and must be passed `signalNone`.
+  ! Report a fatal error. The handler must run, and must exit the process; if it does not run,
+  ! `Error_Report` exits non-zero and the test fails.
   call Error_Report          ('deliberate error, to test that registered handlers are called'//{introspection:location})
 
 contains
 
   subroutine testHandler(signal)
     !!{RST
-    Record the signal with which this handler was called.
+    Report whether this handler was called as expected, and exit.
     !!}
     implicit none
     integer, intent(in   ) :: signal
-    integer                :: fileRecord
 
-    open (newunit=fileRecord,file=fileNameRecord,status='unknown',form='formatted')
-    write (fileRecord,'(a,i0)') 'signal=',signal
-    write (fileRecord,'(a,l1)') 'isSignalNone=',signal == signalNone
-    close(fileRecord)
+    if (signal == signalNone) then
+       write (output_unit,'(a)'    ) 'SUCCESS: the registered handler was called by `Error_Report`, and passed `signalNone`'
+    else
+       write (output_unit,'(a,i0)' ) 'FAILED: the registered handler was called with a signal number instead of `signalNone`: ',signal
+    end if
+    call Flush(output_unit)
+    call Exit (0          )
     return
   end subroutine testHandler
 
