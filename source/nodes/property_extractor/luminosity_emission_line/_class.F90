@@ -99,9 +99,9 @@
      procedure :: luminosityMean          => emissionLineLuminosityMean
      procedure :: indexTemplateTime       => emissionLineLuminosityIndexTemplateTime
      procedure :: indexTemplateNode       => emissionLineLuminosityIndexTemplateNode 
-     procedure :: units       => luminosityEmissionLineUnits
-     procedure :: supportsAttenuation => emissionLineLuminositySupportsAttenuation
-     procedure :: decompose           => emissionLineLuminosityDecompose
+     procedure :: units                   => emissionLineLuminosityUnits
+     procedure :: supportsAttenuation     => emissionLineLuminositySupportsAttenuation
+     procedure :: decompose               => emissionLineLuminosityDecompose
   end type nodePropertyExtractorLuminosityEmissionLine
   
   interface nodePropertyExtractorLuminosityEmissionLine
@@ -1020,7 +1020,7 @@ contains
     return
   end function emissionLineLuminosityHistoryHashedDescriptor
 
-  function luminosityEmissionLineUnits(self,time) result(units)
+  function emissionLineLuminosityUnits(self,time) result(units)
     !!{RST
     Return the units of the luminosityEmissionLine properties.
     !!}
@@ -1038,7 +1038,7 @@ contains
        units(i)=unitType(siValues(i),description='ergs',quantity='erg')
     end do
     return
-  end function luminosityEmissionLineUnits
+  end function emissionLineLuminosityUnits
 
   logical function emissionLineLuminositySupportsAttenuation(self) result(supportsAttenuation)
     !!{RST
@@ -1075,22 +1075,22 @@ contains
     use :: Galacticus_Nodes            , only : nodeComponentDisk    , nodeComponentSpheroid
     use :: Histories                   , only : history
     implicit none
-    type            (luminosityDecomposition                 )                                :: decomposition
-    class           (nodePropertyExtractorLuminosityEmissionLine), intent(inout), target      :: self
-    type            (treeNode                                ), intent(inout), target         :: node
-    double precision                                          , intent(in   )                 :: time
-    type            (decompositionRequest                    ), intent(in   )                 :: request
-    class           (nodeComponentDisk                       )               , pointer        :: disk
-    class           (nodeComponentSpheroid                   )               , pointer        :: spheroid
-    double precision                                          , dimension(:,:,:), pointer     :: luminosityTemplate_
-    double precision                                          , dimension(:,:,:), allocatable, target :: luminosityTemplate
-    double precision                                          , dimension(:,:  ), allocatable :: masses
-    type            (history                                 )                                :: starFormationHistory
-    type            (enumerationComponentTypeType            )                                :: componentType
-    integer         (c_size_t                                )                                :: indexTemplate
-    integer                                                                                   :: i                  , iLine, &
-         &                                                                                       indexParcel        , countParcels
-    logical                                                   , dimension(2)                  :: contributes
+    type            (luminosityDecomposition                    )                                         :: decomposition
+    class           (nodePropertyExtractorLuminosityEmissionLine), intent(inout)                , target  :: self
+    type            (treeNode                                   ), intent(inout)                , target  :: node
+    double precision                                             , intent(in   )                          :: time
+    type            (decompositionRequest                       ), intent(in   )                          :: request
+    class           (nodeComponentDisk                          )                               , pointer :: disk
+    class           (nodeComponentSpheroid                      )                               , pointer :: spheroid
+    double precision                                             , dimension(:,:,:)             , pointer :: luminosityTemplate_
+    double precision                                             , dimension(:,:,:), allocatable, target  :: luminosityTemplate
+    double precision                                             , dimension(:,:  ), allocatable          :: masses
+    type            (history                                    )                                         :: starFormationHistory
+    type            (enumerationComponentTypeType               )                                         :: componentType
+    integer         (c_size_t                                   )                                         :: indexTemplate
+    integer                                                                                               :: i                   , iLine       , &
+         &                                                                                                   indexParcel         , countParcels
+    logical                                                      , dimension(2    )                       :: contributes
     !$GLC attributes unused :: request
 
     ! Establish which components contribute, so that the number of parcels is known before any is built.

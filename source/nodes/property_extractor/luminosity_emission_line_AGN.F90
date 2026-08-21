@@ -60,14 +60,14 @@
           &                                                                                        densityHydrogen_                           , temperature
      type            (varying_string                       )                                    :: cloudyTableFileName
    contains
-     final     ::                 lmnstyEmssnLineAGNDestructor
-     procedure :: elementCount => lmnstyEmssnLineAGNElementCount
-     procedure :: extract      => lmnstyEmssnLineAGNExtract
-     procedure :: names        => lmnstyEmssnLineAGNNames
-     procedure :: descriptions => lmnstyEmssnLineAGNDescriptions
-     procedure :: unitsInSI    => lmnstyEmssnLineAGNUnitsInSI
-     procedure :: metaData     => lmnstyEmssnLineAGNMetaData
-     procedure :: units       => lmnstyEmssnLineAGNUnits
+     final     ::                        lmnstyEmssnLineAGNDestructor
+     procedure :: elementCount        => lmnstyEmssnLineAGNElementCount
+     procedure :: extract             => lmnstyEmssnLineAGNExtract
+     procedure :: names               => lmnstyEmssnLineAGNNames
+     procedure :: descriptions        => lmnstyEmssnLineAGNDescriptions
+     procedure :: unitsInSI           => lmnstyEmssnLineAGNUnitsInSI
+     procedure :: metaData            => lmnstyEmssnLineAGNMetaData
+     procedure :: units               => lmnstyEmssnLineAGNUnits
      procedure :: supportsAttenuation => lmnstyEmssnLineAGNSupportsAttenuation
      procedure :: decompose           => lmnstyEmssnLineAGNDecompose
   end type nodePropertyExtractorLmnstyEmssnLineAGN
@@ -656,13 +656,13 @@ contains
     use :: Dust_Attenuation_Descriptors, only : emissionSourceNebular
     use :: Galactic_Structure_Options  , only : componentTypeBlackHole
     implicit none
-    type            (luminosityDecomposition             )                              :: decomposition
-    class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout), target     :: self
-    type            (treeNode                            ), intent(inout), target       :: node
-    double precision                                      , intent(in   )               :: time
-    type            (decompositionRequest                ), intent(in   )               :: request
-    double precision                                      , allocatable  , dimension(:) :: luminosity
-    integer                                                                             :: iLine
+    type            (luminosityDecomposition                )                              :: decomposition
+    class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout), target       :: self
+    type            (treeNode                               ), intent(inout), target       :: node
+    double precision                                         , intent(in   )               :: time
+    type            (decompositionRequest                   ), intent(in   )               :: request
+    double precision                                         , allocatable  , dimension(:) :: luminosity
+    integer                                                                                :: iLine
     !$GLC attributes unused :: request
 
     luminosity=self%extract(node,time)
