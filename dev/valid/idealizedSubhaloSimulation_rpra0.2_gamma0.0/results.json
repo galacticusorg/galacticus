@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "5e69da91e1dfdf8f745686f542e068deefbced61",
-        "message": "Merge pull request #1413 from galacticusorg/feature/error-report-signal-handlers\n\nCall registered signal handlers on a deliberate fatal error\n",
-        "timestamp": "2026-08-21 19:55:27+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/5e69da91e1dfdf8f745686f542e068deefbced61"
+        "id": "0ab8e753dde81ca158c013508a9f49681f00bd41",
+        "message": "Merge pull request #1415 from galacticusorg/update/bibliography\n\nfix: Update bibliography records\n",
+        "timestamp": "2026-08-22 18:51:24+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/0ab8e753dde81ca158c013508a9f49681f00bd41"
     },
     "results": [
         {
