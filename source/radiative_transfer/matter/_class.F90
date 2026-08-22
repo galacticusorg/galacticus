@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which provides matter types for radiative transfer calculations.
 !!}
@@ -28,6 +30,7 @@ module Radiative_Transfer_Matters
   use, intrinsic :: ISO_C_Binding                          , only : c_size_t
   use            :: ISO_Varying_String                     , only : varying_string
   use            :: Computational_Domain_Volume_Integrators, only : computationalDomainVolumeIntegratorClass
+  use            :: Coordinates                            , only : coordinate
   use            :: Radiative_Transfer_Photon_Packet       , only : radiativeTransferPhotonPacketClass
   private
   public :: radiativeTransferPropertiesMatter
@@ -54,6 +57,14 @@ module Radiative_Transfer_Matters
     <type>void</type>
     <pass>yes</pass>
     <argument>class(radiativeTransferPropertiesMatter), intent(inout), allocatable :: properties</argument>
+   </method>
+   <method name="density" >
+    <description>
+    Return the mass density of the matter at the given coordinates. This is the integrand of the volume integral performed by the  populateDomain method, and is exposed separately so that the computational domain can cheaply estimate a characteristic density for the domain with which to set the absolute tolerance of that integral.
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>class(coordinate), intent(in   ) :: coordinates</argument>
    </method>
    <method name="populateDomain" >
     <description>
