@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787250745373,
+  "lastUpdate": 1787363879919,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (Symphony LMC)": [
@@ -434,6 +434,35 @@ window.BENCHMARK_DATA = {
           {
             "name": "Halo mass function - Likelihood - Symphony LMC CDM resolutionX1 z=0.000 (38 realizations)",
             "value": 2002.6765301972466,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5e69da91e1dfdf8f745686f542e068deefbced61",
+          "message": "Merge pull request #1413 from galacticusorg/feature/error-report-signal-handlers\n\nCall registered signal handlers on a deliberate fatal error",
+          "timestamp": "2026-08-21T19:55:27Z",
+          "tree_id": "804b1a1033550465b02702b2355fb9d935f37c6f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5e69da91e1dfdf8f745686f542e068deefbced61"
+        },
+        "date": 1787363878717,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - Symphony LMC CDM resolutionX1 z=0.000 (38 realizations)",
+            "value": 2002.6764633241914,
             "unit": "-logℒ"
           }
         ]
