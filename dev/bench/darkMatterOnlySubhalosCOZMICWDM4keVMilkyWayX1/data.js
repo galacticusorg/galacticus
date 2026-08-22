@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787250599516,
+  "lastUpdate": 1787363737266,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 4keV resolutionX1)": [
@@ -3458,6 +3458,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:4keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 6.206615980422228,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5e69da91e1dfdf8f745686f542e068deefbced61",
+          "message": "Merge pull request #1413 from galacticusorg/feature/error-report-signal-handlers\n\nCall registered signal handlers on a deliberate fatal error",
+          "timestamp": "2026-08-21T19:55:27Z",
+          "tree_id": "804b1a1033550465b02702b2355fb9d935f37c6f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5e69da91e1dfdf8f745686f542e068deefbced61"
+        },
+        "date": 1787363736275,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:4keV resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": -1.7460201850031352,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:4keV resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": -0.5257786152941328,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:4keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 7.190826095067904,
             "unit": "-logℒ"
           }
         ]
