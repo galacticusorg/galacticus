@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787363885525,
+  "lastUpdate": 1787441955882,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (Symphony Group)": [
@@ -463,6 +463,35 @@ window.BENCHMARK_DATA = {
           {
             "name": "Halo mass function - Likelihood - Symphony Group CDM resolutionX1 z=0.000 (49 realizations)",
             "value": 5817.688628083808,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0ab8e753dde81ca158c013508a9f49681f00bd41",
+          "message": "Merge pull request #1415 from galacticusorg/update/bibliography\n\nfix: Update bibliography records",
+          "timestamp": "2026-08-22T18:51:24Z",
+          "tree_id": "f23116617f68f078e71a6259f52e33a056aedef4",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0ab8e753dde81ca158c013508a9f49681f00bd41"
+        },
+        "date": 1787441954720,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - Symphony Group CDM resolutionX1 z=0.000 (49 realizations)",
+            "value": 5817.688551948311,
             "unit": "-logℒ"
           }
         ]
