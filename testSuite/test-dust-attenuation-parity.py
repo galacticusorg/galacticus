@@ -203,4 +203,29 @@ if not bool(np.all(decrementAttenuated > decrementIntrinsic * (1.0 - TOLERANCE))
 print(f"SUCCESS: dust reddens the Balmer decrement, from {decrementIntrinsic.mean():.4f} to"
       f" {decrementAttenuated.mean():.4f}")
 
+# ---------------------------------------------------------------------------------------------------------------------
+# Emitting only the sum. A consumer which expects a single value per galaxy -- an output analysis, for instance --
+# cannot use an extractor which emits one property per component, so the wrapper can be asked to emit just the total.
+# ---------------------------------------------------------------------------------------------------------------------
+with h5py.File(outputPath, "r") as f:
+    nodes    = f["Outputs/Output1/nodeData"]
+    emitted  = [name for name in nodes.keys() if name.startswith("lineTotalSumOnly")]
+    if len(emitted) != 1:
+        print(f"FAILED: outputSumOnly emitted {len(emitted)} properties, expected exactly one: {emitted}")
+        sys.exit(0)
+    sumOnly = nodes[emitted[0]][:]
+
+if sumOnly.ndim != 1:
+    print(f"FAILED: outputSumOnly emitted a property of rank {sumOnly.ndim - 1}, expected a scalar")
+    sys.exit(0)
+
+# Check the total against the per-line luminosities emitted separately elsewhere in the same run, rather than against
+# anything this wrapper produced itself.
+expected  = lineAttenuated["balmerAlpha6565"] + lineAttenuated["balmerBeta4863"]
+worstSum  = float(np.nanmax(np.abs(sumOnly[emittingLines] - expected[emittingLines]) / expected[emittingLines]))
+if worstSum > TOLERANCE:
+    print(f"FAILED: the outputSumOnly total differs from the sum of the separately emitted lines by {worstSum:.3e}")
+    sys.exit(0)
+print(f"SUCCESS: outputSumOnly emits a single scalar equal to the sum of its children, to {worstSum:.3e}")
+
 sys.exit(0)

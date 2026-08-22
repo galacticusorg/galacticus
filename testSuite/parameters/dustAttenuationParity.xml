@@ -487,6 +487,28 @@
         <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727"/>
       </nodePropertyExtractor>
     </nodePropertyExtractor>
+    <!-- outputSumOnly must emit exactly one property whose value equals the sum the same configuration produces
+         when the per-child properties are also emitted. This is what lets a consumer expecting a single value, such
+         as an output analysis, use the framework at all. -->
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputSumOnly value="true"/>
+      <sumName       value="lineTotalSumOnly"/>
+      <dustAttenuation value="charlotFall2000">
+        <coefficientBirthCloud value="1.0e0" />
+        <coefficientISM        value="1.0e0" />
+        <timescale             value="1.0e-2"/>
+        <exponent              value="0.7e0" />
+        <wavelengthReference   value="5500.0"/>
+      </dustAttenuation>
+      <nodePropertyExtractor value="luminosityEmissionLine">
+        <component value="all"/>
+        <lineNames value="balmerAlpha6565"/>
+      </nodePropertyExtractor>
+      <nodePropertyExtractor value="luminosityEmissionLine">
+        <component value="all"/>
+        <lineNames value="balmerBeta4863"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
   </nodePropertyExtractor>
 
   <outputFileName value="testSuite/outputs/dustAttenuationParity.hdf5"/>
