@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "0f386049a46fce7fce1c459a8c53cd79fa5e8c0b",
-        "message": "chore(ci): raise the COZMIC WDM 3keV X1 benchmark threshold to 750%\n",
-        "timestamp": "2026-08-20 06:10:12-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/0f386049a46fce7fce1c459a8c53cd79fa5e8c0b"
+        "id": "5e69da91e1dfdf8f745686f542e068deefbced61",
+        "message": "Merge pull request #1413 from galacticusorg/feature/error-report-signal-handlers\n\nCall registered signal handlers on a deliberate fatal error\n",
+        "timestamp": "2026-08-21 19:55:27+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/5e69da91e1dfdf8f745686f542e068deefbced61"
     },
     "results": [
         {
@@ -189,7 +189,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Symphony (Nadler et al. 2023)",
                 "comment": "Subhalo mean maximum velocity vs. bound mass relation",
                 "description": "Subhalo mean maximum velocity vs. bound mass relation",
-                "logLikelihood": "-21.654992486509887",
+                "logLikelihood": "-21.654992486509794",
                 "type": "function1D",
                 "xDataset": "massBound",
                 "yCovariance": "velocityMaximumMeanCovariance",
@@ -268,11 +268,11 @@ window.ANALYSES_DATA = {
                     0.5632262268477177,
                     0.6931104049168798,
                     1.090462621409427,
-                    1.3935048011800963,
-                    2.192201063742769,
-                    2.9686220629163405,
-                    4.076722673717889,
-                    2.731040520546578,
+                    1.3935048011800895,
+                    2.1922010637427802,
+                    2.96862206291636,
+                    4.076722673717857,
+                    2.731040520546646,
                     2.480487602491037,
                     6.335831582221609,
                     0.0,

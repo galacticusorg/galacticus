@@ -4,12 +4,12 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "0f386049a46fce7fce1c459a8c53cd79fa5e8c0b",
-        "message": "chore(ci): raise the COZMIC WDM 3keV X1 benchmark threshold to 750%\n",
-        "timestamp": "2026-08-20 06:10:12-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/0f386049a46fce7fce1c459a8c53cd79fa5e8c0b"
+        "id": "5e69da91e1dfdf8f745686f542e068deefbced61",
+        "message": "Merge pull request #1413 from galacticusorg/feature/error-report-signal-handlers\n\nCall registered signal handlers on a deliberate fatal error\n",
+        "timestamp": "2026-08-21 19:55:27+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/5e69da91e1dfdf8f745686f542e068deefbced61"
     },
     "surfaceDensity": {
         "percentageBelow": 57.142857142857146,

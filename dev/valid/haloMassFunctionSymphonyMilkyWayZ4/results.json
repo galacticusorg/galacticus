@@ -4,18 +4,18 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "0f386049a46fce7fce1c459a8c53cd79fa5e8c0b",
-        "message": "chore(ci): raise the COZMIC WDM 3keV X1 benchmark threshold to 750%\n",
-        "timestamp": "2026-08-20 06:10:12-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/0f386049a46fce7fce1c459a8c53cd79fa5e8c0b"
+        "id": "5e69da91e1dfdf8f745686f542e068deefbced61",
+        "message": "Merge pull request #1413 from galacticusorg/feature/error-report-signal-handlers\n\nCall registered signal handlers on a deliberate fatal error\n",
+        "timestamp": "2026-08-21 19:55:27+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/5e69da91e1dfdf8f745686f542e068deefbced61"
     },
     "results": [
         {
             "attributes": {
                 "name": "Symphony MilkyWay CDM resolutionX1 z=3.984 (47 realizations)",
-                "logLikelihood": "-2731.9955455913973",
+                "logLikelihood": "-2731.995564570699",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -39,31 +39,31 @@ window.ANALYSES_DATA = {
                     22387211385.68341
                 ],
                 "yDataset": [
-                    5.149142364808985,
-                    3.3412727833907048,
-                    2.1557652271143772,
-                    1.3833515636533418,
-                    0.9809668570400619,
-                    0.7816379830656428,
-                    0.559763212802387,
-                    0.34892539423497354,
-                    0.21592223716702189,
-                    0.13125661139184422,
+                    5.149142321696737,
+                    3.341272741724192,
+                    2.1557652142032935,
+                    1.3833515688629336,
+                    0.980966861523455,
+                    0.7816379891451538,
+                    0.5597632106355752,
+                    0.34892538861873623,
+                    0.21592222828131033,
+                    0.13125660368594091,
                     0.08078398447783408,
                     0.04651153993089735,
                     0.03936014873421695
                 ],
                 "yError": [
-                    0.08008816204909668,
-                    0.054143249271475055,
-                    0.03699737795593824,
-                    0.026058391936048746,
-                    0.028587671870454374,
-                    0.024386515262463777,
-                    0.013882659967106642,
-                    0.010939778073737347,
-                    0.00888119381198621,
-                    0.0071616784784328015,
+                    0.08008816131389862,
+                    0.05414324860676157,
+                    0.036997377713316015,
+                    0.026058391986350595,
+                    0.028587671953169663,
+                    0.02438651539366752,
+                    0.013882659964196733,
+                    0.010939778009771039,
+                    0.008881193644207547,
+                    0.007161678273733236,
                     0.006991882485695162,
                     0.0067967618038213135,
                     0.021031721185237464

@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "0f386049a46fce7fce1c459a8c53cd79fa5e8c0b",
-        "message": "chore(ci): raise the COZMIC WDM 3keV X1 benchmark threshold to 750%\n",
-        "timestamp": "2026-08-20 06:10:12-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/0f386049a46fce7fce1c459a8c53cd79fa5e8c0b"
+        "id": "5e69da91e1dfdf8f745686f542e068deefbced61",
+        "message": "Merge pull request #1413 from galacticusorg/feature/error-report-signal-handlers\n\nCall registered signal handlers on a deliberate fatal error\n",
+        "timestamp": "2026-08-21 19:55:27+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/5e69da91e1dfdf8f745686f542e068deefbced61"
     },
     "results": [
         {
@@ -199,7 +199,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Symphony (Nadler et al. 2023)",
                 "comment": "Subhalo mean maximum velocity vs. bound mass relation",
                 "description": "Subhalo mean maximum velocity vs. bound mass relation",
-                "logLikelihood": "-16.058248732192006",
+                "logLikelihood": "-16.058248732191927",
                 "type": "function1D",
                 "xDataset": "massBound",
                 "yCovariance": "velocityMaximumMeanCovariance",
@@ -236,7 +236,7 @@ window.ANALYSES_DATA = {
                 "yDataset": [
                     15.728647008994718,
                     18.3260877151859,
-                    21.251403179475194,
+                    21.251403179475197,
                     24.589005389698613,
                     29.129705391119273,
                     34.91904201466498,
@@ -285,12 +285,12 @@ window.ANALYSES_DATA = {
                 ],
                 "yError": [
                     0.336963273370575,
-                    0.46285518607410564,
-                    0.6494017304617514,
+                    0.462855186074107,
+                    0.6494017304617491,
                     0.8465143481397556,
                     1.1563164308733915,
                     1.6849725555633657,
-                    0.9216251579703285,
+                    0.9216251579703547,
                     3.0515558379519043,
                     4.489865337558619,
                     4.046904899437438,
