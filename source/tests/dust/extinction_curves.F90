@@ -54,7 +54,7 @@ program Test_Dust_Extinction_Curves
   type            (dustExtinctionCurveNoll2009                 )               :: curveNoll2009Plain   , curveNoll2009Bump
   type            (stellarSpectraDustAttenuationCalzetti2000   )               :: oldCalzetti2000
   type            (stellarSpectraDustAttenuationCardelli1989   )               :: oldCardelli1989
-  type            (stellarSpectraDustAttenuationCharlotFall2000)               :: oldCharlotFall2000
+  type            (stellarSpectraDustAttenuationCharlotFall2000)               :: oldCharlotFall2000   , oldCharlotFall2000BirthClouds
   type            (stellarSpectraDustAttenuationGordon2003     )               :: oldGordon2003SMC     , oldGordon2003LMC
   type            (stellarSpectraDustAttenuationPrevotBouchet  )               :: oldPrevotBouchet
   type            (stellarSpectraDustAttenuationWittGordon2000 )               :: oldWittGordon2000MW  , oldWittGordon2000SMC
@@ -62,7 +62,9 @@ program Test_Dust_Extinction_Curves
   double precision                                              , dimension(9) :: wavelengths      =[1.0d3,1.5d3,2.5d3,3.5d3,wavelengthVBand,7.0d3,1.0d4,2.0d4,3.0d4]
   double precision                                                             :: new                  , old
   double precision                                                             :: excessBump           , excessWing
-  integer                                                                      :: i
+  double precision                                                             :: attenuationVBand     , depthOpticalBirthClouds      , &
+       &                                                                          factorBirthClouds    , age
+  integer                                                                      :: i                    , j
   character       (len=32                                      )               :: label
 
   ! Set verbosity level.
@@ -135,6 +137,34 @@ program Test_Dust_Extinction_Curves
      new=curveWittGordon2000SMC%attenuationRelative(wavelengths(i))
      old=oldWittGordon2000SMC  %attenuation       (wavelengths(i),1.0d0,1.0d0)
      call Assert("wittGordon2000 SMC "       //trim(label),new,old,absTol=1.0d-12)
+  end do
+  call Unit_Tests_End_Group()
+
+  ! The SED fitting likelihood replaces the Charlot & Fall (2000) attenuation class with a power-law extinction curve
+  ! scaled by the V-band attenuation and, for populations younger than the birth cloud lifetime, by a constant factor
+  ! of one plus the birth cloud optical depth. Check that this reproduces the class it replaces for populations on
+  ! both sides of that lifetime, and for an attenuation which is not unity.
+  call Unit_Tests_Begin_Group("Charlot & Fall birth clouds as a factor on the curve")
+  attenuationVBand             =1.3d0
+  depthOpticalBirthClouds      =0.8d0
+  oldCharlotFall2000BirthClouds=stellarSpectraDustAttenuationCharlotFall2000(0.7d0,1.0d-2,1.0d0,depthOpticalBirthClouds)
+  do i=1,size(wavelengths)
+     ! Ages either side of the 10 Myr birth cloud lifetime.
+     do j=1,2
+        if (j == 1) then
+           age              =5.0d-3
+           factorBirthClouds=1.0d0+depthOpticalBirthClouds
+        else
+           age              =5.0d-1
+           factorBirthClouds=1.0d0
+        end if
+        write (label,'(a,f9.1,a,f6.3)') "lambda=",wavelengths(i)," age=",age
+        new=+attenuationVBand                                   &
+             & *curvePowerLaw%attenuationRelative(wavelengths(i)) &
+             & *factorBirthClouds
+        old=oldCharlotFall2000BirthClouds%attenuation(wavelengths(i),age,attenuationVBand)
+        call Assert("charlotFall2000 "//trim(label),new,old,absTol=1.0d-12)
+     end do
   end do
   call Unit_Tests_End_Group()
 
