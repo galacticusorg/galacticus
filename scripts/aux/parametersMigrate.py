@@ -1555,7 +1555,68 @@ def prompt_cusp_require_collapse_before_halo(input_doc, parameters, is_grid):
         node.append(require_node)
 
 
+def dust_attenuation_framework(input_doc, parameters, is_grid):
+    """Special handling for the retirement of `stellarSpectraDustAttenuation` and `lmnstyStllrCF2000`.
+
+    The `lmnstyStllrCF2000` property extractor applied Charlot & Fall (2000) dust to the summed stellar luminosity of
+    a galaxy. Its replacement extracts each component's luminosity unattenuated, applies dust by wrapping them, and
+    scalarizes the sum:
+
+        scalarizer -> dustAttenuation(outputSumOnly) -> luminosityStellar(disk), luminosityStellar(spheroid)
+
+    Note the replacement evaluates the extinction curve at the rest-frame wavelength, where the old extractor used
+    the observed one. For a rest-frame filter these coincide and results are unchanged; for an observed-frame filter
+    at band redshift z the optical depth changes by a factor (1+z)^exponent. The old behavior was a bug -- dust acts
+    in the rest frame of the emitting galaxy -- so it is not reproduced here.
+    """
+    for node in parameters.xpath(".//nodePropertyExtractor[@value='lmnstyStllrCF2000']"):
+        print("   translate special './/nodePropertyExtractor[@value=\'lmnstyStllrCF2000\']'")
+        # Read the old parameters, falling back to the defaults of the retired class.
+        def setting(name, default):
+            child = node.find(name)
+            return child.get("value") if child is not None else default
+
+        filter_name    = setting("filterName"                   , "SDSS_r")
+        filter_type    = setting("filterType"                   , "rest"  )
+        coefficient_ism    = setting("depthOpticalISMCoefficient"   , "1.0"   )
+        coefficient_clouds = setting("depthOpticalCloudsCoefficient", "1.0"   )
+        exponent           = setting("wavelengthExponent"           , "0.7"   )
+        redshift_band      = node.find("redshiftBand")
+
+        scalarizer = etree.Element("nodePropertyExtractor")
+        scalarizer.set("value", "scalarizer")
+        etree.SubElement(scalarizer, "element", value="1")
+        attenuated = etree.SubElement(scalarizer, "nodePropertyExtractor", value="dustAttenuation")
+        etree.SubElement(attenuated, "outputSumOnly", value="true"             )
+        etree.SubElement(attenuated, "sumName"      , value="luminosityStellar")
+        dust = etree.SubElement(attenuated, "dustAttenuation", value="charlotFall2000")
+        etree.SubElement(dust, "coefficientBirthCloud", value=coefficient_clouds)
+        etree.SubElement(dust, "coefficientISM"       , value=coefficient_ism   )
+        etree.SubElement(dust, "timescale"            , value="1.0e-2"          )
+        etree.SubElement(dust, "exponent"             , value=exponent          )
+        # Each component carries its own column of dust, so each is extracted and attenuated separately. Both
+        # postprocessing chains are needed so that the light can be split by stellar population age, which the birth
+        # cloud component requires.
+        for component in ("disk", "spheroid"):
+            luminosity = etree.SubElement(attenuated, "nodePropertyExtractor", value="luminosityStellar")
+            etree.SubElement(luminosity, "filterName"       , value=filter_name    )
+            etree.SubElement(luminosity, "filterType"       , value=filter_type    )
+            etree.SubElement(luminosity, "component"        , value=component      )
+            etree.SubElement(luminosity, "postprocessChains", value="default recent")
+            if redshift_band is not None:
+                etree.SubElement(luminosity, "redshiftBand", value=redshift_band.get("value"))
+        # Insert the replacement and remove the original. The new subtree is indented explicitly: it is several
+        # levels deep, and inherits no useful whitespace from the single element it replaces.
+        parent = node.getparent()
+        etree.indent(scalarizer, space="  ")
+        scalarizer.tail = node.tail
+        insert_after(parent, scalarizer, node)
+        parent.remove(node)
+
+
+
 SPECIAL_FUNCTIONS = {
+    "dust_attenuation_framework": dust_attenuation_framework,
     "prompt_cusp_require_collapse_before_halo": prompt_cusp_require_collapse_before_halo,
     "radiation_field_intergalactic_background_cmb": radiation_field_intergalactic_background_cmb,
     "black_hole_seed_mass": black_hole_seed_mass,
