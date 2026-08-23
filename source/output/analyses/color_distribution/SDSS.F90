@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a color distribution output analysis class for SDSS data.
 !!}
@@ -98,7 +100,11 @@ contains
     use :: HDF5_Access                             , only : hdf5Access
     use :: IO_HDF5                                 , only : hdf5File                                          , hdf5Group
     use :: ISO_Varying_String                      , only : var_str                                           , varying_string
-    use :: Node_Property_Extractors                , only : nodePropertyExtractorLmnstyStllrCF2000            , nodePropertyExtractorRatio
+    use :: Dust_Attenuations                       , only : dustAttenuationCharlotFall2000
+    use :: Dust_Extinction_Curves                  , only : wavelengthVBand
+    use :: Galactic_Structure_Options              , only : componentTypeDisk                                 , componentTypeSpheroid
+    use :: Node_Property_Extractors                , only : multiExtractorList                                , nodePropertyExtractorDustAttenuation        , nodePropertyExtractorLuminosityStellar      , nodePropertyExtractorRatio                   , &
+          &                                                 nodePropertyExtractorScalarizer
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                                    , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerSequence, outputAnalysisDistributionNormalizerUnitarity
     use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
@@ -116,7 +122,16 @@ contains
     type            (cosmologyParametersSimple                         ), pointer                     :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                    ), pointer                     :: cosmologyFunctionsData
     type            (nodePropertyExtractorRatio                        ), pointer                     :: nodePropertyExtractorRatio_
-    type            (nodePropertyExtractorLmnstyStllrCF2000            ), pointer                     :: nodePropertyExtractorBandR_                     , nodePropertyExtractorBandU_
+    type            (nodePropertyExtractorLuminosityStellar            ), pointer                     :: nodePropertyExtractorDiskR_                     , nodePropertyExtractorSpheroidR_             , &
+         &                                                                                                  nodePropertyExtractorDiskU_                     , nodePropertyExtractorSpheroidU_
+    type            (nodePropertyExtractorDustAttenuation              ), pointer                     :: nodePropertyExtractorAttenuatedR_               , nodePropertyExtractorAttenuatedU_
+    type            (nodePropertyExtractorScalarizer                   ), pointer                     :: nodePropertyExtractorBandR_                     , nodePropertyExtractorBandU_
+    type            (dustAttenuationCharlotFall2000                    ), pointer                     :: dustAttenuation_
+    type            (multiExtractorList                                ), pointer                     :: extractorsR                                     , extractorSpheroidR                          , &
+         &                                                                                                  extractorsU                                     , extractorSpheroidU
+    ! Both postprocessing chains are extracted so that the wrapper can split each component's light by stellar
+    ! population age, which the birth cloud component of the dust model requires.
+    type            (varying_string                                    ), allocatable, dimension(:)   :: postprocessChains
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   ), pointer                     :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorMagnitude           ), pointer                     :: outputAnalysisPropertyOperatorMagnitude_
     type            (outputAnalysisPropertyOperatorSequence            ), pointer                     :: outputAnalysisWeightPropertyOperatorSequence_
@@ -203,12 +218,46 @@ contains
     do iBin=1,self%binCount
        outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,self%cosmologyFunctions_,outputTimes_,magnitudeAbsoluteLimit=magnitudeMaximum)
     end do
-    ! Create stellar luminosity property extractors.
-    allocate(nodePropertyExtractorBandR_           )
-    allocate(nodePropertyExtractorBandU_           )
+    ! Create stellar luminosity property extractors. The luminosity of each component is extracted unattenuated and
+    ! the two-component dust model of Charlot & Fall (2000) applied by wrapping them, dust having to be applied
+    ! component by component since each carries a different column of dust. Each wrapper emits only the summed,
+    ! attenuated luminosity, which a scalarizer presents as the single value the ratio extractor requires.
+    allocate(postprocessChains(2))
+    postprocessChains(1)=var_str('default')
+    postprocessChains(2)=var_str('recent' )
+    allocate(dustAttenuation_                 )
+    allocate(nodePropertyExtractorDiskR_      )
+    allocate(nodePropertyExtractorSpheroidR_  )
+    allocate(nodePropertyExtractorAttenuatedR_)
+    allocate(nodePropertyExtractorBandR_      )
+    allocate(nodePropertyExtractorDiskU_      )
+    allocate(nodePropertyExtractorSpheroidU_  )
+    allocate(nodePropertyExtractorAttenuatedU_)
+    allocate(nodePropertyExtractorBandU_      )
     !![
-    <referenceConstruct object="nodePropertyExtractorBandR_"            constructor="nodePropertyExtractorLmnstyStllrCF2000  ('SDSS_r','observed',depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent=0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
-    <referenceConstruct object="nodePropertyExtractorBandU_"            constructor="nodePropertyExtractorLmnstyStllrCF2000  ('SDSS_u','observed',depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent=0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
+    <referenceConstruct object="dustAttenuation_"                constructor="dustAttenuationCharlotFall2000       (1.0d0,1.0d0,1.0d-2,0.7d0,wavelengthVBand)"/>
+    <referenceConstruct object="nodePropertyExtractorDiskR_"     constructor="nodePropertyExtractorLuminosityStellar('SDSS_r','observed',componentTypeDisk    ,outputTimes_,redshiftBand=redshiftBand,postprocessChains=postprocessChains,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
+    <referenceConstruct object="nodePropertyExtractorSpheroidR_" constructor="nodePropertyExtractorLuminosityStellar('SDSS_r','observed',componentTypeSpheroid,outputTimes_,redshiftBand=redshiftBand,postprocessChains=postprocessChains,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
+    <referenceConstruct object="nodePropertyExtractorDiskU_"     constructor="nodePropertyExtractorLuminosityStellar('SDSS_u','observed',componentTypeDisk    ,outputTimes_,redshiftBand=redshiftBand,postprocessChains=postprocessChains,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
+    <referenceConstruct object="nodePropertyExtractorSpheroidU_" constructor="nodePropertyExtractorLuminosityStellar('SDSS_u','observed',componentTypeSpheroid,outputTimes_,redshiftBand=redshiftBand,postprocessChains=postprocessChains,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
+    !!]
+    allocate(extractorsR       )
+    allocate(extractorSpheroidR)
+    allocate(extractorsU       )
+    allocate(extractorSpheroidU)
+    extractorsR       %extractor_ => nodePropertyExtractorDiskR_
+    extractorsR       %next       => extractorSpheroidR
+    extractorSpheroidR%extractor_ => nodePropertyExtractorSpheroidR_
+    extractorSpheroidR%next       => null()
+    extractorsU       %extractor_ => nodePropertyExtractorDiskU_
+    extractorsU       %next       => extractorSpheroidU
+    extractorSpheroidU%extractor_ => nodePropertyExtractorSpheroidU_
+    extractorSpheroidU%next       => null()
+    !![
+    <referenceConstruct object="nodePropertyExtractorAttenuatedR_" constructor="nodePropertyExtractorDustAttenuation(dustAttenuation_,.false.,.true.,.true.,var_str('luminosityStellarR'),extractorsR)"/>
+    <referenceConstruct object="nodePropertyExtractorAttenuatedU_" constructor="nodePropertyExtractorDustAttenuation(dustAttenuation_,.false.,.true.,.true.,var_str('luminosityStellarU'),extractorsU)"/>
+    <referenceConstruct object="nodePropertyExtractorBandR_"       constructor="nodePropertyExtractorScalarizer     (1,1,nodePropertyExtractorAttenuatedR_)"/>
+    <referenceConstruct object="nodePropertyExtractorBandU_"       constructor="nodePropertyExtractorScalarizer     (1,1,nodePropertyExtractorAttenuatedU_)"/>
     !!]
     ! Create a ratio property extractor.
     allocate(nodePropertyExtractorRatio_        )
@@ -332,6 +381,13 @@ contains
     <objectDestructor name="outputAnalysisPropertyOperatorIdentity_"         />
     <objectDestructor name="outputAnalysisDistributionNormalizer_"           />
     <objectDestructor name="outputAnalysisDistributionOperator_"             />
+    <objectDestructor name="dustAttenuation_"                                />
+    <objectDestructor name="nodePropertyExtractorDiskR_"                     />
+    <objectDestructor name="nodePropertyExtractorSpheroidR_"                 />
+    <objectDestructor name="nodePropertyExtractorAttenuatedR_"               />
+    <objectDestructor name="nodePropertyExtractorDiskU_"                     />
+    <objectDestructor name="nodePropertyExtractorSpheroidU_"                 />
+    <objectDestructor name="nodePropertyExtractorAttenuatedU_"               />
     <objectDestructor name="nodePropertyExtractorBandR_"                     />
     <objectDestructor name="nodePropertyExtractorBandU_"                     />
     <objectDestructor name="nodePropertyExtractorRatio_"                     />

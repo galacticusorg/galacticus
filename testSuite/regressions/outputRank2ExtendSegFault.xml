@@ -143,7 +143,6 @@
     </stellarPopulationSpectraPostprocessor>
   </stellarPopulationSpectraPostprocessorBuilder>
 
-  <stellarSpectraDustAttenuation value="charlotFall2000"/>
 
   <!-- Substructure hierarchy options -->
   <mergerTreeNodeMerger value="singleLevelHierarchy"/>

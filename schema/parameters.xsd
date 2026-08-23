@@ -2593,7 +2593,6 @@
           <xs:enumeration value="list2D"/>
           <xs:enumeration value="lmnstyEmssnLineAGN"/>
           <xs:enumeration value="lmnstyEmssnLinePanuzzo2003"/>
-          <xs:enumeration value="lmnstyStllrCF2000"/>
           <xs:enumeration value="luminosityEmissionLine"/>
           <xs:enumeration value="luminosityStellar"/>
           <xs:enumeration value="luminosityStellarFromSED"/>
@@ -3880,28 +3879,6 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="lookup"/>
-         </xs:restriction>
-        </xs:simpleType>
-       </xs:attribute>
-    <xs:anyAttribute processContents="lax"/>
-   </xs:complexType>
-  </xs:element>
-  <xs:element name="stellarSpectraDustAttenuation">
-   <xs:complexType mixed="true">
-    <xs:sequence>
-     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
-    </xs:sequence>
-       <xs:attribute name="value" use="optional">
-        <xs:simpleType>
-         <xs:restriction base="xs:string">
-          <xs:enumeration value="calzetti2000"/>
-          <xs:enumeration value="cardelli1989"/>
-          <xs:enumeration value="charlotFall2000"/>
-          <xs:enumeration value="gordon2003"/>
-          <xs:enumeration value="prevotBouchet"/>
-          <xs:enumeration value="tabulated"/>
-          <xs:enumeration value="wittGordon2000"/>
-          <xs:enumeration value="zero"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>

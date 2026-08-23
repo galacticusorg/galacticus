@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<!-- Default parameters for Galacticus v0.9.4 -->
-
-<!-- 30-October-2011                          -->
+<!-- Runs the Halpha luminosity function analyses, which reach the dust attenuation framework through the chain
+     scalarizer -> dustAttenuation(outputSumOnly) -> Panuzzo2003. The dust model is given explicitly and is the one
+     equivalent to the retired `depthOpticalISMCoefficient` these analyses used to carry themselves. -->
 
 <parameters>
   <formatVersion>2</formatVersion>
@@ -300,23 +300,19 @@
   </mergerTreeEvolver>
 
   <!-- Output options -->
-  <mergerTreeOutputter value="standard">
-    <outputReferences value="false"/>
-  </mergerTreeOutputter>
+  <!-- The analyzer outputter is what drives output analyses; without it the analyses are constructed but never
+       accumulated. -->
+  <mergerTreeOutputter value="analyzer"/>
 
-  <!-- Dust attenuation framework tests
-       Exercises the `dustAttenuation` property extractor across broad-band luminosities, spectral energy
-       distributions, and emission lines, checking the decomposition machinery and the internal consistency of the
-       properties it emits.
-  -->
 
+  <!-- Each analysis integrates over the redshift interval of its survey, and so requires at least two outputs
+       within it, so the outputs here span the Gunawardhana et al. (2013) SDSS interval. -->
   <outputTimes value="list">
-    <redshifts value="0.0"/>
+    <redshifts value="0.00 0.02 0.04 0.06 0.08 0.10"/>
   </outputTimes>
 
-  <!-- A star formation history must be stored for the spectral energy distribution extractor to have anything to
-       convolve; the default is to store none. The time resolution is set finer than the birth cloud lifetime so that
-       the young/old split falls on a bin boundary rather than inside a bin. -->
+  <!-- A star formation history is stored so that the young stellar populations which ionize the gas are resolved in
+       time; the default is to store none. -->
   <starFormationHistory value="adaptive">
     <timeStepMinimum       value="2.0e-3"/>
     <countTimeStepsMaximum value="16"    />
@@ -325,10 +321,14 @@
 
   <!-- Each luminosity is tracked twice: once unrestricted, once restricted to populations younger than the birth
        cloud lifetime. Differencing the two isolates the light of old stars. -->
-  <luminosityFilter         value="SDSS_r  SDSS_r"/>
-  <luminosityType           value="rest    rest  "/>
-  <luminosityRedshift       value="0.0     0.0   "/>
-  <luminosityPostprocessSet value="default recent"/>
+
+  <!-- Observed-frame SDSS u and r at a band redshift of 0.1, in both postprocessing chains: the framework splits
+       each component's light by stellar population age, which the birth cloud component of the dust model needs. -->
+  <luminosityFilter         value="SDSS_u SDSS_u SDSS_u SDSS_u SDSS_u SDSS_u SDSS_r SDSS_r SDSS_r SDSS_r SDSS_r SDSS_r SDSS_u SDSS_u SDSS_u SDSS_u SDSS_u SDSS_u SDSS_r SDSS_r SDSS_r SDSS_r SDSS_r SDSS_r"/>
+  <luminosityType           value="observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed"/>
+  <luminosityRedshift       value="0.00 0.02 0.04 0.06 0.08 0.10 0.00 0.02 0.04 0.06 0.08 0.10 0.00 0.02 0.04 0.06 0.08 0.10 0.00 0.02 0.04 0.06 0.08 0.10"/>
+  <luminosityBandRedshift   value="0.10 0.10 0.10 0.10 0.10 0.10 0.10 0.10 0.10 0.10 0.10 0.10 0.10 0.10 0.10 0.10 0.10 0.10 0.10 0.10 0.10 0.10 0.10 0.10"/>
+  <luminosityPostprocessSet value="default default default default default default default default default default default default recent recent recent recent recent recent recent recent recent recent recent recent"/>
 
   <stellarPopulationSpectraPostprocessorBuilder value="lookup">
     <names value="default recent"/>
@@ -338,195 +338,22 @@
     </stellarPopulationSpectraPostprocessor>
   </stellarPopulationSpectraPostprocessorBuilder>
 
-  <nodePropertyExtractor value="multi">
-    <nodePropertyExtractor value="dustAttenuation">
-      <outputUnattenuated value="true"/>
-      <outputSum          value="true"/>
-      <sumName            value="luminosityTotal"/>
-      <dustAttenuation value="charlotFall2000">
-        <coefficientBirthCloud value="1.0e0" />
-        <coefficientISM        value="1.0e0" />
-        <timescale             value="1.0e-2"/>
-        <exponent              value="0.7e0" />
-        <!-- The class being compared against normalizes its power law at a round 5500A rather than at the Buser V
-             effective wavelength, so match it here to isolate every other difference. -->
-        <wavelengthReference   value="5500.0"/>
-      </dustAttenuation>
-      <nodePropertyExtractor value="luminosityStellar">
-        <filterName        value="SDSS_r"        />
-        <filterType        value="rest"          />
-        <component         value="disk"          />
-        <postprocessChains value="default recent"/>
-      </nodePropertyExtractor>
-      <nodePropertyExtractor value="luminosityStellar">
-        <filterName        value="SDSS_r"        />
-        <filterType        value="rest"          />
-        <component         value="spheroid"      />
-        <postprocessChains value="default recent"/>
-      </nodePropertyExtractor>
-    </nodePropertyExtractor>
-    <nodePropertyExtractor value="dustAttenuation">
-      <outputUnattenuated value="true"/>
-      <outputSum          value="true"/>
-      <sumName            value="sedTotal"/>
-      <dustAttenuation value="charlotFall2000">
-        <coefficientBirthCloud value="1.0e0" />
-        <coefficientISM        value="1.0e0" />
-        <timescale             value="1.0e-2"/>
-        <exponent              value="0.7e0" />
-        <wavelengthReference   value="5500.0"/>
-      </dustAttenuation>
-      <nodePropertyExtractor value="SED">
-        <component         value="disk"    />
-        <frame             value="rest"    />
-        <wavelengthMinimum value="3.0e3"   />
-        <wavelengthMaximum value="9.0e3"   />
-        <resolution        value="20.0"    />
-        <toleranceRelative value="1.0e-2"  />
-      </nodePropertyExtractor>
-      <nodePropertyExtractor value="SED">
-        <component         value="spheroid"/>
-        <frame             value="rest"    />
-        <wavelengthMinimum value="3.0e3"   />
-        <wavelengthMaximum value="9.0e3"   />
-        <resolution        value="20.0"    />
-        <toleranceRelative value="1.0e-2"  />
-      </nodePropertyExtractor>
-    </nodePropertyExtractor>
-    <!-- Round-trip check: `zero` attenuates nothing, so decomposing a spectrum and recombining it must return the
-         spectrum unchanged. This tests the decomposition itself, independently of any dust physics. -->
-    <nodePropertyExtractor value="dustAttenuation">
-      <outputUnattenuated value="false"/>
-      <outputSum          value="false"/>
-      <dustAttenuation value="zero"/>
-      <nodePropertyExtractor value="SED">
-        <component         value="disk"    />
-        <frame             value="rest"    />
-        <wavelengthMinimum value="3.0e3"   />
-        <wavelengthMaximum value="9.0e3"   />
-        <resolution        value="20.0"    />
-        <toleranceRelative value="1.0e-2"  />
-      </nodePropertyExtractor>
-    </nodePropertyExtractor>
-    <!-- Branch check: these two must agree exactly. The first attenuator is age-independent, so the spectrum is
-         decomposed with one parcel per wavelength; the second requests a young/old split through its birth cloud
-         member, so the spectrum is decomposed per star formation history bin, but that member has zero optical
-         depth, so it attenuates nothing. Any light dropped or double counted by the age-resolved path shows up here. -->
-    <nodePropertyExtractor value="dustAttenuation">
-      <outputUnattenuated value="false"/>
-      <outputSum          value="false"/>
-      <dustAttenuation value="screenSurfaceDensityMetals">
-        <coefficient value="1.0"/>
-        <dustExtinctionCurve value="powerLaw">
-          <exponent            value="0.7"   />
-          <wavelengthReference value="5500.0"/>
-        </dustExtinctionCurve>
-      </dustAttenuation>
-      <nodePropertyExtractor value="SED">
-        <component         value="disk"    />
-        <frame             value="rest"    />
-        <wavelengthMinimum value="3.0e3"   />
-        <wavelengthMaximum value="9.0e3"   />
-        <resolution        value="20.0"    />
-        <toleranceRelative value="1.0e-2"  />
-      </nodePropertyExtractor>
-    </nodePropertyExtractor>
-    <nodePropertyExtractor value="dustAttenuation">
-      <outputUnattenuated value="false"/>
-      <outputSum          value="false"/>
-      <dustAttenuation value="sequence">
-        <dustAttenuation value="birthCloud">
-          <coefficient value="0.0"  />
-          <timescale   value="2.0e-3"/>
-          <dustExtinctionCurve value="powerLaw">
-            <exponent            value="0.7"   />
-            <wavelengthReference value="5500.0"/>
-          </dustExtinctionCurve>
-        </dustAttenuation>
-        <dustAttenuation value="screenSurfaceDensityMetals">
-          <coefficient value="1.0"/>
-          <dustExtinctionCurve value="powerLaw">
-            <exponent            value="0.7"   />
-            <wavelengthReference value="5500.0"/>
-          </dustExtinctionCurve>
-        </dustAttenuation>
-      </dustAttenuation>
-      <nodePropertyExtractor value="SED">
-        <component         value="disk"    />
-        <frame             value="rest"    />
-        <wavelengthMinimum value="3.0e3"   />
-        <wavelengthMaximum value="9.0e3"   />
-        <resolution        value="20.0"    />
-        <toleranceRelative value="1.0e-2"  />
-      </nodePropertyExtractor>
-    </nodePropertyExtractor>
-    <!-- Emission lines. The extractor sums over disk and spheroid internally, so decomposition must split by
-         component for the result to be attenuable at all; the parcels of each line are recombined into that line's
-         single output element after attenuation. A multi-line extractor also exercises a child emitting several
-         elements, which is the case in which the rank of a summed property could disagree with its shape. -->
-    <nodePropertyExtractor value="dustAttenuation">
-      <outputUnattenuated value="true"/>
-      <outputSum          value="false"/>
-      <dustAttenuation value="charlotFall2000">
-        <coefficientBirthCloud value="1.0e0" />
-        <coefficientISM        value="1.0e0" />
-        <timescale             value="1.0e-2"/>
-        <exponent              value="0.7e0" />
-        <wavelengthReference   value="5500.0"/>
-      </dustAttenuation>
-      <nodePropertyExtractor value="luminosityEmissionLine">
-        <component value="all"/>
-        <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727"/>
-      </nodePropertyExtractor>
-    </nodePropertyExtractor>
-    <!-- outputSumOnly must emit exactly one property whose value equals the sum the same configuration produces
-         when the per-child properties are also emitted. This is what lets a consumer expecting a single value, such
-         as an output analysis, use the framework at all. -->
-    <nodePropertyExtractor value="dustAttenuation">
-      <outputSumOnly value="true"/>
-      <sumName       value="lineTotalSumOnly"/>
-      <dustAttenuation value="charlotFall2000">
-        <coefficientBirthCloud value="1.0e0" />
-        <coefficientISM        value="1.0e0" />
-        <timescale             value="1.0e-2"/>
-        <exponent              value="0.7e0" />
-        <wavelengthReference   value="5500.0"/>
-      </dustAttenuation>
-      <nodePropertyExtractor value="luminosityEmissionLine">
-        <component value="all"/>
-        <lineNames value="balmerAlpha6565"/>
-      </nodePropertyExtractor>
-      <nodePropertyExtractor value="luminosityEmissionLine">
-        <component value="all"/>
-        <lineNames value="balmerBeta4863"/>
-      </nodePropertyExtractor>
-    </nodePropertyExtractor>
-    <!-- The same summed property, reached through a `scalarizer`. This is the chain by which an output analysis
-         consumes the framework, so the scalarized value must equal the sum emitted directly above. -->
-    <nodePropertyExtractor value="scalarizer">
-      <element value="1"/>
-      <nodePropertyExtractor value="dustAttenuation">
-        <outputSumOnly value="true"/>
-        <sumName       value="lineTotalScalarized"/>
-        <dustAttenuation value="charlotFall2000">
-          <coefficientBirthCloud value="1.0e0" />
-          <coefficientISM        value="1.0e0" />
-          <timescale             value="1.0e-2"/>
-          <exponent              value="0.7e0" />
-          <wavelengthReference   value="5500.0"/>
-        </dustAttenuation>
-        <nodePropertyExtractor value="luminosityEmissionLine">
-          <component value="all"/>
-          <lineNames value="balmerAlpha6565"/>
-        </nodePropertyExtractor>
-        <nodePropertyExtractor value="luminosityEmissionLine">
-          <component value="all"/>
-          <lineNames value="balmerBeta4863"/>
-        </nodePropertyExtractor>
-      </nodePropertyExtractor>
-    </nodePropertyExtractor>
-  </nodePropertyExtractor>
+  <!-- The SDSS color distribution and Montero-Dorta & Prada (2009) luminosity function analyses. Both apply the
+       Charlot & Fall (2000) dust model through the framework, using observed-frame SDSS filters at a band redshift
+       of 0.1. -->
+  <outputAnalysis value="multi">
+    <outputAnalysis value="colorDistributionSDSS">
+      <distributionNumber value="1"/>
+    </outputAnalysis>
+    <outputAnalysis value="luminosityFunctionMonteroDorta2009SDSS">
+      <band                                 value="r"     />
+      <randomErrorMinimum                   value="+0.05" />
+      <randomErrorMaximum                   value="+0.05" />
+      <randomErrorPolynomialCoefficient     value="+0.05" />
+      <systematicErrorPolynomialCoefficient value="+0.0"  />
+    </outputAnalysis>
+  </outputAnalysis>
 
-  <outputFileName value="testSuite/outputs/dustAttenuationParity.hdf5"/>
+  <outputFileName value="testSuite/outputs/dustAnalysesSDSS.hdf5"/>
 
 </parameters>

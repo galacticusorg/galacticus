@@ -136,7 +136,6 @@
     </stellarPopulationSpectraPostprocessor>
   </stellarPopulationSpectraPostprocessorBuilder>
 
-  <stellarSpectraDustAttenuation value="charlotFall2000"/>
 
   <nodePropertyExtractor value="multi">
     <nodePropertyExtractor value="indexLastHost"/>
