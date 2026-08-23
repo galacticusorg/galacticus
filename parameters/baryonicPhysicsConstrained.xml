@@ -456,7 +456,6 @@
       <randomErrorPolynomialCoefficient value="+0.1"/>
       <systematicErrorPolynomialCoefficient value="-0.00668698203006482 -0.00098878419875252"/>
       <sizeSourceLensing value="2.0e-3"/>
-      <depthOpticalISMCoefficient value="0.0"/>
     </outputAnalysis>
     <outputAnalysis value="luminosityFunctionSobral2013HiZELS"> <!-- Analysis #16 -->
       <redshiftInterval value="4"/>
@@ -465,7 +464,6 @@
       <randomErrorPolynomialCoefficient value="+0.1"/>
       <systematicErrorPolynomialCoefficient value="-0.00668698203006482 -0.00098878419875252"/>
       <sizeSourceLensing value="2.0e-3"/>
-      <depthOpticalISMCoefficient value="0.0"/>
     </outputAnalysis>
 
     <!-- Mass-metallicity relations -->

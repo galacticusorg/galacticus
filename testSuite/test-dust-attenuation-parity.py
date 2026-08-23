@@ -228,4 +228,26 @@ if worstSum > TOLERANCE:
     sys.exit(0)
 print(f"SUCCESS: outputSumOnly emits a single scalar equal to the sum of its children, to {worstSum:.3e}")
 
+# ---------------------------------------------------------------------------------------------------------------------
+# Scalarizing that sum. This is the chain by which an output analysis reaches the framework: the wrapper emits a single
+# summed property, and a `scalarizer` presents it as the scalar the analysis requires.
+# ---------------------------------------------------------------------------------------------------------------------
+with h5py.File(outputPath, "r") as f:
+    nodes      = f["Outputs/Output1/nodeData"]
+    emitted    = [name for name in nodes.keys() if name.startswith("lineTotalScalarized")]
+    if len(emitted) != 1:
+        print(f"FAILED: the scalarizer emitted {len(emitted)} properties, expected exactly one: {emitted}")
+        sys.exit(0)
+    scalarized = nodes[emitted[0]][:]
+
+if scalarized.ndim != 1:
+    print(f"FAILED: the scalarizer emitted a property of rank {scalarized.ndim - 1}, expected a scalar")
+    sys.exit(0)
+
+worstScalarized = float(np.nanmax(np.abs(scalarized[emittingLines] - expected[emittingLines]) / expected[emittingLines]))
+if worstScalarized > TOLERANCE:
+    print(f"FAILED: the scalarized total differs from the sum of the separately emitted lines by {worstScalarized:.3e}")
+    sys.exit(0)
+print(f"SUCCESS: the scalarizer reproduces the summed, attenuated luminosity, to {worstScalarized:.3e}")
+
 sys.exit(0)

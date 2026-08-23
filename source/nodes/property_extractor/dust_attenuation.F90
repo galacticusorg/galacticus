@@ -77,6 +77,8 @@
      procedure :: units              => dustAttenuationUnits
      procedure :: ranks              => dustAttenuationRanks
      procedure :: metaData           => dustAttenuationMetaData
+     procedure :: quantity           => dustAttenuationQuantity
+     procedure :: type               => dustAttenuationType
   end type nodePropertyExtractorDustAttenuation
 
   interface nodePropertyExtractorDustAttenuation
@@ -205,6 +207,8 @@ contains
        ! Emitting only the sum requires that the sum be formed.
        self%outputSum=.true.
     end if
+    ! A wrapper with no children can emit nothing, and leaves the property class and type undefined.
+    if (.not.associated(self%extractors)) call Error_Report('no extractors to attenuate'//{introspection:location})
     extractor_ => self%extractors
     do while (associated(extractor_))
        if (.not.extractor_%extractor_%supportsAttenuation())                                                   &
@@ -826,3 +830,47 @@ contains
     end select
     return
   end subroutine dustAttenuationChildMetaData
+
+  function dustAttenuationQuantity(self) result(quantity)
+    !!{RST
+    Return the class of the properties emitted, taken from the children. Attenuation does not change what a property
+    is, so this is simply forwarded---but only if the children agree, since a single answer is all that can be given.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    type (enumerationOutputAnalysisPropertyQuantityType)                :: quantity
+    class(nodePropertyExtractorDustAttenuation         ), intent(inout) :: self
+    type (multiExtractorList                           ), pointer       :: extractor_
+    type (enumerationOutputAnalysisPropertyQuantityType)                :: quantityChild
+
+    extractor_ => self%extractors
+    quantity   =  extractor_%extractor_%quantity()
+    do while (associated(extractor_))
+       quantityChild=extractor_%extractor_%quantity()
+       if (quantityChild%ID /= quantity%ID) call Error_Report('children extract different classes of property, so no single class can be reported'//{introspection:location})
+       extractor_ => extractor_%next
+    end do
+    return
+  end function dustAttenuationQuantity
+
+  function dustAttenuationType(self) result(type)
+    !!{RST
+    Return the type of the properties emitted, taken from the children, which must agree for the same reason as in
+    ``dustAttenuationQuantity``.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    type (enumerationOutputAnalysisPropertyTypeType)                :: type
+    class(nodePropertyExtractorDustAttenuation     ), intent(inout) :: self
+    type (multiExtractorList                       ), pointer       :: extractor_
+    type (enumerationOutputAnalysisPropertyTypeType)                :: typeChild
+
+    extractor_ => self%extractors
+    type       =  extractor_%extractor_%type()
+    do while (associated(extractor_))
+       typeChild=extractor_%extractor_%type()
+       if (typeChild%ID /= type%ID) call Error_Report('children extract different types of property, so no single type can be reported'//{introspection:location})
+       extractor_ => extractor_%next
+    end do
+    return
+  end function dustAttenuationType

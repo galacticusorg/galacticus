@@ -36,6 +36,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements an emission line luminosity node property extractor class.
 !!}
@@ -45,12 +47,11 @@ Implements an emission line luminosity node property extractor class.
   use :: Output_Times                     , only : outputTimesClass
   use :: Star_Formation_Rates_Disks       , only : starFormationRateDisksClass
   use :: Star_Formation_Rates_Spheroids   , only : starFormationRateSpheroidsClass
-  use :: Stellar_Spectra_Dust_Attenuations, only : stellarSpectraDustAttenuationClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLinePanuzzo2003" docformat="rst">
     <description>
-    An emission line luminosity property extractor class. The luminosity of the named emission line (given by the ``lineNames`` parameter: if multiple lines are named, the sum of their luminosities) is computed. Additional dust attenuation for emission line luminosities can be specified via the ``depthOpticalISMCoefficient`` parameter.
+    An emission line luminosity property extractor class. The luminosity of the named emission line (given by the ``lineNames`` parameter: if multiple lines are named, the sum of their luminosities) is computed. The luminosities are unattenuated; to include the effects of dust, wrap this extractor in :galacticus-class:`nodePropertyExtractorDustAttenuation`.
     </description>
   </nodePropertyExtractor>
   !!]
@@ -61,7 +62,6 @@ Implements an emission line luminosity node property extractor class.
      private
      class           (starFormationRateDisksClass       ), pointer                             :: starFormationRateDisks_        => null()
      class           (starFormationRateSpheroidsClass   ), pointer                             :: starFormationRateSpheroids_    => null()
-     class           (stellarSpectraDustAttenuationClass), pointer                             :: stellarSpectraDustAttenuation_ => null()
      class           (outputTimesClass                  ), pointer                             :: outputTimes_                   => null()
      type            (varying_string                    )                                      :: name_                                   , description_
      type            (varying_string                    ), allocatable, dimension(:          ) :: lineNames
@@ -72,7 +72,6 @@ Implements an emission line luminosity node property extractor class.
      integer                                             , allocatable, dimension(:,:        ) :: ionizingContinuumIndex
      double precision                                                 , dimension(2,3        ) :: filterExtent
      type            (interpolator                      ), allocatable, dimension(:          ) :: interpolator_
-     double precision                                                                          :: depthOpticalISMCoefficient
    contains
      final     ::                lmnstyEmssnLinePanuzzo2003Destructor
      procedure :: extract     => lmnstyEmssnLinePanuzzo2003Extract
@@ -81,6 +80,14 @@ Implements an emission line luminosity node property extractor class.
      procedure :: description => lmnstyEmssnLinePanuzzo2003Description
      procedure :: unitsInSI   => lmnstyEmssnLinePanuzzo2003UnitsInSI
      procedure :: units       => lmnstyEmssnLinePanuzzo2003Units
+     !![
+     <methods docformat="rst">
+       <method method="luminosities" description="Return the unattenuated luminosity of each line of each component."/>
+     </methods>
+     !!]
+     procedure :: luminosities        => panuzzo2003Luminosities
+     procedure :: supportsAttenuation => lmnstyEmssnLinePanuzzo2003SupportsAttenuation
+     procedure :: decompose           => lmnstyEmssnLinePanuzzo2003Decompose
   end type nodePropertyExtractorLmnstyEmssnLinePanuzzo2003
 
   interface nodePropertyExtractorLmnstyEmssnLinePanuzzo2003
@@ -139,9 +146,7 @@ contains
     type            (varying_string                                 ), allocatable  , dimension(:) :: lineNames
     class           (starFormationRateDisksClass                    ), pointer                     :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass                ), pointer                     :: starFormationRateSpheroids_
-    class           (stellarSpectraDustAttenuationClass             ), pointer                     :: stellarSpectraDustAttenuation_
     class           (outputTimesClass                               ), pointer                     :: outputTimes_
-    double precision                                                                               :: depthOpticalISMCoefficient
 
     allocate(lineNames(parameters%count('lineNames')))
     !![
@@ -152,31 +157,21 @@ contains
       The emission lines to extract.
       </description>
     </inputParameter>
-    <inputParameter docformat="rst">
-      <name>depthOpticalISMCoefficient</name>
-      <defaultValue>0.0d0</defaultValue>
-      <source>parameters</source>
-      <description>
-      Multiplicative coefficient for optical depth in the ISM.
-      </description>
-    </inputParameter>
     <objectBuilder class="starFormationRateDisks"        name="starFormationRateDisks_"        source="parameters"/>
     <objectBuilder class="starFormationRateSpheroids"    name="starFormationRateSpheroids_"    source="parameters"/>
-    <objectBuilder class="stellarSpectraDustAttenuation" name="stellarSpectraDustAttenuation_" source="parameters"/>
     <objectBuilder class="outputTimes"                   name="outputTimes_"                   source="parameters"/>
     !!]
-    self=nodePropertyExtractorLmnstyEmssnLinePanuzzo2003(starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient)
+    self=nodePropertyExtractorLmnstyEmssnLinePanuzzo2003(starFormationRateDisks_,starFormationRateSpheroids_,outputTimes_,lineNames)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="starFormationRateDisks_"       />
     <objectDestructor name="starFormationRateSpheroids_"   />
-    <objectDestructor name="stellarSpectraDustAttenuation_"/>
     <objectDestructor name="outputTimes_"                  />
     !!]
     return
   end function lmnstyEmssnLinePanuzzo2003ConstructorParameters
 
-  function lmnstyEmssnLinePanuzzo2003ConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient,outputMask) result(self)
+  function lmnstyEmssnLinePanuzzo2003ConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,outputTimes_,lineNames,outputMask) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLinePanuzzo2003` property extractor class.
     !!}
@@ -193,19 +188,17 @@ contains
     use :: ISO_Varying_String, only : operator(//)
     implicit none
     type            (nodePropertyExtractorLmnstyEmssnLinePanuzzo2003)                                        :: self
-    double precision                                                 , intent(in   )                         :: depthOpticalISMCoefficient
     type            (varying_string                                 ), intent(in   ), dimension(:)           :: lineNames
     logical                                                          , intent(in   ), dimension(:), optional :: outputMask
     class           (starFormationRateDisksClass                    ), intent(in   ), target                 :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass                ), intent(in   ), target                 :: starFormationRateSpheroids_
-    class           (stellarSpectraDustAttenuationClass             ), intent(in   ), target                 :: stellarSpectraDustAttenuation_
     class           (outputTimesClass                               ), intent(in   ), target                 :: outputTimes_
     type            (hdf5File                                       )                                        :: emissionLinesFile
     type            (hdf5Group                                      )                                        :: lines
     type            (hdf5Dataset                                    )                                        :: lineDataset
     integer         (c_size_t                                       )                                        :: i
     !![
-    <constructorAssign variables="lineNames, depthOpticalISMCoefficient, *starFormationRateDisks_, *starFormationRateSpheroids_, *stellarSpectraDustAttenuation_, *outputTimes_"/>
+    <constructorAssign variables="lineNames, *starFormationRateDisks_, *starFormationRateSpheroids_, *outputTimes_"/>
     !!]
 
     ! Read the table of emission line luminosities.
@@ -290,30 +283,33 @@ contains
     !![
     <objectDestructor name="self%starFormationRateDisks_"       />
     <objectDestructor name="self%starFormationRateSpheroids_"   />
-    <objectDestructor name="self%stellarSpectraDustAttenuation_"/>
     <objectDestructor name="self%outputTimes_"                  />
     !!]
     return
   end subroutine lmnstyEmssnLinePanuzzo2003Destructor
 
-  double precision function lmnstyEmssnLinePanuzzo2003Extract(self,node,instance)
+  subroutine panuzzo2003Luminosities(self,node,luminosityLine,isPhysical_)
     !!{RST
-    Implement an emission line output analysis property extractor.
+    Return the luminosity of each emission line arising in each component, before attenuation by dust, together with
+    whether each component is physically meaningful.
+
+    Separating this from the summation performed by ``extract`` lets the same line calculation serve both that sum
+    and the decomposition handed to the dust framework, so that the two can not drift apart.
     !!}
     use            :: Abundances_Structure            , only : abundances         , max                  , metallicityTypeLogarithmicByMassSolar
     use            :: Galacticus_Nodes                , only : nodeComponentBasic , nodeComponentDisk    , nodeComponentSpheroid                , treeNode
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: Numerical_Constants_Astronomical, only : hydrogenByMassSolar, luminosityZeroPointAB, massSolar                            , megaParsec, &
-          &                                                    metallicitySolar   , parsec
+    use            :: Numerical_Constants_Astronomical, only : hydrogenByMassSolar, luminosityZeroPointAB, massSolar                            , megaParsec
     use            :: Numerical_Constants_Atomic      , only : atomicMassHydrogen , atomicMassUnit
     use            :: Numerical_Constants_Math        , only : Pi
     use            :: Numerical_Constants_Physical    , only : plancksConstant
-    use            :: Numerical_Constants_Prefixes    , only : centi              , hecto                , mega
+    use            :: Numerical_Constants_Prefixes    , only : centi
     use            :: Stellar_Luminosities_Structure  , only : max                , stellarLuminosities
     implicit none
     class           (nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout), target   :: self
     type            (treeNode                                       ), intent(inout), target   :: node
-    type            (multiCounter                                   ), intent(inout), optional :: instance
+    double precision                                                 , intent(  out), dimension(:,:), allocatable :: luminosityLine
+    logical                                                          , intent(  out), dimension(2)                :: isPhysical_
     class           (nodeComponentBasic                             ), pointer                 :: basic
     class           (nodeComponentDisk                              ), pointer                 :: disk
     class           (nodeComponentSpheroid                          ), pointer                 :: spheroid
@@ -326,26 +322,6 @@ contains
     double precision                                                 , parameter               :: lifetimeHIIRegion             =1.0d-03                     ! Lifetime of HII region; Gyr.
     double precision                                                 , parameter               :: efficiencyHIIRegion           =1.0d-02                     ! Efficiency of HII region (fraction of mass turned into stars).
     double precision                                                 , parameter               :: densitySurfaceCritical        =8.5d+13                     ! Critical surface density for molecular clouds; M☉ Mpc⁻².
-    double precision                                                 , parameter               :: metallicityISMLocal           =+2.00d-02                   ! Metallicity in the local ISM.
-    double precision                                                 , parameter               :: AVToEBV                       =+3.10d+00                   ! (A_V/E(B-V); Savage & Mathis 1979)
-    double precision                                                 , parameter               :: NHToEBV                       =+5.80d+21                   ! (N_H/E(B-V); atoms/cm²/mag; Savage & Mathis 1979)
-    double precision                                                 , parameter               :: wavelengthZeroPoint           =+5.50d+03                   ! Angstroms
-    double precision                                                 , parameter               :: depthOpticalToMagnitudes      =+2.50d+00                 & ! Conversion factor from optical depth to magnitudes of extinction.
-         &                                                                                                                       *log10(                   &
-         &                                                                                                                              +exp(              &
-         &                                                                                                                                   +1.0d0        &
-         &                                                                                                                                  )              &
-         &                                                                                                                             )
-    double precision                                                 , parameter               :: depthOpticalNormalization     =+AVToEBV                  &
-         &                                                                                                                       /NHToEBV                  &
-         &                                                                                                                       *hydrogenByMassSolar      &
-         &                                                                                                                       /atomicMassUnit*massSolar &
-         &                                                                                                                       /(                        &
-         &                                                                                                                         +parsec                 &
-         &                                                                                                                         *hecto                  &
-         &                                                                                                                       )**2                      &
-         &                                                                                                                       /metallicityISMLocal      &
-         &                                                                                                                       /depthOpticalToMagnitudes
     type            (stellarLuminosities                            ), dimension(  2  )        :: luminositiesStellar
     type            (abundances                                     ), dimension(  2  )        :: abundancesGas
     double precision                                                 , dimension(3,2  )        :: luminosityIonizing
@@ -355,7 +331,6 @@ contains
          &                                                                                        ratioLuminosityHeliumToHydrogen                         , ratioLuminosityOxygenToHelium, &
          &                                                                                        countHIIRegion                                          , densitySurfaceGas            , &
          &                                                                                        massClouds                                              , densitySurfaceClouds         , &
-         &                                                                                        depthOpticalDiffuse                                     , densitySurfaceMetals         , &
          &                                                                                        ionizingFluxMultiplier
     logical                                                          , dimension(  2  )        :: isPhysical
     integer         (c_size_t                                       ), dimension(0:1,5)        :: interpolateIndex
@@ -513,24 +488,9 @@ contains
     where     (ratioLuminosityOxygenToHelium   > self%ionizingFluxOxygenToHelium  (size(self%ionizingFluxOxygenToHelium  )))
        ratioLuminosityOxygenToHelium  =self%ionizingFluxOxygenToHelium  (size(self%ionizingFluxOxygenToHelium  ))
     end where
-    ! Perform dust calculation if necessary.
-    if (self%depthOpticalISMCoefficient > 0.0d0) then
-       where (isPhysical)
-          ! Compute surface densities of metals in units of M☉ pc⁻².
-          densitySurfaceMetals           =+10.0d0**metallicityGas       &
-               &                          *        metallicitySolar     &
-               &                          *        densitySurfaceGas    &
-               &                          /        mega             **2
-          ! Compute optical depth of diffuse dust.
-          depthOpticalDiffuse            =+self%depthOpticalISMCoefficient &
-               &                          *     depthOpticalNormalization  &
-               &                          *     densitySurfaceMetals
-       end where
-    else
-       depthOpticalDiffuse            =+0.0d0
-    end if
     ! Iterate over components.
-    lmnstyEmssnLinePanuzzo2003Extract=0.0d0
+    allocate(luminosityLine(2,size(self%luminosity,dim=6)))
+    luminosityLine=0.0d0
     do component=1,2
        if (.not.isPhysical(component)) cycle
        ! Find interpolating factors in all five interpolants, preventing extrapolation beyond the tabulated ranges.
@@ -570,22 +530,15 @@ contains
                 end do
              end do
           end do
-          ! Compute the final luminosity in ergs s⁻¹.
-          lmnstyEmssnLinePanuzzo2003Extract=+        lmnstyEmssnLinePanuzzo2003Extract                                                                                   &
-               &                 +10.0d0**luminosityLinePerHIIRegion                                                                               &
-               &                 *        ionizingFluxMultiplier                                                                      (component)  &
-               &                 *        countHIIRegion                                                                              (component)  &
-               &                 *exp(                                                                                                             &
-               &                      -self%stellarSpectraDustAttenuation_%attenuation(                                                            &
-               &                                                                       wavelength      =self               %wavelength(     line), &
-               &                                                                       age             =0.0d0                                    , &
-               &                                                                       vBandAttenuation=depthOpticalDiffuse           (component)  &
-               &                                                                      )                                                            &
-               &                     )
+          ! Store the unattenuated luminosity of this line, in ergs s⁻¹.
+          luminosityLine(component,line)=+10.0d0**luminosityLinePerHIIRegion         &
+               &                         *        ionizingFluxMultiplier(component)  &
+               &                         *        countHIIRegion        (component)
        end do
     end do
+    isPhysical_         =isPhysical
     return
-  end function lmnstyEmssnLinePanuzzo2003Extract
+  end subroutine panuzzo2003Luminosities
 
 
   function lmnstyEmssnLinePanuzzo2003Quantity(self)
@@ -651,3 +604,91 @@ contains
     units=unitType(self%unitsInSI(),description='ergs',quantity='erg')
     return
   end function lmnstyEmssnLinePanuzzo2003Units
+
+  double precision function lmnstyEmssnLinePanuzzo2003Extract(self,node,instance)
+    !!{RST
+    Return the summed, unattenuated luminosity of the named emission lines. To include the effects of dust, wrap this
+    extractor in :galacticus-class:`nodePropertyExtractorDustAttenuation`, which attenuates the same line
+    luminosities---both this function and the decomposition handed to that wrapper come from
+    ``panuzzo2003Luminosities``---using a ``dustAttenuation`` object.
+    !!}
+    implicit none
+    class           (nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout), target       :: self
+    type            (treeNode                                       ), intent(inout), target       :: node
+    type            (multiCounter                                   ), intent(inout), optional     :: instance
+    double precision                                                 , allocatable  , dimension(:,:) :: luminosityLine
+    logical                                                          ,                dimension(2)   :: isPhysical_
+    integer                                                                                          :: component
+    !$GLC attributes unused :: instance
+
+    call self%luminosities(node,luminosityLine,isPhysical_)
+    lmnstyEmssnLinePanuzzo2003Extract=0.0d0
+    do component=1,2
+       if (.not.isPhysical_(component)) cycle
+       lmnstyEmssnLinePanuzzo2003Extract=+lmnstyEmssnLinePanuzzo2003Extract       &
+            &                            +sum(luminosityLine(component,:))
+    end do
+    return
+  end function lmnstyEmssnLinePanuzzo2003Extract
+
+  logical function lmnstyEmssnLinePanuzzo2003SupportsAttenuation(self) result(supportsAttenuation)
+    !!{RST
+    Return true: these emission line luminosities can be decomposed for attenuation by dust.
+    !!}
+    implicit none
+    class(nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    supportsAttenuation=.true.
+    return
+  end function lmnstyEmssnLinePanuzzo2003SupportsAttenuation
+
+  function lmnstyEmssnLinePanuzzo2003Decompose(self,node,time,request) result(decomposition)
+    !!{RST
+    Decompose the summed emission line luminosity into parcels of emission which may be attenuated separately: one
+    per line and per component.
+
+    This extractor sums over both lines and components, so both splits are necessary for the result to be attenuable
+    at all---each component carries a different column of dust, and each line lies at a different wavelength. All the
+    parcels contribute to the single output element, so the sums still happen, but after attenuation.
+
+    Parcels are marked as arising at zero age, line emission coming from HII regions surrounding the young ionizing
+    population.
+    !!}
+    use :: Dust_Attenuation_Descriptors, only : emissionSourceNebular
+    use :: Galactic_Structure_Options  , only : componentTypeDisk    , componentTypeSpheroid
+    implicit none
+    type            (luminosityDecomposition                        )                                  :: decomposition
+    class           (nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout), target           :: self
+    type            (treeNode                                       ), intent(inout), target           :: node
+    double precision                                                 , intent(in   )                   :: time
+    type            (decompositionRequest                           ), intent(in   )                   :: request
+    double precision                                                 , allocatable  , dimension(:,:)   :: luminosityLine
+    logical                                                          ,                dimension(2)     :: isPhysical_
+    integer                                                                                            :: component           , line, &
+         &                                                                                                indexParcel         , countLines
+    !$GLC attributes unused :: time, request
+
+    call self%luminosities(node,luminosityLine,isPhysical_)
+    countLines =size(luminosityLine,dim=2)
+    indexParcel=0
+    call decomposition%initialize(countLines*count(isPhysical_),1)
+    do component=1,2
+       if (.not.isPhysical_(component)) cycle
+       do line=1,countLines
+          indexParcel=indexParcel+1
+          decomposition%luminosities(indexParcel)              =luminosityLine  (component,line)
+          decomposition%elementIndex(indexParcel)              =1
+          decomposition%descriptors (indexParcel)%wavelength   =self%wavelength (          line)
+          if (component == 1) then
+             decomposition%descriptors(indexParcel)%componentType=componentTypeDisk
+          else
+             decomposition%descriptors(indexParcel)%componentType=componentTypeSpheroid
+          end if
+          decomposition%descriptors (indexParcel)%sourceType   =emissionSourceNebular
+          decomposition%descriptors (indexParcel)%ageMinimum   =0.0d0
+          decomposition%descriptors (indexParcel)%ageMaximum   =0.0d0
+       end do
+    end do
+    return
+  end function lmnstyEmssnLinePanuzzo2003Decompose

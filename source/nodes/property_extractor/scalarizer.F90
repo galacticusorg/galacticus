@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements an output analysis property extractor class that scalarizes one element from an array node property extractor.
 !!}
@@ -24,7 +26,7 @@ Implements an output analysis property extractor class that scalarizes one eleme
   !![
   <nodePropertyExtractor name="nodePropertyExtractorScalarizer" docformat="rst">
    <description>
-   A property extractor that wraps an array or tuple :galacticus-class:`nodePropertyExtractorClass` and returns a single scalar value by selecting one entry from the array. The ``element`` parameter specifies which element index to extract; for tuple extractors an additional ``item`` parameter selects the item (row) within the tuple. This allows individual components of compound property arrays (e.g. a single radial bin from a density profile, or one filter band from a magnitude tuple) to be extracted as independent scalar output datasets.
+   A property extractor that wraps an array, tuple, or multi :galacticus-class:`nodePropertyExtractorClass` and returns a single scalar value by selecting one entry from it. The ``element`` parameter specifies which element index to extract; for tuple extractors an additional ``item`` parameter selects the item (row) within the tuple. For multi extractors ``element`` indexes the flattened list of the double-precision properties emitted, each of which must be of rank zero. This allows individual components of compound property arrays (e.g. a single radial bin from a density profile, or one filter band from a magnitude tuple), or a single property of a multi extractor (e.g. the summed, attenuated luminosity emitted by :galacticus-class:`nodePropertyExtractorDustAttenuation`), to be extracted as independent scalar output datasets.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -42,6 +44,8 @@ Implements an output analysis property extractor class that scalarizes one eleme
      procedure :: description => scalarizerDescription
      procedure :: unitsInSI   => scalarizerUnitsInSI
      procedure :: units       => scalarizerUnits
+     procedure :: quantity    => scalarizerQuantity
+     procedure :: type        => scalarizerType
   end type nodePropertyExtractorScalarizer
 
   interface nodePropertyExtractorScalarizer
@@ -115,8 +119,10 @@ contains
        ! This is as expected.
     class is (nodePropertyExtractorTuple)
        ! This is as expected.
+    class is (nodePropertyExtractorMulti)
+       ! This is as expected.
     class default
-       call Error_Report('class must be nodePropertyExtractorArray'//{introspection:location})
+       call Error_Report('class must be nodePropertyExtractorArray, nodePropertyExtractorTuple, or nodePropertyExtractorMulti'//{introspection:location})
     end select
     return
   end function scalarizerConstructorInternal
@@ -140,6 +146,7 @@ contains
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Poly_Ranks      , only : polyRankDouble
     implicit none
     class           (nodePropertyExtractorScalarizer), intent(inout), target         :: self
     type            (treeNode                       ), intent(inout), target         :: node
@@ -147,6 +154,7 @@ contains
     class           (nodeComponentBasic             ), pointer                       :: basic
     double precision                                 , allocatable  , dimension(:,:) :: array
     double precision                                 , allocatable  , dimension(  :) :: tuple
+    type            (polyRankDouble                 ), allocatable  , dimension(  :) :: properties
 
     select type (nodePropertyExtractor__ => self%nodePropertyExtractor_)
     class is (nodePropertyExtractorArray)
@@ -160,9 +168,15 @@ contains
        if (self%element > nodePropertyExtractor__%elementCount(basic%time())) call Error_Report('element exceeds count of tuple'//{introspection:location})
        tuple            =nodePropertyExtractor__%extract(node     ,basic%time   (),instance)
        scalarizerExtract=tuple                          (          self %element           )
+    class is (nodePropertyExtractorMulti)
+       basic => node%basic()
+       if (self%element > nodePropertyExtractor__%elementCount(elementTypeDouble,basic%time())) call Error_Report('element exceeds count of multi'//{introspection:location})
+       properties       =nodePropertyExtractor__%extractDouble(node,basic%time(),instance)
+       if (properties(self%element)%rank() /= 0                                              ) call Error_Report('element of multi is not of rank zero'//{introspection:location})
+       scalarizerExtract=properties(self%element)%data(1)
      class default
        scalarizerExtract=0.0d0
-       call Error_Report('class must be nodePropertyExtractorArray'//{introspection:location})
+       call Error_Report('class must be nodePropertyExtractorArray, nodePropertyExtractorTuple, or nodePropertyExtractorMulti'//{introspection:location})
     end select
     return
   end function scalarizerExtract
@@ -184,8 +198,11 @@ contains
     class is (nodePropertyExtractorTuple)
        call nodePropertyExtractor__%names(-huge(0.0d0),names)
        scalarizerName=names(self%element)
+    class is (nodePropertyExtractorMulti)
+       call nodePropertyExtractor__%names(elementTypeDouble,-huge(0.0d0),names)
+       scalarizerName=names(self%element)
     class default
-       call Error_Report('class must be nodePropertyExtractorArray'//{introspection:location})
+       call Error_Report('class must be nodePropertyExtractorArray, nodePropertyExtractorTuple, or nodePropertyExtractorMulti'//{introspection:location})
     end select
     return
    end function scalarizerName
@@ -207,11 +224,40 @@ contains
     class is (nodePropertyExtractorTuple)
        call nodePropertyExtractor__%descriptions(-huge(0.0d0),descriptions)
        scalarizerDescription=descriptions(self%element)
+    class is (nodePropertyExtractorMulti)
+       call nodePropertyExtractor__%descriptions(elementTypeDouble,-huge(0.0d0),descriptions)
+       scalarizerDescription=descriptions(self%element)
     class default
-       call Error_Report('class must be nodePropertyExtractorArray'//{introspection:location})
+       call Error_Report('class must be nodePropertyExtractorArray, nodePropertyExtractorTuple, or nodePropertyExtractorMulti'//{introspection:location})
     end select
     return
   end function scalarizerDescription
+
+  function scalarizerQuantity(self) result(quantity)
+    !!{RST
+    Return the class of the scalarized property, which is that of the extractor being scalarized. Analyses use this
+    to decide how the property relates to the survey they compare against, so a scalarizer which did not forward it
+    would leave any wrapped property looking like an unknown quantity.
+    !!}
+    implicit none
+    type (enumerationOutputAnalysisPropertyQuantityType)                :: quantity
+    class(nodePropertyExtractorScalarizer              ), intent(inout) :: self
+
+    quantity=self%nodePropertyExtractor_%quantity()
+    return
+  end function scalarizerQuantity
+
+  function scalarizerType(self) result(type)
+    !!{RST
+    Return the type of the scalarized property, which is that of the extractor being scalarized.
+    !!}
+    implicit none
+    type (enumerationOutputAnalysisPropertyTypeType)                :: type
+    class(nodePropertyExtractorScalarizer          ), intent(inout) :: self
+
+    type=self%nodePropertyExtractor_%type()
+    return
+  end function scalarizerType
 
   double precision function scalarizerUnitsInSI(self)
     !!{RST
@@ -229,9 +275,12 @@ contains
     class is (nodePropertyExtractorTuple)
        unitsInSI          =nodePropertyExtractor__%unitsInSI(-huge(0.0d0))
        scalarizerUnitsInSI=unitsInSI                        (self%element)
+    class is (nodePropertyExtractorMulti)
+       unitsInSI          =nodePropertyExtractor__%unitsInSI(elementTypeDouble,-huge(0.0d0))
+       scalarizerUnitsInSI=unitsInSI                        (self%element)
     class default
        scalarizerUnitsInSI=0.0d0
-       call Error_Report('class must be nodePropertyExtractorArray'//{introspection:location})
+       call Error_Report('class must be nodePropertyExtractorArray, nodePropertyExtractorTuple, or nodePropertyExtractorMulti'//{introspection:location})
     end select
     return
   end function scalarizerUnitsInSI
@@ -253,9 +302,12 @@ contains
     class is (nodePropertyExtractorTuple)
        units_=nodePropertyExtractor__%units(-huge(0.0d0))
        units =units_                       (self%element)
+    class is (nodePropertyExtractorMulti)
+       units_=nodePropertyExtractor__%units(elementTypeDouble,-huge(0.0d0))
+       units =units_                       (self%element)
     class default
        units=unitType(1.0d0)
-       call Error_Report('class must be nodePropertyExtractorArray'//{introspection:location})
+       call Error_Report('class must be nodePropertyExtractorArray, nodePropertyExtractorTuple, or nodePropertyExtractorMulti'//{introspection:location})
     end select
     return
   end function scalarizerUnits
