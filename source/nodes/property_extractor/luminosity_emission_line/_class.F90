@@ -1061,12 +1061,12 @@ contains
     luminosity could not otherwise be attenuated at all. The parcels of a given line all contribute to that line's
     single output element, so summing over components still happens---but after attenuation rather than before.
 
-    Every parcel is marked as arising at zero age. Line emission comes from \gls{hii} regions surrounding the young,
+    Every parcel is marked as arising at zero age. Line emission comes from HII regions surrounding the young,
     ionizing stellar population, which are by construction embedded in the clouds from which those stars formed, so
     the whole of it is subject to birth cloud attenuation. This is the assumption of :cite:t:`charlot_simple_2000`,
     and it makes the decomposition independent of how finely the attenuator resolves stellar age.
 
-    Note that the tabulated line luminosities may already include the effect of dust *within* the \gls{hii} region,
+    Note that the tabulated line luminosities may already include the effect of dust *within* the HII region,
     depending on the dust-to-metals ratio of the tabulation used. Attenuation applied here is that of the dust
     *outside* the region, and configuring a birth cloud component in addition risks counting the same dust twice.
     !!}
