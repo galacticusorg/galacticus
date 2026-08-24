@@ -45,7 +45,7 @@
     <description>
     A dark matter profile scale radius class that computes scale radii based on the energy conservation approach of :cite:t:`johnson_random_2021`, with some modifications and improvements.
 
-    Specifically, for "well-resolved" halos (see below for discussion of this point), the concentration is found by computing the total energy of the halo as the sum over the energies (internal and orbital) of its progenitor halos. The halo is assumed to have virialized at this energy, and the scale radius is then solved for such that the energy of the assumed density profile (e.g. Galacticusnfw) is equal to the computed energy of the halo.
+    Specifically, for "well-resolved" halos (see below for discussion of this point), the concentration is found by computing the total energy of the halo as the sum over the energies (internal and orbital) of its progenitor halos. The halo is assumed to have virialized at this energy, and the scale radius is then solved for such that the energy of the assumed density profile (e.g. :term:`NFW`) is equal to the computed energy of the halo.
 
     In detail, the energy, :math:`E_\mathrm{int}`, of a node is assumed to be given by:
 

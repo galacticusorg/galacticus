@@ -20,12 +20,12 @@
   !+    Contributions to this file made by: Matías Liempi
 
 !!{RST
-Contains a module which implements the standard Galacticusnsc node component.
+Contains a module which implements the standard :term:`NSC` node component.
 !!}
 
 module Node_Component_NSC_Standard
   !!{RST
-  Implements the standard Galacticusnsc node component.
+  Implements the standard :term:`NSC` node component.
   !!}
   use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
   use :: Histories                       , only : history

@@ -33,7 +33,7 @@ module Numerical_Interpolation_MultiD
   the enclosing hypercube. That pattern is mechanical but fiddly to write out by hand for each new table, and is easy
   to get subtly wrong. This class factors it out.
 
-  Each dimension is described by an ordinary :galacticus-class:`interpolator` object, so extrapolation behaviour is
+  Each dimension is described by an ordinary :galacticus-class:`interpolator` object, so extrapolation behavior is
   specified per-dimension in the usual way, and a dimension which should be interpolated logarithmically is handled
   by constructing its interpolator on---and evaluating it at---the logarithm of the coordinate.
 
