@@ -271,7 +271,7 @@ contains
     !!{RST
     Return the log-likelihood for the SED fitting likelihood function.
     !!}
-    use            :: Abundances_Structure             , only : abundances                          , max                                      , metallicityTypeLinearByMassSolar
+    use            :: Abundances_Structure             , only : abundances                          , max                              , metallicityTypeLinearByMassSolar
     use            :: Error                            , only : Error_Report
     use            :: Galacticus_Nodes                 , only : nodeComponentDisk
     use, intrinsic :: ISO_C_Binding                    , only : c_size_t
@@ -280,8 +280,8 @@ contains
     use            :: Posterior_Sampling_Convergence   , only : posteriorSampleConvergenceClass
     use            :: Posterior_Sampling_State         , only : posteriorSampleStateClass
     use            :: Stellar_Populations              , only : stellarPopulationClass
-    use            :: Dust_Extinction_Curves           , only : dustExtinctionCurveCalzetti2000     , dustExtinctionCurveCardelli1989          , dustExtinctionCurveClass                   , dustExtinctionCurveGordon2003               , &
-          &                                                     dustExtinctionCurvePowerLaw         , dustExtinctionCurveWittGordon2000        , gordon2003SampleLMC                        , wavelengthVBand                             , &
+    use            :: Dust_Extinction_Curves           , only : dustExtinctionCurveCalzetti2000     , dustExtinctionCurveCardelli1989  , dustExtinctionCurveClass        , dustExtinctionCurveGordon2003, &
+          &                                                     dustExtinctionCurvePowerLaw         , dustExtinctionCurveWittGordon2000, gordon2003SampleLMC             , wavelengthVBand              , &
           &                                                     wittGordon2000ModelMilkyWayShellTau3
     implicit none
     class           (posteriorSampleLikelihoodSEDFit   ), intent(inout), target         :: self
@@ -321,7 +321,7 @@ contains
          &                                                                                 ageNext
     type            (abundances                )                                        :: abundancesStars
     type            (integrator                )                                        :: integrator_
-    logical                                                                             :: useRapidEvaluation           , attenuationIsAgeDependent
+    logical                                                                             :: useRapidEvaluation                              , attenuationIsAgeDependent
     ! Birth cloud lifetime, in Gyr, over which the birth cloud enhancement applies.
     double precision                                    , parameter                     :: birthCloudLifetime         =+1.00000000000000d-2
     !$GLC attributes unused :: simulationConvergence, timeEvaluate, modelParametersInactive_, forceAcceptance
@@ -360,8 +360,8 @@ contains
        sedFitEvaluate=logImpossible
        return
     end if
-    ! Construct the dust extinction curve. Each model here attenuates by A(lambda) = A_V k(lambda)/k_V, with A_V taken
-    ! from the state vector, so all that differs between them is the shape k(lambda)/k_V, which is what a
+    ! Construct the dust extinction curve. Each model here attenuates by A(λ) = A_V k(λ)/k_V, with A_V taken
+    ! from the state vector, so all that differs between them is the shape k(λ)/k_V, which is what a
     ! `dustExtinctionCurve` provides. Charlot & Fall (2000) additionally enhances the attenuation of populations
     ! younger than the birth cloud lifetime by a constant factor, which multiplies the curve.
     factorBirthClouds        =1.0d0
@@ -372,11 +372,11 @@ contains
        vBandAttenuation=0.0d0
        allocate(dustExtinctionCurvePowerLaw       :: extinctionCurve)
        select type (extinctionCurve)
-       type is (dustExtinctionCurvePowerLaw       )
-          extinctionCurve=dustExtinctionCurvePowerLaw       (                                              &
-               &                                             exponent_          =0.0d0                   , &
-               &                                             wavelengthReference=wavelengthVBand           &
-               &                                            )
+       type is (dustExtinctionCurvePowerLaw)
+          extinctionCurve=dustExtinctionCurvePowerLaw      (                                                          &
+               &                                            exponent_          =0.0d0                               , &
+               &                                            wavelengthReference=wavelengthVBand                       &
+               &                                           )
        end select
        burstIndexOffset=5
     case (sedFitDustTypeCharlotFall2000%ID)
@@ -387,10 +387,10 @@ contains
        allocate(dustExtinctionCurvePowerLaw       :: extinctionCurve)
        select type (extinctionCurve)
        type is (dustExtinctionCurvePowerLaw       )
-          extinctionCurve=dustExtinctionCurvePowerLaw       (                                              &
-               &                                             exponent_          =0.7d0                   , &
-               &                                             wavelengthReference=wavelengthVBand           &
-               &                                            )
+          extinctionCurve=dustExtinctionCurvePowerLaw      (                                                          &
+               &                                            exponent_          =0.7d0                               , &
+               &                                            wavelengthReference=wavelengthVBand                       &
+               &                                           )
        end select
        burstIndexOffset=7
     case (sedFitDustTypeCardelli1989%ID)
@@ -399,9 +399,9 @@ contains
        allocate(dustExtinctionCurveCardelli1989   :: extinctionCurve)
        select type (extinctionCurve)
        type is (dustExtinctionCurveCardelli1989   )
-          extinctionCurve=dustExtinctionCurveCardelli1989   (                                              &
-               &                                             Rv                 =Rv                        &
-               &                                            )
+          extinctionCurve=dustExtinctionCurveCardelli1989  (                                                          &
+               &                                            Rv                 =Rv                                    &
+               &                                           )
        end select
        burstIndexOffset=7
     case (sedFitDustTypeGordon2003%ID)
@@ -409,9 +409,9 @@ contains
        allocate(dustExtinctionCurveGordon2003     :: extinctionCurve)
        select type (extinctionCurve)
        type is (dustExtinctionCurveGordon2003     )
-          extinctionCurve=dustExtinctionCurveGordon2003     (                                              &
-               &                                             sample             =gordon2003SampleLMC       &
-               &                                            )
+          extinctionCurve=dustExtinctionCurveGordon2003    (                                                          &
+               &                                            sample             =gordon2003SampleLMC                   &
+               &                                           )
        end select
        burstIndexOffset=6
     case (sedFitDustTypeCalzetti2000%ID)
@@ -423,9 +423,9 @@ contains
        allocate(dustExtinctionCurveWittGordon2000 :: extinctionCurve)
        select type (extinctionCurve)
        type is (dustExtinctionCurveWittGordon2000 )
-          extinctionCurve=dustExtinctionCurveWittGordon2000 (                                                       &
-               &                                             model              =wittGordon2000ModelMilkyWayShellTau3 &
-               &                                            )
+          extinctionCurve=dustExtinctionCurveWittGordon2000(                                                          &
+               &                                            model              =wittGordon2000ModelMilkyWayShellTau3  &
+               &                                           )
        end select
        burstIndexOffset=6
     case default
@@ -555,13 +555,13 @@ contains
        ! Compute luminosity.
        if (useRapidEvaluation) then
           if (iMagnitude > 0) then
-             luminosity=+sum(weights*massToLightRatios(:,iMagnitude))                     &
-                  &     *10.0d0**(                                                        &
-                  &               -0.4d0                                                  &
-                  &               *attenuation     (                                      &
-                  &                                 self%wavelengthEffective(iMagnitude), &
-                  &                                 stellarAgeArbitrary                   &
-                  &                                )                                      &
+             luminosity=+sum(weights*massToLightRatios(:,iMagnitude))                &
+                  &     *10.0d0**(                                                   &
+                  &               -0.4d0                                             &
+                  &               *attenuation(                                      &
+                  &                            self%wavelengthEffective(iMagnitude), &
+                  &                            stellarAgeArbitrary                   &
+                  &                           )                                      &
                   &              )
           else
              luminosity=0.0d0
@@ -618,10 +618,10 @@ contains
       implicit none
       double precision, intent(in   ) :: wavelength, age
 
-      attenuation=+vBandAttenuation                                  &
+      attenuation=+vBandAttenuation                                &
            &      *extinctionCurve%attenuationRelative(wavelength)
-      if (age <= birthCloudLifetime)                                 &
-           & attenuation=+attenuation                                &
+      if (age <= birthCloudLifetime)                               &
+           & attenuation=+attenuation                              &
            &             *factorBirthClouds
       return
     end function attenuation
@@ -687,15 +687,15 @@ contains
               &                                                                          self%age            (iMagnitude:iMagnitude), &
               &                                                                          self%redshift       (iMagnitude:iMagnitude)  &
               &                                                                         )
-         luminosityIntegrand=                                                                  &
-              &              +starFormationRate                                                &
-              &              *self%massToLightRatio(1)                                         &
-              &              *10.0d0**(                                                        &
-              &                        -0.4d0                                                  &
-              &                        *attenuation     (                                      &
-              &                                          self%wavelengthEffective(iMagnitude), &
-              &                                          self%age                (iMagnitude)  &
-              &                                         )                                      &
+         luminosityIntegrand=                                                             &
+              &              +starFormationRate                                           &
+              &              *self%massToLightRatio(1)                                    &
+              &              *10.0d0**(                                                   &
+              &                        -0.4d0                                             &
+              &                        *attenuation(                                      &
+              &                                     self%wavelengthEffective(iMagnitude), &
+              &                                     self%age                (iMagnitude)  &
+              &                                    )                                      &
               &                       )
       else
          ! Find the recycled fraction.

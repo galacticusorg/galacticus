@@ -17,25 +17,6 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
-!!    Andrew Benson <abenson@carnegiescience.edu>
-!!
-!! This file is part of Galacticus.
-!!
-!!    Galacticus is free software: you can redistribute it and/or modify
-!!    it under the terms of the GNU General Public License as published by
-!!    the Free Software Foundation, either version 3 of the License, or
-!!    (at your option) any later version.
-!!
-!!    Galacticus is distributed in the hope that it will be useful,
-!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
-!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!!    GNU General Public License for more details.
-!!
-!!    You should have received a copy of the GNU General Public License
-!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
 !+    Contributions to this file made by: Andrew Benson, Claude.
 
 !!{RST
@@ -60,14 +41,14 @@ Implements an emission line luminosity node property extractor class.
      A stellar luminosity output analysis property extractor class.
      !!}
      private
-     class           (starFormationRateDisksClass       ), pointer                             :: starFormationRateDisks_        => null()
-     class           (starFormationRateSpheroidsClass   ), pointer                             :: starFormationRateSpheroids_    => null()
-     class           (outputTimesClass                  ), pointer                             :: outputTimes_                   => null()
-     type            (varying_string                    )                                      :: name_                                   , description_
+     class           (starFormationRateDisksClass       ), pointer                             :: starFormationRateDisks_     => null()
+     class           (starFormationRateSpheroidsClass   ), pointer                             :: starFormationRateSpheroids_ => null()
+     class           (outputTimesClass                  ), pointer                             :: outputTimes_                => null()
+     type            (varying_string                    )                                      :: name_                                , description_
      type            (varying_string                    ), allocatable, dimension(:          ) :: lineNames
-     double precision                                    , allocatable, dimension(:          ) :: metallicity                             , densityHydrogen             , &
-          &                                                                                       ionizingFluxHydrogen                    , ionizingFluxHeliumToHydrogen, &
-          &                                                                                       ionizingFluxOxygenToHelium              , wavelength
+     double precision                                    , allocatable, dimension(:          ) :: metallicity                          , densityHydrogen             , &
+          &                                                                                       ionizingFluxHydrogen                 , ionizingFluxHeliumToHydrogen, &
+          &                                                                                       ionizingFluxOxygenToHelium           , wavelength
      double precision                                    , allocatable, dimension(:,:,:,:,:,:) :: luminosity
      integer                                             , allocatable, dimension(:,:        ) :: ionizingContinuumIndex
      double precision                                                 , dimension(2,3        ) :: filterExtent
@@ -85,7 +66,7 @@ Implements an emission line luminosity node property extractor class.
        <method method="luminosities" description="Return the unattenuated luminosity of each line of each component."/>
      </methods>
      !!]
-     procedure :: luminosities        => panuzzo2003Luminosities
+     procedure :: luminosities        => lmnstyEmssnLinePanuzzo2003Luminosities
      procedure :: supportsAttenuation => lmnstyEmssnLinePanuzzo2003SupportsAttenuation
      procedure :: decompose           => lmnstyEmssnLinePanuzzo2003Decompose
   end type nodePropertyExtractorLmnstyEmssnLinePanuzzo2003
@@ -141,12 +122,12 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (nodePropertyExtractorLmnstyEmssnLinePanuzzo2003)                              :: self
-    type            (inputParameters                                ), intent(inout)               :: parameters
-    type            (varying_string                                 ), allocatable  , dimension(:) :: lineNames
-    class           (starFormationRateDisksClass                    ), pointer                     :: starFormationRateDisks_
-    class           (starFormationRateSpheroidsClass                ), pointer                     :: starFormationRateSpheroids_
-    class           (outputTimesClass                               ), pointer                     :: outputTimes_
+    type (nodePropertyExtractorLmnstyEmssnLinePanuzzo2003)                              :: self
+    type (inputParameters                                ), intent(inout)               :: parameters
+    type (varying_string                                 ), allocatable  , dimension(:) :: lineNames
+    class(starFormationRateDisksClass                    ), pointer                     :: starFormationRateDisks_
+    class(starFormationRateSpheroidsClass                ), pointer                     :: starFormationRateSpheroids_
+    class(outputTimesClass                               ), pointer                     :: outputTimes_
 
     allocate(lineNames(parameters%count('lineNames')))
     !![
@@ -157,16 +138,16 @@ contains
       The emission lines to extract.
       </description>
     </inputParameter>
-    <objectBuilder class="starFormationRateDisks"        name="starFormationRateDisks_"        source="parameters"/>
-    <objectBuilder class="starFormationRateSpheroids"    name="starFormationRateSpheroids_"    source="parameters"/>
-    <objectBuilder class="outputTimes"                   name="outputTimes_"                   source="parameters"/>
+    <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
+    <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+    <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
     !!]
     self=nodePropertyExtractorLmnstyEmssnLinePanuzzo2003(starFormationRateDisks_,starFormationRateSpheroids_,outputTimes_,lineNames)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="starFormationRateDisks_"       />
-    <objectDestructor name="starFormationRateSpheroids_"   />
-    <objectDestructor name="outputTimes_"                  />
+    <objectDestructor name="starFormationRateDisks_"    />
+    <objectDestructor name="starFormationRateSpheroids_"/>
+    <objectDestructor name="outputTimes_"               />
     !!]
     return
   end function lmnstyEmssnLinePanuzzo2003ConstructorParameters
@@ -185,18 +166,18 @@ contains
     use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     use            :: String_Handling               , only : String_Join            , char
     use            :: Table_Labels                  , only : extrapolationTypeFix
-    use :: ISO_Varying_String, only : operator(//)
+    use            :: ISO_Varying_String            , only : operator(//)
     implicit none
-    type            (nodePropertyExtractorLmnstyEmssnLinePanuzzo2003)                                        :: self
-    type            (varying_string                                 ), intent(in   ), dimension(:)           :: lineNames
-    logical                                                          , intent(in   ), dimension(:), optional :: outputMask
-    class           (starFormationRateDisksClass                    ), intent(in   ), target                 :: starFormationRateDisks_
-    class           (starFormationRateSpheroidsClass                ), intent(in   ), target                 :: starFormationRateSpheroids_
-    class           (outputTimesClass                               ), intent(in   ), target                 :: outputTimes_
-    type            (hdf5File                                       )                                        :: emissionLinesFile
-    type            (hdf5Group                                      )                                        :: lines
-    type            (hdf5Dataset                                    )                                        :: lineDataset
-    integer         (c_size_t                                       )                                        :: i
+    type   (nodePropertyExtractorLmnstyEmssnLinePanuzzo2003)                                        :: self
+    type   (varying_string                                 ), intent(in   ), dimension(:)           :: lineNames
+    logical                                                 , intent(in   ), dimension(:), optional :: outputMask
+    class  (starFormationRateDisksClass                    ), intent(in   ), target                 :: starFormationRateDisks_
+    class  (starFormationRateSpheroidsClass                ), intent(in   ), target                 :: starFormationRateSpheroids_
+    class  (outputTimesClass                               ), intent(in   ), target                 :: outputTimes_
+    type   (hdf5File                                       )                                        :: emissionLinesFile
+    type   (hdf5Group                                      )                                        :: lines
+    type   (hdf5Dataset                                    )                                        :: lineDataset
+    integer(c_size_t                                       )                                        :: i
     !![
     <constructorAssign variables="lineNames, *starFormationRateDisks_, *starFormationRateSpheroids_, *outputTimes_"/>
     !!]
@@ -281,14 +262,14 @@ contains
     type(nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%starFormationRateDisks_"       />
-    <objectDestructor name="self%starFormationRateSpheroids_"   />
-    <objectDestructor name="self%outputTimes_"                  />
+    <objectDestructor name="self%starFormationRateDisks_"    />
+    <objectDestructor name="self%starFormationRateSpheroids_"/>
+    <objectDestructor name="self%outputTimes_"               />
     !!]
     return
   end subroutine lmnstyEmssnLinePanuzzo2003Destructor
 
-  subroutine panuzzo2003Luminosities(self,node,luminosityLine,isPhysical_)
+  subroutine lmnstyEmssnLinePanuzzo2003Luminosities(self,node,luminosityLine,isPhysical_)
     !!{RST
     Return the luminosity of each emission line arising in each component, before attenuation by dust, together with
     whether each component is physically meaningful.
@@ -306,41 +287,41 @@ contains
     use            :: Numerical_Constants_Prefixes    , only : centi
     use            :: Stellar_Luminosities_Structure  , only : max                , stellarLuminosities
     implicit none
-    class           (nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout), target   :: self
-    type            (treeNode                                       ), intent(inout), target   :: node
+    class           (nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout), target                      :: self
+    type            (treeNode                                       ), intent(inout), target                      :: node
     double precision                                                 , intent(  out), dimension(:,:), allocatable :: luminosityLine
-    logical                                                          , intent(  out), dimension(2)                :: isPhysical_
-    class           (nodeComponentBasic                             ), pointer                 :: basic
-    class           (nodeComponentDisk                              ), pointer                 :: disk
-    class           (nodeComponentSpheroid                          ), pointer                 :: spheroid
-    double precision                                                 , parameter               :: massMinimum                   =1.0d-06
-    double precision                                                 , parameter               :: radiusMinimum                 =1.0d-06
-    double precision                                                 , parameter               :: rateStarFormationMinimum      =1.0d-06
-    double precision                                                 , parameter               :: luminosityIonizingMinimum     =1.0d-20
-    double precision                                                 , parameter               :: massHIIRegion                 =7.5d+03                     ! Mass of gas in HII region; M☉.
-    double precision                                                 , parameter               :: massGMC                       =3.7d+07                     ! Mass of a giant molecular cloud at critical surface density; M☉.
-    double precision                                                 , parameter               :: lifetimeHIIRegion             =1.0d-03                     ! Lifetime of HII region; Gyr.
-    double precision                                                 , parameter               :: efficiencyHIIRegion           =1.0d-02                     ! Efficiency of HII region (fraction of mass turned into stars).
-    double precision                                                 , parameter               :: densitySurfaceCritical        =8.5d+13                     ! Critical surface density for molecular clouds; M☉ Mpc⁻².
-    type            (stellarLuminosities                            ), dimension(  2  )        :: luminositiesStellar
-    type            (abundances                                     ), dimension(  2  )        :: abundancesGas
-    double precision                                                 , dimension(3,2  )        :: luminosityIonizing
-    double precision                                                 , dimension(  2  )        :: massGas                                                 , radius                       , &
-         &                                                                                        rateStarFormation                                       , metallicityGas               , &
-         &                                                                                        densityHydrogen                                         , luminosityLymanContinuum     , &
-         &                                                                                        ratioLuminosityHeliumToHydrogen                         , ratioLuminosityOxygenToHelium, &
-         &                                                                                        countHIIRegion                                          , densitySurfaceGas            , &
-         &                                                                                        massClouds                                              , densitySurfaceClouds         , &
-         &                                                                                        ionizingFluxMultiplier
-    logical                                                          , dimension(  2  )        :: isPhysical
-    integer         (c_size_t                                       ), dimension(0:1,5)        :: interpolateIndex
-    double precision                                                 , dimension(0:1,5)        :: interpolateFactor
-    double precision                                                                           :: weight                                                  , luminosityLinePerHIIRegion
-    integer         (c_size_t                                       )                          :: output
-    integer                                                                                    :: component                                               , continuum                    , &
-         &                                                                                        i                                                       , j                            , &
-         &                                                                                        k                                                       , l                            , &
-         &                                                                                        m                                                       , line
+    logical                                                          , intent(  out), dimension(2  )              :: isPhysical_
+    class           (nodeComponentBasic                             ), pointer                                    :: basic
+    class           (nodeComponentDisk                              ), pointer                                    :: disk
+    class           (nodeComponentSpheroid                          ), pointer                                    :: spheroid
+    double precision                                                 , parameter                                  :: massMinimum                   =1.0d-06
+    double precision                                                 , parameter                                  :: radiusMinimum                 =1.0d-06
+    double precision                                                 , parameter                                  :: rateStarFormationMinimum      =1.0d-06
+    double precision                                                 , parameter                                  :: luminosityIonizingMinimum     =1.0d-20
+    double precision                                                 , parameter                                  :: massHIIRegion                 =7.5d+03 ! Mass of gas in HII region; M☉.
+    double precision                                                 , parameter                                  :: massGMC                       =3.7d+07 ! Mass of a giant molecular cloud at critical surface density; M☉.
+    double precision                                                 , parameter                                  :: lifetimeHIIRegion             =1.0d-03 ! Lifetime of HII region; Gyr.
+    double precision                                                 , parameter                                  :: efficiencyHIIRegion           =1.0d-02 ! Efficiency of HII region (fraction of mass turned into stars).
+    double precision                                                 , parameter                                  :: densitySurfaceCritical        =8.5d+13 ! Critical surface density for molecular clouds; M☉ Mpc⁻².
+    type            (stellarLuminosities                            )                   , dimension(  2  )        :: luminositiesStellar
+    type            (abundances                                     )                   , dimension(  2  )        :: abundancesGas
+    double precision                                                                    , dimension(3,2  )        :: luminosityIonizing
+    double precision                                                                    , dimension(  2  )        :: massGas                               , radius                       , &
+         &                                                                                                           rateStarFormation                     , metallicityGas               , &
+         &                                                                                                           densityHydrogen                       , luminosityLymanContinuum     , &
+         &                                                                                                           ratioLuminosityHeliumToHydrogen       , ratioLuminosityOxygenToHelium, &
+         &                                                                                                           countHIIRegion                        , densitySurfaceGas            , &
+         &                                                                                                           massClouds                            , densitySurfaceClouds         , &
+         &                                                                                                           ionizingFluxMultiplier
+    logical                                                                             , dimension(  2  )        :: isPhysical
+    integer         (c_size_t                                       )                   , dimension(0:1,5)        :: interpolateIndex
+    double precision                                                                    , dimension(0:1,5)        :: interpolateFactor
+    double precision                                                                                              :: weight                                , luminosityLinePerHIIRegion
+    integer         (c_size_t                                       )                                             :: output
+    integer                                                                                                       :: component                             , continuum                    , &
+         &                                                                                                           i                                     , j                            , &
+         &                                                                                                           k                                     , l                            , &
+         &                                                                                                           m                                     , line
     !$GLC attributes unused :: instance
 
     ! Retrieve components.
@@ -536,10 +517,9 @@ contains
                &                         *        countHIIRegion        (component)
        end do
     end do
-    isPhysical_         =isPhysical
+    isPhysical_=isPhysical
     return
-  end subroutine panuzzo2003Luminosities
-
+  end subroutine lmnstyEmssnLinePanuzzo2003Luminosities
 
   function lmnstyEmssnLinePanuzzo2003Quantity(self)
     !!{RST
@@ -610,14 +590,14 @@ contains
     Return the summed, unattenuated luminosity of the named emission lines. To include the effects of dust, wrap this
     extractor in :galacticus-class:`nodePropertyExtractorDustAttenuation`, which attenuates the same line
     luminosities---both this function and the decomposition handed to that wrapper come from
-    ``panuzzo2003Luminosities``---using a ``dustAttenuation`` object.
+    ``lmnstyEmssnLinePanuzzo2003Luminosities``---using a ``dustAttenuation`` object.
     !!}
     implicit none
-    class           (nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout), target       :: self
-    type            (treeNode                                       ), intent(inout), target       :: node
-    type            (multiCounter                                   ), intent(inout), optional     :: instance
+    class           (nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout), target         :: self
+    type            (treeNode                                       ), intent(inout), target         :: node
+    type            (multiCounter                                   ), intent(inout), optional       :: instance
     double precision                                                 , allocatable  , dimension(:,:) :: luminosityLine
-    logical                                                          ,                dimension(2)   :: isPhysical_
+    logical                                                          ,                dimension(2  ) :: isPhysical_
     integer                                                                                          :: component
     !$GLC attributes unused :: instance
 
@@ -625,7 +605,7 @@ contains
     lmnstyEmssnLinePanuzzo2003Extract=0.0d0
     do component=1,2
        if (.not.isPhysical_(component)) cycle
-       lmnstyEmssnLinePanuzzo2003Extract=+lmnstyEmssnLinePanuzzo2003Extract       &
+       lmnstyEmssnLinePanuzzo2003Extract=+lmnstyEmssnLinePanuzzo2003Extract &
             &                            +sum(luminosityLine(component,:))
     end do
     return

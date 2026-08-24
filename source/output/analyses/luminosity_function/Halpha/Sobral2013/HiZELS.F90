@@ -170,23 +170,23 @@ contains
       The maximum halo mass to consider when constructing SDSS H\ :math:`\alpha` luminosity function covariance matrices for main branch galaxies.
       </description>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions"            name="cosmologyFunctions_"            source="parameters"/>
-    <objectBuilder class="outputTimes"                   name="outputTimes_"                   source="parameters"/>
-    <objectBuilder class="gravitationalLensing"          name="gravitationalLensing_"          source="parameters"/>
-    <objectBuilder class="starFormationRateDisks"        name="starFormationRateDisks_"        source="parameters"/>
-    <objectBuilder class="starFormationRateSpheroids"    name="starFormationRateSpheroids_"    source="parameters"/>
-    <objectBuilder class="dustAttenuation"               name="dustAttenuation_"               source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
+    <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
+    <objectBuilder class="gravitationalLensing"       name="gravitationalLensing_"       source="parameters"/>
+    <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
+    <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+    <objectBuilder class="dustAttenuation"            name="dustAttenuation_"            source="parameters"/>
     !!]
     ! Build the object.
     self=outputAnalysisLuminosityFunctionSobral2013HiZELS(cosmologyFunctions_,gravitationalLensing_,dustAttenuation_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"           />
-    <objectDestructor name="outputTimes_"                  />
-    <objectDestructor name="gravitationalLensing_"         />
-    <objectDestructor name="starFormationRateDisks_"       />
-    <objectDestructor name="starFormationRateSpheroids_"   />
-    <objectDestructor name="dustAttenuation_"/>
+    <objectDestructor name="cosmologyFunctions_"        />
+    <objectDestructor name="outputTimes_"               />
+    <objectDestructor name="gravitationalLensing_"      />
+    <objectDestructor name="starFormationRateDisks_"    />
+    <objectDestructor name="starFormationRateSpheroids_"/>
+    <objectDestructor name="dustAttenuation_"           />
     !!]
     return
   end function luminosityFunctionSobral2013HiZELSConstructorParameters
@@ -216,11 +216,11 @@ contains
     class           (starFormationRateDisksClass                        ), intent(in   ), target       :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass                    ), intent(in   ), target       :: starFormationRateSpheroids_
     integer                                                              , intent(in   )               :: redshiftInterval
-    double precision                                                     , intent(in   )               :: randomErrorMinimum                                  , randomErrorMaximum                  , &
+    double precision                                                     , intent(in   )               :: randomErrorMinimum                                        , randomErrorMaximum                  , &
          &                                                                                                sizeSourceLensing
-    double precision                                                     , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                    , systematicErrorPolynomialCoefficient
+    double precision                                                     , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                          , systematicErrorPolynomialCoefficient
     integer                                                              , intent(in   )               :: covarianceBinomialBinsPerDecade
-    double precision                                                     , intent(in   )               :: covarianceBinomialMassHaloMinimum                   , covarianceBinomialMassHaloMaximum
+    double precision                                                     , intent(in   )               :: covarianceBinomialMassHaloMinimum                         , covarianceBinomialMassHaloMaximum
     type            (galacticFilterStellarMass                          )               , pointer      :: galacticFilter_
     type            (surveyGeometryFullSky                              )               , pointer      :: surveyGeometry_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial    )               , pointer      :: outputAnalysisPropertyOperator_
@@ -347,7 +347,7 @@ contains
          &                                        .false.                                                                                                                     , &
          &                                        galacticFilter_                                                                                                             , &
          &                                        surveyGeometry_                                                                                                             , &
-         &                                        dustAttenuation_                                                                                              , &
+         &                                        dustAttenuation_                                                                                                            , &
          &                                        cosmologyFunctions_                                                                                                         , &
          &                                        cosmologyFunctionsData                                                                                                      , &
          &                                        outputAnalysisPropertyOperator_                                                                                             , &

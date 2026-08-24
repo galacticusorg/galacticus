@@ -56,8 +56,8 @@
      !!}
      private
      class  (dustAttenuationClass), pointer :: dustAttenuation_   => null()
-     logical                                :: outputUnattenuated          , outputSum , &
-          &                                       outputSumOnly
+     logical                                :: outputUnattenuated          , outputSum, &
+          &                                    outputSumOnly
      type   (varying_string      )          :: sumName
    contains
      !![
@@ -102,7 +102,7 @@ contains
     type   (inputParameters                     ), intent(inout) :: parameters
     class  (dustAttenuationClass                ), pointer       :: dustAttenuation_
     logical                                                      :: outputUnattenuated, outputSum, &
-         &                                                                outputSumOnly
+         &                                                          outputSumOnly
     type   (varying_string                      )                :: sumName
 
     self%nodePropertyExtractorMulti=nodePropertyExtractorMulti(parameters)
@@ -198,11 +198,11 @@ contains
     type (multiExtractorList                  ), pointer       :: extractor_
 
     if (self%outputSumOnly) then
-       if (self%outputUnattenuated)                                                                                 &
-            & call Error_Report(                                                                                    &
+       if (self%outputUnattenuated)                                                                                    &
+            & call Error_Report(                                                                                       &
             &                   '[outputUnattenuated] and [outputSumOnly] are contradictory: the first asks for the'// &
             &                   ' per-child properties to be emitted, the second for them to be suppressed'         // &
-            &                   {introspection:location}                                                             &
+            &                   {introspection:location}                                                               &
             &                  )
        ! Emitting only the sum requires that the sum be formed.
        self%outputSum=.true.
@@ -468,7 +468,7 @@ contains
     type            (multiExtractorList                  ), pointer                                  :: extractor_
     type            (varying_string                      )                                           :: suffix
     integer                                                                                          :: offset     , countChild, &
-         &                                                                                               i
+         &                                                                                              i
 
     allocate(names(self%elementCount(elementType,time)))
     if (elementType /= elementTypeDouble) return
@@ -615,8 +615,8 @@ contains
              unitsInSI(offset+1:offset+countChild)=unitsChild
              offset                               =offset+countChild
           end if
-          unitsInSI(offset+1:offset+countChild)=unitsChild
-          offset                               =offset+countChild
+          unitsInSI   (offset+1:offset+countChild)=unitsChild
+          offset                                  =offset+countChild
        end if
        ! Remember the units of the first child. The summed property carries them, and can not read them back from an
        ! emitted property: where only the sum is emitted, there is no earlier property to read.
@@ -648,9 +648,9 @@ contains
     type            (multiExtractorList                  ), pointer                     :: extractor_
     integer                                                                             :: offset     , countChild, &
          &                                                                                 i
-
     type            (unitType                            )                              :: unitsSum
     logical                                                                             :: unitsSumSet
+
     allocate(units(self%elementCount(elementType,time)))
     if (elementType /= elementTypeDouble) return
     offset      =  0
@@ -695,7 +695,6 @@ contains
        units(offset)=unitsSum
     end if
     return
-
   end function dustAttenuationUnits
 
   function dustAttenuationRanks(self,elementType,time) result(ranks)
@@ -731,8 +730,8 @@ contains
              ranks(offset+1:offset+countChild)=rankChild
              offset                           =offset+countChild
           end if
-          ranks(offset+1:offset+countChild)=rankChild
-          offset                           =offset+countChild
+          ranks   (offset+1:offset+countChild)=rankChild
+          offset                              =offset+countChild
        end if
        extractor_ => extractor_%next
     end do
@@ -781,7 +780,7 @@ contains
     type            (doubleDictionary                    ), intent(inout) :: metaDataRank0
     type            (rank1DoubleDictionary               ), intent(inout) :: metaDataRank1
     type            (multiExtractorList                  ), pointer       :: extractor_
-    integer                                                               :: offset    , countChild
+    integer                                                               :: offset       , countChild
 
     if (elementType /= elementTypeDouble) return
     ! Where only the sum is emitted, there is no child property to describe.

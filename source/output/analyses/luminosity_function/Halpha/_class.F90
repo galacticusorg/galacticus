@@ -23,9 +23,9 @@
 Implements a luminosity function output analysis class.
 !!}
 
-  use :: Cosmology_Functions              , only : cosmologyFunctionsClass
-  use :: Geometry_Surveys                 , only : surveyGeometryClass
-  use :: Dust_Attenuations                , only : dustAttenuationClass
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: Geometry_Surveys   , only : surveyGeometryClass
+  use :: Dust_Attenuations  , only : dustAttenuationClass
 
   !![
   <outputAnalysis name="outputAnalysisLuminosityFunctionHalpha" docformat="rst">
@@ -39,11 +39,11 @@ Implements a luminosity function output analysis class.
      A luminosity function output analysis class.
      !!}
      private
-     class           (surveyGeometryClass               ), pointer                   :: surveyGeometry_                => null()
-     class           (cosmologyFunctionsClass           ), pointer                   :: cosmologyFunctions_            => null(), cosmologyFunctionsData => null()
-     class           (dustAttenuationClass              ), pointer                   :: dustAttenuation_               => null()
-     class           (starFormationRateDisksClass       ), pointer                   :: starFormationRateDisks_        => null()
-     class           (starFormationRateSpheroidsClass   ), pointer                   :: starFormationRateSpheroids_    => null()
+     class           (surveyGeometryClass               ), pointer                   :: surveyGeometry_             => null()
+     class           (cosmologyFunctionsClass           ), pointer                   :: cosmologyFunctions_         => null(), cosmologyFunctionsData => null()
+     class           (dustAttenuationClass              ), pointer                   :: dustAttenuation_            => null()
+     class           (starFormationRateDisksClass       ), pointer                   :: starFormationRateDisks_     => null()
+     class           (starFormationRateSpheroidsClass   ), pointer                   :: starFormationRateSpheroids_ => null()
      double precision                                    , allocatable, dimension(:) :: luminosities
      logical                                                                         :: includeNitrogenII
    contains
@@ -201,7 +201,7 @@ contains
     <objectBuilder class="surveyGeometry"                     name="surveyGeometry_"                     source="parameters"            />
     <objectBuilder class="starFormationRateDisks"             name="starFormationRateDisks_"             source="parameters"            />
     <objectBuilder class="starFormationRateSpheroids"         name="starFormationRateSpheroids_"         source="parameters"            />
-    <objectBuilder class="dustAttenuation"                   name="dustAttenuation_"                    source="parameters"            />
+    <objectBuilder class="dustAttenuation"                    name="dustAttenuation_"                    source="parameters"            />
     <conditionalCall>
      <call>self=outputAnalysisLuminosityFunctionHalpha(label,comment,luminosities,includeNitrogenII,galacticFilter_,surveyGeometry_,dustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
      <argument name="targetLabel"              value="targetLabel"              parameterPresent="parameters"/>
@@ -513,12 +513,12 @@ contains
     type(outputAnalysisLuminosityFunctionHalpha), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%surveyGeometry_"               />
-    <objectDestructor name="self%dustAttenuation_"/>
-    <objectDestructor name="self%cosmologyFunctions_"           />
-    <objectDestructor name="self%cosmologyFunctionsData"        />
-    <objectDestructor name="self%starFormationRateDisks_"       />
-    <objectDestructor name="self%starFormationRateSpheroids_"   />
+    <objectDestructor name="self%surveyGeometry_"            />
+    <objectDestructor name="self%dustAttenuation_"           />
+    <objectDestructor name="self%cosmologyFunctions_"        />
+    <objectDestructor name="self%cosmologyFunctionsData"     />
+    <objectDestructor name="self%starFormationRateDisks_"    />
+    <objectDestructor name="self%starFormationRateSpheroids_"/>
     !!]
     return
   end subroutine luminosityFunctionHalphaDestructor

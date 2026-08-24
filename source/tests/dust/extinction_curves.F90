@@ -33,11 +33,11 @@ program Test_Dust_Extinction_Curves
   ``attenuationRelative`` returns, and the two were verified to agree to round-off at the time the values below were
   recorded. Pinning them here keeps that agreement enforced now that there is nothing left to compare against.
   !!}
-  use :: Display                          , only : displayVerbositySet                      , verbosityLevelStandard
-  use :: Dust_Extinction_Curves           , only : dustExtinctionCurveCalzetti2000          , dustExtinctionCurveCardelli1989          , dustExtinctionCurveGordon2003               , dustExtinctionCurveNoll2009              , &
-       &                                           dustExtinctionCurvePowerLaw              , dustExtinctionCurvePrevotBouchet         , dustExtinctionCurveWittGordon2000           , gordon2003SampleLMC                      , &
-       &                                           gordon2003SampleSMCBar                   , wavelengthVBand                          , wittGordon2000ModelMilkyWayShellTau3        , wittGordon2000ModelSMCShellTau3
-  use :: Unit_Tests                       , only : Assert                                   , Unit_Tests_Begin_Group                    , Unit_Tests_End_Group       , Unit_Tests_Finish
+  use :: Display                          , only : displayVerbositySet            , verbosityLevelStandard
+  use :: Dust_Extinction_Curves           , only : dustExtinctionCurveCalzetti2000, dustExtinctionCurveCardelli1989 , dustExtinctionCurveGordon2003       , dustExtinctionCurveNoll2009    , &
+       &                                           dustExtinctionCurvePowerLaw    , dustExtinctionCurvePrevotBouchet, dustExtinctionCurveWittGordon2000   , gordon2003SampleLMC            , &
+       &                                           gordon2003SampleSMCBar         , wavelengthVBand                 , wittGordon2000ModelMilkyWayShellTau3, wittGordon2000ModelSMCShellTau3
+  use :: Unit_Tests                       , only : Assert                         , Unit_Tests_Begin_Group          , Unit_Tests_End_Group                , Unit_Tests_Finish
   implicit none
   type            (dustExtinctionCurveCalzetti2000             )               :: curveCalzetti2000
   type            (dustExtinctionCurveCardelli1989             )               :: curveCardelli1989
