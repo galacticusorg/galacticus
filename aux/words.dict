@@ -271,6 +271,7 @@ Zeldovich
 Zhang
 Zhao
 Zwaan
+abscissae
 absorptions
 accrete
 accreted
@@ -453,6 +454,7 @@ gfortran
 grainedness
 grasil
 gridded
+gridding
 gsl
 gv
 gyr
@@ -483,6 +485,7 @@ infall
 infalling
 inhomogeneous
 initializer
+inlined
 inout
 inplane
 integrand
@@ -497,6 +500,7 @@ interdependencies
 interoperability
 interoperable
 interparticle
+interpolant
 interpolants
 interpolants
 interpolatable
@@ -544,6 +548,7 @@ memoize
 memoized
 memorylessness
 merchantability
+mergeability
 mergee
 mergees
 metadata
@@ -628,6 +633,7 @@ photoionization
 photoionizations
 photometric
 piecewise
+pointwise
 polycyclic
 polygamma
 polylogarithm
@@ -727,6 +733,7 @@ situ
 smtp
 soliton
 solitonic
+spacings
 sphericalization
 spheroid
 splashback
