@@ -301,6 +301,8 @@ arcminute
 arcminutes
 astrosylva
 asymptotes
+attenuator
+attenuators
 autocorrelation
 axion
 backtrace
@@ -362,6 +364,7 @@ cppcompiler
 cppflags
 cpus
 cryptographic
+cubature
 cumulate
 cumulates
 cumulation
@@ -402,6 +405,7 @@ digamma
 dilogarithm
 dilogarithms
 dima
+dimensionality
 dimensionful
 dimensionfull
 discretization
@@ -445,6 +449,7 @@ fortran
 forutils
 freefall
 functionalities
+functionClass
 galacticus
 galactocentric
 gas
@@ -549,6 +554,7 @@ memoized
 memorylessness
 merchantability
 mergeability
+mergeable
 mergee
 mergees
 metadata
@@ -571,6 +577,7 @@ mpiLaunch
 mpilaunch
 mpirun
 multi
+multilinear
 multinomial
 multistream
 nanometers
@@ -819,6 +826,7 @@ unlinking
 unmap
 unmapped
 unmerged
+unnegotiated
 unnormalized
 unoperators
 unoptimized

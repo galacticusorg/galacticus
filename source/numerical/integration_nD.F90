@@ -38,7 +38,7 @@ module Numerical_Integration_nD
   error estimate costs nothing extra.
 
   Regions are refined adaptively: the region of largest error estimate is repeatedly bisected, as the one-dimensional
-  integrators of :galacticus-mod:`Numerical_Integration2` bisect intervals, with two differences.
+  integrators of :ref:`Numerical_Integration2 <module-numerical_integration2>` bisect intervals, with two differences.
 
   #. A region is split along a single coordinate rather than into :math:`2^d` children. Splitting into :math:`2^d` children
      multiplies the region count by eight in three dimensions at every refinement, and spends effort in directions along which
@@ -131,7 +131,7 @@ contains
   function genzMalikNDConstructor(countDimensions,integrand,toleranceAbsolute,toleranceRelative,countEvaluationsMaximum) result(self)
     !!{RST
     Constructor for the :galacticus-class:`integratorGenzMalikND` class. ``countDimensions`` is the dimensionality of the integral,
-    which must be at least two---in one dimension the integrators of :galacticus-mod:`Numerical_Integration2` should be used
+    which must be at least two---in one dimension the integrators of :ref:`Numerical_Integration2 <module-numerical_integration2>` should be used
     instead. At least one of ``toleranceAbsolute`` and ``toleranceRelative`` must be given. ``countEvaluationsMaximum`` limits the number
     of integrand evaluations performed before the integration is abandoned.
     !!}
