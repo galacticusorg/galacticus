@@ -125,7 +125,7 @@ contains
     class           (dustAttenuationMixedSlab), intent(inout)                               :: self
     type            (treeNode                ), intent(inout), target                       :: node
     type            (emissionDescriptor      ), intent(in   ), dimension(:                ) :: descriptors
-    double precision                                    , intent(in   ), optional           :: inclination
+    double precision                          , intent(in   ), optional                     :: inclination
     double precision                                         , dimension(size(descriptors)) :: transmission
     ! Below this optical depth the series expansion of [1-exp(-τ)]/τ is used: the direct expression suffers
     ! cancellation as τ →, where both numerator and denominator vanish.

@@ -19,8 +19,6 @@
 
 !+    Contributions to this file made by: Andrew Benson, Claude.
 
-!+    Contributions to this file made by: Andrew Benson, Claude.
-
   !!{RST
   Implements a galactic inclination class deriving the inclination from the halo angular momentum vector.
   !!}
@@ -63,6 +61,15 @@
      each appearance strictly has its own line of sight. The lightcone crossing position is a single well-defined
      choice among these, and is used for every appearance; the alternative would require the replication instance to
      be threaded through every consumer of this class.
+
+     This option requires that the node be *at* its lightcone crossing time when the inclination is requested, which
+     is what :galacticus-class:`mergerTreeEvolveTimestepLightconeCrossing` arranges, and is the same condition that
+     :galacticus-class:`nodePropertyExtractorLightcone` relies upon. The interface documentation of
+     ``positionLightconeCrossing`` states that ``timeLightconeCrossing`` must have been called first; that is not the
+     case for :galacticus-class:`geometryLightconeSquare`, the only implementation which provides it, which instead
+     recomputes the replicant from the node's current time and reports an error naming the node if that time places
+     it nowhere on the lightcone. Calling ``timeLightconeCrossing`` here would therefore not make this any safer---it
+     does not change the node's time, which is the only input used---while costing a redundant search.
    </description>
   </galacticInclination>
   !!]
@@ -87,9 +94,9 @@
      A galactic inclination class deriving the inclination from the halo angular momentum vector.
      !!}
      private
-     class           (geometryLightconeClass                ), pointer                   :: geometryLightcone_ => null()
-     type            (enumerationSpinVectorLineOfSightType  )                            :: lineOfSight
-     double precision                                        , dimension(3)              :: direction
+     class           (geometryLightconeClass                ), pointer      :: geometryLightcone_ => null()
+     type            (enumerationSpinVectorLineOfSightType  )               :: lineOfSight
+     double precision                                        , dimension(3) :: direction
    contains
      final     ::                spinVectorDestructor
      procedure :: inclination => spinVectorInclination
@@ -110,8 +117,8 @@ contains
     Constructor for the :galacticus-class:`galacticInclinationSpinVector` galactic inclination class which takes a
     parameter set as input.
     !!}
-    use :: Input_Parameters   , only : inputParameter, inputParameters
-    use :: ISO_Varying_String  , only : char          , var_str
+    use :: Input_Parameters  , only : inputParameter, inputParameters
+    use :: ISO_Varying_String, only : char          , var_str
     implicit none
     type            (galacticInclinationSpinVector)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
@@ -164,28 +171,28 @@ contains
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
-    type            (galacticInclinationSpinVector       )                                  :: self
-    type            (enumerationSpinVectorLineOfSightType), intent(in   )                   :: lineOfSight
-    double precision                                      , intent(in   ) , dimension(3)    :: direction
-    class           (geometryLightconeClass              ), intent(in   ) , target, optional :: geometryLightcone_
-    double precision                                                                        :: directionNorm
+    type            (galacticInclinationSpinVector       )                                         :: self
+    type            (enumerationSpinVectorLineOfSightType), intent(in   )                          :: lineOfSight
+    double precision                                      , intent(in   ) , dimension(3)           :: direction
+    class           (geometryLightconeClass              ), intent(in   ) , target      , optional :: geometryLightcone_
+    double precision                                                                               :: directionNorm
     !![
     <constructorAssign variables="lineOfSight, direction, *geometryLightcone_"/>
     !!]
 
     ! The angular momentum vector is needed, so the spin component must track it.
-    if (.not.defaultSpinComponent%angularMomentumVectorIsGettable())                                                                     &
-         & call Error_Report(                                                                                                            &
+    if (.not.defaultSpinComponent%angularMomentumVectorIsGettable())                                                                      &
+         & call Error_Report(                                                                                                             &
          &                   'the `spinVector` galactic inclination requires the angular momentum vector, so the `spin` component must'// &
          &                   ' be set to `vector`'                                                                                     // &
-         &                   {introspection:location}                                                                                    &
+         &                   {introspection:location}                                                                                     &
          &                  )
     select case (self%lineOfSight%ID)
     case (spinVectorLineOfSightFixed    %ID)
        directionNorm=sqrt(sum(self%direction**2))
        if (directionNorm <= 0.0d0) call Error_Report('`direction` must be a non-zero vector'//{introspection:location})
        ! Store the direction normalized, so that the dot product below is a cosine directly.
-       self%direction=+self%direction  &
+       self%direction=+self%direction     &
             &         /     directionNorm
     case (spinVectorLineOfSightLightcone%ID)
        if (.not.associated(self%geometryLightcone_)) call Error_Report('a `geometryLightcone` is required when `lineOfSight` is `lightcone`'//{introspection:location})
@@ -218,7 +225,7 @@ contains
     class           (galacticInclinationSpinVector), intent(inout)         :: self
     type            (treeNode                     ), intent(inout), target :: node
     class           (nodeComponentSpin            ), pointer               :: spin
-    double precision                               , dimension(3)          :: angularMomentum, direction
+    double precision                               , dimension(3)          :: angularMomentum    , direction
     double precision                                                       :: normAngularMomentum, normDirection
 
     spin               => node%spin                 ()
@@ -248,19 +255,19 @@ contains
        direction=0.0d0
        call Error_Report('unrecognized `lineOfSight`'//{introspection:location})
     end select
-    ! Fold into [0,pi/2]: only the angle between the axis and the line of sight matters, not its sign. The argument
+    ! Fold into [0,π/2]: only the angle between the axis and the line of sight matters, not its sign. The argument
     ! is clamped as protection against a dot product exceeding unity through round-off.
-    inclination=+acos(                                     &
-         &            min(                                 &
-         &                +1.0d0                         , &
-         &                +abs(                            &
-         &                     +sum(                       &
-         &                          +angularMomentum       &
-         &                          *direction              &
-         &                         )                       &
-         &                     /normAngularMomentum         &
-         &                    )                            &
-         &               )                                 &
+    inclination=+acos(                                &
+         &            min(                            &
+         &                +1.0d0                    , &
+         &                +abs(                       &
+         &                     +sum(                  &
+         &                          +angularMomentum  &
+         &                          *direction        &
+         &                         )                  &
+         &                     /normAngularMomentum   &
+         &                    )                       &
+         &               )                            &
          &           )
     return
   end function spinVectorInclination

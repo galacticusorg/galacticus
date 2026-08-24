@@ -19,8 +19,6 @@
 
 !+    Contributions to this file made by: Andrew Benson, Claude.
 
-!+    Contributions to this file made by: Andrew Benson, Claude.
-
 !!{RST
 Contains a module which provides a class implementing the inclination of a galaxy to the line of sight.
 !!}
@@ -50,8 +48,7 @@ module Galactic_Inclinations
   * :galacticus-class:`galacticInclinationFixed` returns a single angle for every galaxy, for testing and for
     face-on/edge-on comparisons.
 
-  The angle is returned in radians. The tabulated atlases are in degrees, so a conversion has to happen somewhere;
-  radians are the natural unit for the class itself, and ``degreesToRadians`` is available for the tables.
+  The angle is returned in radians.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   implicit none

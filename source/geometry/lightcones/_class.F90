@@ -107,7 +107,9 @@ module Geometry_Lightcones
    </method>
    <method name="positionLightconeCrossing" >
     <description>
-    Returns the position of the node at the time of lightcone crossing---which must have been previously identified via the ``timeLightconeCrossing`` method. Components are Cartesian, in the order :math:`(x,y,z)`.
+    Returns the position of the node at the time of lightcone crossing. Components are Cartesian, in the order :math:`(x,y,z)`.
+
+    The node must be *at* its lightcone crossing time when this is called, which is what :galacticus-class:`mergerTreeEvolveTimestepLightconeCrossing` arranges. The replicant which is crossing is identified from the node's current time, so a node at any other time is not on the lightcone at all and an error is reported.
     </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
@@ -115,7 +117,9 @@ module Geometry_Lightcones
    </method>
    <method name="velocityLightconeCrossing" >
     <description>
-    Returns the velocity of the node at the time of lightcone crossing---which must have been previously identified via the ``timeLightconeCrossing`` method. Components are Cartesian, in the order :math:`(v_\mathrm{x},v_\mathrm{y},v_\mathrm{z})`.
+    Returns the velocity of the node at the time of lightcone crossing. Components are Cartesian, in the order :math:`(v_\mathrm{x},v_\mathrm{y},v_\mathrm{z})`.
+
+    As for ``positionLightconeCrossing``, the node must be at its lightcone crossing time when this is called.
     </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>

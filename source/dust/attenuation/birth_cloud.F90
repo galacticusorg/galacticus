@@ -149,7 +149,7 @@ contains
     class           (dustAttenuationBirthCloud), intent(inout)                                               :: self
     type            (treeNode                 ), intent(inout), target                                       :: node
     type            (emissionDescriptor       ), intent(in   ), dimension(:                                ) :: descriptors
-    double precision                                    , intent(in   ), optional                            :: inclination
+    double precision                           , intent(in   ), optional                                     :: inclination
     double precision                                          , dimension(size(descriptors)                ) :: transmission
     double precision                                          , dimension(componentTypeMin:componentTypeMax) :: depthOpticalV
     logical                                                   , dimension(componentTypeMin:componentTypeMax) :: computed

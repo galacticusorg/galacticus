@@ -19,8 +19,6 @@
 
 !+    Contributions to this file made by: Andrew Benson, Claude.
 
-!+    Contributions to this file made by: Andrew Benson, Claude.
-
   !!{RST
   Implements a galactic inclination class in which each galaxy is assigned a random orientation.
   !!}
@@ -40,8 +38,6 @@
    Drawing the angle at the point of use instead would fail all three: separate consumers would disagree, a galaxy
    would be differently oriented at each output, and consuming randoms during output would perturb every subsequent
    draw in the model.
-
-   This is the only implementation which costs storage---8 bytes per node---and it costs it only when used.
    </description>
   </galacticInclination>
   !!]

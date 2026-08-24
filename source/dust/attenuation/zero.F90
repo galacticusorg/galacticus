@@ -79,7 +79,7 @@ contains
     class           (dustAttenuationZero), intent(inout)                               :: self
     type            (treeNode           ), intent(inout), target                       :: node
     type            (emissionDescriptor ), intent(in   ), dimension(:                ) :: descriptors
-    double precision                                    , intent(in   ), optional      :: inclination
+    double precision                     , intent(in   ), optional                     :: inclination
     double precision                                    , dimension(size(descriptors)) :: transmission
     !$GLC attributes unused :: self, node, descriptors, inclination
 

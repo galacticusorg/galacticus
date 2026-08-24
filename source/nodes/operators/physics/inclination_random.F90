@@ -19,8 +19,6 @@
 
 !+    Contributions to this file made by: Andrew Benson, Claude.
 
-!+    Contributions to this file made by: Andrew Benson, Claude.
-
   !!{RST
   Implements a node operator which assigns each galaxy a random orientation.
   !!}

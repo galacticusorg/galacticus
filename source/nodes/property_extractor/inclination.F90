@@ -19,8 +19,6 @@
 
 !+    Contributions to this file made by: Andrew Benson, Claude.
 
-!+    Contributions to this file made by: Andrew Benson, Claude.
-
   !!{RST
   Implements a node property extractor for the inclination of a galaxy.
   !!}
@@ -46,12 +44,12 @@
      private
      class(galacticInclinationClass), pointer :: galacticInclination_ => null()
    contains
-     final     ::                 inclinationDestructor
-     procedure :: extract      => inclinationExtract
-     procedure :: name         => inclinationName
-     procedure :: description  => inclinationDescription
-     procedure :: unitsInSI    => inclinationUnitsInSI
-     procedure :: units        => inclinationUnits
+     final     ::                inclinationDestructor
+     procedure :: extract     => inclinationExtract
+     procedure :: name        => inclinationName
+     procedure :: description => inclinationDescription
+     procedure :: unitsInSI   => inclinationUnitsInSI
+     procedure :: units       => inclinationUnits
   end type nodePropertyExtractorInclination
 
   interface nodePropertyExtractorInclination
@@ -98,11 +96,11 @@ contains
     <constructorAssign variables="*galacticInclination_"/>
     !!]
 
-    if (.not.self%galacticInclination_%isAvailable())                                                                    &
-         & call Error_Report(                                                                                            &
-         &                   'no inclination is available to extract: set `galacticInclination` to a class which'      // &
-         &                   ' supplies one'                                                                           // &
-         &                   {introspection:location}                                                                    &
+    if (.not.self%galacticInclination_%isAvailable())                                                               &
+         & call Error_Report(                                                                                       &
+         &                   'no inclination is available to extract: set `galacticInclination` to a class which'// &
+         &                   ' supplies one'                                                                     // &
+         &                   {introspection:location}                                                               &
          &                  )
     return
   end function inclinationConstructorInternal
@@ -131,7 +129,7 @@ contains
     type (multiCounter                    ), intent(inout), optional :: instance
     !$GLC attributes unused :: instance
 
-    inclinationExtract=+self%galacticInclination_%inclination(node) &
+    inclinationExtract=+self%galacticInclination_%inclination     (node) &
          &             /                          degreesToRadians
     return
   end function inclinationExtract
