@@ -47,7 +47,7 @@
    and incorrect quantity.
 
    The integral is evaluated by Gauss-Legendre quadrature of order ``order``. Fixed-order quadrature is used in
-   preference to an adaptive rule because the integrand is smooth and bounded in :math:`[0,1]`, so it converges
+   preference to an adaptive rule because the integrand is smooth and bounded, so it converges
    quickly, and because the cost of the average multiplies the cost of every luminosity: a fixed order makes that
    cost predictable and puts it under the user's control. Order 8 is accurate to better than one part in
    :math:`10^{6}` for the attenuation curves of interest.

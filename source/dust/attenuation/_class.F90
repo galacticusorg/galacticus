@@ -29,8 +29,8 @@ module Dust_Attenuations
 
   A ``dustAttenuation`` object answers one question: of the light emitted by a given parcel of a given galaxy, what
   fraction escapes? It is handed a ``node`` and a list of ``emissionDescriptor`` parcels---each one
-  wavelength, one component, one source type, one age range---and returns a transmission factor in :math:`[0,1]` for
-  each.
+  wavelength, one component, one source type, one age range---and returns the fraction of that light which reaches an
+  observer.
 
   Two design points are worth stating explicitly.
 
@@ -75,9 +75,17 @@ module Dust_Attenuations
    <default>zero</default>
    <method name="transmission" >
     <description>
-    Return the fraction of the emission transmitted through dust, in the range :math:`[0,1]`, for each of the given
-    parcels of emission from the given ``node``. A value of unity indicates no attenuation. The result has one element
-    per element of ``descriptors``, in the same order.
+    Return the fraction of the emission transmitted through dust, for each of the given parcels of emission from the
+    given ``node``. A value of unity indicates no attenuation. The result has one element per element of
+    ``descriptors``, in the same order.
+
+    The value is non-negative, and is normally at most unity---but not necessarily. This is a *directional*
+    transmission, the fraction reaching an observer in one particular direction, and where dust scatters light it can
+    redirect more into that direction than it removes from it, leaving the galaxy brighter at that angle than it
+    would be with no dust at all. Radiative transfer calculations show this at low optical depth and low inclination:
+    the atlas of :cite:t:`ferrara_atlas_1999` exceeds unity by up to 3% there. Consumers must therefore not assume an
+    upper bound of one. Energy is still conserved, since what is gained along one line of sight is lost along
+    others---a constraint on the average over orientation, not on any single direction.
 
     ``inclination`` overrides the angle at which an orientation-dependent attenuator is evaluated, in radians. It is
     how :galacticus-class:`dustAttenuationInclinationAveraged` drives its quadrature: the wrapped attenuator is
