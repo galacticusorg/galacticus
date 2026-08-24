@@ -68,6 +68,30 @@ if differenceSum > 0.0:
 print(f"SUCCESS: outputSum equals the sum of the per-component attenuated luminosities exactly")
 
 # ---------------------------------------------------------------------------------------------------------------------
+# Averaging over orientation. Charlot & Fall (2000) does not depend on orientation, so averaging it over orientation
+# must return it unchanged -- which checks that the quadrature weights sum to unity, that the optional inclination
+# argument is threaded through to the wrapped attenuator, and that the decorator passes its decomposition request on.
+# ---------------------------------------------------------------------------------------------------------------------
+with h5py.File(outputPath, "r") as f:
+    nodes = f["Outputs/Output1/nodeData"]
+    try:
+        averaged = nodes["luminosityTotalAveraged:dustAttenuated:inclinationAveraged"][:]
+    except KeyError as e:
+        print(f"FAILED: expected inclination-averaged dataset missing from the output: {e}")
+        print(f"        available: {sorted(n for n in nodes.keys() if 'Averaged' in n)}")
+        sys.exit(0)
+
+emittingBand = total > 0.0
+if not emittingBand.any():
+    print("FAILED: no galaxy has a non-zero attenuated luminosity, so the average is not being tested")
+    sys.exit(0)
+worstAveraged = float(np.nanmax(np.abs(averaged[emittingBand] - total[emittingBand]) / total[emittingBand]))
+if worstAveraged > TOLERANCE:
+    print(f"FAILED: averaging an orientation-independent attenuator over orientation changed it by {worstAveraged:.3e}")
+    sys.exit(0)
+print(f"SUCCESS: averaging over orientation leaves an orientation-independent attenuator unchanged, to {worstAveraged:.3e}")
+
+# ---------------------------------------------------------------------------------------------------------------------
 # Spectral energy distributions. These check the decomposition machinery itself rather than agreement with a previous
 # implementation, since no previous implementation attenuated a spectrum.
 # ---------------------------------------------------------------------------------------------------------------------

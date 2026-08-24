@@ -988,6 +988,7 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="birthCloud"/>
           <xs:enumeration value="charlotFall2000"/>
+          <xs:enumeration value="inclinationAveraged"/>
           <xs:enumeration value="mixedSlab"/>
           <xs:enumeration value="screen"/>
           <xs:enumeration value="screenFixed"/>

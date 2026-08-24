@@ -339,6 +339,37 @@
   </stellarPopulationSpectraPostprocessorBuilder>
 
   <nodePropertyExtractor value="multi">
+    <!-- The same configuration wrapped in `inclinationAveraged`. Charlot & Fall does not depend on orientation, so
+         averaging over orientation must return it unchanged: this checks that the quadrature weights sum to unity,
+         that the optional inclination argument is threaded through, and that the decorator passes the wrapped
+         attenuator's decomposition request along unaltered. -->
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum          value="true"/>
+      <sumName            value="luminosityTotalAveraged"/>
+      <dustAttenuation value="inclinationAveraged">
+        <order value="8"/>
+        <dustAttenuation value="charlotFall2000">
+          <coefficientBirthCloud value="1.0e0" />
+          <coefficientISM        value="1.0e0" />
+          <timescale             value="1.0e-2"/>
+          <exponent              value="0.7e0" />
+          <wavelengthReference   value="5500.0"/>
+        </dustAttenuation>
+      </dustAttenuation>
+      <nodePropertyExtractor value="luminosityStellar">
+        <filterName        value="SDSS_r"        />
+        <filterType        value="rest"          />
+        <component         value="disk"          />
+        <postprocessChains value="default recent"/>
+      </nodePropertyExtractor>
+      <nodePropertyExtractor value="luminosityStellar">
+        <filterName        value="SDSS_r"        />
+        <filterType        value="rest"          />
+        <component         value="spheroid"      />
+        <postprocessChains value="default recent"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
     <nodePropertyExtractor value="dustAttenuation">
       <outputUnattenuated value="true"/>
       <outputSum          value="true"/>
