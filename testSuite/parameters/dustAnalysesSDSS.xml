@@ -341,6 +341,11 @@
   <!-- The SDSS color distribution and Montero-Dorta & Prada (2009) luminosity function analyses. Both apply the
        Charlot & Fall (2000) dust model through the framework, using observed-frame SDSS filters at a band redshift
        of 0.1. -->
+  <!-- These tests are about dust, not lensing. The default lensing model needs to construct magnification
+       distributions, which is slow and requires resources not present in every environment, so disable it as
+       the bundled constrained model does. -->
+  <gravitationalLensing value="null"/>
+
   <outputAnalysis value="multi">
     <outputAnalysis value="colorDistributionSDSS">
       <distributionNumber value="1"/>

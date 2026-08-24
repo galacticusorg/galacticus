@@ -21,6 +21,21 @@ import h5py
 import lxml.etree as etree
 import numpy as np
 
+
+def reportFailure(message, log):
+    """Print a failure together with the part of the model log which explains it.
+
+    The tail of a Galacticus log is the bottom of a backtrace, which says where the code was rather than what went
+    wrong. The message itself sits above that, so print from it where one can be found.
+    """
+    print(f"FAILED: {message}")
+    for marker in ("Fatal error", "FATAL", "Error occurred", "experienced a segfault"):
+        index = log.find(marker)
+        if index >= 0:
+            print(log[max(0, index - 500):index + 1500])
+            return
+    print(log[-2000:])
+
 parameterFile = "testSuite/parameters/luminosityFunctionHalpha.xml"
 analysisName  = "luminosityFunctionHalphaGunawardhana2013SDSS"
 
@@ -49,8 +64,7 @@ def run(label, dustAttenuation):
     status = subprocess.run(f"cd ..; ./Galacticus.exe testSuite/{parameterPath}", shell=True, capture_output=True)
     log = status.stdout.decode() + status.stderr.decode()
     if status.returncode != 0 or not os.path.exists(outputPath):
-        print(f"FAILED: the Halpha luminosity function model did not run with {label} dust")
-        print(log[-2000:])
+        reportFailure(f"the Halpha luminosity function model did not run with {label} dust", log)
         return None
 
     with h5py.File(outputPath, "r") as f:

@@ -24,6 +24,21 @@ import sys
 import h5py
 import numpy as np
 
+
+def reportFailure(message, log):
+    """Print a failure together with the part of the model log which explains it.
+
+    The tail of a Galacticus log is the bottom of a backtrace, which says where the code was rather than what went
+    wrong. The message itself sits above that, so print from it where one can be found.
+    """
+    print(f"FAILED: {message}")
+    for marker in ("Fatal error", "FATAL", "Error occurred", "experienced a segfault"):
+        index = log.find(marker)
+        if index >= 0:
+            print(log[max(0, index - 500):index + 1500])
+            return
+    print(log[-2000:])
+
 parameterFile = "testSuite/parameters/dustAnalysesSDSS.xml"
 outputFile    = "testSuite/outputs/dustAnalysesSDSS.hdf5"
 outputPath    = os.path.join("..", outputFile)
@@ -35,8 +50,7 @@ if os.path.exists(outputPath):
 status = subprocess.run(f"cd ..; ./Galacticus.exe {parameterFile}", shell=True, capture_output=True)
 log = status.stdout.decode() + status.stderr.decode()
 if status.returncode != 0 or not os.path.exists(outputPath):
-    print("FAILED: the SDSS dust analyses model did not run")
-    print(log[-2000:])
+    reportFailure("the SDSS dust analyses model did not run", log)
     sys.exit(0)
 
 with h5py.File(outputPath, "r") as f:

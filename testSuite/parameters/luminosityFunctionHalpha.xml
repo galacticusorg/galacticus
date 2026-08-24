@@ -336,6 +336,11 @@
   <!-- Halpha luminosity function analyses. The `dustAttenuation` object supplied here is what the analyses now use
        in place of the `depthOpticalISMCoefficient` they previously carried: `screenSurfaceDensityMetals` computes the
        same optical depth from the same surface density of metals. -->
+  <!-- These tests are about dust, not lensing. The default lensing model needs to construct magnification
+       distributions, which is slow and requires resources not present in every environment, so disable it as
+       the bundled constrained model does. -->
+  <gravitationalLensing value="null"/>
+
   <outputAnalysis value="multi">
     <outputAnalysis value="luminosityFunctionGunawardhana2013SDSS">
       <randomErrorMinimum                  value="+0.1"/>
