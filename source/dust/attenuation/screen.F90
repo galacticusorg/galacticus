@@ -99,7 +99,7 @@ contains
     return
   end function screenDepthOpticalV
 
-  function screenTransmission(self,node,descriptors) result(transmission)
+  function screenTransmission(self,node,descriptors,inclination) result(transmission)
     !!{RST
     Return the transmission through a uniform screen of dust.
 
@@ -112,10 +112,12 @@ contains
     class           (dustAttenuationScreen), intent(inout)                                               :: self
     type            (treeNode             ), intent(inout), target                                       :: node
     type            (emissionDescriptor   ), intent(in   ), dimension(:                                ) :: descriptors
+    double precision                                    , intent(in   ), optional                        :: inclination
     double precision                                      , dimension(size(descriptors)                ) :: transmission
     double precision                                      , dimension(componentTypeMin:componentTypeMax) :: depthOpticalV
     logical                                               , dimension(componentTypeMin:componentTypeMax) :: computed
     integer                                                                                              :: i            , indexComponent
+    !$GLC attributes unused :: inclination
 
     computed=.false.
     do i=1,size(descriptors)

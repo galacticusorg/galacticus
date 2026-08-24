@@ -143,22 +143,27 @@ contains
     return
   end subroutine sequenceDestructor
 
-  function sequenceTransmission(self,node,descriptors) result(transmission)
+  function sequenceTransmission(self,node,descriptors,inclination) result(transmission)
     !!{RST
     Return the product of the transmissions of each attenuator in the sequence.
+
+    Any ``inclination`` is passed on to each member, so that wrapping a sequence in
+    :galacticus-class:`dustAttenuationInclinationAveraged` averages the sequence as a whole---the product evaluated
+    at each orientation---rather than the product of separately averaged members, which is not the same thing.
     !!}
     implicit none
     class           (dustAttenuationSequence), intent(inout)                               :: self
     type            (treeNode               ), intent(inout), target                       :: node
     type            (emissionDescriptor     ), intent(in   ), dimension(:)                 :: descriptors
+    double precision                                        , intent(in   ), optional       :: inclination
     double precision                                        , dimension(size(descriptors)) :: transmission
     type            (dustAttenuationList    ), pointer                                     :: dustAttenuation_
 
     transmission     =  1.0d0
     dustAttenuation_ => self%dustAttenuations
     do while (associated(dustAttenuation_))
-       transmission     =  +transmission                                                     &
-            &              *dustAttenuation_%dustAttenuation_%transmission(node,descriptors)
+       transmission     =  +transmission                                                                 &
+            &              *dustAttenuation_%dustAttenuation_%transmission(node,descriptors,inclination)
        dustAttenuation_ =>  dustAttenuation_%next
     end do
     return

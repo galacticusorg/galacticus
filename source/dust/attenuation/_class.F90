@@ -78,11 +78,18 @@ module Dust_Attenuations
     Return the fraction of the emission transmitted through dust, in the range :math:`[0,1]`, for each of the given
     parcels of emission from the given ``node``. A value of unity indicates no attenuation. The result has one element
     per element of ``descriptors``, in the same order.
+
+    ``inclination`` overrides the angle at which an orientation-dependent attenuator is evaluated, in radians. It is
+    how :galacticus-class:`dustAttenuationInclinationAveraged` drives its quadrature: the wrapped attenuator is
+    asked for the transmission at each angle in turn, without any shared state being mutated, so the arrangement is
+    safe under threading. An implementation which does not depend on orientation ignores it; one which does falls
+    back to its own ``galacticInclination`` object when it is absent.
     </description>
     <type>double precision, dimension(size(descriptors))</type>
     <pass>yes</pass>
     <argument>type(treeNode          ), intent(inout), target       :: node       </argument>
     <argument>type(emissionDescriptor), intent(in   ), dimension(:) :: descriptors</argument>
+    <argument>double precision        , intent(in   ), optional     :: inclination</argument>
    </method>
    <method name="request" >
     <description>
