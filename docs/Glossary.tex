@@ -44,7 +44,17 @@
 
 \newglossaryentry{primary progenitor}{name={primary progenitor}, description={The progenitor of a given \gls{node} which is regarding as the direct descendant of that \gls{node} (often, but not always, the most massive progenitor). Other progenitors are considered to merge into this primary progenitor}}
 
-\newglossaryentry{parent}{name={parent}, description={In a merger tree, the parent node of any given node that exists at time $t_0$ is that node to which it is directly connected in the tree at time $t_1>t_0$}}
+\newglossaryentry{parent}{name={parent}, description={In a merger tree, the parent of a \gls{node} has one of two meanings, depending on whether that node is an \gls{isolatedHalo} or a \gls{satellite}. For an isolated node the parent is the node to which it is directly connected in the tree at time $t_1>t_0$, i.e. the node into which it descends at the next timestep. For a satellite node the parent is instead its \gls{host}}}
+
+\newglossaryentry{child}{name={child}, description={In a merger tree, the children of a \gls{node} are the nodes at the preceding timestep which merge to form it, i.e. its progenitors. They form a list, entered via the \mono{firstChild} pointer of the parent node and continued via the \gls{sibling} pointer of each child}}
+
+\newglossaryentry{sibling}{name={sibling}, description={In a merger tree, the sibling of a \gls{node} is the next node in the list to which that node belongs: for an \gls{isolatedHalo} it is the next \gls{child} of the same \gls{parent}, while for a \gls{satellite} it is the next satellite of the same \gls{host}}}
+
+\newglossaryentry{host}{name={host}, description={The \gls{node} within which a \gls{satellite} resides. A node which is not a satellite is considered to be its own host}}
+
+\newglossaryentry{satellite}{name={satellite}, description={A \gls{node} which has fallen into, and now orbits within, another node---also referred to as a subhalo. The galaxy which it contains is known as a satellite galaxy. A satellite may itself \gls{host} further satellites}}
+
+\newglossaryentry{isolatedHalo}{name={isolated halo}, description={A \gls{node} which is not contained within any other node---the counterpart of a \gls{satellite}. The galaxy which it contains is known as a central galaxy}}
 
 \newglossaryentry{Bernoulli distribution}{name={Bernoulli distribution}, description={A discrete probability distribution which takes value $1$ with success probability $p$ and value $0$ with failure probability $q = 1-p$. Read more on \href{http://en.wikipedia.org/wiki/Bernoulli_distribution}{Wikipedia}}}
 

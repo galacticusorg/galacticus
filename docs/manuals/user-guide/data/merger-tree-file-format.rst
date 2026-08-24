@@ -783,12 +783,35 @@ between nodes. Specifically, an isolated node’s descendant is known as
 its parent, while a satellite node’s host is also referred to as the
 parent. By default, Galacticus will output a ``parentIndex`` dataset,
 which therefore specifies either the descendant or host, depending on
-whether the node in question is isolated or not. To additionally output
-information which matches the use of “descendant” and “host” in these
-merger tree files, set both of the input parameters ``presetMergerNodes`` and ``presetMergerTimes`` to
-``true``. This will result in the output of two additional
-datasets, ``descendantIndex`` and ``hostIndex`` which
-correspond to the definitions used in the merger tree file.
+whether the node in question is isolated or not. These output conventions are
+described in detail in :doc:`../output-tree-structure`.
+
+To additionally output information which matches the use of “descendant” and
+“host” in these merger tree files, add the corresponding node property
+extractors to the ``nodePropertyExtractor`` parameter:
+
+.. code-block:: xml
+
+   <nodePropertyExtractor value="multi">
+     <nodePropertyExtractor value="nodeIndices"/>
+     <nodePropertyExtractor value="descendants"/>
+     <nodePropertyExtractor value="indicesHost"/>
+   </nodePropertyExtractor>
+
+This will result in the output of two additional datasets,
+``descendantIndex`` and ``hostIndex``. Two points are worth noting:
+
+* the output ``descendantIndex`` is *not* the same quantity as the
+  ``descendantIndex`` dataset in these merger tree files. In the file it is
+  the descendant at the next timestep *of the file*, while in the output it
+  is the node containing the galaxy at the next *output time*. For the output
+  ``descendantIndex`` to be reliable, information on which node a given node
+  will merge with (and when) must be available---for trees read from file
+  this requires that the ``presetMergerNodes`` and ``presetMergerTimes``
+  input parameters both be set to ``true``;
+* ``hostIndex`` requires no such presetting, and follows the same convention
+  as in these merger tree files: a node which is not a subhalo is its own
+  host, and so reports its own ``nodeIndex``.
 
 Forest Index Group
 ------------------

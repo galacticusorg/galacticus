@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a property extractor for basic node indices.
 !!}
@@ -24,22 +26,24 @@ Implements a property extractor for basic node indices.
   !![
   <nodePropertyExtractor name="nodePropertyExtractorNodeIndices" docformat="rst">
    <description>
-   A node property extract which extracts various indices related to the merger tree structure:
+   A node property extractor which extracts various indices describing the structure of the merger tree:
 
    ``nodeIndex``
       A unique\ [#]_ (within a tree) integer index identifying the node;
 
    ``parentIndex``
-      The index of this node's parent node (or :math:`-1` if it has no parent);
+      The index of this node's parent node. For an isolated halo (i.e. one for which ``nodeIsIsolated``\ :math:`=1`) this is the halo into which this halo grows at the next timestep of the merger tree, while for a subhalo (``nodeIsIsolated``\ :math:`=0`) it is the halo which hosts that subhalo. A value of :math:`-1` is returned if the node has no parent;
 
    ``siblingIndex``
-      The index of this node's sibling node (or :math:`-1` if it has no sibling);
+      The index of this node's sibling node. For an isolated halo this is the next halo sharing the same parent---i.e. the next halo with which this halo is merging---while for a subhalo it is the next subhalo hosted by the same halo. A value of :math:`-1` is returned if the node has no sibling;
 
    ``satelliteIndex``
-      The index of this node's first satellite node (or :math:`-1` if it has no satellites);
+      The index of this node's first satellite node, i.e. the first subhalo which this node hosts (or :math:`-1` if it hosts none). This has the same meaning irrespective of ``nodeIsIsolated``---a subhalo may itself host sub-subhalos;
 
    ``nodeIsIsolated``
       Will be :math:`0` for a node which is a subhalo inside some other node (i.e. a satellite galaxy) or :math:`1` for a node that is an isolated halo (i.e. a central galaxy).
+
+   The ``parentIndex``, ``siblingIndex``, and ``satelliteIndex`` properties therefore describe both the progenitor structure of the merger tree (for isolated halos) and the substructure hierarchy within a halo (for subhalos), with ``nodeIsIsolated`` determining which of the two applies to each node. These conventions, together with diagrams, a list of the alternative---and unambiguously named---index properties which can be output instead, and recipes for common analysis tasks, are described in `Merger Tree Structure in the Output &lt;https://galacticus.readthedocs.io/en/latest/manuals/user-guide/output-tree-structure.html&gt;`_.
 
    The ``nodeIndex`` property corresponds by default to the index of the node in the original merger tree. This means that as a galaxy evolves through the tree and, in particular, gets promoted into a new halo the index associated with a galaxy will change. This is useful to identify where the galaxy resides in the original (unevolved) tree structure, but does not allow galaxies to be traced from one output to the next using their ``nodeIndex`` value. By use of the node operator ``&lt;nodeOperator value="indexShift"/&gt;`` this behavior can be changed such that the value of ``nodeIndex`` will reflect the index of the earliest progenitor node along the main branch of the current node. As such, this index will remain the same for a given galaxy during its evolution. These two alternative algorithms for propagating node indices are illustrated in Figure :numref:`{number} &lt;fig-NodePromotionIndexAlgorithms&gt;`.
 
@@ -162,11 +166,11 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(descriptions(5))
-    descriptions(1)=var_str('Tree-unique ID for this node.')
-    descriptions(2)=var_str('ID of parent node.'           )
-    descriptions(3)=var_str('ID of sibling node.'          )
-    descriptions(4)=var_str('ID of first satellite node.'  )
-    descriptions(5)=var_str('Is the node isolated (0|1)?'  )
+    descriptions(1)=var_str('Index of this node - unique within its merger tree.'                                                                                                                                             )
+    descriptions(2)=var_str('Index of the parent of this node: for an isolated halo (nodeIsIsolated=1) the halo into which it grows at the next tree timestep, for a subhalo (nodeIsIsolated=0) its host halo, or -1 if none.')
+    descriptions(3)=var_str('Index of the sibling of this node: for an isolated halo the next halo sharing the same parent, for a subhalo the next subhalo in the same host, or -1 if none.'                                  )
+    descriptions(4)=var_str('Index of the first satellite node (i.e. subhalo) hosted by this node, or -1 if it hosts none.'                                                                                                   )
+    descriptions(5)=var_str('Is this node an isolated halo (1) or a subhalo (0)?'                                                                                                                                             )
     return
   end subroutine nodeIndicesDescriptions
 
