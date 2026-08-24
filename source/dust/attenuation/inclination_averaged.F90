@@ -64,7 +64,7 @@
      ! Abscissae in cos(i) and their weights, computed once at construction.
      double precision                      , allocatable, dimension(:) :: cosineInclination         , weight
    contains
-     final     ::                 inclinationAveragedDestructor
+     final     ::                      inclinationAveragedDestructor
      procedure :: transmission      => inclinationAveragedTransmission
      procedure :: request           => inclinationAveragedRequest
      procedure :: supportsComponent => inclinationAveragedSupportsComponent
@@ -155,16 +155,15 @@ contains
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    integer                       , intent(in   )                            :: order
-    double precision, allocatable , intent(inout), dimension(:)              :: abscissae, weights
-    double precision              , parameter                                :: toleranceRelative=1.0d-15
-    integer                       , parameter                                :: countIterationsMaximum=100
-    double precision                                                         :: root     , rootPrevious, &
-         &                                                                      legendre , legendreLower, &
-         &                                                                      legendreLowerLower      , &
-         &                                                                      derivative
-    integer                                                                  :: i        , j             , &
-         &                                                                      countIterations
+    integer                       , intent(in   )               :: order
+    double precision, allocatable , intent(inout), dimension(:) :: abscissae                     , weights
+    double precision              , parameter                   :: toleranceRelative     =1.0d-15
+    integer                       , parameter                   :: countIterationsMaximum=100
+    double precision                                            :: root                          , rootPrevious , &
+         &                                                         legendre                      , legendreLower, &
+         &                                                         legendreLowerLower            , derivative
+    integer                                                     :: i                             , j            , &
+         &                                                         countIterations
 
     if (allocated(abscissae)) deallocate(abscissae)
     if (allocated(weights  )) deallocate(weights  )
@@ -216,12 +215,12 @@ contains
 
     transmission=0.0d0
     do i=1,self%order
-       transmission=+transmission                                                    &
-            &       +self%weight(i)                                                  &
-            &       *self%dustAttenuation_%transmission(                             &
-            &                                           node                       , &
-            &                                           descriptors                , &
-            &                                           acos(self%cosineInclination(i)) &
+       transmission=+transmission                                                        &
+            &       +self%weight(i)                                                      &
+            &       *self%dustAttenuation_%transmission(                                 &
+            &                                           node                           , &
+            &                                           descriptors                    , &
+            &                                           acos(self%cosineInclination(i))  &
             &                                          )
     end do
     return
@@ -250,8 +249,8 @@ contains
     which parcels must be distinguished.
     !!}
     implicit none
-    type (decompositionRequest                 )                :: request
-    class(dustAttenuationInclinationAveraged   ), intent(inout) :: self
+    type (decompositionRequest              )                :: request
+    class(dustAttenuationInclinationAveraged), intent(inout) :: self
 
     request=self%dustAttenuation_%request()
     return
