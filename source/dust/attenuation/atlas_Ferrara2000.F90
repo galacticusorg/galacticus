@@ -356,29 +356,47 @@ contains
 
     :cite:t:`ferrara_atlas_1999` model spheroids as Jaffe profiles and tabulate against the spheroid effective
     radius. For a Jaffe profile the enclosed mass is :math:`M(r)/M = (r/r_0)/(1+r/r_0)`, so the half-mass radius is
-    exactly the scale radius :math:`r_0`; the tabulated axis is therefore a half-mass radius. A model galaxy's
-    spheroid will in general follow some other profile, so it is matched on that same physical radius rather than on
-    a scale radius, whose meaning differs between profiles.
+    exactly the scale radius :math:`r_0`, and the tabulated axis is therefore a half-mass radius.
+
+    A model galaxy's spheroid will in general follow some other profile, for which the scale radius is *not* the
+    half-mass radius---for a Hernquist profile the latter is :math:`(1+\sqrt{2})` times the former---so the
+    half-mass radius is taken from the stellar mass distribution of the spheroid rather than from its scale radius.
+    That is the radius which means the same thing whatever profile either side assumes, and matching on it is what
+    makes the atlas applicable to a spheroid it was not computed for.
+
+    The disk is measured by its scale radius, which is what :cite:t:`ferrara_atlas_1999` normalize to, and which is
+    what the disk component's radius already is for an exponential profile.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
+    use :: Error                     , only : Error_Report
+    use :: Galactic_Structure_Options, only : componentTypeSpheroid, massTypeStellar
+    use :: Galacticus_Nodes          , only : nodeComponentDisk
+    use :: Mass_Distributions        , only : massDistributionClass, massDistributionSpherical
     implicit none
     type            (treeNode             ), intent(inout), target  :: node
     class           (nodeComponentDisk    )               , pointer :: disk
-    class           (nodeComponentSpheroid)               , pointer :: spheroid
+    class           (massDistributionClass)               , pointer :: massDistributionSpheroid
     double precision                                                :: radiusDisk
 
-    disk       => node%disk    ()
-    spheroid   => node%spheroid()
-    radiusDisk =  disk%radius  ()
+    disk       => node%disk  ()
+    radiusDisk =  disk%radius()
+    ! With no disk there is no scale to measure the spheroid against, and no dust either, so the value is
+    ! immaterial: return zero, which the caller clamps into the tabulated range.
     if (radiusDisk <= 0.0d0) then
-       ! With no disk there is no scale to measure the spheroid against, and no dust either, so the value is
-       ! immaterial: return the smallest tabulated size.
        radiusSpheroid=0.0d0
        return
     end if
-    radiusSpheroid=+spheroid%radius    () &
-         &         /         radiusDisk
+    massDistributionSpheroid => node%massDistribution(componentTypeSpheroid,massTypeStellar)
+    select type (massDistributionSpheroid)
+    class is (massDistributionSpherical)
+       radiusSpheroid=+massDistributionSpheroid%radiusHalfMass() &
+            &         /                         radiusDisk
+    class default
+       radiusSpheroid=0.0d0
+       call Error_Report('a half-mass radius is needed for the spheroid, which requires a spherical mass distribution'//{introspection:location})
+    end select
+    !![
+    <objectDestructor name="massDistributionSpheroid"/>
+    !!]
     return
   end function atlasFerrara2000RadiusSpheroid
 
