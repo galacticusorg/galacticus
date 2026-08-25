@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787441815787,
+  "lastUpdate": 1787690004352,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 6keV resolutionX1)": [
@@ -3536,6 +3536,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 4.15456991344688,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "b97d472f50b1edaacce551b3f7058b6f29e8b1b6",
+          "message": "fix(ci): drop the erroneous `v` prefix from dependencyBot release links\n\nThe dependencyBot PR body linked to `.../releases/tag/v<latest>`, but\ndepup already reports the tag verbatim (e.g. `2.0.3` for CAMB, whose\ntags carry no `v`), so the generated link 404'd.",
+          "timestamp": "2026-08-25T07:28:30-07:00",
+          "tree_id": "1f5a6e61d7f08ac345b18c6a689739ea90663611",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b97d472f50b1edaacce551b3f7058b6f29e8b1b6"
+        },
+        "date": 1787690003050,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": -0.41147537099590337,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": -1.014603102859457,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 4.179729745733049,
             "unit": "-logℒ"
           }
         ]
