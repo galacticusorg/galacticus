@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787441983298,
+  "lastUpdate": 1787690199345,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (COZMIC)": [
@@ -807,6 +807,55 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/0ab8e753dde81ca158c013508a9f49681f00bd41"
         },
         "date": 1787441982042,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay FDM:25.9e-22eV resolutionX8 z=0.000",
+            "value": 91.59983854550022,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay IDM:1e-4GeV:envelope resolutionX8 z=0.000",
+            "value": 62.190932920590555,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV resolutionX8 z=0.000",
+            "value": 61.20524229923957,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV:bumpCutoff resolutionX8 z=0.000",
+            "value": 103.88672474939503,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV:f0.6 resolutionX8 z=0.000",
+            "value": 74.5820936027859,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "b97d472f50b1edaacce551b3f7058b6f29e8b1b6",
+          "message": "fix(ci): drop the erroneous `v` prefix from dependencyBot release links\n\nThe dependencyBot PR body linked to `.../releases/tag/v<latest>`, but\ndepup already reports the tag verbatim (e.g. `2.0.3` for CAMB, whose\ntags carry no `v`), so the generated link 404'd.",
+          "timestamp": "2026-08-25T07:28:30-07:00",
+          "tree_id": "1f5a6e61d7f08ac345b18c6a689739ea90663611",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b97d472f50b1edaacce551b3f7058b6f29e8b1b6"
+        },
+        "date": 1787690198162,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
