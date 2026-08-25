@@ -42,6 +42,10 @@ module Numerical_Interpolation_MultiD
   array, where :math:`n_d` is the number of abscissae along dimension :math:`d`. A contiguous rank-\ :math:`N` array
   whose shape matches that returned by the ``shapeTable`` method may therefore be passed directly to the
   ``interpolate`` method.
+
+  Where the factors along each dimension are shared between several tables, or are unchanged between successive
+  interpolations, they may be found once with the ``factors`` method and then passed to the ``cornersFactors`` and
+  ``interpolateFactors`` methods, so that the bracketing search along each dimension is not repeated.
   !!}
   use, intrinsic :: ISO_C_Binding          , only : c_size_t
   use            :: Numerical_Interpolation, only : interpolator
@@ -66,22 +70,26 @@ module Numerical_Interpolation_MultiD
    contains
      !![
      <methods docformat="rst">
-       <method method="countDimensions" description="Return the number of dimensions of the interpolator."                  />
-       <method method="countCorners"    description="Return the number of corners of the interpolating hypercube, i.e. 2^N."/>
-       <method method="countTable"      description="Return the total number of entries in the flattened table."            />
-       <method method="shapeTable"      description="Return the number of abscissae along each dimension."                  />
-       <method method="factors"         description="Return the bracketing index and linear weights along each dimension."  />
-       <method method="corners"         description="Return the flattened index of, and weight for, each hypercube corner." />
-       <method method="interpolate"     description="Interpolate in a flattened table of values at the given coordinates."  />
+       <method method="countDimensions"    description="Return the number of dimensions of the interpolator."                  />
+       <method method="countCorners"       description="Return the number of corners of the interpolating hypercube, i.e. 2^N."/>
+       <method method="countTable"         description="Return the total number of entries in the flattened table."            />
+       <method method="shapeTable"         description="Return the number of abscissae along each dimension."                  />
+       <method method="factors"            description="Return the bracketing index and linear weights along each dimension."  />
+       <method method="corners"            description="Return the flattened index of, and weight for, each hypercube corner." />
+       <method method="cornersFactors"     description="As ``corners``, but from factors which have already been found."       />
+       <method method="interpolate"        description="Interpolate in a flattened table of values at the given coordinates."  />
+       <method method="interpolateFactors" description="As ``interpolate``, but from factors which have already been found."   />
      </methods>
      !!]
-     procedure :: countDimensions => interpolatorMultiDCountDimensions
-     procedure :: countCorners    => interpolatorMultiDCountCorners
-     procedure :: countTable      => interpolatorMultiDCountTable
-     procedure :: shapeTable      => interpolatorMultiDShapeTable
-     procedure :: factors         => interpolatorMultiDFactors
-     procedure :: corners         => interpolatorMultiDCorners
-     procedure :: interpolate     => interpolatorMultiDInterpolate
+     procedure :: countDimensions    => interpolatorMultiDCountDimensions
+     procedure :: countCorners       => interpolatorMultiDCountCorners
+     procedure :: countTable         => interpolatorMultiDCountTable
+     procedure :: shapeTable         => interpolatorMultiDShapeTable
+     procedure :: factors            => interpolatorMultiDFactors
+     procedure :: corners            => interpolatorMultiDCorners
+     procedure :: cornersFactors     => interpolatorMultiDCornersFactors
+     procedure :: interpolate        => interpolatorMultiDInterpolate
+     procedure :: interpolateFactors => interpolatorMultiDInterpolateFactors
   end type interpolatorMultiD
 
   interface interpolatorMultiD
@@ -211,7 +219,6 @@ contains
 
     ``indices`` and ``weights`` must each be of size ``countCorners()``.
     !!}
-    use :: Error, only : Error_Report
     implicit none
     class           (interpolatorMultiD), intent(inout)                        :: self
     double precision                    , intent(in   ), dimension(:)          :: x
@@ -219,12 +226,33 @@ contains
     double precision                    , intent(  out), dimension(:)          :: weights
     integer         (c_size_t          ), dimension(    self%countDimensions_) :: indicesDimension
     double precision                    , dimension(0:1,self%countDimensions_) :: weightsDimension
-    integer                                                                    :: corner          , i, &
-         &                                                                        offset
 
-    if (size(indices) /= self%countCorners_ .or. size(weights) /= self%countCorners_)   &
+    call self%factors       (x,indicesDimension,weightsDimension                )
+    call self%cornersFactors(  indicesDimension,weightsDimension,indices,weights)
+    return
+  end subroutine interpolatorMultiDCorners
+
+  subroutine interpolatorMultiDCornersFactors(self,indicesDimension,weightsDimension,indices,weights)
+    !!{RST
+    As ``corners``, but taking the per-dimension bracketing indices and linear weights which have already been found by
+    the ``factors`` method, in place of the coordinates themselves.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (interpolatorMultiD), intent(in   )                  :: self
+    integer         (c_size_t          ), intent(in   ), dimension(:   ) :: indicesDimension
+    double precision                    , intent(in   ), dimension(0:,:) :: weightsDimension
+    integer         (c_size_t          ), intent(  out), dimension(:   ) :: indices
+    double precision                    , intent(  out), dimension(:   ) :: weights
+    integer                                                              :: corner          , i, &
+         &                                                                  offset
+
+    if (size(indicesDimension) /= self%countDimensions_)                                              &
+         & call Error_Report('index array has wrong size'   //{introspection:location})
+    if (size(weightsDimension,dim=2) /= self%countDimensions_ .or. size(weightsDimension,dim=1) /= 2) &
+         & call Error_Report('weight array has wrong shape' //{introspection:location})
+    if (size(indices) /= self%countCorners_ .or. size(weights) /= self%countCorners_)                 &
          & call Error_Report('corner arrays have wrong size'//{introspection:location})
-    call self%factors(x,indicesDimension,weightsDimension)
     ! Enumerate the corners of the hypercube. Bit `i-1` of the corner number selects the lower (0) or upper (1)
     ! abscissa along dimension `i`.
     do corner=0,self%countCorners_-1
@@ -244,7 +272,7 @@ contains
        end do
     end do
     return
-  end subroutine interpolatorMultiDCorners
+  end subroutine interpolatorMultiDCornersFactors
 
   double precision function interpolatorMultiDInterpolate(self,values,x) result(y)
     !!{RST
@@ -253,21 +281,62 @@ contains
     ``shapeTable`` method may be passed directly.
     !!}
     implicit none
-    class           (interpolatorMultiD), intent(inout)                 :: self
-    double precision                    , intent(in   ), dimension(*)   :: values
-    double precision                    , intent(in   ), dimension(:)   :: x
-    integer         (c_size_t          ), dimension(self%countCorners_) :: indices
-    double precision                    , dimension(self%countCorners_) :: weights
-    integer                                                             :: corner
+    class           (interpolatorMultiD), intent(inout)                        :: self
+    double precision                    , intent(in   ), dimension(*)          :: values
+    double precision                    , intent(in   ), dimension(:)          :: x
+    integer         (c_size_t          ), dimension(    self%countDimensions_) :: indicesDimension
+    double precision                    , dimension(0:1,self%countDimensions_) :: weightsDimension
 
-    call self%corners(x,indices,weights)
-    y=0.0d0
-    do corner=1,self%countCorners_
-       y   =+y                        &
-         &  +weights(        corner ) &
-         &  *values (indices(corner))
-    end do
+    call self%factors(x,indicesDimension,weightsDimension)
+    y=self%interpolateFactors(values,indicesDimension,weightsDimension)
     return
   end function interpolatorMultiDInterpolate
+
+  double precision function interpolatorMultiDInterpolateFactors(self,values,indicesDimension,weightsDimension) result(y)
+    !!{RST
+    As ``interpolate``, but taking the per-dimension bracketing indices and linear weights which have already been found
+    by the ``factors`` method, in place of the coordinates themselves.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (interpolatorMultiD), intent(in   )                  :: self
+    double precision                    , intent(in   ), dimension(*   ) :: values
+    integer         (c_size_t          ), intent(in   ), dimension(:   ) :: indicesDimension
+    double precision                    , intent(in   ), dimension(0:,:) :: weightsDimension
+    integer         (c_size_t          )                                 :: index_
+    double precision                                                     :: value_
+    integer                                                              :: corner          , i
+
+    if (size(indicesDimension) /= self%countDimensions_)                                              &
+         & call Error_Report('index array has wrong size'  //{introspection:location})
+    if (size(weightsDimension,dim=2) /= self%countDimensions_ .or. size(weightsDimension,dim=1) /= 2) &
+         & call Error_Report('weight array has wrong shape'//{introspection:location})
+    ! Sum over the corners of the hypercube. Bit `i-1` of the corner number selects the lower (0) or upper (1) abscissa
+    ! along dimension `i`. The weights are applied to the tabulated value one dimension at a time, rather than being
+    ! multiplied out into a single weight per corner and applied to the value at the end. That saves a multiply per
+    ! corner, and forms each term in the same order as a corner sum written out by hand as nested loops over the
+    ! dimensions---so a hand-rolled sum converted to use this class gives bit-identical results.
+    y=0.0d0
+    do corner=0,self%countCorners_-1
+       ! Locate this corner in the flattened table.
+       index_=1_c_size_t
+       do i=1,self%countDimensions_
+          index_=+index_                                   &
+               & +(                                        &
+               &   +indicesDimension(i)                    &
+               &   +int(ibits(corner,i-1,1),kind=c_size_t) &
+               &   -1_c_size_t                             &
+               &  )                                        &
+               & *self%stride       (i)
+       end do
+       ! Accumulate the tabulated value at this corner, weighted along each dimension in turn.
+       value_=values(index_)
+       do i=1,self%countDimensions_
+          value_=value_*weightsDimension(ibits(corner,i-1,1),i)
+       end do
+       y=y+value_
+    end do
+    return
+  end function interpolatorMultiDInterpolateFactors
 
 end module Numerical_Interpolation_MultiD
