@@ -96,8 +96,8 @@ module Numerical_Interpolation_MultiD
        <method method="gslReallocate"      description="Reallocate the GSL objects held along each dimension."                 />
      </methods>
      !!]
-     procedure ::                           interpolatorMultiDAssign
-     generic   :: assignment(=)          => interpolatorMultiDAssign
+     procedure ::                       interpolatorMultiDAssign
+     generic   :: assignment(=)      => interpolatorMultiDAssign
      procedure :: countDimensions    => interpolatorMultiDCountDimensions
      procedure :: countCorners       => interpolatorMultiDCountCorners
      procedure :: countTable         => interpolatorMultiDCountTable
@@ -351,11 +351,11 @@ contains
     ``shapeTable`` method may be passed directly.
     !!}
     implicit none
-    class           (interpolatorMultiD), intent(inout)                        :: self
-    double precision                    , intent(in   ), dimension(*)          :: values
-    double precision                    , intent(in   ), dimension(:)          :: x
-    integer         (c_size_t          ), dimension(    self%countDimensions_) :: indicesDimension
-    double precision                    , dimension(0:1,self%countDimensions_) :: weightsDimension
+    class           (interpolatorMultiD), intent(inout)                                       :: self
+    double precision                    , intent(in   ), dimension(*                        ) :: values
+    double precision                    , intent(in   ), dimension(:                        ) :: x
+    integer         (c_size_t          )               , dimension(    self%countDimensions_) :: indicesDimension
+    double precision                                   , dimension(0:1,self%countDimensions_) :: weightsDimension
 
     call self%factors(x,indicesDimension,weightsDimension)
     y=self%interpolateFactors(values,indicesDimension,weightsDimension)

@@ -38,7 +38,7 @@ program Test_Interpolation_MultiD
   use            :: Numerical_Interpolation_MultiD, only : interpolatorMultiD
   use            :: Unit_Tests                    , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  type            (interpolatorMultiD)                             :: interpolator2_                          , interpolator3_, &
+  type            (interpolatorMultiD)                             :: interpolator2_                          , interpolator3_     , &
        &                                                              interpolator4_                          , interpolatorScoped_
   type            (interpolator      ), dimension(2)               :: interpolators2
   type            (interpolator      ), dimension(3)               :: interpolators3
@@ -64,9 +64,9 @@ program Test_Interpolation_MultiD
   double precision                    , dimension(0:1,4)           :: weightsDimension
   integer         (c_size_t          ), dimension(16)              :: indices4                                , indicesFactors
   double precision                    , dimension(16)              :: weights4                                , weightsFactors
-  integer                                                          :: i                                       , j             , &
-       &                                                              k                                       , l             , &
-       &                                                              j1                                      , j2            , &
+  integer                                                          :: i                                       , j                  , &
+       &                                                              k                                       , l                  , &
+       &                                                              j1                                      , j2                 , &
        &                                                              j3                                      , j4
   double precision                                                 :: y                                       , yReference
 
@@ -180,9 +180,9 @@ program Test_Interpolation_MultiD
      do j=1,size(z2)
         do k=1,size(z3)
            do l=1,size(z4)
-              values4(i,j,k,l)=+dble(i      )**3       &
-                   &           -dble(  j    )**2       &
-                   &           +dble(    k*l)          &
+              values4(i,j,k,l)=+dble(i      )**3    &
+                   &           -dble(  j    )**2    &
+                   &           +dble(    k*l)       &
                    &           +dble(i*j*k*l)/7.0d0
            end do
         end do

@@ -1551,9 +1551,9 @@ contains
     use :: Numerical_Ranges  , only : gridSchemePerDecade
     use :: Table_Caches      , only : Table_Cache_Lattice_Read
     implicit none
-    class  (virialOrbitLossCone), intent(inout) :: self
-    type   (lockDescriptor     )                :: fileLock
-    type   (rangeLattice       )                :: latticeCached
+    class(virialOrbitLossCone), intent(inout) :: self
+    type (lockDescriptor     )                :: fileLock
+    type (rangeLattice       )                :: latticeCached
 
     if (.not.self%fileRead.and.File_Exists(self%fileName)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
@@ -1585,20 +1585,20 @@ contains
          ! Open read-only: opening read-write would have HDF5 take an exclusive lock on the file, so that another process
          ! reading it concurrently---which the shared file lock taken above explicitly permits---would fail to open it at all.
          file=hdf5File(self%fileName,overWrite=.false.,readOnly=.true.)
-         call file%readAttribute('time'                                ,     self%time                                )
+         call file%readAttribute('time'                                ,self%time                                )
          ! Recover the lattice on which the stored tabulation was built. One which the file does not record, or which this
          ! object would not have built, is returned undefined and so rejected below.
          call Table_Cache_Lattice_Read(file,'mass',gridSchemePerDecade,self%countMassesPerDecade,latticeCached)
-         call file%readDataset  ('mass'                                ,     self%mass                                )
-         call file%readDataset  ('velocityRadialMeanVirial'            ,     self%velocityRadialMeanVirial            )
-         call file%readDataset  ('velocityRadialDispersionVirial'      ,     self%velocityRadialDispersionVirial      )
-         call file%readDataset  ('velocityTangentialMeanVirial'        ,     self%velocityTangentialMeanVirial        )
-         call file%readDataset  ('velocityTangentialDispersionVirial'  ,     self%velocityTangentialDispersionVirial  )
-         call file%readDataset  ('velocityRadialDistributionOrbits'    ,     self%velocityRadialDistributionOrbits    )
-         call file%readDataset  ('velocityTangentialDistributionOrbits',     self%velocityTangentialDistributionOrbits)
-         call file%readDataset  ('velocityDistributionOrbits'          ,     self%velocityDistributionOrbits          )
-         call file%readDataset  ('velocityTotalRMS'                    ,     self%velocityTotalRMS                    )
-         call file%readDataset  ('velocityDistributionPeak'            ,     self%velocityDistributionPeak            )
+         call file%readDataset  ('mass'                                ,self%mass                                )
+         call file%readDataset  ('velocityRadialMeanVirial'            ,self%velocityRadialMeanVirial            )
+         call file%readDataset  ('velocityRadialDispersionVirial'      ,self%velocityRadialDispersionVirial      )
+         call file%readDataset  ('velocityTangentialMeanVirial'        ,self%velocityTangentialMeanVirial        )
+         call file%readDataset  ('velocityTangentialDispersionVirial'  ,self%velocityTangentialDispersionVirial  )
+         call file%readDataset  ('velocityRadialDistributionOrbits'    ,self%velocityRadialDistributionOrbits    )
+         call file%readDataset  ('velocityTangentialDistributionOrbits',self%velocityTangentialDistributionOrbits)
+         call file%readDataset  ('velocityDistributionOrbits'          ,self%velocityDistributionOrbits          )
+         call file%readDataset  ('velocityTotalRMS'                    ,self%velocityTotalRMS                    )
+         call file%readDataset  ('velocityDistributionPeak'            ,self%velocityDistributionPeak            )
        end block hdf5FileScope
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
