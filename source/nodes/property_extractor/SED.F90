@@ -66,6 +66,9 @@
           &                                                                                     factorWavelength                                , toleranceRelative
      integer                                                                                 :: abundanceIndex
      type            (enumerationFrameType                      )                            :: frame
+     ! Set once an age boundary requested by a dust model has been found to fall inside a star formation history bin,
+     ! so that the resulting warning is issued once per object rather than once per node.
+     logical                                                                                 :: warnedAgeBoundary                      =.false.
    contains
      !![
      <methods docformat="rst">
@@ -89,7 +92,9 @@
      procedure :: luminosityMean          => sedLuminosityMean
      procedure :: indexTemplateTime       => sedIndexTemplateTime
      procedure :: indexTemplateNode       => sedIndexTemplateNode
-     procedure :: units       => sEDUnits
+     procedure :: units                   => sedUnits
+     procedure :: supportsAttenuation     => sedSupportsAttenuation
+     procedure :: decompose               => sedDecompose
   end type nodePropertyExtractorSED
   
   interface nodePropertyExtractorSED
@@ -1150,3 +1155,180 @@ contains
     sedHistoryHashedDescriptor=Hash_MD5(descriptorString)
     return
   end function sedHistoryHashedDescriptor
+
+  logical function sedSupportsAttenuation(self) result(supportsAttenuation)
+    !!{RST
+    Return true: a spectral energy distribution can be decomposed for attenuation by dust.
+    !!}
+    implicit none
+    class(nodePropertyExtractorSED), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    supportsAttenuation=.true.
+    return
+  end function sedSupportsAttenuation
+
+  function sedDecompose(self,node,time,request) result(decomposition)
+    !!{RST
+    Decompose a spectral energy distribution into parcels of emission which may be attenuated separately.
+
+    The spectrum is built by convolving the star formation history with template spectra, giving a luminosity for
+    every combination of wavelength, star formation history time bin, and metallicity, which ``extract`` then sums.
+    Decomposition simply stops short of part of that sum: metallicity is always summed over---dust does not care about
+    the metallicity of the *stars*---and the time bins are retained only if the attenuator distinguishes populations by
+    age. An age-independent attenuator therefore receives one parcel per wavelength rather than one per (wavelength,
+    time) pair.
+
+    Each parcel spanning a single star formation history bin carries the true range of ages of the stars in it, which
+    is set by the binning of the history rather than by the dust model. Where an age boundary the attenuator asks for
+    falls strictly *inside* a bin, that bin can not be split here: the template has already been integrated over the
+    bin's whole time range, and splitting it exactly would require redoing that integration. Such a bin is passed
+    with its full age range, which attenuators treat as old---so birth cloud attenuation is not applied to it. This
+    under-attenuates young light, by an amount which shrinks as the history's time resolution is refined, and is
+    reported once per object so that it can not pass unnoticed.
+    !!}
+    use :: Display                       , only : displayMessage       , verbosityLevelWarn
+    use :: Dust_Attenuation_Descriptors  , only : emissionSourceStellar
+    use :: Galactic_Structure_Options    , only : componentTypeDisk    , componentTypeNuclearStarCluster, componentTypeSpheroid
+    use :: Galacticus_Nodes              , only : nodeComponentDisk    , nodeComponentNSC               , nodeComponentSpheroid
+    use :: Histories                     , only : history
+    use :: ISO_Varying_String            , only : operator(//)         , var_str
+    use :: Stellar_Luminosities_Structure, only : frameObserved        , frameRest
+    implicit none
+    type            (luminosityDecomposition )                                         :: decomposition
+    class           (nodePropertyExtractorSED), intent(inout)                , target  :: self
+    type            (treeNode                ), intent(inout)                , target  :: node
+    double precision                          , intent(in   )                          :: time
+    type            (decompositionRequest    ), intent(in   )                          :: request
+    class           (nodeComponentDisk       )                               , pointer :: disk
+    class           (nodeComponentSpheroid   )                               , pointer :: spheroid
+    class           (nodeComponentNSC        )                               , pointer :: nuclearStarCluster
+    double precision                          , dimension(:,:,:)             , pointer :: sedTemplate_
+    double precision                          , dimension(:,:,:), allocatable, target  :: sedTemplate
+    double precision                          , dimension(:,:  ), allocatable          :: masses
+    double precision                          , dimension(:    ), allocatable          :: times               , wavelengths_
+    type            (history                 )                                         :: starFormationHistory
+    integer         (c_size_t                )                                         :: countTemplates      , indexTemplate    , &
+         &                                                                                countWavelengths
+    integer                                                                            :: iWavelength         , iTime            , &
+         &                                                                                countTimes          , countParcels     , &
+         &                                                                                indexParcel         , i
+    double precision                                                                   :: timeStart           , timeBinMinimum   , &
+         &                                                                                timeBinMaximum      , ageMinimum       , &
+         &                                                                                ageMaximum          , expansionFactor  , &
+         &                                                                                wavelengthRest
+    logical                                                                            :: resolveAges         , boundaryInsideBin
+
+    countWavelengths=self%size(time)
+    ! Determine the rest-frame wavelength scaling. `wavelengths` reports observed-frame wavelengths when that frame is
+    ! selected, whereas dust acts in the rest frame of the emitting galaxy.
+    select case (self%frame%ID)
+    case (frameRest    %ID)
+       expansionFactor=1.0d0
+    case (frameObserved%ID)
+       expansionFactor=self%cosmologyFunctions_%expansionFactor(time)
+    case default
+       expansionFactor=1.0d0
+    end select
+    ! Get the relevant star formation history.
+    select case (self%component%ID)
+    case (componentTypeDisk              %ID)
+       disk                 => node              %disk                ()
+       starFormationHistory =  disk              %starFormationHistory()
+    case (componentTypeSpheroid          %ID)
+       spheroid             => node              %spheroid            ()
+       starFormationHistory =  spheroid          %starFormationHistory()
+    case (componentTypeNuclearStarCluster%ID)
+       nuclearStarCluster   => node              %NSC                 ()
+       starFormationHistory =  nuclearStarCluster%starFormationHistory()
+    end select
+    ! A component with no star formation history emits nothing, but must still report the shape of the output it would
+    ! have produced so that the attenuated result has the right size.
+    if (.not.starFormationHistory%exists()) then
+       call decomposition%initialize(0,int(countWavelengths)*self%elementCount(time))
+       return
+    end if
+    ! Get the template spectra, exactly as `extract` does.
+    indexTemplate=self%indexTemplateNode(node,starFormationHistory,countTemplates)
+    if (indexTemplate > 0) then
+       sedTemplate_ => self%templates(indexTemplate)%sed
+    else
+       sedTemplate  =  self%luminosityMean(time,node,indexTemplate,starFormationHistory)
+       sedTemplate_ => sedTemplate
+    end if
+    masses=self%starFormationHistory_%masses(node=node                          ,starFormationHistory=starFormationHistory,allowTruncation=.false.                    )
+    times =self%starFormationHistory_%times (node=node,indexOutput=indexTemplate,starFormationHistory=starFormationHistory,allowTruncation=.false.,timeStart=timeStart)
+    countTimes =size(masses,dim=1)
+    ! Fetch the wavelengths once: `wavelengths` rebuilds the whole array on each call.
+    wavelengths_=self%wavelengths(time)
+    resolveAges =request%countAgeBins() > 1
+    if (resolveAges) then
+       countParcels=int(countWavelengths)*countTimes
+    else
+       countParcels=int(countWavelengths)
+    end if
+    call decomposition%initialize(countParcels,int(countWavelengths)*self%elementCount(time))
+    ! Report, once, any age boundary which falls inside a star formation history bin and so can not be resolved here.
+    if (resolveAges .and. .not.self%warnedAgeBoundary) then
+       boundaryInsideBin=.false.
+       do iTime=1,countTimes
+          if (iTime == 1) then
+             timeBinMinimum=timeStart
+          else
+             timeBinMinimum=times(iTime-1)
+          end if
+          timeBinMaximum=min(times(iTime),time)
+          do i=1,request%countAgeBins()-1
+             if     (                                                &
+                  &   request%ageBoundaries(i) > time-timeBinMaximum &
+                  &  .and.                                           &
+                  &   request%ageBoundaries(i) < time-timeBinMinimum &
+                  & ) boundaryInsideBin=.true.
+          end do
+       end do
+       if (boundaryInsideBin) then
+          self%warnedAgeBoundary=.true.
+          call displayMessage(                                                                                       &
+               &              var_str('WARNING: the dust model splits stellar populations at an age which falls'  // &
+               &                      ' inside a star formation history bin. That bin can not be split here, and' // &
+               &                      ' is treated as old, so young light is under-attenuated. Refine the time'   // &
+               &                      ' resolution of the star formation history to reduce this.'                ) , &
+               &              verbosityLevelWarn                                                                     &
+               &             )
+       end if
+    end if
+    ! Build the parcels. Metallicity is always summed over: dust attenuation does not depend on the metallicity of the
+    ! stars whose light it absorbs.
+    indexParcel=0
+    do iWavelength=1,int(countWavelengths)
+       wavelengthRest=wavelengths_(iWavelength)*expansionFactor
+       if (resolveAges) then
+          do iTime=1,countTimes
+             if (iTime == 1) then
+                timeBinMinimum=timeStart
+             else
+                timeBinMinimum=times(iTime-1)
+             end if
+             timeBinMaximum=min(times(iTime),time)
+             ageMinimum    =max(time-timeBinMaximum,0.0d0)
+             ageMaximum    =max(time-timeBinMinimum,0.0d0)
+             indexParcel   =indexParcel+1
+             decomposition%luminosities(indexParcel)              =sum(sedTemplate_(iWavelength,iTime,:)*masses(iTime,:))
+             decomposition%elementIndex(indexParcel)              =iWavelength
+             decomposition%descriptors (indexParcel)%wavelength   =wavelengthRest
+             decomposition%descriptors (indexParcel)%componentType=self%component
+             decomposition%descriptors (indexParcel)%sourceType   =emissionSourceStellar
+             decomposition%descriptors (indexParcel)%ageMinimum   =ageMinimum
+             decomposition%descriptors (indexParcel)%ageMaximum   =ageMaximum
+          end do
+       else
+          indexParcel=indexParcel+1
+          decomposition%luminosities(indexParcel)              =sum(sedTemplate_(iWavelength,:,:)*masses(:,:))
+          decomposition%elementIndex(indexParcel)              =iWavelength
+          decomposition%descriptors (indexParcel)%wavelength   =wavelengthRest
+          decomposition%descriptors (indexParcel)%componentType=self%component
+          decomposition%descriptors (indexParcel)%sourceType   =emissionSourceStellar
+       end if
+    end do
+    return
+  end function sedDecompose

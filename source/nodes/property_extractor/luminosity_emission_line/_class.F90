@@ -99,7 +99,9 @@
      procedure :: luminosityMean          => emissionLineLuminosityMean
      procedure :: indexTemplateTime       => emissionLineLuminosityIndexTemplateTime
      procedure :: indexTemplateNode       => emissionLineLuminosityIndexTemplateNode 
-     procedure :: units       => luminosityEmissionLineUnits
+     procedure :: units                   => emissionLineLuminosityUnits
+     procedure :: supportsAttenuation     => emissionLineLuminositySupportsAttenuation
+     procedure :: decompose               => emissionLineLuminosityDecompose
   end type nodePropertyExtractorLuminosityEmissionLine
   
   interface nodePropertyExtractorLuminosityEmissionLine
@@ -1018,7 +1020,7 @@ contains
     return
   end function emissionLineLuminosityHistoryHashedDescriptor
 
-  function luminosityEmissionLineUnits(self,time) result(units)
+  function emissionLineLuminosityUnits(self,time) result(units)
     !!{RST
     Return the units of the luminosityEmissionLine properties.
     !!}
@@ -1036,4 +1038,110 @@ contains
        units(i)=unitType(siValues(i),description='ergs',quantity='erg')
     end do
     return
-  end function luminosityEmissionLineUnits
+  end function emissionLineLuminosityUnits
+
+  logical function emissionLineLuminositySupportsAttenuation(self) result(supportsAttenuation)
+    !!{RST
+    Return true: emission line luminosities can be decomposed for attenuation by dust.
+    !!}
+    implicit none
+    class(nodePropertyExtractorLuminosityEmissionLine), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    supportsAttenuation=.true.
+    return
+  end function emissionLineLuminositySupportsAttenuation
+
+  function emissionLineLuminosityDecompose(self,node,time,request) result(decomposition)
+    !!{RST
+    Decompose emission line luminosities into parcels of emission which may be attenuated separately.
+
+    One parcel is produced per line and per contributing component. Splitting by component matters even where this
+    extractor is configured to sum over components: dust attenuates each component differently, so a summed
+    luminosity could not otherwise be attenuated at all. The parcels of a given line all contribute to that line's
+    single output element, so summing over components still happens---but after attenuation rather than before.
+
+    Every parcel is marked as arising at zero age. Line emission comes from HII regions surrounding the young,
+    ionizing stellar population, which are by construction embedded in the clouds from which those stars formed, so
+    the whole of it is subject to birth cloud attenuation. This is the assumption of :cite:t:`charlot_simple_2000`,
+    and it makes the decomposition independent of how finely the attenuator resolves stellar age.
+
+    Note that the tabulated line luminosities may already include the effect of dust *within* the HII region,
+    depending on the dust-to-metals ratio of the tabulation used. Attenuation applied here is that of the dust
+    *outside* the region, and configuring a birth cloud component in addition risks counting the same dust twice.
+    !!}
+    use :: Dust_Attenuation_Descriptors, only : emissionSourceNebular
+    use :: Galactic_Structure_Options  , only : componentTypeDisk    , componentTypeSpheroid
+    use :: Galacticus_Nodes            , only : nodeComponentDisk    , nodeComponentSpheroid
+    use :: Histories                   , only : history
+    implicit none
+    type            (luminosityDecomposition                    )                                         :: decomposition
+    class           (nodePropertyExtractorLuminosityEmissionLine), intent(inout)                , target  :: self
+    type            (treeNode                                   ), intent(inout)                , target  :: node
+    double precision                                             , intent(in   )                          :: time
+    type            (decompositionRequest                       ), intent(in   )                          :: request
+    class           (nodeComponentDisk                          )                               , pointer :: disk
+    class           (nodeComponentSpheroid                      )                               , pointer :: spheroid
+    double precision                                             , dimension(:,:,:)             , pointer :: luminosityTemplate_
+    double precision                                             , dimension(:,:,:), allocatable, target  :: luminosityTemplate
+    double precision                                             , dimension(:,:  ), allocatable          :: masses
+    type            (history                                    )                                         :: starFormationHistory
+    type            (enumerationComponentTypeType               )                                         :: componentType
+    integer         (c_size_t                                   )                                         :: indexTemplate
+    integer                                                                                               :: i                   , iLine       , &
+         &                                                                                                   indexParcel         , countParcels
+    logical                                                      , dimension(2    )                       :: contributes
+    !$GLC attributes unused :: request
+
+    ! Establish which components contribute, so that the number of parcels is known before any is built.
+    contributes=.false.
+    do i=1,2
+       select case (i)
+       case (1)
+          if (self%component == componentTypeSpheroid) cycle
+          disk                 => node    %disk                ()
+          starFormationHistory =  disk    %starFormationHistory()
+       case (2)
+          if (self%component == componentTypeDisk    ) cycle
+          spheroid             => node    %spheroid            ()
+          starFormationHistory =  spheroid%starFormationHistory()
+       end select
+       contributes(i)=starFormationHistory%exists()
+    end do
+    countParcels=self%countLines*count(contributes)
+    call decomposition%initialize(countParcels,self%countLines)
+    if (countParcels == 0) return
+    indexParcel=0
+    do i=1,2
+       if (.not.contributes(i)) cycle
+       select case (i)
+       case (1)
+          componentType        =  componentTypeDisk
+          disk                 => node    %disk                ()
+          starFormationHistory =  disk    %starFormationHistory()
+       case (2)
+          componentType        =  componentTypeSpheroid
+          spheroid             => node    %spheroid            ()
+          starFormationHistory =  spheroid%starFormationHistory()
+       end select
+       indexTemplate=self%indexTemplateNode(node,starFormationHistory)
+       if (indexTemplate > 0) then
+          luminosityTemplate_ => self%templates(indexTemplate)%emissionLineLuminosity
+       else
+          luminosityTemplate  =  self%luminosityMean(time,node,indexTemplate,starFormationHistory,.false.)
+          luminosityTemplate_ => luminosityTemplate
+       end if
+       masses=self%starFormationHistory_%masses(node,starFormationHistory,allowTruncation=.false.)
+       do iLine=1,self%countLines
+          indexParcel=indexParcel+1
+          decomposition%luminosities(indexParcel)              =sum(luminosityTemplate_(iLine,:,:)*masses(:,:))
+          decomposition%elementIndex(indexParcel)              =iLine
+          decomposition%descriptors (indexParcel)%wavelength   =self%wavelengths(iLine)
+          decomposition%descriptors (indexParcel)%componentType=componentType
+          decomposition%descriptors (indexParcel)%sourceType   =emissionSourceNebular
+          decomposition%descriptors (indexParcel)%ageMinimum   =0.0d0
+          decomposition%descriptors (indexParcel)%ageMaximum   =0.0d0
+       end do
+    end do
+    return
+  end function emissionLineLuminosityDecompose

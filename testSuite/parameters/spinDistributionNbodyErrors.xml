@@ -11,6 +11,7 @@
      properties of the tabulation rather than particular spin distribution values. -->
 
 <parameters>
+  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
   <formatVersion>2</formatVersion>
 
   <!-- Component selection. The class builds a `treeNode` of its own while tabulating, and sets its basic,

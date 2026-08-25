@@ -2,15 +2,20 @@
 <!-- Regression test for the "lossCone" virial orbit class (issue #1321).                      -->
 
 <!-- This class deadlocked and could not be run at all. The defects were only reachable once a -->
+
 <!-- model actually drove a tabulation, so this test simply runs a small model which uses the  -->
+
 <!-- class, with the tabulation grid chosen (see below) to sample the degenerate cases which   -->
+
 <!-- must be special-cased.                                                                    -->
+
 <!-- Andrew Benson                                                                             -->
+
 <!-- 03-August-2026                                                                            -->
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="f62df0c3b1d868c052eedef79c20488955a738c9" time="2026-08-12T22:48:39"/>
+  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
 
 
   <!-- Component selection -->

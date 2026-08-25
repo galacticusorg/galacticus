@@ -25,25 +25,19 @@ Contains a program to test dust extinction curves.
 
 program Test_Dust_Extinction_Curves
   !!{RST
-  Tests the ``dustExtinctionCurve`` class against the ``stellarSpectraDustAttenuation`` implementations which it
-  replaces.
+  Tests the ``dustExtinctionCurve`` class.
 
-  The old class returned ``vBandAttenuation`` multiplied by the shape of the extinction curve, so with a unit
-  ``vBandAttenuation`` it returned exactly the quantity the new class returns from ``attenuationRelative``. Every
-  curve must therefore agree to round-off, which is what pins the ports as faithful.
+  Each curve is pinned to reference values recorded from the ``stellarSpectraDustAttenuation`` implementations it
+  replaces, taken immediately before those were retired. That class returned ``vBandAttenuation`` multiplied by the
+  shape of the extinction curve, so evaluated with a unit ``vBandAttenuation`` it returned exactly the quantity
+  ``attenuationRelative`` returns, and the two were verified to agree to round-off at the time the values below were
+  recorded. Pinning them here keeps that agreement enforced now that there is nothing left to compare against.
   !!}
-  use :: Display                          , only : displayVerbositySet                      , verbosityLevelStandard
-  use :: Dust_Extinction_Curves           , only : dustExtinctionCurveCalzetti2000          , dustExtinctionCurveCardelli1989          , dustExtinctionCurveGordon2003               , dustExtinctionCurveNoll2009              , &
-       &                                           dustExtinctionCurvePowerLaw              , dustExtinctionCurvePrevotBouchet         , dustExtinctionCurveWittGordon2000           , gordon2003SampleLMC                      , &
-       &                                           gordon2003SampleSMCBar                   , wavelengthVBand                          , wittGordon2000ModelMilkyWayShellTau3        , wittGordon2000ModelSMCShellTau3
-  ! Both modules declare enumerations of the same name for the Gordon et al. samples and the Witt & Gordon models --
-  ! they are distinct types in distinct modules. Rename the old module's on import so that each constructor is handed
-  ! the enumeration belonging to its own module. The collision disappears when the old class is retired.
-  use :: Stellar_Spectra_Dust_Attenuations, only : stellarSpectraDustAttenuationCalzetti2000   , stellarSpectraDustAttenuationCardelli1989          , stellarSpectraDustAttenuationCharlotFall2000, stellarSpectraDustAttenuationGordon2003, &
-       &                                           stellarSpectraDustAttenuationPrevotBouchet  , stellarSpectraDustAttenuationWittGordon2000        , &
-       &                                           oldGordon2003SampleSMCBar=>gordon2003SampleSMCBar                                                , oldGordon2003SampleLMC=>gordon2003SampleLMC , &
-       &                                           oldWittGordon2000ModelMilkyWay=>wittGordon2000ModelMilkyWayShellTau3                             , oldWittGordon2000ModelSMC=>wittGordon2000ModelSMCShellTau3
-  use :: Unit_Tests                       , only : Assert                                   , Unit_Tests_Begin_Group                    , Unit_Tests_End_Group       , Unit_Tests_Finish
+  use :: Display                          , only : displayVerbositySet            , verbosityLevelStandard
+  use :: Dust_Extinction_Curves           , only : dustExtinctionCurveCalzetti2000, dustExtinctionCurveCardelli1989 , dustExtinctionCurveGordon2003       , dustExtinctionCurveNoll2009    , &
+       &                                           dustExtinctionCurvePowerLaw    , dustExtinctionCurvePrevotBouchet, dustExtinctionCurveWittGordon2000   , gordon2003SampleLMC            , &
+       &                                           gordon2003SampleSMCBar         , wavelengthVBand                 , wittGordon2000ModelMilkyWayShellTau3, wittGordon2000ModelSMCShellTau3
+  use :: Unit_Tests                       , only : Assert                         , Unit_Tests_Begin_Group          , Unit_Tests_End_Group                , Unit_Tests_Finish
   implicit none
   type            (dustExtinctionCurveCalzetti2000             )               :: curveCalzetti2000
   type            (dustExtinctionCurveCardelli1989             )               :: curveCardelli1989
@@ -52,15 +46,53 @@ program Test_Dust_Extinction_Curves
   type            (dustExtinctionCurvePrevotBouchet            )               :: curvePrevotBouchet
   type            (dustExtinctionCurveWittGordon2000           )               :: curveWittGordon2000MW, curveWittGordon2000SMC
   type            (dustExtinctionCurveNoll2009                 )               :: curveNoll2009Plain   , curveNoll2009Bump
-  type            (stellarSpectraDustAttenuationCalzetti2000   )               :: oldCalzetti2000
-  type            (stellarSpectraDustAttenuationCardelli1989   )               :: oldCardelli1989
-  type            (stellarSpectraDustAttenuationCharlotFall2000)               :: oldCharlotFall2000
-  type            (stellarSpectraDustAttenuationGordon2003     )               :: oldGordon2003SMC     , oldGordon2003LMC
-  type            (stellarSpectraDustAttenuationPrevotBouchet  )               :: oldPrevotBouchet
-  type            (stellarSpectraDustAttenuationWittGordon2000 )               :: oldWittGordon2000MW  , oldWittGordon2000SMC
   ! Wavelengths spanning the ultraviolet to the near-infrared, in Angstroms, plus points outside the fitted ranges.
   double precision                                              , dimension(9) :: wavelengths      =[1.0d3,1.5d3,2.5d3,3.5d3,wavelengthVBand,7.0d3,1.0d4,2.0d4,3.0d4]
-  double precision                                                             :: new                  , old
+  ! Reference values of k(lambda)/k_V at each of those wavelengths, recorded from the `stellarSpectraDustAttenuation`
+  ! implementations these curves replaced. Values outside a curve's fitted range are whatever that curve does there --
+  ! zero for those which return no attenuation, and, where a tabulation is extrapolated, occasionally negative. Those
+  ! are pinned along with the rest so that any change in out-of-range behavior is noticed.
+  double precision                                              , dimension(9) :: referenceCalzetti2000     =[                          &
+       & 0.00000000000000000d+00, 2.55158181984453547d+00, 1.92966518518518471d+00, 1.52238635712486015d+00, &
+       & 9.98580621004780400d-01, 7.56234885361552034d-01, 4.63604197530864237d-01, 1.22201728395061743d-01, &
+       & 0.00000000000000000d+00                                                                             &
+       & ]
+  double precision                                              , dimension(9) :: referenceCardelli1989     =[                          &
+       & 0.00000000000000000d+00, 2.66387921471371580d+00, 2.31531710595831353d+00, 1.59162968321680975d+00, &
+       & 9.97887601751360376d-01, 7.50173391182706428d-01, 4.03999999999999915d-01, 1.32349733789694668d-01, &
+       & 6.88995118580363469d-02                                                                             &
+       & ]
+  double precision                                              , dimension(9) :: referencePowerLaw         =[                          &
+       & 3.29996029053773388d+00, 2.48453336083206944d+00, 1.73760360058940511d+00, 1.37297011079780140d+00, &
+       & 1.00000000000000000d+00, 8.45162240799131936d-01, 6.58428640860369674d-01, 4.05310371390765201d-01, &
+       & 3.05157350559360385d-01                                                                             &
+       & ]
+  double precision                                              , dimension(9) :: referenceGordon2003SMC    =[                          &
+       & 1.00595919268920291d+01, 4.81792727775525353d+00, 2.54692852318176799d+00, 1.74890399294187193d+00, &
+       & 1.00000000000000000d+00, 7.17174639798813462d-01, 3.31776122143060959d-01, 6.16548150057808705d-02, &
+       &-1.07380534166073002d-01                                                                             &
+       & ]
+  double precision                                              , dimension(9) :: referenceGordon2003LMC    =[                          &
+       & 4.12754168958747680d+00, 2.80424591812278790d+00, 2.27222496310502553d+00, 1.58102177627214791d+00, &
+       & 1.00000000000000000d+00, 7.16472268627521225d-01, 4.03367472592334519d-01, 7.65650387252765491d-02, &
+       &-9.57891610026187917d-02                                                                             &
+       & ]
+  double precision                                              , dimension(9) :: referencePrevotBouchet    =[                          &
+       & 9.27330585565893273d+00, 4.93187052997590403d+00, 2.67106808412647467d+00, 1.76987184474170056d+00, &
+       & 1.00000000000000000d+00, 7.09132865210911345d-01, 3.87923033387325311d-01, 7.81458358622943161d-02, &
+       & 1.30243059770491203d-02                                                                             &
+       & ]
+  double precision                                              , dimension(9) :: referenceWittGordon2000MW =[                          &
+       & 5.20294159232237874d+00, 2.65872856288425385d+00, 2.31247089873966738d+00, 1.60490016388932810d+00, &
+       & 1.00000000000000000d+00, 7.33475028664789752d-01, 4.03355436035962800d-01, 1.32391061531922011d-01, &
+       & 6.85421403837320614d-02                                                                             &
+       & ]
+  double precision                                              , dimension(9) :: referenceWittGordon2000SMC=[                          &
+       & 9.72433515012639837d+00, 4.85890663952229485d+00, 2.55658932074019596d+00, 1.74721034171619527d+00, &
+       & 1.00000000000000000d+00, 7.07366960114033327d-01, 3.92576870040343917d-01, 1.02144728098181620d-01, &
+       & 3.31737087535214983d-02                                                                             &
+       & ]
+  double precision                                                             :: new
   double precision                                                             :: excessBump           , excessWing
   integer                                                                      :: i
   character       (len=32                                      )               :: label
@@ -79,8 +111,8 @@ program Test_Dust_Extinction_Curves
   call Unit_Tests_Begin_Group("normalization in the V-band")
   curveCalzetti2000=dustExtinctionCurveCalzetti2000(     )
   curveCardelli1989=dustExtinctionCurveCardelli1989(3.1d0)
-  ! The reference wavelength is given explicitly: the curve is compared below against
-  ! `stellarSpectraDustAttenuationCharlotFall2000`, which normalizes at the Buser V effective wavelength.
+  ! The reference wavelength is given explicitly: the reference values below come from
+  ! `stellarSpectraDustAttenuationCharlotFall2000`, which normalized at the Buser V effective wavelength.
   curvePowerLaw    =dustExtinctionCurvePowerLaw    (0.7d0,wavelengthVBand)
   call Assert("calzetti2000",curveCalzetti2000%attenuationRelative(wavelengthVBand),1.0d0,relTol=3.0d-3)
   call Assert("cardelli1989",curveCardelli1989%attenuationRelative(wavelengthVBand),1.0d0,relTol=3.0d-3)
@@ -95,46 +127,28 @@ program Test_Dust_Extinction_Curves
   call Assert("wittGordon2000",curveWittGordon2000MW%attenuationRelative(wavelengthVBand),1.0d0,relTol=1.0d-12)
   call Unit_Tests_End_Group()
 
-  ! Each port must reproduce the class it replaces, evaluated with a unit V-band attenuation.
-  call Unit_Tests_Begin_Group("agreement with stellarSpectraDustAttenuation")
-  oldCalzetti2000   =stellarSpectraDustAttenuationCalzetti2000   (                        )
-  oldCardelli1989   =stellarSpectraDustAttenuationCardelli1989   (3.1d0                   )
-  ! The Charlot & Fall class is a power law in wavelength; with the birth cloud optical depth equal to zero and an age
-  ! beyond the birth cloud lifetime it reduces to the bare power-law curve.
-  oldCharlotFall2000=stellarSpectraDustAttenuationCharlotFall2000(0.7d0,1.0d-2,1.0d0,1.0d0)
-  curveGordon2003LMC    =dustExtinctionCurveGordon2003              (gordon2003SampleLMC            )
-  curveWittGordon2000SMC=dustExtinctionCurveWittGordon2000          (wittGordon2000ModelSMCShellTau3)
-  oldGordon2003SMC      =stellarSpectraDustAttenuationGordon2003    (oldGordon2003SampleSMCBar      )
-  oldGordon2003LMC      =stellarSpectraDustAttenuationGordon2003    (oldGordon2003SampleLMC         )
-  oldPrevotBouchet      =stellarSpectraDustAttenuationPrevotBouchet (2.7d0                          )
-  oldWittGordon2000MW   =stellarSpectraDustAttenuationWittGordon2000(oldWittGordon2000ModelMilkyWay )
-  oldWittGordon2000SMC  =stellarSpectraDustAttenuationWittGordon2000(oldWittGordon2000ModelSMC      )
+  ! Each curve must reproduce the reference values recorded from the class it replaced.
+  call Unit_Tests_Begin_Group("reference values")
+  curveGordon2003LMC    =dustExtinctionCurveGordon2003    (gordon2003SampleLMC            )
+  curveWittGordon2000SMC=dustExtinctionCurveWittGordon2000(wittGordon2000ModelSMCShellTau3)
   do i=1,size(wavelengths)
      write (label,'(a,f9.1,a)') "lambda=",wavelengths(i)," A"
-     new=curveCalzetti2000%attenuationRelative(wavelengths(i))
-     old=oldCalzetti2000  %attenuation        (wavelengths(i),1.0d0,1.0d0)
-     call Assert("calzetti2000 "//trim(label),new,old,absTol=1.0d-12)
-     new=curveCardelli1989%attenuationRelative(wavelengths(i))
-     old=oldCardelli1989  %attenuation        (wavelengths(i),1.0d0,1.0d0)
-     call Assert("cardelli1989 "//trim(label),new,old,absTol=1.0d-12)
-     new=curvePowerLaw    %attenuationRelative(wavelengths(i))
-     old=oldCharlotFall2000%attenuation       (wavelengths(i),1.0d0,1.0d0)
-     call Assert("powerLaw "    //trim(label),new,old,absTol=1.0d-12)
-     new=curveGordon2003SMC   %attenuationRelative(wavelengths(i))
-     old=oldGordon2003SMC     %attenuation        (wavelengths(i),1.0d0,1.0d0)
-     call Assert("gordon2003 SMCBar "        //trim(label),new,old,absTol=1.0d-12)
-     new=curveGordon2003LMC   %attenuationRelative(wavelengths(i))
-     old=oldGordon2003LMC     %attenuation        (wavelengths(i),1.0d0,1.0d0)
-     call Assert("gordon2003 LMC "           //trim(label),new,old,absTol=1.0d-12)
-     new=curvePrevotBouchet   %attenuationRelative(wavelengths(i))
-     old=oldPrevotBouchet     %attenuation        (wavelengths(i),1.0d0,1.0d0)
-     call Assert("prevotBouchet "            //trim(label),new,old,absTol=1.0d-12)
-     new=curveWittGordon2000MW%attenuationRelative(wavelengths(i))
-     old=oldWittGordon2000MW  %attenuation        (wavelengths(i),1.0d0,1.0d0)
-     call Assert("wittGordon2000 MilkyWay "  //trim(label),new,old,absTol=1.0d-12)
+     new=curveCalzetti2000     %attenuationRelative(wavelengths(i))
+     call Assert("calzetti2000 "             //trim(label),new,referenceCalzetti2000     (i),absTol=1.0d-12)
+     new=curveCardelli1989     %attenuationRelative(wavelengths(i))
+     call Assert("cardelli1989 "             //trim(label),new,referenceCardelli1989     (i),absTol=1.0d-12)
+     new=curvePowerLaw         %attenuationRelative(wavelengths(i))
+     call Assert("powerLaw "                 //trim(label),new,referencePowerLaw         (i),absTol=1.0d-12)
+     new=curveGordon2003SMC    %attenuationRelative(wavelengths(i))
+     call Assert("gordon2003 SMCBar "        //trim(label),new,referenceGordon2003SMC    (i),absTol=1.0d-12)
+     new=curveGordon2003LMC    %attenuationRelative(wavelengths(i))
+     call Assert("gordon2003 LMC "           //trim(label),new,referenceGordon2003LMC    (i),absTol=1.0d-12)
+     new=curvePrevotBouchet    %attenuationRelative(wavelengths(i))
+     call Assert("prevotBouchet "            //trim(label),new,referencePrevotBouchet    (i),absTol=1.0d-12)
+     new=curveWittGordon2000MW %attenuationRelative(wavelengths(i))
+     call Assert("wittGordon2000 MilkyWay "  //trim(label),new,referenceWittGordon2000MW (i),absTol=1.0d-12)
      new=curveWittGordon2000SMC%attenuationRelative(wavelengths(i))
-     old=oldWittGordon2000SMC  %attenuation       (wavelengths(i),1.0d0,1.0d0)
-     call Assert("wittGordon2000 SMC "       //trim(label),new,old,absTol=1.0d-12)
+     call Assert("wittGordon2000 SMC "       //trim(label),new,referenceWittGordon2000SMC(i),absTol=1.0d-12)
   end do
   call Unit_Tests_End_Group()
 

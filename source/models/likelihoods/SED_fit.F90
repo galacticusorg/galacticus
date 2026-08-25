@@ -271,7 +271,7 @@ contains
     !!{RST
     Return the log-likelihood for the SED fitting likelihood function.
     !!}
-    use            :: Abundances_Structure             , only : abundances                          , max                                      , metallicityTypeLinearByMassSolar
+    use            :: Abundances_Structure             , only : abundances                          , max                              , metallicityTypeLinearByMassSolar
     use            :: Error                            , only : Error_Report
     use            :: Galacticus_Nodes                 , only : nodeComponentDisk
     use, intrinsic :: ISO_C_Binding                    , only : c_size_t
@@ -280,8 +280,8 @@ contains
     use            :: Posterior_Sampling_Convergence   , only : posteriorSampleConvergenceClass
     use            :: Posterior_Sampling_State         , only : posteriorSampleStateClass
     use            :: Stellar_Populations              , only : stellarPopulationClass
-    use            :: Stellar_Spectra_Dust_Attenuations, only : gordon2003SampleLMC                 , stellarSpectraDustAttenuationCalzetti2000, stellarSpectraDustAttenuationCardelli1989  , stellarSpectraDustAttenuationCharlotFall2000, &
-          &                                                     stellarSpectraDustAttenuationClass  , stellarSpectraDustAttenuationGordon2003  , stellarSpectraDustAttenuationWittGordon2000, stellarSpectraDustAttenuationZero           , &
+    use            :: Dust_Extinction_Curves           , only : dustExtinctionCurveCalzetti2000     , dustExtinctionCurveCardelli1989  , dustExtinctionCurveClass        , dustExtinctionCurveGordon2003, &
+          &                                                     dustExtinctionCurvePowerLaw         , dustExtinctionCurveWittGordon2000, gordon2003SampleLMC             , wavelengthVBand              , &
           &                                                     wittGordon2000ModelMilkyWayShellTau3
     implicit none
     class           (posteriorSampleLikelihoodSEDFit   ), intent(inout), target         :: self
@@ -299,8 +299,12 @@ contains
     double precision                                    , parameter                     :: logUnlikely                =-7.00000000000000d+0
     double precision                                    , parameter                     :: toleranceRelativeFractional=+1.00000000000000d-2
     double precision                                    , parameter                     :: stellarAgeArbitrary        =+1.00000000000000d+0
-    double precision                                    , parameter                     :: vBandWavelength            =+5.50461227375652d+3
-    class           (stellarSpectraDustAttenuationClass), allocatable                   :: dust
+    ! Every model available here attenuates by A_V k(lambda)/k_V, optionally scaled by a factor which depends only on
+    ! age, and so is separable into functions of wavelength, age, and V-band attenuation. The correction below which
+    ! this guards is therefore never applied; it is retained for any future model which is not separable, and matches
+    ! the behavior of the class this replaces, no implementation of which reported itself non-separable.
+    logical                                             , parameter                     :: attenuationIsSeparable     =.true.
+    class           (dustExtinctionCurveClass          ), allocatable                   :: extinctionCurve
     class           (stellarPopulationClass            ), pointer                       :: stellarPopulation_
     type            (nodeComponentDisk                 )                                :: disk
     integer         (c_size_t                          )                                :: i
@@ -309,7 +313,7 @@ contains
          &                                                                                 starFormationRateNormalization                  , magnitude                    , &
          &                                                                                 luminosity                                      , metallicity                  , &
          &                                                                                 redshift                                        , timeObserved                 , &
-         &                                                                                 vBandAttenuation                                , opticalDepthBirthClouds      , &
+         &                                                                                 vBandAttenuation                                , factorBirthClouds            , &
          &                                                                                 timeStart                                       , Rv                           , &
          &                                                                                 toleranceRelative                               , termLinear                   , &
          &                                                                                 termConstant                                    , recycledFractionInstantaneous, &
@@ -317,7 +321,9 @@ contains
          &                                                                                 ageNext
     type            (abundances                )                                        :: abundancesStars
     type            (integrator                )                                        :: integrator_
-    logical                                                                             :: useRapidEvaluation
+    logical                                                                             :: useRapidEvaluation                              , attenuationIsAgeDependent
+    ! Birth cloud lifetime, in Gyr, over which the birth cloud enhancement applies.
+    double precision                                    , parameter                     :: birthCloudLifetime         =+1.00000000000000d-2
     !$GLC attributes unused :: simulationConvergence, timeEvaluate, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
@@ -354,72 +360,77 @@ contains
        sedFitEvaluate=logImpossible
        return
     end if
-    ! Construct dust attenuation object.
+    ! Construct the dust extinction curve. Each model here attenuates by A(λ) = A_V k(λ)/k_V, with A_V taken
+    ! from the state vector, so all that differs between them is the shape k(λ)/k_V, which is what a
+    ! `dustExtinctionCurve` provides. Charlot & Fall (2000) additionally enhances the attenuation of populations
+    ! younger than the birth cloud lifetime by a constant factor, which multiplies the curve.
+    factorBirthClouds        =1.0d0
+    attenuationIsAgeDependent=.false.
     select case (self%dustType%ID)
     case (sedFitDustTypeNull           %ID)
-       allocate(stellarSpectraDustAttenuationZero :: dust)
-       select type (dust)
-       type is (stellarSpectraDustAttenuationZero)
-          vBandAttenuation=0.0d0
-          dust=stellarSpectraDustAttenuationZero()
+       ! No dust: the curve is irrelevant as the V-band attenuation is zero, but one must be allocated to evaluate.
+       vBandAttenuation=0.0d0
+       allocate(dustExtinctionCurvePowerLaw       :: extinctionCurve)
+       select type (extinctionCurve)
+       type is (dustExtinctionCurvePowerLaw)
+          extinctionCurve=dustExtinctionCurvePowerLaw      (                                                          &
+               &                                            exponent_          =0.0d0                               , &
+               &                                            wavelengthReference=wavelengthVBand                       &
+               &                                           )
        end select
        burstIndexOffset=5
     case (sedFitDustTypeCharlotFall2000%ID)
-       allocate(stellarSpectraDustAttenuationCharlotFall2000 :: dust)
-       select type (dust)
-       type is (stellarSpectraDustAttenuationCharlotFall2000)
-          vBandAttenuation       =     stateVector(6)
-          opticalDepthBirthClouds=-log(stateVector(7))
-          dust=stellarSpectraDustAttenuationCharlotFall2000(                                                              &
-               &                                            opacityExponent        =0.7d+0                              , &
-               &                                            birthCloudLifetime     =1.0d-2                              , &
-               &                                            opticalDepthISM        =1.0d+0                              , &
-               &                                            opticalDepthBirthClouds=opticalDepthBirthClouds               &
+       vBandAttenuation         =     stateVector(6)
+       ! The birth cloud factor is (1+tau_BC/tau_ISM) with tau_ISM=1, matching the model this replaces.
+       factorBirthClouds        =1.0d0-log(stateVector(7))
+       attenuationIsAgeDependent=.true.
+       allocate(dustExtinctionCurvePowerLaw       :: extinctionCurve)
+       select type (extinctionCurve)
+       type is (dustExtinctionCurvePowerLaw       )
+          extinctionCurve=dustExtinctionCurvePowerLaw      (                                                          &
+               &                                            exponent_          =0.7d0                               , &
+               &                                            wavelengthReference=wavelengthVBand                       &
                &                                           )
        end select
        burstIndexOffset=7
     case (sedFitDustTypeCardelli1989%ID)
-       allocate(stellarSpectraDustAttenuationCardelli1989    :: dust)
-       select type (dust)
-       type is (stellarSpectraDustAttenuationCardelli1989)
-          vBandAttenuation=stateVector(6)
-          Rv              =stateVector(7)
-          dust=stellarSpectraDustAttenuationCardelli1989   (                                                              &
-               &                                            Rv                     =Rv                                    &
+       vBandAttenuation=stateVector(6)
+       Rv              =stateVector(7)
+       allocate(dustExtinctionCurveCardelli1989   :: extinctionCurve)
+       select type (extinctionCurve)
+       type is (dustExtinctionCurveCardelli1989   )
+          extinctionCurve=dustExtinctionCurveCardelli1989  (                                                          &
+               &                                            Rv                 =Rv                                    &
                &                                           )
        end select
        burstIndexOffset=7
     case (sedFitDustTypeGordon2003%ID)
-       allocate(stellarSpectraDustAttenuationGordon2003      :: dust)
-       select type (dust)
-       type is (stellarSpectraDustAttenuationGordon2003)
-          vBandAttenuation=stateVector(6)
-          dust=stellarSpectraDustAttenuationGordon2003     (                                                              &
-               &                                            sample                 =gordon2003SampleLMC                   &
+       vBandAttenuation=stateVector(6)
+       allocate(dustExtinctionCurveGordon2003     :: extinctionCurve)
+       select type (extinctionCurve)
+       type is (dustExtinctionCurveGordon2003     )
+          extinctionCurve=dustExtinctionCurveGordon2003    (                                                          &
+               &                                            sample             =gordon2003SampleLMC                   &
                &                                           )
        end select
        burstIndexOffset=6
     case (sedFitDustTypeCalzetti2000%ID)
-       allocate(stellarSpectraDustAttenuationCalzetti2000    :: dust)
-       select type (dust)
-       type is (stellarSpectraDustAttenuationCalzetti2000)
-          vBandAttenuation=stateVector(6)
-          dust=stellarSpectraDustAttenuationCalzetti2000   (                                                              &
-               &                                           )
-       end select
+       vBandAttenuation=stateVector(6)
+       allocate(dustExtinctionCurveCalzetti2000   :: extinctionCurve)
        burstIndexOffset=6
     case (sedFitDustTypeWittGordon2000%ID)
-       allocate(stellarSpectraDustAttenuationWittGordon2000  :: dust)
-       select type (dust)
-       type is (stellarSpectraDustAttenuationWittGordon2000)
-          vBandAttenuation=stateVector(6)
-          dust=stellarSpectraDustAttenuationWittGordon2000 (                                                             &
-               &                                            model                 =wittGordon2000ModelMilkyWayShellTau3  &
+       vBandAttenuation=stateVector(6)
+       allocate(dustExtinctionCurveWittGordon2000 :: extinctionCurve)
+       select type (extinctionCurve)
+       type is (dustExtinctionCurveWittGordon2000 )
+          extinctionCurve=dustExtinctionCurveWittGordon2000(                                                          &
+               &                                            model              =wittGordon2000ModelMilkyWayShellTau3  &
                &                                           )
        end select
        burstIndexOffset=6
     case default
        burstIndexOffset=-1
+       vBandAttenuation=0.0d0
        call Error_Report('unknown dust type'//{introspection:location})
     end select
     ! Extract bursts.
@@ -442,9 +453,9 @@ contains
     useRapidEvaluation =   self%burstCount == 0                                                  &
          &                .and.                                                                  &
          &                 (                                                                     &
-         &                        dust                           %isSeparable                 () &
+         &                        attenuationIsSeparable                                         &
          &                  .or.                                                                 &
-         &                   .not.dust                           %isAgeDependent              () &
+         &                   .not.attenuationIsAgeDependent                                      &
          &                 )                                                                     &
          &                .and.                                                                  &
          &                   .not.self%stellarPopulationSelector_%isStarFormationRateDependent()
@@ -518,21 +529,19 @@ contains
           stellarPopulation_            => self              %stellarPopulationSelector_%select                       (1.0d0,abundancesStars,disk)
           recycledFractionInstantaneous =  stellarPopulation_                           %recycledFractionInstantaneous(                          )
           weights(i)=(termConstant+termLinear)*starFormationRateNormalization*timeScale/(1.0d0-recycledFractionInstantaneous)
-          if (.not.dust%isSeparable())                                       &
+          if (.not.attenuationIsSeparable)                                   &
                & weights(i)=                                                 &
                &            +weights(i)                                      &
                &            *10.0d0**(                                       &
                &                      -0.4d0                                 &
-               &                      *dust%attenuation(                     &
-               &                                        vBandWavelength    , &
-               &                                        ageNow             , &
-               &                                        vBandAttenuation     &
+               &                      *attenuation     (                     &
+               &                                        wavelengthVBand    , &
+               &                                        ageNow               &
                &                                       )                     &
                &                      +0.4d0                                 &
-               &                      *dust%attenuation(                     &
-               &                                        vBandWavelength    , &
-               &                                        stellarAgeArbitrary, &
-               &                                        vBandAttenuation     &
+               &                      *attenuation     (                     &
+               &                                        wavelengthVBand    , &
+               &                                        stellarAgeArbitrary  &
                &                                       )                     &
                &                     )
        end do
@@ -546,14 +555,13 @@ contains
        ! Compute luminosity.
        if (useRapidEvaluation) then
           if (iMagnitude > 0) then
-             luminosity=+sum(weights*massToLightRatios(:,iMagnitude))                     &
-                  &     *10.0d0**(                                                        &
-                  &               -0.4d0                                                  &
-                  &               *dust%attenuation(                                      &
-                  &                                 self%wavelengthEffective(iMagnitude), &
-                  &                                 stellarAgeArbitrary                 , &
-                  &                                 vBandAttenuation                      &
-                  &                                )                                      &
+             luminosity=+sum(weights*massToLightRatios(:,iMagnitude))                &
+                  &     *10.0d0**(                                                   &
+                  &               -0.4d0                                             &
+                  &               *attenuation(                                      &
+                  &                            self%wavelengthEffective(iMagnitude), &
+                  &                            stellarAgeArbitrary                   &
+                  &                           )                                      &
                   &              )
           else
              luminosity=0.0d0
@@ -601,6 +609,22 @@ contains
     return
 
   contains
+
+    double precision function attenuation(wavelength,age)
+      !!{RST
+      Return the attenuation, in magnitudes, of light of the given rest-frame ``wavelength`` (in Angstroms) emitted by
+      a stellar population of the given ``age`` (in Gyr).
+      !!}
+      implicit none
+      double precision, intent(in   ) :: wavelength, age
+
+      attenuation=+vBandAttenuation                                &
+           &      *extinctionCurve%attenuationRelative(wavelength)
+      if (age <= birthCloudLifetime)                               &
+           & attenuation=+attenuation                              &
+           &             *factorBirthClouds
+      return
+    end function attenuation
 
     double precision function luminosityIntegrand(time)
       !!{RST
@@ -663,16 +687,15 @@ contains
               &                                                                          self%age            (iMagnitude:iMagnitude), &
               &                                                                          self%redshift       (iMagnitude:iMagnitude)  &
               &                                                                         )
-         luminosityIntegrand=                                                                  &
-              &              +starFormationRate                                                &
-              &              *self%massToLightRatio(1)                                         &
-              &              *10.0d0**(                                                        &
-              &                        -0.4d0                                                  &
-              &                        *dust%attenuation(                                      &
-              &                                          self%wavelengthEffective(iMagnitude), &
-              &                                          self%age                (iMagnitude), &
-              &                                          vBandAttenuation                      &
-              &                                         )                                      &
+         luminosityIntegrand=                                                             &
+              &              +starFormationRate                                           &
+              &              *self%massToLightRatio(1)                                    &
+              &              *10.0d0**(                                                   &
+              &                        -0.4d0                                             &
+              &                        *attenuation(                                      &
+              &                                     self%wavelengthEffective(iMagnitude), &
+              &                                     self%age                (iMagnitude)  &
+              &                                    )                                      &
               &                       )
       else
          ! Find the recycled fraction.

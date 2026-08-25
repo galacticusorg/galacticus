@@ -1,6 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Parameters for the satellite tidal stripping radius "limited" unit test. -->
+
 <parameters>
+  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
   <formatVersion>2</formatVersion>
 
   <!-- Component selection -->

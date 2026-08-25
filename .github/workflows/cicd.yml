@@ -1653,6 +1653,8 @@ jobs:
                 test-constraint-mass-function.py,
                 test-halo-mass-functions.py,
                 test-dust-attenuation-parity.py,
+                test-luminosity-function-Halpha.py,
+                test-dust-analyses-SDSS.py,
                 test-inactive_luminosities.py,
                 test-interoutput-star-formation-rate.py,
                 test-mass-host-maximum.py,
