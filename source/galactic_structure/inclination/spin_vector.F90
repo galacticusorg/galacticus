@@ -46,6 +46,15 @@
    to track the angular momentum *vector*---the ``vector`` implementation---and reports an error at construction if
    it does not.
 
+   That component is necessary but not sufficient: the *directions* must be meaningful too. In particular
+   :galacticus-class:`nodeOperatorHaloAngularMomentumRandom` draws a random angular momentum *magnitude* but sets
+   the vector to :math:`(J,0,0)`, so every halo points along the :math:`x`-axis and every galaxy is assigned the
+   same inclination. An operator which builds the vector from the angular momenta of accreted satellites---
+   :galacticus-class:`nodeOperatorHaloAngularMomentumVitvitska2002`---gives directions which vary between halos and
+   are correlated between neighbors, which is what makes this class worth using. A model whose orientations all come
+   out equal is a sign that the angular momentum directions are degenerate rather than that this class has
+   misbehaved.
+
    The direction to the observer is set by ``lineOfSight``:
 
    ``fixed``
