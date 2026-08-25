@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "0ab8e753dde81ca158c013508a9f49681f00bd41",
-        "message": "Merge pull request #1415 from galacticusorg/update/bibliography\n\nfix: Update bibliography records\n",
-        "timestamp": "2026-08-22 18:51:24+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/0ab8e753dde81ca158c013508a9f49681f00bd41"
+        "id": "b97d472f50b1edaacce551b3f7058b6f29e8b1b6",
+        "message": "fix(ci): drop the erroneous `v` prefix from dependencyBot release links\n\nThe dependencyBot PR body linked to `.../releases/tag/v<latest>`, but\ndepup already reports the tag verbatim (e.g. `2.0.3` for CAMB, whose\ntags carry no `v`), so the generated link 404'd.\n",
+        "timestamp": "2026-08-25 07:28:30-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/b97d472f50b1edaacce551b3f7058b6f29e8b1b6"
     },
     "results": [
         {
