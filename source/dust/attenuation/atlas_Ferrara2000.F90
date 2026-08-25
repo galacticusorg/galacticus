@@ -19,7 +19,7 @@
 
 !+    Contributions to this file made by: Andrew Benson, Claude.
   !!{RST
-  Implements a dust attenuation class using the atlas of Ferrara et al. (1999).
+  Implements a dust attenuation class using the atlas of :cite:t:`ferrara_atlas_1999`.
   !!}
 
   use :: Galactic_Inclinations         , only : galacticInclinationClass
@@ -82,25 +82,25 @@
      A dust attenuation class using the atlas of :cite:t:`ferrara_atlas_1999`.
      !!}
      private
-     class           (galacticInclinationClass       ), pointer                       :: galacticInclination_   => null()
-     class           (dustAttenuationScreen          ), pointer                       :: dustAttenuation_       => null()
-     type            (enumerationFerrara2000DustType )                                :: dust
-     double precision                                                                 :: heightRatio
-     logical                                                                          :: inclinationAvailable
+     class           (galacticInclinationClass       ), pointer                         :: galacticInclination_     => null()
+     class           (dustAttenuationScreen          ), pointer                         :: dustAttenuation_         => null()
+     type            (enumerationFerrara2000DustType )                                  :: dust
+     double precision                                                                   :: heightRatio
+     logical                                                                            :: inclinationAvailable
      ! Grid axes. Wavelengths are in Angstroms and inclinations in degrees, as tabulated; the spheroid axis is the
      ! spheroid half-mass radius in units of the disk scale length.
-     double precision                                 , allocatable, dimension(:      ) :: wavelength           , inclination        , &
-          &                                                                                depthOptical         , radiusSpheroid
+     double precision                                 , allocatable, dimension(:      ) :: wavelength                        , inclination               , &
+          &                                                                                depthOptical                      , radiusSpheroid
      ! Tabulated transmission. The datasets are written (wavelength, inclination, opticalDepth[, radius]) as a
      ! row-major reader sees them, so the Fortran dimensions are the reverse of that.
      double precision                                 , allocatable, dimension(:,:,:  ) :: transmissionDisk
      double precision                                 , allocatable, dimension(:,:,:,:) :: transmissionSpheroid
-     type            (interpolatorMultiD             )                                  :: interpolatorDisk     , interpolatorSpheroid
+     type            (interpolatorMultiD             )                                  :: interpolatorDisk                  , interpolatorSpheroid
      ! The axis interpolators are retained as well as being handed to the multilinear interpolators above. Only the
      ! wavelength changes between the parcels of a galaxy, so bracketing the other axes once per galaxy and reusing
      ! the result saves that work on every parcel.
-     type            (interpolator                   )                                  :: interpolatorWavelength  , interpolatorInclination, &
-          &                                                                                interpolatorDepthOptical, interpolatorRadiusSpheroid
+     type            (interpolator                   )                                  :: interpolatorWavelength            , interpolatorInclination   , &
+          &                                                                                interpolatorDepthOptical          , interpolatorRadiusSpheroid
    contains
      final     ::                      atlasFerrara2000Destructor
      procedure :: transmission      => atlasFerrara2000Transmission
@@ -176,12 +176,12 @@ contains
     Internal constructor for the :galacticus-class:`dustAttenuationAtlasFerrara2000` dust attenuation class. The
     tabulation is read once, here, and interpolators built over it.
     !!}
-    use :: Error                   , only : Error_Report
-    use :: HDF5_Access             , only : hdf5Access
-    use :: Input_Paths             , only : inputPath                , pathTypeDataStatic
-    use :: IO_HDF5                 , only : hdf5File
-    use :: ISO_Varying_String      , only : char                     , operator(//)     , varying_string
-    use :: Table_Labels            , only : extrapolationTypeFix
+    use :: Error             , only : Error_Report
+    use :: HDF5_Access       , only : hdf5Access
+    use :: Input_Paths       , only : inputPath           , pathTypeDataStatic
+    use :: IO_HDF5           , only : hdf5File
+    use :: ISO_Varying_String, only : char                , operator(//)      , varying_string
+    use :: Table_Labels      , only : extrapolationTypeFix
     implicit none
     type            (dustAttenuationAtlasFerrara2000)                        :: self
     type            (enumerationFerrara2000DustType ), intent(in   )         :: dust
@@ -231,26 +231,26 @@ contains
     !$ call hdf5Access%unset()
     ! Check that the tables have the shape the axes imply. A transposed read would otherwise show up much later as
     ! quietly wrong attenuation.
-    if (any(shape(self%transmissionDisk    ) /= [size(self%depthOptical),size(self%inclination),size(self%wavelength)                      ])) &
+    if (any(shape(self%transmissionDisk    ) /= [size(self%depthOptical  ),size(self%inclination )                       ,size(self%wavelength)])) &
          & call Error_Report('`attenuationDisk` does not have the shape implied by the axes'    //{introspection:location})
     if (any(shape(self%transmissionSpheroid) /= [size(self%radiusSpheroid),size(self%depthOptical),size(self%inclination),size(self%wavelength)])) &
          & call Error_Report('`attenuationSpheroid` does not have the shape implied by the axes'//{introspection:location})
     ! Build interpolators, ordered from the most rapidly varying dimension of the table outward. Optical depth and
     ! spheroid size are interpolated logarithmically, being tabulated on geometric grids; wavelength likewise. Values
     ! outside the tabulated ranges are held at the boundary.
-    interpolatorsDisk    (1)=interpolator(log(self%depthOptical  ),extrapolationType=extrapolationTypeFix)
-    interpolatorsDisk    (2)=interpolator(    self%inclination    ,extrapolationType=extrapolationTypeFix)
-    interpolatorsDisk    (3)=interpolator(log(self%wavelength    ),extrapolationType=extrapolationTypeFix)
-    interpolatorsSpheroid(1)=interpolator(log(self%radiusSpheroid),extrapolationType=extrapolationTypeFix)
-    interpolatorsSpheroid(2)=interpolatorsDisk(1)
-    interpolatorsSpheroid(3)=interpolatorsDisk(2)
-    interpolatorsSpheroid(4)=interpolatorsDisk(3)
-    self%interpolatorDisk        =interpolatorMultiD(interpolatorsDisk    )
-    self%interpolatorSpheroid    =interpolatorMultiD(interpolatorsSpheroid)
-    self%interpolatorDepthOptical=interpolatorsDisk    (1)
-    self%interpolatorInclination =interpolatorsDisk    (2)
-    self%interpolatorWavelength  =interpolatorsDisk    (3)
-    self%interpolatorRadiusSpheroid=interpolatorsSpheroid(1)
+    interpolatorsDisk              (1)=interpolator(log(self%depthOptical  ),extrapolationType=extrapolationTypeFix)
+    interpolatorsDisk              (2)=interpolator(    self%inclination    ,extrapolationType=extrapolationTypeFix)
+    interpolatorsDisk              (3)=interpolator(log(self%wavelength    ),extrapolationType=extrapolationTypeFix)
+    interpolatorsSpheroid          (1)=interpolator(log(self%radiusSpheroid),extrapolationType=extrapolationTypeFix)
+    interpolatorsSpheroid          (2)=interpolatorsDisk(1)
+    interpolatorsSpheroid          (3)=interpolatorsDisk(2)
+    interpolatorsSpheroid          (4)=interpolatorsDisk(3)
+    self%interpolatorDisk             =interpolatorMultiD(interpolatorsDisk    )
+    self%interpolatorSpheroid         =interpolatorMultiD(interpolatorsSpheroid)
+    self%interpolatorDepthOptical     =interpolatorsDisk    (1)
+    self%interpolatorInclination      =interpolatorsDisk    (2)
+    self%interpolatorWavelength       =interpolatorsDisk    (3)
+    self%interpolatorRadiusSpheroid   =interpolatorsSpheroid(1)
     return
   end function atlasFerrara2000ConstructorInternal
 
@@ -262,8 +262,8 @@ contains
     type(dustAttenuationAtlasFerrara2000), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%galacticInclination_"  />
-    <objectDestructor name="self%dustAttenuation_"      />
+    <objectDestructor name="self%galacticInclination_"/>
+    <objectDestructor name="self%dustAttenuation_"    />
     !!]
     return
   end subroutine atlasFerrara2000Destructor
@@ -275,18 +275,18 @@ contains
     The optical depth and the inclination are properties of the galaxy rather than of a parcel, so both are obtained
     once here and reused across every parcel, as is the spheroid size if any parcel needs it.
     !!}
-    use, intrinsic :: ISO_C_Binding             , only : c_size_t
-    use :: Error                           , only : Error_Report
-    use :: Galactic_Structure_Options      , only : componentTypeDisk    , componentTypeSpheroid
-    use :: Numerical_Constants_Astronomical, only : degreesToRadians
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use            :: Error                           , only : Error_Report
+    use            :: Galactic_Structure_Options      , only : componentTypeDisk, componentTypeSpheroid
+    use            :: Numerical_Constants_Astronomical, only : degreesToRadians
     implicit none
     class           (dustAttenuationAtlasFerrara2000), intent(inout)                               :: self
     type            (treeNode                       ), intent(inout), target                       :: node
     type            (emissionDescriptor             ), intent(in   ), dimension(:                ) :: descriptors
     double precision                                 , intent(in   ), optional                     :: inclination
     double precision                                                , dimension(size(descriptors)) :: transmission
-    double precision                                                                               :: depthOptical      , inclination_, &
-         &                                                                                            radiusSpheroid    , logDepth    , &
+    double precision                                                                               :: depthOptical          , inclination_, &
+         &                                                                                            radiusSpheroid        , logDepth    , &
          &                                                                                            inclinationDegrees
     logical                                                                                        :: radiusSpheroidComputed
     integer                                                                                        :: i
@@ -363,21 +363,21 @@ contains
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
     implicit none
-    type            (treeNode             ), intent(inout), target :: node
+    type            (treeNode             ), intent(inout), target  :: node
     class           (nodeComponentDisk    )               , pointer :: disk
     class           (nodeComponentSpheroid)               , pointer :: spheroid
     double precision                                                :: radiusDisk
 
-    disk       => node    %disk  ()
-    spheroid   => node    %spheroid()
-    radiusDisk =  disk    %radius()
+    disk       => node%disk    ()
+    spheroid   => node%spheroid()
+    radiusDisk =  disk%radius  ()
     if (radiusDisk <= 0.0d0) then
        ! With no disk there is no scale to measure the spheroid against, and no dust either, so the value is
        ! immaterial: return the smallest tabulated size.
        radiusSpheroid=0.0d0
        return
     end if
-    radiusSpheroid=+spheroid%radius() &
+    radiusSpheroid=+spheroid%radius    () &
          &         /         radiusDisk
     return
   end function atlasFerrara2000RadiusSpheroid
