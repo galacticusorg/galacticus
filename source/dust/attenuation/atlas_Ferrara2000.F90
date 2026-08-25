@@ -96,6 +96,11 @@
      double precision                                 , allocatable, dimension(:,:,:  ) :: transmissionDisk
      double precision                                 , allocatable, dimension(:,:,:,:) :: transmissionSpheroid
      type            (interpolatorMultiD             )                                  :: interpolatorDisk     , interpolatorSpheroid
+     ! The axis interpolators are retained as well as being handed to the multilinear interpolators above. Only the
+     ! wavelength changes between the parcels of a galaxy, so bracketing the other axes once per galaxy and reusing
+     ! the result saves that work on every parcel.
+     type            (interpolator                   )                                  :: interpolatorWavelength  , interpolatorInclination, &
+          &                                                                                interpolatorDepthOptical, interpolatorRadiusSpheroid
    contains
      final     ::                      atlasFerrara2000Destructor
      procedure :: transmission      => atlasFerrara2000Transmission
@@ -240,8 +245,12 @@ contains
     interpolatorsSpheroid(2)=interpolatorsDisk(1)
     interpolatorsSpheroid(3)=interpolatorsDisk(2)
     interpolatorsSpheroid(4)=interpolatorsDisk(3)
-    self%interpolatorDisk    =interpolatorMultiD(interpolatorsDisk    )
-    self%interpolatorSpheroid=interpolatorMultiD(interpolatorsSpheroid)
+    self%interpolatorDisk        =interpolatorMultiD(interpolatorsDisk    )
+    self%interpolatorSpheroid    =interpolatorMultiD(interpolatorsSpheroid)
+    self%interpolatorDepthOptical=interpolatorsDisk    (1)
+    self%interpolatorInclination =interpolatorsDisk    (2)
+    self%interpolatorWavelength  =interpolatorsDisk    (3)
+    self%interpolatorRadiusSpheroid=interpolatorsSpheroid(1)
     return
   end function atlasFerrara2000ConstructorInternal
 
@@ -266,6 +275,7 @@ contains
     The optical depth and the inclination are properties of the galaxy rather than of a parcel, so both are obtained
     once here and reused across every parcel, as is the spheroid size if any parcel needs it.
     !!}
+    use, intrinsic :: ISO_C_Binding             , only : c_size_t
     use :: Error                           , only : Error_Report
     use :: Galactic_Structure_Options      , only : componentTypeDisk    , componentTypeSpheroid
     use :: Numerical_Constants_Astronomical, only : degreesToRadians
@@ -280,6 +290,13 @@ contains
          &                                                                                            inclinationDegrees
     logical                                                                                        :: radiusSpheroidComputed
     integer                                                                                        :: i
+    ! Bracketing indices and linear weights, per dimension, in the order the tables are laid out: for the disk
+    ! (optical depth, inclination, wavelength), and for the spheroid (spheroid size, optical depth, inclination,
+    ! wavelength). Only the wavelength entry changes between parcels.
+    integer         (c_size_t                       )                , dimension(  3)              :: indicesDisk
+    double precision                                                 , dimension(0:1,3)            :: weightsDisk
+    integer         (c_size_t                       )                , dimension(  4)              :: indicesSpheroid
+    double precision                                                 , dimension(0:1,4)            :: weightsSpheroid
 
     ! The dust lies in the disk in this model, and a spheroid is reddened by the disk's dust, so the optical depth is
     ! always that of the disk.
@@ -303,9 +320,17 @@ contains
     logDepth              =log(depthOptical)
     radiusSpheroidComputed=.false.
     radiusSpheroid        =0.0d0
+    ! Bracket the axes which are properties of the galaxy rather than of a parcel, once.
+    call self%interpolatorDepthOptical%linearFactors(logDepth          ,indicesDisk(1),weightsDisk(:,1))
+    call self%interpolatorInclination %linearFactors(inclinationDegrees,indicesDisk(2),weightsDisk(:,2))
+    indicesSpheroid(2:3)=indicesDisk(1:2)
+    weightsSpheroid(:,2:3)=weightsDisk(:,1:2)
     do i=1,size(descriptors)
+       call self%interpolatorWavelength%linearFactors(log(descriptors(i)%wavelength),indicesDisk(3),weightsDisk(:,3))
+       indicesSpheroid(4  )=indicesDisk(3  )
+       weightsSpheroid(:,4)=weightsDisk(:,3)
        if      (descriptors(i)%componentType == componentTypeDisk    ) then
-          transmission(i)=self%interpolatorDisk    %interpolate(self%transmissionDisk    ,[logDepth,inclinationDegrees,log(descriptors(i)%wavelength)])
+          transmission(i)=self%interpolatorDisk    %interpolateFactors(self%transmissionDisk    ,indicesDisk    ,weightsDisk    )
        else if (descriptors(i)%componentType == componentTypeSpheroid) then
           if (.not.radiusSpheroidComputed) then
              ! Clamp into the tabulated range before taking a logarithm. A galaxy may have no spheroid, or no disk
@@ -313,8 +338,9 @@ contains
              ! values at the boundary in any case, so nothing is lost by clamping here rather than there.
              radiusSpheroid        =max(atlasFerrara2000RadiusSpheroid(node),minval(self%radiusSpheroid))
              radiusSpheroidComputed=.true.
+             call self%interpolatorRadiusSpheroid%linearFactors(log(radiusSpheroid),indicesSpheroid(1),weightsSpheroid(:,1))
           end if
-          transmission(i)=self%interpolatorSpheroid%interpolate(self%transmissionSpheroid,[log(radiusSpheroid),logDepth,inclinationDegrees,log(descriptors(i)%wavelength)])
+          transmission(i)=self%interpolatorSpheroid%interpolateFactors(self%transmissionSpheroid,indicesSpheroid,weightsSpheroid)
        else
           transmission(i)=1.0d0
           call Error_Report('this atlas tabulates only disk and spheroid components'//{introspection:location})
