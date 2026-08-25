@@ -35,6 +35,7 @@
   use :: Linear_Growth                  , only : linearGrowthClass
   use :: Virial_Density_Contrast        , only : virialDensityContrastClass
   use :: Numerical_Interpolation        , only : interpolator
+  use :: Numerical_Interpolation_MultiD , only : interpolatorMultiD
   use :: Numerical_Ranges               , only : rangeLattice
   use :: Correlation_Functions_Two_Point, only : correlationFunctionTwoPointClass
   use :: Galacticus_Nodes               , only : treeNode
@@ -76,6 +77,7 @@
      double precision                                     , allocatable, dimension(:,:,:  ) :: velocityRadialDistributionOrbits         , velocityTangentialDistributionOrbits
      double precision                                     , allocatable, dimension(:,:,:,:) :: velocityDistributionOrbits
      type            (interpolator                       ), allocatable                     :: interpolatorMass                         , interpolatorVelocity
+     type            (interpolatorMultiD                 ), allocatable                     :: interpolatorMasses                       , interpolatorMassesVelocities
      type            (varying_string                     )                                  :: fileName
      logical                                                                                :: fileRead
      double precision                                                                       :: haloMassFunctionA                        , haloMassFunctionP                   , &
@@ -357,32 +359,27 @@ contains
     logical                              , intent(in   )         :: acceptUnboundOrbits
     class           (nodeComponentBasic ), pointer               :: basicSatellite               , basicHost
     double precision                     , parameter             :: boundTolerance        =1.0d-4 ! Tolerence to ensure that orbits are sufficiently bound.
-    integer         (c_size_t           ), dimension(0:1)        :: iSatellite                   , iHost                     , &
-         &                                                          iRadial                      , iTangential
-    double precision                     , dimension(0:1)        :: hSatellite                   , hHost                     , &
-         &                                                          hRadial                      , hTangential
+    integer         (c_size_t           ), dimension(    2)      :: indicesMass
+    integer         (c_size_t           ), dimension(    4)      :: indicesOrbit
+    double precision                     , dimension(0:1,2)      :: weightsMass
+    double precision                     , dimension(0:1,4)      :: weightsOrbit
     double precision                                             :: velocityHost                 , distributionMaximum       , &
          &                                                          radiusHost                   , radiusHostSelf            , &
          &                                                          massSatellite                , massHost                  , &
          &                                                          velocityRadialInternal       , velocityTangentialInternal, &
          &                                                          distributionFunction         , energyInternal            , &
          &                                                          uniformRandom
-    integer                                                      :: jSatellite                   , jHost                     , &
-         &                                                          jRadial                      , jTangential
     logical                                                      :: foundOrbit
 
-    call self%tabulate    (node,host                                                                                     )
-    call self%interpolants(node,host,massSatellite,massHost,velocityHost,radiusHostSelf,iSatellite,iHost,hSatellite,hHost)
+    call self%tabulate    (node,host                                                                           )
+    call self%interpolants(node,host,massSatellite,massHost,velocityHost,radiusHostSelf,indicesMass,weightsMass)
     ! Find the peak of our distribution for use in rejection sampling.
-    distributionMaximum=0.0d0
-    do jSatellite=0,1
-       do jHost  =0,1
-          distributionMaximum=+distributionMaximum                                                &
-               &              +self%velocityDistributionPeak(iHost(jHost),iSatellite(jSatellite)) &
-               &              *                              hHost(jHost)                         &
-               &              *                                           hSatellite(jSatellite)
-       end do
-    end do
+    distributionMaximum=self%interpolatorMasses%interpolateFactors(self%velocityDistributionPeak,indicesMass,weightsMass)
+    ! The factors along the mass dimensions are shared with the orbital velocity distribution, and are unchanged by the
+    ! rejection sampling below, so place them into the factors for that distribution once here. Only the factors along
+    ! the velocity dimensions then change from one trial orbit to the next.
+    indicesOrbit(  1:2)=indicesMass
+    weightsOrbit(:,1:2)=weightsMass
     ! Perform rejection sampling to find the orbital velocities.
     foundOrbit=.false.
     do while(.not.foundOrbit)
@@ -395,30 +392,9 @@ contains
        velocityRadialInternal    =node%hostTree%randomNumberGenerator_%uniformSample()*self%velocityMaximum
        velocityTangentialInternal=node%hostTree%randomNumberGenerator_%uniformSample()*self%velocityMaximum
        ! Evaluate distribution function for these parameters.
-       call self%interpolatorVelocity%linearFactors(velocityRadialInternal    ,iRadial    (0),hRadial    )
-       call self%interpolatorVelocity%linearFactors(velocityTangentialInternal,iTangential(0),hTangential)
-       iRadial    (1)=iRadial    (0)+1_c_size_t
-       iTangential(1)=iTangential(0)+1_c_size_t
-       distributionFunction=0.0d0
-       do jSatellite          =0,1
-          do jHost            =0,1
-             do jRadial       =0,1
-                do jTangential=0,1
-                   distributionFunction=+distributionFunction                                       &
-                        &                +self%velocityDistributionOrbits(                          &
-                        &                                                 iHost      (jHost      ), &
-                        &                                                 iSatellite (jSatellite ), &
-                        &                                                 iRadial    (jRadial    ), &
-                        &                                                 iTangential(jTangential)  &
-                        &                                                )                          &
-                        &                *                                hHost      (jHost      )  &
-                        &                *                                hSatellite (jSatellite )  &
-                        &                *                                hRadial    (jRadial    )  &
-                        &                *                                hTangential(jTangential)
-                end do
-             end do
-          end do
-       end do
+       call self%interpolatorVelocity%linearFactors(velocityRadialInternal    ,indicesOrbit(3),weightsOrbit(:,3))
+       call self%interpolatorVelocity%linearFactors(velocityTangentialInternal,indicesOrbit(4),weightsOrbit(:,4))
+       distributionFunction=self%interpolatorMassesVelocities%interpolateFactors(self%velocityDistributionOrbits,indicesOrbit,weightsOrbit)
        ! Perform rejection sampling.
        uniformRandom=distributionMaximum*node%hostTree%randomNumberGenerator_%uniformSample()
        if (uniformRandom <= distributionFunction) then
@@ -452,50 +428,29 @@ contains
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
-    class           (virialOrbitLossCone), intent(inout)  :: self
-    type            (treeNode           ), intent(inout)  :: host          , node
-    double precision                     , intent(in   )  :: velocityRadial, velocityTangential    
-    integer         (c_size_t           ), dimension(0:1) :: iSatellite    , iHost             , &
-         &                                                   iRadial       , iTangential
-    double precision                     , dimension(0:1) :: hSatellite    , hHost             , &
-         &                                                   hRadial       , hTangential
-    double precision                                      :: velocityHost  , radiusHost        , &
-         &                                                   massSatellite , massHost
-    integer                                               :: jSatellite    , jHost             , &
-         &                                                   jRadial       , jTangential
+    class           (virialOrbitLossCone), intent(inout)    :: self
+    type            (treeNode           ), intent(inout)    :: host          , node
+    double precision                     , intent(in   )    :: velocityRadial, velocityTangential
+    integer         (c_size_t           ), dimension(    2) :: indicesMass
+    integer         (c_size_t           ), dimension(    4) :: indicesOrbit
+    double precision                     , dimension(0:1,2) :: weightsMass
+    double precision                     , dimension(0:1,4) :: weightsOrbit
+    double precision                                        :: velocityHost  , radiusHost        , &
+         &                                                     massSatellite , massHost
 
     ! Tabulate the distribution and get all interpolating factors.
-    call self%tabulate                          (node,host                                                                                 )
-    call self%interpolants                      (node,host,massSatellite,massHost,velocityHost,radiusHost,iSatellite,iHost,hSatellite,hHost)
-    call self%interpolatorVelocity%linearFactors(velocityRadial    /velocityHost,iRadial    (0),hRadial    )
-    call self%interpolatorVelocity%linearFactors(velocityTangential/velocityHost,iTangential(0),hTangential)
-    iRadial    (1)=iRadial    (0)+1_c_size_t
-    iTangential(1)=iTangential(0)+1_c_size_t
+    call self%tabulate                          (node,host                                                                       )
+    call self%interpolants                      (node,host,massSatellite,massHost,velocityHost,radiusHost,indicesMass,weightsMass)
+    call self%interpolatorVelocity%linearFactors(velocityRadial    /velocityHost,indicesOrbit(3),weightsOrbit(:,3)               )
+    call self%interpolatorVelocity%linearFactors(velocityTangential/velocityHost,indicesOrbit(4),weightsOrbit(:,4)               )
+    indicesOrbit(  1:2)=indicesMass
+    weightsOrbit(:,1:2)=weightsMass
     ! Perform the interpolation.
-    lossConeVelocityDistributionFunction=0.0d0
-    do jSatellite          =0,1
-       do jHost            =0,1
-          do jRadial       =0,1
-             do jTangential=0,1
-                lossConeVelocityDistributionFunction=+lossConeVelocityDistributionFunction                      &
-                     &                               +self%velocityDistributionOrbits(                          &
-                     &                                                                iHost      (jHost      ), &
-                     &                                                                iSatellite (jSatellite ), &
-                     &                                                                iRadial    (jRadial    ), &
-                     &                                                                iTangential(jTangential)  &
-                     &                                                               )                          &
-                     &                               *                                hHost      (jHost      )  &
-                     &                               *                                hSatellite (jSatellite )  &
-                     &                               *                                hRadial    (jRadial    )  &
-                     &                               *                                hTangential(jTangential)
-             end do
-          end do
-       end do
-    end do
+    lossConeVelocityDistributionFunction=self%interpolatorMassesVelocities%interpolateFactors(self%velocityDistributionOrbits,indicesOrbit,weightsOrbit)
     return
   end function lossConeVelocityDistributionFunction
 
-  subroutine lossConeInterpolants(self,node,host,massSatellite,massHost,velocityHost,radiusHost,iSatellite,iHost,hSatellite,hHost)
+  subroutine lossConeInterpolants(self,node,host,massSatellite,massHost,velocityHost,radiusHost,indicesMass,weightsMass)
     !!{RST
     Compute interpolating factors in the orbital parameter tables.
     !!}
@@ -503,13 +458,13 @@ contains
     use            :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use            :: Galacticus_Nodes                    , only : nodeComponentBasic
     implicit none
-    class           (virialOrbitLossCone), intent(inout)                 :: self
-    type            (treeNode           ), intent(inout)                 :: host          , node
-    double precision                     , intent(  out)                 :: velocityHost  , radiusHost, &
-         &                                                                  massSatellite , massHost
-    integer         (c_size_t           ), intent(  out), dimension(0:1) :: iSatellite    , iHost
-    double precision                     , intent(  out), dimension(0:1) :: hSatellite    , hHost
-    class           (nodeComponentBasic ), pointer                       :: basicSatellite, basicHost
+    class           (virialOrbitLossCone), intent(inout)                   :: self
+    type            (treeNode           ), intent(inout)                   :: host          , node
+    double precision                     , intent(  out)                   :: velocityHost  , radiusHost, &
+         &                                                                    massSatellite , massHost
+    integer         (c_size_t           ), intent(  out), dimension(    2) :: indicesMass
+    double precision                     , intent(  out), dimension(0:1,2) :: weightsMass
+    class           (nodeComponentBasic ), pointer                         :: basicSatellite, basicHost
 
     ! Evaluate halo masses under our mass definition. Also gives us the host velocity scale.
     basicSatellite => node%basic()
@@ -533,11 +488,10 @@ contains
          &                                                darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                            &
          &                                               )
     massSatellite  =  min(massSatellite,massHost)
-    ! Compute interpolating factors.
-    call self%interpolatorMass%linearFactors(log(massSatellite),iSatellite(0),hSatellite)
-    call self%interpolatorMass%linearFactors(log(massHost     ),iHost     (0),hHost     )
-    iSatellite(1)=iSatellite(0)+1_c_size_t
-    iHost     (1)=iHost     (0)+1_c_size_t
+    ! Compute interpolating factors. The mass dimensions are interpolated logarithmically, which is achieved by building
+    ! the interpolator on the logarithms of the masses and evaluating it at the logarithm of the coordinate. The
+    ! dimensions are ordered (host, satellite) to match the layout of the tabulated arrays.
+    call self%interpolatorMasses%factors([log(massHost),log(massSatellite)],indicesMass,weightsMass)
     return
   end subroutine lossConeInterpolants
   
@@ -558,28 +512,16 @@ contains
     Return the mean magnitude of the tangential velocity.
     !!}
     implicit none
-    class           (virialOrbitLossCone), intent(inout)  :: self
-    type            (treeNode           ), intent(inout)  :: node         , host
-    integer         (c_size_t           ), dimension(0:1) :: iSatellite   , iHost
-    double precision                     , dimension(0:1) :: hSatellite   , hHost
-    double precision                                      :: velocityHost , radiusHost, &
-         &                                                   massSatellite, massHost
-    integer                                               :: jSatellite   , jHost
+    class           (virialOrbitLossCone), intent(inout)    :: self
+    type            (treeNode           ), intent(inout)    :: node         , host
+    integer         (c_size_t           ), dimension(    2) :: indicesMass
+    double precision                     , dimension(0:1,2) :: weightsMass
+    double precision                                        :: velocityHost , radiusHost, &
+         &                                                     massSatellite, massHost
 
-    call self%tabulate    (node,host                                                                                 )
-    call self%interpolants(node,host,massSatellite,massHost,velocityHost,radiusHost,iSatellite,iHost,hSatellite,hHost)
-    lossConeVelocityTangentialMagnitudeMean=0.0d0
-    do jSatellite=0,1
-       do jHost  =0,1
-          lossConeVelocityTangentialMagnitudeMean=+lossConeVelocityTangentialMagnitudeMean                    &
-               &                                  +self%velocityTangentialMeanVirial(                         &
-               &                                                                     iHost     (jHost      ), &
-               &                                                                     iSatellite(jSatellite )  &
-               &                                                                    )                         &
-               &                                  *                                  hHost     (jHost      )  &
-               &                                  *                                  hSatellite(jSatellite )
-       end do
-    end do
+    call self%tabulate    (node,host                                                                       )
+    call self%interpolants(node,host,massSatellite,massHost,velocityHost,radiusHost,indicesMass,weightsMass)
+    lossConeVelocityTangentialMagnitudeMean=self%interpolatorMasses%interpolateFactors(self%velocityTangentialMeanVirial,indicesMass,weightsMass)
     return
   end function lossConeVelocityTangentialMagnitudeMean
 
@@ -646,28 +588,16 @@ contains
     Return the mean magnitude of the tangential velocity.
     !!}
     implicit none
-    class           (virialOrbitLossCone), intent(inout)  :: self
-    type            (treeNode           ), intent(inout)  :: node         , host
-    integer         (c_size_t           ), dimension(0:1) :: iSatellite   , iHost
-    double precision                     , dimension(0:1) :: hSatellite   , hHost
-    double precision                                      :: velocityHost , radiusHost, &
-         &                                                   massSatellite, massHost
-    integer                                               :: jSatellite   , jHost
+    class           (virialOrbitLossCone), intent(inout)    :: self
+    type            (treeNode           ), intent(inout)    :: node         , host
+    integer         (c_size_t           ), dimension(    2) :: indicesMass
+    double precision                     , dimension(0:1,2) :: weightsMass
+    double precision                                        :: velocityHost , radiusHost, &
+         &                                                     massSatellite, massHost
 
-    call self%tabulate    (node,host                                                                                 )
-    call self%interpolants(node,host,massSatellite,massHost,velocityHost,radiusHost,iSatellite,iHost,hSatellite,hHost)
-    lossConeVelocityTotalRootMeanSquared=0.0d0
-    do jSatellite=0,1
-       do jHost  =0,1
-          lossConeVelocityTotalRootMeanSquared=+lossConeVelocityTotalRootMeanSquared           &
-               &                               +self%velocityTotalRMS(                         &
-               &                                                      iHost     (jHost      ), &
-               &                                                      iSatellite(jSatellite )  &
-               &                                                     )                         &
-               &                               *                      hHost     (jHost      )  &
-               &                               *                      hSatellite(jSatellite )
-       end do
-    end do
+    call self%tabulate    (node,host                                                                       )
+    call self%interpolants(node,host,massSatellite,massHost,velocityHost,radiusHost,indicesMass,weightsMass)
+    lossConeVelocityTotalRootMeanSquared=self%interpolatorMasses%interpolateFactors(self%velocityTotalRMS,indicesMass,weightsMass)
     return
   end function lossConeVelocityTotalRootMeanSquared
 
@@ -846,6 +776,7 @@ contains
     allocate(self%interpolatorMass             )
     self%mass            =latticeMass%values()
     self%interpolatorMass=interpolator(log(self%mass))
+    call lossConeInterpolatorsMultiDBuild(self)
     ! Allocate arrays for results and initialize.
     allocate(velocityRadialMeanVirial            (countMasses,countMasses                                ))
     allocate(velocityRadialDispersionVirial      (countMasses,countMasses                                ))
@@ -1573,6 +1504,42 @@ contains
   end function timeAlongOrbit
 
   
+  subroutine lossConeInterpolatorsMultiDBuild(self)
+    !!{RST
+    Build the multilinear interpolators used to interpolate in the tabulated orbital properties, from the
+    one-dimensional interpolators along the mass and velocity axes.
+    !!}
+    implicit none
+    class(virialOrbitLossCone), intent(inout) :: self
+    type (interpolator       ), dimension(2)  :: interpolatorsMasses
+    type (interpolator       ), dimension(4)  :: interpolatorsMassesVelocities
+
+    ! The dimensions are ordered to match the layout of the tabulated arrays: the rank-2 tables are indexed by (host
+    ! mass, satellite mass), and the rank-4 table of the orbital velocity distribution by (host mass, satellite mass,
+    ! radial velocity, tangential velocity). Since a multilinear interpolator holds one interpolator per dimension, the
+    ! mass and velocity abscissae are each duplicated twice; both arrays are small---their sizes are set by
+    ! "countMassesPerDecade" and "countVelocitiesPerUnit"---so the duplication is negligible.
+    !
+    ! The velocity interpolator is built once, by the constructor, and never rebuilt; only the mass interpolator is
+    ! rebuilt, when the mass lattice is extended. The velocity abscissae are therefore reused here, not rebuilt.
+    interpolatorsMasses          (1)=self%interpolatorMass
+    interpolatorsMasses          (2)=self%interpolatorMass
+    interpolatorsMassesVelocities(1)=self%interpolatorMass
+    interpolatorsMassesVelocities(2)=self%interpolatorMass
+    interpolatorsMassesVelocities(3)=self%interpolatorVelocity
+    interpolatorsMassesVelocities(4)=self%interpolatorVelocity
+    ! Free any previously-built interpolators before assigning. As for "interpolatorMass" (see "lossConeRestoreTable"),
+    ! these contain "interpolator" components whose defined assignment finalizes the left-hand side, so that side must
+    ! be freshly allocated---and so not left holding garbage---when it is assigned to.
+    if (allocated(self%interpolatorMasses          )) deallocate(self%interpolatorMasses          )
+    if (allocated(self%interpolatorMassesVelocities)) deallocate(self%interpolatorMassesVelocities)
+    allocate(self%interpolatorMasses          )
+    allocate(self%interpolatorMassesVelocities)
+    self%interpolatorMasses          =interpolatorMultiD(interpolatorsMasses          )
+    self%interpolatorMassesVelocities=interpolatorMultiD(interpolatorsMassesVelocities)
+    return
+  end subroutine lossConeInterpolatorsMultiDBuild
+
   subroutine lossConeRestoreTable(self)
     !!{RST
     Attempt to restore a table from file.
@@ -1606,6 +1573,8 @@ contains
           deallocate(self%velocityTotalRMS                    )
           deallocate(self%velocityDistributionPeak            )
           deallocate(self%interpolatorMass                    )
+          deallocate(self%interpolatorMasses                  )
+          deallocate(self%interpolatorMassesVelocities        )
        end if
        !$ call hdf5Access%set()
        ! Open read-only: opening read-write would have HDF5 take an exclusive lock on the file, so that another process reading
@@ -1650,6 +1619,7 @@ contains
           ! built, since it is constructed only by tabulate().
           if (.not.allocated(self%interpolatorMass)) allocate(self%interpolatorMass)
           self%interpolatorMass=interpolator(log(self%mass))
+          call lossConeInterpolatorsMultiDBuild(self)
        else
           self%time       =-huge(0.0d0)
           self%latticeMass= rangeLattice()
