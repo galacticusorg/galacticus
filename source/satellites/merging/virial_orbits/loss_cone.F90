@@ -1552,7 +1552,6 @@ contains
     use :: Table_Caches      , only : Table_Cache_Lattice_Read
     implicit none
     class  (virialOrbitLossCone), intent(inout) :: self
-    type   (hdf5File           )                :: file
     type   (lockDescriptor     )                :: fileLock
     type   (rangeLattice       )                :: latticeCached
 
@@ -1577,23 +1576,30 @@ contains
           deallocate(self%interpolatorMassesVelocities        )
        end if
        !$ call hdf5Access%set()
-       ! Open read-only: opening read-write would have HDF5 take an exclusive lock on the file, so that another process reading
-       ! it concurrently---which the shared file lock taken above explicitly permits---would fail to open it at all.
-       file=hdf5File(self%fileName,overWrite=.false.,readOnly=.true.)
-       call file%readAttribute('time'                                ,     self%time                                )
-       ! Recover the lattice on which the stored tabulation was built. One which the file does not record, or which this object
-       ! would not have built, is returned undefined and so rejected below.
-       call Table_Cache_Lattice_Read(file,'mass',gridSchemePerDecade,self%countMassesPerDecade,latticeCached)
-       call file%readDataset  ('mass'                                ,     self%mass                                )
-       call file%readDataset  ('velocityRadialMeanVirial'            ,     self%velocityRadialMeanVirial            )
-       call file%readDataset  ('velocityRadialDispersionVirial'      ,     self%velocityRadialDispersionVirial      )
-       call file%readDataset  ('velocityTangentialMeanVirial'        ,     self%velocityTangentialMeanVirial        )
-       call file%readDataset  ('velocityTangentialDispersionVirial'  ,     self%velocityTangentialDispersionVirial  )
-       call file%readDataset  ('velocityRadialDistributionOrbits'    ,     self%velocityRadialDistributionOrbits    )
-       call file%readDataset  ('velocityTangentialDistributionOrbits',     self%velocityTangentialDistributionOrbits)
-       call file%readDataset  ('velocityDistributionOrbits'          ,     self%velocityDistributionOrbits          )
-       call file%readDataset  ('velocityTotalRMS'                    ,     self%velocityTotalRMS                    )
-       call file%readDataset  ('velocityDistributionPeak'            ,     self%velocityDistributionPeak            )
+       ! The file object is scoped to this block so that it is finalized---and so the file actually closed---before the locks
+       ! are released below. Were it left to be finalized on return from this subroutine, the file would still be open to this
+       ! process after the lock was released, and another thread taking the lock and truncating the file to write it would fail
+       ! to create it.
+       hdf5FileScope: block
+         type(hdf5File) :: file
+         ! Open read-only: opening read-write would have HDF5 take an exclusive lock on the file, so that another process
+         ! reading it concurrently---which the shared file lock taken above explicitly permits---would fail to open it at all.
+         file=hdf5File(self%fileName,overWrite=.false.,readOnly=.true.)
+         call file%readAttribute('time'                                ,     self%time                                )
+         ! Recover the lattice on which the stored tabulation was built. One which the file does not record, or which this
+         ! object would not have built, is returned undefined and so rejected below.
+         call Table_Cache_Lattice_Read(file,'mass',gridSchemePerDecade,self%countMassesPerDecade,latticeCached)
+         call file%readDataset  ('mass'                                ,     self%mass                                )
+         call file%readDataset  ('velocityRadialMeanVirial'            ,     self%velocityRadialMeanVirial            )
+         call file%readDataset  ('velocityRadialDispersionVirial'      ,     self%velocityRadialDispersionVirial      )
+         call file%readDataset  ('velocityTangentialMeanVirial'        ,     self%velocityTangentialMeanVirial        )
+         call file%readDataset  ('velocityTangentialDispersionVirial'  ,     self%velocityTangentialDispersionVirial  )
+         call file%readDataset  ('velocityRadialDistributionOrbits'    ,     self%velocityRadialDistributionOrbits    )
+         call file%readDataset  ('velocityTangentialDistributionOrbits',     self%velocityTangentialDistributionOrbits)
+         call file%readDataset  ('velocityDistributionOrbits'          ,     self%velocityDistributionOrbits          )
+         call file%readDataset  ('velocityTotalRMS'                    ,     self%velocityTotalRMS                    )
+         call file%readDataset  ('velocityDistributionPeak'            ,     self%velocityDistributionPeak            )
+       end block hdf5FileScope
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
        self%fileRead=.true.
@@ -1650,28 +1656,33 @@ contains
     use :: Table_Caches      , only : Table_Cache_Lattice_Write
     implicit none
     class(virialOrbitLossCone), intent(inout) :: self
-    type (hdf5File           )                :: file
     type (lockDescriptor     )                :: fileLock
 
     call Directory_Make(File_Path(self%fileName))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock     (self%fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    file=hdf5File(self%fileName,overWrite=.true.,readOnly=.false.)
-    call file%writeAttribute(self%time                                ,'time'                                )
-    ! Record the lattice, not the bounds: the bounds follow from the lattice, but the converse does not, and it is the lattice
-    ! which determines whether a tabulation read back later can be extended to cover a new range without recomputation.
-    call Table_Cache_Lattice_Write(file,'mass',self%latticeMass)
-    call file%writeDataset  (self%mass                                ,'mass'                                )
-    call file%writeDataset  (self%velocityRadialMeanVirial            ,'velocityRadialMeanVirial'            )
-    call file%writeDataset  (self%velocityRadialDispersionVirial      ,'velocityRadialDispersionVirial'      )
-    call file%writeDataset  (self%velocityTangentialMeanVirial        ,'velocityTangentialMeanVirial'        )
-    call file%writeDataset  (self%velocityTangentialDispersionVirial  ,'velocityTangentialDispersionVirial'  )
-    call file%writeDataset  (self%velocityRadialDistributionOrbits    ,'velocityRadialDistributionOrbits'    )
-    call file%writeDataset  (self%velocityTangentialDistributionOrbits,'velocityTangentialDistributionOrbits')
-    call file%writeDataset  (self%velocityDistributionOrbits          ,'velocityDistributionOrbits'          )
-    call file%writeDataset  (self%velocityTotalRMS                    ,'velocityTotalRMS'                    )
-    call file%writeDataset  (self%velocityDistributionPeak            ,'velocityDistributionPeak'            )
+    ! As in restoreTable(), the file object is scoped to this block so that it is finalized---and so the file actually
+    ! closed---before the locks are released below.
+    hdf5FileScope: block
+      type(hdf5File) :: file
+      file=hdf5File(self%fileName,overWrite=.true.,readOnly=.false.)
+      call file%writeAttribute(self%time                                ,'time'                                )
+      ! Record the lattice, not the bounds: the bounds follow from the lattice, but the converse does not, and it is the
+      ! lattice which determines whether a tabulation read back later can be extended to cover a new range without
+      ! recomputation.
+      call Table_Cache_Lattice_Write(file,'mass',self%latticeMass)
+      call file%writeDataset  (self%mass                                ,'mass'                                )
+      call file%writeDataset  (self%velocityRadialMeanVirial            ,'velocityRadialMeanVirial'            )
+      call file%writeDataset  (self%velocityRadialDispersionVirial      ,'velocityRadialDispersionVirial'      )
+      call file%writeDataset  (self%velocityTangentialMeanVirial        ,'velocityTangentialMeanVirial'        )
+      call file%writeDataset  (self%velocityTangentialDispersionVirial  ,'velocityTangentialDispersionVirial'  )
+      call file%writeDataset  (self%velocityRadialDistributionOrbits    ,'velocityRadialDistributionOrbits'    )
+      call file%writeDataset  (self%velocityTangentialDistributionOrbits,'velocityTangentialDistributionOrbits')
+      call file%writeDataset  (self%velocityDistributionOrbits          ,'velocityDistributionOrbits'          )
+      call file%writeDataset  (self%velocityTotalRMS                    ,'velocityTotalRMS'                    )
+      call file%writeDataset  (self%velocityDistributionPeak            ,'velocityDistributionPeak'            )
+    end block hdf5FileScope
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     ! Mark the file as read, to avoid re-reading it later.
