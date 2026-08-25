@@ -423,12 +423,21 @@ def scan_source(source_dir: str):
             module_name = mmod.group(1) if mmod else base
             # Module-level description: the !!{RST …!!} block right after the
             # ``module`` line (already RST; not XML-escaped like <description>).
+            # Matched against the rest of the file, not a fixed-size window: the
+            # match is anchored (``re.match`` plus a leading ``\s*``), so it can
+            # still only pick up a block which immediately follows the ``module``
+            # line, but a window would have to reach past the block's *closing*
+            # ``!!}`` for the match to succeed at all — so a header longer than
+            # the window silently dropped its module from the index entirely.
+            # ``dedent`` before ``strip`` so that indentation *within* the block
+            # (code-blocks, nested lists) survives relative to its own margin.
             if mmod:
                 md = re.match(r'\s*!!\{RST\b(.*?)!!\}',
-                              text[mmod.end():mmod.end() + 800], re.DOTALL)
+                              text[mmod.end():], re.DOTALL)
                 if md and md.group(1).strip():
+                    description = textwrap.dedent(md.group(1)).strip()
                     modules.append({'name': module_name, 'file': path,
-                                    'description': md.group(1).strip()})
+                                    'description': description})
             tmeths = _extract_type_methods(text)
             if tmeths:
                 _derive_type_method_signatures(text, path, tmeths)
@@ -867,15 +876,19 @@ def render_enumerations(enumerations: list[dict], glsmap: dict) -> str:
 
 
 def render_modules(modules: list[dict]) -> str:
-    """A reference index of every documented source module + its summary."""
+    """A reference index of every documented source module + its header docs."""
     out = [_heading('Modules', '='),
            'Every documented Fortran module in the Galacticus source, with the '
-           'summary from its embedded documentation.  Modules implementing a '
+           'documentation embedded in its header.  Modules implementing a '
            'pluggable physics class link to that class.\n']
     for m in modules:
-        desc = re.sub(r'\s*\n\s*', ' ',
-                      textwrap.dedent(m['description']).strip()).strip()
-        body = desc or '—'
+        # Emitted as written, not collapsed onto one line.  Nearly every header
+        # is a single sentence, for which the two are identical; but a handful
+        # carry several paragraphs, and three carry a ``code-block``, which
+        # collapsing folded into the surrounding prose as literal ``.. code-block::``
+        # text.  The body becomes the definition of a definition list, so it is
+        # indented as a whole below.
+        body = m['description'].strip() or '—'
         if m.get('classRef'):
             body += f'\n\nSee :ref:`physics-{m["classRef"]}`.'
         # Emit a stable per-module anchor (``module-<name>``, lower-cased) so

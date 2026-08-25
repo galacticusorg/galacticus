@@ -271,6 +271,7 @@ Zeldovich
 Zhang
 Zhao
 Zwaan
+abscissae
 absorptions
 accrete
 accreted
@@ -300,6 +301,8 @@ arcminute
 arcminutes
 astrosylva
 asymptotes
+attenuator
+attenuators
 autocorrelation
 axion
 backtrace
@@ -361,6 +364,7 @@ cppcompiler
 cppflags
 cpus
 cryptographic
+cubature
 cumulate
 cumulates
 cumulation
@@ -401,6 +405,7 @@ digamma
 dilogarithm
 dilogarithms
 dima
+dimensionality
 dimensionful
 dimensionfull
 discretization
@@ -444,6 +449,7 @@ fortran
 forutils
 freefall
 functionalities
+functionClass
 galacticus
 galactocentric
 gas
@@ -453,6 +459,7 @@ gfortran
 grainedness
 grasil
 gridded
+gridding
 gsl
 gv
 gyr
@@ -483,6 +490,7 @@ infall
 infalling
 inhomogeneous
 initializer
+inlined
 inout
 inplane
 integrand
@@ -497,6 +505,7 @@ interdependencies
 interoperability
 interoperable
 interparticle
+interpolant
 interpolants
 interpolants
 interpolatable
@@ -544,6 +553,8 @@ memoize
 memoized
 memorylessness
 merchantability
+mergeability
+mergeable
 mergee
 mergees
 metadata
@@ -566,6 +577,7 @@ mpiLaunch
 mpilaunch
 mpirun
 multi
+multilinear
 multinomial
 multistream
 nanometers
@@ -628,6 +640,7 @@ photoionization
 photoionizations
 photometric
 piecewise
+pointwise
 polycyclic
 polygamma
 polylogarithm
@@ -727,6 +740,7 @@ situ
 smtp
 soliton
 solitonic
+spacings
 sphericalization
 spheroid
 splashback
@@ -812,6 +826,7 @@ unlinking
 unmap
 unmapped
 unmerged
+unnegotiated
 unnormalized
 unoperators
 unoptimized

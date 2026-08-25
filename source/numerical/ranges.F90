@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements construction of numerical ranges.
 !!}
@@ -24,6 +26,10 @@ Contains a module which implements construction of numerical ranges.
 module Numerical_Ranges
   !!{RST
   Implements construction of numerical ranges.
+
+  In addition to the simple ranges built by ``Make_Range``, this module provides the absolute lattices used by tabulations
+  which must grow as a model runs---``rangeLattice``, ``Range_Pinned``, and the ``Range_Lattice_*`` extension primitives. See
+  :ref:`manual-sec-growingATabulation` in the developer guide for how these are used, and why.
   !!}
   implicit none
   private

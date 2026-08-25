@@ -33,7 +33,7 @@ module Cooling_Rates
    <name>coolingRate</name>
    <descriptiveName>Cooling Rates</descriptiveName>
    <description>
-   Class providing models of the mass cooling rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) at which gas cools out of the hot atmosphere of a dark matter halo and becomes available for accretion onto the central galaxy. The cooling rate drives the supply of cold gas for star formation and sets the growth rate of the galaxy disc. Implementations typically account for the interplay between the cooling time, the freefall time, the cooling radius, and the available mass of hot gas, following the two-regime picture of GalacticuswhiteFrenk1991 and subsequent refinements.
+   Class providing models of the mass cooling rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) at which gas cools out of the hot atmosphere of a dark matter halo and becomes available for accretion onto the central galaxy. The cooling rate drives the supply of cold gas for star formation and sets the growth rate of the galaxy disc. Implementations typically account for the interplay between the cooling time, the freefall time, the cooling radius, and the available mass of hot gas, following the two-regime picture of :cite:t:`white_galaxy_1991` and subsequent refinements.
    </description>
    <default>whiteFrenk1991</default>
    <method name="rate" >
