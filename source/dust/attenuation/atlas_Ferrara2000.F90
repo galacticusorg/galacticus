@@ -406,8 +406,8 @@ contains
     else which varies within a component.
     !!}
     implicit none
-    type (decompositionRequest              )                :: request
-    class(dustAttenuationAtlasFerrara2000   ), intent(inout) :: self
+    type (decompositionRequest           )                :: request
+    class(dustAttenuationAtlasFerrara2000), intent(inout) :: self
     !$GLC attributes unused :: self
 
     request%resolveComponents =.true.
