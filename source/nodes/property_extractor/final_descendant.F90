@@ -17,8 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
-Implements an ISM mass output analysis property extractor class.
+Implements a node property extractor for the index of the final descendant node.
 !!}
 
   !![
@@ -30,7 +32,7 @@ Implements an ISM mass output analysis property extractor class.
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorFinalDescendant
      !!{RST
-     A stellar mass output analysis class.
+     A final descendant node index property extractor class.
      !!}
      private
    contains
