@@ -57,6 +57,19 @@ module Numerical_Interpolation_MultiD
   ! a default integer; it is far above any plausible tabulation.
   integer, parameter :: countDimensionsMaximum=16
 
+  !![
+  <stateStorable class="interpolatorMultiD">
+   <interpolatorMultiD>
+    <methodCall method="GSLReallocate"/>
+   </interpolatorMultiD>
+  </stateStorable>
+  <deepCopyActions class="interpolatorMultiD">
+   <interpolatorMultiD>
+    <methodCall method="GSLReallocate"/>
+   </interpolatorMultiD>
+  </deepCopyActions>
+  !!]
+
   type :: interpolatorMultiD
      !!{RST
      A multilinear interpolator over a separable grid of arbitrary dimensionality.
@@ -79,8 +92,12 @@ module Numerical_Interpolation_MultiD
        <method method="cornersFactors"     description="As ``corners``, but from factors which have already been found."       />
        <method method="interpolate"        description="Interpolate in a flattened table of values at the given coordinates."  />
        <method method="interpolateFactors" description="As ``interpolate``, but from factors which have already been found."   />
+       <method method="assignment(=)"      description="Assign multilinear interpolator objects."                              />
+       <method method="gslReallocate"      description="Reallocate the GSL objects held along each dimension."                 />
      </methods>
      !!]
+     procedure ::                           interpolatorMultiDAssign
+     generic   :: assignment(=)          => interpolatorMultiDAssign
      procedure :: countDimensions    => interpolatorMultiDCountDimensions
      procedure :: countCorners       => interpolatorMultiDCountCorners
      procedure :: countTable         => interpolatorMultiDCountTable
@@ -90,6 +107,7 @@ module Numerical_Interpolation_MultiD
      procedure :: cornersFactors     => interpolatorMultiDCornersFactors
      procedure :: interpolate        => interpolatorMultiDInterpolate
      procedure :: interpolateFactors => interpolatorMultiDInterpolateFactors
+     procedure :: gslReallocate      => interpolatorMultiDGSLReallocate
   end type interpolatorMultiD
 
   interface interpolatorMultiD
@@ -135,6 +153,58 @@ contains
     end do
     return
   end function interpolatorMultiDConstructor
+
+  subroutine interpolatorMultiDGSLReallocate(self)
+    !!{RST
+    Reallocate the GSL objects held by the :galacticus-class:`interpolator` of each dimension.
+
+    This is needed after an ``interpolatorMultiD`` has been copied---or restored from stored state---by the
+    code-generated deep copy and state store machinery. That machinery copies this object by intrinsic assignment,
+    which leaves the interpolator of each dimension sharing GSL objects with the object copied from without having
+    incremented their reference count. Reallocating releases that share and gives this copy GSL objects of its own, in
+    exactly the same way as for a bare :galacticus-class:`interpolator`.
+    !!}
+    implicit none
+    class  (interpolatorMultiD), intent(inout) :: self
+    integer                                    :: i
+
+    if (.not.allocated(self%dimensions)) return
+    do i=1,size(self%dimensions)
+       call self%dimensions(i)%gslReallocate()
+    end do
+    return
+  end subroutine interpolatorMultiDGSLReallocate
+
+  subroutine interpolatorMultiDAssign(self,from)
+    !!{RST
+    Perform assignment of ``interpolatorMultiD`` objects.
+
+    Each dimension is held as an :galacticus-class:`interpolator`, which is a reference-counted handle on GSL objects.
+    Those handles must therefore be copied using the ``interpolator`` class' own defined assignment, so that the
+    reference count of the GSL objects is incremented. A copy which did not do so would leave this object holding
+    pointers to GSL objects freed when the object copied from was destroyed---as happens whenever an
+    ``interpolatorMultiD`` is built from interpolators which are local to the routine building it.
+    !!}
+    implicit none
+    class  (interpolatorMultiD), intent(inout) :: self
+    class  (interpolatorMultiD), intent(in   ) :: from
+    integer                                    :: i
+
+    self%countDimensions_=from%countDimensions_
+    self%countCorners_   =from%countCorners_
+    if (allocated(self%dimensions )) deallocate(self%dimensions )
+    if (allocated(self%countPoints)) deallocate(self%countPoints)
+    if (allocated(self%stride     )) deallocate(self%stride     )
+    if (allocated(from%dimensions )) then
+       allocate(self%dimensions(size(from%dimensions)))
+       do i=1,size(from%dimensions)
+          self%dimensions(i)=from%dimensions(i)
+       end do
+    end if
+    if (allocated(from%countPoints))   allocate(self%countPoints,source=from%countPoints)
+    if (allocated(from%stride     ))   allocate(self%stride     ,source=from%stride     )
+    return
+  end subroutine interpolatorMultiDAssign
 
   integer function interpolatorMultiDCountDimensions(self) result(countDimensions)
     !!{RST

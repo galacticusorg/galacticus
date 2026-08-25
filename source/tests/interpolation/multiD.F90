@@ -39,7 +39,7 @@ program Test_Interpolation_MultiD
   use            :: Unit_Tests                    , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (interpolatorMultiD)                             :: interpolator2_                          , interpolator3_, &
-       &                                                              interpolator4_
+       &                                                              interpolator4_                          , interpolatorScoped_
   type            (interpolator      ), dimension(2)               :: interpolators2
   type            (interpolator      ), dimension(3)               :: interpolators3
   type            (interpolator      ), dimension(4)               :: interpolators4
@@ -221,8 +221,34 @@ program Test_Interpolation_MultiD
   call Assert("corner weights from factors match",    weightsFactors ,    weights4 )
   call Unit_Tests_End_Group()
 
+  ! Test an interpolator built from interpolators which are local to the routine which builds it, and so are destroyed
+  ! before it is used. Each dimension is a reference-counted handle on GSL objects, so a copy which failed to increment
+  ! that reference count would leave this object holding pointers to GSL objects which have since been freed.
+  call Unit_Tests_Begin_Group("built from interpolators since destroyed")
+  interpolatorScoped_=buildScoped()
+  y=interpolatorScoped_%interpolate(values2,[1.5d0,3.0d0])
+  call Assert("interior point",y,31.0d0,relTol=1.0d-12)
+  call Unit_Tests_End_Group()
+
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
+
+contains
+
+  function buildScoped() result(interpolator_)
+    !!{RST
+    Build a two-dimensional interpolator from interpolators which are local to this function, and so are destroyed on
+    return from it.
+    !!}
+    implicit none
+    type(interpolatorMultiD)               :: interpolator_
+    type(interpolator      ), dimension(2) :: interpolators_
+
+    interpolators_(1)=interpolator(x1)
+    interpolators_(2)=interpolator(x2)
+    interpolator_    =interpolatorMultiD(interpolators_)
+    return
+  end function buildScoped
 
 end program Test_Interpolation_MultiD
