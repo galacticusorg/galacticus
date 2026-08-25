@@ -1,9 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<!-- Default parameters for Galacticus v0.9.4 -->
-
-<!-- 30-October-2011                          -->
-
-<parameters>
+<!-- Default parameters for Galacticus v0.9.4 --><!-- 30-October-2011                          --><parameters>
   <formatVersion>2</formatVersion>
   <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
 
@@ -318,16 +313,16 @@
        convolve; the default is to store none. The time resolution is set finer than the birth cloud lifetime so that
        the young/old split falls on a bin boundary rather than inside a bin. -->
   <starFormationHistory value="adaptive">
-    <timeStepMinimum       value="2.0e-3"/>
-    <countTimeStepsMaximum value="16"    />
-    <countMetallicities    value="4"     />
+    <timeStepMinimum value="2.0e-3"/>
+    <countTimeStepsMaximum value="16"/>
+    <countMetallicities value="4"/>
   </starFormationHistory>
 
   <!-- Each luminosity is tracked twice: once unrestricted, once restricted to populations younger than the birth
        cloud lifetime. Differencing the two isolates the light of old stars. -->
-  <luminosityFilter         value="SDSS_r  SDSS_r"/>
-  <luminosityType           value="rest    rest  "/>
-  <luminosityRedshift       value="0.0     0.0   "/>
+  <luminosityFilter value="SDSS_r  SDSS_r"/>
+  <luminosityType value="rest    rest  "/>
+  <luminosityRedshift value="0.0     0.0   "/>
   <luminosityPostprocessSet value="default recent"/>
 
   <stellarPopulationSpectraPostprocessorBuilder value="lookup">
@@ -341,27 +336,27 @@
   <nodePropertyExtractor value="multi">
     <nodePropertyExtractor value="dustAttenuation">
       <outputUnattenuated value="true"/>
-      <outputSum          value="true"/>
-      <sumName            value="luminosityTotal"/>
+      <outputSum value="true"/>
+      <sumName value="luminosityTotal"/>
       <dustAttenuation value="charlotFall2000">
-        <coefficientBirthCloud value="1.0e0" />
-        <coefficientISM        value="1.0e0" />
-        <timescale             value="1.0e-2"/>
-        <exponent              value="0.7e0" />
+        <coefficientBirthCloud value="1.0e0"/>
+        <coefficientISM value="1.0e0"/>
+        <timescale value="1.0e-2"/>
+        <exponent value="0.7e0"/>
         <!-- The class being compared against normalizes its power law at a round 5500A rather than at the Buser V
              effective wavelength, so match it here to isolate every other difference. -->
-        <wavelengthReference   value="5500.0"/>
+        <wavelengthReference value="5500.0"/>
       </dustAttenuation>
       <nodePropertyExtractor value="luminosityStellar">
-        <filterName        value="SDSS_r"        />
-        <filterType        value="rest"          />
-        <component         value="disk"          />
+        <filterName value="SDSS_r"/>
+        <filterType value="rest"/>
+        <component value="disk"/>
         <postprocessChains value="default recent"/>
       </nodePropertyExtractor>
       <nodePropertyExtractor value="luminosityStellar">
-        <filterName        value="SDSS_r"        />
-        <filterType        value="rest"          />
-        <component         value="spheroid"      />
+        <filterName value="SDSS_r"/>
+        <filterType value="rest"/>
+        <component value="spheroid"/>
         <postprocessChains value="default recent"/>
       </nodePropertyExtractor>
     </nodePropertyExtractor>
@@ -371,72 +366,72 @@
          attenuator's decomposition request along unaltered. -->
     <nodePropertyExtractor value="dustAttenuation">
       <outputUnattenuated value="false"/>
-      <outputSum          value="true"/>
-      <sumName            value="luminosityTotalAveraged"/>
+      <outputSum value="true"/>
+      <sumName value="luminosityTotalAveraged"/>
       <dustAttenuation value="inclinationAveraged">
         <order value="8"/>
         <dustAttenuation value="charlotFall2000">
-          <coefficientBirthCloud value="1.0e0" />
-          <coefficientISM        value="1.0e0" />
-          <timescale             value="1.0e-2"/>
-          <exponent              value="0.7e0" />
-          <wavelengthReference   value="5500.0"/>
+          <coefficientBirthCloud value="1.0e0"/>
+          <coefficientISM value="1.0e0"/>
+          <timescale value="1.0e-2"/>
+          <exponent value="0.7e0"/>
+          <wavelengthReference value="5500.0"/>
         </dustAttenuation>
       </dustAttenuation>
       <nodePropertyExtractor value="luminosityStellar">
-        <filterName        value="SDSS_r"        />
-        <filterType        value="rest"          />
-        <component         value="disk"          />
+        <filterName value="SDSS_r"/>
+        <filterType value="rest"/>
+        <component value="disk"/>
         <postprocessChains value="default recent"/>
       </nodePropertyExtractor>
       <nodePropertyExtractor value="luminosityStellar">
-        <filterName        value="SDSS_r"        />
-        <filterType        value="rest"          />
-        <component         value="spheroid"      />
+        <filterName value="SDSS_r"/>
+        <filterType value="rest"/>
+        <component value="spheroid"/>
         <postprocessChains value="default recent"/>
       </nodePropertyExtractor>
     </nodePropertyExtractor>
     <nodePropertyExtractor value="dustAttenuation">
       <outputUnattenuated value="true"/>
-      <outputSum          value="true"/>
-      <sumName            value="sedTotal"/>
+      <outputSum value="true"/>
+      <sumName value="sedTotal"/>
       <dustAttenuation value="charlotFall2000">
-        <coefficientBirthCloud value="1.0e0" />
-        <coefficientISM        value="1.0e0" />
-        <timescale             value="1.0e-2"/>
-        <exponent              value="0.7e0" />
-        <wavelengthReference   value="5500.0"/>
+        <coefficientBirthCloud value="1.0e0"/>
+        <coefficientISM value="1.0e0"/>
+        <timescale value="1.0e-2"/>
+        <exponent value="0.7e0"/>
+        <wavelengthReference value="5500.0"/>
       </dustAttenuation>
       <nodePropertyExtractor value="SED">
-        <component         value="disk"    />
-        <frame             value="rest"    />
-        <wavelengthMinimum value="3.0e3"   />
-        <wavelengthMaximum value="9.0e3"   />
-        <resolution        value="20.0"    />
-        <toleranceRelative value="1.0e-2"  />
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
       </nodePropertyExtractor>
       <nodePropertyExtractor value="SED">
-        <component         value="spheroid"/>
-        <frame             value="rest"    />
-        <wavelengthMinimum value="3.0e3"   />
-        <wavelengthMaximum value="9.0e3"   />
-        <resolution        value="20.0"    />
-        <toleranceRelative value="1.0e-2"  />
+        <component value="spheroid"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
       </nodePropertyExtractor>
     </nodePropertyExtractor>
     <!-- Round-trip check: `zero` attenuates nothing, so decomposing a spectrum and recombining it must return the
          spectrum unchanged. This tests the decomposition itself, independently of any dust physics. -->
     <nodePropertyExtractor value="dustAttenuation">
       <outputUnattenuated value="false"/>
-      <outputSum          value="false"/>
+      <outputSum value="false"/>
       <dustAttenuation value="zero"/>
       <nodePropertyExtractor value="SED">
-        <component         value="disk"    />
-        <frame             value="rest"    />
-        <wavelengthMinimum value="3.0e3"   />
-        <wavelengthMaximum value="9.0e3"   />
-        <resolution        value="20.0"    />
-        <toleranceRelative value="1.0e-2"  />
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
       </nodePropertyExtractor>
     </nodePropertyExtractor>
     <!-- Branch check: these two must agree exactly. The first attenuator is age-independent, so the spectrum is
@@ -445,50 +440,50 @@
          depth, so it attenuates nothing. Any light dropped or double counted by the age-resolved path shows up here. -->
     <nodePropertyExtractor value="dustAttenuation">
       <outputUnattenuated value="false"/>
-      <outputSum          value="false"/>
+      <outputSum value="false"/>
       <dustAttenuation value="screenSurfaceDensityMetals">
         <coefficient value="1.0"/>
         <dustExtinctionCurve value="powerLaw">
-          <exponent            value="0.7"   />
+          <exponent value="0.7"/>
           <wavelengthReference value="5500.0"/>
         </dustExtinctionCurve>
       </dustAttenuation>
       <nodePropertyExtractor value="SED">
-        <component         value="disk"    />
-        <frame             value="rest"    />
-        <wavelengthMinimum value="3.0e3"   />
-        <wavelengthMaximum value="9.0e3"   />
-        <resolution        value="20.0"    />
-        <toleranceRelative value="1.0e-2"  />
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
       </nodePropertyExtractor>
     </nodePropertyExtractor>
     <nodePropertyExtractor value="dustAttenuation">
       <outputUnattenuated value="false"/>
-      <outputSum          value="false"/>
+      <outputSum value="false"/>
       <dustAttenuation value="sequence">
         <dustAttenuation value="birthCloud">
-          <coefficient value="0.0"  />
-          <timescale   value="2.0e-3"/>
+          <coefficient value="0.0"/>
+          <timescale value="2.0e-3"/>
           <dustExtinctionCurve value="powerLaw">
-            <exponent            value="0.7"   />
+            <exponent value="0.7"/>
             <wavelengthReference value="5500.0"/>
           </dustExtinctionCurve>
         </dustAttenuation>
         <dustAttenuation value="screenSurfaceDensityMetals">
           <coefficient value="1.0"/>
           <dustExtinctionCurve value="powerLaw">
-            <exponent            value="0.7"   />
+            <exponent value="0.7"/>
             <wavelengthReference value="5500.0"/>
           </dustExtinctionCurve>
         </dustAttenuation>
       </dustAttenuation>
       <nodePropertyExtractor value="SED">
-        <component         value="disk"    />
-        <frame             value="rest"    />
-        <wavelengthMinimum value="3.0e3"   />
-        <wavelengthMaximum value="9.0e3"   />
-        <resolution        value="20.0"    />
-        <toleranceRelative value="1.0e-2"  />
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
       </nodePropertyExtractor>
     </nodePropertyExtractor>
     <!-- Emission lines. The extractor sums over disk and spheroid internally, so decomposition must split by
@@ -497,13 +492,13 @@
          elements, which is the case in which the rank of a summed property could disagree with its shape. -->
     <nodePropertyExtractor value="dustAttenuation">
       <outputUnattenuated value="true"/>
-      <outputSum          value="false"/>
+      <outputSum value="false"/>
       <dustAttenuation value="charlotFall2000">
-        <coefficientBirthCloud value="1.0e0" />
-        <coefficientISM        value="1.0e0" />
-        <timescale             value="1.0e-2"/>
-        <exponent              value="0.7e0" />
-        <wavelengthReference   value="5500.0"/>
+        <coefficientBirthCloud value="1.0e0"/>
+        <coefficientISM value="1.0e0"/>
+        <timescale value="1.0e-2"/>
+        <exponent value="0.7e0"/>
+        <wavelengthReference value="5500.0"/>
       </dustAttenuation>
       <nodePropertyExtractor value="luminosityEmissionLine">
         <component value="all"/>
@@ -515,13 +510,13 @@
          as an output analysis, use the framework at all. -->
     <nodePropertyExtractor value="dustAttenuation">
       <outputSumOnly value="true"/>
-      <sumName       value="lineTotalSumOnly"/>
+      <sumName value="lineTotalSumOnly"/>
       <dustAttenuation value="charlotFall2000">
-        <coefficientBirthCloud value="1.0e0" />
-        <coefficientISM        value="1.0e0" />
-        <timescale             value="1.0e-2"/>
-        <exponent              value="0.7e0" />
-        <wavelengthReference   value="5500.0"/>
+        <coefficientBirthCloud value="1.0e0"/>
+        <coefficientISM value="1.0e0"/>
+        <timescale value="1.0e-2"/>
+        <exponent value="0.7e0"/>
+        <wavelengthReference value="5500.0"/>
       </dustAttenuation>
       <nodePropertyExtractor value="luminosityEmissionLine">
         <component value="all"/>
@@ -538,13 +533,13 @@
       <element value="1"/>
       <nodePropertyExtractor value="dustAttenuation">
         <outputSumOnly value="true"/>
-        <sumName       value="lineTotalScalarized"/>
+        <sumName value="lineTotalScalarized"/>
         <dustAttenuation value="charlotFall2000">
-          <coefficientBirthCloud value="1.0e0" />
-          <coefficientISM        value="1.0e0" />
-          <timescale             value="1.0e-2"/>
-          <exponent              value="0.7e0" />
-          <wavelengthReference   value="5500.0"/>
+          <coefficientBirthCloud value="1.0e0"/>
+          <coefficientISM value="1.0e0"/>
+          <timescale value="1.0e-2"/>
+          <exponent value="0.7e0"/>
+          <wavelengthReference value="5500.0"/>
         </dustAttenuation>
         <nodePropertyExtractor value="luminosityEmissionLine">
           <component value="all"/>
@@ -554,6 +549,92 @@
           <component value="all"/>
           <lineNames value="balmerBeta4863"/>
         </nodePropertyExtractor>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <!-- The Ferrara et al. (1999) atlas: the first orientation dependent, non separable attenuator. The disk is
+         extracted at two inclinations and again averaged over orientation. Dust in a disk removes more light from
+         an edge on line of sight than a face on one, and the average over orientation must lie between the two.
+         The spheroid is extracted as well, so that the four dimensional table, which additionally depends on
+         spheroid size, is exercised alongside the three dimensional one. -->
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <dustAttenuation value="atlasFerrara2000">
+        <dust value="milkyWay"/>
+        <heightRatio value="1.0"/>
+        <galacticInclination value="fixed">
+          <inclination value="30.0"/>
+        </galacticInclination>
+        <dustAttenuation value="screenFixed">
+          <depthOpticalV value="2.0"/>
+          <dustExtinctionCurve value="powerLaw">
+            <exponent value="0.7"/>
+            <wavelengthReference value="5500.0"/>
+          </dustExtinctionCurve>
+        </dustAttenuation>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <dustAttenuation value="inclinationAveraged">
+        <order value="8"/>
+        <dustAttenuation value="atlasFerrara2000">
+          <dust value="milkyWay"/>
+          <heightRatio value="1.0"/>
+          <galacticInclination value="fixed">
+            <inclination value="30.0"/>
+          </galacticInclination>
+          <dustAttenuation value="screenFixed">
+            <depthOpticalV value="2.0"/>
+            <dustExtinctionCurve value="powerLaw">
+              <exponent value="0.7"/>
+              <wavelengthReference value="5500.0"/>
+            </dustExtinctionCurve>
+          </dustAttenuation>
+        </dustAttenuation>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <dustAttenuation value="atlasFerrara2000">
+        <dust value="milkyWay"/>
+        <heightRatio value="1.0"/>
+        <galacticInclination value="fixed">
+          <inclination value="30.0"/>
+        </galacticInclination>
+        <dustAttenuation value="screenFixed">
+          <depthOpticalV value="2.0"/>
+          <dustExtinctionCurve value="powerLaw">
+            <exponent value="0.7"/>
+            <wavelengthReference value="5500.0"/>
+          </dustExtinctionCurve>
+        </dustAttenuation>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="spheroid"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
       </nodePropertyExtractor>
     </nodePropertyExtractor>
   </nodePropertyExtractor>

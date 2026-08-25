@@ -308,7 +308,10 @@ contains
           transmission(i)=self%interpolatorDisk    %interpolate(self%transmissionDisk    ,[logDepth,inclinationDegrees,log(descriptors(i)%wavelength)])
        else if (descriptors(i)%componentType == componentTypeSpheroid) then
           if (.not.radiusSpheroidComputed) then
-             radiusSpheroid        =atlasFerrara2000RadiusSpheroid(node)
+             ! Clamp into the tabulated range before taking a logarithm. A galaxy may have no spheroid, or no disk
+             ! to measure one against, giving a ratio of zero whose logarithm would trap; and the interpolator holds
+             ! values at the boundary in any case, so nothing is lost by clamping here rather than there.
+             radiusSpheroid        =max(atlasFerrara2000RadiusSpheroid(node),minval(self%radiusSpheroid))
              radiusSpheroidComputed=.true.
           end if
           transmission(i)=self%interpolatorSpheroid%interpolate(self%transmissionSpheroid,[log(radiusSpheroid),logDepth,inclinationDegrees,log(descriptors(i)%wavelength)])
