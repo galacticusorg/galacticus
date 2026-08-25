@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787441961130,
+  "lastUpdate": 1787690174605,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (Symphony Milky Way z=0)": [
@@ -572,6 +572,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX1 z=0.000 (47 realizations)",
             "value": 4184.915560522112,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX64 z=0.000",
+            "value": 180.1023368654853,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "b97d472f50b1edaacce551b3f7058b6f29e8b1b6",
+          "message": "fix(ci): drop the erroneous `v` prefix from dependencyBot release links\n\nThe dependencyBot PR body linked to `.../releases/tag/v<latest>`, but\ndepup already reports the tag verbatim (e.g. `2.0.3` for CAMB, whose\ntags carry no `v`), so the generated link 404'd.",
+          "timestamp": "2026-08-25T07:28:30-07:00",
+          "tree_id": "1f5a6e61d7f08ac345b18c6a689739ea90663611",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b97d472f50b1edaacce551b3f7058b6f29e8b1b6"
+        },
+        "date": 1787690172957,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX1 z=0.000 (47 realizations)",
+            "value": 4184.915556708363,
             "unit": "-logℒ"
           },
           {
