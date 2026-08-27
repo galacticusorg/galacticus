@@ -54,6 +54,12 @@ module Node_Component_Halo_Angular_Momentum_Scalar
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
     </property>
+    <property>
+      <name>angularMomentumSpecificAccreted</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
    </properties>
   </component>
   !!]
