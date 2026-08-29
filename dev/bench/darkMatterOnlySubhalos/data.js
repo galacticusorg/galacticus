@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787689958638,
+  "lastUpdate": 1788036004689,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "b67ed4d0c631e711faacbfb2843b1cbb50ee5cba",
-          "message": "feat: Various improvements to the emission line Cloudy table script\n\n* Fix dataset ordering and other bugs.\n\n* Expand the range of HII region luminosities tabulated.\n\n* Use the Strömgren radius of the HII region in Cloudy models.\n\n* Validate models against BPT diagrams and create plots of those diagrams.\n\n* Provide data and instructions to deply those plots to a web page.",
-          "timestamp": "2025-06-25T13:01:15-07:00",
-          "tree_id": "3a78e821f793815aeaec93e362e8bfb710918b17",
-          "url": "https://github.com/galacticusorg/galacticus/commit/b67ed4d0c631e711faacbfb2843b1cbb50ee5cba"
-        },
-        "date": 1750905294291,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 59.205,
-            "unit": "seconds",
-            "range": 0.0799906244499101
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8800,6 +8770,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 14825.828668002163,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d6a011bdd47d7ab6064044e2dbfb04e4382565f9",
+          "message": "Merge pull request #1430 from galacticusorg/feature/dust-framework-phase3\n\nDust framework phase 3: per-galaxy inclination and the Ferrara et al. (1999) atlas",
+          "timestamp": "2026-08-29T14:40:36Z",
+          "tree_id": "eb323e53bed6c92ee484bb49955ddaef637113b6",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d6a011bdd47d7ab6064044e2dbfb04e4382565f9"
+        },
+        "date": 1788035999722,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 21.015,
+            "range": "0.06340741281585298",
+            "unit": "seconds"
           }
         ]
       }
