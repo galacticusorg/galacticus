@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787690129559,
+  "lastUpdate": 1788036157889,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)": [
@@ -6533,6 +6533,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": 50.923195816960884,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d6a011bdd47d7ab6064044e2dbfb04e4382565f9",
+          "message": "Merge pull request #1430 from galacticusorg/feature/dust-framework-phase3\n\nDust framework phase 3: per-galaxy inclination and the Ferrara et al. (1999) atlas",
+          "timestamp": "2026-08-29T14:40:36Z",
+          "tree_id": "eb323e53bed6c92ee484bb49955ddaef637113b6",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d6a011bdd47d7ab6064044e2dbfb04e4382565f9"
+        },
+        "date": 1788036156757,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": 27.39354401472944,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": 50.23880754504154,
             "unit": "-logℒ"
           }
         ]
