@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787689972372,
+  "lastUpdate": 1788036025728,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX8)": [
@@ -3575,6 +3575,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 16.05824873219189,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d6a011bdd47d7ab6064044e2dbfb04e4382565f9",
+          "message": "Merge pull request #1430 from galacticusorg/feature/dust-framework-phase3\n\nDust framework phase 3: per-galaxy inclination and the Ferrara et al. (1999) atlas",
+          "timestamp": "2026-08-29T14:40:36Z",
+          "tree_id": "eb323e53bed6c92ee484bb49955ddaef637113b6",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d6a011bdd47d7ab6064044e2dbfb04e4382565f9"
+        },
+        "date": 1788036025007,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 3.891673942583651,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 11.045467150369966,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 16.058248732191977,
             "unit": "-logℒ"
           }
         ]
