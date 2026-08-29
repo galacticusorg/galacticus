@@ -117,7 +117,7 @@ contains
     return
   end subroutine mixedSlabDestructor
 
-  function mixedSlabTransmission(self,node,descriptors) result(transmission)
+  function mixedSlabTransmission(self,node,descriptors,inclination) result(transmission)
     !!{RST
     Return the transmission through dust mixed uniformly with the emitting stars.
     !!}
@@ -125,12 +125,14 @@ contains
     class           (dustAttenuationMixedSlab), intent(inout)                               :: self
     type            (treeNode                ), intent(inout), target                       :: node
     type            (emissionDescriptor      ), intent(in   ), dimension(:                ) :: descriptors
+    double precision                          , intent(in   ), optional                     :: inclination
     double precision                                         , dimension(size(descriptors)) :: transmission
     ! Below this optical depth the series expansion of [1-exp(-τ)]/τ is used: the direct expression suffers
     ! cancellation as τ →, where both numerator and denominator vanish.
     double precision                                         , parameter                    :: depthOpticalSmall=1.0d-6
     integer                                                                                 :: i
     double precision                                                                        :: depthOptical
+    !$GLC attributes unused :: inclination
 
     transmission=self%dustAttenuation_%transmission(node,descriptors)
     do i=1,size(transmission)

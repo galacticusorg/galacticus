@@ -179,7 +179,7 @@ contains
     return
   end function charlotFall2000ConstructorInternal
 
-  function charlotFall2000Transmission(self,node,descriptors) result(transmission)
+  function charlotFall2000Transmission(self,node,descriptors,inclination) result(transmission)
     !!{RST
     Return the transmission through both the birth cloud and diffuse interstellar medium components.
     !!}
@@ -188,6 +188,8 @@ contains
     type            (treeNode                      ), intent(inout), target                       :: node
     type            (emissionDescriptor            ), intent(in   ), dimension(:                ) :: descriptors
     double precision                                               , dimension(size(descriptors)) :: transmission
+    double precision                                , intent(in   ), optional                     :: inclination
+    !$GLC attributes unused :: inclination
 
     transmission=+self%birthCloud_%transmission(node,descriptors) &
          &       *self%screenISM_ %transmission(node,descriptors)

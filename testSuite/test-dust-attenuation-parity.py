@@ -68,6 +68,30 @@ if differenceSum > 0.0:
 print(f"SUCCESS: outputSum equals the sum of the per-component attenuated luminosities exactly")
 
 # ---------------------------------------------------------------------------------------------------------------------
+# Averaging over orientation. Charlot & Fall (2000) does not depend on orientation, so averaging it over orientation
+# must return it unchanged -- which checks that the quadrature weights sum to unity, that the optional inclination
+# argument is threaded through to the wrapped attenuator, and that the decorator passes its decomposition request on.
+# ---------------------------------------------------------------------------------------------------------------------
+with h5py.File(outputPath, "r") as f:
+    nodes = f["Outputs/Output1/nodeData"]
+    try:
+        averaged = nodes["luminosityTotalAveraged:dustAttenuated:inclinationAveraged"][:]
+    except KeyError as e:
+        print(f"FAILED: expected inclination-averaged dataset missing from the output: {e}")
+        print(f"        available: {sorted(n for n in nodes.keys() if 'Averaged' in n)}")
+        sys.exit(0)
+
+emittingBand = total > 0.0
+if not emittingBand.any():
+    print("FAILED: no galaxy has a non-zero attenuated luminosity, so the average is not being tested")
+    sys.exit(0)
+worstAveraged = float(np.nanmax(np.abs(averaged[emittingBand] - total[emittingBand]) / total[emittingBand]))
+if worstAveraged > TOLERANCE:
+    print(f"FAILED: averaging an orientation-independent attenuator over orientation changed it by {worstAveraged:.3e}")
+    sys.exit(0)
+print(f"SUCCESS: averaging over orientation leaves an orientation-independent attenuator unchanged, to {worstAveraged:.3e}")
+
+# ---------------------------------------------------------------------------------------------------------------------
 # Spectral energy distributions. These check the decomposition machinery itself rather than agreement with a previous
 # implementation, since no previous implementation attenuated a spectrum.
 # ---------------------------------------------------------------------------------------------------------------------
@@ -230,5 +254,53 @@ if worstScalarized > TOLERANCE:
     print(f"FAILED: the scalarized total differs from the sum of the separately emitted lines by {worstScalarized:.3e}")
     sys.exit(0)
 print(f"SUCCESS: the scalarizer reproduces the summed, attenuated luminosity, to {worstScalarized:.3e}")
+
+# ---------------------------------------------------------------------------------------------------------------------
+# The Ferrara et al. (1999) atlas: the first orientation dependent, non separable attenuator. Its transmission comes
+# from interpolating a tabulated radiative transfer calculation rather than from an optical depth times a curve, and it
+# is checked here for the disk, for the spheroid -- which uses a four dimensional table, additionally indexed by
+# spheroid size -- and averaged over orientation.
+# ---------------------------------------------------------------------------------------------------------------------
+with h5py.File(outputPath, "r") as f:
+    nodes = f["Outputs/Output1/nodeData"]
+    try:
+        sedDiskRaw      = nodes["diskStellarSED:inoue2014"][:]
+        sedSpheroidRaw  = nodes["spheroidStellarSED:inoue2014"][:]
+        atlasDisk       = nodes["diskStellarSED:inoue2014:dustAttenuated:atlasFerrara2000"][:]
+        atlasSpheroid   = nodes["spheroidStellarSED:inoue2014:dustAttenuated:atlasFerrara2000"][:]
+        atlasAveraged   = nodes["diskStellarSED:inoue2014:dustAttenuated:inclinationAveraged"][:]
+    except KeyError as e:
+        print(f"FAILED: expected atlas dataset missing from the output: {e}")
+        sys.exit(0)
+
+emittingDisk     = sedDiskRaw     > 0.0
+emittingSpheroid = sedSpheroidRaw > 0.0
+if not emittingDisk.any() or not emittingSpheroid.any():
+    print("FAILED: no disk or spheroid emission, so the atlas is not being tested")
+    sys.exit(0)
+
+transmissionDisk     = atlasDisk    [emittingDisk    ] / sedDiskRaw    [emittingDisk    ]
+transmissionSpheroid = atlasSpheroid[emittingSpheroid] / sedSpheroidRaw[emittingSpheroid]
+transmissionAveraged = atlasAveraged[emittingDisk    ] / sedDiskRaw    [emittingDisk    ]
+
+# Transmission must be positive and finite. It is not bounded above by unity: this is a directional transmission, and
+# scattering can put more light into a line of sight than the dust takes out of it, which the tabulation shows at low
+# optical depth and low inclination. The bound here is loose enough to admit that but tight enough to catch a misread.
+for name, values in (("disk", transmissionDisk), ("spheroid", transmissionSpheroid), ("averaged", transmissionAveraged)):
+    if not bool(np.all(np.isfinite(values))) or values.min() <= 0.0 or values.max() > 1.1:
+        print(f"FAILED: atlas {name} transmission is not in a physical range: "
+              f"[{values.min():.3e},{values.max():.3e}]")
+        sys.exit(0)
+print(f"SUCCESS: atlas transmission is physical for disk, spheroid, and averaged over orientation")
+
+# Averaging over orientation includes lines of sight more inclined than the fixed 30 degrees at which the unaveraged
+# atlas is evaluated, and a dust disk removes more light from a more inclined sightline, so the average must transmit
+# less. This exercises the inclination axis of the table, and the quadrature over it.
+if not bool(np.all(transmissionAveraged <= transmissionDisk + TOLERANCE)):
+    worst = float(np.nanmax(transmissionAveraged - transmissionDisk))
+    print(f"FAILED: averaging over orientation transmits more than the face-on value, by up to {worst:.3e}")
+    sys.exit(0)
+print(f"SUCCESS: averaging over orientation transmits less than at 30 degrees, "
+      f"{transmissionAveraged.mean():.4f} against {transmissionDisk.mean():.4f}")
 
 sys.exit(0)

@@ -140,7 +140,7 @@ contains
     return
   end subroutine birthCloudDestructor
 
-  function birthCloudTransmission(self,node,descriptors) result(transmission)
+  function birthCloudTransmission(self,node,descriptors,inclination) result(transmission)
     !!{RST
     Return the transmission through the dust of a stellar birth cloud.
     !!}
@@ -149,12 +149,14 @@ contains
     class           (dustAttenuationBirthCloud), intent(inout)                                               :: self
     type            (treeNode                 ), intent(inout), target                                       :: node
     type            (emissionDescriptor       ), intent(in   ), dimension(:                                ) :: descriptors
+    double precision                           , intent(in   ), optional                                     :: inclination
     double precision                                          , dimension(size(descriptors)                ) :: transmission
     double precision                                          , dimension(componentTypeMin:componentTypeMax) :: depthOpticalV
     logical                                                   , dimension(componentTypeMin:componentTypeMax) :: computed
     integer                                                                                                  :: i            , indexComponent
     double precision                                                                                         :: massGas      , radius        , &
          &                                                                                                      metallicity
+    !$GLC attributes unused :: inclination
 
     computed=.false.
     do i=1,size(descriptors)

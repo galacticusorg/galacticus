@@ -71,7 +71,7 @@ contains
     return
   end function zeroConstructorParameters
 
-  function zeroTransmission(self,node,descriptors) result(transmission)
+  function zeroTransmission(self,node,descriptors,inclination) result(transmission)
     !!{RST
     Return unit transmission---no attenuation---for every parcel.
     !!}
@@ -79,8 +79,9 @@ contains
     class           (dustAttenuationZero), intent(inout)                               :: self
     type            (treeNode           ), intent(inout), target                       :: node
     type            (emissionDescriptor ), intent(in   ), dimension(:                ) :: descriptors
+    double precision                     , intent(in   ), optional                     :: inclination
     double precision                                    , dimension(size(descriptors)) :: transmission
-    !$GLC attributes unused :: self, node, descriptors
+    !$GLC attributes unused :: self, node, descriptors, inclination
 
     transmission=1.0d0
     return
