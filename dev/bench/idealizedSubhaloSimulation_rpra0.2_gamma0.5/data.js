@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787690096512,
+  "lastUpdate": 1788036131022,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.5)": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "d12c4c3fddffe62bb44693587acb94631ec80569",
-          "message": "fix: Merge branch 'master' into massDistributions",
-          "timestamp": "2024-08-23T20:59:10Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/d12c4c3fddffe62bb44693587acb94631ec80569"
-        },
-        "date": 1724474856316,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteBoundMass",
-            "value": "40.86036012142033",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "22.39624572839595",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteVelocityMaximum",
-            "value": "20.390676881038928",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9908,6 +9871,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/b97d472f50b1edaacce551b3f7058b6f29e8b1b6"
         },
         "date": 1787690094975,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": -40.849842830269424,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -22.398185374041383,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": -20.390863334503425,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d6a011bdd47d7ab6064044e2dbfb04e4382565f9",
+          "message": "Merge pull request #1430 from galacticusorg/feature/dust-framework-phase3\n\nDust framework phase 3: per-galaxy inclination and the Ferrara et al. (1999) atlas",
+          "timestamp": "2026-08-29T14:40:36Z",
+          "tree_id": "eb323e53bed6c92ee484bb49955ddaef637113b6",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d6a011bdd47d7ab6064044e2dbfb04e4382565f9"
+        },
+        "date": 1788036130201,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
