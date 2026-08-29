@@ -4,18 +4,18 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "b97d472f50b1edaacce551b3f7058b6f29e8b1b6",
-        "message": "fix(ci): drop the erroneous `v` prefix from dependencyBot release links\n\nThe dependencyBot PR body linked to `.../releases/tag/v<latest>`, but\ndepup already reports the tag verbatim (e.g. `2.0.3` for CAMB, whose\ntags carry no `v`), so the generated link 404'd.\n",
-        "timestamp": "2026-08-25 07:28:30-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/b97d472f50b1edaacce551b3f7058b6f29e8b1b6"
+        "id": "d6a011bdd47d7ab6064044e2dbfb04e4382565f9",
+        "message": "Merge pull request #1430 from galacticusorg/feature/dust-framework-phase3\n\nDust framework phase 3: per-galaxy inclination and the Ferrara et al. (1999) atlas\n",
+        "timestamp": "2026-08-29 14:40:36+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/d6a011bdd47d7ab6064044e2dbfb04e4382565f9"
     },
     "results": [
         {
             "attributes": {
                 "name": "Symphony MilkyWay CDM resolutionX1 z=3.984 (47 realizations)",
-                "logLikelihood": "-2731.995670053379",
+                "logLikelihood": "-2731.9956299749865",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -39,31 +39,31 @@ window.ANALYSES_DATA = {
                     22387211385.68341
                 ],
                 "yDataset": [
-                    5.149142335321975,
-                    3.3412727603450256,
-                    2.1557652183880687,
-                    1.3833515635921847,
-                    0.9809668579723354,
-                    0.781637985071218,
-                    0.5597632146980752,
-                    0.3489253959504092,
-                    0.21592223785050021,
-                    0.13125660519254695,
+                    5.149142821603352,
+                    3.3412731849691446,
+                    2.1557653954184,
+                    1.3833515686654703,
+                    0.9809668385280984,
+                    0.7816379365044419,
+                    0.5597631610393613,
+                    0.3489253687314953,
+                    0.215922252298203,
+                    0.13125661139184422,
                     0.08078398447783408,
                     0.04651153993089735,
                     0.03936014873421695
                 ],
                 "yError": [
-                    0.0800881616011277,
-                    0.05414324891332928,
-                    0.03699737781453547,
-                    0.026058391934693753,
-                    0.02858767189129704,
-                    0.024386515309272085,
-                    0.013882660000048548,
-                    0.010939778110335613,
-                    0.008881193830725402,
-                    0.007161678310956568,
+                    0.08008817652473953,
+                    0.054143261799048485,
+                    0.036997383238571005,
+                    0.02605839206285399,
+                    0.028587671096708227,
+                    0.024386513349697384,
+                    0.01388265849698603,
+                    0.010939777036913163,
+                    0.008881194127653027,
+                    0.0071616784784328015,
                     0.006991882485695162,
                     0.0067967618038213135,
                     0.021031721185237464

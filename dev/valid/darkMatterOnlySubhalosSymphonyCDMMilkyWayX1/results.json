@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "b97d472f50b1edaacce551b3f7058b6f29e8b1b6",
-        "message": "fix(ci): drop the erroneous `v` prefix from dependencyBot release links\n\nThe dependencyBot PR body linked to `.../releases/tag/v<latest>`, but\ndepup already reports the tag verbatim (e.g. `2.0.3` for CAMB, whose\ntags carry no `v`), so the generated link 404'd.\n",
-        "timestamp": "2026-08-25 07:28:30-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/b97d472f50b1edaacce551b3f7058b6f29e8b1b6"
+        "id": "d6a011bdd47d7ab6064044e2dbfb04e4382565f9",
+        "message": "Merge pull request #1430 from galacticusorg/feature/dust-framework-phase3\n\nDust framework phase 3: per-galaxy inclination and the Ferrara et al. (1999) atlas\n",
+        "timestamp": "2026-08-29 14:40:36+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/d6a011bdd47d7ab6064044e2dbfb04e4382565f9"
     },
     "results": [
         {
@@ -221,15 +221,15 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     26.879511638344876,
-                    30.91293045863013,
+                    30.912930458630132,
                     35.89925499215239,
                     41.98448872754681,
                     47.67263488964971,
-                    53.89177860517244,
+                    53.891778605172455,
                     61.491589825026495,
                     72.28167643511468,
                     76.65441001329293,
-                    89.24082860017145,
+                    89.24082860017144,
                     104.34827571585706,
                     111.53603573991471,
                     137.98985743679742,
@@ -264,14 +264,14 @@ window.ANALYSES_DATA = {
                 "yError": [
                     0.2371511009915171,
                     0.29117100618318986,
-                    0.41548347411675024,
+                    0.41548347411675157,
                     0.5631295928302252,
                     0.693041767522457,
-                    1.0859765902539897,
+                    1.0859765902539846,
                     1.3763464553898928,
-                    2.192973315535761,
-                    2.968630878104646,
-                    4.077114402328407,
+                    2.1929733155357827,
+                    2.968630878104665,
+                    4.077114402328438,
                     2.7295281869225128,
                     2.479731712848578,
                     6.335842089286759,
