@@ -165,6 +165,24 @@ M/m_res ~ 3x10^5 - 10^6. (A cluster-mass host therefore reaches the break at
 proportionally coarser m_res: 10^15 M_sun hosts hit M/m = 10^6 already at
 m_res = 10^9.)
 
+### Two-component cost model
+
+All twelve (M/m_res, t_evolve) points from both host-mass series are fit to
+0.019 dex rms by
+
+    t_evolve = A (M/m_res) + B (M/m_res)^2,  A = 1.71e-4 s, B = 1.34e-11 s
+
+(single-thread seconds on the test machine; the *ratio* B/A = 7.9e-8 is the
+transferable quantity). The local logarithmic slope is then 1.1 at M/m_res =
+1.4e6 (matching the measured onset), **1.5 at M/m_res = 1.3e7**, and 1.75 at
+3.8e7, tending to 2 asymptotically. A measured slope of ~1.5 is the signature
+of being mid-crossover, not a true asymptotic exponent - the asymptote is
+quadratic.
+
+Control: per-node *construction* cost stays flat (~30 us/node) all the way to
+the 3.4M-node / 9 GB working set, so the evolve-side rise is algorithmic, not
+a memory-hierarchy effect.
+
 ### Walk anatomy
 
 Per-walk progress reports (verbosity=warn) show the two regimes directly.
