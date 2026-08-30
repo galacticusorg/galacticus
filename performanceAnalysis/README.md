@@ -258,6 +258,12 @@ crossover moves from M/m ~ 1e7 down to M/m ~ 3e4. A "1/m^1.5" measurement is
 this crossover in progress; the asymptote in both configurations is
 quadratic.
 
+Survey of in-repo configurations: only the `parameters/reference/evolution*`
+files and `baryonicPhysicsConstrained.xml` set
+`fractionTimestepSatelliteMinimum=0.75`; `quickTest.xml`,
+`parametersProfile.xml`, and any user configuration not built on the reference
+includes run with the default 0 - i.e. in the steep regime measured here.
+
 ## 8. Strategies to improve the scaling
 
 Ranked by expected impact on the *exponent* first, then on the constant.
