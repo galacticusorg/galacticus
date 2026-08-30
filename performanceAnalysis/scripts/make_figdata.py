@@ -40,8 +40,20 @@ def stall_anatomy(log, segment=0):
 
 
 def main():
+    s13 = series("base", 1.0e13)
+    # The M/m=1e3 calibration point is named cal_m1e10; fold it in.
+    for line in open(f"{PERF}/results.jsonl"):
+        r = json.loads(line)
+        if r["name"] == "cal_m1e10" and "timesEvolve" in r:
+            s13.insert(0, dict(
+                massResolution=1.0e10, ratio=1.0e3, nTree=len(r["timesEvolve"]),
+                tEvolve=float(np.mean(r["timesEvolve"])),
+                tEvolveErr=float(np.std(r["timesEvolve"]) / 2),
+                tConstruct=float(np.mean(r["timesConstruct"])),
+                nodes=float(np.mean(r["countsNodes"])),
+                walks=r.get("treeWalkCountMax", 0)))
     fig = {
-        "series1e13": series("base", 1.0e13),
+        "series1e13": s13,
         "series1e12": series("base12", 1.0e12),
         "seriesDefaults": series("def", 1.0e13),
         "stall": stall_anatomy("base_m1.0e8.log", 0),

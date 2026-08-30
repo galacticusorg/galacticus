@@ -148,3 +148,16 @@ mechanism (reference value 0.75) is the difference between linear scaling to
 M/m=3e5+ and an early, steep superlinear regime. Production configs using the
 default 0.0 would see the break decades earlier - very likely the user's
 observed 1/m^1.5.
+
+## 1e12-host series (M/m invariance + deep probe)
+
+| M/m    | host  | nodes    | tEvo [s] | walks | tEvo slope |
+|--------|-------|----------|----------|-------|-----------|
+| 1e4    | 1e12  | 13,440   | 1.65     | 10    | -   |
+| 1e5    | 1e12  | 121,062  | 15.84    | 159   | 0.98 |
+| 3.16e5 | 1e12  | 369,846  | 52.28    | 864   | 1.04 |
+| 1e6    | 1e12  | 1,112,300| 178.66   | 3,325 | 1.07 |
+
+At matched M/m the 1e12 and 1e13 series agree to <10% in tEvo, walks, and
+nodes: cost is a function of M/m_res, independent of host mass. The slope
+departure from 1.0 begins at M/m ~ 3e5-1e6 in both series.
