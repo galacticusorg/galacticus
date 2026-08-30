@@ -265,8 +265,9 @@ of the reference-file values (0.75/true); 10^13 M_sun host:
 | 1e9    | 1e4    | 3.89   | 2.17x | -    |
 | 3.16e8 | 3.16e4 | 20.63  | 3.72x | 1.45 |
 | 1e8    | 1e5    | 140.75 | 8.23x | 1.67 |
+| 3.16e7 | 3.16e5 | 832.97 | 15.2x | 1.54 |
 
-Global power law over this range: **t_evolve ~ (1/m_res)^1.56** - the observed
+Global power law over this range: **t_evolve ~ (1/m_res)^1.57** - the observed
 production scaling, reproduced at practical resolutions. The mechanism is the
 one quantified in section 4: without deferral, every stalled-walk visit to a
 satellite pays the full ~130 us ODE-call overhead for a micro-step, so the

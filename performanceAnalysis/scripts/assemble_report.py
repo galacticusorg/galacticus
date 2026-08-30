@@ -107,7 +107,7 @@ html = """<title>Galacticus Tree-Evolution Scaling</title>
 
   <div class="tiles">
     <div class="tile"><div class="v">0.98&ndash;1.01</div><div class="k">measured slope, reference DMO config, to M/m<sub>res</sub> = 3&times;10<sup>5</sup></div></div>
-    <div class="tile"><div class="v">(1/m)<sup>1.56</sup></div><div class="k">measured with the code-default evolver settings, M/m<sub>res</sub> = 10<sup>4</sup>&ndash;10<sup>5</sup></div></div>
+    <div class="tile"><div class="v">(1/m)<sup>1.57</sup></div><div class="k">measured with the code-default evolver settings, M/m<sub>res</sub> = 10<sup>4</sup>&ndash;3&times;10<sup>5</sup></div></div>
     <div class="tile"><div class="v">8.3&times;</div><div class="k">evolve-time cost of the default satellite-deferral setting (0 instead of 0.75), at M/m<sub>res</sub> = 10<sup>5</sup></div></div>
     <div class="tile"><div class="v">M/m = 1.3&times;10<sup>7</sup></div><div class="k">where the reference config itself passes slope 1.5 (two-component fit)</div></div>
   </div>
@@ -192,9 +192,9 @@ html = """<title>Galacticus Tree-Evolution Scaling</title>
   is pure per-visit overhead. Backtracking, the merger sync window (&times;10 either way), and
   ODE step-size reuse are all &le;4% effects here.</figcaption></figure>
   <p>Rerunning the resolution series with the default settings gives
-  <b>t<sub>evolve</sub> &prop; (1/m<sub>res</sub>)<sup>1.56</sup></b> over
-  M/m<sub>res</sub> = 10<sup>4</sup>&ndash;10<sup>5</sup> (local slopes 1.45 &rarr; 1.67, and
-  ~30&times; the reference cost by M/m = 3&times;10<sup>5</sup>): the production-observed scaling,
+  <b>t<sub>evolve</sub> &prop; (1/m<sub>res</sub>)<sup>1.57</sup></b> over
+  M/m<sub>res</sub> = 10<sup>4</sup>&ndash;3&times;10<sup>5</sup> (local slopes 1.45 &rarr; 1.67 &rarr; 1.54, and
+  15&times; the reference cost at M/m = 3&times;10<sup>5</sup>): the production-observed scaling,
   reproduced at practical resolutions. The mechanism is unchanged &mdash; the deferral simply
   multiplies the quadratic term's coefficient by ~10&sup2; and moves the slope-1.5 crossover
   from M/m ~ 10<sup>7</sup> down to ~3&times;10<sup>4</sup>.</p>
