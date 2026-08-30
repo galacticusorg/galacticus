@@ -286,7 +286,7 @@ includes run with the default 0 - i.e. in the steep regime measured here.
 
 Ranked by expected impact on the *exponent* first, then on the constant.
 
-**S1. Event-driven evolution (priority queue) - the structural fix.**
+**S1. Event-driven evolution (priority queue) - the structural fix.** *(Filed as [#1435](https://github.com/galacticusorg/galacticus/issues/1435); plan: `plans/S2-event-driven-evolver.md`.)*
 Replace "walk everything until nothing evolves" with a queue of evolvable
 nodes keyed by allowed evolve-to time. The infrastructure already exists:
 `timeEvolveTo` computes, for every blocked node, *which* node blocks it

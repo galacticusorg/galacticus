@@ -1,5 +1,7 @@
 # Event-driven merger-tree evolver (priority queue scheduling)
 
+*Filed as [galacticusorg/galacticus#1435](https://github.com/galacticusorg/galacticus/issues/1435).*
+
 ## Summary
 
 The standard evolver schedules work by *sweeping*: it repeatedly walks every
