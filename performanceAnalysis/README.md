@@ -234,8 +234,25 @@ satellite ODE RHS evaluations: tidal-heating specific-energy terms ->
 velocity dispersion (log/fma), plus mass-distribution object copies
 (`memmove` in `darkMatterOnlyGet`).
 
-TODO(batch 3): perf record shares at M/m = 1e4 / 1e5 / 1e6 - quantify the
-growth of walker + timeEvolveTo + serialization shares with resolution.
+perf sampling profiles (statically-linked release binary, self-time shares) at
+three resolutions confirm the linear-term composition is resolution-independent
+(NFW dispersion ~7%, log/pow ~8%, Brent+root-finder ~7%, tidal terms ~3%,
+malloc/free ~4%, GSL ODE core ~10%) while the **overhead symbols of the
+quadratic term emerge only at high M/m**:
+
+| symbol (self-time share) | M/m=1e4 | 1e5 | 1e6 |
+|---|---:|---:|---:|
+| `basicStandardTimeGet` (`basic%time()` in scan loops) | <0.5% | <0.5% | 4.9% |
+| `satelliteOrbitingTimeOfMergingGet` (mergee scans)    | <0.5% | <0.5% | 2.5% |
+| `Satellite_Move_To_New_Host` + `standardPromote` (O(S) surgery) | <0.5% | <0.5% | 2.0% |
+| `simpleTimeEvolveTo` (per-visit timestep evaluation)  | <0.5% | <0.5% | 1.0% |
+| kernel page-zeroing (allocation growth)               | <0.5% | 0.8% | 2.5% |
+
+The first four sum to ~10.4% at M/m=1e6 - matching the ~11% measured excess of
+evolve time over the linear extrapolation at that resolution. (The evolver's
+own `timeEvolveTo`/walker frames are LTO-inlined; their cost appears in the
+getters they call.) These are exactly the O(S)-scan and O(S)-surgery code
+paths identified in section 2.
 
 ## 7. Defaults-series scaling: the observed 1/m^1.5 reproduced
 
