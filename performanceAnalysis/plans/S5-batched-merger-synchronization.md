@@ -1,5 +1,7 @@
 # Batch merger synchronization to reduce event-driven tree-walk fragmentation
 
+*Filed as [galacticusorg/galacticus#1434](https://github.com/galacticusorg/galacticus/issues/1434).*
+
 ## Summary
 
 Subhalo mergers synchronize the merging satellite with its merge target to

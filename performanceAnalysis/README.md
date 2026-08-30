@@ -297,13 +297,13 @@ N_live) - removes the stalled-walk regime entirely (walks that visit 1,300
 nodes to evolve 20). This converts the visit product's (1/m)^2.06 into
 ~(1/m)^1.0 log.
 
-**S2. Keep satellites deferring (config + maybe default change).**
+**S2. Keep satellites deferring (config + maybe default change).** *(Filed as [#1431](https://github.com/galacticusorg/galacticus/issues/1431); plan: `plans/S1-satellite-deferral-default.md`.)*
 `fractionTimestepSatelliteMinimum=0.75` is worth 8.3x at M/m=1e5 with no
 measured accuracy concern in this model class (it is the reference/validation
 setting). Consider making ~0.75 the code default, or warning when 0 is used
 with orbiting satellites. Cheapest possible win for anyone running defaults.
 
-**S3. Cache the host's minimum-satellite time and satellite-list tail.**
+**S3. Cache the host's minimum-satellite time and satellite-list tail.** *(Filed as [#1432](https://github.com/galacticusorg/galacticus/issues/1432); plan: `plans/S3-satellite-bookkeeping.md`.)*
 The O(S) hosted-satellite scan runs every time the host is considered; a
 cached min-time (invalidated lazily: recompute only when the cached min's
 holder advances/leaves) makes it O(1) amortized. Similarly a `lastSatellite`
@@ -313,14 +313,14 @@ parent pointer is resolved through the host rather than stored per satellite
 (or re-parent lazily). Together these remove the intrinsically quadratic
 pointer work.
 
-**S4. Reduce per-ODE-call fixed overhead.**
+**S4. Reduce per-ODE-call fixed overhead.** *(Filed as [#1433](https://github.com/galacticusorg/galacticus/issues/1433); plan: `plans/S4-ode-call-overhead.md`.)*
 Reuse a per-thread GSL driver/workspace keyed by system dimension instead of
 alloc/free per call; skip re-serialization scaffolding when the property
 count is unchanged (the common case for a satellite stepping repeatedly);
 `reuseODEStepSize=true` is a free ~4%. This scales down the coefficient of
 *both* the linear term and the forced-micro-step term.
 
-**S5. Batch merger synchronization.**
+**S5. Batch merger synchronization.** *(Filed as [#1434](https://github.com/galacticusorg/galacticus/issues/1434); plan: `plans/S5-batched-merger-synchronization.md`.)*
 Process mergers due within one sync window together: let the host take one
 step to the earliest merge time and complete *all* mergers falling within the
 window, instead of one walk per merger. Reduces event-driven walk count by

@@ -1,5 +1,7 @@
 # Avoid satellite micro-stepping by default (`fractionTimestepSatelliteMinimum`)
 
+*Filed as [galacticusorg/galacticus#1431](https://github.com/galacticusorg/galacticus/issues/1431).*
+
 ## Summary
 
 `mergerTreeEvolverStandard` supports deferring a satellite's evolution when the

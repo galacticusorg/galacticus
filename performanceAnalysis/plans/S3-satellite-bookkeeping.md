@@ -1,5 +1,7 @@
 # O(1) satellite-list bookkeeping in tree evolution
 
+*Filed as [galacticusorg/galacticus#1432](https://github.com/galacticusorg/galacticus/issues/1432).*
+
 ## Summary
 
 Several hot paths in tree evolution perform O(S) walks over a host's
