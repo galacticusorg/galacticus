@@ -149,8 +149,21 @@ expensive.
   interrupts. The small-step tail (dt < 1 Myr) grows slowly (11% -> 16% of
   steps from M/m = 1e4 -> 3x10^5).
 
-TODO(batch 3): 10^12-host series (M/m to 3x10^6) table + host-mass invariance
-statement; defaults-series exponent; perf profile shares.
+### 10^12 M_sun host series (host-mass invariance + deeper probe)
+
+| m_res [M_sun] | M/m_res | nodes | t_evolve [s] | walks | slope(t_evolve) |
+|---:|---:|---:|---:|---:|---:|
+| 1e8    | 1e4    | 13,440    | 1.65   | 10    | -    |
+| 1e7    | 1e5    | 121,062   | 15.84  | 159   | 0.98 |
+| 3.16e6 | 3.16e5 | 369,846   | 52.28  | 864   | 1.04 |
+| 1e6    | 1e6    | 1,112,300 | 178.66 | 3,325 | 1.07 |
+
+At matched M/m_res the 10^12 and 10^13 series agree to better than 10% in
+evolve time, node count, and walk count: **cost is a function of M_host/m_res,
+essentially independent of host mass**. Both series depart from slope 1.0 at
+M/m_res ~ 3x10^5 - 10^6. (A cluster-mass host therefore reaches the break at
+proportionally coarser m_res: 10^15 M_sun hosts hit M/m = 10^6 already at
+m_res = 10^9.)
 
 ### Walk anatomy
 
