@@ -237,12 +237,26 @@ velocity dispersion (log/fma), plus mass-distribution object copies
 TODO(batch 3): perf record shares at M/m = 1e4 / 1e5 / 1e6 - quantify the
 growth of walker + timeEvolveTo + serialization shares with resolution.
 
-## 7. Defaults-series scaling
+## 7. Defaults-series scaling: the observed 1/m^1.5 reproduced
 
-TODO(batch 3): t_evolve slopes for the
-`fractionTimestepSatelliteMinimum=0, backtrackToSatellites=false` series -
-expected to show the ~1.5 slope at much lower resolution, matching the
-observed production behavior.
+Same model, but with the evolver's **code-default** settings
+(`fractionTimestepSatelliteMinimum=0`, `backtrackToSatellites=false`) instead
+of the reference-file values (0.75/true); 10^13 M_sun host:
+
+| m_res | M/m_res | t_evolve [s] | vs reference | slope(t_evolve) |
+|---:|---:|---:|---:|---:|
+| 1e9    | 1e4    | 3.89   | 2.17x | -    |
+| 3.16e8 | 3.16e4 | 20.63  | 3.72x | 1.45 |
+| 1e8    | 1e5    | 140.75 | 8.23x | 1.67 |
+
+Global power law over this range: **t_evolve ~ (1/m_res)^1.56** - the observed
+production scaling, reproduced at practical resolutions. The mechanism is the
+one quantified in section 4: without deferral, every stalled-walk visit to a
+satellite pays the full ~130 us ODE-call overhead for a micro-step, so the
+walk-driven quadratic term carries a ~100x larger coefficient and its
+crossover moves from M/m ~ 1e7 down to M/m ~ 3e4. A "1/m^1.5" measurement is
+this crossover in progress; the asymptote in both configurations is
+quadratic.
 
 ## 8. Strategies to improve the scaling
 
