@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "d6a011bdd47d7ab6064044e2dbfb04e4382565f9",
-        "message": "Merge pull request #1430 from galacticusorg/feature/dust-framework-phase3\n\nDust framework phase 3: per-galaxy inclination and the Ferrara et al. (1999) atlas\n",
-        "timestamp": "2026-08-29 14:40:36+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/d6a011bdd47d7ab6064044e2dbfb04e4382565f9"
+        "id": "0166a14289314bd29abced8fdab7af88f3e2f88b",
+        "message": "Merge pull request #1436 from galacticusorg/update/bibliography-refresh\n\nfix: Refresh bibliography metadata\n",
+        "timestamp": "2026-09-01 14:12:58+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/0166a14289314bd29abced8fdab7af88f3e2f88b"
     },
     "results": [
         {
@@ -82,7 +82,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo orbital radius cumulative distribution function",
                 "description": "Subhalo orbital radius cumulative distribution function (τ=20.0 Gyr; vₖ=40.0 km/s)",
-                "logLikelihood": "-50.23880754504154",
+                "logLikelihood": "-50.923195816960884",
                 "type": "function1D"
             },
             "data": {
@@ -99,14 +99,14 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     0.31332271176946686,
-                    0.9189422699209904,
-                    3.115365615472427,
-                    3.927232772536701,
-                    18.40845089696139,
-                    25.06688742758445,
-                    36.19369538249038,
-                    36.19369538249038,
-                    36.19369538249038
+                    1.0270416100071464,
+                    3.223464955558583,
+                    4.035332112622856,
+                    18.516550237047547,
+                    25.174986767670607,
+                    36.30179472257654,
+                    36.30179472257654,
+                    36.30179472257654
                 ],
                 "yDatasetTarget": [
                     0.0,
