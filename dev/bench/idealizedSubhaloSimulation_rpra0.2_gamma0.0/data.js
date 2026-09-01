@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788036126069,
+  "lastUpdate": 1788294224559,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "550ec2bb0e90ab60c75fdae7fb8962b5dc225068",
-          "message": "Merge pull request #675 from galacticusorg/featExtractTreePython\n\nPort the script used to extract single merger trees from file to Python",
-          "timestamp": "2024-08-24T19:48:54Z",
-          "tree_id": "12e39dbbce98fb8ce3928e7cac55e8122b26b433",
-          "url": "https://github.com/galacticusorg/galacticus/commit/550ec2bb0e90ab60c75fdae7fb8962b5dc225068"
-        },
-        "date": 1724551203984,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
-            "value": "13.931453287519465",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "6.553744936818157",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
-            "value": "5.0008631128237795",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9910,6 +9871,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/d6a011bdd47d7ab6064044e2dbfb04e4382565f9"
         },
         "date": 1788036125228,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": -13.931629651263245,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -6.553741456956203,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": -5.001018839501219,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0166a14289314bd29abced8fdab7af88f3e2f88b",
+          "message": "Merge pull request #1436 from galacticusorg/update/bibliography-refresh\n\nfix: Refresh bibliography metadata",
+          "timestamp": "2026-09-01T14:12:58Z",
+          "tree_id": "fc804725ab3f80456380147d940e59d2a90f5ec1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0166a14289314bd29abced8fdab7af88f3e2f88b"
+        },
+        "date": 1788294223036,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
