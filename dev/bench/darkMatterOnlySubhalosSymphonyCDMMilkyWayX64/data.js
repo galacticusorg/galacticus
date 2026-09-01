@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788036030820,
+  "lastUpdate": 1788294109190,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX64)": [
@@ -3614,6 +3614,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony CDM resolution X64 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 97.2106243829948,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0166a14289314bd29abced8fdab7af88f3e2f88b",
+          "message": "Merge pull request #1436 from galacticusorg/update/bibliography-refresh\n\nfix: Refresh bibliography metadata",
+          "timestamp": "2026-09-01T14:12:58Z",
+          "tree_id": "fc804725ab3f80456380147d940e59d2a90f5ec1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0166a14289314bd29abced8fdab7af88f3e2f88b"
+        },
+        "date": 1788294107817,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X64 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 14.851288738407096,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X64 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 17.80670174314079,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X64 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 98.87733474389196,
             "unit": "-logℒ"
           }
         ]
