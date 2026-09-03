@@ -8,7 +8,7 @@
 
 Galacticus is a semi-analytic model of galaxy formation — a powerful, flexible toolkit for modeling the physics of how galaxies form and evolve. For the science behind it, see the [description paper](https://arxiv.org/abs/1008.1786); for everything else, the [documentation](https://galacticus.readthedocs.io/).
 
-**Install:** `pip install galacticus` gets you a ready-to-run model with no compilation — pre-built binaries, datasets, and tools are downloaded automatically for Linux and macOS. See the [Quickstart](#quickstart) and the [pip installation guide](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/pip.html).
+**Install:** `pip install galacticus` gets you a ready-to-run model with no compilation — pre-built binaries, datasets, and tools are downloaded automatically for Linux and macOS (and for Windows via WSL 2). See the [Quickstart](#quickstart) and the [pip installation guide](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/pip.html).
 
 Have questions? Ask in the [discussion forum](https://github.com/galacticusorg/galacticus/discussions), or browse the [wiki](https://github.com/galacticusorg/galacticus/wiki).
 
@@ -25,7 +25,7 @@ Have questions? Ask in the [discussion forum](https://github.com/galacticusorg/g
 > galacticus run parameters/quickTest.xml
 > ```
 >
-> The first run downloads the right binary, datasets, and tools for your platform (Linux x86-64, macOS Intel, or macOS Apple Silicon) and configures the environment for you. See the [pip installation guide](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/pip.html). The rest of this section covers building from source, which you need only if you want to modify or extend Galacticus.
+> The first run downloads the right binary, datasets, and tools for your platform (Linux x86-64, macOS Intel, or macOS Apple Silicon) and configures the environment for you. On Windows, run `galacticus install-wsl` first: it sets up WSL 2 and installs Galacticus inside it, after which `galacticus run` works from any Windows command prompt. See the [pip installation guide](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/pip.html). The rest of this section covers building from source, which you need only if you want to modify or extend Galacticus.
 
 This section walks you through building and running a minimal Galacticus model for the first time.
 

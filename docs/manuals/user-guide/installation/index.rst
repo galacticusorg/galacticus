@@ -2,12 +2,13 @@ Installation
 ============
 
 Galacticus is designed to run on Linux, with experimental support for macOS.
-There are several ways to install it, listed here from easiest to most involved:
+On Windows it runs through WSL 2 (the Windows Subsystem for Linux). There are
+several ways to install it, listed here from easiest to most involved:
 
 * **pip** — the quickest way to get running for end users. ``pip install
   galacticus`` installs a launcher that downloads the right pre-built binary,
-  datasets, and tools on first use and sets the environment up for you; see
-  :doc:`pip`.
+  datasets, and tools on first use and sets the environment up for you; on
+  Windows it also sets up WSL 2 (``galacticus install-wsl``). See :doc:`pip`.
 * **Pre-compiled binary** — download and configure the binary yourself; no
   compilation required. Available for :doc:`Linux <binary>` and
   :doc:`macOS <binary-macos>`.
