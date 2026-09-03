@@ -127,11 +127,96 @@ source of truth.
 .. note::
 
    The LaTeX/PDF manuals have been retired; documentation is published
-   automatically on `ReadTheDocs <https://galacticus.readthedocs.io/>`_. The
+   automatically on `ReadTheDocs <https://galacticus.readthedocs.io/>`_, which
+   also builds and keeps a copy of the documentation for the tagged release (see
+   `Documentation for Each Release`_). The
    statically-linked Linux and macOS binaries, the run-time tool archives, the
    Docker image, and the archives of external build dependencies are all produced
    and uploaded automatically by CI (or maintained out of band), so none of them
    need to be assembled or relinked by hand as part of a release.
+
+Documentation for Each Release
+------------------------------
+
+The documentation is built and hosted by `ReadTheDocs
+<https://galacticus.readthedocs.io/>`_, which keeps a separate, permanently
+hosted copy of every version that it builds:
+
+``latest``
+   Rebuilt from ``master`` on every push - the documentation matching the rolling
+   ``bleeding-edge`` release, at https://galacticus.readthedocs.io/en/latest/.
+
+``stable``
+   The most recent tagged release. ReadTheDocs maintains this automatically,
+   moving it to point at the highest semantic-version tag as each new release
+   is built.
+
+``vX.Y.Z``
+   A frozen copy of the documentation as it stood at that release, at
+   ``https://galacticus.readthedocs.io/en/vX.Y.Z/``. Once built it is stored and
+   served as-is, so it remains available even after the sources, and the
+   toolchain that rendered them, have moved on.
+
+Every version additionally offers a single-file archive of the whole site, under
+:menuselection:`Downloads --> HTML` in the version menu at the bottom of each
+page. It is produced by the final command in ``.readthedocs.yaml``, so a copy of
+a release's documentation can be kept offline, or attached to that release on
+GitHub.
+
+Nothing has to be done at release time: pushing the ``vX.Y.Z`` tag notifies
+ReadTheDocs, an automation rule (see below) activates the new version, and the
+build runs. That build never compiles Galacticus - ``scripts/doc/extractDocsRST.py``
+reads the documentation out of the Fortran sources - so it takes only a few
+minutes.
+
+The build is version-aware: ``docs/conf.py`` takes the tag being built from
+ReadTheDocs' environment, so a release's pages carry its version in the sidebar
+title, declare themselves canonical at their own URL, and have their absolute
+links to other Galacticus documentation pages rewritten from ``.../en/latest/...``
+to that release's own URL. A release's documentation therefore stays internally
+consistent, instead of leading the reader back into the development
+documentation.
+
+One-Time Setup on ReadTheDocs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following are configured once, by a project maintainer, in the ReadTheDocs
+dashboard for the project (https://readthedocs.org/projects/galacticus/); they
+cannot be set from this repository.
+
+#. **Build and keep every new release.** Under
+   :menuselection:`Admin --> Automation Rules --> Add rule`, add a rule with:
+
+   * *Description*: ``Publish documentation for each release``;
+   * *Match*: ``SemVer versions`` - this matches the ``vX.Y.Z`` tags only, so the
+     moving ``bleeding-edge`` tag and the ``publication/...`` tags are ignored;
+   * *Version type*: ``Tag``; and
+   * *Action*: ``Activate version``.
+
+#. **Publish the releases tagged so far.** An automation rule acts on versions
+   created after it was added, so releases tagged earlier must be activated by
+   hand, under :menuselection:`Admin --> Versions`. Every tag from ``v0.9.7``
+   (the earliest still present) onwards contains a ``.readthedocs.yaml``, so all
+   of them can be built.
+
+#. **Check that** ``stable`` **is active**, under
+   :menuselection:`Admin --> Versions`. ReadTheDocs creates it automatically once
+   a semantic-version tag exists, and thereafter keeps it pointing at the newest
+   release.
+
+#. Optionally, choose which version https://galacticus.readthedocs.io/ serves to
+   a visitor who names none, under
+   :menuselection:`Admin --> Settings --> Default version`. This is ``latest``,
+   which suits a project whose users mostly track ``bleeding-edge``; switch it to
+   ``stable`` if the newest release should be what is seen first. The explicit
+   ``.../en/latest/...`` links in ``README.md`` and throughout the documentation
+   are unaffected by this setting either way.
+
+An active version is only ever rebuilt if its tag moves, so keeping every release
+online costs nothing beyond the single build made when it was tagged. A release
+that should no longer be listed can be hidden (it remains reachable at its own
+URL, but is dropped from the version menu) or, to take it offline entirely,
+deactivated.
 
 Publishing the Python Package to PyPI
 -------------------------------------
