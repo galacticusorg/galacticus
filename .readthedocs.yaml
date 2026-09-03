@@ -21,14 +21,9 @@ build:
     - python -m sphinx -b html docs $READTHEDOCS_OUTPUT/html
     # Package the built site as a single downloadable archive, so that each
     # version -- in particular, each release -- has a self-contained copy of its
-    # documentation that can be kept offline (offered as the "HTML" download in
-    # the version flyout, and attachable to the GitHub release).
-    - >-
-      python -c "import os, shutil;
-      output = os.environ['READTHEDOCS_OUTPUT'];
-      os.makedirs(os.path.join(output, 'htmlzip'), exist_ok=True);
-      shutil.make_archive(os.path.join(output, 'htmlzip', 'galacticus'), 'zip',
-      os.path.join(output, 'html'))"
+    # documentation. (Note that commands here do not survive nested quoting, so
+    # this must be a script and not an inline `python -c "..."`.)
+    - python scripts/doc/archiveDocs.py $READTHEDOCS_OUTPUT
 
 sphinx:
   configuration: docs/conf.py

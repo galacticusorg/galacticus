@@ -159,9 +159,9 @@ hosted copy of every version that it builds:
 
 Every version additionally offers a single-file archive of the whole site, under
 :menuselection:`Downloads --> HTML` in the version menu at the bottom of each
-page. It is produced by the final command in ``.readthedocs.yaml``, so a copy of
-a release's documentation can be kept offline, or attached to that release on
-GitHub.
+page. It is built by ``scripts/doc/archiveDocs.py``, run as the final command of
+``.readthedocs.yaml``, so a copy of a release's documentation can be kept
+offline, or attached to that release on GitHub.
 
 Nothing has to be done at release time: pushing the ``vX.Y.Z`` tag notifies
 ReadTheDocs, an automation rule (see below) activates the new version, and the
