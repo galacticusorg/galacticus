@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788294155055,
+  "lastUpdate": 1788562300786,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 3keV resolutionX8)": [
@@ -3653,6 +3653,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 4412.718522482474,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e8d9c46113eb2639515ecddb8fb29dea98a3989b",
+          "message": "Merge pull request #1442 from galacticusorg/fix/linkcheck-user-agent\n\nfix: Send a browser user-agent for w3schools.com and openmp.org link checks",
+          "timestamp": "2026-09-04T16:09:35Z",
+          "tree_id": "bd8ce9d329ef4b2057ba9d38c5fc8e4d46b8795f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e8d9c46113eb2639515ecddb8fb29dea98a3989b"
+        },
+        "date": 1788562299995,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X8 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 24.485581467103476,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X8 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 37.37872258624565,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 4328.136514778529,
             "unit": "-logℒ"
           }
         ]
