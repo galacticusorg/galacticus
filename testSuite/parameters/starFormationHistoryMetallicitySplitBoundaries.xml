@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Test of metallicity split star formation history with explicitly specified metallicity boundaries -->
-
-<!-- 3-September-2026                                                                            -->
+<!-- 3-September-2026                                                                                  -->
 
 <parameters>
   <formatVersion>2</formatVersion>

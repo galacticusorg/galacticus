@@ -276,14 +276,14 @@ contains
     !!{RST
     Initializes the standard spheroid module for each thread.
     !!}
-    use :: Events_Hooks                         , only : dependencyDirectionAfter , dependencyRegEx           , openMPThreadBindingAtLevel, postEvolveEvent, &
+    use :: Events_Hooks                         , only : dependencyDirectionAfter , dependencyRegEx                  , openMPThreadBindingAtLevel, postEvolveEvent, &
           &                                              satelliteMergerEvent     , mergerTreeOutputStateAdvanceEvent
     use :: Error                                , only : Error_Report
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
     use :: Input_Parameters                     , only : inputParameter           , inputParameters
     use :: Mass_Distributions                   , only : massDistributionSpherical, kinematicsDistributionLocal
-    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_       , kinematicDistribution_
-    use :: Galactic_Structure_Options           , only : componentTypeSpheroid    , massTypeStellar            , massTypeGaseous
+    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_             , kinematicDistribution_
+    use :: Galactic_Structure_Options           , only : componentTypeSpheroid    , massTypeStellar                  , massTypeGaseous
     implicit none
     type            (inputParameters), intent(inout) :: parameters
     type            (dependencyRegEx), dimension(3)  :: dependencies
@@ -382,7 +382,7 @@ contains
     !!}
     use :: Events_Hooks                         , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeOutputStateAdvanceEvent
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
-    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_, scalerStellarPool, &
+    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_           , scalerStellarPool, &
          &                                               scalerGasPool
     implicit none
 

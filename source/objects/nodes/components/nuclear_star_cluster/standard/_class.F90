@@ -265,7 +265,7 @@ contains
     !!{RST
     Initializes the standard nuclear star cluster component module for each thread.
     !!}
-    use :: Events_Hooks                    , only : dependencyDirectionAfter       , dependencyRegEx            , openMPThreadBindingAtLevel, &
+    use :: Events_Hooks                    , only : dependencyDirectionAfter       , dependencyRegEx            , openMPThreadBindingAtLevel       , &
           &                                         postEvolveEvent                , satelliteMergerEvent       , mergerTreeOutputStateAdvanceEvent
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : defaultNSCComponent

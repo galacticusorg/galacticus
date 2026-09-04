@@ -1133,7 +1133,7 @@ contains
        ! base class permits only one of the two to be given. Where ages are fixed per output the tabulation is a function of the
        ! output alone, while for arbitrary ages it must be read from the history of this node.
        if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixedPerOutput) then
-          times=self%starFormationHistory_%times(indexOutput=indexOutput                                                          )
+          times=self%starFormationHistory_%times(indexOutput=indexOutput                                          )
        else
           times=self%starFormationHistory_%times(node       =node       ,starFormationHistory=starFormationHistory)
        end if

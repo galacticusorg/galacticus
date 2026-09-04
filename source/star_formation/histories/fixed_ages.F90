@@ -188,11 +188,11 @@ contains
     Internal constructor for the :galacticus-class:`starFormationHistoryFixedAges` star formation history class.
     !!}
     use :: Error                     , only : Error_Report
-    use :: Display                   , only : displayGreen    , displayReset
-    use :: Galactic_Structure_Options, only : componentTypeMax, componentTypeMin
+    use :: Display                   , only : displayGreen         , displayReset
+    use :: Galactic_Structure_Options, only : componentTypeMax     , componentTypeMin
     use :: Geometry_Lightcones       , only : geometryLightconeNull
-    use :: ISO_Varying_String        , only : varying_string  , assignment(=)       , operator(//)
-    use :: Numerical_Ranges          , only : Make_Range      , rangeTypeLogarithmic
+    use :: ISO_Varying_String        , only : varying_string       , assignment(=)       , operator(//)
+    use :: Numerical_Ranges          , only : Make_Range           , rangeTypeLogarithmic
     implicit none
     type            (starFormationHistoryFixedAges)                                        :: self
     double precision                               , intent(in   ), dimension(:), optional :: metallicityBoundaries
@@ -212,11 +212,11 @@ contains
     ! lightcone crossing of the node, so it can not be used without a lightcone.
     select type (geometryLightcone_)
     class is (geometryLightconeNull)
-       message=                                            "the `starFormationHistoryFixedAges` class requires a lightcone geometry"       //char(10)// &
-            & displayGreen()//"    HELP:"//displayReset()//" this class is intended for use with lightcone output, but you have no"        //char(10)// &
-            &                                             "          lightcone geometry configured. Either set a non-null"                 //char(10)// &
-            &                                             "          `geometryLightcone`, or - for snapshot output - use a different star" //char(10)// &
-            &                                             "          formation history class, such as `adaptive`."
+       message=                                             "the `starFormationHistoryFixedAges` class requires a lightcone geometry"        //char(10)// &
+            &  displayGreen()//"    HELP:"//displayReset()//" this class is intended for use with lightcone output, but you have no"         //char(10)// &
+            &                                               "          lightcone geometry configured. Either set a non-null"                 //char(10)// &
+            &                                               "          `geometryLightcone`, or - for snapshot output - use a different star" //char(10)// &
+            &                                               "          formation history class, such as `adaptive`."
        call Error_Report(message//{introspection:location})
     end select
     ! Validate metallicity argument and construct the table of metallicities.

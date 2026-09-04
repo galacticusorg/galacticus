@@ -277,14 +277,14 @@ contains
     !!{RST
     Initializes the standard disk component module for each thread.
     !!}
-    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx            , openMPThreadBindingAtLevel, postEvolveEvent, &
+    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx                  , openMPThreadBindingAtLevel, postEvolveEvent, &
           &                                          satelliteMergerEvent       , mergerTreeOutputStateAdvanceEvent
     use :: Error                            , only : Error_Report
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
     use :: Input_Parameters                 , only : inputParameter             , inputParameters
-    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_       , kinematicDistribution_
+    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_             , kinematicDistribution_
     use :: Mass_Distributions               , only : massDistributionCylindrical, kinematicsDistributionLocal
-    use :: Galactic_Structure_Options       , only : componentTypeDisk          , massTypeStellar            , massTypeGaseous
+    use :: Galactic_Structure_Options       , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous
     implicit none
     type            (inputParameters), intent(inout) :: parameters
     type            (dependencyRegEx), dimension(2)  :: dependencies

@@ -611,10 +611,10 @@ contains
     type (history                     ), intent(in   ) :: starFormationHistory, rangeHistory
     !$GLC attributes unused :: self
 
-    if (.not.starFormationHistory%exists())                                            &
-         & call Error_Report(                                                          &
-         &                   'no star formation history has been created'//            &
-         &                   {introspection:location}                                  &
+    if (.not.starFormationHistory%exists())                                 &
+         & call Error_Report(                                               &
+         &                   'no star formation history has been created'// &
+         &                   {introspection:location}                       &
          &                  )
     ! All histories are tabulated on the interval grid belonging to the current output, so any history being accumulated into
     ! another should already lie within its range. Checking here allows a comprehensible error to be reported (see
@@ -639,11 +639,11 @@ contains
     type            (varying_string              )                              :: message
     !$GLC attributes unused :: self, starFormationHistory, times
 
-    message=                                            "star formation histories tabulated by the `adaptive` class can not be extended"//char(10)// &
-         & displayGreen()//"    HELP:"//displayReset()//" this class tabulates every history on the grid of time intervals belonging to" //char(10)// &
-         &                                             "          the current output, so histories being combined always share a grid."  //char(10)// &
-         &                                             "          Reaching this point means that some history was not advanced to the"   //char(10)// &
-         &                                             "          grid of the current output."
+    message=                                             "star formation histories tabulated by the `adaptive` class can not be extended"//char(10)// &
+         &  displayGreen()//"    HELP:"//displayReset()//" this class tabulates every history on the grid of time intervals belonging to"//char(10)// &
+         &                                               "          the current output, so histories being combined always share a grid."//char(10)// &
+         &                                               "          Reaching this point means that some history was not advanced to the" //char(10)// &
+         &                                               "          grid of the current output."
     call Error_Report(message//{introspection:location})
     return
   end subroutine adaptiveExtend
