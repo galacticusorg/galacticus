@@ -201,10 +201,9 @@ def check_urls(urls, api_token, failures):
             options += ['--range', '0-0']
         if re.search(r'sharepoint\.com', url):
             options += ['--user-agent', 'Mozilla']
-        # w3schools.com and openmp.org (the latter behind Cloudflare) reject
-        # curl's default user-agent with HTTP 403 but serve normally to a
-        # browser-like user-agent.
-        if re.search(r'w3schools\.com', url) or re.search(r'www\.openmp\.org', url):
+        # w3schools.com rejects curl's default user-agent with HTTP 403 but
+        # serves normally to a browser-like user-agent.
+        if re.search(r'w3schools\.com', url):
             options += ['--user-agent', 'Mozilla']
         if re.search(r'docker\.com', url):
             options += ['--user-agent', 'Wget/1.21.2']
@@ -235,6 +234,17 @@ def check_urls(urls, api_token, failures):
                     if re.search(r'www\.gnu\.org', url):
                         if re.search(
                                 r'curl: \(28\) Connection timed out after \d+ milliseconds',
+                                line):
+                            error = False
+                            break
+                    if re.search(r'www\.openmp\.org', url):
+                        # openmp.org sits behind Cloudflare, which serves HTTP
+                        # 403 to the checker's datacenter IP even with a
+                        # browser-like user-agent, while the page is up for
+                        # ordinary clients. A genuinely-missing page would
+                        # return 404/410, so treat only this 403 as tolerated.
+                        if re.search(
+                                r'curl: \(22\) The requested URL returned error: 403',
                                 line):
                             error = False
                             break
