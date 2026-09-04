@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Contains a merger tree evolution timestep class which limits the step to the next lightcone crossing.
   !!}
@@ -229,6 +231,13 @@ contains
        timesCrossing =  basic%floatRank1MetaPropertyGet(self%timesCrossingID)
        if (basic%time() /= timesCrossing(1)) return
        call self%mergerTreeOutputter_%outputNode(node,1_c_size_t,outputGroupTypeLightcone)
+       ! Advance the state of the node now that this crossing has been output. As in the task driving the evolution, this is
+       ! triggered here, and not from within the outputter, so that it happens for every `mergerTreeOutputterClass`.
+       !![
+       <eventHook name="mergerTreeOutputStateAdvance" isDuplicate="yes">
+        <callWith>node,1_c_size_t</callWith>
+       </eventHook>
+       !!]
        if (any(node%index() == self%nodeIndicesReport)) then
           write (label,'(i12,1x,"/",1x,e12.6)') node%index(),timesCrossing(1)
           call displayMessage('Lightcone crossing timestep {process} for node/time: '//trim(adjustl(label)))

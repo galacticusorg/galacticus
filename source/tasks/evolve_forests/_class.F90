@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   use, intrinsic :: ISO_C_Binding                  , only : c_size_t
   use            :: Galacticus_Nodes               , only : mergerTree                 , treeNode                , universe, nodeHierarchyWrapper
   use            :: Input_Parameters               , only : inputParameters
@@ -1000,11 +1002,24 @@ contains
                 call displayMessage(message)
                 if (associated(tree)) then
                    call mergerTreeOutputter_%outputTree(tree,iOutput,evolveToTime,outputGroupTypeSnapshot)
-                   ! Perform any extra output and post-output processing on nodes.
+                   ! Perform post-output processing on nodes. The `mergerTreeOutputStateAdvance` event is triggered here, rather
+                   ! than from within the outputter, because its subscribers *modify* the state of the node - specifically, they
+                   ! move star formation histories onto the bin structure used for the next output. That advance must happen
+                   ! exactly once per output, irrespective of which `mergerTreeOutputterClass` is in use. Triggering it from
+                   ! `mergerTreeOutputterStandard` alone would skip it entirely for outputters which write no node data - such as
+                   ! `analyzer` (used by constrained models) and `null` - leaving every star formation history stuck on the bin
+                   ! structure that it was created with.
                    treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
                    do while (treeWalkerAll%next(node))
                       basic => node%basic()
-                      if (basic%time() == evolveToTime) call node%postOutput(evolveToTime)
+                      if (basic%time() == evolveToTime) then
+                         call node%postOutput(evolveToTime)
+                         !![
+                         <eventHook name="mergerTreeOutputStateAdvance">
+                          <callWith>node,iOutput</callWith>
+                         </eventHook>
+                         !!]
+                      end if
                    end do
                 end if
                 iOutput=iOutput+1

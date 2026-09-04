@@ -13,8 +13,10 @@ import warnings
 # Galacticus are compared to analytic solutions.
 # Andrew Benson (31-August-2024)
 
-# Iterate over star formation history types.
-for sfhType in ( "adaptive", "metallicitySplit" ):
+# Iterate over star formation history types. The "metallicitySplitBoundaries" case repeats the
+# "metallicitySplit" case, but with the metallicity bin boundaries given explicitly instead of via
+# "countMetallicities" - a path which previously left the number of metallicity bins undefined.
+for sfhType in ( "adaptive", "metallicitySplit", "metallicitySplitBoundaries" ):
     # Construct the file name suffix.
     suffix = sfhType[0].upper() + sfhType[1:]
     print("Testing '"+sfhType+"' star formation histories...")

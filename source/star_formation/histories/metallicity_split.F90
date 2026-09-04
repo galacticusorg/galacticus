@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a star formation histories class which records star formation split by metallicity.
 !!}
@@ -134,8 +136,8 @@ contains
     </inputParameter>
     !!]
     if (parameters%isPresent('metallicityBoundaries')) then
-       self%countMetallicities=parameters%count('metallicityBoundaries')
-       allocate(metallicityBoundaries(self%countMetallicities))
+       countMetallicities=parameters%count('metallicityBoundaries')
+       allocate(metallicityBoundaries(countMetallicities))
        !![
        <inputParameter docformat="rst">
          <name>metallicityBoundaries</name>
@@ -221,6 +223,10 @@ contains
        self%metallicityTable      (1:size(metallicityBoundaries)  )=metallicityBoundaries
        self%metallicityTable      (  size(metallicityBoundaries)+1)=metallicityInfinite
        self%metallicityBoundaries_                                 =metallicityBoundaries
+       ! A bin extending to infinite metallicity is always added, so the number of bins equals the number of boundaries
+       ! given. Note that `countMetallicities` is not passed in this case, so it is not set by the constructor assignment
+       ! above and must be set here - without this it would be left undefined, and used to size every history created.
+       self%countMetallicities                                     =size(metallicityBoundaries)
     else
        if     (                                &
             &   present(metallicityBoundaries) &
