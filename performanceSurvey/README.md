@@ -32,13 +32,27 @@ Tree surveyed: `master` @ e8d9c46. Line numbers refer to that tree.
   can be validated by `h5diff` against `master`. Non-neutral changes need
   statistical validation.
 * Effort: S (hours), M (days), L (a week or more).
+* **Overlap with open issues.** The open issue list was checked after the
+  survey. Items already covered by an open issue are marked **[filed: #N]**
+  and kept only for context; the rest are new. Related open optimization
+  issues: [#701](https://github.com/galacticusorg/galacticus/issues/701) and
+  [#913](https://github.com/galacticusorg/galacticus/issues/913) (heated
+  profiles, §2.3), [#575](https://github.com/galacticusorg/galacticus/issues/575)
+  (adiabatic-contraction root find, §2.2/§5.3),
+  [#1417](https://github.com/galacticusorg/galacticus/issues/1417) (per-call GSL
+  interpolator in history interpolation, a sibling of §4.2–4.3),
+  [#1419](https://github.com/galacticusorg/galacticus/issues/1419) (tabulated
+  interpolate tidy-up), [#111](https://github.com/galacticusorg/galacticus/issues/111)
+  (`integration2` clean-up, touches §4.3) and
+  [#58](https://github.com/galacticusorg/galacticus/issues/58) (lightcone
+  luminosities, related to §3.1).
 
 ## 1. Executive summary — the ten most valuable items
 
 | # | Item | Kind | Expected gain | Effort | Neutral |
 |---|------|------|---------------|--------|---------|
 | 1 | `Calculations_Reset` fires **per RHS** and its mass-distribution handler discards *all* cached distributions; combined with 29 non-pooled profile `get` implementations this makes several object allocations + destructor chains per RHS per node (§2.1, §2.2) | run-time, macro | medium (part of the measured ~7% alloc/copy and ~8% mass-distribution shares) | S per class, M for smarter invalidation | yes |
-| 2 | Heated-profile `radiusInitial` is a Brent root find with a one-entry memo; the forward map is explicit, so tabulate-and-invert per object instead (§2.3) | run-time, macro for subhalo models | plausibly 1.5–3× on the satellite RHS (dominant linear term) | M | no |
+| 2 | Heated-profile `radiusInitial` is a Brent root find with a one-entry memo that thrashes within one RHS (§2.3). **Already filed**: [#701](https://github.com/galacticusorg/galacticus/issues/701) carries a full tabulate-and-invert plus Newton design, and [#913](https://github.com/galacticusorg/galacticus/issues/913) the shared cross-subhalo table; listed here only because it remains the largest per-satellite constant-factor lever | run-time, macro for subhalo models | plausibly 1.5–3× on the satellite RHS (dominant linear term) | M | no |
 | 3 | `rootFinder`/`integrator` objects constructed on the stack per call — ~8–10 heap ops plus two OpenMP lock inits each; the freefall-radius path nests *three* levels of them (§4.1–4.3) | run-time | small–medium, macro on decorated/composite profiles | S–M | yes |
 | 4 | Equilibrium structure solver always runs ≥2 full iterations per RHS (§5.3) | run-time, macro for baryonic models | medium–large per RHS in baryonic runs | M | partly |
 | 5 | HDF5 output: dataset re-probed and re-opened (2× `h5dopen`) for every property × tree × output under the global lock; output buffer grows by +1024 (quadratic); per-tree metadata rebuilt (§5.1, §5.2, §5.7) | run-time I/O, macro for many-small-tree and N-body runs | large where output dominates | S–M | yes |
@@ -90,7 +104,10 @@ implementations without a pool include, in likely order of use:
   model's chain, and is the `darkMatterOnlyGet` `memmove` seen in the profile.
 * `dark_matter_profiles/adiabatic_Gnedin2004.F90:229,265,277` — three
   allocations per call; used by `parameters/quickTest.xml` and most baryonic
-  models.
+  models. The assessment on [#575](https://github.com/galacticusorg/galacticus/issues/575)
+  measured the adiabatic cluster at ~2% of the milkyWay benchmark, dominated by
+  `constructorInternal`/`get`/`initialize` rather than the root find, and
+  called repeated construction "the better target" — this is that item.
 * `dark_matter_profiles_DMO/{Einasto,Burkert,Zhao1996,isothermal,cusp-NFW,decaying,
   soliton_NFW,soliton_NFW_heated,multiple,accelerator,SIDM_parametric}.F90`,
   `dark_matter_profiles_DMO/{finite_resolution,truncated,heated/monotonic,
@@ -102,7 +119,7 @@ Note the stale comment in `heated/_class.F90:heatedGet` ("the heating object is
 currently constructed afresh on each call") — it is now pooled. Effort S per
 class. Bitwise-neutral.
 
-### 2.3 Heated-profile `radiusInitial`: root find per new radius [I, verified]
+### 2.3 Heated-profile `radiusInitial`: root find per new radius [I, verified] **[filed: #701, #913]**
 
 * `source/mass_distributions/spherical/heated/_class.F90:369-437`
   (`sphericalHeatedRadiusInitial`): a one-entry memo (`radiusFinalPrevious`)
@@ -117,13 +134,19 @@ class. Bitwise-neutral.
 * The forward map is explicit: `sphericalHeatedRadiusEnclosingMass` (`:505-530`)
   already uses `r_f = 1/(1/r_i − 2ε(r_i)/(G M(r_i)))`. So `r_i(r_f)` is the
   inverse of a cheap monotonic function.
-* Fix: on first use per object (i.e. per node per step, since the object is
-  pooled and re-initialized) tabulate `r_f(r_i)` on a logarithmic lattice
-  spanning the profile, then invert by bisection + interpolation (or use the
-  table to bracket a 2–3 iteration Newton polish if exactness matters). The
-  `nonAnalyticSolver` machinery and the `table1D` types are already there.
-  Effort M. Not bitwise-neutral (interpolation error at the tolerance level);
-  a Newton polish to the same tolerance recovers agreement to round-off.
+* **Already filed.** [#701](https://github.com/galacticusorg/galacticus/issues/701)
+  (with a 2026-08-19 design comment) proposes exactly this: Design A,
+  per-object tabulate-and-invert of the explicit forward map, gated by an
+  evaluation-count heuristic; Design B, a derivative-based `fdfsolver` solve
+  using the analytic `dr_f/dr_i`, with the bracketing solver as fallback;
+  recommended A+B. [#913](https://github.com/galacticusorg/galacticus/issues/913)
+  goes further for the tidal-heated tabulated-NFW case: fold the heating
+  parameter `Q/(G ρ_s)` in as one extra axis of a *shared*
+  `massDistributionSphericalTabulated` table, amortized across every subhalo
+  in the run. Nothing to add beyond noting that the per-RHS cache flush in
+  §2.1 means #701's per-object table is rebuilt every RHS unless the
+  invalidation there is also refined — #913's run-wide table avoids that
+  coupling entirely.
 * Related: `Gnedin1999.F90:195-206` also evaluates `radiusEnclosingMass` and
   `rotationCurve` at the half-mass radius per RHS; with the table in place these
   become cheap.
@@ -261,7 +284,9 @@ integrators to `save`d threadprivate objects (neutral, S); compute
   `radiusEnclosingDensityNumerical` keeps a previous-solution guess.
 * Fix: a threadprivate stack of prebuilt finders parallel to the existing
   `massSolvers` stack (neutral, S–M); previous-solution guesses for the other
-  methods (not neutral, S).
+  methods (not neutral, S). [#1417](https://github.com/galacticusorg/galacticus/issues/1417)
+  addresses the same per-call-construction pattern for the `interpolator` in
+  history interpolation; these could share one fix PR.
 
 ### 4.3 Other per-call construction sites [I, verified]
 
@@ -372,7 +397,10 @@ already short-circuits identical `(time, y)` RHS calls at
 `node_evolver/standard.F90:868-877`, so repeated-input calls do occur; (b)
 make iteration 2 conditional on the seed failing the tolerance (changes
 results at tolerance level). M. This is likely the largest per-RHS cost in
-baryonic models with adiabatic contraction.
+baryonic models with adiabatic contraction. The adiabatic root find *inside*
+the enclosed-mass evaluation is [#575](https://github.com/galacticusorg/galacticus/issues/575)
+(assessed there at ~0.4% of the milkyWay benchmark — small); the lever here is
+avoiding the solve altogether when inputs are unchanged.
 
 ### 5.4 N-body reader: per-forest probes and opens under the global lock [I]
 
@@ -622,7 +650,8 @@ hash (the only-if-changed semantics make restored files safe). S–M.
    §5.4); Jacobian `dydt_in` pass-through (§4.4); operator-phase dispatch lists
    (§5.6).
 4. **Run time, not neutral, measured on the benchmark grid of the earlier
-   analysis:** tabulated heated-profile inversion (§2.3); Cole2000 lazy
+   analysis:** heated-profile inversion per the existing plans on #701/#913
+   (§2.3); Cole2000 lazy
    `timeOfCollapse` (§5.5); tidal-tensor scale fraction as a parameter (§2.4);
    `-march`/PGO/`-fstack-arrays` experiments (§7).
 5. **Larger refactors:** implementation-tree cache for functionClass parents
