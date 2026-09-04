@@ -201,6 +201,11 @@ def check_urls(urls, api_token, failures):
             options += ['--range', '0-0']
         if re.search(r'sharepoint\.com', url):
             options += ['--user-agent', 'Mozilla']
+        # w3schools.com and openmp.org (the latter behind Cloudflare) reject
+        # curl's default user-agent with HTTP 403 but serve normally to a
+        # browser-like user-agent.
+        if re.search(r'w3schools\.com', url) or re.search(r'www\.openmp\.org', url):
+            options += ['--user-agent', 'Mozilla']
         if re.search(r'docker\.com', url):
             options += ['--user-agent', 'Wget/1.21.2']
         if re.search(r'docs\.github\.com', url):
