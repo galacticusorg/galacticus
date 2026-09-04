@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a star formation histories class which records star formation in logarithmically-sized time bins of fixed age and split by metallicity.
   !!}
@@ -186,7 +188,10 @@ contains
     Internal constructor for the :galacticus-class:`starFormationHistoryFixedAges` star formation history class.
     !!}
     use :: Error                     , only : Error_Report
+    use :: Display                   , only : displayGreen    , displayReset
     use :: Galactic_Structure_Options, only : componentTypeMax, componentTypeMin
+    use :: Geometry_Lightcones       , only : geometryLightconeNull
+    use :: ISO_Varying_String        , only : varying_string  , assignment(=)       , operator(//)
     use :: Numerical_Ranges          , only : Make_Range      , rangeTypeLogarithmic
     implicit none
     type            (starFormationHistoryFixedAges)                                        :: self
@@ -197,11 +202,23 @@ contains
     integer         (c_size_t                     ), intent(in   )              , optional :: countMetallicities
     class           (cosmologyFunctionsClass      ), intent(in   ), target                 :: cosmologyFunctions_
     class           (geometryLightconeClass       ), intent(in   ), target                 :: geometryLightcone_
+    type            (varying_string               )                                        :: message
     
     !![
     <constructorAssign variables="ageMinimum, countAges, metallicityMinimum, metallicityMaximum, countMetallicities, massScaleAbsolute, *cosmologyFunctions_, *geometryLightcone_"/>
     !!]
 
+    ! Validate the lightcone geometry. This class tabulates star formation histories on a grid of ages measured back from each
+    ! lightcone crossing of the node, so it can not be used without a lightcone.
+    select type (geometryLightcone_)
+    class is (geometryLightconeNull)
+       message=                                            "the `starFormationHistoryFixedAges` class requires a lightcone geometry"       //char(10)// &
+            & displayGreen()//"    HELP:"//displayReset()//" this class is intended for use with lightcone output, but you have no"        //char(10)// &
+            &                                             "          lightcone geometry configured. Either set a non-null"                 //char(10)// &
+            &                                             "          `geometryLightcone`, or - for snapshot output - use a different star" //char(10)// &
+            &                                             "          formation history class, such as `adaptive`."
+       call Error_Report(message//{introspection:location})
+    end select
     ! Validate metallicity argument and construct the table of metallicities.
     if (present(metallicityBoundaries)) then
        if     (                                &

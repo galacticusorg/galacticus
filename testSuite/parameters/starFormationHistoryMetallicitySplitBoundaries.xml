@@ -1,0 +1,155 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Test of metallicity split star formation history with explicitly specified metallicity boundaries -->
+
+<!-- 3-September-2026                                                                            -->
+
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
+
+
+  <!-- Component selection -->
+  <componentBasic value="standard"/>
+  <componentHotHalo value="null"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="scaleFree"/>
+  <componentDisk value="standard">
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
+  </componentDisk>
+  <componentSatellite value="null"/>
+  <componentSpheroid value="null">
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
+  </componentSpheroid>
+  <componentSpin value="scalar"/>
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.0"/>
+    <OmegaMatter value="0.3"/>
+    <OmegaDarkEnergy value="0.7"/>
+    <OmegaBaryon value="0.05"/>
+    <temperatureCMB value="2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.807"/>
+  </cosmologicalMassVariance>
+  <transferFunction value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed value="0.000"/>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="1.000"/>
+    <wavenumberReference value="1.000"/>
+    <running value="0.000"/>
+  </powerSpectrumPrimordial>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+  <haloMassFunction value="tinker2008"/>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructor value="fullySpecified">
+    <fileName value="testSuite/parameters/starFormationHistoryTree.xml"/>
+  </mergerTreeConstructor>
+  <!-- Halo accretion options -->
+  <accretionHalo value="zero"/>
+
+  <!-- Dark matter halo profile -->
+  <darkMatterProfileDMO value="isothermal"/>
+
+  <!-- Hot halo model options -->
+  <hotHaloMassDistribution value="null"/>
+
+  <!-- Galactic structure options -->
+  <galacticStructureSolver value="fixed"/>
+
+  <!-- Star formation rate -->
+  <starFormationRateDisks value="timescale">
+    <starFormationTimescale value="fixed">
+      <timescale value="2.0"/>
+    </starFormationTimescale>
+  </starFormationRateDisks>
+
+  <!-- Metal production -->
+  <stellarPopulation value="standard">
+    <metalYield value="0.025"/>
+    <recycledFraction value="0.400"/>
+  </stellarPopulation>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Dark matter profile -->
+    <nodeOperator value="darkMatterProfileInitialize"/>
+    <!-- Halo spins -->
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"/>
+    <!-- Star formation -->
+    <nodeOperator value="starFormationDisks"/>
+  </nodeOperator>
+  
+  <!-- Numerical tolerances -->
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="1.0e-7"/>
+    <odeToleranceRelative value="1.0e-7"/>
+  </mergerTreeNodeEvolver>
+
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="1.000"/>
+    <timestepHostRelative value="0.100"/>
+  </mergerTreeEvolver>
+
+  <mergerTreeEvolveTimestep value="multi">
+    <mergerTreeEvolveTimestep value="simple">
+      <timeStepAbsolute value="1.0e-3"/>
+      <timeStepRelative value="1.0e-3"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="starFormationHistory"/>
+  </mergerTreeEvolveTimestep>
+
+  <starFormationHistory value="metallicitySplit">
+    <timeStep value="0.05"/>
+    <timeStepFine value="0.001"/>
+    <timeStep value="0.1"/>
+    <!-- Metallicity bin boundaries are specified explicitly here. They match the logarithmically-spaced boundaries
+         which "countMetallicities=20" spanning metallicities of 1.0e-4 to 1.0e1 generates, so that this model gives
+         results identical to those of the "countMetallicities" case. -->
+    <metallicityBoundaries value="
+                                  1.0000000000e-04 1.8329807108e-04 3.3598182863e-04 6.1584821107e-04
+                                  1.1288378917e-03 2.0691380811e-03 3.7926901907e-03 6.9519279618e-03
+                                  1.2742749857e-02 2.3357214691e-02 4.2813323987e-02 7.8475997035e-02
+                                  1.4384498883e-01 2.6366508987e-01 4.8329302386e-01 8.8586679041e-01
+                                  1.6237767392e+00 2.9763514416e+00 5.4555947812e+00 1.0000000000e+01
+                                  "/>
+  </starFormationHistory>
+
+  <!-- Output options -->
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+
+  <!-- Specify output properties -->
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="starFormationHistory">
+      <component value="disk"/>
+    </nodePropertyExtractor>
+  </nodePropertyExtractor>
+
+  <!-- Output file -->
+  <outputFileName value="testSuite/outputs/starFormationHistoryMetallicitySplitBoundaries.hdf5"/>
+
+</parameters>

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a property extractor class for the SED of a component.
   !!}
@@ -1069,7 +1071,7 @@ contains
     use :: FoX_DOM                       , only : setLiveNodeLists
     use :: Histories                     , only : history
     use :: Stellar_Luminosities_Structure, only : enumerationFrameDecode
-    use :: Star_Formation_Histories      , only : starFormationHistoryAgesFixed
+    use :: Star_Formation_Histories      , only : starFormationHistoryAgesFixed, starFormationHistoryAgesFixedPerOutput
     implicit none
     type            (varying_string          )                              :: sedHistoryHashedDescriptor
     class           (nodePropertyExtractorSED), intent(in   )               :: self
@@ -1127,7 +1129,14 @@ contains
     ! Times are only added if ages are not fixed. For fixed ages, the history is the same (for our purposes) always.
     if (self%starFormationHistory_%ageDistribution() /= starFormationHistoryAgesFixed) then
        values=""
-       times =self %starFormationHistory_%times(node=node,indexOutput=indexOutput,starFormationHistory=starFormationHistory)
+       ! Request the times using whichever of `indexOutput` and `node` applies to the star formation history class in use - the
+       ! base class permits only one of the two to be given. Where ages are fixed per output the tabulation is a function of the
+       ! output alone, while for arbitrary ages it must be read from the history of this node.
+       if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixedPerOutput) then
+          times=self%starFormationHistory_%times(indexOutput=indexOutput                                                          )
+       else
+          times=self%starFormationHistory_%times(node       =node       ,starFormationHistory=starFormationHistory)
+       end if
        do i=1,size(times)
           !$omp critical(gfortranInternalIO)
           write (parameterLabel,'(e17.10)') times(i)
