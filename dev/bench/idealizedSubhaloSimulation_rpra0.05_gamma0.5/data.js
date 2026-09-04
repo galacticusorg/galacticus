@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788294211671,
+  "lastUpdate": 1788562345615,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "18eaf8aeaa516ae8acddbaf211bfd03db1710e0b",
-          "message": "fix: Merge branch 'master' into massDistributions",
-          "timestamp": "2024-08-26T15:35:06Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/18eaf8aeaa516ae8acddbaf211bfd03db1710e0b"
-        },
-        "date": 1724722541347,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
-            "value": "23.523299316991164",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "7.896762812694202",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
-            "value": "9.849823975186059",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9910,6 +9873,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/0166a14289314bd29abced8fdab7af88f3e2f88b"
         },
         "date": 1788294210106,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": -23.380562359629884,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -8.011134798042583,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": -10.110599652240946,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e8d9c46113eb2639515ecddb8fb29dea98a3989b",
+          "message": "Merge pull request #1442 from galacticusorg/fix/linkcheck-user-agent\n\nfix: Send a browser user-agent for w3schools.com and openmp.org link checks",
+          "timestamp": "2026-09-04T16:09:35Z",
+          "tree_id": "bd8ce9d329ef4b2057ba9d38c5fc8e4d46b8795f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e8d9c46113eb2639515ecddb8fb29dea98a3989b"
+        },
+        "date": 1788562344517,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
