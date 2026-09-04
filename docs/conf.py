@@ -23,6 +23,35 @@ project = 'Galacticus'
 author = 'Andrew Benson'
 copyright = f'2009–{datetime.date.today().year} Andrew Benson'
 
+
+# The version of Galacticus that this documentation describes.  ReadTheDocs
+# builds each release tag as its own, permanently hosted version (see "Versions
+# and Releases" in the developer guide) and names the tag it is building in the
+# environment; anything else (the ``master`` branch, or a local build) is
+# described with ``git`` instead.
+def _documentation_version() -> str:
+    import subprocess
+    for variable in ('READTHEDOCS_GIT_IDENTIFIER', 'READTHEDOCS_VERSION_NAME'):
+        identifier = os.environ.get(variable, '')
+        if re.fullmatch(r'v\d+\.\d+\.\d+', identifier):
+            return identifier[1:]
+    try:
+        described = subprocess.run(
+            # ``--match`` keeps the moving ``bleeding-edge`` tag and the
+            # ``publication/…`` tags out of the description.
+            ['git', 'describe', '--tags', '--always', '--match', 'v[0-9]*'],
+            cwd=os.path.dirname(os.path.abspath(__file__)),
+            capture_output=True, text=True, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return ''                      # not a git checkout (or no tags fetched)
+    return described.stdout.strip().lstrip('v')
+
+
+release = _documentation_version()
+version = release
+# True when these are the docs for a tagged release, rather than for a branch.
+_release_build = bool(re.fullmatch(r'\d+\.\d+\.\d+', release))
+
 extensions = [
     'sphinx.ext.mathjax',
     'sphinxcontrib.bibtex',
@@ -110,7 +139,13 @@ mathjax3_config = {
 numfig = True
 
 html_theme = 'furo'
-html_title = 'Galacticus'
+# On a release build name the version in the sidebar, so it is obvious which
+# release's documentation is being read.
+html_title = f'Galacticus {release}' if _release_build else 'Galacticus'
+
+# ReadTheDocs serves each version at its own URL and provides it here, so that
+# the pages of this build carry the correct canonical link.
+html_baseurl = os.environ.get('READTHEDOCS_CANONICAL_URL', '')
 # The galaxy icon shown at the top of the sidebar on every page (transparent,
 # so it works in both light and dark modes).
 html_logo = '_static/galacticus-icon.png'
@@ -204,9 +239,26 @@ def _resolve_galacticus_ref(app, env, node, contnode):
     return contnode                               # dangling in source: plain text
 
 
+# --- version-aware self-links ----------------------------------------------
+# A number of pages (and the Mermaid diagrams embedded in them) link to other
+# Galacticus documentation pages by absolute URL, written against
+# ``…/en/latest/``.  In the documentation archived for a release those must
+# lead to that release's own pages rather than to the current development
+# documentation, so rewrite them to the URL of the version being built.
+_docs_url_latest       = 'https://galacticus.readthedocs.io/en/latest/'
+_docs_url_this_version = (html_baseurl.rstrip('/') + '/') if html_baseurl \
+                         else _docs_url_latest
+
+
+def _rewrite_self_links(app, docname, source):
+    source[0] = source[0].replace(_docs_url_latest, _docs_url_this_version)
+
+
 def setup(app):
     app.add_role('galacticus-class', _GalacticusClassRole())
     app.add_role('galacticus-ref', _GalacticusRefRole())
     app.connect('missing-reference', _resolve_galacticus_class)
     app.connect('missing-reference', _resolve_galacticus_ref)
+    if _docs_url_this_version != _docs_url_latest:
+        app.connect('source-read', _rewrite_self_links)
     return {'parallel_read_safe': True, 'parallel_write_safe': True}
