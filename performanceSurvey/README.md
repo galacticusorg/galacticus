@@ -46,6 +46,22 @@ Tree surveyed: `master` @ e8d9c46. Line numbers refer to that tree.
   (`integration2` clean-up, touches §4.3) and
   [#58](https://github.com/galacticusorg/galacticus/issues/58) (lightcone
   luminosities, related to §3.1).
+* **Issues filed from this survey** (2026-09-04):
+  [#1444](https://github.com/galacticusorg/galacticus/issues/1444)
+  `Calculations_Reset` invalidation and remaining profile-factory pooling (§2.1–2.2);
+  [#1445](https://github.com/galacticusorg/galacticus/issues/1445)
+  per-call `rootFinder`/`integrator` construction, Jacobian pass-through, GSL
+  inline macros, log-table range check (§4);
+  [#1446](https://github.com/galacticusorg/galacticus/issues/1446)
+  equilibrium-solver skip and iteration guard (§5.3);
+  [#1447](https://github.com/galacticusorg/galacticus/issues/1447)
+  HDF5 output and N-body reader metadata churn (§5.1, §5.2, §5.4, §5.7, §5.8);
+  [#1448](https://github.com/galacticusorg/galacticus/issues/1448)
+  build-time performance (§6);
+  [#1449](https://github.com/galacticusorg/galacticus/issues/1449)
+  compiler-flag experiments (§7);
+  [#1450](https://github.com/galacticusorg/galacticus/issues/1450)
+  core-infrastructure micro-optimizations (§3, §5.6, §5.8).
 
 ## 1. Executive summary — the ten most valuable items
 
