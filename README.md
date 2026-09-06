@@ -92,6 +92,9 @@ The output is written to `galacticus.hdf5` in the directory you ran from. To cha
 | `./Galacticus.exe: No such file or directory` | The build did not complete successfully. Re-run `make` and check for errors. |
 | Parameter file not found | Ensure you are running the command from the repository root directory so that `parameters/quickTest.xml` resolves correctly. |
 | Missing library errors at link time | Verify that HDF5, FFTW3, and GSL development packages are installed and that their locations are on the relevant library paths. |
+| Build stops with `Error 137` or `Killed` | The compiler ran out of memory. Use fewer parallel jobs (`make -j2 Galacticus.exe`) or `make -j2 LTO=disabled Galacticus.exe`. |
+| `failed to download from "..."` at run time | An external tool or data file could not be fetched. Check network access and that `wget` or `curl` is installed; on a cluster, run once on a login node first. See the [troubleshooting guide](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/troubleshooting/run-time-errors.html). |
+| Every run fails with `unable to close file object '/dev/shm/glcTmpPar...'` | `/dev/shm` is full of temporary files left by older versions. Remove `/dev/shm/glcTmpPar.*` files whose process has exited. |
 
 For further help, visit the [wiki](https://github.com/galacticusorg/galacticus/wiki) or ask in the [discussion forum](https://github.com/galacticusorg/galacticus/discussions).
 

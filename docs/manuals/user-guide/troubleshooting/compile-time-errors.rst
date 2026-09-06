@@ -208,3 +208,36 @@ This error occurs because the object ``self`` is a member of a class that does n
 which says to take the argument ``foo`` to this constructor and assign it to a variable named ``foo`` in the object (``self``) being constructed. We typically do this as the value of ``foo`` is something that we later want to use in one of the class' methods.
 
 The solution to this is to add a variable named ``foo`` to the type definition for this class (with the same type and rank as the argument ``foo`` in the constructor).
+
+Internal compiler error
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: text
+
+   internal compiler error: in aarch64_function_arg_alignment, at config/aarch64/aarch64.cc
+
+An "internal compiler error" (ICE) is a bug in the compiler, not in Galacticus, and the message usually names the compiler source file where it happened. Galacticus requires ``gfortran`` 16 or later, and known ICEs in supported versions are worked around in the ``Makefile``: the AArch64 (Apple Silicon) alignment ICE above is avoided by compiling the affected object files at ``-O0`` (see the ``FCFLAGS_AARCH64_ICE_OBJECTS`` variable), and a submodule visibility bug is worked around in ``source/merger_trees/construct/read/importer/_class.F90``. These workarounds are retired as fixed compilers become available (`issue #1239 <https://github.com/galacticusorg/galacticus/issues/1239>`_, `issue #1421 <https://github.com/galacticusorg/galacticus/issues/1421>`_).
+
+If you hit an ICE, first check ``gfortran --version``. If the compiler is supported and the message matches the AArch64 case above but names an object file not yet in ``FCFLAGS_AARCH64_ICE_OBJECTS``, add it to that list and rebuild. Otherwise please report it, including the full ICE text, the compiler version, and the object file being compiled, so that a workaround can be added.
+
+Compiler killed during the build
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: text
+
+   f951: internal compiler error: Killed (program f951)
+   make: *** [work/build/foo.o] Error 137
+
+or a build that stops with ``Error 137`` and no other diagnostic, means the operating system killed the compiler for using too much memory. Compiling the large generated ``*_class`` units at ``-O3`` in parallel is the peak: on a machine with about 16 GB of memory, ``make -j4`` can exceed it. Reduce the number of parallel jobs (``make -j2 Galacticus.exe`` is what the continuous integration uses), or build with link-time optimization disabled (``make -j2 LTO=disabled Galacticus.exe``), which lowers the memory needed at link time. Re-running ``make`` after such a failure continues from where it stopped.
+
+Changes to the pre-processor have no effect
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you edit one of the Python code generators under ``python/Galacticus/Build/`` (or ``scripts/build/preprocess.py`` itself), rebuild, and find that the generated ``work/build/*.p.F90`` files are unchanged, you are using a checkout from before August 2026. Those ``Makefile`` rules did not list the generator sources as prerequisites, so an incremental build reported success while compiling stale generated code (`issue #1395 <https://github.com/galacticusorg/galacticus/issues/1395>`_). Current versions re-run the pre-processor whenever its own sources change. On an older checkout, remove the generated files and rebuild:
+
+.. code-block:: console
+
+   rm -f work/build/*.p.F90 work/build/*.p.Inc
+   make -j2 Galacticus.exe
+
+Only files whose pre-processed output actually differs are recompiled, so this is cheaper than a full ``make clean``.
