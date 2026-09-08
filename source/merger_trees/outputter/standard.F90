@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements the standard class for outputting merger trees.
   !!}
@@ -682,10 +684,11 @@ contains
           if (self% doubleBufferCount == self% doubleBufferSize) call self%extendDoubleBuffer ()
        end do
     end if
-    ! Perform any extra output tasks. These are skipped for trajectory output. Subscribers to this event hook (e.g. the standard
-    ! disk, spheroid, and nuclear star cluster components) *modify* the state of the node - specifically, they advance the star
-    ! formation history to the next output. Since trajectory output occurs during differential evolution (and many times per node)
-    ! allowing that to happen would corrupt the star formation histories and inject spurious data into the regular outputs.
+    ! Perform any extra output tasks. These are skipped for trajectory output, which occurs during differential evolution (and
+    ! many times per node), and so would inject spurious data into the regular outputs. Note that this event is triggered by this
+    ! outputter alone, so subscribers must use it to *write* extra output only, never to modify the state of the node. State which
+    ! must be advanced once per output (star formation histories, for example) should instead subscribe to the
+    ! `mergerTreeOutputStateAdvance` event, which is triggered by the task driving the evolution for every outputter class.
     if (outputType == outputGroupTypeTrajectory) return
     !![
     <eventHook name="mergerTreeExtraOutput">
