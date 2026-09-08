@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788562250996,
+  "lastUpdate": 1788854220883,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "e853ae4249d68e38ca94891b77d577795ef565ab",
-          "message": "Merge pull request #871 from yzhaoastro/soliton-mass-fix\n\nAdd analytic solution for soliton and NFW mass profile",
-          "timestamp": "2025-07-01T17:46:07Z",
-          "tree_id": "3d2a6565b16b3031b09d490b6fe4eb730492447c",
-          "url": "https://github.com/galacticusorg/galacticus/commit/e853ae4249d68e38ca94891b77d577795ef565ab"
-        },
-        "date": 1751446917484,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 60.024,
-            "unit": "seconds",
-            "range": 0.0393242927458469
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8800,6 +8770,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 14825.828668002143,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0f171a357b5ac2f9266432b7c33e6abf22ffaf34",
+          "message": "Merge pull request #1364 from galacticusorg/fixAngularMomentumAccretion\n\nfix(nodes): use specific angular momentum for CGM accretion rates",
+          "timestamp": "2026-09-08T01:55:54Z",
+          "tree_id": "cf227f8afa922a049ea0df70a9ff371bcbaaeb8b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0f171a357b5ac2f9266432b7c33e6abf22ffaf34"
+        },
+        "date": 1788854214783,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 29.189,
+            "range": "0.06359952830013757",
+            "unit": "seconds"
           }
         ]
       }
