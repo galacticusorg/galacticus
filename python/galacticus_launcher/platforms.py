@@ -77,7 +77,8 @@ def detect(system=None, machine=None):
         )
     raise UnsupportedPlatform(
         f"Galacticus provides no pre-built binary for system '{system}'. "
-        "On Windows, use WSL 2 and install the Linux build. Otherwise build "
-        "from source: https://galacticus.readthedocs.io/en/latest/manuals/"
-        "user-guide/installation/index.html"
+        "On Windows, run `galacticus install-wsl` to set up WSL 2 and install the "
+        "Linux build inside it. Otherwise build from source: "
+        "https://galacticus.readthedocs.io/en/latest/manuals/user-guide/"
+        "installation/index.html"
     )
