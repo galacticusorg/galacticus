@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "e8d9c46113eb2639515ecddb8fb29dea98a3989b",
-        "message": "Merge pull request #1442 from galacticusorg/fix/linkcheck-user-agent\n\nfix: Send a browser user-agent for w3schools.com and openmp.org link checks\n",
-        "timestamp": "2026-09-04 16:09:35+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/e8d9c46113eb2639515ecddb8fb29dea98a3989b"
+        "id": "0f171a357b5ac2f9266432b7c33e6abf22ffaf34",
+        "message": "Merge pull request #1364 from galacticusorg/fixAngularMomentumAccretion\n\nfix(nodes): use specific angular momentum for CGM accretion rates\n",
+        "timestamp": "2026-09-08 01:55:54+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/0f171a357b5ac2f9266432b7c33e6abf22ffaf34"
     },
     "results": [
         {
