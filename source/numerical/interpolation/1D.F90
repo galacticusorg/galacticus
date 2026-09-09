@@ -373,7 +373,7 @@ contains
        allocate(self%interp_     )
        self%interp_     %gsl=gsl_interp_alloc      (self%gsl_interp_type,self%countArray)
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
 	 <description>
 	 ICE when passing a derived type component to a class(*) function argument.
 	 </description>
@@ -388,7 +388,7 @@ contains
        allocate(self%interpAccel_)
        self%interpAccel_%gsl=gsl_interp_accel_alloc(                                    )
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
 	 <description>
 	 ICE when passing a derived type component to a class(*) function argument.
 	 </description>
@@ -1005,7 +1005,7 @@ contains
        allocate(self%interpX     )
        self%interpX     %gsl=gsl_interp_alloc           (self%gsl_interp_type,self%countArrayX)
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
 	 <description>
 	 ICE when passing a derived type component to a class(*) function argument.
 	 </description>
@@ -1020,7 +1020,7 @@ contains
        allocate(self%interpY     )
        self%interpY     %gsl=gsl_interp_alloc           (self%gsl_interp_type,self%countArrayY)
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
 	 <description>
 	 ICE when passing a derived type component to a class(*) function argument.
 	 </description>
@@ -1035,7 +1035,7 @@ contains
        allocate(self%interpAccelX)
        self%interpAccelX%gsl=gsl_interp_accel_alloc(                                     )
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
 	 <description>
 	 ICE when passing a derived type component to a class(*) function argument.
 	 </description>
@@ -1050,7 +1050,7 @@ contains
        allocate(self%interpAccelY)
        self%interpAccelY%gsl=gsl_interp_accel_alloc(                                     )
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
 	 <description>
 	 ICE when passing a derived type component to a class(*) function argument.
 	 </description>
