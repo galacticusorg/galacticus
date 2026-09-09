@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788854464427,
+  "lastUpdate": 1788953056472,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (COZMIC)": [
@@ -1052,6 +1052,55 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/0f171a357b5ac2f9266432b7c33e6abf22ffaf34"
         },
         "date": 1788854463357,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay FDM:25.9e-22eV resolutionX8 z=0.000",
+            "value": 91.59983854550022,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay IDM:1e-4GeV:envelope resolutionX8 z=0.000",
+            "value": 62.190932920590555,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV resolutionX8 z=0.000",
+            "value": 61.20524229923957,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV:bumpCutoff resolutionX8 z=0.000",
+            "value": 103.88672474939503,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV:f0.6 resolutionX8 z=0.000",
+            "value": 74.5820936027859,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "33db0bfee747d9fdc6dac974d00bf482a9a8b5ac",
+          "message": "Merge pull request #1453 from galacticusorg/depup/lesgourg/class_public\n\nfix(deps): update lesgourg/class_public to 3.4.0",
+          "timestamp": "2026-09-09T05:09:16Z",
+          "tree_id": "4586ff083fed9281b8bc444cd4bfa80a9f1ca1d3",
+          "url": "https://github.com/galacticusorg/galacticus/commit/33db0bfee747d9fdc6dac974d00bf482a9a8b5ac"
+        },
+        "date": 1788953055441,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
