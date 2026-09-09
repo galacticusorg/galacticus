@@ -1380,6 +1380,7 @@ jobs:
                       tests.differentiation.exe,
                       tests.tables.exe,
                       tests.table_caches.exe,
+                      tests.history.exe,
                       tests.interpolation.exe,
                       tests.interpolation.2D.exe,
                       tests.interpolation.multiD.exe,
