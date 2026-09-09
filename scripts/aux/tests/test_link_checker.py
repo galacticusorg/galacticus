@@ -142,6 +142,21 @@ def test_reserved_domains_are_excluded(linkChecker, url, excluded):
     assert linkChecker.is_excluded(url) is excluded
 
 
+@pytest.mark.parametrize('url,excluded', [
+    # A dead link kept only to record where a file came from, and a
+    # documentation URL written with a placeholder version rather than a real
+    # one: both are working as intended and must not be reported.
+    ('http://www.las.osaka-sandai.ac.jp/~inoue/ANAIGM/ANAIGM.tar.gz', True),
+    ('https://galacticus.readthedocs.io/en/vX.Y.Z/',                  True),
+    ('https://galacticus.readthedocs.io/en/vX.Y.Z',                   True),
+    # A real per-version documentation URL is still checked.
+    ('https://galacticus.readthedocs.io/en/v1.2.3/',                  False),
+    ('https://galacticus.readthedocs.io/en/latest/',                  False),
+])
+def test_placeholder_and_lost_urls_are_excluded(linkChecker, url, excluded):
+    assert linkChecker.is_excluded(url) is excluded
+
+
 @pytest.mark.parametrize('url,tolerated', [
     ('https://www.openmp.org/specifications/',                     True),
     ('http://math.stackexchange.com/questions/40713/x',            True),

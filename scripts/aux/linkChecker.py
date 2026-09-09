@@ -93,6 +93,15 @@ _EXCLUDED_URL_RES = [
     re.compile(r'^https://drive\.google\.com/open\?id=0B7vqPPPgOdtIfjUtb3RsV2JUOTFFX29WV1FZNURPMHAxTEtZQjhJOGtyNXZUTTNVSzFZazQ$'),
     # Defunct Maraston stellar population model link, retained only for the historical record.
     re.compile(r"^http://www\.icg\.port\.ac\.uk/~maraston/Claudia's_Stellar_Population_Model\.html$"),
+    # A documentation URL written with a placeholder version, naming the form of
+    # a per-release documentation URL rather than any one release's -- see the
+    # "Versions and Releases" page of the developer guide.
+    re.compile(r'^https://galacticus\.readthedocs\.io/en/vX\.Y\.Z(?:[/?#]|$)'),
+    # Defunct link to Inoue's own IGM attenuation code, from which the file that
+    # `source/tests/spectra/postprocess/Inoue2014.F90` compares against was
+    # extracted.  No archived copy of the tarball could be found, so the URL is
+    # retained only to record where that file came from.
+    re.compile(r'^http://www\.las\.osaka-sandai\.ac\.jp/~inoue/ANAIGM/ANAIGM\.tar\.gz$'),
     # RFC 2606 reserves the `.invalid` TLD, and the `example.com`/`.net`/`.org`
     # domains, for use in documentation and testing.  The source uses both for
     # URLs which are deliberately not real -- the download system test's
