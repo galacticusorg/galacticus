@@ -1,27 +1,45 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Characterization model for the *legitimate* (bounded) construction        -->
+
 <!-- recursion handled by recursive="yes" (issue #695).                        -->
+
 <!--                                                                           -->
+
 <!-- Setting virialDensityContrast="percolation" with the default              -->
+
 <!-- darkMatterHaloScale ("virialDensityContrastDefinition") forms the         -->
+
 <!-- canonical mutual cycle:                                                   -->
+
 <!--                                                                           -->
+
 <!--   virialDensityContrastPercolation                                        -->
+
 <!--     -> percolation objects -> dark-matter profile -> darkMatterHaloScale  -->
+
 <!--       = darkMatterHaloScaleVirialDensityContrastDefinition                -->
+
 <!--         -> virialDensityContrast (resolves back up the parameter tree to  -->
+
 <!--            the percolation object currently under construction)           -->
+
 <!--                                                                           -->
+
 <!-- The build re-discovers the node currently under construction and returns  -->
+
 <!-- a shim (recursive="yes" short-circuit) instead of aborting (#397). This   -->
+
 <!-- model asserts that the *successful* recursive build path works end to     -->
+
 <!-- end. Run multi-threaded, it also deep-copies the recursive object graph   -->
+
 <!-- (per-thread copies in evolveForests) and, via stateFileRoot, exercises    -->
+
 <!-- stateStore/stateRestore of the shim.                                      -->
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="f62df0c3b1d868c052eedef79c20488955a738c9" time="2026-08-12T22:48:39"/>
+  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
 
   <errorWaitTime value="0"/>
   <evolveForestsWorkShare value="cyclic"/>

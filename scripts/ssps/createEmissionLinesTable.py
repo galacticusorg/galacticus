@@ -1046,52 +1046,57 @@ def validateSSP(grid,args):
     plt.clf()
 
     # Update results in the datasets repo GitHub pages.
-    if args.suffixGitHubPages is not None:
-        ## Clone the repo (gh-pages branch).
-        if not os.path.isdir(args.workspace+'datasets'):
-            try:
+    if args.suffixGitHubPages is not None and args.skipGitHubPages:
+        print(colored('Skipping GitHub pages update (`--skipGitHubPages` was set).','yellow'))
+    elif args.suffixGitHubPages is not None:
+        # Any failure in this section (e.g. no access to the datasets repo) must only warn, never abort - otherwise we would lose
+        # all of the computed results before the final output file is written below.
+        try:
+            ## Clone the repo (gh-pages branch).
+            if not os.path.isdir(args.workspace+'datasets'):
                 Repo.clone_from("git@github.com:galacticusorg/datasets.git", args.workspace+'datasets', branch='gh-pages')
-            except Exception as e:
-                print(f"Error cloning repository: {e}")
-        ## Parse the JSON definition file if present.
-        if os.path.exists(args.workspace+'datasets/hiiRegions/tableDefinitions.json'):
-            with open(args.workspace+'datasets/hiiRegions/tableDefinitions.json', 'r') as file:
-                next(file)
-                data = file.read()
-                definition = json.loads(data)
-        else:
-            definition = {}    
-        ## Copy and rename our plots to the repo.
-        if not os.path.isdir(args.workspace+'datasets/hiiRegions'):
-            os.mkdir(args.workspace+'datasets/hiiRegions')
-        shutil.copy(args.workspace+'bptDiagramOIIINII.svg', args.workspace+'datasets/hiiRegions/bptDiagramOIIINII_'+args.suffixGitHubPages+'.svg')
-        shutil.copy(args.workspace+'bptDiagramOIIISII.svg', args.workspace+'datasets/hiiRegions/bptDiagramOIIISII_'+args.suffixGitHubPages+'.svg')
-        shutil.copy(args.workspace+'bptDiagramNIIOII.svg' , args.workspace+'datasets/hiiRegions/bptDiagramNIIOII_' +args.suffixGitHubPages+'.svg')
-        shutil.copy(args.workspace+'bptDiagramOIIOIII.svg', args.workspace+'datasets/hiiRegions/bptDiagramOIIOIII_'+args.suffixGitHubPages+'.svg')
-        ## Update and output the JSO1N definition file.
-        definition[args.suffixGitHubPages] = {
-            "time":          str(datetime.datetime.now()),
-            "gitRevision":   grid['gitRevision'  ],
-            "cloudyVersion": grid['cloudyVersion'],
-            "commandLine":   grid['commandLine'  ],
-            "fileName":      args.outputFileName
-        }
-        if 'sspURL' in grid:
-            definition[args.suffixGitHubPages]['sspURL'] = grid['sspURL']
-        f = codecs.open(args.workspace+'datasets/hiiRegions/tableDefinitions.json', "w", "utf-8")
-        f.write("window.TABLE_DATA =\n")
-        f.write(json.dumps(definition,indent=4,ensure_ascii=False))
-        f.close()
-        ## Display instructions for updating the repo.
-        print(colored('\n\nGitHub pages content has been updated.','red', attrs=["bold"])+' To deploy, do:\n')
-        print(colored('   cd '+args.workspace+'datasets','green'))
-        print(colored('   git add hiiRegions/tableDefinitions.json','green'))
-        print(colored('   git add hiiRegions/bptDiagramOIIINII_'+args.suffixGitHubPages+'.svg','green'))
-        print(colored('   git add hiiRegions/bptDiagramOIIISII_'+args.suffixGitHubPages+'.svg','green'))
-        print(colored('   git add hiiRegions/bptDiagramNIIOII_' +args.suffixGitHubPages+'.svg','green'))
-        print(colored('   git add hiiRegions/bptDiagramOIIOIII_'+args.suffixGitHubPages+'.svg','green'))
-        print(colored('   git commit -m "feat: Update BPT diagrams"','green'))
-        print(colored('   git push\n\n','green'))
+            ## Parse the JSON definition file if present.
+            if os.path.exists(args.workspace+'datasets/hiiRegions/tableDefinitions.json'):
+                with open(args.workspace+'datasets/hiiRegions/tableDefinitions.json', 'r') as file:
+                    next(file)
+                    data = file.read()
+                    definition = json.loads(data)
+            else:
+                definition = {}
+            ## Copy and rename our plots to the repo.
+            if not os.path.isdir(args.workspace+'datasets/hiiRegions'):
+                os.mkdir(args.workspace+'datasets/hiiRegions')
+            shutil.copy(args.workspace+'bptDiagramOIIINII.svg', args.workspace+'datasets/hiiRegions/bptDiagramOIIINII_'+args.suffixGitHubPages+'.svg')
+            shutil.copy(args.workspace+'bptDiagramOIIISII.svg', args.workspace+'datasets/hiiRegions/bptDiagramOIIISII_'+args.suffixGitHubPages+'.svg')
+            shutil.copy(args.workspace+'bptDiagramNIIOII.svg' , args.workspace+'datasets/hiiRegions/bptDiagramNIIOII_' +args.suffixGitHubPages+'.svg')
+            shutil.copy(args.workspace+'bptDiagramOIIOIII.svg', args.workspace+'datasets/hiiRegions/bptDiagramOIIOIII_'+args.suffixGitHubPages+'.svg')
+            ## Update and output the JSON definition file.
+            definition[args.suffixGitHubPages] = {
+                "time":          str(datetime.datetime.now()),
+                "gitRevision":   grid['gitRevision'  ],
+                "cloudyVersion": grid['cloudyVersion'],
+                "commandLine":   grid['commandLine'  ],
+                "fileName":      args.outputFileName
+            }
+            if 'sspURL' in grid:
+                definition[args.suffixGitHubPages]['sspURL'] = grid['sspURL']
+            f = codecs.open(args.workspace+'datasets/hiiRegions/tableDefinitions.json', "w", "utf-8")
+            f.write("window.TABLE_DATA =\n")
+            f.write(json.dumps(definition,indent=4,ensure_ascii=False))
+            f.close()
+            ## Display instructions for updating the repo.
+            print(colored('\n\nGitHub pages content has been updated.','red', attrs=["bold"])+' To deploy, do:\n')
+            print(colored('   cd '+args.workspace+'datasets','green'))
+            print(colored('   git add hiiRegions/tableDefinitions.json','green'))
+            print(colored('   git add hiiRegions/bptDiagramOIIINII_'+args.suffixGitHubPages+'.svg','green'))
+            print(colored('   git add hiiRegions/bptDiagramOIIISII_'+args.suffixGitHubPages+'.svg','green'))
+            print(colored('   git add hiiRegions/bptDiagramNIIOII_' +args.suffixGitHubPages+'.svg','green'))
+            print(colored('   git add hiiRegions/bptDiagramOIIOIII_'+args.suffixGitHubPages+'.svg','green'))
+            print(colored('   git commit -m "feat: Update BPT diagrams"','green'))
+            print(colored('   git push\n\n','green'))
+        except Exception as e:
+            print(colored('WARNING: failed to update the datasets repo GitHub pages: '+str(e),'yellow'))
+            print(colored('         Continuing to the final output phase; the computed results will still be written.','yellow'))
     # Validate model success.
     selectSuccess       = grid['lineData']['status'] == 0
     selectDisaster      = grid['lineData']['status'] == 1
@@ -1316,6 +1321,7 @@ parser.add_argument('--ageMaximum'           ,default='1.0e30'              ,act
 parser.add_argument('--iterationsMaximum'    ,default='0'                   ,action='store'      ,type=restricted_int  ,help='set the maximum number of iterations in Cloudy (0 to iterate to convergence)'                                         )
 parser.add_argument('--cloudyVersion'        ,default=dependencies['cloudy'],action='store'                            ,help='the version of Cloudy to use'                                                                                         )
 parser.add_argument('--suffixGitHubPages'                                   ,action='store'                            ,help='update GitHub pages content using this suffix'                                                                        )
+parser.add_argument('--skipGitHubPages'                                     ,action='store_true'                       ,help='skip updating the results in the datasets repo GitHub pages (e.g. if you lack access to that repo)'                    )
 parser.add_argument('--model'                                               ,action='store'      ,type=restricted_int  ,help='run only the given model number'                                                                                      )
 parser.add_argument('--partition'                                           ,action='store'                            ,help='the partition to which to submit jobs'                                                                                )
 parser.add_argument('--jobMaximum'                                          ,action='store'      ,type=restricted_int  ,help='the maximum number of active jobs to allow'                                                                           )

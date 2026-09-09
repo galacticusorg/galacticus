@@ -118,6 +118,11 @@ module Node_Property_Extractors
     parcel records the output element to which it contributes, so that the parcels can be recombined by the
     ``recompose`` method once they have been attenuated.
 
+    Output elements are numbered as follows. A scalar extractor has a single element. A tuple extractor's elements are
+    numbered in the order its ``extract`` method returns them. An array extractor, whose ``extract`` returns an array
+    of shape ``(size,elementCount)``, numbers its elements in Fortran's column-major order, so that row :math:`i` of
+    column :math:`j` is element :math:`i + (j-1) \times` ``size``---the position that element occupies in memory.
+
     The default implementation reports an error: only extractors whose ``supportsAttenuation`` method returns true
     override it. This mirrors the treatment of ``extractScalar``, and is used because Fortran provides no way to mix a
     decomposition interface into the several rank-specific extractor classes independently.

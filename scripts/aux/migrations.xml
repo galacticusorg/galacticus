@@ -345,6 +345,17 @@
     <translation function="prompt_cusp_require_collapse_before_halo"/>
   </migration>
 
+  <migration commit="8d876521514e569cd4a0d2cb50c958a62e7ea12c">
+    <!-- The `stellarSpectraDustAttenuation` class and the `lmnstyStllrCF2000` property extractor were retired in    -->
+    <!-- favor of the `dustAttenuation` and `dustExtinctionCurve` classes. The former was consumed only by classes   -->
+    <!-- which have themselves been migrated, so the parameter is simply removed; the latter is replaced by the      -->
+    <!-- equivalent structure of extractors.                                                                        -->
+    <translation xpath="//stellarSpectraDustAttenuation[@value]">
+      <remove/>
+    </translation>
+    <translation function="dust_attenuation_framework"/>
+  </migration>
+
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
   <default parameter="componentDisk"                  value="standard"        />

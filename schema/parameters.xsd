@@ -978,6 +978,52 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="dustAttenuation">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="atlasFerrara2000"/>
+          <xs:enumeration value="birthCloud"/>
+          <xs:enumeration value="charlotFall2000"/>
+          <xs:enumeration value="inclinationAveraged"/>
+          <xs:enumeration value="mixedSlab"/>
+          <xs:enumeration value="screen"/>
+          <xs:enumeration value="screenFixed"/>
+          <xs:enumeration value="screenSurfaceDensityMetals"/>
+          <xs:enumeration value="sequence"/>
+          <xs:enumeration value="zero"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="dustExtinctionCurve">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="calzetti2000"/>
+          <xs:enumeration value="cardelli1989"/>
+          <xs:enumeration value="gordon2003"/>
+          <xs:enumeration value="noll2009"/>
+          <xs:enumeration value="powerLaw"/>
+          <xs:enumeration value="prevotBouchet"/>
+          <xs:enumeration value="tabulated"/>
+          <xs:enumeration value="wittGordon2000"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="evolveForestsWorkShare">
    <xs:complexType mixed="true">
     <xs:sequence>
@@ -1139,6 +1185,24 @@
           <xs:enumeration value="streamKick"/>
           <xs:enumeration value="surveyGeometry"/>
           <xs:enumeration value="treeHosted"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="galacticInclination">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="fixed"/>
+          <xs:enumeration value="null"/>
+          <xs:enumeration value="random"/>
+          <xs:enumeration value="spinVector"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
@@ -2413,6 +2477,7 @@
           <xs:enumeration value="haloAxisRatiosMenkerBenson2022"/>
           <xs:enumeration value="hierarchy"/>
           <xs:enumeration value="impulsiveOutflowEnergy"/>
+          <xs:enumeration value="inclinationRandom"/>
           <xs:enumeration value="indexBranchTip"/>
           <xs:enumeration value="indexLastHost"/>
           <xs:enumeration value="indexShift"/>
@@ -2512,6 +2577,7 @@
           <xs:enumeration value="densityProfile"/>
           <xs:enumeration value="descendantNode"/>
           <xs:enumeration value="descendants"/>
+          <xs:enumeration value="dustAttenuation"/>
           <xs:enumeration value="excursion"/>
           <xs:enumeration value="finalDescendant"/>
           <xs:enumeration value="fluxFromLuminosity"/>
@@ -2531,6 +2597,7 @@
           <xs:enumeration value="haloEnvironment"/>
           <xs:enumeration value="hierarchy"/>
           <xs:enumeration value="hostNode"/>
+          <xs:enumeration value="inclination"/>
           <xs:enumeration value="indexBranchTip"/>
           <xs:enumeration value="indexLastHost"/>
           <xs:enumeration value="indicesHost"/>
@@ -2548,7 +2615,6 @@
           <xs:enumeration value="list2D"/>
           <xs:enumeration value="lmnstyEmssnLineAGN"/>
           <xs:enumeration value="lmnstyEmssnLinePanuzzo2003"/>
-          <xs:enumeration value="lmnstyStllrCF2000"/>
           <xs:enumeration value="luminosityEmissionLine"/>
           <xs:enumeration value="luminosityStellar"/>
           <xs:enumeration value="luminosityStellarFromSED"/>
@@ -3841,28 +3907,6 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
-  <xs:element name="stellarSpectraDustAttenuation">
-   <xs:complexType mixed="true">
-    <xs:sequence>
-     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
-    </xs:sequence>
-       <xs:attribute name="value" use="optional">
-        <xs:simpleType>
-         <xs:restriction base="xs:string">
-          <xs:enumeration value="calzetti2000"/>
-          <xs:enumeration value="cardelli1989"/>
-          <xs:enumeration value="charlotFall2000"/>
-          <xs:enumeration value="gordon2003"/>
-          <xs:enumeration value="prevotBouchet"/>
-          <xs:enumeration value="tabulated"/>
-          <xs:enumeration value="wittGordon2000"/>
-          <xs:enumeration value="zero"/>
-         </xs:restriction>
-        </xs:simpleType>
-       </xs:attribute>
-    <xs:anyAttribute processContents="lax"/>
-   </xs:complexType>
-  </xs:element>
   <xs:element name="stellarTracks">
    <xs:complexType mixed="true">
     <xs:sequence>
@@ -4379,6 +4423,22 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="dust">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="milkyWay"/>
+          <xs:enumeration value="smallMagellanicCloud"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="dustType">
    <xs:complexType mixed="true">
     <xs:sequence>
@@ -4593,6 +4653,22 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="luminosity"/>
           <xs:enumeration value="size"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="lineOfSight">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="fixed"/>
+          <xs:enumeration value="lightcone"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>

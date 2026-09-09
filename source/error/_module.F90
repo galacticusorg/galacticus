@@ -33,18 +33,28 @@ module Error
           &                                    GSL_eUndrFlw  , GSL_eZeroDiv, GSL_eMaxIter, GSL_eRound
   implicit none
   private
-  public :: Error_Report               , Error_Handler_Register    , &
-       &    Component_List             , GSL_Error_Handler_Abort_On, &
-       &    GSL_Error_Handler_Abort_Off, GSL_Error_Status          , &
-       &    Warn                       , Error_Wait_Set            , &
-       &    GSL_Error_Details          , signalHandlerDeregister   , &
-       &    signalHandlerRegister      , signalHandlerInterface    , &
-       &    GSL_Error_Handler_Aborting
+  public :: Error_Report               , Error_Handler_Register         , &
+       &    Component_List             , GSL_Error_Handler_Abort_On     , &
+       &    GSL_Error_Handler_Abort_Off, GSL_Error_Status               , &
+       &    Warn                       , Error_Wait_Set                 , &
+       &    GSL_Error_Details          , signalHandlerDeregister        , &
+       &    signalHandlerRegister      , signalHandlerInterface         , &
+       &    GSL_Error_Handler_Aborting , Error_Report_Allocation_Failure 
 
   interface Error_Report
      module procedure Error_Report_Char
      module procedure Error_Report_VarStr
   end interface Error_Report
+
+  interface Error_Report_Allocation_Failure
+     !!{RST
+        Report a failure to allocate memory. The element count is accepted as either a default integer or
+        a ``c_size_t``, since the counts which size such allocations are read from files and so are of
+        both kinds.
+     !!}
+     module procedure Error_Report_Allocation_Failure_Integer
+     module procedure Error_Report_Allocation_Failure_SizeT
+  end interface Error_Report_Allocation_Failure
 
   interface Warn
      module procedure Warn_Char
@@ -63,6 +73,12 @@ module Error
   integer, parameter, public :: errorStatusMaxIterations=GSL_eMaxIter ! Maximum iterations exceeded.
   integer, parameter, public :: errorStatusXCPU         =1025         ! CPU time limit exceeded.
   integer, parameter, public :: errorStatusNotExist     =1026         ! Entity does not exist.
+
+  ! Value passed to registered signal handlers when they are called other than in response to a
+  ! signal - that is, from `Error_Report`. Zero is not a valid POSIX signal number, so it cannot be
+  ! confused with one, and it is the value which a handler recording "no signal has been seen" would
+  ! hold anyway.
+  integer, parameter, public :: signalNone              =   0         ! Not a signal.
   
   !![
   <constant variable="Kernel_EACCES"       kernelSymbol="EACCES"       kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for permission denied."             group="Kernel"/>
@@ -121,6 +137,55 @@ module Error
   
 contains
 
+  subroutine Error_Report_Allocation_Failure_Integer(name,elementCount,location)
+    !!{RST
+    Report a failure to allocate memory, for an element count given as a default integer.
+    !!}
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    implicit none
+    character(len=*), intent(in   ) :: name        , location
+    integer         , intent(in   ) :: elementCount
+
+    call Error_Report_Allocation_Failure_SizeT(name,int(elementCount,kind=c_size_t),location)
+    return
+  end subroutine Error_Report_Allocation_Failure_Integer
+
+  subroutine Error_Report_Allocation_Failure_SizeT(name,elementCount,location)
+    !!{RST
+    Report a failure to allocate memory.
+
+    An ``allocate`` which fails without ``stat=`` aborts the process with no indication of what was
+    being allocated, which is of no help at all in deciding what to do about it. This reports the
+    name of the object and the number of elements requested.
+
+    It exists so that the cost at each call site is a scalar integer and one branch: the message is
+    built here, on the failing branch, and not in the caller where the machinery to build it would be
+    constructed and destroyed on every call including the overwhelming majority which succeed.
+    !!}
+    use            :: Display      , only : displayGreen, displayReset
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    implicit none
+    character(len=*        ), intent(in   )              :: name        , location
+    integer  (c_size_t     ), intent(in   )              :: elementCount
+    character(len=32       )                             :: countLabel
+    character(len=:        ), allocatable                :: message
+
+    ! The message is assembled before being reported, rather than being built in the call to
+    ! `Error_Report`, because the location is supplied by the caller here: a call which builds its
+    ! message from literals is required to append `{introspection:location}` itself, and check 5 of
+    ! `staticAnalyzer.py` enforces that.
+    write (countLabel,'(i0)') elementCount
+    message='unable to allocate `'//name//'` ('//trim(countLabel)//' elements)'//char(10)        // &
+         &  displayGreen()//'HELP:'//displayReset()                                              // &
+         &  ' the run needs more memory than is available to it. Reduce the size of the problem' // &
+         &  ' (for example, the number of trees or particles being processed), reduce the number'// &
+         &  ' of OpenMP threads, since each holds its own copy of much of the state, or run'     // &
+         &  ' where more memory is available'                                                    // &
+         &  location
+    call Error_Report(message)
+    return
+  end subroutine Error_Report_Allocation_Failure_SizeT
+
   subroutine Error_Report_VarStr(message)
     !!{RST
     Display an error message.
@@ -165,11 +230,17 @@ contains
     !$    write (error_unit,*) " => Error occurred in master thread"
     !$ end if
     write (error_unit,*) " => Command line was: ",char(commandLine())
-    call BackTrace  (           )
-    call Warn_Review(           )
-    call Error_Help_Message()
-    call Flush      (output_unit)
-    call Flush      ( error_unit)
+    ! Call any registered signal handlers, so that a deliberate fatal error dumps the same context a
+    ! crash would. Handlers are `threadprivate`, so this reports the context of the thread which
+    ! failed and of no other - which is what is wanted, since that is the thread whose state is
+    ! relevant. `signalHandlersCall` will not re-enter the handlers if one of them itself raises an
+    ! error.
+    call signalHandlersCall(signalNone )
+    call BackTrace         (           )
+    call Warn_Review       (           )
+    call Error_Help_Message(           )
+    call Flush             (output_unit)
+    call Flush             ( error_unit)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else

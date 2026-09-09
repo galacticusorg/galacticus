@@ -36,6 +36,7 @@
      double precision :: ageMinimum, ageMaximum
    contains
      procedure :: multiplier          => ageWindowMultiplier
+     procedure :: ageRange            => ageWindowAgeRange
      procedure :: isRedshiftDependent => ageWindowIsRedshiftDependent
   end type stellarPopulationSpectraPostprocessorAgeWindow
 
@@ -128,3 +129,16 @@ contains
     isRedshiftDependent=.false.
     return
   end function ageWindowIsRedshiftDependent
+
+  subroutine ageWindowAgeRange(self,ageMinimum,ageMaximum)
+    !!{RST
+    Return the range of ages retained by an age window postprocessor.
+    !!}
+    implicit none
+    class           (stellarPopulationSpectraPostprocessorAgeWindow), intent(inout) :: self
+    double precision                                                , intent(  out) :: ageMinimum, ageMaximum
+
+    ageMinimum=self%ageMinimum
+    ageMaximum=self%ageMaximum
+    return
+  end subroutine ageWindowAgeRange

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Niusha Ahvazi
+  !+    Contributions to this file made by: Niusha Ahvazi, Andrew Benson, Claude.
 
   !!{RST
   Implementation of a satellite deceleration due to dark matter self-interactions using the model of :cite:t:`kummer_effective_2018`.
@@ -42,15 +42,14 @@
      Implementation of a satellite deceleration due to dark matter self-interactions using the model of :cite:t:`kummer_effective_2018`.
      !!}
      private
-     class           (cosmologyParametersClass ), pointer     :: cosmologyParameters_        => null()
-     class           (darkMatterParticleClass  ), pointer     :: darkMatterParticle_         => null()
-     class           (darkMatterHaloScaleClass ), pointer     :: darkMatterHaloScale_        => null()
-     class           (darkMatterProfileDMOClass), pointer     :: darkMatterProfileDMO_       => null()
+     class           (cosmologyParametersClass ), pointer     :: cosmologyParameters_  => null()
+     class           (darkMatterParticleClass  ), pointer     :: darkMatterParticle_   => null()
+     class           (darkMatterHaloScaleClass ), pointer     :: darkMatterHaloScale_  => null()
+     class           (darkMatterProfileDMOClass), pointer     :: darkMatterProfileDMO_ => null()
      type            (interpolator2D           ), allocatable :: decelerationFactor_
-     double precision                                         :: rateScatteringNormalization          , xMaximum       , &
-          &                                                      velocityMinimum                      , velocityMaximum, &
-          &                                                      fractionDarkMatter
-     type            (rangeLattice             )              :: latticeX                             , latticeVelocity
+     double precision                                         :: xMaximum                       , velocityMinimum   , &
+          &                                                      velocityMaximum                , fractionDarkMatter
+     type            (rangeLattice             )              :: latticeX                       , latticeVelocity
    contains
      !![
      <methods docformat="rst">
@@ -156,7 +155,7 @@ contains
     use :: Galactic_Structure_Options      , only : coordinateSystemCartesian                  , radiusLarge                , massTypeDark
     use :: Galacticus_Nodes                , only : nodeComponentSatellite                     , nodeComponentBasic
     use :: Mass_Distributions              , only : massDistributionClass                      , kinematicsDistributionClass
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal, megaParsec, gigaYear, massSolar
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal             , megaParsec                 , gigaYear     , massSolar
     use :: Vectors                         , only : Vector_Magnitude
     use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter
     use :: Numerical_Constants_Prefixes    , only : centi                                      , milli                      , kilo
@@ -167,20 +166,20 @@ contains
     class           (nodeComponentSatellite             ), pointer       :: satellite
     class           (nodeComponentBasic                 ), pointer       :: basic
     type            (treeNode                           ), pointer       :: nodeHost
-    class           (massDistributionClass              ), pointer       :: massDistribution_     , massDistributionHost_      , &
+    class           (massDistributionClass              ), pointer       :: massDistribution_          , massDistributionHost_ , &
          &                                                                  massDistributionDark
-    class           (kinematicsDistributionClass        ), pointer       :: kinematics_           , kinematicsHost_
-    double precision                                     , dimension(3)  :: position              , velocity
-    double precision                                                     :: radiusOrbital         , speedOrbital               , &
-         &                                                                  densityHost           , rateScattering             , &
-         &                                                                  massBoundary          , radiusBoundary             , &
-         &                                                                  velocityEscape        , speedHalfMass              , &
-         &                                                                  velocityDispersionHost, velocityDispersionSatellite, &
-         &                                                                  x                     , radiusHalfMass             , &
-         &                                                                  velocityDispersion    , dispersionFactor           , &
-         &                                                                  potentialEscape
-    type            (coordinateSpherical                )                :: coordinates           , coordinatesHost            , &
-         &                                                                  coordinatesBoundary   , coordinatesHalfMass
+    class           (kinematicsDistributionClass        ), pointer       :: kinematics_                , kinematicsHost_
+    double precision                                     , dimension(3)  :: position                   , velocity
+    double precision                                                     :: radiusOrbital              , speedOrbital          , &
+         &                                                                  densityHost                , rateScattering        , &
+         &                                                                  massBoundary               , radiusBoundary        , &
+         &                                                                  velocityEscape             , velocityDispersionHost, &
+         &                                                                  velocityDispersionSatellite, radiusHalfMass        , &
+         &                                                                  velocityDispersion         , dispersionFactor      , &
+         &                                                                  potentialEscape            , speedHalfMass         , &
+         &                                                                  rateScatteringNormalization, x
+    type            (coordinateSpherical                )                :: coordinates                , coordinatesHost       , &
+         &                                                                  coordinatesBoundary        , coordinatesHalfMass
     type            (coordinateCartesian                )                :: coordinatesCartesian
     
     ! Set zero acceleration by default.
@@ -198,20 +197,15 @@ contains
     !![
     <objectDestructor name="massDistributionHost_"/>
     !!]
+    ! If the dark matter particle is not self-interacting there is no scattering, so we can return immediately. The
+    ! normalization of the scattering rate itself can not be evaluated here, as the cross section must be evaluated at the speed
+    ! with which host particles arrive at the half-mass radius of the subhalo, which is not yet known.
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleSelfInteractingDarkMatter)
-       ! Compute the normalization of the scattering rate in units such that when multiplied by a velocity in km s⁻¹, and a
-       ! density in units of M⊙ Mpc⁻³, we get a rate in units of Gyr⁻¹.
-       self%rateScatteringNormalization=+darkMatterParticle_%crossSectionSelfInteraction(speedOrbital)*centi**2/milli & ! Convert cross-section from cm² g⁻¹ to m² kg⁻¹.
-            &                           * kilo                       & ! Convert velocity from km s⁻¹ to m s⁻¹.
-            &                           * massSolar   /megaParsec**3 & ! Convert density from M⊙ Mpc⁻³ to kg m⁻³.
-            &                           * gigaYear                     ! Convert rate from s⁻¹ to Gyr⁻¹.
+       ! Self-interacting, so scattering can occur.
     class default
-       ! No scattering.
-       self%rateScatteringNormalization=+0.0d0
+       return
     end select
-    ! If the scattering cross section is zero, we can return immediately.
-    if (self%rateScatteringNormalization == 0.0d0) return
     ! Find the escape velocity from the half-mass radius of the subhalo. This is equal to the potential difference between the
     ! half-mass radius and outer boundary of the subhalo, plus the potential difference from the outer boundary to infinity (for
     ! which we can treat the subhalo as a point mass).
@@ -258,15 +252,17 @@ contains
        <objectDestructor name="massDistribution_"   />
        <objectDestructor name="massDistributionDark"/>
        !!]
-       ! Get the speed of a host particle at the half-mass radius of the subhalo - this is the sum of the kinetic energy or host
-       ! particles in the rest-frame of the subhalo, plus the energy they gain by falling in to the half-mass radius of the
-       ! subhalo.
-       speedHalfMass=+sqrt(                   &
-            &              +speedOrbital  **2 &
-            &              +velocityEscape**2 &
-            &             )
-       x            =+      speedHalfMass     &
-            &        /      speedOrbital
+       ! Evaluate the ratio, x, of the escape velocity from the subhalo to the speed of the subhalo relative to the host. Note
+       ! that the relative speed here is the speed far from the subhalo - the boost which host particles acquire as they fall
+       ! in to the half-mass radius, arriving with speed √(speedOrbital²+velocityEscape²), is already accounted for within the
+       ! definitions of the critical scattering angle and of the deceleration factor, both of which are functions of this x. To
+       ! see this, note that a particle leaving the scattering with speed √(speedOrbital²+velocityEscape²) cos(θ/2) escapes the
+       ! subhalo only for θ < θ_c = cos⁻¹([x²-1]/[x²+1]), which is precisely the θ_c tabulated in `kummer2018Tabulate`.
+       ! Expanding that tabulated integral at large x for a constant cross section reproduces the asymptotic form
+       ! 1-8/3x²+16/5x⁴ used in `kummer2018DecelerationFactor`, which fixes the sense of x: large x is a deeply bound subhalo
+       ! from which nothing escapes, so that momentum transfer is complete and χ_d → 1.
+       x            =+velocityEscape &
+            &        /speedOrbital
        ! Find the combined velocity dispersion of satellite and host, and evaluate the correction factor given in Appendix A of
        ! Kummer et al. (2018).
        massDistribution_           =>  self                 %darkMatterProfileDMO_%get                   (node           )
@@ -286,7 +282,7 @@ contains
             &                           +1.0d0                &
             &                           +(                    &
             &                             +velocityDispersion &
-            &                             /speedHalfMass      &
+            &                             /speedOrbital       &
             &                            )**3                 &
             &                          )
        !![
@@ -295,14 +291,37 @@ contains
        <objectDestructor name="kinematics_"          />
        <objectDestructor name="kinematicsHost_"      />
        !!]
-       ! Evaluate the scattering rate and acceleration.
-       rateScattering               =  +     speedOrbital                       &
-            &                          *     densityHost                        &
-            &                          *self%rateScatteringNormalization
-       kummer2018Acceleration       =  -     velocity                           &
-            &                          *     rateScattering                     &
-            &                          *self%decelerationFactor(x,speedOrbital) &
-            &                          *     dispersionFactor
+       ! Find the speed with which host particles arrive at the half-mass radius of the subhalo: the speed of the subhalo
+       ! relative to the host, broadened by the velocity dispersion and boosted by the energy the particles gain in falling in.
+       ! This is the typical speed of the particles which actually scatter, and so is the speed at which the cross section -
+       ! which may be velocity dependent - is evaluated, both here and in the tabulation of the deceleration factor. Note that
+       ! this is distinct from the speed which enters x and the dispersion correction factor above: those are functions of the
+       ! orbital speed alone, with the infall boost and the dispersion accounted for within their own definitions.
+       speedHalfMass                =  +sqrt(                       &
+            &                                +speedOrbital      **2 &
+            &                                +velocityEscape    **2 &
+            &                                +velocityDispersion**2 &
+            &                               )
+       ! Compute the normalization of the scattering rate in units such that when multiplied by a velocity in km s⁻¹, and a
+       ! density in units of M⊙ Mpc⁻³, we get a rate in units of Gyr⁻¹.
+       rateScatteringNormalization  =  +0.0d0
+       select type (darkMatterParticle_ => self%darkMatterParticle_)
+       class is (darkMatterParticleSelfInteractingDarkMatter)
+          rateScatteringNormalization=+darkMatterParticle_%crossSectionSelfInteraction(speedHalfMass) &
+               &                      *centi    **2/milli                                            & ! Convert cross-section from cm² g⁻¹ to m² kg⁻¹.
+               &                      *kilo                                                          & ! Convert velocity from km s⁻¹ to m s⁻¹.
+               &                      *massSolar   /megaParsec**3                                    & ! Convert density from M⊙ Mpc⁻³ to kg m⁻³.
+               &                      *gigaYear                                                        ! Convert rate from s⁻¹ to Gyr⁻¹.
+       end select
+       ! Evaluate the scattering rate and acceleration. Note that the flux of host particles through the subhalo is set by the
+       ! speed with which the subhalo moves through its host, not by the speed at the point of scattering.
+       rateScattering               =  +speedOrbital                             &
+            &                          *densityHost                              &
+            &                          *rateScatteringNormalization
+       kummer2018Acceleration       =  -velocity                                 &
+            &                          *rateScattering                           &
+            &                          *self%decelerationFactor(x,speedHalfMass) &
+            &                          *dispersionFactor
     end if
     return
   end function kummer2018Acceleration
@@ -405,7 +424,7 @@ contains
 
   end subroutine kummer2018Tabulate
   
-  double precision function kummer2018DecelerationFactor(self,x,speedOrbital)
+  double precision function kummer2018DecelerationFactor(self,x,velocityRelative)
     !!{RST
     Compute the deceleration factor, :math:`\chi_\mathrm{d}`, as defined by :cite:t:`kummer_effective_2018`.
     !!}
@@ -414,24 +433,24 @@ contains
     implicit none
     class           (satelliteDecelerationSIDMKummer2018), intent(inout) :: self
     double precision                                     , intent(in   ) :: x
-    double precision                                     , intent(in   ) :: speedOrbital
-    double precision                                     , parameter     :: xCritical   =100.0d0
-    double precision                                                     :: q                   , velocityCharacteristic
+    double precision                                     , intent(in   ) :: velocityRelative
+    double precision                                     , parameter     :: xCritical       =100.0d0
+    double precision                                                     :: q                       , velocityCharacteristic
 
     if (x < xCritical) then
-       if     (                                                         &
-            &   x            > self%xMaximum                            &
-            &  .or.                                                     &
-            &   speedOrbital > self%velocityMaximum                            &
-            &  .or.                                                     &
-            &   speedOrbital < self%velocityMinimum                            &
-            & )                                                         &
-            & call self%tabulate(                                       &
-            &                    x+1.0d0                              , &
-            &                    min(0.5d0*speedOrbital,self%velocityMinimum), &
-            &                    max(2.0d0*speedOrbital,self%velocityMaximum)  &
+       if     (                                                                    &
+            &   x                > self%xMaximum                                   &
+            &  .or.                                                                &
+            &   velocityRelative > self%velocityMaximum                            &
+            &  .or.                                                                &
+            &   velocityRelative < self%velocityMinimum                            &
+            & )                                                                    &
+            & call self%tabulate(                                                  &
+            &                    x+1.0d0                                         , &
+            &                    min(0.5d0*velocityRelative,self%velocityMinimum), &
+            &                    max(2.0d0*velocityRelative,self%velocityMaximum)  &
             &                   )
-       kummer2018DecelerationFactor=self%decelerationFactor_%interpolate(x,speedOrbital)
+       kummer2018DecelerationFactor=self%decelerationFactor_%interpolate(x,velocityRelative)
     else
        ! Large-x (x > xCritical) regime: use the analytic asymptotic form of the deceleration factor. The form is
        ! cross-section-model specific, so dispatch on the dark matter particle class.
@@ -439,7 +458,7 @@ contains
        type is (darkMatterParticleSIDMVelocityDependent)
           ! Velocity-dependent cross section: read the characteristic velocity scale, v_c, from the particle.
           velocityCharacteristic      = darkMatterParticle_%velocityCharacteristic()
-          q                           =+speedOrbital           &
+          q                           =+velocityRelative       &
                &                       /velocityCharacteristic
           kummer2018DecelerationFactor=+1.0d0                                &
                &                       -sqrt(2.0d0     )                     &

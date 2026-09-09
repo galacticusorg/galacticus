@@ -239,7 +239,6 @@
     <stellarPopulationBroadBandLuminosities/>
     <stellarPopulationSpectra/>
     <stellarPopulationSpectraPostprocessor/>
-    <stellarSpectraDustAttenuation/>
     <stellarTracks/>
     <supernovaePopulationIII/>
     <supernovaeTypeIa/>

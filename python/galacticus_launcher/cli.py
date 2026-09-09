@@ -11,8 +11,13 @@ Sub-commands:
   MPI runs.
 * ``clean`` -- purge the regenerable cache (never the durable install).
 * ``info`` -- report the resolved install, paths, and environment.
+* ``install-wsl`` -- (Windows) set up WSL 2 and install Galacticus inside it.
 
 ``galacticus <params.xml>`` is accepted as shorthand for ``galacticus run``.
+
+On a Windows host every command except ``install-wsl`` is forwarded to the
+launcher inside the WSL distribution (see :mod:`galacticus_launcher.wsl`), as
+there is no native Windows binary.
 """
 
 import argparse
@@ -23,9 +28,10 @@ from pathlib import Path
 
 import platformdirs
 
-from . import __version__, download, macos, paths, platforms, validate as _validate
+from . import __version__, download, macos, paths, platforms, validate as _validate, wsl
 
-_COMMANDS = {"install", "update", "run", "validate", "resolve", "clean", "info"}
+_COMMANDS = {"install", "update", "run", "validate", "resolve", "clean", "info",
+             "install-wsl"}
 
 
 def _add_tools_option(parser):
@@ -112,13 +118,22 @@ def main(argv=None):
 
     sub.add_parser("info", help="show the resolved install and environment")
 
+    wsl_parser = sub.add_parser(
+        "install-wsl", help="(Windows only) set up WSL 2 and install Galacticus "
+                            "inside it; asks before changing the system")
+    wsl_parser.add_argument("--yes", "-y", action="store_true",
+                            help="proceed without asking for confirmation "
+                                 "(installing WSL needs administrator approval "
+                                 "and a reboot)")
+    _add_tools_option(wsl_parser)
+
     args = parser.parse_args(argv)
     if not args.command:
         parser.print_help()
         return 0
 
     try:
-        return _dispatch(args)
+        return _dispatch(args, argv)
     except platforms.UnsupportedPlatform as error:
         print(f"galacticus: {error}", file=sys.stderr)
         return 2
@@ -127,7 +142,12 @@ def main(argv=None):
         return 1
 
 
-def _dispatch(args):
+def _dispatch(args, argv=()):
+    if args.command == "install-wsl":
+        return wsl.install(yes=args.yes, tools=args.tools)
+    if wsl.is_windows():
+        # No native Windows binary exists: the whole command line runs inside WSL.
+        return wsl.dispatch(list(argv))
     if args.command == "clean":
         return _cmd_clean(args)
     if args.command == "info":

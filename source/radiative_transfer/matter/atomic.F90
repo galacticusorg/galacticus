@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   use :: Atomic_Cross_Sections_Ionization_Photo      , only : atomicCrossSectionIonizationPhotoClass
   use :: Atomic_Ionization_Potentials                , only : atomicIonizationPotentialClass
   use :: Atomic_Radiation_Gaunt_Factors              , only : gauntFactorClass
@@ -72,6 +74,7 @@
      !!]
      final     ::                                 atomicDestructor
      procedure :: propertyClass                => atomicPropertyClass
+     procedure :: density                      => atomicDensity
      procedure :: populateDomain               => atomicPopulateDomain
      procedure :: reset                        => atomicReset
      procedure :: absorptionCoefficient        => atomicAbsorptionCoefficient
@@ -404,6 +407,19 @@ contains
     return
   end subroutine atomicPropertyClass
   
+  double precision function atomicDensity(self,coordinates)
+    !!{RST
+    Return the mass density of atomic matter at the given coordinates.
+    !!}
+    use :: Coordinates, only : coordinate
+    implicit none
+    class(radiativeTransferMatterAtomic), intent(inout) :: self
+    class(coordinate                   ), intent(in   ) :: coordinates
+
+    atomicDensity=self%massDistribution_%density(coordinates)
+    return
+  end function atomicDensity
+
   subroutine atomicPopulateDomain(self,properties,integrator,onProcess)
     !!{RST
     Populate a computational domain cell with atomic matter.
@@ -465,7 +481,7 @@ contains
       implicit none
       class(coordinate), intent(in   ) :: coordinates
       
-      atomicDensityIntegrand= self%massDistribution_%density(coordinates)
+      atomicDensityIntegrand=self%density(coordinates)
       return
     end function atomicDensityIntegrand
 

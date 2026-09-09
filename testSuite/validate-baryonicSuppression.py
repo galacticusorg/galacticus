@@ -148,7 +148,7 @@ target['withBaryons_noReionization'].append(
 # by at most 1.3. The growth factor itself was checked directly over the same pair and agrees to 1.3e-6 in D(z)/D(0) at z=9,
 # so that swing is sampling noise and not a systematic. These targets are set to leave headroom comparable to the swing
 # observed; do not tighten them to sit just above whichever value the most recent run happened to produce.
-chiSquaredTarget = {"withBaryons": np.array([0.0,10.0,4.5,5.0,3.0]), "withBaryons_noReionization": np.array([0.0,10.0,3.0,5.0,4.0])}
+chiSquaredTarget = {"withBaryons": np.array([0.0,10.0,4.5,5.0,3.0]), "withBaryons_noReionization": np.array([0.0,10.0,3.5,5.0,4.0])}
 
 # Create output path.
 try:

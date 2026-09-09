@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   use, intrinsic :: ISO_C_Binding                  , only : c_size_t
   use            :: Galacticus_Nodes               , only : mergerTree                 , treeNode                , universe, nodeHierarchyWrapper
   use            :: Input_Parameters               , only : inputParameters
@@ -1000,11 +1002,24 @@ contains
                 call displayMessage(message)
                 if (associated(tree)) then
                    call mergerTreeOutputter_%outputTree(tree,iOutput,evolveToTime,outputGroupTypeSnapshot)
-                   ! Perform any extra output and post-output processing on nodes.
+                   ! Perform post-output processing on nodes. The `mergerTreeOutputStateAdvance` event is triggered here, rather
+                   ! than from within the outputter, because its subscribers *modify* the state of the node - specifically, they
+                   ! move star formation histories onto the bin structure used for the next output. That advance must happen
+                   ! exactly once per output, irrespective of which `mergerTreeOutputterClass` is in use. Triggering it from
+                   ! `mergerTreeOutputterStandard` alone would skip it entirely for outputters which write no node data - such as
+                   ! `analyzer` (used by constrained models) and `null` - leaving every star formation history stuck on the bin
+                   ! structure that it was created with.
                    treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
                    do while (treeWalkerAll%next(node))
                       basic => node%basic()
-                      if (basic%time() == evolveToTime) call node%postOutput(evolveToTime)
+                      if (basic%time() == evolveToTime) then
+                         call node%postOutput(evolveToTime)
+                         !![
+                         <eventHook name="mergerTreeOutputStateAdvance">
+                          <callWith>node,iOutput</callWith>
+                         </eventHook>
+                         !!]
+                      end if
                    end do
                 end if
                 iOutput=iOutput+1
@@ -1346,6 +1361,7 @@ contains
     Suspend processing of a tree.
     !!}
 #ifdef USEMPI
+    use :: Display                 , only : displayGreen        , displayReset
     use :: Error                   , only : Error_Report
 #endif
     use :: ISO_Varying_String      , only : operator(//)        , varying_string
@@ -1360,7 +1376,21 @@ contains
     type   (varying_string   )                         :: fileName
 
 #ifdef USEMPI
-    call Error_Report('suspending trees is not supported under MPI'//{introspection:location})
+    ! A tree is suspended when its evolution is limited by a *universal* event - one which requires every tree to reach a common
+    ! cosmic time before it can be performed. Trees reaching that time first are suspended while the others catch up. The user
+    ! never asks for a tree to be suspended directly, so the message names the classes which create such events instead: those are
+    ! the parameters that can be changed. Each of those classes also guards against MPI itself, so reaching here means one has been
+    ! added without such a guard.
+    call Error_Report(                                                                                                  &
+         &            'evolution requires suspending a tree, which is not supported under MPI'//char(10)             // &
+         &            displayGreen()//'HELP:'//displayReset()                                                        // &
+         &            ' a tree must be suspended when its evolution is limited by an event which requires all trees' // &
+         &            ' to reach a common cosmic time. Such events are created by the self-consistent intergalactic' // &
+         &            ' medium state evolver (`universeOperator`) and by the internal intergalactic background'      // &
+         &            ' radiation field (`radiationField`). Either select alternatives for those, or run as a single'// &
+         &            ' process using OpenMP threads, which is unaffected'                                           // &
+         &            {introspection:location}                                                                          &
+         &           )
 #endif
     ! If the tree is to be suspended to file do so now.
     if (.not.self%suspendToRAM) then

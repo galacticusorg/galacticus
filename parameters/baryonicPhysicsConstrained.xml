@@ -7,7 +7,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="f62df0c3b1d868c052eedef79c20488955a738c9" time="2026-08-12T22:48:39"/>
+  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
 
 
   <!-- Task and work control -->
@@ -456,7 +456,6 @@
       <randomErrorPolynomialCoefficient value="+0.1"/>
       <systematicErrorPolynomialCoefficient value="-0.00668698203006482 -0.00098878419875252"/>
       <sizeSourceLensing value="2.0e-3"/>
-      <depthOpticalISMCoefficient value="0.0"/>
     </outputAnalysis>
     <outputAnalysis value="luminosityFunctionSobral2013HiZELS"> <!-- Analysis #16 -->
       <redshiftInterval value="4"/>
@@ -465,7 +464,6 @@
       <randomErrorPolynomialCoefficient value="+0.1"/>
       <systematicErrorPolynomialCoefficient value="-0.00668698203006482 -0.00098878419875252"/>
       <sizeSourceLensing value="2.0e-3"/>
-      <depthOpticalISMCoefficient value="0.0"/>
     </outputAnalysis>
 
     <!-- Mass-metallicity relations -->
@@ -526,6 +524,5 @@
       </stellarPopulationSpectraPostprocessor>
     </stellarPopulationSpectraPostprocessor>
   </stellarPopulationSpectraPostprocessorBuilder>
-  <stellarSpectraDustAttenuation value="charlotFall2000"/>
 
 </parameters>

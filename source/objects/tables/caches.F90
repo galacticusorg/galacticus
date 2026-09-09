@@ -57,6 +57,10 @@ module Table_Caches
   it holds only for the duration of the file input/output---never across the tabulation itself. ``Table_Cache_Store`` re-reads
   the file under that exclusive lock before writing, so that a range written by another process since our own read is merged
   rather than overwritten.
+
+  See :ref:`manual-sec-growingATabulation` in the developer guide for the whole idiom of which this module is a part---the
+  absolute lattice, pinning a range to it with ``Range_Pinned``, extending a tabulation onto it, and the conditions under which
+  previously computed values may be carried over.
   !!}
   use :: ISO_Varying_String, only : varying_string
   implicit none

@@ -39,7 +39,7 @@ from Galacticus.Build.ScanCache import (
 
 # Version stamp for the Makefile_Use_Dependencies.blob cache. Bump when the
 # scan rules change so stale-rule entries are discarded.
-_BLOB_VERSION = 2
+_BLOB_VERSION = 3
 
 # Directives consulted per source file (module-level so the parallel worker can
 # see it). Order matters only in that it is fixed.
@@ -56,13 +56,13 @@ _WORKER = {}
 
 def _scan_one(task):
     """Worker: do the full per-file scan for one source file and return
-    `(file_identifier, entry, event_hook_modules, manager)`.
+    `(file_identifier, entry, manager)`.
 
     Mirrors the body of main()'s per-file loop exactly, but captures the two
-    cross-file side effects -- the ordered `event_hook_modules` pool and the
-    singleton `eventHooksManager` record -- into locals so they can be merged
-    deterministically (in file order) by the caller instead of mutating shared
-    state from a worker.
+    cross-file side effects into locals rather than mutating shared state from a
+    worker: the file's event-hook module contributions are stored in its own
+    `entry`, and the singleton `eventHooksManager` record is returned for the
+    caller to merge.
     """
     file_identifier, sf = task
     file_path = sf['fullPathFileName']
@@ -100,7 +100,19 @@ def _scan_one(task):
         _WORKER['locations'], _WORKER['root_source_dir'], _WORKER['work_dir'],
         _WORKER['preprocessor_set'],
     )
-    return file_identifier, entry, event_hook_modules, manager
+    # Record this file's contribution to the cross-file event-hook module pool in
+    # its own entry. The pool must be rebuilt from every source file on every run
+    # -- including files served from the cache, which are not rescanned here --
+    # since the modules a hook imports are needed by the file carrying the event
+    # hook manager, not by the file declaring the hook (see
+    # `_finalise_event_hooks_manager`).
+    entry['eventHookModules'] = list(event_hook_modules)
+    # For the file carrying the manager, keep a pristine record of its own `use`
+    # dependencies so that the pool can be injected afresh on each run, rather
+    # than accumulated on top of a previous run's injection.
+    if manager:
+        entry['modulesUsedOwn'] = list(entry['modulesUsed'])
+    return file_identifier, entry, manager
 
 
 # ---------------------------------------------------------------------------
@@ -882,9 +894,15 @@ def _finalise_event_hooks_manager(uses_per_file, event_hook_modules):
     if not fid or fid not in uses_per_file:
         return
     entry = uses_per_file[fid]
-    entry.setdefault('modulesUsed', [])
-    entry['modulesUsed'].extend(modules)
-    entry['modulesUsed'] = sorted(set(entry['modulesUsed']))
+    # Inject onto the file's own `use` dependencies rather than onto whatever it
+    # currently carries: the entry may itself have come from the cache, in which
+    # case it already holds the modules a previous run injected, and extending
+    # that would keep modules alive after the hook importing them was removed.
+    own = entry.get('modulesUsedOwn')
+    if own is None:
+        own = entry.get('modulesUsed') or []
+    entry['modulesUsedOwn'] = list(own)
+    entry['modulesUsed'] = sorted(set(own) | set(modules))
 
 
 def _build_submodule_map(uses_per_file, work_dir):
@@ -1107,7 +1125,6 @@ def main(argv):
             force_rescan = True
 
     preprocessor_set = frozenset(preprocessor_directives)
-    event_hook_modules = []
 
     # Decide which files need a (re)scan, preserving `source_files` order so the
     # merge below reproduces the serial accumulation order exactly.
@@ -1126,9 +1143,9 @@ def main(argv):
             continue
         scan_list.append((file_identifier, sf))
 
-    # Scan the files concurrently, then merge results in scan-list order. The
-    # per-file `entry`, the ordered `event_hook_modules` pool, and the singleton
-    # `eventHooksManager` record are reconstructed exactly as a serial run would.
+    # Scan the files concurrently, then merge results in scan-list order, so that
+    # the per-file `entry` and the singleton `eventHooksManager` record are
+    # reconstructed exactly as a serial run would.
     _WORKER.update({
         'locations':        locations,
         'state_storables':  state_storables,
@@ -1136,11 +1153,10 @@ def main(argv):
         'root_source_dir':  root_source_dir,
         'preprocessor_set': preprocessor_set,
     })
-    for file_identifier, entry, file_event_hook_modules, manager in parallel_scan(
+    for file_identifier, entry, manager in parallel_scan(
             scan_list, _scan_one, 'useDependencies.py'):
         uses_per_file.pop(file_identifier, None)
         uses_per_file[file_identifier] = entry
-        event_hook_modules.extend(file_event_hook_modules)
         if 'eventHooksManager' in manager:
             uses_per_file['eventHooksManager'] = manager['eventHooksManager']
 
@@ -1151,6 +1167,17 @@ def main(argv):
     # entry, so it is preserved.
     _prune_cache(uses_per_file, current_id_set,
                  reserved={'eventHooksManager'})
+
+    # Rebuild the cross-file event-hook module pool from every source file. Using
+    # only the files rescanned above would silently drop the imports of every hook
+    # declared in a cached file: on an incremental run in which the manager's own
+    # file is the one that changed, that left the manager compiled against modules
+    # make did not know it needed, and so did not order before it.
+    event_hook_modules = []
+    for file_identifier in current_ids:
+        cached = uses_per_file.get(file_identifier)
+        if cached:
+            event_hook_modules.extend(cached.get('eventHookModules') or [])
 
     _finalise_event_hooks_manager(uses_per_file, event_hook_modules)
 

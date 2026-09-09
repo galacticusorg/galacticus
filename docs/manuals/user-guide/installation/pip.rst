@@ -12,9 +12,9 @@ run a model, the launcher downloads the pre-built executable, the run-time
 required environment variables for you — so there is nothing else to configure.
 
 Pre-built binaries are available for Linux (x86-64), macOS (Intel x86-64), and
-macOS (Apple Silicon). On other platforms — including native Windows — there is
-no pre-built binary; build :doc:`from source <source-linux>` instead (on Windows,
-use WSL 2 and the Linux build).
+macOS (Apple Silicon). On Windows the launcher runs the Linux binary through
+WSL 2 and can set that up for you — see :ref:`pip-windows`. On other platforms
+there is no pre-built binary; build :doc:`from source <source-linux>` instead.
 
 .. note::
 
@@ -31,8 +31,10 @@ Running a model
    galacticus run parameters/quickTest.xml
 
 On first use you will see the launcher fetch the executable, datasets, and tools,
-with a progress bar for each download and for unpacking each archive; subsequent
-runs reuse the cached copies. ``galacticus run`` validates the parameter file
+with a progress bar for each download and for unpacking each archive; the
+downloads run concurrently, and each large one is split across several
+connections, so the whole set arrives at roughly the speed of your link rather
+than of one stream. Subsequent runs reuse the cached copies. ``galacticus run`` validates the parameter file
 before dispatching it; pass ``--no-validate`` to skip that, and any other
 arguments (e.g. ``--dry-run``) are passed straight through to the executable.
 ``galacticus <file>`` is shorthand for ``galacticus run <file>``. If you do not
@@ -96,6 +98,58 @@ Commands
 ``galacticus info``
    Show the resolved install, the environment variables it sets, and the current
    cache size.
+
+.. _pip-windows:
+
+Windows
+-------
+
+There is no native Windows build of Galacticus, but the Linux build runs under
+the Windows Subsystem for Linux (WSL 2), and on Windows the ``galacticus``
+command drives it for you: every command is forwarded to a copy of the launcher
+inside your WSL distribution, with file paths translated, and output is written
+to your current Windows directory as usual. ``pip install galacticus`` on
+Windows therefore works the same as on Linux, once WSL is set up. One command
+does that::
+
+   galacticus install-wsl
+
+It performs whichever of these steps are still missing, and asks before each
+one that changes your system (pass ``--yes`` to skip the questions):
+
+#. **Install WSL 2** if it is not present. This enables a Windows feature, so
+   Windows shows an administrator approval prompt, and a **reboot** is needed
+   afterwards. Reboot, then run ``galacticus install-wsl`` again.
+#. **Install a Linux distribution** (Ubuntu) if there is none. Ubuntu starts once
+   to create your Linux user — it asks for a user name and password and then
+   shows a Linux prompt; type ``exit`` at that prompt to continue.
+#. **Install Galacticus inside the distribution** and download the binary,
+   datasets, and tools (``--no-tools`` is honored, as for ``galacticus
+   install``).
+
+After that, ``galacticus run model.xml`` works from any Windows command prompt or
+PowerShell window. ``galacticus info`` reports which distribution is used: the
+default one, or the first ordinary one if the default belongs to a container
+runtime such as Docker Desktop. If you already have a WSL 2 distribution, only
+the last step runs, and it also runs on demand the first time you use
+``galacticus run``.
+
+Requirements and known failure modes:
+
+* Windows 10 (build 19041 or later) or Windows 11, on a machine with hardware
+  virtualization enabled. If Ubuntu fails to start with error ``0x80370102``,
+  virtualization is disabled in the firmware (BIOS/UEFI) settings; enable it
+  and try again. On a managed machine, group policy may block installing
+  Windows features — ask your administrator to install WSL 2.
+* A distribution running under WSL 1 cannot run Galacticus; ``galacticus
+  install-wsl`` offers to convert it to WSL 2.
+* Galacticus, its datasets, and its output cache are stored on the Linux
+  filesystem of the distribution (file access across the Windows/Linux
+  boundary is far too slow for them). Parameter files and output files can
+  live on the Windows side.
+* Running the launcher inside WSL directly (``pip install galacticus`` in a WSL
+  shell) also works, and is the choice for MPI runs — see ``galacticus
+  resolve`` above.
 
 .. _pip-no-tools:
 
@@ -163,8 +217,17 @@ executable's ``--dry-run``.
 
    The launcher fetches assets from the GitHub release matching the installed
    package version (development installs track the rolling ``bleeding-edge``
-   release). For a versioned release the run-time datasets are pinned to a
-   specific ``datasets`` commit, recorded on the release, so a given package
-   version always installs the same data. ``GALACTICUS_RELEASE_TAG`` and
+   release). The run-time datasets are installed from a snapshot published on
+   the release and pinned to the ``datasets`` commit it was taken from, so a
+   given release always installs the same data — the commit is recorded on the
+   release as ``datasets.ref``. ``GALACTICUS_RELEASE_TAG`` and
    ``GALACTICUS_DATASETS_REF`` override the release tag and datasets ref
-   respectively.
+   respectively; asking for a specific ref fetches that commit from the
+   ``datasets`` repository instead of using the release snapshot, which is
+   slower but is how you track ``master`` or test an unreleased data change.
+
+.. note::
+
+   ``GALACTICUS_DOWNLOAD_CONNECTIONS`` sets how many byte-range requests a
+   single large asset is split across (default 4). Set it to ``1`` if a
+   network or proxy handles ranged requests badly.

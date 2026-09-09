@@ -674,6 +674,8 @@ For this reason the dispatch block uses ``countLockless()`` instead, which reads
 
 Code that genuinely requires a serialized, consistent snapshot of the hook count (for example, logic internal to ``attach``/``detach`` themselves) should continue to use the locked ``count()``; ``countLockless()`` is intended only for hot, read-only dispatch paths that satisfy the static-hooks invariant described above.
 
+.. _manual-sec-conditionalCall:
+
 Conditional Call
 ~~~~~~~~~~~~~~~~
 

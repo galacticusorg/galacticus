@@ -1,16 +1,24 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Regression test (issue #397): an object that composites a member of its own   -->
+
 <!-- class, with no such object provided explicitly, must be rejected with a       -->
+
 <!-- clean error rather than recursing infinitely (a stack-overflow / SIGSEGV).    -->
+
 <!--                                                                               -->
+
 <!-- Here `galacticFilterNot` wraps another `galacticFilter`, but none is given    -->
+
 <!-- inside the empty `<galacticFilter value="not"/>`. The object build searches   -->
+
 <!-- up the parameter tree, re-discovers the `not` filter being built, and (absent -->
+
 <!-- the guard) tries to build it again. The same-class guard generated at the     -->
+
 <!-- objectBuilder site catches this during task construction.                     -->
 
 <parameters>
-  <lastModified revision="f62df0c3b1d868c052eedef79c20488955a738c9" time="2026-08-12T22:48:39"/>
+  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
   <formatVersion>2</formatVersion>
 
   <!-- Include required parameters -->

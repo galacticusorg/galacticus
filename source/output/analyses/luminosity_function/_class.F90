@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a luminosity function output analysis class.
 !!}
@@ -265,7 +267,10 @@ contains
     use :: Galactic_Filters                        , only : galacticFilterClass
     use :: Geometry_Surveys                        , only : surveyGeometryClass
     use :: ISO_Varying_String                      , only : var_str                                     , varying_string
-    use :: Node_Property_Extractors                , only : nodePropertyExtractorLmnstyStllrCF2000
+    use :: Dust_Attenuations                       , only : dustAttenuationCharlotFall2000
+    use :: Dust_Extinction_Curves                  , only : wavelengthVBand
+    use :: Galactic_Structure_Options              , only : componentTypeDisk                           , componentTypeSpheroid
+    use :: Node_Property_Extractors                , only : multiExtractorList                          , nodePropertyExtractorDustAttenuation           , nodePropertyExtractorLuminosityStellar, nodePropertyExtractorScalarizer
     use :: Numerical_Constants_Astronomical        , only : megaParsec
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerBinWidth
@@ -292,7 +297,14 @@ contains
     type            (varying_string                                  ), intent(in   ), optional                 :: targetLabel
     double precision                                                  , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                                  , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
-    type            (nodePropertyExtractorLmnstyStllrCF2000          )               , pointer                  :: nodePropertyExtractor_
+    type            (nodePropertyExtractorLuminosityStellar          )               , pointer                  :: nodePropertyExtractorDisk_                            , nodePropertyExtractorSpheroid_
+    type            (nodePropertyExtractorDustAttenuation            )               , pointer                  :: nodePropertyExtractorAttenuated_
+    type            (nodePropertyExtractorScalarizer                 )               , pointer                  :: nodePropertyExtractor_
+    type            (dustAttenuationCharlotFall2000                  )               , pointer                  :: dustAttenuation_
+    type            (multiExtractorList                              )               , pointer                  :: extractors                                            , extractorSpheroid
+    ! Both postprocessing chains are extracted so that the wrapper can split each component's light by stellar
+    ! population age, which the birth cloud component of the dust model requires.
+    type            (varying_string                                  ), allocatable  , dimension(:)             :: postprocessChains
     type            (outputAnalysisPropertyOperatorMagnitude         )               , pointer                  :: outputAnalysisPropertyOperatorMagnitude_
     type            (outputAnalysisPropertyOperatorIdentity          )               , pointer                  :: outputAnalysisPropertyOperatorIdentity_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc )               , pointer                  :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
@@ -315,10 +327,32 @@ contains
     do iBin=1,self%binCount
        outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,outputTimes_,magnitudeAbsoluteLimit=magnitudesAbsolute(iBin))
     end do
-    ! Create a luminosity property extractor.
-    allocate(nodePropertyExtractor_)
+    ! Create a luminosity property extractor. The luminosity of each component is extracted unattenuated and the
+    ! two-component dust model of Charlot & Fall (2000) applied by wrapping them, dust having to be applied component
+    ! by component since each carries a different column of dust. The wrapper emits only the summed, attenuated
+    ! luminosity, which a scalarizer presents as the single value this analysis requires.
+    allocate(postprocessChains(2))
+    postprocessChains(1)=var_str('default')
+    postprocessChains(2)=var_str('recent' )
+    allocate(dustAttenuation_                )
+    allocate(nodePropertyExtractorDisk_      )
+    allocate(nodePropertyExtractorSpheroid_  )
+    allocate(nodePropertyExtractorAttenuated_)
+    allocate(nodePropertyExtractor_          )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorLmnstyStllrCF2000(filterName         ,filterType  ,depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent          =0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
+    <referenceConstruct object="dustAttenuation_"               constructor="dustAttenuationCharlotFall2000        (1.0d0,1.0d0,1.0d-2,0.7d0,wavelengthVBand)"/>
+    <referenceConstruct object="nodePropertyExtractorDisk_"     constructor="nodePropertyExtractorLuminosityStellar (filterName,filterType,componentTypeDisk    ,outputTimes_,redshiftBand=redshiftBand,postprocessChains=postprocessChains,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
+    <referenceConstruct object="nodePropertyExtractorSpheroid_" constructor="nodePropertyExtractorLuminosityStellar (filterName,filterType,componentTypeSpheroid,outputTimes_,redshiftBand=redshiftBand,postprocessChains=postprocessChains,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
+    !!]
+    allocate(extractors       )
+    allocate(extractorSpheroid)
+    extractors       %extractor_ => nodePropertyExtractorDisk_
+    extractors       %next       => extractorSpheroid
+    extractorSpheroid%extractor_ => nodePropertyExtractorSpheroid_
+    extractorSpheroid%next       => null()
+    !![
+    <referenceConstruct object="nodePropertyExtractorAttenuated_" constructor="nodePropertyExtractorDustAttenuation(dustAttenuation_,.false.,.true.,.true.,var_str('luminosityStellar'),extractors)"/>
+    <referenceConstruct object="nodePropertyExtractor_"           constructor="nodePropertyExtractorScalarizer     (1,1,nodePropertyExtractorAttenuated_)"/>
     !!]
     ! Prepend magnitude and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorMagnitude_        )
@@ -420,6 +454,10 @@ contains
          &                               )
     ! Clean up.
     !![
+    <objectDestructor name="dustAttenuation_"                                />
+    <objectDestructor name="nodePropertyExtractorDisk_"                      />
+    <objectDestructor name="nodePropertyExtractorSpheroid_"                  />
+    <objectDestructor name="nodePropertyExtractorAttenuated_"                />
     <objectDestructor name="nodePropertyExtractor_"                          />
     <objectDestructor name="outputAnalysisPropertyOperatorMagnitude_"        />
     <objectDestructor name="outputAnalysisPropertyOperatorIdentity_"         />

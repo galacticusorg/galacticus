@@ -312,3 +312,78 @@ end module Test_Computed
     # carried into the rendered text so the reader learns what it means.
     rendered = extractDocsRST.render_parameter(param, {})
     assert "I_1/I_2" in rendered
+
+
+# A module header long enough that its closing `!!}` falls outside any modest
+# fixed-size window, carrying several paragraphs and a code-block.  Three real
+# module headers look like this (`Table_Caches`, `Tabulations_Inverse`,
+# `Benchmark_Utilities`); nine exceed the 800-character window that `scan_source`
+# used to match within.
+_LONG_MODULE_FIXTURE = """\
+module Test_Long_Header
+  !!{RST
+  Implements a thing.
+
+  %s
+
+  The intended usage is:
+
+  .. code-block:: fortran
+
+     lattice=Range_Pinned(x,pointsPer,scheme)
+     call table_%%extend(lattice,isComputed)
+
+  Trailing paragraph.
+  !!}
+  implicit none
+end module Test_Long_Header
+""" % (("Filler prose. " * 70).strip(),)
+
+
+def test_long_module_header_is_not_dropped(tmp_path):
+    # `re.match` against a fixed-size window fails outright when the closing
+    # `!!}` lies beyond it, so an over-long header used to remove its module from
+    # the index entirely - silently, and indistinguishably from a module with no
+    # header at all.
+    (tmp_path / "longHeader.F90").write_text(_LONG_MODULE_FIXTURE)
+    *_head, _enums, modules, _components, _workarounds = \
+        extractDocsRST.scan_source(str(tmp_path))
+    assert [m["name"] for m in modules] == ["Test_Long_Header"]
+    assert len(modules[0]["description"]) > 800
+
+
+def test_module_header_structure_survives_rendering(tmp_path):
+    # The body is emitted as written rather than collapsed onto a single line:
+    # collapsing folded a `code-block` directive into the surrounding prose,
+    # where it rendered as literal `.. code-block::` text.
+    (tmp_path / "longHeader.F90").write_text(_LONG_MODULE_FIXTURE)
+    *_head, _enums, modules, _components, _workarounds = \
+        extractDocsRST.scan_source(str(tmp_path))
+    rendered = extractDocsRST.render_modules(modules)
+    # The directive stands alone on its own line, indented as the definition of
+    # the definition list whose term is the module name.
+    assert "\n   .. code-block:: fortran\n" in rendered
+    # ...and the literal block it introduces keeps its indentation relative to it.
+    assert "\n      lattice=Range_Pinned(x,pointsPer,scheme)\n" in rendered
+    # Paragraph breaks are preserved, not run together.
+    assert "\n   Implements a thing.\n\n" in rendered
+
+
+def test_module_header_is_dedented_to_its_own_margin(tmp_path):
+    # Every line of a module-level header carries the two-space indent of the
+    # `!!{RST` block, except the first, which `strip` has already removed it
+    # from.  `textwrap.dedent` must therefore be applied before stripping, or
+    # the common margin is not detected and every continuation line renders as
+    # an unintended block quote.
+    (tmp_path / "indented.F90").write_text("""\
+module Test_Indented
+  !!{RST
+  First line.
+
+  Second paragraph.
+  !!}
+end module Test_Indented
+""")
+    *_head, _enums, modules, _components, _workarounds = \
+        extractDocsRST.scan_source(str(tmp_path))
+    assert modules[0]["description"] == "First line.\n\nSecond paragraph."

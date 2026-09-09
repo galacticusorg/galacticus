@@ -689,7 +689,7 @@ contains
     !!{RST
     Read the tree indices.
     !!}
-    use :: Error                           , only : Error_Report
+    use :: Error                           , only : Error_Report, Error_Report_Allocation_Failure
     use :: HDF5                            , only : HSIZE_T
     use :: HDF5_Access                     , only : hdf5Access
     use :: Numerical_Constants_Astronomical, only : gigaYear
@@ -698,13 +698,13 @@ contains
     class           (mergerTreeImporterGalacticus), intent(inout)             :: self
     type            (hdf5Group                   )                            :: treeIndexGroup
     integer         (kind=kind_int8              ), allocatable, dimension(:) :: descendantIndex
-    double precision                              , allocatable, dimension(:) :: nodeMass           , treeMass    , &
-         &                                                                       nodeTime           , treeTime
-    integer         (kind=HSIZE_T                )             , dimension(1) :: firstNodeIndex     , nodeCount
+    double precision                              , allocatable, dimension(:) :: nodeMass        , treeMass   , &
+         &                                                                       nodeTime        , treeTime
+    integer         (kind=HSIZE_T                )             , dimension(1) :: firstNodeIndex  , nodeCount
     integer         (kind=c_size_t               ), allocatable, dimension(:) :: sortOrder
-    integer                                                                   :: i
+    integer                                                                   :: i               , allocErr
     integer         (c_size_t                    )                            :: iNode
-    double precision                                                          :: massMinimum        , massMaximum
+    double precision                                                          :: massMinimum     , massMaximum
     logical                                                                   :: hasForestWeights
 
     if (self%forestIndicesRead) return
@@ -726,9 +726,12 @@ contains
           firstNodeIndex(1)=self%firstNodes(i)+1
           nodeCount     (1)=self%nodeCounts(i)
           ! Allocate the nodes array.
-          allocate(descendantIndex(nodeCount(1)))
-          allocate(nodeMass       (nodeCount(1)))
-          allocate(nodeTime       (nodeCount(1)))
+          allocate(descendantIndex(nodeCount(1)),stat=allocErr)
+          if (allocErr /= 0) call Error_Report_Allocation_Failure('descendantIndex',nodeCount(1),{introspection:location})
+          allocate(nodeMass       (nodeCount(1)),stat=allocErr)
+          if (allocErr /= 0) call Error_Report_Allocation_Failure('nodeMass'       ,nodeCount(1),{introspection:location})
+          allocate(nodeTime       (nodeCount(1)),stat=allocErr)
+          if (allocErr /= 0) call Error_Report_Allocation_Failure('nodeTime'       ,nodeCount(1),{introspection:location})
           call self%forestHalos%readDatasetStatic("descendantIndex",descendantIndex,firstNodeIndex,nodeCount)
           call self%forestHalos%readDatasetStatic("nodeMass"       ,nodeMass       ,firstNodeIndex,nodeCount)
           if      (self%forestHalos%hasDataset("time"           )) then
@@ -1022,10 +1025,10 @@ contains
     !!{RST
     Import the :math:`i^\mathrm{th}` merger tree.
     !!}
-    use :: Error                           , only : Error_Report       , Warn
+    use :: Error                           , only : Error_Report    , Warn     , Error_Report_Allocation_Failure
     use :: HDF5                            , only : hsize_t
     use :: HDF5_Access                     , only : hdf5Access
-    use :: Numerical_Constants_Astronomical, only : gigaYear           , massSolar      , megaParsec
+    use :: Numerical_Constants_Astronomical, only : gigaYear        , massSolar, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Vectors                         , only : Vector_Magnitude
     implicit none
@@ -1041,6 +1044,7 @@ contains
     integer         (hsize_t                     )                            , dimension(1  ) :: firstNodeIndex         , nodeCount
     integer         (c_size_t                    )                                             :: iNode
     integer         (c_size_t                    )               , allocatable, dimension(:  ) :: nodeSubsetOffset
+    integer                                                                                    :: allocErr
     double precision                                             , allocatable, dimension(:,:) :: angularMomentum3D      , position             , &
          &                                                                                        velocity               , spin3D
     double precision                                             , allocatable, dimension(:  ) :: namedReal
@@ -1066,9 +1070,11 @@ contains
     end if
     ! Allocate the nodes array.
     if (present(structureOnly).and.structureOnly) then
-       allocate(nodeDataMinimal    :: nodes(nodeCount(1)))
+       allocate(nodeDataMinimal    :: nodes(nodeCount(1)),stat=allocErr)
+       if (allocErr /= 0) call Error_Report_Allocation_Failure('nodes',nodeCount(1),{introspection:location})
     else
-       allocate(nodeDataGalacticus :: nodes(nodeCount(1)))
+       allocate(nodeDataGalacticus :: nodes(nodeCount(1)),stat=allocErr)
+       if (allocErr /= 0) call Error_Report_Allocation_Failure('nodes',nodeCount(1),{introspection:location})
     end if
     !$ call hdf5Access%set()
     if (useNodeSubset) then
