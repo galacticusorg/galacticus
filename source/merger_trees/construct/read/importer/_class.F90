@@ -32,7 +32,7 @@ module Merger_Tree_Read_Importers
   private
   public :: nodeData, nodeDataMinimal
   !![
-  <workaround type="gfortran" PR="88632" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=88632" docformat="rst">
+  <workaround type="gfortran" PR="88632" issue="1454" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=88632" docformat="rst">
    <description>
    importerUnitConvert is used by submodules, so must be exported to the object file. gfortran currently does not do this if the symbol is private, so we mark it as public.
    </description>
