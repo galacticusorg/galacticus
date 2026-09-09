@@ -1302,6 +1302,14 @@ The ``workaround`` directive annotates code that exists only to work around a bu
 
 The ``type`` attribute (required) names the tool containing the bug (e.g. ``gfortran``), while the optional ``PR`` and ``url`` attributes identify the relevant bug report. A ``description`` element should explain the bug being worked around. Optional ``seeAlso`` elements (with the same ``type``/``PR``/``url`` attributes) can reference related bug reports.
 
+The ``Workarounds`` workflow (``.github/workflows/workarounds.yml``) runs ``scripts/aux/workaroundChecker.py`` daily, which looks up the ``PR`` of every ``workaround`` directive in GCC's Bugzilla and fails if any of them has been marked ``RESOLVED``---so that fixed bugs do not leave dead workarounds behind. A bug being fixed upstream does not always mean the workaround can be removed immediately though: typically we must wait until the fix appears in a released compiler that is available on all of the platforms we build for. For such cases, open an issue recording what must happen before the workaround can be removed, and reference it from the directive with the optional ``issue`` attribute:
+
+.. code-block:: none
+
+    <workaround type="gfortran" PR="105807" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105807" issue="1234">
+
+The attribute takes either a bare issue number in this repository (as above) or a full URL. The checker then reports the workaround as *staged for removal* and does not fail, for as long as the referenced issue remains open---if the issue is closed while the workaround is still present the checker begins to fail again. Only one occurrence of a given ``PR`` need carry the attribute; a single issue tracks removal of all workarounds for that bug.
+
 Module Scoping
 ~~~~~~~~~~~~~~
 
