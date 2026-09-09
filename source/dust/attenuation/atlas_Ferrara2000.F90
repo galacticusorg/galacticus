@@ -82,7 +82,7 @@
      For a Jaffe profile the enclosed mass is :math:`M(r)/M = (r/r_0)/(1+r/r_0)`, so the half-mass radius is exactly
      the scale radius. One unit of the tabulated axis therefore corresponds to :math:`1.16` half-mass radii, and a
      model galaxy's half-mass radius is divided by that factor before being interpolated in. Omitting it would place
-     every spheroid 16 per cent too far out along the axis, worth up to about ten per cent in transmission at the
+     every spheroid 16 percent too far out along the axis, worth up to about ten percent in transmission at the
      largest tabulated optical depths, and little at small ones.
 
    * The inclination, from a :galacticus-class:`galacticInclinationClass` object, or from the ``inclination``
@@ -300,11 +300,11 @@ contains
     double precision                                 , intent(in   ), optional                     :: inclination
     double precision                                                , dimension(size(descriptors)) :: transmission
     ! Half-mass radii per unit of the tabulated spheroid axis. The atlas labels that axis with the effective radius
-    ! of an R^1/4 profile, while realizing the spheroid as a Jaffe profile of scale radius r_b = 1.16 R_e (Bianchi
+    ! of an R^1/4 profile, while realizing the spheroid as a Jaffe profile of scale radius r_b = 1.16 Rₑ (Bianchi
     ! et al. 1996, appendix); the Jaffe half-mass radius is exactly its scale radius.
     double precision                                 , parameter                                   :: radiusHalfMassToEffective=1.16d0
-    double precision                                                                               :: depthOptical          , inclination_, &
-         &                                                                                            radiusSpheroid        , logDepth    , &
+    double precision                                                                               :: depthOptical                    , inclination_, &
+         &                                                                                            radiusSpheroid                  , logDepth    , &
          &                                                                                            inclinationDegrees
     logical                                                                                        :: radiusSpheroidComputed
     integer                                                                                        :: i
@@ -355,10 +355,10 @@ contains
              ! the tabulated range before taking a logarithm. A galaxy may have no spheroid, or no disk to measure
              ! one against, giving a ratio of zero whose logarithm would trap; and the interpolator holds values at
              ! the boundary in any case, so nothing is lost by clamping here rather than there.
-             radiusSpheroid        =max(                                       &
-                  &                     +radiusSpheroidRelative(node)          &
-                  &                     /radiusHalfMassToEffective           , &
-                  &                     +minval(self%radiusSpheroid)           &
+             radiusSpheroid        =max(                               &
+                  &                     +radiusSpheroidRelative(node)  &
+                  &                     /radiusHalfMassToEffective   , &
+                  &                     +minval(self%radiusSpheroid)   &
                   &                    )
              radiusSpheroidComputed=.true.
              call self%interpolatorRadiusSpheroid%linearFactors(log(radiusSpheroid),indicesSpheroid(1),weightsSpheroid(:,1))

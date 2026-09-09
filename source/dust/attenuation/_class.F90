@@ -203,7 +203,7 @@ contains
     Return the half-mass radius of the spheroid, in units of the disk scale length.
 
     Each radiative transfer atlas tabulates the spheroid along an axis of its own, and none of those axes is
-    directly a model galaxy's spheroid radius: the atlas simulated a particular density profile, and labelled the
+    directly a model galaxy's spheroid radius: the atlas simulated a particular density profile, and labeled the
     axis with a particular radius of it. What is returned here is the one measure that means the same thing whatever
     profile either side assumes---the half-mass radius, taken from the stellar mass distribution of the spheroid
     rather than from its scale radius, since for a Hernquist profile the latter is smaller by
@@ -212,9 +212,9 @@ contains
 
     Matching two differently shaped profiles on a single radius is itself an approximation, and not the best one
     available: :cite:t:`bianchi_monte_carlo_1996` matched an :math:`R^{1/4}` profile to a Jaffe profile by fitting
-    their enclosed luminosity, and obtained a relation differing by :math:`\approx 14` per cent from what matching
+    their enclosed luminosity, and obtained a relation differing by :math:`\approx 14` percent from what matching
     half-light radii would have given. Attenuations for a spheroid whose profile is not the one an atlas simulated
-    should therefore not be relied upon at better than the ten per cent level, whatever the optical depth.
+    should therefore not be relied upon at better than the ten percent level, whatever the optical depth.
 
     The disk is measured by its scale radius, which is what the atlases normalize to, and which is what the disk
     component's radius already is for an exponential profile.

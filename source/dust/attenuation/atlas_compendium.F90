@@ -160,7 +160,7 @@ contains
     type            (dustAttenuationAtlasCompendium)                :: self
     type            (inputParameters               ), intent(inout) :: parameters
     class           (galacticInclinationClass      ), pointer       :: galacticInclination_
-    type            (varying_string                )                :: fileName            , url, &
+    type            (varying_string                )                :: fileName               , url, &
          &                                                             spheroidProfile
     double precision                                                :: dustToMetalsRatio
     logical                                                         :: extrapolateOpticalDepth
@@ -293,23 +293,23 @@ contains
        !$ call hdf5Access%unset()
        call Error_Report('`'//self%fileName//'` has no `opacity` attribute, so is not a dust compendium tabulation'//{introspection:location})
     end if
-    call file%readAttribute('opacity'                          ,self%opacity             )
-    call file%readDataset  ('wavelength'                       ,self%wavelength          )
-    call file%readDataset  ('inclination'                      ,self%inclination         )
-    call file%readDataset  ('opticalDepth'                     ,self%depthOptical        )
-    call file%readDataset  ('spheroidScaleRadial'              ,self%radiusSpheroid      )
-    call file%readDataset  ('attenuationDisk'                  ,self%transmissionDisk    )
-    call file%readDataset  ('attenuationSpheroid'              ,self%transmissionSpheroid)
-    call file%readDataset  ('extrapolationCoefficientsDisk'    ,     extrapolationDisk   )
+    call file%readAttribute('opacity'                          ,self%opacity              )
+    call file%readDataset  ('wavelength'                       ,self%wavelength           )
+    call file%readDataset  ('inclination'                      ,self%inclination          )
+    call file%readDataset  ('opticalDepth'                     ,self%depthOptical         )
+    call file%readDataset  ('spheroidScaleRadial'              ,self%radiusSpheroid       )
+    call file%readDataset  ('attenuationDisk'                  ,self%transmissionDisk     )
+    call file%readDataset  ('attenuationSpheroid'              ,self%transmissionSpheroid )
+    call file%readDataset  ('extrapolationCoefficientsDisk'    ,     extrapolationDisk    )
     call file%readDataset  ('extrapolationCoefficientsSpheroid',     extrapolationSpheroid)
     !$ call hdf5Access%unset()
     ! Check that the tables have the shape the axes imply. A transposed read would otherwise show up much later as
     ! quietly wrong attenuation.
-    if (any(shape(self%transmissionDisk    ) /= [size(self%depthOptical  ),size(self%inclination ),size(self%wavelength)                      ])) &
+    if (any(shape(self%transmissionDisk    ) /= [size(self%depthOptical  ),size(self%inclination ),size(self%wavelength)                       ])) &
          & call Error_Report('`attenuationDisk` does not have the shape implied by the axes'                  //{introspection:location})
     if (any(shape(self%transmissionSpheroid) /= [size(self%radiusSpheroid),size(self%depthOptical),size(self%inclination),size(self%wavelength)])) &
          & call Error_Report('`attenuationSpheroid` does not have the shape implied by the axes'              //{introspection:location})
-    if (any(shape(     extrapolationDisk   ) /= [size(self%inclination   ),size(self%wavelength  ),2                                          ])) &
+    if (any(shape(     extrapolationDisk   ) /= [size(self%inclination   ),size(self%wavelength  ),2                                           ])) &
          & call Error_Report('`extrapolationCoefficientsDisk` does not have the shape implied by the axes'    //{introspection:location})
     if (any(shape(     extrapolationSpheroid) /= [size(self%radiusSpheroid),size(self%inclination ),size(self%wavelength),2                    ])) &
          & call Error_Report('`extrapolationCoefficientsSpheroid` does not have the shape implied by the axes'//{introspection:location})
@@ -423,29 +423,29 @@ contains
     double precision                                , intent(in   ), optional                     :: inclination
     double precision                                               , dimension(size(descriptors)) :: transmission
     ! The tabulation is in microns, while parcels report their wavelength in Angstroms.
-    double precision                                , parameter                                   :: micronsPerAngstrom  =1.0d-4
-    double precision                                                                              :: depthOptical              , inclination_      , &
-         &                                                                                           radiusSpheroid            , logDepth          , &
-         &                                                                                           inclinationDegrees        , coefficientConstant, &
+    double precision                                , parameter                                   :: micronsPerAngstrom        =1.0d-4
+    double precision                                                                              :: depthOptical                     , inclination_       , &
+         &                                                                                           radiusSpheroid                   , logDepth           , &
+         &                                                                                           inclinationDegrees               , coefficientConstant, &
          &                                                                                           coefficientLogarithmic
-    logical                                                                                       :: radiusSpheroidComputed    , extrapolating
+    logical                                                                                       :: radiusSpheroidComputed           , extrapolating
     integer                                                                                       :: i
     ! Bracketing indices and linear weights, per dimension, in the order the tables are laid out: for the disk
     ! (optical depth, inclination, wavelength), and for the spheroid (spheroid size, optical depth, inclination,
     ! wavelength). The extrapolation coefficients carry no optical depth axis, so drop it. Only the wavelength entry
     ! changes between parcels.
-    integer         (c_size_t                      )                , dimension(  3)              :: indicesDisk
+    integer         (c_size_t                      )                , dimension(    3)            :: indicesDisk
     double precision                                                , dimension(0:1,3)            :: weightsDisk
-    integer         (c_size_t                      )                , dimension(  4)              :: indicesSpheroid
+    integer         (c_size_t                      )                , dimension(    4)            :: indicesSpheroid
     double precision                                                , dimension(0:1,4)            :: weightsSpheroid
-    integer         (c_size_t                      )                , dimension(  2)              :: indicesDiskExtrapolate
+    integer         (c_size_t                      )                , dimension(    2)            :: indicesDiskExtrapolate
     double precision                                                , dimension(0:1,2)            :: weightsDiskExtrapolate
-    integer         (c_size_t                      )                , dimension(  3)              :: indicesSpheroidExtrapolate
+    integer         (c_size_t                      )                , dimension(    3)            :: indicesSpheroidExtrapolate
     double precision                                                , dimension(0:1,3)            :: weightsSpheroidExtrapolate
-    integer         (c_size_t                      )                                              :: indexInclination          , indexWavelength   , &
-         &                                                                                           indexRadiusSpheroid       , indexDepthOptical
-    double precision                                                , dimension(0:1)              :: weightInclination         , weightWavelength  , &
-         &                                                                                           weightRadiusSpheroid      , weightDepthOptical
+    integer         (c_size_t                      )                                              :: indexInclination                 , indexWavelength   , &
+         &                                                                                           indexRadiusSpheroid              , indexDepthOptical
+    double precision                                                , dimension(0:1  )            :: weightInclination                , weightWavelength  , &
+         &                                                                                           weightRadiusSpheroid             , weightDepthOptical
 
     ! The dust lies in the disk in this model, and a spheroid is reddened by the disk's dust, so the optical depth is
     ! always that of the disk.
@@ -467,8 +467,8 @@ contains
        return
     end if
     logDepth              =log(depthOptical)
-    extrapolating         =  self%extrapolateOpticalDepth                                   &
-         &                 .and.                                                            &
+    extrapolating         =  self%extrapolateOpticalDepth                              &
+         &                 .and.                                                       &
          &                   depthOptical > self%depthOptical(size(self%depthOptical))
     radiusSpheroidComputed=.false.
     radiusSpheroid        =0.0d0
@@ -476,16 +476,16 @@ contains
     ! belonging to the interpolator which will actually be used is maintained.
     call self%interpolatorInclination%linearFactors(inclinationDegrees,indexInclination,weightInclination)
     if (extrapolating) then
-       indicesDiskExtrapolate    (  1)=indexInclination
-       weightsDiskExtrapolate    (:,1)=weightInclination
-       indicesSpheroidExtrapolate(  2)=indexInclination
-       weightsSpheroidExtrapolate(:,2)=weightInclination
+       indicesDiskExtrapolate    (  1  )=indexInclination
+       weightsDiskExtrapolate    (:,1  )=weightInclination
+       indicesSpheroidExtrapolate(  2  )=indexInclination
+       weightsSpheroidExtrapolate(:,2  )=weightInclination
     else
        call self%interpolatorDepthOptical%linearFactors(logDepth,indexDepthOptical,weightDepthOptical)
-       indicesDisk               (  1)=indexDepthOptical
-       weightsDisk               (:,1)=weightDepthOptical
-       indicesDisk               (  2)=indexInclination
-       weightsDisk               (:,2)=weightInclination
+       indicesDisk               (  1  )=indexDepthOptical
+       weightsDisk               (:,1  )=weightDepthOptical
+       indicesDisk               (  2  )=indexInclination
+       weightsDisk               (:,2  )=weightInclination
        indicesSpheroid           (  2:3)=indicesDisk       (  1:2)
        weightsSpheroid           (:,2:3)=weightsDisk       (:,1:2)
     end if
@@ -519,10 +519,10 @@ contains
              ! Clamp into the tabulated range before taking a logarithm. A galaxy may have no spheroid, or no disk
              ! to measure one against, giving a ratio of zero whose logarithm would trap; and the interpolator holds
              ! values at the boundary in any case, so nothing is lost by clamping here rather than there.
-             radiusSpheroid        =max(                                       &
-                  &                     +radiusSpheroidRelative(node)          &
-                  &                     /self%radiusSpheroidHalfMassToScale  , &
-                  &                     +minval(self%radiusSpheroid)           &
+             radiusSpheroid        =max(                                     &
+                  &                     +radiusSpheroidRelative(node)        &
+                  &                     /self%radiusSpheroidHalfMassToScale, &
+                  &                     +minval(self%radiusSpheroid)         &
                   &                    )
              radiusSpheroidComputed=.true.
              call self%interpolatorRadiusSpheroid%linearFactors(log(radiusSpheroid),indexRadiusSpheroid,weightRadiusSpheroid)
@@ -556,7 +556,7 @@ contains
     else which varies within a component.
     !!}
     implicit none
-    type (decompositionRequest         )                :: request
+    type (decompositionRequest          )                :: request
     class(dustAttenuationAtlasCompendium), intent(inout) :: self
     !$GLC attributes unused :: self
 
