@@ -200,16 +200,21 @@ contains
 
   double precision function radiusSpheroidRelative(node) result(radiusSpheroid)
     !!{RST
-    Return the size of the spheroid in the units the radiative transfer atlases are tabulated against: its half-mass
-    radius, in units of the disk scale length.
+    Return the half-mass radius of the spheroid, in units of the disk scale length.
 
-    The atlases model spheroids with a specific profile---:cite:t:`ferrara_atlas_1999` use a Jaffe profile, for which
-    the enclosed mass is :math:`M(r)/M = (r/r_0)/(1+r/r_0)` so that the half-mass radius is exactly the scale radius
-    :math:`r_0`---and tabulate against the spheroid effective radius. A model galaxy's spheroid will in general follow
-    some other profile, for which the scale radius is *not* the half-mass radius---for a Hernquist profile the latter
-    is :math:`(1+\sqrt{2})` times the former---so the half-mass radius is taken from the stellar mass distribution of
-    the spheroid rather than from its scale radius. That is the radius which means the same thing whatever profile
-    either side assumes, and matching on it is what makes an atlas applicable to a spheroid it was not computed for.
+    Each radiative transfer atlas tabulates the spheroid along an axis of its own, and none of those axes is
+    directly a model galaxy's spheroid radius: the atlas simulated a particular density profile, and labelled the
+    axis with a particular radius of it. What is returned here is the one measure that means the same thing whatever
+    profile either side assumes---the half-mass radius, taken from the stellar mass distribution of the spheroid
+    rather than from its scale radius, since for a Hernquist profile the latter is smaller by
+    :math:`(1+\sqrt{2})`. Each atlas then converts this to its own axis by dividing by the half-mass radius that one
+    unit of that axis corresponds to.
+
+    Matching two differently shaped profiles on a single radius is itself an approximation, and not the best one
+    available: :cite:t:`bianchi_monte_carlo_1996` matched an :math:`R^{1/4}` profile to a Jaffe profile by fitting
+    their enclosed luminosity, and obtained a relation differing by :math:`\approx 14` per cent from what matching
+    half-light radii would have given. Attenuations for a spheroid whose profile is not the one an atlas simulated
+    should therefore not be relied upon at better than the ten per cent level, whatever the optical depth.
 
     The disk is measured by its scale radius, which is what the atlases normalize to, and which is what the disk
     component's radius already is for an exponential profile.

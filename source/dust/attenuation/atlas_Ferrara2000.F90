@@ -71,6 +71,20 @@
      :math:`V` band. For an exponential disk :math:`\Sigma_0 = M/2\pi r_\mathrm{d}^2`, which is what
      ``screenSurfaceDensityMetals`` computes, so the definitions agree.
 
+   * The size of the spheroid, on the axis the atlas tabulates. That axis is *not* a radius of the profile the
+     atlas actually simulated: :cite:t:`ferrara_atlas_1999` realize their spheroids as Jaffe profiles, but label
+     the axis with the effective radius :math:`R_\mathrm{e}` of the :math:`R^{1/4}` profile those Jaffe profiles
+     stand in for. :cite:t:`bianchi_monte_carlo_1996`, whose radiative transfer code the atlas was computed with,
+     give the correspondence in their appendix as :math:`r_\mathrm{b} = 1.16 R_\mathrm{e}`, with
+     :math:`r_\mathrm{b}` the Jaffe scale radius---chosen as the relation which best matches the luminosity
+     enclosed within a given radius, since that is what their Monte Carlo samples.
+
+     For a Jaffe profile the enclosed mass is :math:`M(r)/M = (r/r_0)/(1+r/r_0)`, so the half-mass radius is exactly
+     the scale radius. One unit of the tabulated axis therefore corresponds to :math:`1.16` half-mass radii, and a
+     model galaxy's half-mass radius is divided by that factor before being interpolated in. Omitting it would place
+     every spheroid 16 per cent too far out along the axis, worth up to about ten per cent in transmission at the
+     largest tabulated optical depths, and little at small ones.
+
    * The inclination, from a :galacticus-class:`galacticInclinationClass` object, or from the ``inclination``
      argument when one is imposed, as :galacticus-class:`dustAttenuationInclinationAveraged` does. One or the other
      must be available, and an error is reported if neither is.
@@ -285,6 +299,10 @@ contains
     type            (emissionDescriptor             ), intent(in   ), dimension(:                ) :: descriptors
     double precision                                 , intent(in   ), optional                     :: inclination
     double precision                                                , dimension(size(descriptors)) :: transmission
+    ! Half-mass radii per unit of the tabulated spheroid axis. The atlas labels that axis with the effective radius
+    ! of an R^1/4 profile, while realizing the spheroid as a Jaffe profile of scale radius r_b = 1.16 R_e (Bianchi
+    ! et al. 1996, appendix); the Jaffe half-mass radius is exactly its scale radius.
+    double precision                                 , parameter                                   :: radiusHalfMassToEffective=1.16d0
     double precision                                                                               :: depthOptical          , inclination_, &
          &                                                                                            radiusSpheroid        , logDepth    , &
          &                                                                                            inclinationDegrees
@@ -333,10 +351,15 @@ contains
           transmission(i)=self%interpolatorDisk    %interpolateFactors(self%transmissionDisk    ,indicesDisk    ,weightsDisk    )
        else if (descriptors(i)%componentType == componentTypeSpheroid) then
           if (.not.radiusSpheroidComputed) then
-             ! Clamp into the tabulated range before taking a logarithm. A galaxy may have no spheroid, or no disk
-             ! to measure one against, giving a ratio of zero whose logarithm would trap; and the interpolator holds
-             ! values at the boundary in any case, so nothing is lost by clamping here rather than there.
-             radiusSpheroid        =max(radiusSpheroidRelative(node),minval(self%radiusSpheroid))
+             ! Convert the half-mass radius to the effective radius the atlas is tabulated against, then clamp into
+             ! the tabulated range before taking a logarithm. A galaxy may have no spheroid, or no disk to measure
+             ! one against, giving a ratio of zero whose logarithm would trap; and the interpolator holds values at
+             ! the boundary in any case, so nothing is lost by clamping here rather than there.
+             radiusSpheroid        =max(                                       &
+                  &                     +radiusSpheroidRelative(node)          &
+                  &                     /radiusHalfMassToEffective           , &
+                  &                     +minval(self%radiusSpheroid)           &
+                  &                    )
              radiusSpheroidComputed=.true.
              call self%interpolatorRadiusSpheroid%linearFactors(log(radiusSpheroid),indicesSpheroid(1),weightsSpheroid(:,1))
           end if
