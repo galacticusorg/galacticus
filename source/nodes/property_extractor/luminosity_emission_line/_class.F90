@@ -100,6 +100,7 @@
      procedure :: indexTemplateTime       => emissionLineLuminosityIndexTemplateTime
      procedure :: indexTemplateNode       => emissionLineLuminosityIndexTemplateNode 
      procedure :: units                   => emissionLineLuminosityUnits
+     procedure :: quantity                => emissionLineLuminosityQuantity
      procedure :: supportsAttenuation     => emissionLineLuminositySupportsAttenuation
      procedure :: decompose               => emissionLineLuminosityDecompose
   end type nodePropertyExtractorLuminosityEmissionLine
@@ -1046,6 +1047,20 @@ contains
     end do
     return
   end function emissionLineLuminosityUnits
+
+  function emissionLineLuminosityQuantity(self) result(quantity)
+    !!{RST
+    Return the class of the emission line luminosity property.
+    !!}
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
+    implicit none
+    type (enumerationOutputAnalysisPropertyQuantityType)                :: quantity
+    class(nodePropertyExtractorLuminosityEmissionLine  ), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    quantity=outputAnalysisPropertyQuantityLuminosity
+    return
+  end function emissionLineLuminosityQuantity
 
   logical function emissionLineLuminositySupportsAttenuation(self) result(supportsAttenuation)
     !!{RST
