@@ -29,7 +29,7 @@ for testCase in testCases:
         shell=True
     )
     if status.returncode != 0:
-        print(f"FAIL: tidal track model '{testCase['label']} gamma={gammaStr}' failed to run")
+        print(f"FAILED: tidal track model '{testCase['label']} gamma={gammaStr}' failed to run")
         sys.exit(0)
 
     # Collect model track data.
@@ -78,7 +78,8 @@ for testCase in testCases:
         elif testCase["gamma"] == 1.5:
             mur, etar, muv, etav = +0.00, +0.48, +0.40, +0.24
         else:
-            raise ValueError(f"unknown gamma: {testCase['gamma']}")
+            print(f"FAILED: unknown gamma in the test case table: {testCase['gamma']}")
+            sys.exit(0)
         r      = 2.0**mur * a**etar / (1.0 + a)**mur
         v      = 2.0**muv * a**etav / (1.0 + a)**muv
         sortOrd= np.argsort(r)

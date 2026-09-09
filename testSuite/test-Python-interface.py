@@ -10,23 +10,23 @@ from contextlib import contextmanager
 # Andrew Benson (23-April-2026)
 
 # Constructs various objects and asserts that their methods return results
-# that match expectations.  Writes PASS/FAIL for each test, so CI catches
+# that match expectations.  Writes SUCCESS/FAILED for each test, so CI catches
 # regressions even if the script is interrupted before the failure summary
 # is printed.  Always exits with status 0, per project convention: failure
-# is signaled by the "FAIL" markers in the output, not by the exit status.
+# is signaled by the "FAILED" markers in the output, not by the exit status.
 
 _failures = 0
 
 
 def check(label, actual, expected, rtol=1.0e-6, fmt=".2f", unit=""):
-    """Compare actual vs expected; print PASS/FAIL and tally failures."""
+    """Compare actual vs expected; print SUCCESS/FAILED and tally failures."""
     global _failures
     suffix = f" {unit}" if unit else ""
     if np.isclose(actual, expected, rtol=rtol):
-        print(f'   PASS: {label} = {actual:{fmt}}{suffix}')
+        print(f'   SUCCESS: {label} = {actual:{fmt}}{suffix}')
     else:
         _failures += 1
-        print(f'   FAIL: {label} = {actual:{fmt}}{suffix} '
+        print(f'   FAILED: {label} = {actual:{fmt}}{suffix} '
               f'(expected {expected:{fmt}}, Δ={actual-expected:.3g})')
 
 
@@ -34,15 +34,15 @@ def check_eq(label, actual, expected):
     """Exact-equality variant for non-numeric values (strings, etc.)."""
     global _failures
     if actual == expected:
-        print(f'   PASS: {label} = {actual!r}')
+        print(f'   SUCCESS: {label} = {actual!r}')
     else:
         _failures += 1
-        print(f'   FAIL: {label} = {actual!r} (expected {expected!r})')
+        print(f'   FAILED: {label} = {actual!r} (expected {expected!r})')
 
 
 @contextmanager
 def safe_section(name):
-    """Wrap a test section so an unexpected exception is reported as FAIL
+    """Wrap a test section so an unexpected exception is reported as FAILED
     rather than aborting the rest of the suite."""
     global _failures
     print(f"--- {name} ---")
@@ -50,7 +50,7 @@ def safe_section(name):
         yield
     except Exception as exc:
         _failures += 1
-        print(f'   FAIL: section raised {type(exc).__name__}: {exc}')
+        print(f'   FAILED: section raised {type(exc).__name__}: {exc}')
 
 
 # Library-level utilities.
@@ -986,7 +986,7 @@ with safe_section("merger-tree build/walk/extract"):
     check_eq("construct beyond suite returns None", treeBeyond, None)
     check_eq("finished True beyond suite"         , finished.value, True)
 
-# Final summary. Always exit with status 0 - failure is signaled by "FAIL" in the output.
+# Final summary. Always exit with status 0 - failure is signaled by "FAILED" in the output.
 print(f"--- {_failures} failure(s) ---")
 if _failures:
     print(f"FAILED: {_failures} check(s) failed")

@@ -121,5 +121,5 @@ for massFunctionType in massFunctionTypes:
     if differenceFractionlMaximum > 1.0e-3:
         print("FAILED: [" +massFunctionType['label']+"] mass function differs")
     else:
-        print("success: ["+massFunctionType['label']+"] mass functions agree")
+        print("SUCCESS: ["+massFunctionType['label']+"] mass functions agree")
 

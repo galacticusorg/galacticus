@@ -13,13 +13,13 @@ subprocess.run("mkdir -p outputs/", shell=True)
 # Run the subsampled model.
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/mergerTreeBranchSubsampled.xml", shell=True)
 if status.returncode != 0:
-    print("FAIL: merger tree branch subsampling model failed to run")
+    print("FAILED: merger tree branch subsampling model failed to run")
     sys.exit(0)
 
 # Run the not subsampled model.
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/mergerTreeBranchNotSubsampled.xml", shell=True)
 if status.returncode != 0:
-    print("FAIL: merger tree branch no subsampling model failed to run")
+    print("FAILED: merger tree branch no subsampling model failed to run")
     sys.exit(0)
 
 # Read data and construct counts of subhalos.
@@ -49,6 +49,6 @@ offsetScaled = np.abs(models[0]["countSubhalos"] - models[1]["countSubhalos"]) /
     models[0]["countSubhalosError"]**2 + models[1]["countSubhalosError"]**2
 )
 if np.any(offsetScaled > 3.0):
-    print("FAIL: merger tree branch subsampling changes subhalo mass function at > 3σ")
+    print("FAILED: merger tree branch subsampling changes subhalo mass function at > 3σ")
 else:
     print("SUCCESS: merger tree branch subsampling does not change subhalo mass function at > 3σ")

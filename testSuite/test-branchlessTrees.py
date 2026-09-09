@@ -13,7 +13,7 @@ subprocess.run("mkdir -p outputs/", shell=True)
 # Run the branchless model.
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/mergerTreeBranchless.xml", shell=True)
 if status.returncode != 0:
-    print("FAIL: merger tree branchless model failed to run")
+    print("FAILED: merger tree branchless model failed to run")
     sys.exit(0)
 
 success = True

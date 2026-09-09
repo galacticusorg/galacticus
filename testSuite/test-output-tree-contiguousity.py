@@ -13,7 +13,7 @@ subprocess.run("mkdir -p outputs/", shell=True)
 # Run the model.
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/outputTreeContiguosity.xml", shell=True)
 if status.returncode != 0:
-    print("FAIL: output tree contiguosity model failed to run")
+    print("FAILED: output tree contiguosity model failed to run")
     sys.exit(0)
 
 # Check for contiguous output.

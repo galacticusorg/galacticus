@@ -92,7 +92,7 @@ timeCommand = shutil.which("time")
 def extractResults(job):
     # Check for a failed model.
     if "exitStatus" in job and job['exitStatus'] > 0:
-        print("FAIL: model '"+job['label']+"' failed to run")
+        print("FAILED: model '"+job['label']+"' failed to run")
         sys.exit(0)
     # Wait for the model to appear.
     while not os.path.exists(job['galacticusFileName']):
@@ -1037,7 +1037,7 @@ for massTrees in massesTree:
                 referenceModelFound = True
                 break
             if not referenceModelFound:
-                print("FAIL: reference model not found")
+                print("FAILED: reference model not found")
                 sys.exit(0)
 
             # Find the attribute of this model.

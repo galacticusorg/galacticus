@@ -80,7 +80,7 @@ radiusStromgren = (3.0 * rateLymanContinuumEmitted / 4.0 / PI / densityNumber.ma
 boundaryVolumeFraction = 3.0 * cellSize / radiusStromgren
 
 # Test for success in the recombination rate.
-successRate = "success" if abs(recombinationRate - rateLymanContinuumEmitted) < 2.0 * boundaryVolumeFraction * rateLymanContinuumEmitted else "FAIL"
+successRate = "SUCCESS" if abs(recombinationRate - rateLymanContinuumEmitted) < 2.0 * boundaryVolumeFraction * rateLymanContinuumEmitted else "FAILED"
 print(f"{successRate}: ionization balance: recombination / ionization rate = {recombinationRate} / {rateLymanContinuumEmitted} s\u207b\u00b9")
 
 # Check each cell ionization state.
@@ -112,5 +112,5 @@ for i in range(nx):
                 if fractionHydrogenII[i, j, k] >= 0.02:
                     outsideIsNeutral = False
 
-print(f"{'success' if insideIsIonized  else 'FAIL'}: inside Str\u00f6mgren radius is ionized")
-print(f"{'success' if outsideIsNeutral else 'FAIL'}: outside Str\u00f6mgren radius is neutral")
+print(f"{'SUCCESS' if insideIsIonized  else 'FAILED'}: inside Str\u00f6mgren radius is ionized")
+print(f"{'SUCCESS' if outsideIsNeutral else 'FAILED'}: outside Str\u00f6mgren radius is neutral")
