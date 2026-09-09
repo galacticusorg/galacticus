@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788854378742,
+  "lastUpdate": 1788952978992,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.4; γ=0.0)": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "44abc28ecbfdef8fa2cf6cac325595947792c29d",
-          "message": "fix: Update description text for dark matter profile classes to reflect their factory status",
-          "timestamp": "2024-08-27T22:55:15Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/44abc28ecbfdef8fa2cf6cac325595947792c29d"
-        },
-        "date": 1724832153149,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteBoundMass",
-            "value": "26.85265409129778",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "12.856529957599932",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
-            "value": "11.535619227855877",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9912,6 +9875,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/0f171a357b5ac2f9266432b7c33e6abf22ffaf34"
         },
         "date": 1788854377535,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": -26.852048863235915,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -12.85647984127457,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": -11.535714168220675,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "33db0bfee747d9fdc6dac974d00bf482a9a8b5ac",
+          "message": "Merge pull request #1453 from galacticusorg/depup/lesgourg/class_public\n\nfix(deps): update lesgourg/class_public to 3.4.0",
+          "timestamp": "2026-09-09T05:09:16Z",
+          "tree_id": "4586ff083fed9281b8bc444cd4bfa80a9f1ca1d3",
+          "url": "https://github.com/galacticusorg/galacticus/commit/33db0bfee747d9fdc6dac974d00bf482a9a8b5ac"
+        },
+        "date": 1788952978128,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
