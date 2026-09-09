@@ -3,6 +3,8 @@ Dust Compendium Datasets
 
 Datasets containing dust extinctions for simple galactic geometries, computed using the methods described by `Benson (2018) <https://ui.adsabs.harvard.edu/abs/2018RNAAS...2..188B>`_ and in a format compatible with the `DustCompendium <https://github.com/galacticusorg/analysis-python/blob/master/galacticus/dust/dustCompendium.py>`_ class in the `analysis-python <https://github.com/galacticusorg/analysis-python>`_ tools are available for download. The individual datasets are linked to and described below.
 
+Galacticus reads these files directly, through the :galacticus-class:`dustAttenuationAtlasCompendium` dust attenuation class: set its ``fileName`` to the name of the file to use, and its ``url`` to the download link given below for the record containing it. The file is fetched once and cached under the dynamic datasets path, so it need not be downloaded by hand.
+
 Any questions about these datasets should be directed to `Andrew Benson <mailto:abenson@carnegiescience.edu>`_.
 
 Draine (2003) grains

@@ -986,6 +986,7 @@
        <xs:attribute name="value" use="optional">
         <xs:simpleType>
          <xs:restriction base="xs:string">
+          <xs:enumeration value="atlasCompendium"/>
           <xs:enumeration value="atlasFerrara2000"/>
           <xs:enumeration value="birthCloud"/>
           <xs:enumeration value="charlotFall2000"/>
@@ -5042,6 +5043,22 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="darkMatter"/>
           <xs:enumeration value="hotGas"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="spheroidProfile">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="hernquist"/>
+          <xs:enumeration value="jaffe"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>

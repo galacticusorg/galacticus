@@ -336,7 +336,7 @@ contains
              ! Clamp into the tabulated range before taking a logarithm. A galaxy may have no spheroid, or no disk
              ! to measure one against, giving a ratio of zero whose logarithm would trap; and the interpolator holds
              ! values at the boundary in any case, so nothing is lost by clamping here rather than there.
-             radiusSpheroid        =max(atlasFerrara2000RadiusSpheroid(node),minval(self%radiusSpheroid))
+             radiusSpheroid        =max(radiusSpheroidRelative(node),minval(self%radiusSpheroid))
              radiusSpheroidComputed=.true.
              call self%interpolatorRadiusSpheroid%linearFactors(log(radiusSpheroid),indicesSpheroid(1),weightsSpheroid(:,1))
           end if
@@ -348,57 +348,6 @@ contains
     end do
     return
   end function atlasFerrara2000Transmission
-
-  double precision function atlasFerrara2000RadiusSpheroid(node) result(radiusSpheroid)
-    !!{RST
-    Return the size of the spheroid in the units the atlas is tabulated against: its half-mass radius, in units of
-    the disk scale length.
-
-    :cite:t:`ferrara_atlas_1999` model spheroids as Jaffe profiles and tabulate against the spheroid effective
-    radius. For a Jaffe profile the enclosed mass is :math:`M(r)/M = (r/r_0)/(1+r/r_0)`, so the half-mass radius is
-    exactly the scale radius :math:`r_0`, and the tabulated axis is therefore a half-mass radius.
-
-    A model galaxy's spheroid will in general follow some other profile, for which the scale radius is *not* the
-    half-mass radius---for a Hernquist profile the latter is :math:`(1+\sqrt{2})` times the former---so the
-    half-mass radius is taken from the stellar mass distribution of the spheroid rather than from its scale radius.
-    That is the radius which means the same thing whatever profile either side assumes, and matching on it is what
-    makes the atlas applicable to a spheroid it was not computed for.
-
-    The disk is measured by its scale radius, which is what :cite:t:`ferrara_atlas_1999` normalize to, and which is
-    what the disk component's radius already is for an exponential profile.
-    !!}
-    use :: Error                     , only : Error_Report
-    use :: Galactic_Structure_Options, only : componentTypeSpheroid, massTypeStellar
-    use :: Galacticus_Nodes          , only : nodeComponentDisk
-    use :: Mass_Distributions        , only : massDistributionClass, massDistributionSpherical
-    implicit none
-    type            (treeNode             ), intent(inout), target  :: node
-    class           (nodeComponentDisk    )               , pointer :: disk
-    class           (massDistributionClass)               , pointer :: massDistributionSpheroid
-    double precision                                                :: radiusDisk
-
-    disk       => node%disk  ()
-    radiusDisk =  disk%radius()
-    ! With no disk there is no scale to measure the spheroid against, and no dust either, so the value is
-    ! immaterial: return zero, which the caller clamps into the tabulated range.
-    if (radiusDisk <= 0.0d0) then
-       radiusSpheroid=0.0d0
-       return
-    end if
-    massDistributionSpheroid => node%massDistribution(componentTypeSpheroid,massTypeStellar)
-    select type (massDistributionSpheroid)
-    class is (massDistributionSpherical)
-       radiusSpheroid=+massDistributionSpheroid%radiusHalfMass() &
-            &         /                         radiusDisk
-    class default
-       radiusSpheroid=0.0d0
-       call Error_Report('a half-mass radius is needed for the spheroid, which requires a spherical mass distribution'//{introspection:location})
-    end select
-    !![
-    <objectDestructor name="massDistributionSpheroid"/>
-    !!]
-    return
-  end function atlasFerrara2000RadiusSpheroid
 
   function atlasFerrara2000Request(self) result(request)
     !!{RST
