@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "0f171a357b5ac2f9266432b7c33e6abf22ffaf34",
-        "message": "Merge pull request #1364 from galacticusorg/fixAngularMomentumAccretion\n\nfix(nodes): use specific angular momentum for CGM accretion rates\n",
-        "timestamp": "2026-09-08 01:55:54+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/0f171a357b5ac2f9266432b7c33e6abf22ffaf34"
+        "id": "33db0bfee747d9fdc6dac974d00bf482a9a8b5ac",
+        "message": "Merge pull request #1453 from galacticusorg/depup/lesgourg/class_public\n\nfix(deps): update lesgourg/class_public to 3.4.0\n",
+        "timestamp": "2026-09-09 05:09:16+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/33db0bfee747d9fdc6dac974d00bf482a9a8b5ac"
     },
     "results": [
         {
@@ -237,7 +237,7 @@ window.ANALYSES_DATA = {
                     15.78144223023723,
                     18.2630028961656,
                     21.286672441602917,
-                    24.58911864569587,
+                    24.589118645695876,
                     29.251757075373714,
                     34.05055668432998,
                     35.35092196438682,
@@ -287,7 +287,7 @@ window.ANALYSES_DATA = {
                     0.3455104082883085,
                     0.45962929944190783,
                     0.629041024308624,
-                    0.8451939250874311,
+                    0.8451939250874252,
                     1.1716377398938558,
                     1.9212116161707125,
                     0.922332756640577,
