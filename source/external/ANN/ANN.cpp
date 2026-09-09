@@ -28,7 +28,6 @@ extern "C"
 {
   ANNkd_tree * nearestNeighborsConstructorC(int n, int d, double *pa);
   void nearestNeighborsDestructorC(ANNkd_tree * ANN);
-  void nearestNeighborsCloseC();
   void nearestNeighborsSearchC(ANNkd_tree * ANN, double *point, int neighborCount, double tolerance, int *neighborIndex, double *neighborDistance);
   int nearestNeighborsSearchFixedRadiusC(ANNkd_tree * ANN, double *point, double radiusSquared, int neighborCount, int *neighborIndex, double *neighborDistance, double tolerance);
 }
@@ -65,12 +64,6 @@ void nearestNeighborsDestructorC(ANNkd_tree * ANN) {
     // Explicitly destruct the ANN KD-tree object.
     ANN->~ANNkd_tree();
   }
-  return;
-}
-
-void nearestNeighborsCloseC() {
-  //% Fortran-callable wrapper around the ANN library close function.
-  annClose();
   return;
 }
 
