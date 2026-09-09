@@ -124,19 +124,51 @@ change that.
   `ODE integration failed`, `unrecognized parameter`). A test "passes" when none
   of those appear — so when triaging a test, read its log, don't just trust the
   exit code.
-- **Test scripts must exit `0` even when the test fails.** Failure is signaled
-  *in the output*, not in the exit status: print a line containing `FAILED`
-  (conventionally `FAILED: <what went wrong>`, with `SUCCESS: <what passed>` on
-  the happy path) and then `sys.exit(0)`. The harness
-  (`testSuite/test-all.py:42`) and the CI workflows judge each test with
-  `grep -q -e FAIL -e FAILED` over the captured log and ignore the return code
-  entirely, so a script that exits non-zero on failure is still recorded as a
-  *pass* if it never printed the marker. Two corollaries:
+- **Test scripts must exit `0` even when the test fails.** The outcome is
+  signaled *in the output*, by a marker line at the start of the line:
+  - `FAILED: <what went wrong>` — the test failed;
+  - `SUCCESS: <what passed>` — the test passed;
+  - `SKIPPED: <why>` — a prerequisite could not be met (too few MPI processes, a
+    non-debugging build, a missing executable), so the test ran nothing.
+
+  Then `sys.exit(0)`. Both harnesses — `testSuite/test-all.py` and the CI
+  workflows (`testModel.yml`, and the inline steps in `cicd.yml`, all of which
+  run under `set -o pipefail`) — judge a test by grepping the captured log for
+  `FAIL`.
+  **A non-zero exit is also a failure to both**, so an uncaught exception *is*
+  detected — but as a traceback rather than as a readable message. The point of
+  exiting `0` is that the message, not the exit code, is what a reader sees; the
+  one thing that genuinely disappears is a failure path that exits `0` without
+  printing a marker. Four corollaries:
   - Guard early-exit paths the same way — a missing input file or a failed model
     run must `print("FAILED: …")` before exiting, or the test silently vanishes.
   - The grep matches `FAIL` as a *substring anywhere* in the log, so never emit
     it in a passing context (no `"0 FAILures"`, no echoing a parameter named
-    `...FAIL...`); that alone turns a green test red.
+    `...FAIL...`); that alone turns a green test red. Keep `FAILED` at the start
+    of the line for the same reason.
+  - Use the canonical spellings. `FAIL:`, `FAILURE` and `PASS:` all happen to
+    work today, but `scripts/aux/auditTestMarkers.py` and any future per-test
+    reporting key on one spelling.
+  - Reserve `SKIPPED` for a *whole-test* skip. A sub-check that is skipped (an
+    optional validator that is not installed, say) should say so in plain words
+    without the marker word, or `test-all.py` will report the whole test as
+    skipped.
+- **Check test scripts with `scripts/aux/auditTestMarkers.py`** after adding or
+  editing one. It audits every `testSuite/test-*.py` and `testSuite/validate-*.py`
+  against the convention above in under a second, and the *Validate-Test-Markers*
+  PR check runs it with `--check`. Unlike the source formatters this check is
+  blocking: the suite is fully compliant, so any report is new drift.
+  ```bash
+  ./scripts/aux/auditTestMarkers.py           # report
+  ./scripts/aux/auditTestMarkers.py --check   # exit 1 if anything is reported
+  ```
+  A string literal that must contain a marker word without being one (a `grep`
+  pattern, say) is exempted by ending its line with `# markers: exempt`.
+- **Three scripts are not run by any CI workflow** and are run manually (or via
+  `test-all.py`) only: `testSuite/test-regressions.py` (superseded by the
+  `testSuite/regressions/` matrix), `testSuite/validate-concentrationConvergence.py`
+  and `testSuite/validate-mergerTreeConvergence.py` (both are long validation
+  runs that submit jobs through a queue manager).
 
 ## Editing Fortran source
 

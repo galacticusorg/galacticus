@@ -33,6 +33,62 @@ iterating on a specific area:
 Most of these tests require a built ``Galacticus.exe`` and the run-time datasets
 (``GALACTICUS_DATA_PATH``); see :doc:`../user-guide/installation/index`.
 
+Three scripts are deliberately not run by any CI workflow, and are run manually
+(or through ``test-all.py``) only: ``test-regressions.py``, which is superseded
+by the ``testSuite/regressions/`` matrix, and
+``validate-concentrationConvergence.py`` and ``validate-mergerTreeConvergence.py``,
+which are long validation runs submitting jobs through a queue manager.
+
+.. _test-outcome-markers:
+
+Test outcome markers
+~~~~~~~~~~~~~~~~~~~~~~
+
+A test script reports its outcome by printing a marker at the start of a line,
+and then exiting with status zero:
+
+``FAILED: <what went wrong>``
+   The test failed.
+
+``SUCCESS: <what passed>``
+   The test passed.
+
+``SKIPPED: <why>``
+   A prerequisite could not be met — too few MPI processes, a build without
+   debugging enabled, a missing executable — so the test ran nothing at all.
+   ``test-all.py`` reports these as a third outcome, and ``testModel.yml``
+   surfaces them in the job summary, so that a misconfigured runner cannot
+   silently stop testing.
+
+Both harnesses judge a test by scanning its log for ``FAIL`` as a substring, and
+both also fail a test whose script exits non-zero. An uncaught exception is
+therefore detected — but as a traceback rather than as a readable message, which
+is why failures are reported through a marker and a zero exit instead. The one
+failure that genuinely disappears is a path which exits zero without printing a
+marker, so every early-exit guard (a missing input file, a model that did not
+run) must print ``FAILED:`` first.
+
+Because the match is on the substring ``FAIL`` anywhere in the log, a *passing*
+run must never emit it: keep ``FAILED`` at the start of its line, and do not
+print counts or summaries containing it. For the same reason ``SKIPPED`` is
+reserved for a whole-test skip; a sub-check which is skipped should say so in
+plain words.
+
+The convention is enforced by ``scripts/aux/auditTestMarkers.py``, which audits
+every ``test-*.py`` and ``validate-*.py`` script in well under a second:
+
+.. code-block:: bash
+
+   ./scripts/aux/auditTestMarkers.py           # report
+   ./scripts/aux/auditTestMarkers.py --check   # exit 1 if anything is reported
+
+The *Validate-Test-Markers* pull-request check runs it with ``--check``. Unlike
+the source-formatting job this check is blocking: the suite is fully compliant,
+so anything it reports is new drift rather than a pre-existing condition. A
+string literal which must contain a marker word without being a marker (a
+``grep`` pattern, say) is exempted by ending its line with the pragma
+``# markers: exempt``.
+
 The Python unit tests (``pytest``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -70,6 +126,9 @@ the PR:
   ``constructorAssign`` directives, and similar).
 * **Validate-Docstrings-RST** — ``scripts/doc/convertDocstringsToRST.py --check``
   ensures every embedded docstring is reStructuredText (no old-style LaTeX).
+* **Validate-Test-Markers** — ``scripts/aux/auditTestMarkers.py --check`` audits
+  the ``testSuite`` scripts against the outcome-marker convention described in
+  :ref:`test-outcome-markers`.
 * **Spell-Check-RST** — builds the documentation with ``sphinxcontrib-spelling``
   and reports possible misspellings as an advisory PR comment; add legitimate
   technical terms to ``aux/words.dict``.
