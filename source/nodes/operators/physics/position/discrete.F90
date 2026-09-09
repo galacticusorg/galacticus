@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that updates positions of nodes in discrete steps.
   !!}
@@ -34,6 +36,7 @@
      !!}
      private
    contains
+     procedure :: differentialEvolutionAnalytics      => positionDiscreteDifferentialEvolutionAnalytics
      procedure :: differentialEvolutionStepFinalState => positionDiscreteDifferentialEvolutionStepFinalState
   end type nodeOperatorPositionDiscrete
   

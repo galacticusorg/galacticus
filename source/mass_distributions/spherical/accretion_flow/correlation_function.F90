@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a mass distribution for accretion flow using the 2-halo correlation function.
   !!}
@@ -42,6 +44,7 @@
           &                                                                  redshift
      double precision                         , allocatable, dimension(:) :: radius                        , correlationFunction
    contains
+     final     ::                          correlationFunctionDestructor
      procedure :: density               => correlationFunctionDensity
      procedure :: densityGradientRadial => correlationFunctionDensityGradientRadial 
  end type massDistributionCorrelationFunction
