@@ -457,7 +457,7 @@ contains
     Return the spacing of the points of the lattice. Available only for the ``perUnit`` gridding scheme, for which the points
     are uniformly spaced in value; for the logarithmic schemes see ``rangeLatticeStepLogarithmic``.
 
-    Note that this is deliberately *not* evaluated as the difference of two neighbouring lattice points: that difference varies
+    Note that this is deliberately *not* evaluated as the difference of two neighboring lattice points: that difference varies
     in its final bits with position along the lattice, so a table which used it would change its interpolation by of order one
     unit in the last place when extended. Evaluated as below the spacing is a pure function of ``pointsPer``, and so is
     invariant under extension.

@@ -855,7 +855,7 @@ contains
     !!{RST
     Locate the lower bracket index :math:`i` such that :math:`x_i \le x < x_{i+1}` for the queried ``x``, returning :math:`i` in :math:`[1, N-1]`.
 
-    Uses a cached last-returned index to accelerate sequential and near- sequential access patterns: if the cached bracket still contains ``x``, return it immediately; otherwise binary-search the appropriate half-range and update the cache. This is the pure-Fortran analogue of GSL's ``gsl_interp_accel_find`` but avoids the foreign-function call cost and lets the compiler inline the body.
+    Uses a cached last-returned index to accelerate sequential and near- sequential access patterns: if the cached bracket still contains ``x``, return it immediately; otherwise binary-search the appropriate half-range and update the cache. This is the pure-Fortran analog of GSL's ``gsl_interp_accel_find`` but avoids the foreign-function call cost and lets the compiler inline the body.
     !!}
     implicit none
     integer         (c_size_t    )                          :: i

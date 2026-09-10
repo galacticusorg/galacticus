@@ -503,7 +503,7 @@ contains
     the lattice points---and ``deltaX`` their spacing.
 
     Note that ``deltaX`` is supplied by the caller (from the lattice) rather than evaluated here as ``xValues(2)-xValues(1)``.
-    The difference of two neighbouring lattice points varies in its final bits with position along the lattice, so deriving the
+    The difference of two neighboring lattice points varies in its final bits with position along the lattice, so deriving the
     interpolation factor from it would change every interpolated value by of order one unit in the last place whenever the lower
     bound of the table moved - defeating the very reuse which extension exists to provide.
 

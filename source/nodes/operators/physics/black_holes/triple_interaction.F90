@@ -36,7 +36,7 @@
 
    where :math:`M_{\bullet,1}` and :math:`M_{\bullet,2}` are the masses of the central and binary black holes respectively, and :math:`\sigma` is approximated by the virial velocity of the dark matter halo. Each black hole may undergo at most one triple interaction: the time of the interaction is recorded when it occurs, and is reset---making the black hole eligible once more---only when its host galaxy merges with another.
 
-   Labelling the central black hole :math:`1`, its binary partner :math:`2`, and the tertiary black hole :math:`3`, and defining the intruder mass ratio
+   Labeling the central black hole :math:`1`, its binary partner :math:`2`, and the tertiary black hole :math:`3`, and defining the intruder mass ratio
 
    .. math::
 
