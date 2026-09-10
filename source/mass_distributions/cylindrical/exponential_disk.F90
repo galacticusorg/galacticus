@@ -37,7 +37,7 @@
      The exponential disk mass distribution: :math:`\rho(r,z)=\rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})`.
      !!}
      private
-     double precision                                                        :: scaleRadius                              , scaleHeight                              , &
+     double precision                                                        :: radiusScale                              , scaleHeight                              , &
           &                                                                     densityNormalization                     , surfaceDensityNormalization              , &
           &                                                                     mass
      ! Tables used for rotation curves and potential.
@@ -125,7 +125,7 @@ contains
     implicit none
     type            (massDistributionExponentialDisk)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
-    double precision                                                 :: mass         , scaleRadius, &
+    double precision                                                 :: mass         , radiusScale, &
          &                                                              scaleHeight
     logical                                                          :: dimensionless
     type            (varying_string                 )                :: componentType
@@ -145,7 +145,7 @@ contains
       <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
-      <name>scaleRadius</name>
+      <name>radiusScale</name>
       <defaultValue>1.0d0</defaultValue>
       <description>
       The scale radius of the exponential disk profile.
@@ -187,7 +187,7 @@ contains
     <conditionalCall>
      <call>self=massDistributionExponentialDisk(scaleHeight=scaleHeight,componentType=enumerationComponentTypeEncode(componentType,includesPrefix=.false.),massType=enumerationMassTypeEncode(massType,includesPrefix=.false.){conditions})</call>
      <argument name="mass"          value="mass"          parameterPresent="parameters"/>
-     <argument name="scaleRadius"   value="scaleRadius"   parameterPresent="parameters"/>
+     <argument name="radiusScale"   value="radiusScale"   parameterPresent="parameters"/>
      <argument name="dimensionless" value="dimensionless" parameterPresent="parameters"/>
     </conditionalCall>
     <inputParametersValidate source="parameters"/>
@@ -195,7 +195,7 @@ contains
     return
   end function exponentialDiskConstructorParameters
 
-  function exponentialDiskConstructorInternal(scaleRadius,scaleHeight,mass,dimensionless,componentType,massType) result(self)
+  function exponentialDiskConstructorInternal(radiusScale,scaleHeight,mass,dimensionless,componentType,massType) result(self)
     !!{RST
     Internal constructor for "exponentialDisk" mass distribution class.
     !!}
@@ -204,7 +204,7 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (massDistributionExponentialDisk)                          :: self
-    double precision                                 , intent(in   ), optional :: scaleRadius  , scaleHeight, &
+    double precision                                 , intent(in   ), optional :: radiusScale  , scaleHeight, &
          &                                                                        mass
     logical                                          , intent(in   ), optional :: dimensionless
     type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
@@ -221,22 +221,22 @@ contains
     end if
     ! If dimensionless, then set scale length and mass to unity.
     if (self%dimensionless) then
-       if (present(scaleRadius)) then
-          if (Values_Differ(scaleRadius,1.0d0,absTol=1.0d-6)) call Error_Report('scaleRadius should be unity for a dimensionless profile (or simply do not specify a scale length)'//{introspection:location})
+       if (present(radiusScale)) then
+          if (Values_Differ(radiusScale,1.0d0,absTol=1.0d-6)) call Error_Report('radiusScale should be unity for a dimensionless profile (or simply do not specify a scale length)'//{introspection:location})
        end if
        if (present(mass       )) then
           if (Values_Differ(mass       ,1.0d0,absTol=1.0d-6)) call Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'               //{introspection:location})
        end if
-       self%scaleRadius                =1.0d0
+       self%radiusScale                =1.0d0
        self%mass                       =1.0d0
        self%surfaceDensityNormalization=1.0d0/2.0d0/Pi
     else
        ! Set scale radius.
-       if (.not.present(scaleRadius)) call Error_Report('scale radius must be specified for dimensionful profiles'//{introspection:location})
+       if (.not.present(radiusScale)) call Error_Report('scale radius must be specified for dimensionful profiles'//{introspection:location})
        if (.not.present(mass       )) call Error_Report('mass must be specified for dimensionful profiles'        //{introspection:location})
-       self%scaleRadius                =scaleRadius
+       self%radiusScale                =radiusScale
        self%mass                       =mass
-       self%surfaceDensityNormalization=self%mass/2.0d0/Pi/self%scaleRadius**2
+       self%surfaceDensityNormalization=self%mass/2.0d0/Pi/self%radiusScale**2
     end if
     ! Set the scale height.
     if (present(scaleHeight)) then
@@ -339,7 +339,7 @@ contains
     double precision                                 , parameter     :: radiusHalfMassToScaleRadius=1.678346990d0
 
     exponentialDiskRadiusHalfMass=+radiusHalfMassToScaleRadius &
-         &                        *self%scaleRadius
+         &                        *self%radiusScale
     return
   end function exponentialDiskRadiusHalfMass
 
@@ -362,7 +362,7 @@ contains
     ! Get position in cylindrical coordinate system.
     position=coordinates
     ! Compute density.
-    r=    position%r() /self%scaleRadius
+    r=    position%r() /self%radiusScale
     z=abs(position%z())/self%scaleHeight
     if (z > coshArgumentMaximum) then
        coshTerm=(2.0d0*exp(-z)/(1.0d0+exp(-2.0d0*z)))**2
@@ -396,7 +396,7 @@ contains
     ! Get position in cylindrical coordinate system.
     position=coordinates
     ! Compute density.
-    r=    position%r() /self%scaleRadius
+    r=    position%r() /self%radiusScale
     z=abs(position%z())/self%scaleHeight
     if (z > coshArgumentMaximum) then
        coshTerm=(2.0d0*exp(-z)/(1.0d0+exp(-2.0d0*z)))**2
@@ -437,7 +437,7 @@ contains
          &                                 /                               radius &
          &                                 *exp(                                  &
          &                                      -                          radius &
-         &                                      /self                %scaleRadius &
+         &                                      /self                %radiusScale &
          &                                     )
     return
   end function exponentialDiskDensitySphericalAverage
@@ -465,10 +465,10 @@ contains
     double precision                                                         :: fractionalRadius
 
     fractionalRadius=+radius                              &
-         &           /self%scaleRadius
+         &           /self%radiusScale
     mass            =+2.0d0                               &
          &           *Pi                                  &
-         &           *self%scaleRadius                **2 &
+         &           *self%radiusScale                **2 &
          &           *self%surfaceDensityNormalization    &
          &           *(                                   &
          &             +1.0d0                             &
@@ -492,7 +492,7 @@ contains
     double precision                                                 :: r
 
     ! Get the radial coordinate.
-    r=coordinates%rCylindrical()/self%scaleRadius
+    r=coordinates%rCylindrical()/self%radiusScale
     ! Compute the density.
     exponentialDiskSurfaceDensity=self%surfaceDensityNormalization*exp(-r)
     return
@@ -507,7 +507,7 @@ contains
     double precision                                 , intent(in   )           :: densitySurface
     double precision                                 , intent(in   ), optional :: radiusGuess
     
-    radius=-     self%scaleRadius                 &
+    radius=-     self%radiusScale                 &
     &      *log(                                  &
     &           +     densitySurface              &
     &           /self%surfaceDensityNormalization &
@@ -527,7 +527,7 @@ contains
          &                                                              radiusFactor
 
     ! Get scale-free radius.
-    r=radius/self%scaleRadius
+    r=radius/self%radiusScale
     ! Compute rotation curve.
     if (r > radiusMaximum) then
        ! Beyond some maximum radius, approximate the disk as a spherical distribution to avoid evaluating Bessel functions for
@@ -546,7 +546,7 @@ contains
           halfRadius       =0.5d0*r
           radiusFactor=self%besselFactorRotationCurve(halfRadius)
        end if
-       exponentialDiskRotationCurve=sqrt(2.0d0*(self%mass/self%scaleRadius)*radiusFactor)
+       exponentialDiskRotationCurve=sqrt(2.0d0*(self%mass/self%radiusScale)*radiusFactor)
     end if
     ! Make dimensionful if necessary.
     if (.not.self%dimensionless) exponentialDiskRotationCurve= &
@@ -569,7 +569,7 @@ contains
     ! Compute Bessel functions argument.
     besselArgument=+radius           &
          &         /2.0d0            &
-         &         /self%scaleRadius
+         &         /self%radiusScale
     if (2.0d0*besselArgument > fractionalRadiusMaximum) then
        ! Beyond some maximum radius, approximate the disk as a point mass to avoid evaluating Bessel functions for
        ! very large arguments.
@@ -579,7 +579,7 @@ contains
        besselFactor=self%besselFactorRotationCurveGradient(besselArgument)
        exponentialDiskRotationCurveGradient=+self%mass           &
             &                               *besselFactor        &
-            &                               /self%scaleRadius**2
+            &                               /self%radiusScale**2
     end if
     ! Make dimensionful if necessary.
     if (.not.self%dimensionless) exponentialDiskRotationCurveGradient= &
@@ -620,17 +620,17 @@ contains
     ! Compute density.
     radius=position%r()
     ! If the radius is sufficiently large, treat the disk as a point mass.
-    if (radius > potentialRadiusMaximum*self%scaleRadius) then
+    if (radius > potentialRadiusMaximum*self%radiusScale) then
        exponentialDiskPotential=-self%mass/radius
     else
        ! Radius is sufficiently small to use the full calculation.
        ! Compute the potential. If the radius is lower than the height then approximate the disk
        ! mass as being spherically distributed.
        if (radius > self%scaleHeight) then
-          halfRadius           =radius/2.0d0/self%scaleRadius
+          halfRadius           =radius/2.0d0/self%radiusScale
           correctionSmallRadius=0.0d0
        else
-          halfRadius           =+self%scaleHeight/self%scaleRadius/2.0d0
+          halfRadius           =+self%scaleHeight/self%radiusScale/2.0d0
           correctionSmallRadius=+self%massEnclosedBySphere(self%scaleHeight) &
                &                /self%scaleHeight
           if (radius > 0.0d0) correctionSmallRadius=+correctionSmallRadius             &
@@ -640,7 +640,7 @@ contains
        ! Compute the potential including the correction to small radii.
        exponentialDiskPotential=                                  &
             &             -self%mass                              &
-            &             /self%scaleRadius                       &
+            &             /self%radiusScale                       &
             &             *self%besselFactorPotential(halfRadius) &
             &             +correctionSmallRadius
     end if
@@ -835,7 +835,7 @@ contains
     else
        integralHigh=+0.0d0
     end if
-    exponentialDiskSurfaceDensityRadialMoment=(integralHigh-integralLow)*Gamma_Function(moment+1.0d0)*self%scaleRadius**(moment+1.0d0)
+    exponentialDiskSurfaceDensityRadialMoment=(integralHigh-integralLow)*Gamma_Function(moment+1.0d0)*self%radiusScale**(moment+1.0d0)
     return
   end function exponentialDiskSurfaceDensityRadialMoment
 
@@ -881,7 +881,7 @@ contains
          &                    /megaParsec                     &
          &                    *gravitationalConstant_internal &
          &                    *self%mass                      &
-         &                    /self%scaleRadius**2
+         &                    /self%radiusScale**2
     exponentialDiskAcceleration=accelerationVector
     return
   end function exponentialDiskAcceleration
@@ -908,8 +908,8 @@ contains
     coordinatesCylindrical=coordinates
     coordinatesCartesian  =coordinatesCylindrical
     positionCartesian     =coordinatesCartesian
-    radiusCylindrical     =coordinatesCylindrical%r()/self%scaleRadius
-    positionCartesian     =positionCartesian         /self%scaleRadius
+    radiusCylindrical     =coordinatesCylindrical%r()/self%radiusScale
+    positionCartesian     =positionCartesian         /self%radiusScale
     ! Ensure that acceleration is tabulated.
     call self%accelerationTabulate()
     ! Interpolate in the tables.
@@ -943,7 +943,7 @@ contains
          & exponentialDiskTidalTensor=+exponentialDiskTidalTensor      &
          &                             *gravitationalConstant_internal &
          &                             *self%mass                      &
-         &                             /self%scaleRadius**3
+         &                             /self%radiusScale**3
     return
   end function exponentialDiskTidalTensor
   
@@ -968,8 +968,8 @@ contains
          &                                                                         jRadius                , jHeight
 
     ! Find interpolating factors.
-    radiusCylindrical=    coordinatesCylindrical%r()/self%scaleRadius
-    heightCylindrical=abs(coordinatesCylindrical%z()/self%scaleRadius)
+    radiusCylindrical=    coordinatesCylindrical%r()/self%radiusScale
+    heightCylindrical=abs(coordinatesCylindrical%z()/self%radiusScale)
     if     (                                                                              &
          &   radiusCylindrical > self%accelerationRadii  (size(self%accelerationRadii  )) &
          &  .or.                                                                          &
@@ -982,28 +982,28 @@ contains
        if (present(accelerationVertical))                                                                             &
             & accelerationVertical       =-                                                      heightCylindrical    &
             &                             /             radiusSpherical**3                                            &
-            &                             *        self%scaleRadius    **2
+            &                             *        self%radiusScale    **2
        if (present(accelerationRadial  ))                                                                             &
             & accelerationRadial         =-                                 radiusCylindrical                         &
             &                             /             radiusSpherical**3                                            &
-            &                             *        self%scaleRadius    **2
+            &                             *        self%radiusScale    **2
        if (present(tidalTensorVerticalVertical))                                                                      &
             & tidalTensorVerticalVertical=+(                                                                          &
             &                               -(1.0d0/    radiusSpherical**3)                                           &
             &                               +(3.0d0/    radiusSpherical**5)*                     heightCylindrical**2 &
             &                              )                                                                          &
-            &                             *        self%scaleRadius    **3
+            &                             *        self%radiusScale    **3
        if (present(tidalTensorRadialRadial    ))                                                                      &
             & tidalTensorRadialRadial    =+(                                                                          &
             &                               -(1.0d0/    radiusSpherical**3)                                           &
             &                               +(3.0d0/    radiusSpherical**5)*radiusCylindrical**2                      &
             &                              )                                                                          &
-            &                             *        self%scaleRadius    **3
+            &                             *        self%radiusScale    **3
        if (present(tidalTensorCross           ))                                                                      &
             & tidalTensorCross           =+(                                                                          &
             &                               +(3.0d0/    radiusSpherical**5)*radiusCylindrical   *heightCylindrical    &
             &                              )                                                                          &
-            &                             *        self%scaleRadius    **3
+            &                             *        self%radiusScale    **3
     else
        ! Interpolate in tabulated solution.
        if (radiusCylindrical < self%accelerationRadii  (1)) then
@@ -1100,7 +1100,7 @@ contains
       type     (lockDescriptor) :: fileLock
       
       ! Construct a file name for the table.
-      write (label,'(f8.6)') self%scaleHeight/self%scaleRadius
+      write (label,'(f8.6)') self%scaleHeight/self%radiusScale
       fileName=inputPath(pathTypeDataDynamic)// &
            &   'galacticStructure/'          // &
            &   self%objectType()             // &
@@ -1151,7 +1151,7 @@ contains
          !
          ! and we then make it dimensionless by multiplying by the radial scale length.
          beta   =+dble(xi)         &
-              &  *self%scaleRadius &
+              &  *self%radiusScale &
               &  /self%scaleHeight
          ! Iterate over radii and heights.
          call displayIndent("tabulating gravitational accelerations for exponential disk",verbosityLevelWorking)
@@ -1650,7 +1650,7 @@ contains
          &                                                              phi
 
     ! Select a radial coordinate.
-    radius=(-1.0d0-Lambert_Wm1((-1.0d0+      randomNumberGenerator_%uniformSample())/exp(1.0d0)))*self%scaleRadius
+    radius=(-1.0d0-Lambert_Wm1((-1.0d0+      randomNumberGenerator_%uniformSample())/exp(1.0d0)))*self%radiusScale
     ! Select a vertical coordinate.
     height=(      -atanh      ( +1.0d0-2.0d0*randomNumberGenerator_%uniformSample()            ))*self%scaleHeight
     ! Angular coordinate is uniformly distributed between 0 and 2π.

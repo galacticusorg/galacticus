@@ -75,7 +75,7 @@
      class           (darkMatterHaloMassAccretionHistoryClass), pointer                   :: darkMatterHaloMassAccretionHistory_ => null()
      class           (darkMatterHaloSplashbackRadiusClass    ), pointer                   :: darkMatterHaloSplashbackRadius_     => null()
      class           (randomNumberGeneratorClass             ), pointer                   :: randomNumberGenerator_              => null()
-     double precision                                                                     :: haloMassMinimum                              , haloMassMaximum                     , &
+     double precision                                                                     :: massHaloMinimum                              , massHaloMaximum                     , &
           &                                                                                  pointsPerDecade
      type            (varying_string                         )                            :: outputGroup
      logical                                                                              :: includeUnevolvedSubhaloMassFunction          , includeMassAccretionRate            , &
@@ -141,7 +141,7 @@ contains
     type            (varying_string                         ), allocatable  , dimension(:) :: labels
     double precision                                         , allocatable  , dimension(:) :: fractionModeMasses
     type            (varying_string                         )                              :: outputGroup
-    double precision                                                                       :: haloMassMinimum                    , haloMassMaximum           , &
+    double precision                                                                       :: massHaloMinimum                    , massHaloMaximum           , &
          &                                                                                    pointsPerDecade
     logical                                                                                :: includeUnevolvedSubhaloMassFunction, includeMassAccretionRate  , &
           &                                                                                   massesRelativeToHalfModeMass       , errorsAreFatal            , &
@@ -164,7 +164,7 @@ contains
     self%nodeComponentsInitialized=.true.
     !![
     <inputParameter docformat="rst">
-      <name>haloMassMinimum</name>
+      <name>massHaloMinimum</name>
       <defaultValue>1.0d10</defaultValue>
       <description>
       The minimum mass at which to tabulate halo mass functions.
@@ -172,7 +172,7 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter docformat="rst">
-      <name>haloMassMaximum</name>
+      <name>massHaloMaximum</name>
       <defaultValue>1.0d15</defaultValue>
       <description>
       The maximum mass at which to tabulate halo mass functions.
@@ -304,8 +304,8 @@ contains
     <conditionalCall>
       <call>
 	self=taskHaloMassFunction(                                     &amp;
-         &amp;                    haloMassMinimum                    , &amp;
-         &amp;                    haloMassMaximum                    , &amp;
+         &amp;                    massHaloMinimum                    , &amp;
+         &amp;                    massHaloMaximum                    , &amp;
          &amp;                    pointsPerDecade                    , &amp;
          &amp;                    outputGroup                        , &amp;
          &amp;                    includeUnevolvedSubhaloMassFunction, &amp;
@@ -381,8 +381,8 @@ contains
   end function haloMassFunctionConstructorParameters
 
   function haloMassFunctionConstructorInternal(                                     &
-       &                                       haloMassMinimum                    , &
-       &                                       haloMassMaximum                    , &
+       &                                       massHaloMinimum                    , &
+       &                                       massHaloMaximum                    , &
        &                                       pointsPerDecade                    , &
        &                                       outputGroup                        , &
        &                                       includeUnevolvedSubhaloMassFunction, &
@@ -440,7 +440,7 @@ contains
     class           (randomNumberGeneratorClass             ), intent(in   ), target                 :: randomNumberGenerator_
     type            (virialDensityContrastList              ), intent(in   ), dimension(:)           :: virialDensityContrasts
     type            (varying_string                         ), intent(in   )                         :: outputGroup
-    double precision                                         , intent(in   )                         :: haloMassMinimum                    , haloMassMaximum           , &
+    double precision                                         , intent(in   )                         :: massHaloMinimum                    , massHaloMaximum           , &
          &                                                                                              pointsPerDecade
     logical                                                  , intent(in   )                         :: includeUnevolvedSubhaloMassFunction, includeMassAccretionRate  , &
          &                                                                                              massesRelativeToHalfModeMass       , errorsAreFatal            , &
@@ -449,7 +449,7 @@ contains
     type            (inputParameters                        ), intent(in   ), target                 :: parameters
     integer                                                                                          :: i
     !![
-    <constructorAssign variables="haloMassMinimum, haloMassMaximum, pointsPerDecade, outputGroup, includeUnevolvedSubhaloMassFunction, includeMassAccretionRate, includeSplashbackRadius, massesRelativeToHalfModeMass, errorsAreFatal, fractionModeMasses, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *criticalOverdensity_, *linearGrowth_, *haloMassFunction_, *haloEnvironment_, *unevolvedSubhaloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *darkMatterProfileShape_, *darkMatterHaloMassAccretionHistory_, *darkMatterHaloSplashbackRadius_, *cosmologicalMassVariance_, *darkMatterHaloBias_, *transferFunction_, *transferFunctionReference, *transferFunctionRelative, *outputTimes_, *randomNumberGenerator_"/>
+    <constructorAssign variables="massHaloMinimum, massHaloMaximum, pointsPerDecade, outputGroup, includeUnevolvedSubhaloMassFunction, includeMassAccretionRate, includeSplashbackRadius, massesRelativeToHalfModeMass, errorsAreFatal, fractionModeMasses, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *criticalOverdensity_, *linearGrowth_, *haloMassFunction_, *haloEnvironment_, *unevolvedSubhaloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *darkMatterProfileShape_, *darkMatterHaloMassAccretionHistory_, *darkMatterHaloSplashbackRadius_, *cosmologicalMassVariance_, *darkMatterHaloBias_, *transferFunction_, *transferFunctionReference, *transferFunctionRelative, *outputTimes_, *randomNumberGenerator_"/>
     !!]
 
     self%parameters => parameters
@@ -623,7 +623,7 @@ contains
     allocate(outputTurnaroundRadius                        (outputCount))
     allocate(outputCharacteristicMass                      (outputCount))
     ! Compute number of tabulation points.
-    massCount=int(log10(self%haloMassMaximum/self%haloMassMinimum)*self%pointsPerDecade)+1
+    massCount=int(log10(self%massHaloMaximum/self%massHaloMinimum)*self%pointsPerDecade)+1
     allocate(massHalo                                      (massCount            ))
     allocate(massHaloOutput                                (massCount            ))
     allocate(massFunctionDifferential                      (massCount,outputCount))
@@ -657,11 +657,11 @@ contains
        if (outputCharacteristicMass(iOutput) > 0.0d0) then
           massCritical=outputCharacteristicMass(iOutput)
        else
-          massCritical=self%haloMassMinimum
+          massCritical=self%massHaloMinimum
        end if
        outputCriticalOverdensities(iOutput)=self%criticalOverdensity_  %value                      (mass=     massCritical   ,time=outputTimes           (iOutput))
-       outputVirialDensityContrast(iOutput)=self%virialDensityContrast_%densityContrast            (mass=self%haloMassMinimum,time=outputTimes           (iOutput))
-       outputTurnaroundRadius     (iOutput)=self%virialDensityContrast_%turnAroundOverVirialRadii  (mass=self%haloMassMinimum,time=outputTimes           (iOutput))
+       outputVirialDensityContrast(iOutput)=self%virialDensityContrast_%densityContrast            (mass=self%massHaloMinimum,time=outputTimes           (iOutput))
+       outputTurnaroundRadius     (iOutput)=self%virialDensityContrast_%turnAroundOverVirialRadii  (mass=self%massHaloMinimum,time=outputTimes           (iOutput))
     end do
     ! Get half- and quarter-mode masses.
     massHalfMode   =self%transferFunction_%halfModeMass   (statusHalfModeMass   )
@@ -718,8 +718,8 @@ contains
     ! Initialize warnings state.
     warnedIntegratedFailure=.false.
     ! Build a range of halo masses.
-    massHaloMinimum            =self%haloMassMinimum
-    massHaloMaximum            =self%haloMassMaximum
+    massHaloMinimum            =self%massHaloMinimum
+    massHaloMaximum            =self%massHaloMaximum
     if (self%massesRelativeToHalfModeMass) then
        if (statusHalfModeMassReference /= errorStatusSuccess) call Error_Report('half-mode mass is not defined'//{introspection:location})
        massHaloMinimum=massHaloMinimum*massHalfModeReference

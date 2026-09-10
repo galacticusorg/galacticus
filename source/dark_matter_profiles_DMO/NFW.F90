@@ -164,7 +164,7 @@ contains
           ! properties for this node.
           call massDistribution__%initialize(                                                                          &
                &                              mass         =basic            %mass                             (    ), &
-               &                              virialRadius =self             %darkMatterHaloScale_%radiusVirial(node), &
+               &                              radiusVirial =self             %darkMatterHaloScale_%radiusVirial(node), &
                &                              scaleLength  =darkMatterProfile%scale                            (    )  &
                &                             )
        else
@@ -175,7 +175,7 @@ contains
 	    <constructor>
               massDistributionNFW(                                                                                  &amp;
               &amp;               mass         =basic            %mass                                      (    ), &amp;
-              &amp;               virialRadius =self             %darkMatterHaloScale_%radiusVirial         (node), &amp;
+              &amp;               radiusVirial =self             %darkMatterHaloScale_%radiusVirial         (node), &amp;
               &amp;               scaleLength  =darkMatterProfile%scale                                     (    ), &amp;
               &amp;               componentType=                                       componentTypeDarkHalo      , &amp;
               &amp;               massType     =                                       massTypeDark                 &amp;

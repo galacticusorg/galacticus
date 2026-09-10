@@ -70,7 +70,7 @@
      class           (darkMatterProfileDMOClass        ), pointer                     :: darkMatterProfileDMO_                => null()
      class           (darkMatterHaloBiasClass          ), pointer                     :: darkMatterHaloBias_                  => null()
      class           (darkMatterProfileScaleRadiusClass), pointer                     :: darkMatterProfileScaleRadius_        => null()
-     double precision                                                                 :: haloMassMinimum                               , haloMassMaximum             , &
+     double precision                                                                 :: massHaloMinimum                               , massHaloMaximum             , &
           &                                                                              lineOfSightDepth
      logical                                                                          :: halfIntegral
      double precision                                   , dimension(:  ), allocatable :: separation                                    , massMaximum                 , &
@@ -112,21 +112,21 @@ contains
     class           (darkMatterProfileDMOClass                         ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterHaloBiasClass                           ), pointer       :: darkMatterHaloBias_
     class           (darkMatterProfileScaleRadiusClass                 ), pointer       :: darkMatterProfileScaleRadius_
-    double precision                                                                    :: haloMassMinimum    , haloMassMaximum, &
+    double precision                                                                    :: massHaloMinimum    , massHaloMaximum, &
          &                                                                                 lineOfSightDepth
     logical                                                                             :: halfIntegral
     type            (varying_string                                    )                :: fileName
 
     !![
     <inputParameter docformat="rst">
-      <name>haloMassMinimum</name>
+      <name>massHaloMinimum</name>
       <description>
       The minimum halo mass over which to integrate.
       </description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter docformat="rst">
-      <name>haloMassMaximum</name>
+      <name>massHaloMaximum</name>
       <description>
       The maximum halo mass over which to integrate.
       </description>
@@ -162,7 +162,7 @@ contains
     <objectBuilder class="darkMatterHaloBias"           name="darkMatterHaloBias_"           source="parameters"/>
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     !!]
-    self=posteriorSampleLikelihoodPrjctdCorrelationFunction(haloMassMinimum,haloMassMaximum,lineOfSightDepth,halfIntegral,char(fileName),powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_)
+    self=posteriorSampleLikelihoodPrjctdCorrelationFunction(massHaloMinimum,massHaloMaximum,lineOfSightDepth,halfIntegral,char(fileName),powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="powerSpectrum_"               />
@@ -177,7 +177,7 @@ contains
     return
   end function projectedCorrelationFunctionConstructorParameters
 
-  function projectedCorrelationFunctionConstructorInternal(haloMassMinimum,haloMassMaximum,lineOfSightDepth,halfIntegral,fileName,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_) result(self)
+  function projectedCorrelationFunctionConstructorInternal(massHaloMinimum,massHaloMaximum,lineOfSightDepth,halfIntegral,fileName,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_) result(self)
     !!{RST
     Constructor for the :galacticus-class:`posteriorSampleLikelihoodPrjctdCorrelationFunction` posterior sampling likelihood class.
     !!}
@@ -188,7 +188,7 @@ contains
     use :: ISO_Varying_String, only : operator(//)
     implicit none
     type            (posteriorSampleLikelihoodPrjctdCorrelationFunction)                        :: self
-    double precision                                                    , intent(in   )         :: haloMassMinimum    , haloMassMaximum, &
+    double precision                                                    , intent(in   )         :: massHaloMinimum    , massHaloMaximum, &
          &                                                                                         lineOfSightDepth
     logical                                                             , intent(in   )         :: halfIntegral
     character       (len=*                                             ), intent(in   )         :: fileName
@@ -202,7 +202,7 @@ contains
     class           (darkMatterProfileScaleRadiusClass                 ), intent(in   ), target :: darkMatterProfileScaleRadius_
     type            (hdf5File                                          )                        :: file
     !![
-    <constructorAssign variables="haloMassMinimum, haloMassMaximum, lineOfSightDepth, halfIntegral, fileName, *powerSpectrum_, *cosmologyFunctions_, *surveyGeometry_, *darkMatterHaloScale_, *haloMassFunction_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *darkMatterProfileScaleRadius_"/>
+    <constructorAssign variables="massHaloMinimum, massHaloMaximum, lineOfSightDepth, halfIntegral, fileName, *powerSpectrum_, *cosmologyFunctions_, *surveyGeometry_, *darkMatterHaloScale_, *haloMassFunction_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *darkMatterProfileScaleRadius_"/>
     !!]
 
     ! Read the projected correlation function file.
@@ -317,8 +317,8 @@ contains
             &                                self%separation                        , &
             &                                self%massMinimum                  (  i), &
             &                                self%massMaximum                  (  i), &
-            &                                self%haloMassMinimum                   , &
-            &                                self%haloMassMaximum                   , &
+            &                                self%massHaloMinimum                   , &
+            &                                self%massHaloMaximum                   , &
             &                                self%lineOfSightDepth                  , &
             &                                self%halfIntegral                      , &
             &                                self%projectedCorrelationFunction (:,i)  &

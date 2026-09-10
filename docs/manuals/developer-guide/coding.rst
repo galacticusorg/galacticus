@@ -688,8 +688,8 @@ In some instances it is useful to be able to call a function with different comb
       <call>self=massDistributionBetaProfile(beta{conditions})</call>
       <argument name="densityNormalization" value="densityNormalization" parameterPresent="parameters"/>
       <argument name="mass"                 value="mass"                 parameterPresent="parameters"/>
-      <argument name="outerRadius"          value="outerRadius"          parameterPresent="parameters"/>
-      <argument name="coreRadius"           value="coreRadius"           parameterPresent="parameters"/>
+      <argument name="radiusOuter"          value="radiusOuter"          parameterPresent="parameters"/>
+      <argument name="radiusCore"           value="radiusCore"           parameterPresent="parameters"/>
       <argument name="dimensionless"        value="dimensionless"        parameterPresent="parameters"/>
      </conditionalCall>
      <inputParametersValidate source="parameters"/>

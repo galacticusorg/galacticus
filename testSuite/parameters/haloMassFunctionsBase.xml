@@ -8,8 +8,8 @@
 
   <!-- Task -->
   <task value="haloMassFunction">
-    <haloMassMinimum value="1.0e10"/>
-    <haloMassMaximum value="1.0e15"/>
+    <massHaloMinimum value="1.0e10"/>
+    <massHaloMaximum value="1.0e15"/>
     <pointsPerDecade value="20"/>
   </task>
   <outputFileName value=""/>
