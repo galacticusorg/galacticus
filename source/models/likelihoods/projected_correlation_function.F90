@@ -112,7 +112,7 @@ contains
     class           (darkMatterProfileDMOClass                         ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterHaloBiasClass                           ), pointer       :: darkMatterHaloBias_
     class           (darkMatterProfileScaleRadiusClass                 ), pointer       :: darkMatterProfileScaleRadius_
-    double precision                                                                    :: massHaloMinimum    , massHaloMaximum, &
+    double precision                                                                    :: massHaloMinimum              , massHaloMaximum, &
          &                                                                                 lineOfSightDepth
     logical                                                                             :: halfIntegral
     type            (varying_string                                    )                :: fileName
