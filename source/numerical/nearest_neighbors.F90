@@ -139,7 +139,7 @@ contains
     Destroys a nearest neighbor search object.
     !!}
 #ifdef ANNAVAIL
-    use, intrinsic :: ISO_C_Binding, only : c_associated
+    use, intrinsic :: ISO_C_Binding, only : c_associated, C_Null_Ptr
 #else
     use            :: Error        , only : Error_Report
 #endif
@@ -147,7 +147,12 @@ contains
     type(nearestNeighbors), intent(inout) :: self
 
 #ifdef ANNAVAIL
-    if (c_associated(self%ANNkd_tree)) call nearestNeighborsDestructorC(self%ANNkd_tree)
+    ! Nullify after destroying, so that the guard above makes a second
+    ! finalization of the same object a no-op rather than a double free.
+    if (c_associated(self%ANNkd_tree)) then
+       call nearestNeighborsDestructorC(self%ANNkd_tree)
+       self%ANNkd_tree=C_Null_Ptr
+    end if
 #else
     !$GLC attributes unused :: self
     call Error_Report('ANN library is required but was not found'//{introspection:location})
