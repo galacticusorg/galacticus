@@ -485,10 +485,15 @@ module Tables
      abscissae (the natural logarithms of the tabulation points), and are memoized, so that interpolating repeatedly at the
      same point does not recompute them.
 
-     The interpolated value and the interpolated gradient are memoized too, but---as for the one dimensional types---each
-     under its own key, since the two are distinct quantities computed from the same interpolation factors. Were they to
-     share one key, a value requested after a gradient at the same point would be answered with the memoized gradient. Every
-     key includes ``xPreviousSet``, so ``interpolationReset`` invalidates all of them at once.
+     The interpolated value and the interpolated gradient are memoized too, but each under a key entirely of its own---the
+     point, table (and, for the gradient, dimension) at which it was computed. In particular neither may be keyed on the
+     interpolation factors which the two share: evaluating either at a point advances those factors, so a key resting on them
+     would report a hit for the other quantity at a point it was never computed at. The one dimensional types are keyed this
+     way too, and are safe from the same trap only because they hold no shared factors at all, finding their bracketing index
+     in a local variable each time.
+
+     ``tablePrevious`` and ``dTablePrevious`` are negative unless the corresponding quantity has been computed, so
+     ``interpolationReset`` invalidates both by setting them so.
      !!}
      integer          :: i                   , j                   , &
           &              tablePrevious       , dTablePrevious      , &
@@ -497,7 +502,9 @@ module Tables
           &              xLogarithmicPrevious, yLogarithmicPrevious, &
           &              hx                  , hy                  , &
           &              inverseDeltaX       , inverseDeltaY       , &
-          &              zPrevious           , dzPrevious
+          &              zPrevious           , dzPrevious          , &
+          &              xPrevious           , yPrevious           , &
+          &              dxPrevious          , dyPrevious
      logical          :: xPreviousSet        , yPreviousSet
    contains
      !![
@@ -564,7 +571,7 @@ contains
     type. Each concrete table type must, on return, set its own spacing and reset any cached interpolation state.
 
     **The spacing must be taken from the lattice**, never evaluated as ``xValues(2)-xValues(1)``: the difference of two
-    neighbouring lattice points varies in its final bits with position along the lattice, so deriving the interpolation factor
+    neighboring lattice points varies in its final bits with position along the lattice, so deriving the interpolation factor
     from it would change every interpolated value by of order one unit in the last place whenever the lower bound of the table
     moved---defeating the very reuse which extension exists to provide.
 
@@ -3154,10 +3161,12 @@ contains
     tableActual=1
     if (present(table)) tableActual=table
     ! Test for being recalled with same values.
-    if (.not.(self%xPreviousSet .and. self%yPreviousSet .and. x == self%xLinearPrevious .and. y == self%yLinearPrevious .and. tableActual == self%tablePrevious)) then
+    if (.not.(x == self%xPrevious .and. y == self%yPrevious .and. tableActual == self%tablePrevious)) then
        ! Update interpolation factors.
        call self%interpolationFactors(x,y)
-       ! Perform the interpolation.
+       ! Perform the interpolation, recording the point at which it was made.
+       self%xPrevious    =x
+       self%yPrevious    =y
        self%tablePrevious=tableActual
        self%zPrevious    =                                                                                                           &
             & +(self%zv(self%i,self%j  ,tableActual)*(1.0d0-self%hx)+self%zv(self%i+1,self%j  ,tableActual)*self%hx)*(1.0d0-self%hy) &
@@ -3184,7 +3193,7 @@ contains
     tableActual=1
     if (present(table)) tableActual=table
     ! Test for being recalled with same values.
-    if (.not.(self%xPreviousSet .and. self%yPreviousSet .and. x == self%xLinearPrevious .and. y == self%yLinearPrevious .and. tableActual == self%dTablePrevious .and. dim == self%dimPrevious)) then
+    if (.not.(x == self%dxPrevious .and. y == self%dyPrevious .and. tableActual == self%dTablePrevious .and. dim == self%dimPrevious)) then
        ! Update interpolation factors.
        call self%interpolationFactors(x,y)
        ! Perform the interpolation.
@@ -3208,6 +3217,9 @@ contains
        case default
           call Error_Report('1 ≤ dim ≤ 2 is required'//{introspection:location})
        end select
+       ! Record the point at which the gradient was computed.
+       self%dxPrevious    =x
+       self%dyPrevious    =y
        self%dTablePrevious=tableActual
        self%dimPrevious   =dim
     end if
@@ -3268,6 +3280,10 @@ contains
     self%tablePrevious       =-1
     self%dTablePrevious      =-1
     self%dimPrevious         =-1
+    self%xPrevious           =-1.0d0
+    self%yPrevious           =-1.0d0
+    self%dxPrevious          =-1.0d0
+    self%dyPrevious          =-1.0d0
     self%xPreviousSet        =.false.
     self%yPreviousSet        =.false.
     self%hx                  =-1.0d0

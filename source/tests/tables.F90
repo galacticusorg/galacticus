@@ -634,10 +634,10 @@ contains
     Run a set of assertions over a two-dimensional table through the ``table2D`` base class. ``table_`` must already have been
     created, with two tables; it is populated, exercised, and destroyed here.
 
-    Every value tabulated is affine in the *index* along each axis. Since the internal abscissae of both concrete types are
-    uniformly spaced, that is affine in the internal coordinates too, and so is reproduced exactly by bilinear interpolation
-    wherever it is evaluated---which lets the same assertions be made of every type without knowing which coordinate it
-    interpolates in.
+    The assertions are made without knowing which coordinate a given type interpolates in: interpolation at a tabulated point
+    returns the tabulated value whatever the data, and the gradient is checked against a finite difference of the interpolant
+    itself. The values tabulated vary quadratically with the index along each axis, so that the gradient differs from one cell
+    to the next---which is what lets a gradient memoized at one point be told apart from the gradient at another.
     !!}
     implicit none
     character       (len=*  ), intent(in   )                 :: label
@@ -645,17 +645,18 @@ contains
     integer                                                  :: i               , j
     double precision         , allocatable  , dimension(:  ) :: xValues         , yValues
     double precision         , allocatable  , dimension(:,:) :: zValues
-    double precision                                         :: delta           , gradient, &
-         &                                                      xMid            , yMid    , &
-         &                                                      gradientMemoized
+    double precision                                         :: delta            , gradient         , &
+         &                                                      xMid             , yMid             , &
+         &                                                      gradientMemoized , gradientReference, &
+         &                                                      gradientDiscarded, valueDiscarded
 
     call Assert(label//': a created table reports itself initialized',table_%isInitialized()                 ,.true.)
     call Assert(label//': the table reports the size of each axis'   ,[table_%size(dim=1),table_%size(dim=2)],[11,8])
     ! Populate both tables, the second offset from the first so that the `table` argument is exercised.
     do i=1,table_%size(dim=1)
        do j=1,table_%size(dim=2)
-          call table_%populate(        dble(i)+2.0d0*dble(j),i,j        )
-          call table_%populate(100.0d0+dble(i)+2.0d0*dble(j),i,j,table=2)
+          call table_%populate(        dble(i)**2+2.0d0*dble(j)   ,i,j        )
+          call table_%populate(100.0d0+dble(i)   +2.0d0*dble(j)**2,i,j,table=2)
        end do
     end do
     ! The array accessors must agree with the element accessors.
@@ -724,6 +725,28 @@ contains
          &      table_%interpolate        (table_%x(4),table_%y(3)  ,table=1)                                  , &
          &      table_%z                  (         4 ,         3   ,table=1)                                  , &
          &      absTol=1.0d-9                                                                                    &
+         &     )
+    ! Value and gradient share the interpolation factors from which both are computed, but must be memoized under keys of
+    ! their own. Evaluating either at a point advances those shared factors, and must not thereby make the other - memoized at
+    ! some earlier and different point - answerable at the new one. Tabulated points are used, so that interpolation at each
+    ! returns the tabulated value exactly.
+    valueDiscarded   =table_%interpolate        (table_%x(4),table_%y(3)  ,table=1)
+    gradientDiscarded=table_%interpolateGradient(table_%x(6),table_%y(5),1,table=1)
+    call Assert(label//': a value is not memoized across a gradient taken at another point'                   , &
+         &      table_%interpolate        (table_%x(6),table_%y(5)  ,table=1)                                  , &
+         &      table_%z                  (         6 ,         5   ,table=1)                                  , &
+         &      absTol=1.0d-9                                                                                    &
+         &     )
+    ! The same in the other direction. The reference gradient is taken with the memoized state freshly discarded, which
+    ! repopulating a point with the value it already holds achieves without altering the table.
+    call table_%populate(table_%z(1,1,table=1),1,1,table=1)
+    gradientReference=table_%interpolateGradient(table_%x(6),table_%y(5),1,table=1)
+    call table_%populate(table_%z(1,1,table=1),1,1,table=1)
+    gradientDiscarded=table_%interpolateGradient(table_%x(4),table_%y(3),1,table=1)
+    valueDiscarded   =table_%interpolate        (table_%x(6),table_%y(5)  ,table=1)
+    call Assert(label//': a gradient is not memoized across a value taken at another point'                   , &
+         &      table_%interpolateGradient(table_%x(6),table_%y(5),1,table=1)                                  , &
+         &      gradientReference                                                                                &
          &     )
     ! A destroyed table must no longer report itself initialized. Destruction also discards the memoized interpolation state
     ! along with the values from which it was computed, so that a later interpolation cannot be answered from the memo.
