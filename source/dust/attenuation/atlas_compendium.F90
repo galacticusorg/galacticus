@@ -53,7 +53,8 @@
      double precision                , allocatable, dimension(:,:,:        )   :: extrapolationSpheroidConstant   , extrapolationSpheroidLogarithmic
   end type compendiumTable
   type   (compendiumTable ), allocatable, dimension(:) :: compendiumTables
-  integer                                  , parameter :: compendiumTablesCapacity       =16
+  ! The store starts at this many entries and doubles if that is exceeded.
+  integer                                  , parameter :: compendiumTablesCapacityInitial=16
   integer                                              :: compendiumTablesCount          =0
   type   (ompReadWriteLock)                            :: compendiumTablesLock
   logical                                              :: compendiumTablesLockInitialized =.false.
@@ -420,6 +421,7 @@ contains
     tabulation is located---downloading it if necessary---read once, here, and interpolators built over it.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: Display           , only : displayMagenta    , displayMessage    , displayReset  , verbosityLevelSilent
     use            :: Error             , only : Error_Report
     use            :: File_Utilities    , only : Directory_Make      , File_Exists       , File_Lock     , File_Remove   , &
           &                                      File_Unlock         , lockDescriptor
@@ -449,8 +451,9 @@ contains
          &                                                                                         beginExtrapolationDisk      , countExtrapolationDisk
     integer         (hsize_t                                 )              , dimension(4     ) :: beginSpheroid               , countSpheroid       , &
          &                                                                                         beginExtrapolationSpheroid  , countExtrapolationSpheroid
+    type            (compendiumTable                         ), allocatable, dimension(:      ) :: compendiumTablesTemporary
     type            (varying_string                          )                                  :: tableKey
-    character       (len=128                                 )                                  :: labelTable
+    character       (len=256                                 )                                  :: labelTable
     integer                                                                                     :: indexWavelengthBegin        , indexWavelengthEnd  , &
          &                                                                                         indexDepthOpticalBegin      , indexDepthOpticalEnd, &
          &                                                                                         indexRadiusSpheroidBegin    , indexRadiusSpheroidEnd
@@ -625,14 +628,29 @@ contains
        if (compendiumTables(i)%key == tableKey) self%tableIndex=i
     end do
     if (self%tableIndex == 0) then
-       ! The store is allocated once at its full capacity rather than grown. Growing it would mean copying the
-       ! tables already in it, which for a high resolution tabulation is a transient 297 MB per entry for no
-       ! purpose. The capacity is far beyond any plausible model: it bounds the number of *distinct* tabulations,
-       ! counting a file trimmed two ways as two, and each one costs hundreds of megabytes to hold.
-       if (.not.allocated(compendiumTables)) allocate(compendiumTables(compendiumTablesCapacity))
-       if (compendiumTablesCount == compendiumTablesCapacity) then
-          call compendiumTablesLock%unsetWrite(haveReadLock=.false.)
-          call Error_Report('more distinct compendium tabulations are in use than can be held at once'//{introspection:location})
+       ! The store is allocated at a capacity which no plausible model reaches---it bounds the number of *distinct*
+       ! tabulations, counting a file trimmed two ways as two, and each costs hundreds of megabytes to hold---but
+       ! grows if one does. Growing does not copy the tables: their allocations are transferred to the new array,
+       ! so the cost is that of the descriptors alone, whatever the tables contain.
+       if (.not.allocated(compendiumTables)) allocate(compendiumTables(compendiumTablesCapacityInitial))
+       if (compendiumTablesCount == size(compendiumTables)) then
+          write (labelTable,'(a,i0,a,i0,a)')                                                                       &
+               & 'dust compendium tabulation store grown from ',size(compendiumTables),' entries to ',              &
+               & 2*size(compendiumTables),                                                                          &
+               & ' - raise `compendiumTablesCapacityInitial` if your models routinely need more, to avoid this'
+          call displayMessage(displayMagenta()//"WARNING: "//displayReset()//trim(labelTable),verbosityLevelSilent)
+          call move_alloc(compendiumTables,compendiumTablesTemporary)
+          allocate(compendiumTables(2*compendiumTablesCount))
+          do i=1,compendiumTablesCount
+             compendiumTables(i)%key=compendiumTablesTemporary(i)%key
+             call move_alloc(compendiumTablesTemporary(i)%transmissionDisk                ,compendiumTables(i)%transmissionDisk                )
+             call move_alloc(compendiumTablesTemporary(i)%transmissionSpheroid            ,compendiumTables(i)%transmissionSpheroid            )
+             call move_alloc(compendiumTablesTemporary(i)%extrapolationDiskConstant       ,compendiumTables(i)%extrapolationDiskConstant       )
+             call move_alloc(compendiumTablesTemporary(i)%extrapolationDiskLogarithmic    ,compendiumTables(i)%extrapolationDiskLogarithmic    )
+             call move_alloc(compendiumTablesTemporary(i)%extrapolationSpheroidConstant   ,compendiumTables(i)%extrapolationSpheroidConstant   )
+             call move_alloc(compendiumTablesTemporary(i)%extrapolationSpheroidLogarithmic,compendiumTables(i)%extrapolationSpheroidLogarithmic)
+          end do
+          deallocate(compendiumTablesTemporary)
        end if
        compendiumTablesCount=compendiumTablesCount+1
        self%tableIndex      =compendiumTablesCount
