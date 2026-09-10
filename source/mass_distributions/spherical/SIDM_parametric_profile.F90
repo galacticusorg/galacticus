@@ -329,30 +329,30 @@ contains
        allocate(containerSIDMParametricProfile)
        call containerSIDMParametricProfile%initialize(2)
        ! Specify the number of tabulation points per interval in radius and each parameter.
-       containerSIDMParametricProfile%mass                      %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%mass                      %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%radiusEnclosingDensity    %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%radiusEnclosingDensity    %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%potential                 %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%potential                 %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%velocityDispersion1D      %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%velocityDispersion1D      %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%energy                    %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%energy                    %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%radiusFreefall            %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%radiusFreefall            %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%radiusFreefallIncreaseRate%radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%radiusFreefallIncreaseRate%parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%densityRadialMoment0      %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%densityRadialMoment0      %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%densityRadialMoment1      %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%densityRadialMoment1      %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%densityRadialMoment2      %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%densityRadialMoment2      %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%densityRadialMoment3      %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%densityRadialMoment3      %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%fourierTransform          %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%fourierTransform          %parametersCountPer   =+20_c_size_t
+       containerSIDMParametricProfile%mass                      %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%mass                      %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%radiusEnclosingDensity    %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%radiusEnclosingDensity    %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%potential                 %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%potential                 %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%velocityDispersion1D      %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%velocityDispersion1D      %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%energy                    %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%energy                    %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%radiusFreefall            %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%radiusFreefall            %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%radiusFreefallIncreaseRate%radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%radiusFreefallIncreaseRate%parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment0      %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment0      %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment1      %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment1      %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment2      %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment2      %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment3      %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment3      %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%fourierTransform          %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%fourierTransform          %parametersCountPer   =+ 6_c_size_t
        ! Specify names and descriptions of the parameters.
        containerSIDMParametricProfile%nameParameters                               (1)='radiusCoreOverRadiusScale'
        containerSIDMParametricProfile%descriptionParameters                        (1)='The ratio of core to scale radii.'

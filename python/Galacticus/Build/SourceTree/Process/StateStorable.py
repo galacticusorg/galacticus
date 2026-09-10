@@ -13,6 +13,7 @@ import re
 import xml.etree.ElementTree as ET
 
 
+from Fortran.Utils                       import TYPE_ATTRIBUTES_TAGGED, type_opener_regex
 from List.ExtraUtils                     import as_array
 from XML.Utils                           import xml_to_dict
 from Galacticus.Build.SourceTree         import (
@@ -21,13 +22,7 @@ from Galacticus.Build.SourceTree         import (
 from Galacticus.Build.SourceTree.Process import register_process, process_tree
 
 
-_TYPE_OPENER_RE = re.compile(
-    r'^\s*type\s*'
-    r'((?:,\s*(?:abstract|public|private|extends\s*\([a-zA-Z0-9_]+\))\s*)*)'
-    r'(?:::)?\s*([a-zA-Z0-9_]+)\s*$',
-    re.IGNORECASE,
-)
-_EXTENDS_ATTR_RE = re.compile(r'extends\(([a-zA-Z0-9_]+)\)', re.IGNORECASE)
+_TYPE_OPENER_RE = type_opener_regex(attributes=TYPE_ATTRIBUTES_TAGGED)
 
 
 # ---------------------------------------------------------------------------
@@ -47,17 +42,7 @@ def _parse_type_opener(opener):
     if not m:
         raise RuntimeError(
             "process_state_storable: unable to parse type definition opener")
-    attrs_text = m.group(1).strip().strip(',').strip()
-    type_name  = m.group(2)
-    extends    = None
-    abstract   = False
-    for attr in re.split(r'\s*,\s*', attrs_text) if attrs_text else []:
-        if attr == 'abstract':
-            abstract = True
-        em = _EXTENDS_ATTR_RE.match(attr)
-        if em:
-            extends = em.group(1)
-    return type_name, extends, abstract
+    return m.group('name'), m.group('extends'), m.group('abstract') is not None
 
 
 def _load_state_storables_xml():

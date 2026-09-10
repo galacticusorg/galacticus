@@ -747,7 +747,7 @@ contains
           message="unable to close file object '"//self%objectFile//"'"
           call Error_Report(message//{introspection:location})
        end if
-       if (self%isTemporary) call File_Remove(char(self%objectName))
+       if (self%isTemporary) call File_Remove(char(self%objectFile))
        ! Uninitialize the HDF5 library (will only uninitialize if this is the last file to be closed).
        call IO_HDF5_Uninitialize()
     end if
@@ -977,18 +977,13 @@ contains
     !!{RST
     Returns the name of the file containing ``self``.
     !!}
-    use :: ISO_Varying_String, only : operator(//)
     implicit none
-    class(hdf5Object    ), intent(in   ), target  :: self
-    type (varying_string)                         :: fileName
-    class(hdf5Object    )               , pointer :: parent
+    class(hdf5Object    ), intent(in   ) :: self
+    type (varying_string)                :: fileName
 
-    ! Walk up the chain of parent objects to the file, which is the unique object with no parent (its ``parentObject`` is null).
-    parent  => self
-    do while (associated(parent%parentObject))
-       parent => parent%parentObject
-    end do
-    fileName=parent%objectName
+    ! Every object records the name of the file which contains it - a file object records it when the file is opened, and all
+    ! other objects inherit it from their parent object.
+    fileName=self%objectFile
     return
   end function IO_HDF5_File_Name
 
@@ -1279,25 +1274,25 @@ contains
     ! Create an access list.
     call h5pcreate_f(H5P_FILE_ACCESS_F,accessList,errorCode)
     if (errorCode /= 0) then
-       message="failed to create file access list HDF5 file '"//self%objectName//"'"
+       message="failed to create file access list HDF5 file '"//self%objectFile//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5pset_fclose_degree_f(accessList,H5F_CLOSE_SEMI_F,errorCode)
     if (errorCode /= 0) then
-       message="failed to set close degree for HDF5 file '"//self%objectName//"'"
+       message="failed to set close degree for HDF5 file '"//self%objectFile//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Specify file driver (buffered I/O).
     call h5pset_fapl_stdio_f(accessList,errorCode)
     if (errorCode /= 0) then
-       message="failed to set I/O driver for HDF5 file '"//self%objectName//"'"
+       message="failed to set I/O driver for HDF5 file '"//self%objectFile//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Set sieve buffer size.
     if (present(sieveBufferSize)) then
        call h5pset_sieve_buf_size_f(accessList,sieveBufferSize,errorCode)
        if (errorCode /= 0) then
-          message="failed to set sieve buffer size for HDF5 file '"//self%objectName//"'"
+          message="failed to set sieve buffer size for HDF5 file '"//self%objectFile//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
@@ -1312,14 +1307,14 @@ contains
           call h5pset_libver_bounds_f(accessList,H5F_LIBVER_V18_F   ,H5F_LIBVER_V114_F  ,errorCode)
        end if
        if (errorCode /= 0) then
-          message="failed to set file format for HDF5 file '"//self%objectName//"'"
+          message="failed to set file format for HDF5 file '"//self%objectFile//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        call    h5pset_libver_bounds_f(accessList,H5F_LIBVER_V18_F   ,H5F_LIBVER_V114_F  ,errorCode)
     end if
     if (errorCode /= 0) then
-       message="failed to set file format for HDF5 file '"//self%objectName//"'"
+       message="failed to set file format for HDF5 file '"//self%objectFile//"'"
        call Error_Report(message//{introspection:location})
     end if
     if (present(cacheElementsCount).or.present(cacheSizeBytes)) then
@@ -1366,7 +1361,7 @@ contains
        ! If read only was specified, creating the file is not allowed.
        if (present(readOnly)) then
           if (readOnly) then
-             message="can not create/overwrite read only file '"//self%objectName//"'"
+             message="can not create/overwrite read only file '"//self%objectFile//"'"
              call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
@@ -1380,7 +1375,7 @@ contains
     ! Finished with our property list.
     call h5pclose_f(accessList,errorCode)
     if (errorCode /= 0) then
-       message="failed to close access property list for HDF5 file '"//self%objectName//"'"
+       message="failed to close access property list for HDF5 file '"//self%objectFile//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Store the file ID.
@@ -1540,6 +1535,9 @@ contains
     self%objectFile    =self%parentObject%objectFile
     self%objectLocation=self%parentObject%pathTo    (includeFileName=.false.)
     self%objectName    =trim(groupName)
+    ! Inherit the temporary status of the containing file - whichever object holds the final reference to the file is the
+    ! one which closes it, and so the one which must remove it from the file system (see `IO_HDF5_Finalize_Shared`).
+    self%isTemporary   =self%parentObject%isTemporary
 
     ! Set the chunk size if provided.
     if (present(chunkSize)) then
@@ -1759,6 +1757,9 @@ contains
     self%objectFile    =self%parentObject%objectFile
     self%objectLocation=self%parentObject%pathTo    (includeFileName=.false.)
     self%objectName    =trim(attributeName)
+    ! Inherit the temporary status of the containing file - whichever object holds the final reference to the file is the
+    ! one which closes it, and so the one which must remove it from the file system (see `IO_HDF5_Finalize_Shared`).
+    self%isTemporary   =self%parentObject%isTemporary
 
     ! Mark whether attribute is overwritable.
     if (present(isOverwritable)) then
@@ -3620,7 +3621,8 @@ attributeValue=trim(attributeValue)
           &                           H5T_NATIVE_INTEGER  , h5screate_simple_f   , HID_T               , HSIZE_T           , &
           &                           h5dcreate_f         , h5dget_create_plist_f, h5dopen_f           , h5eset_auto_f     , &
           &                           hsize_t             , h5pclose_f           , h5pcreate_f         , h5pget_chunk_f    , &
-          &                           h5pset_chunk_f      , h5pset_deflate_f     , h5sclose_f
+          &                           h5pset_chunk_f      , h5pset_deflate_f     , h5sclose_f          , h5tget_size_f     , &
+          &                           SIZE_T
     use :: ISO_Varying_String, only : assignment(=)       , operator(//)         , operator(/=)
     implicit none
     type     (hdf5Dataset   )                                        :: self
@@ -3637,6 +3639,7 @@ attributeValue=trim(attributeValue)
     integer  (kind=HSIZE_T  ), dimension(7)                          :: chunkDimensions                            , datasetDimensionsActual, &
          &                                                              datasetDimensionsMaximum
     integer  (kind=HSIZE_T  )                                        :: chunkSizeActual
+    integer  (kind=SIZE_T   )                                        :: dataTypeSize
     integer                                                          :: compressionLevelActual                     , datasetRank            , &
          &                                                              errorCode                                  , appendDimensionActual  , &
          &                                                              iDimension
@@ -3706,6 +3709,9 @@ attributeValue=trim(attributeValue)
     self%objectFile    =self%parentObject%objectFile
     self%objectLocation=self%parentObject%pathTo    (includeFileName=.false.)
     self%objectName    =trim(datasetName)
+    ! Inherit the temporary status of the containing file - whichever object holds the final reference to the file is the
+    ! one which closes it, and so the one which must remove it from the file system (see `IO_HDF5_Finalize_Shared`).
+    self%isTemporary   =self%parentObject%isTemporary
     ! Check if the dataset exists.
     if (inObject%hasDataset(datasetName)) then
        ! Open the dataset.
@@ -3789,51 +3795,6 @@ attributeValue=trim(attributeValue)
           end if
        end if
        self%compressionLevel=compressionLevelActual
-       ! Create a property list for the dataset.
-       call h5pcreate_f(H5P_DATASET_CREATE_F,propertyList,errorCode)
-       if (errorCode < 0) then
-          message="unable to create property list for dataset '"//trim(datasetName)//"'"
-          call Error_Report(message//inObject%locationReport()//{introspection:location})
-       end if
-       ! Check if chunk size needs to be set.
-       if (chunkSizeActual /= -1) then
-          ! It does - determine a suitable chunk size.
-          if (appendToActual) then
-             ! Extensible dataset, use selected chunk size.
-             chunkDimensions(1:datasetRank          )=datasetDimensions
-             chunkDimensions(  appendDimensionActual)=chunkSizeActual
-          else
-             ! Fixed dimension array, use smaller of chunk size and actual size.
-             chunkDimensions(1:datasetRank)=min(datasetDimensionsActual(1:datasetRank),chunkSizeActual)
-          end if
-          ! Reduce chunk size if needed to fit within HDF5's maximum chunk size.
-          iDimension=0
-          do while (product(chunkDimensions(1:datasetRank))*sizeof(0.0d0) > chunkSizeMaximum)
-             iDimension=iDimension+1
-             if (iDimension > datasetRank) iDimension=1
-             chunkDimensions(iDimension)=max(1_hsize_t,chunkDimensions(iDimension)/2_hsize_t)
-          end do
-          call h5pset_chunk_f(propertyList,datasetRank,chunkDimensions,errorCode)
-          if (errorCode < 0) then
-             message="unable to set chunk size for dataset '"//trim(datasetName)//"'"
-             call Error_Report(message//inObject%locationReport()//{introspection:location})
-          end if
-       else
-          ! No chunk size was specified. This is problematic if the dataset is appendable.
-          if (appendToActual) then
-             message="appendable dataset '"//trim(datasetName)//"' requires a chunk size"
-             call Error_Report(message//inObject%locationReport()//{introspection:location})
-          end if
-       end if
-
-       ! Check if compression level should be set.
-       if (compressionLevelActual >= 0) then
-          call h5pset_deflate_f(propertyList,compressionLevelActual,errorCode)
-          if (errorCode < 0) then
-             message="could not set compression level for dataset '"//trim(datasetName)//"'"
-             call Error_Report(message//inObject%locationReport()//{introspection:location})
-          end if
-       end if
        ! Ensure that a data type was specified.
        if (.not.present(datasetDataType)) then
           message="no datatype was specified for dataset '"//trim(datasetName)//"' at "//locationPath
@@ -3859,6 +3820,65 @@ attributeValue=trim(attributeValue)
           case (hdf5DataTypeVlenInteger8  )
              dataTypeID=H5T_VLEN_INTEGER8   (1)
           end select
+       end if
+       ! Determine the size (in bytes) of a single element of this datatype - this is needed to limit the chunk size below.
+       call h5tget_size_f(dataTypeID,dataTypeSize,errorCode)
+       if (errorCode < 0) then
+          message="unable to determine datatype size for dataset '"//trim(datasetName)//"'"
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
+       end if
+       ! Create a property list for the dataset.
+       call h5pcreate_f(H5P_DATASET_CREATE_F,propertyList,errorCode)
+       if (errorCode < 0) then
+          message="unable to create property list for dataset '"//trim(datasetName)//"'"
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
+       end if
+       ! Check if chunk size needs to be set.
+       if (chunkSizeActual /= -1) then
+          ! It does - determine a suitable chunk size.
+          if (appendToActual) then
+             ! Extensible dataset, use selected chunk size.
+             chunkDimensions(1:datasetRank          )=datasetDimensions
+             chunkDimensions(  appendDimensionActual)=chunkSizeActual
+          else
+             ! Fixed dimension array, use smaller of chunk size and actual size.
+             chunkDimensions(1:datasetRank)=min(datasetDimensionsActual(1:datasetRank),chunkSizeActual)
+          end if
+          ! Reduce chunk size if needed to fit within HDF5's maximum chunk size. Dimensions are halved with rounding *up*, so
+          ! that the reduced chunk continues to tile the extent that it tiled before. Rounding down instead leaves a chunk
+          ! which need not divide the extent, in which case HDF5 allocates an extra chunk along that dimension of which only a
+          ! small fraction is ever written - up to ~50% of the allocated space per dimension is then wasted.
+          iDimension=0
+          do while (product(chunkDimensions(1:datasetRank))*int(dataTypeSize,kind=hsize_t) > chunkSizeMaximum)
+             ! Guard against an infinite loop in the case that a single element exceeds the maximum chunk size.
+             if (all(chunkDimensions(1:datasetRank) == 1_hsize_t)) then
+                message="unable to reduce chunk size below HDF5's maximum for dataset '"//trim(datasetName)//"' - a single element of the datatype is too large"
+                call Error_Report(message//inObject%locationReport()//{introspection:location})
+             end if
+             iDimension=iDimension+1
+             if (iDimension > datasetRank) iDimension=1
+             chunkDimensions(iDimension)=max(1_hsize_t,(chunkDimensions(iDimension)+1_hsize_t)/2_hsize_t)
+          end do
+          call h5pset_chunk_f(propertyList,datasetRank,chunkDimensions,errorCode)
+          if (errorCode < 0) then
+             message="unable to set chunk size for dataset '"//trim(datasetName)//"'"
+             call Error_Report(message//inObject%locationReport()//{introspection:location})
+          end if
+       else
+          ! No chunk size was specified. This is problematic if the dataset is appendable.
+          if (appendToActual) then
+             message="appendable dataset '"//trim(datasetName)//"' requires a chunk size"
+             call Error_Report(message//inObject%locationReport()//{introspection:location})
+          end if
+       end if
+
+       ! Check if compression level should be set.
+       if (compressionLevelActual >= 0) then
+          call h5pset_deflate_f(propertyList,compressionLevelActual,errorCode)
+          if (errorCode < 0) then
+             message="could not set compression level for dataset '"//trim(datasetName)//"'"
+             call Error_Report(message//inObject%locationReport()//{introspection:location})
+          end if
        end if
        ! Create the dataset.
        call h5dcreate_f(locationID,trim(datasetName),dataTypeID,dataSpaceID,self%objectID,errorCode,propertyList)

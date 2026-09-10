@@ -12,6 +12,7 @@ These cover the two properties which stand between a bad download and code being
 import hashlib
 import io
 import tarfile
+import zipfile
 
 import pytest
 
@@ -89,6 +90,18 @@ def test_extract_refuses_to_escape_the_destination(tmp_path):
     with pytest.raises(Exception):
         download._extract(archive, tmp_path / "dest", "tar.gz")
     assert not (tmp_path / "ESCAPED").exists()
+
+
+def test_extract_zip_member_can_not_escape_the_destination(tmp_path):
+    """Zip members are unpacked one at a time (to report progress), so the path
+    sanitizing `ZipFile.extractall` performs must still apply."""
+    archive = tmp_path / "evil.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("../ESCAPED", "payload")
+    destination = tmp_path / "dest"
+    download._extract(archive, destination, "zip", log=lambda message: None)
+    assert not (tmp_path / "ESCAPED").exists()
+    assert (destination / "ESCAPED").is_file()
 
 
 def test_extract_unpacks_a_benign_archive(tmp_path):

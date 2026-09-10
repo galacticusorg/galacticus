@@ -190,7 +190,8 @@ contains
     !!{RST
     Reduce over the outputter.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : char
     implicit none
     class(mergerTreeOutputterMulti), intent(inout) :: self
     class(mergerTreeOutputterClass), intent(inout) :: reduced
@@ -206,7 +207,7 @@ contains
           outputterReduced_ => outputterReduced_%next
        end do
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [mergerTreeOutputterMulti] class, but of ['//char(reduced%objectType())//'] class'//{introspection:location})
     end select
     return
   end subroutine multiReduce

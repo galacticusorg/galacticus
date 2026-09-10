@@ -11,8 +11,13 @@ Sub-commands:
   MPI runs.
 * ``clean`` -- purge the regenerable cache (never the durable install).
 * ``info`` -- report the resolved install, paths, and environment.
+* ``install-wsl`` -- (Windows) set up WSL 2 and install Galacticus inside it.
 
 ``galacticus <params.xml>`` is accepted as shorthand for ``galacticus run``.
+
+On a Windows host every command except ``install-wsl`` is forwarded to the
+launcher inside the WSL distribution (see :mod:`galacticus_launcher.wsl`), as
+there is no native Windows binary.
 """
 
 import argparse
@@ -23,9 +28,26 @@ from pathlib import Path
 
 import platformdirs
 
-from . import __version__, download, macos, paths, platforms, validate as _validate
+from . import __version__, download, macos, paths, platforms, validate as _validate, wsl
 
-_COMMANDS = {"install", "update", "run", "validate", "resolve", "clean", "info"}
+_COMMANDS = {"install", "update", "run", "validate", "resolve", "clean", "info",
+             "install-wsl"}
+
+
+def _add_tools_option(parser):
+    """Add the ``--tools`` / ``--no-tools`` switch to a sub-command.
+
+    Tri-state (default ``None`` = "whatever was decided last time"), so that the
+    choice is made once and then honored by every later command which provisions
+    on demand.  Offered on the commands which can trigger a download; a
+    non-managed install ignores it, as nothing is ever downloaded for one.
+    """
+    parser.add_argument(
+        "--tools", action=argparse.BooleanOptionalAction, default=None,
+        help="download the pre-built tools archive (the default). --no-tools "
+             "skips it -- a much smaller, faster install, but only models "
+             "needing none of CAMB, CLASS, Cloudy, ... will run; the choice is "
+             "remembered until --tools is passed")
 
 
 def main(argv=None):
@@ -41,10 +63,15 @@ def main(argv=None):
     parser.add_argument("--version", action="version", version=f"galacticus {__version__}")
     sub = parser.add_subparsers(dest="command")
 
-    sub.add_parser("install", help="download the binary, datasets, and tools")
-    sub.add_parser("update", help="re-download the install for the current version")
+    install_parser = sub.add_parser("install",
+                                    help="download the binary, datasets, and tools")
+    _add_tools_option(install_parser)
+    update_parser = sub.add_parser("update",
+                                   help="re-download the install for the current version")
+    _add_tools_option(update_parser)
 
     run_parser = sub.add_parser("run", help="run a parameter file")
+    _add_tools_option(run_parser)
     run_parser.add_argument("--no-validate", action="store_true",
                             help="skip pre-dispatch parameter validation")
     run_parser.add_argument("--resolve", action="store_true",
@@ -56,6 +83,7 @@ def main(argv=None):
                                  "Galacticus.exe")
 
     validate_parser = sub.add_parser("validate", help="validate a parameter file")
+    _add_tools_option(validate_parser)
     validate_parser.add_argument("parameter_file")
     validate_parser.add_argument("change_files", nargs="*",
                                  help="change files applied (in order) before validation")
@@ -90,13 +118,22 @@ def main(argv=None):
 
     sub.add_parser("info", help="show the resolved install and environment")
 
+    wsl_parser = sub.add_parser(
+        "install-wsl", help="(Windows only) set up WSL 2 and install Galacticus "
+                            "inside it; asks before changing the system")
+    wsl_parser.add_argument("--yes", "-y", action="store_true",
+                            help="proceed without asking for confirmation "
+                                 "(installing WSL needs administrator approval "
+                                 "and a reboot)")
+    _add_tools_option(wsl_parser)
+
     args = parser.parse_args(argv)
     if not args.command:
         parser.print_help()
         return 0
 
     try:
-        return _dispatch(args)
+        return _dispatch(args, argv)
     except platforms.UnsupportedPlatform as error:
         print(f"galacticus: {error}", file=sys.stderr)
         return 2
@@ -105,7 +142,12 @@ def main(argv=None):
         return 1
 
 
-def _dispatch(args):
+def _dispatch(args, argv=()):
+    if args.command == "install-wsl":
+        return wsl.install(yes=args.yes, tools=args.tools)
+    if wsl.is_windows():
+        # No native Windows binary exists: the whole command line runs inside WSL.
+        return wsl.dispatch(list(argv))
     if args.command == "clean":
         return _cmd_clean(args)
     if args.command == "info":
@@ -113,24 +155,25 @@ def _dispatch(args):
 
     install = paths.resolve()
     if args.command in ("install", "update"):
-        return _cmd_install(install, force=(args.command == "update"))
+        return _cmd_install(install, force=(args.command == "update"),
+                            tools=args.tools)
     if args.command == "resolve":
         # Resolution is pure Python; no binary/download is required.
         return _cmd_resolve(install, args)
     if args.command == "validate":
-        _ensure(install)
+        _ensure(install, tools=args.tools)
         return _cmd_validate(install, args.parameter_file, args.structural,
                              args.change_files)
     if args.command == "run":
-        _ensure(install)
+        _ensure(install, tools=args.tools)
         return _cmd_run(install, args)
     raise ValueError(f"unknown command {args.command!r}")  # pragma: no cover
 
 
-def _ensure(install):
+def _ensure(install, *, tools=None):
     """Make sure `install` is runnable, provisioning a managed one on demand."""
     if install.managed:
-        download.provision(install)
+        download.provision(install, tools=tools)
     elif install.binary is None or not Path(install.binary).is_file():
         raise RuntimeError(
             f"no Galacticus executable found for the {install.source} install at "
@@ -145,17 +188,20 @@ def _ensure(install):
             raise RuntimeError(reason)
 
 
-def _cmd_install(install, *, force):
+def _cmd_install(install, *, force, tools=None):
     if not install.managed:
         print(f"Using existing {install.source} install at {install.exec_path}; "
               "nothing to download.")
         return 0
-    done = download.provision(install, force=force)
+    done = download.provision(install, force=force, tools=tools)
     if done:
         print("Provisioned: " + ", ".join(done))
     else:
         print("Install already up to date.")
     print(f"Install location: {install.exec_path.parent}")
+    if download.tools_skipped(install):
+        print("Pre-built tools are NOT installed; models needing them will fail. "
+              "Run `galacticus install --tools` to add them.")
     return 0
 
 
@@ -273,6 +319,13 @@ def _cmd_info():
         suffix = ""
         if name == "GALACTICUS_TOOLS_PATH" and install.tools_path is None:
             value = "(unset; tools share the dynamic path)"
+        elif name == "GALACTICUS_TOOLS_PATH" and install.managed:
+            if download.tools_installed(install):
+                suffix = "  (installed)"
+            elif download.tools_skipped(install):
+                suffix = "  (skipped; `galacticus install --tools` adds them)"
+            else:
+                suffix = "  (not yet installed)"
         elif name == "GALACTICUS_DYNAMIC_DATA_PATH" and not install.managed \
                 and os.environ.get("GALACTICUS_DYNAMIC_DATA_PATH") is None:
             suffix = "  (default <data>/dynamic)"

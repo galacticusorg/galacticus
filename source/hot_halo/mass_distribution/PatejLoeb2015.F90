@@ -99,9 +99,6 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`hotHaloMassDistributionPatejLoeb2015` hot halo mass distribution class.
     !!}
-    use :: Array_Utilities , only : operator(.intersection.)
-    use :: Error           , only : Component_List                   , Error_Report
-    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent, defaultHotHaloComponent
     implicit none
     type            (hotHaloMassDistributionPatejLoeb2015)                        :: self
     double precision                                      , intent(in   )         :: gamma                         , radiusShock
@@ -116,36 +113,10 @@ contains
     if (.not.initialized) then
        !$omp critical(patejLoeb2015Initialized)
        if (.not.initialized) then
-          if     (                                                                                                      &
-               &  .not.(                                                                                                &
-               &         defaultHotHaloComponent          %       massIsGettable()                                      &
-               &        .and.                                                                                           &
-               &         defaultHotHaloComponent          %outerRadiusIsGettable()                                      &
-               &       )                                                                                                &
-               & ) call Error_Report                                                                                    &
-               & (                                                                                                      &
-               &  'This method requires that the "mass" and "outerRadius" properties of the hot halo are gettable.'//   &
-               &  Component_List(                                                                                       &
-               &                 'hotHalo'                                                                           ,  &
-               &                  defaultHotHaloComponent          %       massAttributeMatch(requireGettable=.true.)   &
-               &                 .intersection.                                                                         &
-               &                  defaultHotHaloComponent          %outerRadiusAttributeMatch(requireGettable=.true.)   &
-               &                )                                                                                    // &
-               &  {introspection:location}                                                                              &
-               & )
-          if     (                                                                                                      &
-               &  .not.(                                                                                                &
-               &         defaultDarkMatterProfileComponent%      scaleIsGettable()                                      &
-               &       )                                                                                                &
-               & ) call Error_Report                                                                                    &
-               & (                                                                                                      &
-               &  'This method requires that the "scale" property of the dark matter profile is gettable.'//            &
-               &  Component_List(                                                                                       &
-               &                 'darkMatterProfile'                                                                 ,  &
-               &                  defaultDarkMatterProfileComponent%      scaleAttributeMatch(requireGettable=.true.)   &
-               &                )                                                                                    // &
-               &  {introspection:location}                                                                              &
-               & )
+          !![
+          <componentPropertyAssert class="hotHalo"           properties="mass outerRadius" require="gettable"/>
+          <componentPropertyAssert class="darkMatterProfile" properties="scale"            require="gettable"/>
+          !!]
           initialized=.true.
        end if
        !$omp end critical(patejLoeb2015Initialized)

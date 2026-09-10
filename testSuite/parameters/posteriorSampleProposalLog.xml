@@ -1,6 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <parameters formatVersion="2" version="0.9.4">
-  <!-- Exercises the proposed-state log and the step labelling of sampled model  -->
+  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
+  <!-- Exercises the proposed-state log and the step labeling of sampled model  -->
   <!-- vectors written by `posteriorSampleLikelihoodHaloMassFunction`.           -->
   <!--                                                                          -->
   <!-- `[logProposals]` writes every evaluated proposal, accepted or not, which  -->

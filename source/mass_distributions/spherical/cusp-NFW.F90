@@ -427,31 +427,37 @@ contains
        ! Allocate the table and initialize.
        allocate(containerCuspNFW)
        call containerCuspNFW%initialize(1)
-       ! Specify the number of tabulation points per interval in radius and each parameter.
-       containerCuspNFW%mass                      %radiusCountPer       =+20_c_size_t
-       containerCuspNFW%mass                      %parametersCountPer   =+20_c_size_t
-       containerCuspNFW%radiusEnclosingDensity    %radiusCountPer       =+20_c_size_t
-       containerCuspNFW%radiusEnclosingDensity    %parametersCountPer   =+20_c_size_t
-       containerCuspNFW%potential                 %radiusCountPer       =+20_c_size_t
-       containerCuspNFW%potential                 %parametersCountPer   =+20_c_size_t
-       containerCuspNFW%velocityDispersion1D      %radiusCountPer       =+20_c_size_t
-       containerCuspNFW%velocityDispersion1D      %parametersCountPer   =+20_c_size_t
-       containerCuspNFW%energy                    %radiusCountPer       =+20_c_size_t
-       containerCuspNFW%energy                    %parametersCountPer   =+20_c_size_t
-       containerCuspNFW%radiusFreefall            %radiusCountPer       =+20_c_size_t
-       containerCuspNFW%radiusFreefall            %parametersCountPer   =+20_c_size_t
-       containerCuspNFW%radiusFreefallIncreaseRate%radiusCountPer       =+20_c_size_t
-       containerCuspNFW%radiusFreefallIncreaseRate%parametersCountPer   =+20_c_size_t
-       containerCuspNFW%densityRadialMoment0      %radiusCountPer       =+20_c_size_t
-       containerCuspNFW%densityRadialMoment0      %parametersCountPer   =+20_c_size_t
-       containerCuspNFW%densityRadialMoment1      %radiusCountPer       =+20_c_size_t
-       containerCuspNFW%densityRadialMoment1      %parametersCountPer   =+20_c_size_t
-       containerCuspNFW%densityRadialMoment2      %radiusCountPer       =+20_c_size_t
-       containerCuspNFW%densityRadialMoment2      %parametersCountPer   =+20_c_size_t
-       containerCuspNFW%densityRadialMoment3      %radiusCountPer       =+20_c_size_t
-       containerCuspNFW%densityRadialMoment3      %parametersCountPer   =+20_c_size_t
-       containerCuspNFW%fourierTransform          %radiusCountPer       =+20_c_size_t
-       containerCuspNFW%fourierTransform          %parametersCountPer   =+20_c_size_t
+       ! Specify the number of tabulation points per interval in radius and each parameter. The cusp amplitude, y, is the only
+       ! parameter in any of these classes to carry a hard limit (see below), and the density of points along its axis sets how
+       ! closely the tabulation can approach that limit: the upper bound is pinned to a lattice point *below* the limit, so it
+       ! falls short of it by a fraction 1-10^(-1/N) of N points per decade - 11% at 20 points per decade, but 2% at 100. A
+       ! request between the bound and the limit is met by extrapolation, so this is worth the cost, which is linear here since
+       ! y is the only parameter and so the tabulations are two-dimensional. The extra axis of the Fourier transform tabulation
+       ! - the scaled outer radius - carries no limit, and so keeps the standard density.
+       containerCuspNFW%mass                      %radiusCountPer       =+ 6_c_size_t
+       containerCuspNFW%mass                      %parametersCountPer   =+30_c_size_t
+       containerCuspNFW%radiusEnclosingDensity    %radiusCountPer       =+ 6_c_size_t
+       containerCuspNFW%radiusEnclosingDensity    %parametersCountPer   =+30_c_size_t
+       containerCuspNFW%potential                 %radiusCountPer       =+ 6_c_size_t
+       containerCuspNFW%potential                 %parametersCountPer   =+30_c_size_t
+       containerCuspNFW%velocityDispersion1D      %radiusCountPer       =+ 6_c_size_t
+       containerCuspNFW%velocityDispersion1D      %parametersCountPer   =+30_c_size_t
+       containerCuspNFW%energy                    %radiusCountPer       =+ 6_c_size_t
+       containerCuspNFW%energy                    %parametersCountPer   =+30_c_size_t
+       containerCuspNFW%radiusFreefall            %radiusCountPer       =+ 6_c_size_t
+       containerCuspNFW%radiusFreefall            %parametersCountPer   =+30_c_size_t
+       containerCuspNFW%radiusFreefallIncreaseRate%radiusCountPer       =+ 6_c_size_t
+       containerCuspNFW%radiusFreefallIncreaseRate%parametersCountPer   =+30_c_size_t
+       containerCuspNFW%densityRadialMoment0      %radiusCountPer       =+ 6_c_size_t
+       containerCuspNFW%densityRadialMoment0      %parametersCountPer   =+30_c_size_t
+       containerCuspNFW%densityRadialMoment1      %radiusCountPer       =+ 6_c_size_t
+       containerCuspNFW%densityRadialMoment1      %parametersCountPer   =+30_c_size_t
+       containerCuspNFW%densityRadialMoment2      %radiusCountPer       =+ 6_c_size_t
+       containerCuspNFW%densityRadialMoment2      %parametersCountPer   =+30_c_size_t
+       containerCuspNFW%densityRadialMoment3      %radiusCountPer       =+ 6_c_size_t
+       containerCuspNFW%densityRadialMoment3      %parametersCountPer   =+30_c_size_t
+       containerCuspNFW%fourierTransform          %radiusCountPer       =+ 6_c_size_t
+       containerCuspNFW%fourierTransform          %parametersCountPer   =[30_c_size_t,6_c_size_t]
        ! Specify names and descriptions of the parameters.
        containerCuspNFW%nameParameters                               (1)='y'
        containerCuspNFW%descriptionParameters                        (1)='The cusp amplitude.'

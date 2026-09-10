@@ -251,6 +251,11 @@ Models from `Conroy & Gunn (2010; ascl:1010.043) <http://adsabs.harvard.edu/abs/
   + Computed with v2.5 of FSPS
   + `Salpeter IMF <http://adsabs.harvard.edu/abs/1955ApJ...121..161S>`_
 
+* ``SSP_Spectra_Conroy-et-al_v3.2_imfChabrier.hdf5``
+
+  + Computed with v3.2 of FSPS
+  + `Chabrier IMF <http://adsabs.harvard.edu/abs/2001ApJ...554.1274C>`_
+
 Maraston
 --------
 

@@ -73,14 +73,18 @@ contains
           pathFor=recfastPath//"recfast.for"
           if (.not.File_Exists(pathFor)) then
              block
-               type(varying_string), dimension(2) :: urls
+               type(varying_string), dimension(3) :: urls
 
                call displayMessage("downloading RecFast code....",verbosityLevelWorking)
-               ! The Internet Archive snapshot is tried first as `www.astro.ubc.ca` currently serves an incomplete certificate
-               ! chain (its intermediate certificate is not sent), so its identity can not be verified. The two sources are
-               ! byte-identical; the original is retained as a fallback, and will be used again once that is corrected.
-               urls(1)=var_str("https://web.archive.org/web/20250818121544im_/https://www.astro.ubc.ca/people/scott/recfast.for")
+               ! Three byte-identical sources are tried in turn. RecFast is distributed under a permissive license, so a copy is
+               ! hosted at `users.obs.carnegiescience.edu` and is tried first: the canonical source, `www.astro.ubc.ca`, currently
+               ! serves an incomplete certificate chain (its intermediate certificate is not sent), so its identity can not be
+               ! verified and downloads from it will fail until that is corrected---placing it first would mean every download
+               ! exhausting all retries against it before falling through. It is retained as a fallback, and should be restored to
+               ! first place once that is corrected, with an Internet Archive snapshot of it as a final fallback.
+               urls(1)=var_str("https://users.obs.carnegiescience.edu/abenson/galacticus/recfast.for"                           )
                urls(2)=var_str("https://www.astro.ubc.ca/people/scott/recfast.for"                                              )
+               urls(3)=var_str("https://web.archive.org/web/20250818121544im_/https://www.astro.ubc.ca/people/scott/recfast.for")
                call download(urls,pathFor,retries=5,retryWait=10)
                if (.not.File_Exists(pathFor)) &
                   & call Error_Report("failed to download RecFast code"//{introspection:location})

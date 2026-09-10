@@ -796,6 +796,7 @@ contains
     use :: Error                  , only : Error_Report
     use :: Output_Analyses_Options, only : outputAnalysisCovarianceModelBinomial
     use :: String_Handling        , only : operator(//)
+    use :: ISO_Varying_String     , only : char
     implicit none
     class    (outputAnalysisVolumeFunction1D), intent(inout) :: self
     class    (outputAnalysisClass           ), intent(inout) :: reduced
@@ -838,7 +839,7 @@ contains
        end if
        if (self%report) call displayUnindent('end reduction lock: '//char(self%reportLabel))
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [outputAnalysisVolumeFunction1D] class, but of ['//char(reduced%objectType())//'] class'//{introspection:location})
     end select
     return
   end subroutine volumeFunction1DReduce

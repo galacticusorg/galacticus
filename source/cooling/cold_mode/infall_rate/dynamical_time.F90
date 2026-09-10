@@ -92,8 +92,6 @@ contains
     !!{RST
     Internal constructor for the dynamical time cooling time class.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type            (coldModeInfallRateDynamicalTime)                        :: self
     class           (darkMatterHaloScaleClass       ), intent(in   ), target :: darkMatterHaloScale_
@@ -103,11 +101,9 @@ contains
     !!]
 
     ! Check that the properties we need are gettable.
-    if (.not.defaultHotHaloComponent%massColdIsGettable())                       &
-         & call Error_Report(                                                    &
-         &                   'hot halo component must have gettable cold mass'// &
-         &                   {introspection:location}                            &
-         &                  )
+    !![
+    <componentPropertyAssert class="hotHalo" properties="massCold" require="gettable"/>
+    !!]
     return
   end function dynamicalTimeConstructorInternal
 

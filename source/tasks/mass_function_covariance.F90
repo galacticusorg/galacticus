@@ -17,8 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson. The fix for issue #1321 was diagnosed and drafted with
-!+    assistance from Claude, and reviewed and verified by Andrew Benson.
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
   use :: Conditional_Mass_Functions, only : conditionalMassFunction, conditionalMassFunctionClass
   use :: Cosmology_Functions       , only : cosmologyFunctions     , cosmologyFunctionsClass

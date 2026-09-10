@@ -320,9 +320,13 @@ contains
     return
   end subroutine localGroupDBSelectAll
 
-  subroutine localGroupDBSelect{Type¦label}(self,name,value,comparison,setOperator)
+  subroutine localGroupDBSelect{Type¦label}(self,name,value,comparison,setOperator,propertyRequired)
     !!{RST
     Impose a selection on the database.
+
+    By default it is an error for any galaxy in the current selection to lack the named property. Setting
+    ``propertyRequired=.false.`` instead treats such galaxies as failing the comparison, which is useful for properties---such
+    as membership of a survey census---which are, by their nature, present for only a subset of galaxies.
     !!}
     use                      :: FoX_DOM           , only : getAttributeNode, getTextContent
     use                      :: Error             , only : Error_Report
@@ -334,11 +338,15 @@ contains
     {Type¦intrinsic}                            , intent(in)                  :: value
     type            (enumerationComparisonType ), intent(in   )               :: comparison
     type            (enumerationSetOperatorType), intent(in   )               :: setOperator
+    logical                                     , intent(in   ), optional     :: propertyRequired
     {Type¦intrinsic}                            , allocatable  , dimension(:) :: values
     logical                                     , allocatable  , dimension(:) :: selectedCurrent , isPresent
     type            (node                      )               , pointer      :: galaxy          , attribute
     integer                                                                   :: i
     logical                                                                   :: comparisonResult
+    !![
+    <optionalArgument name="propertyRequired" defaultsTo=".true."/>
+    !!]
 
     allocate(selectedCurrent(0:size(self%galaxies)-1))
     selectedCurrent=self%selected
@@ -346,22 +354,27 @@ contains
     call self%getProperty(name,values,isPresent)
     do i=0,size(self%galaxies)-1
        if (.not.selectedCurrent(i) .and. (setOperator == setOperatorIntersection .or.  setOperator == setOperatorRelativeComplement)) cycle
-       if (.not.isPresent(i+1)) then
-          galaxy    => self%galaxies(i)%element
-          attribute => getAttributeNode(galaxy,'name')
-         call Error_Report('property "'//name//'" is not present in selected galaxy "'//getTextContent(attribute)//'"'//{introspection:location})
-       end if
-       select case (comparison%ID)
-       case (comparisonEquals     %ID)
-          comparisonResult=values(i+1) == value
-       case (comparisonLessThan   %ID)
-          comparisonResult=values(i+1) <  value
-       case (comparisonGreaterThan%ID)
-          comparisonResult=values(i+1) >  value
-       case default
+       if (isPresent(i+1)) then
+          select case (comparison%ID)
+          case (comparisonEquals     %ID)
+             comparisonResult=values(i+1) == value
+          case (comparisonLessThan   %ID)
+             comparisonResult=values(i+1) <  value
+          case (comparisonGreaterThan%ID)
+             comparisonResult=values(i+1) >  value
+          case default
+             comparisonResult=.false.
+             call Error_Report('unknown comparison operator'//{introspection:location})
+          end select
+       else if (propertyRequired_) then
+          comparisonResult =  .false.
+          galaxy           => self%galaxies(i)%element
+          attribute        => getAttributeNode(galaxy,'name')
+          call Error_Report('property "'//name//'" is not present in selected galaxy "'//getTextContent(attribute)//'"'//{introspection:location})
+       else
+          ! Galaxies which lack the property are treated as failing the comparison.
           comparisonResult=.false.
-          call Error_Report('unknown comparison operator'//{introspection:location})
-       end select
+       end if
        select case (setOperator%ID)
        case (setOperatorIntersection      %ID)
           selectedCurrent(i)=selectedCurrent(i) .and.      comparisonResult
@@ -370,7 +383,7 @@ contains
        case (setOperatorRelativeComplement%ID)
           selectedCurrent(i)=selectedCurrent(i) .and. .not.comparisonResult
        case default
-          call Error_Report('unknown set operator'       //{introspection:location})
+          call Error_Report('unknown set operator'//{introspection:location})
        end select
     end do
     self%selected=selectedCurrent

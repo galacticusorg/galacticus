@@ -68,10 +68,7 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`hotHaloMassDistributionBetaProfile` hot halo mass distribution class which takes a parameter set as input.
     !!}
-    use :: Array_Utilities , only : operator(.intersection.)
-    use :: Error           , only : Component_List          , Error_Report
-    use :: Galacticus_Nodes, only : defaultHotHaloComponent
-    use :: Input_Parameters, only : inputParameter          , inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (hotHaloMassDistributionBetaProfile    )                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
@@ -83,23 +80,9 @@ contains
        !$omp critical(betaProfileInitialized)
        if (.not.initialized) then
           ! Check that required property is gettable.
-          if     (                                                                                            &
-               &  .not.(                                                                                      &
-               &         defaultHotHaloComponent%       massIsGettable()                                      &
-               &        .and.                                                                                 &
-               &         defaultHotHaloComponent%outerRadiusIsGettable()                                      &
-               &       )                                                                                      &
-               & ) call Error_Report                                                                          &
-               & (                                                                                            &
-               &  'This method requires that the "mass" property of the hot halo is gettable.'//              &
-               &  Component_List(                                                                             &
-               &                 'hotHalo'                                                                 ,  &
-               &                  defaultHotHaloComponent%       massAttributeMatch(requireGettable=.true.)   &
-               &                 .intersection.                                                               &
-               &                  defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.)   &
-               &                )                                                                          // &
-               &  {introspection:location}                                                                    &
-               & )
+          !![
+          <componentPropertyAssert class="hotHalo" properties="mass outerRadius" require="gettable"/>
+          !!]
           initialized=.true.
        end if
        !$omp end critical(betaProfileInitialized)

@@ -2,7 +2,7 @@
 <!-- Compute prompt cusp parameters - used in testing the calculation again Sten Delos' implementation. -->
 
 <parameters>
-  <lastModified revision="a3e1665914d944c9fa844f662a028072e84740a5" time="2026-07-28T17:29:21"/>
+  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
@@ -351,7 +351,8 @@
       <C value=" 0.800"/>
       <kappa value=" 4.500"/>
       <coefficientScatter value=" 0.195"/>
-    </nodeOperator>    
+      <requireCollapseBeforeHalo value="true"/>
+    </nodeOperator>
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Spins are computed using the angular momentum random walk model of Benson, Behrens, & Lu     -->
     <!-- (2020; MNRAS; 496; 3371; http://adsabs.harvard.edu/abs/2020MNRAS.496.3371B).                 -->
@@ -433,7 +434,19 @@
   <mergerTreeOutputter value="standard"/>
 
   <!-- setting merger tree operator to output the full tree structure after building it -->
-  <mergerTreeOperator value="assignOrbits"/>
+  <!-- Halos in which no prompt cusp can form are labeled by the `darkMatterProfilePromptCusps` node operator during tree
+       initialization: such halos can not have formed, so they are pruned from the tree here. This must precede the assignment of
+       orbits, so that orbits are assigned only to those halos which remain. -->
+  <mergerTreeOperator value="sequence">
+    <mergerTreeOperator value="pruneByFilter">
+      <preservePrimaryProgenitor value="false"/>
+      <pruneAllProgenitors       value="true" />
+      <galacticFilter value="labelled">
+        <label value="promptCuspUnformed"/>
+      </galacticFilter>
+    </mergerTreeOperator>
+    <mergerTreeOperator value="assignOrbits"/>
+  </mergerTreeOperator>
 
   <!-- Output file -->
   <outputFileName value="testSuite/outputs/testPromptCuspNFW.hdf5"/>

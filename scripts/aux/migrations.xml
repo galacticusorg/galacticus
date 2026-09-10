@@ -305,6 +305,56 @@
       <remove/>
     </translation>
   </migration>
+  <migration commit="3d1d472f3d7fccfd1f0b6f047774c01e0ca427eb">
+    <translation xpath="//starFormationRateSurfaceDensityDisks[@value='krumholz2009']/assumeMonotonicSurfaceDensity[@value]">
+      <remove/>
+    </translation>
+  </migration>
+  <migration commit="9664f0bc59ca51e262b671cf24853d3ca6213b9c">
+    <!-- The `accretionFlowShi2016` dark matter profile class no longer makes use of critical  -->
+    <!-- overdensity or cosmological mass variance objects - the peak height which it required -->
+    <!-- them for is now evaluated by the `darkMatterHaloSplashbackRadius` class instead.      -->
+    <translation xpath="//darkMatterProfileDMO[@value='accretionFlowShi2016']/criticalOverdensity[@value]">
+      <remove/>
+    </translation>
+    <translation xpath="//darkMatterProfileDMO[@value='accretionFlowShi2016']/cosmologicalMassVariance[@value]">
+      <remove/>
+    </translation>
+    <!-- Both accretion flow classes now take their transition radius from a splashback radius  -->
+    <!-- object which defaults to `diemer2020`. Pin the previous model to retain the original   -->
+    <!-- behavior of existing parameter files.                                                  -->
+    <translation function="splashback_radius_accretion_flow"/>
+  </migration>
+  <migration commit="def071a0fd5184deb821b30d7f382e27cbafa49e">
+    <!-- The fuzzy dark matter tidal stripping classes were renamed, so that their names indicate  -->
+    <!-- that they apply only to solitonic halos.                                                  -->
+    <translation xpath="//nodeOperator[@value]">
+      <value old="satelliteConditionalMassLoss" new="satelliteTidalMassLossSoliton"/>
+    </translation>
+    <translation xpath="//satelliteTidalStrippingRadius[@value]">
+      <value old="limited" new="solitonLimited"/>
+    </translation>
+  </migration>
+
+  <migration commit="ece0d28426e2797fbd0042eadab736710304dec1">
+    <!-- The `darkMatterProfilePromptCusps` node operator now follows the reference implementation of Delos & White (2025) in  -->
+    <!-- assigning no cusp to halos for which the cusp collapse epoch postdates the halo itself - such halos can not have      -->
+    <!-- formed, and are pruned from the merger tree. This changes the physics of existing models, so pin the original         -->
+    <!-- behavior here. Models which want the new behavior should set `requireCollapseBeforeHalo` to true and add a merger     -->
+    <!-- tree operator to prune the labeled halos.                                                                            -->
+    <translation function="prompt_cusp_require_collapse_before_halo"/>
+  </migration>
+
+  <migration commit="8d876521514e569cd4a0d2cb50c958a62e7ea12c">
+    <!-- The `stellarSpectraDustAttenuation` class and the `lmnstyStllrCF2000` property extractor were retired in    -->
+    <!-- favor of the `dustAttenuation` and `dustExtinctionCurve` classes. The former was consumed only by classes   -->
+    <!-- which have themselves been migrated, so the parameter is simply removed; the latter is replaced by the      -->
+    <!-- equivalent structure of extractors.                                                                        -->
+    <translation xpath="//stellarSpectraDustAttenuation[@value]">
+      <remove/>
+    </translation>
+    <translation function="dust_attenuation_framework"/>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />

@@ -17,12 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a Gaussian ellipsoid mass distribution class.
   !!}
 
   use :: Linear_Algebra, only : matrix
-  
+
+  ! Generate a source digest. The tabulated accelerations are the scale-free solution (a₃ = 1) on grids fixed by the module
+  ! parameters in `gaussianEllipsoidAccelerationTabulate`, so no object's parameters enter their values and none belong in the
+  ! cache file name. They do depend on the code which generates them, so the digest is what that name is keyed on.
+  !![
+  <sourceDigest name="massDistributionGaussianEllipsoidSourceDigest"/>
+  !!]
+
   !![
   <massDistribution name="massDistributionGaussianEllipsoid" docformat="rst">
    <description>
@@ -524,6 +533,7 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
     use :: Numerical_Ranges        , only : Make_Range           , rangeTypeLogarithmic
+    use :: String_Handling         , only : String_C_To_Fortran
     implicit none
     class           (massDistributionGaussianEllipsoid), intent(inout)       :: self
     double precision                                   , dimension(3) , save :: positionCartesian          , scaleLength
@@ -548,10 +558,12 @@ contains
       type   (lockDescriptor) :: fileLock
       integer                 :: iLock
 
-      ! Construct a file name for the table.
-      fileName=inputPath(pathTypeDataDynamic)// &
-           &   'galacticStructure/'          // &
-           &   self%objectType()             // &
+      ! Construct a file name for the table. The tabulation is the scale-free solution and so carries no descriptor of this
+      ! object's parameters, only the digest of the source which generates it.
+      fileName=inputPath(pathTypeDataDynamic)                                    // &
+           &   'galacticStructure/'                                              // &
+           &   self%objectType()//'_'                                            // &
+           &   String_C_To_Fortran(massDistributionGaussianEllipsoidSourceDigest)// &
            &   '.hdf5'
       call Directory_Make(File_Path(fileName))
       ! Read the table or, if it does not yet exist, build and write it. Two passes are made: the first

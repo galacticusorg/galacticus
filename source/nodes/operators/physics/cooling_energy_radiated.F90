@@ -376,6 +376,8 @@ contains
     use :: Galacticus_Nodes          , only : nodeComponentBasic   , nodeComponentHotHalo
     use :: Galactic_Structure_Options, only : massTypeGalactic
     use :: Mass_Distributions        , only : massDistributionClass
+    use :: ISO_Varying_String        , only : char
+    use :: Function_Classes          , only : functionClass
     implicit none
     class           (*                    ), intent(inout) :: self
     class           (nodeComponentHotHalo ), intent(inout) :: hotHalo
@@ -399,8 +401,10 @@ contains
        !!]
        if (massNotional > 0.0d0) &
             & call hotHalo%floatRank0MetaPropertyRate(self%energyRadiatedID,-hotHalo%floatRank0MetaPropertyGet(self%energyRadiatedID)*massRate/massNotional)
+    class is (functionClass)
+       call Error_Report('object is not of [nodeOperatorCoolingEnergyRadiated] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [nodeOperatorCoolingEnergyRadiated] class'//{introspection:location})
     end select
     return
   end subroutine coolingEnergyRadiatedHotHaloMassEjection

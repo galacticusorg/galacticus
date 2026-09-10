@@ -216,6 +216,10 @@ contains
     !!}
     use :: Numerical_Ranges, only : Make_Range          , rangeTypeLogarithmic
     use :: Table_Labels    , only : extrapolationTypeFix, extrapolationTypeZero
+#ifdef USEMPI
+    use :: Display         , only : displayGreen        , displayReset
+    use :: Error           , only : Error_Report
+#endif
     implicit none
     type            (radiationFieldIntergalacticBackgroundInternal)                        :: self
     integer                                                        , intent(in   )         :: wavelengthCountPerDecade          , timeCountPerDecade
@@ -235,6 +239,22 @@ contains
     <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, wavelengthCountPerDecade, redshiftMinimum, redshiftMaximum, timeCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumState_, *atomicCrossSectionIonizationPhoto_, *accretionDiskSpectra_, *starFormationRateDisks_, *starFormationRateSpheroids_, *stellarPopulationSelector_, *outputTimes_"/>
     !!]
 
+#ifdef USEMPI
+    ! This class evolves the background radiation field self-consistently with the galaxy population, which requires that every
+    ! tree be evolved to a common cosmic time before the field can be updated. Trees which reach that time first must therefore be
+    ! suspended while the others catch up, and suspending a tree is not supported under MPI. The guard is placed here, rather than
+    ! being left to the point at which a tree must first be suspended, so that the run fails immediately with a message naming the
+    ! parameter responsible rather than partway through evolution naming an internal mechanism.
+    call Error_Report(                                                                                                  &
+         &            'the internal intergalactic background radiation field is not supported under MPI'//char(10)   // &
+         &            displayGreen()//'HELP:'//displayReset()                                                        // &
+         &            ' this radiation field is evolved self-consistently with the galaxy population, which requires'// &
+         &            ' suspending trees that reach a universal event before the others, and that is not supported'  // &
+         &            ' under MPI. Either select a different `radiationField`, or run as a single process using'     // &
+         &            ' OpenMP threads, which is unaffected'                                                         // &
+         &            {introspection:location}                                                                          &
+         &           )
+#endif
     ! Build tables of wavelength and time for cosmic background radiation.
     self%timeMaximum=self%cosmologyFunctions_%cosmicTime                 (                      &
          &           self%cosmologyFunctions_%expansionFactorFromRedshift (                     &
@@ -443,8 +463,10 @@ contains
     !!{RST
     Attach an initial event to the universe to cause the background radiation update function to be called.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : universe    , universeEvent
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : universe     , universeEvent
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class  (*                                   ), intent(inout), target :: self
     type   (universe                            ), intent(inout)         :: universe_
@@ -474,8 +496,10 @@ contains
           self%timePrevious             =  -1.0d0
           self%statePrevious            => null()
        end if
+    class is (functionClass)
+       call Error_Report('object is not of [radiationFieldIntergalacticBackgroundInternal] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [radiationFieldIntergalacticBackgroundInternal] class'//{introspection:location})
     end select
     return
   end subroutine intergalacticBackgroundInternalUniversePreEvolve

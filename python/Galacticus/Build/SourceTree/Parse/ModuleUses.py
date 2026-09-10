@@ -10,6 +10,14 @@ import copy
 
 from Galacticus.Build.FortranUtils import get_fortran_line
 
+# Formatting rules for emitted `use` statements.  `SYMBOLS_PER_ROW_MAX` is the
+# usual number of `only` symbols per row; `LINE_LENGTH_MAX` is the column
+# beyond which `update_uses()` drops to fewer symbols per row.  132 is the
+# Fortran free-form standard limit — not enforced here (the build passes
+# `-ffree-line-length-none`) but kept as the house style.
+SYMBOLS_PER_ROW_MAX = 4
+LINE_LENGTH_MAX     = 132
+
 # NB: the `(?![a-zA-Z0-9_])` after `use` is essential — without it, an
 # assignment to a variable whose name merely *starts* with "use" (e.g.
 # `useCache=lastCache`) parses as `use Cache, only : =lastCache`, fabricating
@@ -22,6 +30,167 @@ _MODULE_USE_RE = re.compile(
     r'\s*(,\s*only\s*:)?\s*([a-zA-Z0-9_()/=*\-+.,\s]+)?\s*$',
     re.IGNORECASE,
 )
+
+
+# Preprocessor directives which `update_uses` is able to *rebuild* from an
+# entry's `conditions` list — and therefore the only ones that may be absorbed
+# into a moduleUse block.  Each must match the whole line: anything trailing
+# (`#endif // USEMPI`) would be lost when the block is rebuilt.  Macro names
+# are upper case as elsewhere in the build system; a name outside that set
+# (`#ifndef __aarch64__`) is left as ordinary code rather than half-matched.
+_PP_IFDEF_RE  = re.compile(r'^#ifdef\s+([A-Z0-9_]+)\s*$' )
+_PP_IFNDEF_RE = re.compile(r'^#ifndef\s+([A-Z0-9_]+)\s*$')
+_PP_ELSE_RE   = re.compile(r'^#else\s*$'                 )
+_PP_ENDIF_RE  = re.compile(r'^#endif\s*$'                )
+# Openers and closers we cannot rebuild, but which must still be *paired* so
+# that the region structure is tracked correctly.
+_PP_IF_ANY_RE    = re.compile(r'^#if(def|ndef)?\b')
+_PP_ELSE_ANY_RE  = re.compile(r'^#(else|elif)\b' )
+_PP_ENDIF_ANY_RE = re.compile(r'^#endif\b'       )
+
+
+def _pp_directive(processed_line):
+    """Classify a preprocessor line.
+
+    Returns `(kind, name, invert)` where `kind` is one of:
+
+      `'open'`       — `#ifdef NAME` / `#ifndef NAME`, rebuildable as a
+                       condition on the `use` statements it guards;
+      `'openOther'`  — any other conditional opener (`#if …`), which opens a
+                       region but can never be rebuilt;
+      `'else'`       — a bare `#else`, which inverts the enclosing condition;
+      `'elseOther'`  — `#elif …`, or an `#else` with trailing text;
+      `'close'`      — a bare `#endif`;
+      `'closeOther'` — an `#endif` with trailing text;
+      `'other'`      — a non-conditional directive (`#include`, `#define`, …).
+
+    `name`/`invert` are meaningful only for `kind == 'open'`.
+    """
+    m = _PP_IFDEF_RE.match(processed_line)
+    if m:
+        return 'open', m.group(1), False
+    m = _PP_IFNDEF_RE.match(processed_line)
+    if m:
+        return 'open', m.group(1), True
+    if _PP_IF_ANY_RE.match(processed_line):
+        return 'openOther', None, False
+    if _PP_ELSE_RE.match(processed_line):
+        return 'else', None, False
+    if _PP_ELSE_ANY_RE.match(processed_line):
+        return 'elseOther', None, False
+    if _PP_ENDIF_RE.match(processed_line):
+        return 'close', None, False
+    if _PP_ENDIF_ANY_RE.match(processed_line):
+        return 'closeOther', None, False
+    return 'other', None, False
+
+
+def _classify_preprocessor_directives(content):
+    """Decide which preprocessor directives in a code node may be *claimed*.
+
+    A directive is "claimed" when `parse_module_uses` absorbs it into a
+    moduleUse block and records it in the `conditions` of the `use` statements
+    it guards — from which `update_uses` rebuilds a matching
+    `#ifdef … #endif` wrapper.  That is faithful only when the guarded region
+    contains **nothing but `use` statements and other claimed directives**.
+
+    Where the region also covers the code *after* the `use` statements, the
+    rebuilt block closes its own wrapper early while the original `#endif`
+    survives in the following code node — one `#endif` too many, which fails
+    to compile (issue #1385).  The parsed structure round-trips perfectly in
+    that case, so nothing downstream can catch it; the region has to be
+    rejected here.
+
+    A region is therefore claimable only if all of the following hold:
+
+    * it opens and closes within this code node — a guard that is still open
+      when the node ends cannot be closed by the rebuilt block;
+    * every line inside it is a `use` statement or a claimable directive —
+      any other line (plain code, a comment, a blank line) closes the
+      moduleUse block while the guard is still open;
+    * its own directives are rebuildable — `#if`, `#elif`, `#include`,
+      `#define` and friends are not, and are emitted verbatim as code, which
+      likewise splits a block that a surrounding guard was claimed for.
+
+    The last point propagates outwards: an unclaimable region nested inside
+    another makes the outer one unclaimable too, because its directives are
+    emitted as ordinary code *inside* the outer region.
+
+    Returns `(claimable, enclosing)`, both keyed by logical-line index within
+    `content`: `claimable[i]` is `True` for a directive line that may be
+    claimed, and `enclosing[i]` is the list of unclaimable regions enclosing
+    line `i` (used to tell whether a moduleUse block sits inside a guard that
+    is left in place — see `add_uses`).
+    """
+    claimable = {}
+    enclosing = {}
+    regions   = []   # open regions, outermost first
+    index     = 0
+
+    if '#' not in content:
+        # Nothing to classify — skip a second pass over the whole node.
+        return claimable, enclosing
+
+    fh = io.StringIO(content)
+    while True:
+        raw_line, processed_line, _ = get_fortran_line(fh)
+        if not raw_line and not processed_line:
+            break
+        enclosing[index] = list(regions)
+
+        if processed_line.startswith('#'):
+            kind, _name, _invert = _pp_directive(processed_line)
+            if kind in ('open', 'openOther'):
+                regions.append({'lines': [index], 'claimable': kind == 'open'})
+            elif kind in ('else', 'elseOther'):
+                if regions:
+                    regions[-1]['lines'].append(index)
+                    if kind == 'elseOther':
+                        regions[-1]['claimable'] = False
+                else:
+                    claimable[index] = False
+            elif kind in ('close', 'closeOther'):
+                if regions:
+                    region = regions.pop()
+                    region['lines'].append(index)
+                    # Record the verdict on the region itself, not only on its
+                    # lines: `enclosing` holds these same dicts, and a block
+                    # inside a region rejected for its *closer* alone must
+                    # still count as sitting inside a left-in-place guard.
+                    region['claimable'] = verdict = (
+                        region['claimable'] and kind == 'close')
+                    for i in region['lines']:
+                        claimable[i] = verdict
+                    if not verdict:
+                        # The region's own directives become ordinary code
+                        # inside every region enclosing it.
+                        for outer in regions:
+                            outer['claimable'] = False
+                else:
+                    claimable[index] = False
+            else:
+                # A directive we cannot rebuild — leave it in place as code.
+                claimable[index] = False
+                for outer in regions:
+                    outer['claimable'] = False
+        elif not _MODULE_USE_RE.match(processed_line):
+            # Plain code (or a comment, or a blank line) — it will close any
+            # open moduleUse block, so no enclosing guard can be claimed.
+            for outer in regions:
+                outer['claimable'] = False
+
+        index += 1
+
+    # Regions left open at the end of the node never close within it.
+    for region in regions:
+        region['claimable'] = False
+        for i in region['lines']:
+            claimable[i] = False
+
+    for index, open_regions in enclosing.items():
+        enclosing[index] = [r for r in open_regions if not r['claimable']]
+
+    return claimable, enclosing
 
 
 def _as_entry_list(value):
@@ -42,6 +211,29 @@ def _as_entry_list(value):
 def _condition_key(entry):
     """A hashable identity for an entry's preprocessor condition set."""
     return tuple((c['name'], c['invert']) for c in entry.get('conditions', []))
+
+
+def _insert_module_ordered(module_order, module_uses, mod_name, is_intrinsic):
+    """Record `mod_name` in `module_order`, intrinsic modules first.
+
+    Intrinsic modules (`use, intrinsic :: ISO_C_Binding`) are hoisted ahead of
+    the rest, but keep their order of appearance *among themselves* — they are
+    inserted after any intrinsic modules already recorded, not at index zero.
+
+    Inserting at index zero instead would reverse the intrinsic modules on
+    every pass, so a block naming two of them oscillated between two layouts
+    and reformatting never reached a fixed point.
+    """
+    if not is_intrinsic:
+        module_order.append(mod_name)
+        return
+    index = 0
+    for name in module_order:
+        if not any(entry.get('intrinsic')
+                   for entry in _as_entry_list(module_uses.get(name, []))):
+            break
+        index += 1
+    module_order.insert(index, mod_name)
 
 
 def parse_module_uses(tree):
@@ -73,6 +265,12 @@ def parse_module_uses(tree):
         raw_use_line    = line_no
         pp_first_line   = line_no   # first line of the buffered pp-directive run
         current_line    = line_no
+        line_index      = 0         # logical-line index within this node
+        use_line_index  = 0         # …of the first line of the open use block
+
+        # Which preprocessor directives in this node may be absorbed into a
+        # moduleUse block and re-emitted from its `conditions` (issue #1385).
+        claimable, enclosing = _classify_preprocessor_directives(content)
 
         fh = io.StringIO(content)
 
@@ -109,6 +307,12 @@ def parse_module_uses(tree):
                 'source':      source,
                 'line':        raw_use_line,
             }
+            # Record whether the block sits inside a preprocessor guard that
+            # is left in place as ordinary code.  `add_uses` avoids merging
+            # into such a block: an unconditional import added there would be
+            # compiled only when that guard happens to be satisfied.
+            if enclosing.get(use_line_index):
+                mu_node['inUnclaimedGuard'] = True
             child = _make_code_node(''.join(raw_use_buf), source, raw_use_line)
             child['parent'] = mu_node
             mu_node['firstChild'] = child
@@ -145,7 +349,8 @@ def parse_module_uses(tree):
                 # line (if any) — the block's emitted content begins there,
                 # so its `.lmap` anchor must too.
                 if not raw_use_buf:
-                    raw_use_line = pp_first_line if raw_pp_buf else current_line
+                    raw_use_line   = pp_first_line if raw_pp_buf else current_line
+                    use_line_index = line_index
                 # Absorb any buffered preprocessor lines into the use block.
                 if raw_pp_buf:
                     raw_use_buf.extend(raw_pp_buf)
@@ -168,10 +373,8 @@ def parse_module_uses(tree):
                 entries = module_uses.setdefault(mod_name, [])
                 if not entries:
                     # First occurrence of this module name fixes its order.
-                    if is_intrinsic:
-                        module_order.insert(0, mod_name)
-                    else:
-                        module_order.append(mod_name)
+                    _insert_module_ordered(
+                        module_order, module_uses, mod_name, is_intrinsic)
 
                 entry = next(
                     (e for e in entries if _condition_key(e) == cond_key), None)
@@ -195,8 +398,12 @@ def parse_module_uses(tree):
                     entry['all'] = True
                     entry.pop('only', None)
 
-            elif processed_line.startswith('#'):
-                # Preprocessor directive.
+            elif processed_line.startswith('#') and claimable.get(line_index):
+                # Preprocessor directive guarding nothing but `use` statements
+                # — absorb it into the use block and record it as a condition,
+                # from which `update_uses` rebuilds the wrapper.  Directives
+                # the pre-scan did not clear fall through to the plain-code
+                # branch below and are emitted where they stand (issue #1385).
                 if module_uses:
                     # Inside a use block — keep it in the use buffer.
                     is_use = True
@@ -207,15 +414,12 @@ def parse_module_uses(tree):
                     raw_pp_buf.append(raw_line)
 
                 # Update the preprocessor stack.
-                pm = re.match(r'^#ifdef\s+([A-Z0-9_]+)', processed_line)
-                if pm:
-                    pp_stack.append({'name': pm.group(1), 'invert': False})
-                pm = re.match(r'^#ifndef\s+([A-Z0-9_]+)', processed_line)
-                if pm:
-                    pp_stack.append({'name': pm.group(1), 'invert': True})
-                if re.match(r'^#endif', processed_line) and pp_stack:
+                kind, name, invert = _pp_directive(processed_line)
+                if kind == 'open':
+                    pp_stack.append({'name': name, 'invert': invert})
+                elif kind == 'close' and pp_stack:
                     pp_stack.pop()
-                if re.match(r'^#else', processed_line) and pp_stack:
+                elif kind == 'else' and pp_stack:
                     top = pp_stack.pop()
                     top['invert'] = not top['invert']
                     pp_stack.append(top)
@@ -231,6 +435,7 @@ def parse_module_uses(tree):
                 raw_code_buf.append(raw_line)
 
             current_line = line_after
+            line_index  += 1
 
         # Only replace if the node actually changed.
         single_code = (
@@ -252,17 +457,29 @@ def update_uses(uses_node):
     """
     from Galacticus.Build.FortranUtils import get_fortran_line
 
-    # Determine indentation from the existing raw content.
-    indent = ""
+    # Determine the block's indentation from the existing raw content: the
+    # smallest indent of any `use` statement in it.
+    #
+    # The minimum is what keeps this function idempotent.  The emitter below
+    # starts every statement at the block's indent, so re-reading its own
+    # output recovers that indent exactly — but a block laid out by hand (or
+    # by an earlier convention, which padded unconditional `use` statements
+    # three columns to the right so that `use` lined up with the `use` after
+    # a `!$ ` sentinel) may indent some of its statements further.  Taking the
+    # minimum recovers the base indent in either case.
+    #
+    # Only `use` lines are considered: any `#ifdef` guards in the block start
+    # at column zero and would otherwise drag the indent to nothing.
     raw_content = uses_node['firstChild']['content'] if uses_node.get('firstChild') else ""
+    indents = []
     fh = io.StringIO(raw_content)
-    while indent == "":
+    while True:
         raw_line, processed_line, _ = get_fortran_line(fh)
         if not raw_line and not processed_line:
             break
-        m = re.match(r'^(\s*)', raw_line)
-        if m:
-            indent = m.group(1)
+        if _MODULE_USE_RE.match(processed_line):
+            indents.append(re.match(r'^(\s*)', raw_line).group(1))
+    indent = min(indents, key=len) if indents else ""
 
     module_use  = uses_node.get('moduleUse', {})
     module_order = uses_node.get('moduleOrder', list(module_use.keys()))
@@ -276,18 +493,22 @@ def update_uses(uses_node):
 
     name_len_max = max((len(n) for n in module_use), default=0)
 
-    # Compute 4-column max widths for 'only' symbols.
-    col_max = [0, 0, 0, 0]
-    for v in module_use.values():
-        for entry in _as_entry_list(v):
-            only = entry.get('only', {})
-            if only:
-                for i, sym in enumerate(sorted(only.keys())):
-                    j = i % 4
+    def _column_widths(symbols_per_row):
+        """Max width of each symbol column, over every `use` in the block.
+
+        Widths are shared across the whole block so that symbols line up
+        between `use` statements, not merely within one.
+        """
+        col_max = [0] * symbols_per_row
+        for v in module_use.values():
+            for entry in _as_entry_list(v):
+                for i, sym in enumerate(sorted(entry.get('only', {}).keys())):
+                    j = i % symbols_per_row
                     if len(sym) > col_max[j]:
                         col_max[j] = len(sym)
+        return col_max
 
-    def _emit_entry(mod_name, entry):
+    def _emit_entry(mod_name, entry, symbols_per_row, col_max):
         text = ""
 
         # Emit preprocessor conditions.
@@ -297,10 +518,15 @@ def update_uses(uses_node):
 
         use_line = indent
 
+        # The `!$ ` sentinel is a prefix, so an OpenMP-conditional `use`
+        # starts three columns to the right of an unconditional one.  The
+        # padding that brings the `::` back into line goes *after* the module
+        # attributes rather than before `use`: every statement then begins at
+        # the block's own indent, with `use` itself aligned down the block
+        # and the sentinel sitting out to its left where it reads as the
+        # annotation it is.
         if entry.get('openMP'):
             use_line += "!$ "
-        elif openmp_any:
-            use_line += "   "
 
         use_line += "use"
 
@@ -308,6 +534,9 @@ def update_uses(uses_node):
             use_line += ", intrinsic"
         elif intrinsic_any:
             use_line += "           "
+
+        if openmp_any and not entry.get('openMP'):
+            use_line += "   "
 
         use_line += " :: " + mod_name
 
@@ -319,18 +548,20 @@ def update_uses(uses_node):
             symbols = sorted(only.keys())
             remaining = symbol_count
             for i, sym in enumerate(symbols):
-                j = i % 4
+                j = i % symbols_per_row
                 use_line += sym
                 remaining -= 1
                 if remaining > 0:
                     use_line += " " * (col_max[j] - len(sym))
                     use_line += ", "
-                    if j == 3:
+                    if j == symbols_per_row - 1:
                         use_line += "&\n"
+                        # Continuations of an OpenMP-conditional `use` need
+                        # the sentinel too: without it the continuation is
+                        # compiled in serial builds, where the statement it
+                        # continues is only a comment.
                         if entry.get('openMP'):
                             cont_prefix = indent + "!$ "
-                        elif openmp_any:
-                            cont_prefix = indent + "   "
                         else:
                             cont_prefix = indent
                         use_line += cont_prefix + "&" + " " * (offset_len - len(cont_prefix) - 1)
@@ -343,10 +574,29 @@ def update_uses(uses_node):
             text += "#endif\n"
         return text
 
-    content = ""
-    for mod_name in module_order:
-        for entry in _as_entry_list(module_use.get(mod_name, [])):
-            content += _emit_entry(mod_name, entry)
+    def _emit_block(symbols_per_row):
+        col_max = _column_widths(symbols_per_row)
+        text = ""
+        for mod_name in module_order:
+            for entry in _as_entry_list(module_use.get(mod_name, [])):
+                text += _emit_entry(mod_name, entry, symbols_per_row, col_max)
+        return text
+
+    # Use as many symbols per row as fit: SYMBOLS_PER_ROW_MAX normally, fewer
+    # when the resulting rows would run past LINE_LENGTH_MAX.  The count is
+    # chosen once for the whole block rather than per statement, because the
+    # column widths are shared across the block — varying it per statement
+    # would destroy the alignment the widths exist to produce.
+    #
+    # A block whose symbols are too long to fit even one per row still emits
+    # one per row and overflows: there is nowhere to break a single symbol,
+    # and Galacticus compiles with `-ffree-line-length-none`, so the limit is
+    # a style rule rather than a constraint.
+    for symbols_per_row in range(SYMBOLS_PER_ROW_MAX, 0, -1):
+        content = _emit_block(symbols_per_row)
+        if max((len(line) for line in content.splitlines()),
+               default=0) <= LINE_LENGTH_MAX:
+            break
 
     if uses_node.get('firstChild') is None:
         uses_node['firstChild'] = {
@@ -374,11 +624,14 @@ def add_uses(node, module_uses_node):
     """
     from Galacticus.Build.SourceTree import insert_before_node
 
-    # Find an existing moduleUse child.
+    # Find an existing moduleUse child.  Blocks sitting inside a preprocessor
+    # guard that the parser left in place are skipped: adding an import there
+    # would compile it only when that guard is satisfied.  If every block is
+    # guarded, a fresh, unguarded one is created ahead of them all.
     uses_node = None
     child = node.get('firstChild')
     while child:
-        if child.get('type') == 'moduleUse':
+        if child.get('type') == 'moduleUse' and not child.get('inUnclaimedGuard'):
             uses_node = child
         child = child.get('sibling')
 
@@ -420,10 +673,9 @@ def add_uses(node, module_uses_node):
             entries  = uses_node['moduleUse'].setdefault(mod_name, [])
 
             if mod_name not in uses_node['moduleOrder']:
-                if new_entry.get('intrinsic'):
-                    uses_node['moduleOrder'].insert(0, mod_name)
-                else:
-                    uses_node['moduleOrder'].append(mod_name)
+                _insert_module_ordered(
+                    uses_node['moduleOrder'], uses_node['moduleUse'],
+                    mod_name, new_entry.get('intrinsic'))
 
             # Merge into the entry with the *same* condition set.  An
             # unconditional `use` thus joins (or creates) the unconditional

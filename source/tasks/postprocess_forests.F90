@@ -33,7 +33,7 @@
   !![
   <task name="taskPostprocessForests" docformat="rst">
     <description>
-    A task which postprocesses galaxies within a set of merger tree forests. This task assumes that a prior model was run, with raw forest data written to file using the :galacticus-class:`mergerTreeOutputterFullState` merger tree outputter class. The name of that file is specified via the ``fileName`` parameter. Forests data will be re-read, and re-output. Note that you should use the *exact same* parameter file (other than changing the ``task``, and possibly removing the use of the :galacticus-class:`mergerTreeOutputterFullState` outputter) as was used to run the original model. This ensures that the raw data structures read from the file follow the same format as was used to write them. Also note that forests are not guaranteed to be output in the same order as in the original model if OpenMP parallelism is used. If the same order is required, it is recommend to run the postprocessing after setting the environment variable ``OMP_NUM_THREADS=1``.
+    A task which postprocesses galaxies within a set of merger tree forests. This task assumes that a prior model was run, with raw forest data written to file using the :galacticus-class:`mergerTreeOutputterFullState` merger tree outputter class. The name of that file is specified via the ``fileName`` parameter. Forests data will be re-read, and re-output. Note that you should use the *exact same* parameter file (other than changing the ``task``, and possibly removing the use of the :galacticus-class:`mergerTreeOutputterFullState` outputter) as was used to run the original model. This ensures that the raw data structures read from the file follow the same format as was used to write them. Also note that forests are not guaranteed to be output in the same order as in the original model if OpenMP parallelism is used. If the same order is required, it is recommend to run the postprocessing after setting the environment variable ``OMP_NUM_THREADS=1``. Be aware, though, that this alone is not sufficient to guarantee matching order. In the original model, the order in which forests are written to the state file by the :galacticus-class:`mergerTreeOutputterFullState` outputter need not match the order in which they are written to the HDF5 file by the :galacticus-class:`mergerTreeOutputterStandard` outputter---each outputter serializes on its own lock, and the property extraction performed by the latter happens between the two, so under OpenMP parallelism threads can acquire those locks in different orders. Since postprocessing re-outputs forests in the order in which they appear in the state file, the postprocessed HDF5 file can therefore list forests in a different order from the original HDF5 file even when ``OMP_NUM_THREADS=1`` is set for the postprocessing run. The same forests are present in both cases, so any comparison between the two files should be made forest-by-forest---using the ``mergerTreeIndex``, ``mergerTreeStartIndex``, and ``mergerTreeCount`` datasets in each output group to locate the nodes belonging to each forest---rather than by comparing the ``nodeData`` datasets as a whole.
     </description>
   </task>
   !!]
@@ -235,6 +235,7 @@ contains
     use            :: Node_Components         , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use            :: Merger_Tree_Construction, only : mergerTreeStateFromFile
     use            :: File_Utilities          , only : File_Lock                        , File_Unlock                        , lockDescriptor
+    !$ use         :: OMP_Lib                 , only : OMP_Get_Thread_Num
     implicit none
     class           (taskPostprocessForests), intent(inout), target   :: self
     integer                                 , intent(  out), optional :: status
@@ -248,6 +249,8 @@ contains
     !$omp threadprivate(statusRead)
     integer         (c_size_t              )               , save     :: indexOutput
     !$omp threadprivate(indexOutput)
+    logical                                                , save     :: recordParameters
+    !$omp threadprivate(recordParameters)
     integer                                                           :: fileUnit
     logical                                                           :: finished
     
@@ -268,10 +271,30 @@ contains
     !!]
     !$omp end critical(postprocessForestsDeepCopy)
     !$omp barrier
-    ! Call routines to perform initialization which must occur for all threads if run in parallel.
-    allocate(parameters)
-    parameters=inputParameters(self%parameters)
-    call Node_Components_Thread_Initialize(parameters)
+    ! Call routines to perform initialization which must occur for all threads if run in parallel. Thread initialization is run
+    ! against a per-thread copy of the parameter set. Output is enabled on the master thread's copy only, so that the parameters
+    ! read during thread initialization (some of which are read nowhere else) are recorded in the output file. Every thread reads
+    ! the same parameters, so a single writer suffices---and, since it is the only writer, needs no locking beyond the lock on
+    ! HDF5 access through which all parameter output passes.
+    !
+    ! The master must initialize *first*, and alone. Building an object from its default class inserts that default into the
+    ! parameter tree---which every thread's copy shares---so only the thread which initializes first sees such a parameter as
+    ! absent, and only that thread marks it as defaulted. Were the master not that thread, those markers would never be written,
+    ! and which parameters carried one would depend on the number of threads.
+    recordParameters=.true.
+    !$ recordParameters=OMP_Get_Thread_Num() == 0
+    if (recordParameters) then
+       allocate(parameters)
+       parameters=inputParameters(self%parameters,noOutput=.false.)
+       call Node_Components_Thread_Initialize(parameters)
+    end if
+    !$omp barrier
+    ! The remaining threads now initialize against copies with output suppressed.
+    if (.not.recordParameters) then
+       allocate(parameters)
+       parameters=inputParameters(self%parameters)
+       call Node_Components_Thread_Initialize(parameters)
+    end if
     !$omp barrier
     ! Begin loop to read and post-process trees.
     do while (.not.finished)

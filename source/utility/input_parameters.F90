@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements reading of parameters from an XML data file.
 !!}
@@ -36,7 +38,6 @@ module Input_Parameters
   use            :: Kind_Numbers      , only : kind_int8
   use            :: String_Handling   , only : char
   use            :: Dictionaries      , only : integerDictionary
-  use            :: Locks             , only : ompLock
   use            :: Resource_Manager  , only : resourceManager
   private
   public :: inputParameters                 , inputParameter                         , inputParameterList                           , Input_Parameters_Build_Stack_Push, &
@@ -113,14 +114,6 @@ module Input_Parameters
      procedure :: get           => inputParameterGet
   end type inputParameter
 
-  !![
-  <deepCopyActions class="inputParameters">
-   <inputParameters>
-    <methodCall method="lockReinitialize"/>
-   </inputParameters>
-  </deepCopyActions>
-  !!]
-    
   type :: documentWrapper
      !!{RST
      Wrapper class for managing XML documents.
@@ -143,9 +136,6 @@ module Input_Parameters
      type   (inputParameters)  , pointer, public :: parent                    => null() , original                         => null()
      logical                                     :: outputParametersCopied    =  .false., outputParametersTemporary        = .false., &
           &                                         isNull                    =  .false., strict                           = .false.
-     type   (integerDictionary), allocatable     :: warnedDefaults
-     type   (ompLock          ), pointer         :: lock                      => null()
-     type   (resourceManager  )                  :: lockManager
    contains
      !![
      <methods docformat="rst">
@@ -169,7 +159,7 @@ module Input_Parameters
        <method description="Reset all objects in this parameter set." method="reset" />
        <method description="Destroy the parameters document." method="destroy" />
        <method description="Return the path to this parameters object." method="path" />
-       <method description="Reinitialize lock." method="lockReinitialize" />
+       <method description="Mark a parameter, in the output file, as having taken a default value." method="markDefaulted" />
        <method description="Assign input parameter objects." method="assignment(=)"/>
      </methods>
      !!]
@@ -196,7 +186,7 @@ module Input_Parameters
      procedure :: addParameter         => inputParametersAddParameter
      procedure :: reset                => inputParametersReset
      procedure :: path                 => inputParametersPath
-     procedure :: lockReinitialize     => inputParametersLockReinitialize
+     procedure :: markDefaulted        => inputParametersMarkDefaulted
      procedure ::                         inputParametersAssignment
      generic   :: assignment(=)        => inputParametersAssignment
   end type inputParameters
@@ -289,6 +279,14 @@ module Input_Parameters
   type   (buildStackEntry), allocatable, dimension(:) :: buildStack
   integer                                             :: buildStackDepth=0
   !$omp threadprivate(buildStack,buildStackDepth)
+
+  ! Suffix appended to a parameter name to form the name of the attribute, written into the
+  ! `Parameters` group of the output file, that marks the parameter as having taken a default value.
+  ! A parameter given explicitly in the parameter file carries no such attribute, so the absence of
+  ! the marker means "set explicitly". The braced form follows the convention already used to
+  ! annotate attribute names in this group (`{id:...}` on a reference target); braces cannot appear
+  ! in a parameter name, which is an XML element name, so the marker cannot collide with one.
+  character(len=*), parameter :: defaultedMarkerSuffix="{defaulted}"
 
   ! Interface to the (auto-generated) knownParameterNames() function.
   interface
@@ -439,11 +437,9 @@ contains
     use :: FoX_dom, only : createDocument, getDocumentElement, getImplementation, setLiveNodeLists
     implicit none
     type (inputParameters)          :: self
-    class(*              ), pointer :: lock_, document_
+    class(*              ), pointer :: document_
 
-    allocate(self%warnedDefaults)
-    allocate(self%lock          )
-    allocate(self%document      )
+    allocate(self%document)
     !$omp critical (FoX_DOM_Access)
     self%document%document => createDocument    (                                  &
          &                                       getImplementation()             , &
@@ -464,21 +460,8 @@ contains
     !![
     </workaround>
     !!]
-    self%parameters     => null              (             )
-    self%warnedDefaults =  integerDictionary (             )
-    self%lock           =  ompLock           (             )
-    !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
-      <description>
-      ICE when passing a derived type component to a class(*) function argument.
-      </description>
-    !!]
-    lock_ => self%lock
-    self%lockManager    =  resourceManager   (     lock_   )
-    !![
-    </workaround>
-    !!]
-    self%isNull         = .true.
+    self%parameters => null()
+    self%isNull     = .true.
    return
   end function inputParametersConstructorNull
 
@@ -571,7 +554,13 @@ contains
     character(len=32         )                                        :: changeType
 
     ! Check that the file exists.
-    if (.not.File_Exists(fileName)) call Error_Report("parameter file '"//trim(fileName)//"' does not exist"//{introspection:location})
+    if (.not.File_Exists(fileName))                                                                                                           &
+         & call Error_Report(                                                                                                                 &
+         &                   "parameter file '"//trim(fileName)//"' does not exist"//char(10)//                                               &
+         &                   displayGreen()//"HELP:"//displayReset()//" this path is interpreted relative to the directory Galacticus was" // &
+         &                   " run from, not to the location of the executable"                                                            // &
+         &                   {introspection:location}                                                                                         &
+         &                  )
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
     doc           => XML_Parse(fileName,iostat=errorStatus,ex=exception,fileNameCurrent=fileNameFailed)
@@ -757,39 +746,46 @@ contains
     return
   end function inputParametersConstructorFileChar
 
-  function inputParametersConstructorCopy(parameters) result(self)
+  function inputParametersConstructorCopy(parameters,noOutput) result(self)
     !!{RST
     Constructor for the ``inputParameters`` class from an existing parameters object.
+
+    Copies are made primarily to give each OpenMP thread its own parameter set for node component
+    thread initialization. By default (``noOutput=.true.``) the copy has no output group, so
+    parameters read through it are *not* recorded in the ``Parameters`` group of the output
+    file---if every thread's copy wrote, all threads would race to write the same values. Passing
+    ``noOutput=.false.`` instead shares the output group of the parameter set being copied, so
+    that parameters read through the copy *are* recorded. Precisely one copy should be created
+    this way (in practice, the copy made on the master thread), so that there is a single writer;
+    since every thread reads the same parameters, recording from one is sufficient.
+
+    That copy must also be the *first* to be used. Building an object from its default class adds
+    that default to the parameter tree, which all copies share, so only whichever copy is used
+    first sees such a parameter as absent and marks it as defaulted. A recording copy used after
+    some other copy would therefore silently omit those markers.
     !!}
     implicit none
-    type (inputParameters)                :: self
-    type (inputParameters), intent(in   ) :: parameters
-    class(*              ), pointer       :: lock_
+    type   (inputParameters)                          :: self
+    type   (inputParameters), intent(in   )           :: parameters
+    logical                 , intent(in   ), optional :: noOutput
+    !![
+    <optionalArgument name="noOutput" defaultsTo=".true." />
+    !!]
 
     self            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.,documentManager=parameters%documentManager,document=parameters%document)
     self%parameters =>                 parameters%parameters
     self%parent     =>                 parameters%parent
-    self%original   =>                 parameters%original       
-    if (allocated(parameters%warnedDefaults)) then
-       if (allocated(self%warnedDefaults)) deallocate(self%warnedDefaults)
-       allocate(self%warnedDefaults)
-       self%warnedDefaults=parameters%warnedDefaults
-    end if
-    if (associated(parameters%lock)) then
-       call self%lockManager%release()
-       allocate  (self%lock)
-       self%lock=ompLock()
-       !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
-	 <description>
-	 ICE when passing a derived type component to a class(*) function argument.
-	 </description>
-       !!]
-       lock_ => self%lock
-       self%lockManager    =  resourceManager   (     lock_   )
-       !![
-       </workaround>
-       !!]
+    self%original   =>                 parameters%original
+    if (.not.noOutput_.and.associated(parameters%outputParameters)) then
+       ! Share the output group of the parameter set being copied so that parameters read through this copy are recorded in the
+       ! output file. The resource managers are assigned (not pointer assigned) so that the reference counts of the shared HDF5
+       ! objects are incremented---the shared group therefore remains valid for as long as this copy exists.
+       self%outputParameters                 => parameters%outputParameters
+       self%outputParametersContainer        => parameters%outputParametersContainer
+       self%outputParametersCopied           =  parameters%outputParametersCopied
+       self%outputParametersTemporary        =  parameters%outputParametersTemporary
+       self%outputParametersManager          =  parameters%outputParametersManager
+       self%outputParametersContainerManager =  parameters%outputParametersContainerManager
     end if
     return
   end function inputParametersConstructorCopy
@@ -851,24 +847,9 @@ contains
     !!]
 #include "os.inc"
 
-    allocate(self%warnedDefaults)
-    allocate(self%lock          )
     self%isNull         =  .false.
     self%rootNode       =>                   parametersNode
     self%parent         => null             (              )
-    self%warnedDefaults =  integerDictionary(              )
-    self%lock           =  ompLock          (              )
-    !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
-      <description>
-      ICE when passing a derived type component to a class(*) function argument.
-      </description>
-    !!]
-    dummyPointer_       => self%lock
-    self%lockManager    =  resourceManager (dummyPointer_ )
-    !![
-    </workaround>
-    !!]
     if (present(documentManager)) then
        if (.not.present(document)) call Error_Report('If `documentManager` is provided, `document` must also be provided'//{introspection:location})
        self%document        => document
@@ -958,7 +939,9 @@ contains
        !![
        </workaround>
        !!]
-       call File_Remove(self%outputParametersContainer%name())
+       ! Immediately remove the temporary file. The file remains accessible to us (as it is open), but will be automatically
+       ! removed from the file system once we close it - even if this run is killed before it can close the file cleanly.
+       call File_Remove(self%outputParametersContainer%fileName())
     end if
     ! Get allowed parameter names.
     if (.not.allocated(allowedParameterNamesGlobal)) &
@@ -1367,7 +1350,6 @@ contains
     self%parameters                       => from%parameters
     self%parent                           => from%parent
     self%original                         => from%original
-    self%lock                             => from%lock
     self%outputParametersCopied           =  from%outputParametersCopied
     self%outputParametersTemporary        =  from%outputParametersTemporary
     self%isNull                           =  from%isNull
@@ -1375,12 +1357,6 @@ contains
     self%outputParametersManager          =  from%outputParametersManager
     self%outputParametersContainerManager =  from%outputParametersContainerManager
     self%documentManager                  =  from%documentManager
-    self%lockManager                      =  from%lockManager
-    if (allocated(self%warnedDefaults)) deallocate(self%warnedDefaults)
-    if (allocated(from%warnedDefaults)) then
-       allocate(self%warnedDefaults,mold=from%warnedDefaults)
-       self%warnedDefaults=from%warnedDefaults
-    end if
     return
   end subroutine inputParametersAssignment
   
@@ -1658,12 +1634,13 @@ contains
 
   subroutine inputParametersCheckParameters(self,allowedParameterNamesGlobal,allowedParameterNames,allowedMultiParameterNames)
     use :: Error              , only : Error_Report
-    use :: Display            , only : displayIndent              , displayMagenta  , displayMessage                 , displayReset        , &
-          &                            displayUnindent            , displayVerbosity, enumerationVerbosityLevelEncode, verbosityLevelSilent
-    use :: FoX_dom            , only : DOMException               , destroy         , extractDataContent             , getAttributeNode    , &
-          &                            getNodeName                , hasAttribute    , inException                    , node                , &
+    use :: Display            , only : displayGreen               , displayIndent   , displayMagenta    , displayMessage      , &
+          &                            displayReset               , displayUnindent , displayVerbosity  , verbosityLevelSilent, &
+          &                            enumerationVerbosityLevelEncode
+    use :: FoX_dom            , only : DOMException               , destroy         , extractDataContent, getAttributeNode    , &
+          &                            getNodeName                , hasAttribute    , inException       , node                , &
           &                            getParentNode
-    use :: ISO_Varying_String , only : assignment(=)              , char            , operator(//)                   , operator(==)
+    use :: ISO_Varying_String , only : assignment(=)              , char            , operator(//)      , operator(==)
     use :: Regular_Expressions, only : regEx
     use :: String_Handling    , only : String_Levenshtein_Distance
     implicit none
@@ -1838,7 +1815,14 @@ contains
        end do
     end if
     if (warningsFound .and. verbose) call displayUnindent('')
-    if (warningsFound .and. self%strict) call Error_Report('warnings found and strict compliance requested'//{introspection:location})
+    if (warningsFound .and. self%strict)                                                                                                     &
+         & call Error_Report(                                                                                                                &
+         &                   'problems were found with the input parameters, and this parameter file requests strict compliance'//char(10)// &
+         &                   displayGreen()//'HELP:'//displayReset()//' the problems are listed above. Correct them, or remove'           // &
+         &                   ' `strict="true"` from the `<lastModified>` element of your parameter file to have them reported as'         // &
+         &                   ' warnings rather than as an error'                                                                          // &
+         &                   {introspection:location}                                                                                        &
+         &                  )
     return
   end subroutine inputParametersCheckParameters
 
@@ -2295,23 +2279,51 @@ contains
     class(inputParameters), intent(in   ), target :: self
     type (inputParameter ), pointer               :: parameterNode
     
+    ! The tree is walked from this node *upwards*, so each ancestor's name is prepended, not
+    ! appended: appending would build the path in reverse, reporting `b/a/` for a node `a` which
+    ! contains `b`.
     parameterNode       => self%parameters
     inputParametersPath =  ""
     do while (associated(parameterNode))
-       if (associated(parameterNode%content)) inputParametersPath=inputParametersPath//getNodeName(parameterNode%content)//"/"
+       if (associated(parameterNode%content)) inputParametersPath=getNodeName(parameterNode%content)//"/"//inputParametersPath
        parameterNode => parameterNode%parent
     end do
     return
   end function inputParametersPath
 
+  subroutine inputParametersMarkDefaulted(self,parameterName)
+    !!{RST
+    Mark the named parameter, in the ``Parameters`` group of the output file, as having taken a
+    default value. Used for parameters which are not read through ``value()`` - in particular the
+    name of a ``functionClass`` object which was not specified and so was built from its default
+    class. A parameter given explicitly in the parameter file is never marked, so the absence of the
+    marker means that the value was supplied by the user.
+    !!}
+    use :: HDF5_Access, only : hdf5Access
+    implicit none
+    class    (inputParameters), intent(inout) :: self
+    character(len=*          ), intent(in   ) :: parameterName
+
+    if (.not.associated(self%outputParameters)) return
+    !$ call hdf5Access%set()
+    if (self%outputParameters%isOpen()) then
+       ! Write the marker only if it is absent: attributes are not, in general, overwritable.
+       if (.not.self%outputParameters%hasAttribute(parameterName//defaultedMarkerSuffix)) &
+            & call self%outputParameters%writeAttribute(.true.,parameterName//defaultedMarkerSuffix)
+    end if
+    !$ call hdf5Access%unset()
+    return
+  end subroutine inputParametersMarkDefaulted
+
   recursive subroutine inputParametersValueName{Type¦label}(self,parameterName,parameterValue,defaultValue,errorStatus,writeOutput,copyInstance,evaluate)
     !!{RST
     Return the value of the parameter specified by name.
     !!}
-    use :: Error             , only : Error_Report, Warn
+    use :: Display           , only : displayGreen, displayReset
+    use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
-    use :: ISO_Varying_String, only : char
-    use :: MPI_Utilities     , only : mpiSelf
+    use :: ISO_Varying_String, only : char        , varying_string, assignment(=), operator(==), &
+         &                            operator(//)
     implicit none
     class           (inputParameters                         ), intent(inout), target   :: self
     character       (len=*                                   ), intent(in   )           :: parameterName
@@ -2320,9 +2332,7 @@ contains
     type            (enumerationInputParameterErrorStatusType), intent(  out), optional :: errorStatus
     integer                                                   , intent(in   ), optional :: copyInstance
     logical                                                   , intent(in   ), optional :: writeOutput   , evaluate
-    type            (inputParameters                         ), pointer                 :: parametersRoot
     type            (inputParameter                          ), pointer                 :: parameterNode
-    type            (varying_string                          )                          :: parameterPath
     !![
     <optionalArgument name="writeOutput" defaultsTo=".true." />
     !!]
@@ -2331,30 +2341,51 @@ contains
        parameterNode => self%node(parameterName,copyInstance=copyInstance,writeOutput=writeOutput)
        call self%value(parameterNode,parameterValue,errorStatus,writeOutput,evaluate)
     else if (present(defaultValue)) then
-       parametersRoot => self
-       do while (associated(parametersRoot%parent))
-          parametersRoot => parametersRoot%parent
-       end do
-       parameterPath=self%path()
-       call parametersRoot%lock%set()
-       if (.not.parametersRoot%warnedDefaults%exists(parameterPath)) then
-          if (mpiSelf%isMaster()) call Warn("Using default value for parameter '["//char(parameterPath)//parameterName//"]'")
-          call parametersRoot%warnedDefaults%set(parameterPath,1)
-       end if
-       call parametersRoot%lock%unset()
+       ! The use of a default value is not reported to the terminal. Using a default is an extremely
+       ! common idiom - a small model defaults of order a hundred parameters - so reporting each one
+       ! swamped the warning list which `Error_Report` replays, crowding genuine warnings out of it
+       ! entirely (the list retains a bounded number of unique messages). The information is instead
+       ! recorded in the output file, where each defaulted parameter is marked; see
+       ! `defaultedMarkerSuffix`.
        parameterValue=defaultValue
        ! Write the parameter file to an HDF5 object.
        if (associated(self%outputParameters)) then
           if (self%outputParameters%isOpen().and.writeOutput_) then
              !$ call hdf5Access%set()
-             if (.not.self%outputParameters%hasAttribute(parameterName)) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},parameterName)
+             if (.not.self%outputParameters%hasAttribute(parameterName)) then
+                call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},parameterName)
+                ! Mark this parameter as having taken a default value. The marker is written here, at
+                ! the same instant as the value itself, so that it survives a fatal error exactly as
+                ! the value does - `Error_Report` closes the HDF5 library (flushing open files) but
+                ! never calls `Output_HDF5_Close_File`, so anything deferred to output-file closure
+                ! would be lost. Parameters set explicitly carry no marker.
+                call self%outputParameters%writeAttribute(.true.,parameterName//defaultedMarkerSuffix)
+             end if
              !$ call hdf5Access%unset()
           end if
        end if
     else if (present(errorStatus )) then
        errorStatus   =inputParameterErrorStatusNotPresent
     else
-       call Error_Report('parameter ['//parameterName//'] not present and no default given'//{introspection:location})
+       block
+         type     (varying_string)              :: whereToAdd
+         character(len=:         ), allocatable :: pathText
+
+         ! `path()` is empty for a parameter at the top level of the file, and otherwise ends with
+         ! the "/" separator, which reads oddly inside brackets - so trim it.
+         pathText=char(self%path())
+         if (len(pathText) == 0) then
+            whereToAdd="at the top level of your parameter file"
+         else
+            whereToAdd="within the ["//pathText(1:len(pathText)-1)//"] element of your parameter file"
+         end if
+         call Error_Report(                                                                                                        &
+              &             'parameter ['//parameterName//'] is required, but is not present and has no default value'//char(10)// &
+              &             displayGreen()//'HELP:'//displayReset()//' add it '//char(whereToAdd)//', as:'            //char(10)// &
+              &             '        <'//parameterName//' value="..."/>'                                                        // &
+              &             {introspection:location}                                                                               &
+              &            )
+       end block
     end if
     return
   end subroutine inputParametersValueName{Type¦label}
@@ -2364,6 +2395,7 @@ contains
     Return the value of the specified parameter.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_int64_t                        , c_size_t
+    use            :: Display           , only : displayGreen                     , displayReset
     use            :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName   , hasAttribute      , &
           &                                      inException                      , node              , getTextContent, extractDataContent
     use            :: Error             , only : Error_Report
@@ -2552,7 +2584,12 @@ contains
                    valueElement => getAttributeNode(parameterNode%content,"value")
                    !$omp end critical (FoX_DOM_Access)
 #else
-                   call Error_Report('derived parameters require libmatheval, but it is not installed'//{introspection:location})
+                   call Error_Report(                                                                                                        &
+                        &             'derived parameters require libmatheval, but Galacticus was built without it'             //char(10)// &
+                        &             displayGreen()//'HELP:'//displayReset()//' install libmatheval and rebuild Galacticus, or'          // &
+                        &             ' replace the derived parameter with a literal value in your parameter file'                        // &
+                        &             {introspection:location}                                                                               &
+                        &            )
 #endif
                 else if (isText) then
                    call parameterNode%set(var_str(trim(expression)))
@@ -2866,31 +2903,5 @@ contains
     return
   end subroutine inputParametersReset
 
-  subroutine inputParametersLockReinitialize(self)
-    !!{RST
-    Reinitialize the OpenMP lock.
-    !!}
-    implicit none
-    class(inputParameters), intent(inout) :: self
-    class(*              ), pointer :: lock_
-    
-    if (associated(self%lock)) then
-       call self%lockManager%release()
-       allocate(self%lock)
-       self%lock=ompLock()
-       !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
-	 <description>
-	 ICE when passing a derived type component to a class(*) function argument.
-	 </description>
-       !!]
-       lock_ => self%lock
-       self%lockManager    =  resourceManager   (     lock_   )
-       !![
-       </workaround>
-       !!]
-    end if
-    return
-  end subroutine inputParametersLockReinitialize
 
 end module Input_Parameters

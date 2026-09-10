@@ -2,9 +2,9 @@
 import subprocess
 import sys
 import os
-import glob
 import argparse
 import shutil
+import xml.etree.ElementTree as ET
 import h5py
 import numpy as np
 
@@ -76,53 +76,83 @@ launchOptions = f"--launchMethod {args.launchMethod} --threadMaximum {args.threa
 if args.instance:
     launchOptions += f" --instance {args.instance}"
 
-# Build parameterGrid XML and run via launch.py.
-with open("outputs/test-merger-tree-builder.xml", "w") as f:
-    f.write("<parameterGrid>\n")
-    f.write("  <emailReport>no</emailReport>\n")
-    f.write("  <doAnalysis>no</doAnalysis>\n")
-    f.write("  <modelRootDirectory>testSuite/outputs/test-merger-tree-builder</modelRootDirectory>\n")
-    f.write("  <baseParameters>testSuite/parameters/mergerTreeBuilderCole2000_intervalStepTrue.xml</baseParameters>\n")
-    for paramFile in paramFiles:
-        with open(paramFile) as pf:
-            f.write(pf.read())
-    f.write("</parameterGrid>\n")
+# Build the parameterGrid XML and run via launch.py. The parameter files are parsed and their root elements grafted into the
+# document, rather than their text being concatenated into it: each is a document in its own right and so begins with an XML
+# declaration, which is well formed only at the very start of a document. Concatenating them produced a document which
+# launch.py could not parse, so no model ran at all.
+grid = ET.Element("parameterGrid")
+for name, text in (
+        ("emailReport",        "no"                                                                  ),
+        ("doAnalysis",         "no"                                                                  ),
+        ("modelRootDirectory", "testSuite/outputs/test-merger-tree-builder"                          ),
+        ("baseParameters",     "testSuite/parameters/mergerTreeBuilderCole2000_intervalStepTrue.xml" ),
+):
+    ET.SubElement(grid, name).text = text
+for paramFile in paramFiles:
+    grid.append(ET.parse(paramFile).getroot())
+ET.indent(grid)
+ET.ElementTree(grid).write("outputs/test-merger-tree-builder.xml", encoding="UTF-8", xml_declaration=True)
 
 subprocess.run(
     f"cd ..; mkdir -p testSuite/outputs/test-merger-tree-builder; ./scripts/aux/launch.py testSuite/outputs/test-merger-tree-builder.xml {launchOptions}",
     shell=True
 )
 
-# Check for failed models.
-logFiles = glob.glob("outputs/test-merger-tree-builder/galacticus_*/galacticus.log")
-failures = []
-for logFile in logFiles:
-    result = subprocess.run(
-        f'grep -q -i -e fatal -e aborted -e "Galacticus experienced an error in the GSL library" {logFile}',
-        shell=True
-    )
-    if result.returncode == 0:
-        failures.append(logFile)
+# Identify which models this invocation actually ran. `launch.py` distributes models over instances - CI runs this script four
+# times with `--instance N:4`, so each run launches only one of the four models - and it creates an output directory only for
+# those models it runs. The presence of that directory, not of a log, is therefore what separates a model which ran from one
+# belonging to another instance; a model which ran but died leaves the directory behind, with no log or no output in it.
+modelIndex = -1
+for model in models:
+    if "parameterFile" not in model:
+        continue
+    modelIndex              += 1
+    model["outputDirectory"] = f"outputs/test-merger-tree-builder/galacticus_{modelIndex}:1"
+    model["launched"       ] = os.path.isdir(model["outputDirectory"])
 
-if failures:
-    for failure in failures:
-        print(f"FAILED: log from {failure}:")
-        with open(failure) as f:
-            print(f.read())
+launched = [model for model in models if model.get("launched")]
+
+# Check for failed models. A model which never ran leaves no log to grep, so an empty set of logs would otherwise yield an empty
+# set of failures and report as a success - hence the check that this invocation ran something at all, and that everything it did
+# run left a log.
+failures = []
+if not launched:
+    print(f"FAILED: none of the {len(paramFiles)} models was launched - no output directory was created")
 else:
-    print("SUCCESS: model run")
+    for model in launched:
+        logFile = f"{model['outputDirectory']}/galacticus.log"
+        if not os.path.exists(logFile):
+            print(f"FAILED: model '{model['type']}' was launched but produced no log at {logFile}")
+            failures.append(logFile)
+            continue
+        result = subprocess.run(
+            f'grep -q -i -e fatal -e aborted -e "Galacticus experienced an error in the GSL library" {logFile}',
+            shell=True
+        )
+        if result.returncode == 0:
+            print(f"FAILED: log from {logFile}:")
+            with open(logFile) as f:
+                print(f.read())
+            failures.append(logFile)
+    if not failures:
+        print(f"SUCCESS: model run ({len(launched)} of {len(paramFiles)} models in this instance)")
 
 # Read test and reference data.
 modelData = {}
-i = -1
 for model in models:
     if "parameterFile" in model:
-        i += 1
-        tmpName = f"outputs/test-merger-tree-builder/galacticus_{i}:1/galacticus.hdf5"
+        if not model["launched"]:
+            # This model belongs to another instance - it is not expected to have run here, and is simply not compared.
+            model["exists"] = False
+            continue
+        tmpName = f"{model['outputDirectory']}/galacticus.hdf5"
         if os.path.exists(tmpName):
             shutil.copy(tmpName, model["fileName"])
             model["exists"] = True
         else:
+            # Report this: a model which ran but produced no output would otherwise be silently dropped from the comparisons
+            # below, leaving the run to report as a success.
+            print(f"FAILED: model '{model['type']}' was launched but produced no output at {tmpName}")
             model["exists"] = False
             continue
     else:

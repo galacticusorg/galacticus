@@ -191,6 +191,14 @@ contains
        ! retabulation may occur), leading to a failure to bracket the root. If this happens, make a second attempt (at which point
        ! any tabulations should be fully updated). If that also fails, we either give up an accept the best solution we have, or
        ! report an error.
+       !
+       ! Pinning tabulation ranges to an absolute lattice is what would make this retry unnecessary, since a retabulation would
+       ! then leave previously computed values untouched and so could not invalidate a bracket. That is not yet sufficient here:
+       ! the root function below evaluates the *composite* mass distribution, and several of its components still choose their
+       ! range from the first request and rebuild wholesale - `mass_distributions/spherical/Sersic.F90`,
+       ! `mass_distributions/cylindrical/exponential_disk.F90`, `mass_distributions/spherical/heated/monotonic.F90`, the
+       ! accretion flow profiles, and, by way of the gas density, `hot_halo/mass_distribution/cored/core_radius/growing.F90`.
+       ! Retire this retry once those are pinned, and not before.
        do attempt=1,2
           ! Get the hot halo mass distributions.
           massDistribution__    => node%massDistribution(componentTypeAll    ,massTypeAll    )

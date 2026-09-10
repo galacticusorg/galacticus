@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a excursion set first crossing statistics class utilizing the algorithm of :cite:t:`zhang_random_2006`.
   !!}
@@ -147,16 +149,17 @@ contains
     !!{RST
     Return the excursion set barrier at the given variance and time.
     !!}
-    use            :: Display          , only : displayCounter       , displayCounterClear, displayIndent       , displayUnindent, &
-          &                                     verbosityLevelWorking
-    use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Numerical_Ranges , only : Make_Range           , rangeTypeLinear    , rangeTypeLogarithmic
+    use            :: Display         , only : displayCounter       , displayCounterClear, displayIndent    , displayUnindent    , &
+          &                                    verbosityLevelWorking
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    use            :: Numerical_Ranges, only : Range_Pinned         , rangeLattice       , gridSchemePerUnit, gridSchemePerDecade
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout)  :: self
     double precision                                   , intent(in   )  :: variance         , time
     type            (treeNode                         ), intent(inout)  :: node
     double precision                                   , dimension(0:1) :: hTime            , hVariance
     logical                                                             :: makeTable
+    type            (rangeLattice                     )                 :: latticeVariance  , latticeTime
     integer         (c_size_t                         )                 :: iTime            , iVariance
     integer                                                             :: i                , j        , &
          &                                                                 jTime            , jVariance
@@ -175,8 +178,15 @@ contains
        if (allocated(self%varianceTable                )) deallocate(self%varianceTable                )
        if (allocated(self%timeTable                    )) deallocate(self%timeTable                    )
        if (allocated(self%firstCrossingProbabilityTable)) deallocate(self%firstCrossingProbabilityTable)
+       ! Pin both axes to absolute lattices, so that the tabulation - and every value interpolated from it - depends only on
+       ! which anchored intervals the request fell in, not on the variance and time at which it was first built. The bounds are
+       ! already widened monotonically above, so no further margin is applied here; pinning only snaps them outward onto
+       ! lattice points. The variance axis is linear and runs from zero, so it uses the per-unit scheme with its lower edge
+       ! clamped there.
        self%varianceMaximum   =max(self%varianceMaximum,variance)
-       self%varianceTableCount=int(self%varianceMaximum*dble(varianceTableNumberPerUnit))
+       latticeVariance        =Range_Pinned([0.0d0,self%varianceMaximum],varianceTableNumberPerUnit,gridSchemePerUnit,marginOffset=0.0d0,limitMinimum=0.0d0)
+       self%varianceMaximum   =latticeVariance%maximum()
+       self%varianceTableCount=latticeVariance%count-1
        if (self%tableInitialized) then
           self%timeMinimum=min(self%timeMinimum,time)
           self%timeMaximum=max(self%timeMaximum,time)
@@ -184,12 +194,17 @@ contains
           self%timeMinimum=0.5d0*time
           self%timeMaximum=2.0d0*time
        end if
-       self%timeTableCount=int(log10(self%timeMaximum/self%timeMinimum)*dble(timeTableNumberPerDecade))+1
+       latticeTime        =Range_Pinned([self%timeMinimum,self%timeMaximum],timeTableNumberPerDecade,gridSchemePerDecade,marginFactor=1.0d0)
+       self%timeMinimum   =latticeTime%minimum()
+       self%timeMaximum   =latticeTime%maximum()
+       self%timeTableCount=latticeTime%count
        allocate(self%varianceTable                (0:self%varianceTableCount                    ))
        allocate(self%timeTable                    (                          self%timeTableCount))
        allocate(self%firstCrossingProbabilityTable(0:self%varianceTableCount,self%timeTableCount))
-       self%timeTable        =Make_Range(self%timeMinimum,self%timeMaximum    ,self%timeTableCount      ,rangeType=rangeTypeLogarithmic)
-       self%varianceTable    =Make_Range(0.0d0           ,self%varianceMaximum,self%varianceTableCount+1,rangeType=rangeTypeLinear     )
+       ! Take the abscissae from the lattices rather than by subdividing the ranges, so that they are bit-identical to those of
+       ! any other tabulation built on the same lattices.
+       self%timeTable        =latticeTime    %values()
+       self%varianceTable    =latticeVariance%values()
        self%varianceTableStep=+self%varianceTable(1) &
             &                 -self%varianceTable(0)
        ! Loop through the table and solve for the first crossing distribution.

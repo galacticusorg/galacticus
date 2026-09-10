@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A set of changes to modify CDM reference parameter files to use a fuzzy dark matter particle. -->
+<changes>
+
+  <!-- Change the dark matter particle to a fuzzy dark matter particle -->
+  <change type="replace" path="darkMatterParticle">
+    <darkMatterParticle value="fuzzyDarkMatter">
+      <mass            value="10.0"/> <!-- In units of 1.0e-22 eV -->
+      <densityFraction value=" 1.0"/>
+    </darkMatterParticle>
+  </change>
+
+  <!-- Replace the transfer function with one generated from AxionCAMB (https://github.com/dgrin1/axionCAMB). -->
+  <!-- Make a temporary copy of the cosmological parameters passed to the transfer function. -->
+  <change type="append" path="">
+    <axionCAMBTmp>
+      <cosmologyParameters/>
+    </axionCAMBTmp>
+  </change>
+  <change type="replaceWith" path="axionCAMBTmp/cosmologyParameters" target="transferFunction/cosmologyParameters"/>
+  <!-- Replace the transfer function with AxionCAMB. -->
+  <change type="replace" path="transferFunction">
+    <transferFunction value="axionCAMB">
+      <cosmologyParameters/>
+    </transferFunction>
+  </change>
+  <!-- Restore the original cosmological parameters into the transfer function. -->
+  <change type="replaceWith" path="transferFunction/cosmologyParameters" target="axionCAMBTmp/cosmologyParameters"/>
+  <change type="remove" path="axionCAMBTmp"/>
+
+  <!-- Replace the Johnson (2021) energy random-walk model for halo scale radii with the concentration-based model which it
+       itself wraps. The random-walk model follows the energy of a halo through its accretion and merging history, and is
+       calibrated against N-body simulations of cold dark matter; it has not been calibrated for halos forming from a power
+       spectrum with a small-scale cut-off, where the accretion history is markedly different. The concentration-based model
+       nested within it is used directly instead. This is done by copying that model out of the wrapper before the wrapper is
+       removed, so that the settings it carries are preserved. -->
+  <change type="append" path="darkMatterProfileScaleRadius">
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </change>
+
+  <change type="replaceWith" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius[@value='concentration']" target="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius[@value='johnson2021']/darkMatterProfileScaleRadius[@value='concentration']"/>
+
+  <!-- Lower the floor imposed on halo concentrations. The default of 3.0 is appropriate for cold dark matter, but fuzzy dark
+       matter halos with masses close to the cut-off in the power spectrum form late and are correspondingly far less
+       concentrated, so that floor would otherwise bind on a substantial fraction of them and truncate the very part of the
+       population which distinguishes the model from cold dark matter. -->
+  <change type="update" path="darkMatterProfileScaleRadius/concentrationMinimum" value="0.1"/>
+
+  <!-- Remove the Johnson (2021) wrapper only after its required children have been copied. -->
+  <change type="remove" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius[@value='johnson2021']"/>
+
+  <!-- Restrict the Diemer & Joyce (2019) concentration model to the range over which it was calibrated, rather than
+       extrapolating it. Truncating the concentration prevents the fit being evaluated outside that range, and the upturn in
+       concentration at high peak height is a feature of the cold dark matter halo population which is not expected to carry
+       over to halos forming near a cut-off in the power spectrum. -->
+  <change type="update"  path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/reference/darkMatterProfileConcentration/truncateConcentration" value="true"/>
+
+  <change type="update" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileConcentration/reference/darkMatterProfileConcentration/includeUpturn" value="false"/>
+
+  <!-- Use the soliton+NFW mass distribution for dark matter halo profiles, except in places where we have models calibrated to
+       use the NFW profile. -->
+  <change type="append" path="darkMatterProfileScaleRadius">
+    <darkMatterProfileDMO/>
+  </change>
+
+  <change type="append" path="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']">
+    <darkMatterProfileDMO/>
+  </change>
+
+  <change type="append" path="virialOrbit">
+    <darkMatterProfileDMO/>
+  </change>
+  <change type="replaceWith" path="darkMatterProfileScaleRadius/darkMatterProfileDMO"                                         target="darkMatterProfileDMO/darkMatterProfileDMO"/>
+  <change type="replaceWith" path="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']/darkMatterProfileDMO" target="darkMatterProfileDMO/darkMatterProfileDMO"/>
+  <change type="replaceWith" path="virialOrbit/darkMatterProfileDMO"                                                          target="darkMatterProfileDMO/darkMatterProfileDMO"/>
+
+  <change type="replace" path="darkMatterProfileDMO[@value='heated']">
+    <darkMatterProfileDMO value="solitonNFWHeated">
+      <nonAnalyticSolver value="numerical"/>
+      <toleranceRelativeVelocityDispersionMaximum value="0.1"/>
+    </darkMatterProfileDMO>
+  </change>
+
+  <!-- Limit the tidal radius used for stripping the outer halo so that it can never enter the solitonic core. The inner tidal
+       radius model must be given explicitly: "solitonLimited" composites a member of its own class, and Galacticus refuses to build
+       such a member from defaults since that would recurse indefinitely. It is therefore stated once here and copied below to
+       wherever else it is needed, so that this file has a single point of truth for it. Should the reference model ever specify
+       an explicit tidal radius model of its own, use a change of type "encapsulate" on it instead, so that the model it
+       specifies is moved inside this wrapper rather than being overridden by the one given here. -->
+  <change type="append" path="satelliteTidalStripping">
+    <satelliteTidalStrippingRadius value="solitonLimited">
+      <satelliteTidalStrippingRadius value="king1962"/>
+    </satelliteTidalStrippingRadius>
+  </change>
+
+  <!-- Tidal mass loss from satellites is handled by the soliton-aware operator added below, which dispatches to the outer halo
+       or to the solitonic core according to the state of the halo. The standard operator would double-count that mass loss, and
+       would additionally bypass the tidal radius limiter added above, so it is removed here. -->
+  <change type="remove" path="nodeOperator/nodeOperator[@value='satelliteTidalMassLoss']"/>
+
+  <!-- Add the soliton node operator for soliton+NFW dark matter halo profiles. -->
+  <change type="append" path="nodeOperator">
+    <nodeOperator value="darkMatterProfileSoliton"/>
+  </change>
+
+  <change type="append" path="nodeOperator">
+    <nodeOperator value="satelliteTidalMassLossSoliton">
+      <!-- The outer-halo stripping model is not specified here: it is inherited from the enclosing scope, so that it always
+           matches the tidal stripping model used by the rest of the model, including the radius limiter added above. -->
+      <satelliteTidalStrippingCore value="du2018"/>
+      <satelliteTidalStrippingRadius/>
+    </nodeOperator>
+  </change>
+
+  <!-- Give the soliton mass-loss operator a copy of the unlimited tidal radius model, which it uses to detect when the tidal
+       radius first reaches the soliton radius. Either model would in fact serve, as the test the operator makes is satisfied
+       under the same conditions for both, but the unlimited model is the more natural choice for it. -->
+  <change type="replaceWith" path="nodeOperator/nodeOperator[@value='satelliteTidalMassLossSoliton']/satelliteTidalStrippingRadius" target="satelliteTidalStripping/satelliteTidalStrippingRadius[@value='solitonLimited']/satelliteTidalStrippingRadius"/>
+
+</changes>

@@ -180,10 +180,10 @@ contains
     Import data from a Gadget HDF5 file.
     !!}
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
-    use :: Error                           , only : Error_Report
-    use :: Dictionaries                    , only : rank1IntegerSizeTPtrDictionary, rank2IntegerSizeTPtrDictionary, rank1DoublePtrDictionary, rank2DoublePtrDictionary, &
-         &                                          doubleDictionary              , varyingStringDictionary       , integerSizeTDictionary  , genericDictionary
-    use :: Numerical_Constants_Astronomical, only : massSolar               , megaParsec
+    use :: Error                           , only : Error_Report                  , Error_Report_Allocation_Failure
+    use :: Dictionaries                    , only : rank1IntegerSizeTPtrDictionary, rank2IntegerSizeTPtrDictionary , rank1DoublePtrDictionary, rank2DoublePtrDictionary, &
+         &                                          doubleDictionary              , varyingStringDictionary        , integerSizeTDictionary  , genericDictionary
+    use :: Numerical_Constants_Astronomical, only : massSolar                     , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (nbodyImporterGadgetHDF5), intent(inout)                              :: self
@@ -195,6 +195,7 @@ contains
     integer         (c_size_t               )               , pointer    , dimension(:,:) :: boundStatus
     integer         (c_size_t               )               , pointer    , dimension(:  ) :: particleID
     integer         (c_size_t               )                                             :: countParticles       , countBootstrapSample
+    integer                                                                               :: allocErr
     character       (len=9                  )                                             :: particleGroupName
     type            (hdf5Group              )                                             :: header
     type            (hdf5Dataset            )                                             :: dataset
@@ -233,9 +234,12 @@ contains
     ! the bound status of particles.
     dataset=simulations(1)%analysis%openDataset('ParticleIDs')
     countParticles=dataset%size(1)
-    allocate(particleID(  countParticles))
-    allocate(position  (3,countParticles))
-    allocate(velocity  (3,countParticles))
+    allocate(particleID(  countParticles),stat=allocErr)
+    if (allocErr /= 0) call Error_Report_Allocation_Failure('particleID',  countParticles,{introspection:location})
+    allocate(position  (3,countParticles),stat=allocErr)
+    if (allocErr /= 0) call Error_Report_Allocation_Failure('position'  ,3*countParticles,{introspection:location})
+    allocate(velocity  (3,countParticles),stat=allocErr)
+    if (allocErr /= 0) call Error_Report_Allocation_Failure('velocity'  ,3*countParticles,{introspection:location})
     call simulations(1)%analysis%readDatasetStatic('Coordinates',position  )
     call simulations(1)%analysis%readDatasetStatic('Velocities' ,velocity  )
     call simulations(1)%analysis%readDatasetStatic('ParticleIDs',particleID)
@@ -250,9 +254,12 @@ contains
     if (simulations(1)%analysis%hasDataset('selfBoundStatus')) then
        dataset=simulations(1)%analysis%openDataset('selfBoundStatus')
        countBootstrapSample=dataset%size(2)
-       allocate(boundStatus (countParticles,countBootstrapSample))
-       allocate(sampleWeight(countParticles,countBootstrapSample))
-       allocate(weight      (countParticles,countBootstrapSample))
+       allocate(boundStatus (countParticles,countBootstrapSample),stat=allocErr)
+       if (allocErr /= 0) call Error_Report_Allocation_Failure('boundStatus' ,countParticles*countBootstrapSample,{introspection:location})
+       allocate(sampleWeight(countParticles,countBootstrapSample),stat=allocErr)
+       if (allocErr /= 0) call Error_Report_Allocation_Failure('sampleWeight',countParticles*countBootstrapSample,{introspection:location})
+       allocate(weight      (countParticles,countBootstrapSample),stat=allocErr)
+       if (allocErr /= 0) call Error_Report_Allocation_Failure('weight'      ,countParticles*countBootstrapSample,{introspection:location})
        call simulations(1)%analysis%readDatasetStatic('selfBoundStatus',boundStatus )
        call simulations(1)%analysis%readDatasetStatic('weight'         ,weight      )
        sampleWeight=dble(weight)

@@ -17,8 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson. The fixes for issue #1321 were diagnosed and drafted with
-!+    assistance from Claude, and reviewed and verified by Andrew Benson.
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
   !!{RST
   An implementation of virial orbits using a loss cone model.
@@ -36,6 +35,8 @@
   use :: Linear_Growth                  , only : linearGrowthClass
   use :: Virial_Density_Contrast        , only : virialDensityContrastClass
   use :: Numerical_Interpolation        , only : interpolator
+  use :: Numerical_Interpolation_MultiD , only : interpolatorMultiD
+  use :: Numerical_Ranges               , only : rangeLattice
   use :: Correlation_Functions_Two_Point, only : correlationFunctionTwoPointClass
   use :: Galacticus_Nodes               , only : treeNode
   use :: Merger_Tree_Branching          , only : mergerTreeBranchingProbabilityClass
@@ -65,9 +66,9 @@
      class           (correlationFunctionTwoPointClass   ), pointer                         :: correlationFunctionTwoPoint_    => null()
      class           (mergerTreeBranchingProbabilityClass), pointer                         :: mergerTreeBranchingProbability_ => null()
      double precision                                                                       :: velocityMinimum                          , velocityMaximum                     , &
-          &                                                                                    massMinimum                              , massMaximum                         , &
           &                                                                                    time                                     , velocityDispersionMultiplier
      integer                                                                                :: countMassesPerDecade                     , countVelocitiesPerUnit
+     type            (rangeLattice                       )                                  :: latticeMass
      logical                                                                                :: includeInFlightGrowth
      double precision                                     , allocatable, dimension(:      ) :: mass                                     , velocity
      double precision                                     , allocatable, dimension(:,:    ) :: velocityRadialMeanVirial                 , velocityRadialDispersionVirial      , &
@@ -76,6 +77,7 @@
      double precision                                     , allocatable, dimension(:,:,:  ) :: velocityRadialDistributionOrbits         , velocityTangentialDistributionOrbits
      double precision                                     , allocatable, dimension(:,:,:,:) :: velocityDistributionOrbits
      type            (interpolator                       ), allocatable                     :: interpolatorMass                         , interpolatorVelocity
+     type            (interpolatorMultiD                 ), allocatable                     :: interpolatorMasses                       , interpolatorMassesVelocities
      type            (varying_string                     )                                  :: fileName
      logical                                                                                :: fileRead
      double precision                                                                       :: haloMassFunctionA                        , haloMassFunctionP                   , &
@@ -112,6 +114,12 @@
      module procedure lossConeConstructorParameters
      module procedure lossConeConstructorInternal
   end interface virialOrbitLossCone
+
+  ! Default range of halo masses over which to tabulate. This seeds the pinned range: any tabulation, whatever masses prompted
+  ! it, spans at least this range, which guarantees that any two tabulations overlap and so that one can always be extended to
+  ! cover the other. These are whole decades, and so are themselves anchor points of the lattice for any density of points per
+  ! decade.
+  double precision, parameter :: massTableMinimum=1.0d06, massTableMaximum=1.0d15
 
   ! Submodule-scope objects used for OpenMP parallelism.
   class(cosmologyFunctionsClass                    ), pointer :: cosmologyFunctions_
@@ -295,10 +303,9 @@ contains
     <constructorAssign variables="velocityMinimum, velocityMaximum, countVelocitiesPerUnit, countMassesPerDecade, includeInFlightGrowth, haloMassFunctionA, haloMassFunctionP, haloMassFunctionNormalization, velocityDispersionMultiplier, *cosmologyFunctions_, *cosmologyParameters_, *cosmologicalVelocityField_, *linearGrowth_, *darkMatterHaloBias_, *darkMatterHaloScale_, *virialDensityContrast_, *correlationFunctionTwoPoint_, *cosmologicalMassVariance_, *criticalOverdensity_, *mergerTreeBranchingProbability_, *darkMatterProfileDMO_"/>
     !!]
 
-    ! Set an initial mass range, along with an unphysical initial time (so that retabulation will be forced on the first call).
-    self%time       =-huge(0.0d0)
-    self%massMinimum=1.0d06
-    self%massMaximum=1.0d15
+    ! Set an unphysical initial time, so that tabulation is forced on the first call. The range of masses is left undefined here:
+    ! it is established on that first call, seeded with the default range of "massTableMinimum" to "massTableMaximum".
+    self%time=-huge(0.0d0)
     ! Build the velocity array and interpolator.
     countVelocities=int((self%velocityMaximum-self%velocityMinimum)*dble(self%countVelocitiesPerUnit))+1    
     allocate(self%velocity            (countVelocities))
@@ -352,32 +359,27 @@ contains
     logical                              , intent(in   )         :: acceptUnboundOrbits
     class           (nodeComponentBasic ), pointer               :: basicSatellite               , basicHost
     double precision                     , parameter             :: boundTolerance        =1.0d-4 ! Tolerence to ensure that orbits are sufficiently bound.
-    integer         (c_size_t           ), dimension(0:1)        :: iSatellite                   , iHost                     , &
-         &                                                          iRadial                      , iTangential
-    double precision                     , dimension(0:1)        :: hSatellite                   , hHost                     , &
-         &                                                          hRadial                      , hTangential
+    integer         (c_size_t           ), dimension(    2)      :: indicesMass
+    integer         (c_size_t           ), dimension(    4)      :: indicesOrbit
+    double precision                     , dimension(0:1,2)      :: weightsMass
+    double precision                     , dimension(0:1,4)      :: weightsOrbit
     double precision                                             :: velocityHost                 , distributionMaximum       , &
          &                                                          radiusHost                   , radiusHostSelf            , &
          &                                                          massSatellite                , massHost                  , &
          &                                                          velocityRadialInternal       , velocityTangentialInternal, &
          &                                                          distributionFunction         , energyInternal            , &
          &                                                          uniformRandom
-    integer                                                      :: jSatellite                   , jHost                     , &
-         &                                                          jRadial                      , jTangential
     logical                                                      :: foundOrbit
 
-    call self%tabulate    (node,host                                                                                     )
-    call self%interpolants(node,host,massSatellite,massHost,velocityHost,radiusHostSelf,iSatellite,iHost,hSatellite,hHost)
+    call self%tabulate    (node,host                                                                           )
+    call self%interpolants(node,host,massSatellite,massHost,velocityHost,radiusHostSelf,indicesMass,weightsMass)
     ! Find the peak of our distribution for use in rejection sampling.
-    distributionMaximum=0.0d0
-    do jSatellite=0,1
-       do jHost  =0,1
-          distributionMaximum=+distributionMaximum                                                &
-               &              +self%velocityDistributionPeak(iHost(jHost),iSatellite(jSatellite)) &
-               &              *                              hHost(jHost)                         &
-               &              *                                           hSatellite(jSatellite)
-       end do
-    end do
+    distributionMaximum=self%interpolatorMasses%interpolateFactors(self%velocityDistributionPeak,indicesMass,weightsMass)
+    ! The factors along the mass dimensions are shared with the orbital velocity distribution, and are unchanged by the
+    ! rejection sampling below, so place them into the factors for that distribution once here. Only the factors along
+    ! the velocity dimensions then change from one trial orbit to the next.
+    indicesOrbit(  1:2)=indicesMass
+    weightsOrbit(:,1:2)=weightsMass
     ! Perform rejection sampling to find the orbital velocities.
     foundOrbit=.false.
     do while(.not.foundOrbit)
@@ -390,30 +392,9 @@ contains
        velocityRadialInternal    =node%hostTree%randomNumberGenerator_%uniformSample()*self%velocityMaximum
        velocityTangentialInternal=node%hostTree%randomNumberGenerator_%uniformSample()*self%velocityMaximum
        ! Evaluate distribution function for these parameters.
-       call self%interpolatorVelocity%linearFactors(velocityRadialInternal    ,iRadial    (0),hRadial    )
-       call self%interpolatorVelocity%linearFactors(velocityTangentialInternal,iTangential(0),hTangential)
-       iRadial    (1)=iRadial    (0)+1_c_size_t
-       iTangential(1)=iTangential(0)+1_c_size_t
-       distributionFunction=0.0d0
-       do jSatellite          =0,1
-          do jHost            =0,1
-             do jRadial       =0,1
-                do jTangential=0,1
-                   distributionFunction=+distributionFunction                                       &
-                        &                +self%velocityDistributionOrbits(                          &
-                        &                                                 iHost      (jHost      ), &
-                        &                                                 iSatellite (jSatellite ), &
-                        &                                                 iRadial    (jRadial    ), &
-                        &                                                 iTangential(jTangential)  &
-                        &                                                )                          &
-                        &                *                                hHost      (jHost      )  &
-                        &                *                                hSatellite (jSatellite )  &
-                        &                *                                hRadial    (jRadial    )  &
-                        &                *                                hTangential(jTangential)
-                end do
-             end do
-          end do
-       end do
+       call self%interpolatorVelocity%linearFactors(velocityRadialInternal    ,indicesOrbit(3),weightsOrbit(:,3))
+       call self%interpolatorVelocity%linearFactors(velocityTangentialInternal,indicesOrbit(4),weightsOrbit(:,4))
+       distributionFunction=self%interpolatorMassesVelocities%interpolateFactors(self%velocityDistributionOrbits,indicesOrbit,weightsOrbit)
        ! Perform rejection sampling.
        uniformRandom=distributionMaximum*node%hostTree%randomNumberGenerator_%uniformSample()
        if (uniformRandom <= distributionFunction) then
@@ -447,50 +428,29 @@ contains
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
-    class           (virialOrbitLossCone), intent(inout)  :: self
-    type            (treeNode           ), intent(inout)  :: host          , node
-    double precision                     , intent(in   )  :: velocityRadial, velocityTangential    
-    integer         (c_size_t           ), dimension(0:1) :: iSatellite    , iHost             , &
-         &                                                   iRadial       , iTangential
-    double precision                     , dimension(0:1) :: hSatellite    , hHost             , &
-         &                                                   hRadial       , hTangential
-    double precision                                      :: velocityHost  , radiusHost        , &
-         &                                                   massSatellite , massHost
-    integer                                               :: jSatellite    , jHost             , &
-         &                                                   jRadial       , jTangential
+    class           (virialOrbitLossCone), intent(inout)    :: self
+    type            (treeNode           ), intent(inout)    :: host          , node
+    double precision                     , intent(in   )    :: velocityRadial, velocityTangential
+    integer         (c_size_t           ), dimension(    2) :: indicesMass
+    integer         (c_size_t           ), dimension(    4) :: indicesOrbit
+    double precision                     , dimension(0:1,2) :: weightsMass
+    double precision                     , dimension(0:1,4) :: weightsOrbit
+    double precision                                        :: velocityHost  , radiusHost        , &
+         &                                                     massSatellite , massHost
 
     ! Tabulate the distribution and get all interpolating factors.
-    call self%tabulate                          (node,host                                                                                 )
-    call self%interpolants                      (node,host,massSatellite,massHost,velocityHost,radiusHost,iSatellite,iHost,hSatellite,hHost)
-    call self%interpolatorVelocity%linearFactors(velocityRadial    /velocityHost,iRadial    (0),hRadial    )
-    call self%interpolatorVelocity%linearFactors(velocityTangential/velocityHost,iTangential(0),hTangential)
-    iRadial    (1)=iRadial    (0)+1_c_size_t
-    iTangential(1)=iTangential(0)+1_c_size_t
+    call self%tabulate                          (node,host                                                                       )
+    call self%interpolants                      (node,host,massSatellite,massHost,velocityHost,radiusHost,indicesMass,weightsMass)
+    call self%interpolatorVelocity%linearFactors(velocityRadial    /velocityHost,indicesOrbit(3),weightsOrbit(:,3)               )
+    call self%interpolatorVelocity%linearFactors(velocityTangential/velocityHost,indicesOrbit(4),weightsOrbit(:,4)               )
+    indicesOrbit(  1:2)=indicesMass
+    weightsOrbit(:,1:2)=weightsMass
     ! Perform the interpolation.
-    lossConeVelocityDistributionFunction=0.0d0
-    do jSatellite          =0,1
-       do jHost            =0,1
-          do jRadial       =0,1
-             do jTangential=0,1
-                lossConeVelocityDistributionFunction=+lossConeVelocityDistributionFunction                      &
-                     &                               +self%velocityDistributionOrbits(                          &
-                     &                                                                iHost      (jHost      ), &
-                     &                                                                iSatellite (jSatellite ), &
-                     &                                                                iRadial    (jRadial    ), &
-                     &                                                                iTangential(jTangential)  &
-                     &                                                               )                          &
-                     &                               *                                hHost      (jHost      )  &
-                     &                               *                                hSatellite (jSatellite )  &
-                     &                               *                                hRadial    (jRadial    )  &
-                     &                               *                                hTangential(jTangential)
-             end do
-          end do
-       end do
-    end do
+    lossConeVelocityDistributionFunction=self%interpolatorMassesVelocities%interpolateFactors(self%velocityDistributionOrbits,indicesOrbit,weightsOrbit)
     return
   end function lossConeVelocityDistributionFunction
 
-  subroutine lossConeInterpolants(self,node,host,massSatellite,massHost,velocityHost,radiusHost,iSatellite,iHost,hSatellite,hHost)
+  subroutine lossConeInterpolants(self,node,host,massSatellite,massHost,velocityHost,radiusHost,indicesMass,weightsMass)
     !!{RST
     Compute interpolating factors in the orbital parameter tables.
     !!}
@@ -498,13 +458,13 @@ contains
     use            :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use            :: Galacticus_Nodes                    , only : nodeComponentBasic
     implicit none
-    class           (virialOrbitLossCone), intent(inout)                 :: self
-    type            (treeNode           ), intent(inout)                 :: host          , node
-    double precision                     , intent(  out)                 :: velocityHost  , radiusHost, &
-         &                                                                  massSatellite , massHost
-    integer         (c_size_t           ), intent(  out), dimension(0:1) :: iSatellite    , iHost
-    double precision                     , intent(  out), dimension(0:1) :: hSatellite    , hHost
-    class           (nodeComponentBasic ), pointer                       :: basicSatellite, basicHost
+    class           (virialOrbitLossCone), intent(inout)                   :: self
+    type            (treeNode           ), intent(inout)                   :: host          , node
+    double precision                     , intent(  out)                   :: velocityHost  , radiusHost, &
+         &                                                                    massSatellite , massHost
+    integer         (c_size_t           ), intent(  out), dimension(    2) :: indicesMass
+    double precision                     , intent(  out), dimension(0:1,2) :: weightsMass
+    class           (nodeComponentBasic ), pointer                         :: basicSatellite, basicHost
 
     ! Evaluate halo masses under our mass definition. Also gives us the host velocity scale.
     basicSatellite => node%basic()
@@ -528,11 +488,10 @@ contains
          &                                                darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                            &
          &                                               )
     massSatellite  =  min(massSatellite,massHost)
-    ! Compute interpolating factors.
-    call self%interpolatorMass%linearFactors(log(massSatellite),iSatellite(0),hSatellite)
-    call self%interpolatorMass%linearFactors(log(massHost     ),iHost     (0),hHost     )
-    iSatellite(1)=iSatellite(0)+1_c_size_t
-    iHost     (1)=iHost     (0)+1_c_size_t
+    ! Compute interpolating factors. The mass dimensions are interpolated logarithmically, which is achieved by building
+    ! the interpolator on the logarithms of the masses and evaluating it at the logarithm of the coordinate. The
+    ! dimensions are ordered (host, satellite) to match the layout of the tabulated arrays.
+    call self%interpolatorMasses%factors([log(massHost),log(massSatellite)],indicesMass,weightsMass)
     return
   end subroutine lossConeInterpolants
   
@@ -553,28 +512,16 @@ contains
     Return the mean magnitude of the tangential velocity.
     !!}
     implicit none
-    class           (virialOrbitLossCone), intent(inout)  :: self
-    type            (treeNode           ), intent(inout)  :: node         , host
-    integer         (c_size_t           ), dimension(0:1) :: iSatellite   , iHost
-    double precision                     , dimension(0:1) :: hSatellite   , hHost
-    double precision                                      :: velocityHost , radiusHost, &
-         &                                                   massSatellite, massHost
-    integer                                               :: jSatellite   , jHost
+    class           (virialOrbitLossCone), intent(inout)    :: self
+    type            (treeNode           ), intent(inout)    :: node         , host
+    integer         (c_size_t           ), dimension(    2) :: indicesMass
+    double precision                     , dimension(0:1,2) :: weightsMass
+    double precision                                        :: velocityHost , radiusHost, &
+         &                                                     massSatellite, massHost
 
-    call self%tabulate    (node,host                                                                                 )
-    call self%interpolants(node,host,massSatellite,massHost,velocityHost,radiusHost,iSatellite,iHost,hSatellite,hHost)
-    lossConeVelocityTangentialMagnitudeMean=0.0d0
-    do jSatellite=0,1
-       do jHost  =0,1
-          lossConeVelocityTangentialMagnitudeMean=+lossConeVelocityTangentialMagnitudeMean                    &
-               &                                  +self%velocityTangentialMeanVirial(                         &
-               &                                                                     iHost     (jHost      ), &
-               &                                                                     iSatellite(jSatellite )  &
-               &                                                                    )                         &
-               &                                  *                                  hHost     (jHost      )  &
-               &                                  *                                  hSatellite(jSatellite )
-       end do
-    end do
+    call self%tabulate    (node,host                                                                       )
+    call self%interpolants(node,host,massSatellite,massHost,velocityHost,radiusHost,indicesMass,weightsMass)
+    lossConeVelocityTangentialMagnitudeMean=self%interpolatorMasses%interpolateFactors(self%velocityTangentialMeanVirial,indicesMass,weightsMass)
     return
   end function lossConeVelocityTangentialMagnitudeMean
 
@@ -641,28 +588,16 @@ contains
     Return the mean magnitude of the tangential velocity.
     !!}
     implicit none
-    class           (virialOrbitLossCone), intent(inout)  :: self
-    type            (treeNode           ), intent(inout)  :: node         , host
-    integer         (c_size_t           ), dimension(0:1) :: iSatellite   , iHost
-    double precision                     , dimension(0:1) :: hSatellite   , hHost
-    double precision                                      :: velocityHost , radiusHost, &
-         &                                                   massSatellite, massHost
-    integer                                               :: jSatellite   , jHost
+    class           (virialOrbitLossCone), intent(inout)    :: self
+    type            (treeNode           ), intent(inout)    :: node         , host
+    integer         (c_size_t           ), dimension(    2) :: indicesMass
+    double precision                     , dimension(0:1,2) :: weightsMass
+    double precision                                        :: velocityHost , radiusHost, &
+         &                                                     massSatellite, massHost
 
-    call self%tabulate    (node,host                                                                                 )
-    call self%interpolants(node,host,massSatellite,massHost,velocityHost,radiusHost,iSatellite,iHost,hSatellite,hHost)
-    lossConeVelocityTotalRootMeanSquared=0.0d0
-    do jSatellite=0,1
-       do jHost  =0,1
-          lossConeVelocityTotalRootMeanSquared=+lossConeVelocityTotalRootMeanSquared           &
-               &                               +self%velocityTotalRMS(                         &
-               &                                                      iHost     (jHost      ), &
-               &                                                      iSatellite(jSatellite )  &
-               &                                                     )                         &
-               &                               *                      hHost     (jHost      )  &
-               &                               *                      hSatellite(jSatellite )
-       end do
-    end do
+    call self%tabulate    (node,host                                                                       )
+    call self%interpolants(node,host,massSatellite,massHost,velocityHost,radiusHost,indicesMass,weightsMass)
+    lossConeVelocityTotalRootMeanSquared=self%interpolatorMasses%interpolateFactors(self%velocityTotalRMS,indicesMass,weightsMass)
     return
   end function lossConeVelocityTotalRootMeanSquared
 
@@ -702,13 +637,14 @@ contains
     !!}
     use :: Cosmological_Density_Field          , only : haloEnvironmentNormal
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Display                             , only : displayCounter                     , displayCounterClear , displayIndent, displayUnindent, &
+    use :: Display                             , only : displayCounter                     , displayCounterClear , displayIndent, displayUnindent     , &
           &                                             verbosityLevelWorking
     use :: Error                               , only : errorStatusSuccess
     use :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic  , treeNode
     use :: Calculations_Resets                 , only : Calculations_Reset
     use :: Numerical_Constants_Math            , only : Pi
-    use :: Numerical_Ranges                    , only : Make_Range                         , rangeTypeLogarithmic
+    use :: Numerical_Ranges                    , only : Make_Range                         , rangeTypeLogarithmic, Range_Pinned , Range_Lattice_Offset, &
+          &                                             gridSchemePerDecade
     use :: Table_Labels                        , only : extrapolationTypeFix
     use :: Numerical_Integration               , only : integrator
     use :: OMP_Lib                             , only : OMP_Get_Thread_Num
@@ -724,6 +660,10 @@ contains
          &                                                                               velocityDistributionPeak                       , velocityTotalRMS
     double precision                                , dimension(:,:,:  ), allocatable :: velocityRadialDistributionOrbits               , velocityTangentialDistributionOrbits
     double precision                                , dimension(:,:,:,:), allocatable :: velocityDistributionOrbits
+    logical                                         , dimension(:,:    ), allocatable :: isComputed
+    type            (rangeLattice                  )                                  :: latticeMass
+    integer                                                                           :: offsetMass                                     , countMassesPrevious
+    logical                                                                           :: reuseSolutions
     double precision                                , dimension(2      )              :: radiiEvaluation
     double precision                                , parameter                       :: velocityRadialInfallMaximum           =6.0000d0
     double precision                                , parameter                       :: velocityRadialInfallStep              =0.0001d0
@@ -784,45 +724,59 @@ contains
          &                                                cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
          &                                                virialDensityContrast_=self%virialDensityContrast_                                                                           &
          & )
-    if     (                                           &
-         &   basicHost     %time() == self%time        &
-         &  .and.                                      &
-         &   basicHost     %mass() >= self%massMinimum &
-         &  .and.                                      &
-         &   basicHost     %mass() <= self%massMaximum &
-         &  .and.                                      &
-         &   basicSatellite%mass() >= self%massMinimum &
-         &  .and.                                      &
-         &   basicSatellite%mass() <= self%massMaximum &
+    ! Find the range of masses required, pinned to an absolute lattice so that the tabulation---and hence every value
+    ! interpolated from it---is independent of the masses at which it happened to be first requested, and so that it can be
+    ! extended without recomputing any solution already found. Only the mass axis is pinned: the velocity axis is fixed by the
+    ! parameters of this object and never changes, while the epoch is a key rather than an axis---the tabulation is discarded
+    ! wholesale when it changes, since every tabulated quantity depends on it.
+    !
+    ! Both the raw node masses and those same masses under our own definition of the virial density contrast are covered. The
+    ! latter are the coordinates at which the tables are actually interpolated (see "lossConeInterpolants"), while the former are
+    ! what the range of the tabulation was historically tested against here; the two differ by the mass-definition conversion, so
+    ! covering both leaves the tabulation no narrower than it was before being pinned. The interpolator built below aborts on
+    ! extrapolation, so a mass falling outside the tabulated range is fatal rather than merely inaccurate.
+    latticeMass=Range_Pinned(                                                                                 &
+         &                                   [basicHost%mass(),basicSatellite%mass(),massHost,massSatellite], &
+         &                                    self%countMassesPerDecade                                     , &
+         &                                    gridSchemePerDecade                                           , &
+         &                    rangeCurrent  =[massTableMinimum,massTableMaximum]                            , &
+         &                    latticeCurrent=self%latticeMass                                                 &
+         &                   )
+    if     (                                                   &
+         &   basicHost       %time  (           ) == self%time &
+         &  .and.                                              &
+         &   self%latticeMass%covers(latticeMass)              &
          & ) return
-    ! Free existing tabulations. Note that "velocity" and "interpolatorVelocity" are *not* freed here---they are built once, by
-    ! the constructor, from parameters that do not change between tabulations, and are used (via "countVelocities" below, and by
-    ! the interpolants) throughout this and subsequent tabulations.
-    if (allocated(self%mass)) then
-       deallocate(self%mass                                )
-       deallocate(self%velocityRadialMeanVirial            )
-       deallocate(self%velocityRadialDispersionVirial      )
-       deallocate(self%velocityTangentialMeanVirial        )
-       deallocate(self%velocityTangentialDispersionVirial  )
-       deallocate(self%velocityRadialDistributionOrbits    )
-       deallocate(self%velocityTangentialDistributionOrbits)
-       deallocate(self%velocityDistributionOrbits          )
-       deallocate(self%velocityTotalRMS                    )
-       deallocate(self%velocityDistributionPeak            )
-       deallocate(self%interpolatorMass                    )
+    ! Determine whether the solutions already found can be carried over into the new tabulation. They can only if the epoch is
+    ! unchanged---every tabulated quantity depends on it---and if there is an existing tabulation, on a known lattice, to carry
+    ! over. Where they can, they occupy a block of the new arrays offset by the difference in the lattices.
+    reuseSolutions=  basicHost       %time     () == self%time &
+         &         .and.                                       &
+         &           self%latticeMass%isDefined()              &
+         &         .and.                                       &
+         &           allocated(self%velocityRadialMeanVirial)
+    countMassesPrevious=0
+    offsetMass         =0
+    if (reuseSolutions) then
+       countMassesPrevious=self%latticeMass%count
+       offsetMass         =Range_Lattice_Offset(self%latticeMass,latticeMass)
     end if
     ! Set time for this tabulation.
     self%time=basicHost%time()
-    ! Get number of velocities to tabulate.
+    ! Get number of velocities to tabulate. Note that "velocity" and "interpolatorVelocity" are built once, by the constructor,
+    ! from parameters that do not change between tabulations, and are deliberately left alone here---they are used below, and by
+    ! the interpolants, throughout this and subsequent tabulations.
     countVelocities=size(self%velocity)
-    ! Build range of masses.
-    self%massMinimum=min(self%massMinimum,0.5d0*min(basicHost%mass(),basicSatellite%mass()))
-    self%massMaximum=max(self%massMaximum,2.0d0*max(basicHost%mass(),basicSatellite%mass()))
-    countMasses     =int(log10(self%massMaximum/self%massMinimum)*dble(self%countMassesPerDecade))+1    
+    ! Build the range of masses. The abscissae are taken from the lattice, rather than by subdividing the range, so that they are
+    ! bit-identical to those of any other tabulation built on the same lattice.
+    countMasses=latticeMass%count
+    if (allocated(self%mass            )) deallocate(self%mass            )
+    if (allocated(self%interpolatorMass)) deallocate(self%interpolatorMass)
     allocate(self%mass            (countMasses))
     allocate(self%interpolatorMass             )
-    self%mass            =Make_Range(self%massMinimum,self%massMaximum,countMasses,rangeTypeLogarithmic)
+    self%mass            =latticeMass%values()
     self%interpolatorMass=interpolator(log(self%mass))
+    call lossConeInterpolatorsMultiDBuild(self)
     ! Allocate arrays for results and initialize.
     allocate(velocityRadialMeanVirial            (countMasses,countMasses                                ))
     allocate(velocityRadialDispersionVirial      (countMasses,countMasses                                ))
@@ -833,6 +787,7 @@ contains
     allocate(velocityDistributionOrbits          (countMasses,countMasses,countVelocities,countVelocities))
     allocate(velocityTotalRMS                    (countMasses,countMasses                                ))
     allocate(velocityDistributionPeak            (countMasses,countMasses                                ))
+    allocate(isComputed                          (countMasses,countMasses                                ))
     velocityRadialMeanVirial                     =0.0d0
     velocityRadialDispersionVirial               =0.0d0
     velocityTangentialMeanVirial                 =0.0d0
@@ -842,8 +797,29 @@ contains
     velocityDistributionOrbits                   =0.0d0
     velocityTotalRMS                             =0.0d0
     velocityDistributionPeak                     =0.0d0
-    ! Iterate over host masses.
-    countTotal   =(countMasses*(countMasses+1))/2
+    isComputed                                   =.false.
+    ! Carry over the solutions already found. Both mass dimensions of every array are indexed on the same lattice, so the
+    ! surviving solutions form a square block offset equally along both.
+    if (reuseSolutions) then
+       velocityRadialMeanVirial            (offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious    )=self%velocityRadialMeanVirial
+       velocityRadialDispersionVirial      (offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious    )=self%velocityRadialDispersionVirial
+       velocityTangentialMeanVirial        (offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious    )=self%velocityTangentialMeanVirial
+       velocityTangentialDispersionVirial  (offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious    )=self%velocityTangentialDispersionVirial
+       velocityRadialDistributionOrbits    (offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious,:  )=self%velocityRadialDistributionOrbits
+       velocityTangentialDistributionOrbits(offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious,:  )=self%velocityTangentialDistributionOrbits
+       velocityDistributionOrbits          (offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious,:,:)=self%velocityDistributionOrbits
+       velocityTotalRMS                    (offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious    )=self%velocityTotalRMS
+       velocityDistributionPeak            (offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious    )=self%velocityDistributionPeak
+       isComputed                          (offsetMass+1:offsetMass+countMassesPrevious,offsetMass+1:offsetMass+countMassesPrevious    )=.true.
+    end if
+    ! Record the lattice on which this tabulation is built.
+    self%latticeMass=latticeMass
+    ! Iterate over host masses. Only those solutions not carried over need be found, and then only for satellites no more massive
+    ! than their host.
+    countTotal=0
+    do iHost=1,countMasses
+       countTotal=countTotal+count(.not.isComputed(iHost,1:iHost))
+    end do
     countProgress=0
     !$omp parallel private(iHost,iSatellite,massHost,massSatellite,tree,nodeHost,nodeSatellite,basicHost,basicSatellite,radiusVirialHost,velocityVirialHost,velocityDispersionLinear,indexVelocityRadial,indexVelocityTangential,velocityRadialVirial,velocityTangentialVirial,countVelocityRadialInfall,indexVelocityRadialInfall,velocityRadialInfall,radiusInfallTerm1,radiusInfallTerm2,radiiEvaluation,iEvaluate,radiusEvaluateVirial,timeEvaluate,radiusApocenterVirial,radiusPericenterVirial,timeOfFlightVirial,timeOfFlight,radiusEvaluate,radiusEvaluateComoving,velocityDispersionEvaluate,velocityRadialMeanEvaluate,velocityDispersionRadialEvaluateVirial,velocityDispersionTangentialEvaluateVirial,velocityMeanRadialEvaluateVirial,velocityTangentialInfall,jacobianFactor,jacobianDeterminant,distributionFunction,interpolatorVelocityDispersionLinear,integratorEnvironment,integratorEnvironmentNormalizer,factorEnvironmental,massEnvironment,radiusEnvironment,overdensityEnvironmentMinimum,energyOrbitDoubled)
     allocate(tree                                                                          )
@@ -956,6 +932,11 @@ contains
          &                            +overdensityLinearMinimumMap                                                  &
          &                           )
     do iHost=1,countMasses
+       ! Skip this host mass entirely if the solution for every satellite mass paired with it was carried over---this avoids
+       ! rebuilding the host node and re-evaluating its environmental boost factor, as well as the orbit distributions
+       ! themselves. Note that "isComputed" is shared, and is not modified anywhere within this parallel region, so every thread
+       ! takes this branch identically and the work-sharing constructs below remain matched across the team.
+       if (all(isComputed(iHost,1:iHost))) cycle
        ! Build host node.
        massHost           =  self%mass     (            iHost)
        massHost_          =  massHost
@@ -978,7 +959,9 @@ contains
        ! Iterate over satellite masses.
        do iSatellite=1,countMasses          
           ! Only consider satellites less (or equally) massive than their host.
-          if (iSatellite > iHost) cycle
+          if (iSatellite > iHost         ) cycle
+          ! Skip solutions carried over from a previous tabulation.
+          if (isComputed(iHost,iSatellite)) cycle
           if (OMP_Get_Thread_Num() == 0) then
              call displayCounter(int(100.0d0*dble(countProgress)/dble(countTotal)),isNew=countProgress==0,verbosity=verbosityLevelWorking)
              countProgress=countProgress+1             
@@ -1285,11 +1268,11 @@ contains
                      &                               +self%velocity                  (                                     indexVelocityTangential)**2 &
                      &                              )
              end do
-             velocityTotalRMS(iHost,iSatellite)=sqrt(                                                       &
-                  &                                  +    velocityTotalRMS          (iHost,iSatellite    )  &
-                  &                                  /sum(velocityDistributionOrbits(iHost,iSatellite,:,:)) &
-                  &                                 )
           end do
+          velocityTotalRMS(iHost,iSatellite)=sqrt(                                                       &
+               &                                  +    velocityTotalRMS          (iHost,iSatellite    )  &
+               &                                  /sum(velocityDistributionOrbits(iHost,iSatellite,:,:)) &
+               &                                 )
           !$omp end single
           ! Clean up.
           deallocate(nodeSatellite)
@@ -1521,19 +1504,56 @@ contains
   end function timeAlongOrbit
 
   
+  subroutine lossConeInterpolatorsMultiDBuild(self)
+    !!{RST
+    Build the multilinear interpolators used to interpolate in the tabulated orbital properties, from the
+    one-dimensional interpolators along the mass and velocity axes.
+    !!}
+    implicit none
+    class(virialOrbitLossCone), intent(inout) :: self
+    type (interpolator       ), dimension(2)  :: interpolatorsMasses
+    type (interpolator       ), dimension(4)  :: interpolatorsMassesVelocities
+
+    ! The dimensions are ordered to match the layout of the tabulated arrays: the rank-2 tables are indexed by (host
+    ! mass, satellite mass), and the rank-4 table of the orbital velocity distribution by (host mass, satellite mass,
+    ! radial velocity, tangential velocity). Since a multilinear interpolator holds one interpolator per dimension, the
+    ! mass and velocity abscissae are each duplicated twice; both arrays are small---their sizes are set by
+    ! "countMassesPerDecade" and "countVelocitiesPerUnit"---so the duplication is negligible.
+    !
+    ! The velocity interpolator is built once, by the constructor, and never rebuilt; only the mass interpolator is
+    ! rebuilt, when the mass lattice is extended. The velocity abscissae are therefore reused here, not rebuilt.
+    interpolatorsMasses          (1)=self%interpolatorMass
+    interpolatorsMasses          (2)=self%interpolatorMass
+    interpolatorsMassesVelocities(1)=self%interpolatorMass
+    interpolatorsMassesVelocities(2)=self%interpolatorMass
+    interpolatorsMassesVelocities(3)=self%interpolatorVelocity
+    interpolatorsMassesVelocities(4)=self%interpolatorVelocity
+    ! Free any previously-built interpolators before assigning. As for "interpolatorMass" (see "lossConeRestoreTable"),
+    ! these contain "interpolator" components whose defined assignment finalizes the left-hand side, so that side must
+    ! be freshly allocated---and so not left holding garbage---when it is assigned to.
+    if (allocated(self%interpolatorMasses          )) deallocate(self%interpolatorMasses          )
+    if (allocated(self%interpolatorMassesVelocities)) deallocate(self%interpolatorMassesVelocities)
+    allocate(self%interpolatorMasses          )
+    allocate(self%interpolatorMassesVelocities)
+    self%interpolatorMasses          =interpolatorMultiD(interpolatorsMasses          )
+    self%interpolatorMassesVelocities=interpolatorMultiD(interpolatorsMassesVelocities)
+    return
+  end subroutine lossConeInterpolatorsMultiDBuild
+
   subroutine lossConeRestoreTable(self)
     !!{RST
     Attempt to restore a table from file.
     !!}
-    use :: File_Utilities    , only : File_Exists, File_Lock, File_Unlock, lockDescriptor
+    use :: File_Utilities    , only : File_Exists             , File_Lock, File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File
     use :: ISO_Varying_String, only : char
+    use :: Numerical_Ranges  , only : gridSchemePerDecade
+    use :: Table_Caches      , only : Table_Cache_Lattice_Read
     implicit none
-    class           (virialOrbitLossCone)             , intent(inout) :: self
-    type            (hdf5File                                        )                             :: file
-    type            (lockDescriptor                                  )                             :: fileLock
-    !$GLC attributes unused :: self
+    class(virialOrbitLossCone), intent(inout) :: self
+    type (lockDescriptor     )                :: fileLock
+    type (rangeLattice       )                :: latticeCached
 
     if (.not.self%fileRead.and.File_Exists(self%fileName)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
@@ -1549,32 +1569,77 @@ contains
           deallocate(self%velocityRadialDistributionOrbits    )
           deallocate(self%velocityTangentialDistributionOrbits)
           deallocate(self%velocityDistributionOrbits          )
+          deallocate(self%velocityTotalRMS                    )
+          deallocate(self%velocityDistributionPeak            )
           deallocate(self%interpolatorMass                    )
+          deallocate(self%interpolatorMasses                  )
+          deallocate(self%interpolatorMassesVelocities        )
        end if
        !$ call hdf5Access%set()
-       file=hdf5File(self%fileName)
-       call file%readAttribute('time'                                ,     self%time                                 )
-       call file%readAttribute('massMinimum'                         ,     self%massMinimum                          )
-       call file%readAttribute('massMaximum'                         ,     self%massMaximum                          )
-       call file%readDataset  ('mass'                                ,     self%mass                                 )
-       call file%readDataset  ('velocityRadialMeanVirial'            ,     self%velocityRadialMeanVirial             )
-       call file%readDataset  ('velocityRadialDispersionVirial'      ,     self%velocityRadialDispersionVirial       )
-       call file%readDataset  ('velocityTangentialMeanVirial'        ,     self%velocityTangentialMeanVirial         )
-       call file%readDataset  ('velocityTangentialDispersionVirial'  ,     self%velocityTangentialDispersionVirial   )
-       call file%readDataset  ('velocityRadialDistributionOrbits'    ,     self%velocityRadialDistributionOrbits     )
-       call file%readDataset  ('velocityTangentialDistributionOrbits',     self%velocityTangentialDistributionOrbits )
-       call file%readDataset  ('velocityDistributionOrbits'          ,     self%velocityDistributionOrbits           )
-       call file%readDataset  ('velocityTotalRMS'                    ,     self%velocityTotalRMS                     )
-       call file%readDataset  ('velocityDistributionPeak'            ,     self%velocityDistributionPeak             )
+       ! The file object is scoped to this block so that it is finalized---and so the file actually closed---before the locks
+       ! are released below. Were it left to be finalized on return from this subroutine, the file would still be open to this
+       ! process after the lock was released, and another thread taking the lock and truncating the file to write it would fail
+       ! to create it.
+       hdf5FileScope: block
+         type(hdf5File) :: file
+         ! Open read-only: opening read-write would have HDF5 take an exclusive lock on the file, so that another process
+         ! reading it concurrently---which the shared file lock taken above explicitly permits---would fail to open it at all.
+         file=hdf5File(self%fileName,overWrite=.false.,readOnly=.true.)
+         call file%readAttribute('time'                                ,self%time                                )
+         ! Recover the lattice on which the stored tabulation was built. One which the file does not record, or which this
+         ! object would not have built, is returned undefined and so rejected below.
+         call Table_Cache_Lattice_Read(file,'mass',gridSchemePerDecade,self%countMassesPerDecade,latticeCached)
+         call file%readDataset  ('mass'                                ,self%mass                                )
+         call file%readDataset  ('velocityRadialMeanVirial'            ,self%velocityRadialMeanVirial            )
+         call file%readDataset  ('velocityRadialDispersionVirial'      ,self%velocityRadialDispersionVirial      )
+         call file%readDataset  ('velocityTangentialMeanVirial'        ,self%velocityTangentialMeanVirial        )
+         call file%readDataset  ('velocityTangentialDispersionVirial'  ,self%velocityTangentialDispersionVirial  )
+         call file%readDataset  ('velocityRadialDistributionOrbits'    ,self%velocityRadialDistributionOrbits    )
+         call file%readDataset  ('velocityTangentialDistributionOrbits',self%velocityTangentialDistributionOrbits)
+         call file%readDataset  ('velocityDistributionOrbits'          ,self%velocityDistributionOrbits          )
+         call file%readDataset  ('velocityTotalRMS'                    ,self%velocityTotalRMS                    )
+         call file%readDataset  ('velocityDistributionPeak'            ,self%velocityDistributionPeak            )
+       end block hdf5FileScope
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
        self%fileRead=.true.
-       ! Rebuild interpolator. It must be allocated first: "interpolator" has a defined assignment, so assigning to it does not
-       ! cause automatic allocation, and its assignment finalizes the left-hand side---which, if unallocated, means finalizing
-       ! garbage. On this path the interpolator is always unallocated: it is either freed above, or was never built, since it is
-       ! constructed only by tabulate().
-       if (.not.allocated(self%interpolatorMass)) allocate(self%interpolatorMass)
-       self%interpolatorMass=interpolator(log(self%mass))
+       ! Place the restored tabulation on its lattice. If the file is not self-consistent---the datasets not matching the lattice
+       ! recorded alongside them, or that lattice not one which this object could have built---then discard everything read from
+       ! it and retabulate from scratch, rather than leave a partially-restored tabulation behind.
+       if     (                                                              &
+            &   latticeCached%isDefined()                                    &
+            &  .and.                                                         &
+            &   size(self%mass                      ) == latticeCached%count &
+            &  .and.                                                         &
+            &   size(self%velocityRadialMeanVirial,1) == latticeCached%count &
+            &  .and.                                                         &
+            &   size(self%velocityRadialMeanVirial,2) == latticeCached%count &
+            & ) then
+          self%latticeMass=latticeCached
+          ! Take the abscissae from the lattice rather than from the file, so that they are bit-identical to those of any other
+          ! tabulation built on the same lattice.
+          self%mass       =latticeCached%values()
+          ! Rebuild interpolator. It must be allocated first: "interpolator" has a defined assignment, so assigning to it does
+          ! not cause automatic allocation, and its assignment finalizes the left-hand side---which, if unallocated, means
+          ! finalizing garbage. On this path the interpolator is always unallocated: it is either freed above, or was never
+          ! built, since it is constructed only by tabulate().
+          if (.not.allocated(self%interpolatorMass)) allocate(self%interpolatorMass)
+          self%interpolatorMass=interpolator(log(self%mass))
+          call lossConeInterpolatorsMultiDBuild(self)
+       else
+          self%time       =-huge(0.0d0)
+          self%latticeMass= rangeLattice()
+          deallocate(self%mass                                )
+          deallocate(self%velocityRadialMeanVirial            )
+          deallocate(self%velocityRadialDispersionVirial      )
+          deallocate(self%velocityTangentialMeanVirial        )
+          deallocate(self%velocityTangentialDispersionVirial  )
+          deallocate(self%velocityRadialDistributionOrbits    )
+          deallocate(self%velocityTangentialDistributionOrbits)
+          deallocate(self%velocityDistributionOrbits          )
+          deallocate(self%velocityTotalRMS                    )
+          deallocate(self%velocityDistributionPeak            )
+       end if
     end if
     return
   end subroutine lossConeRestoreTable
@@ -1583,34 +1648,41 @@ contains
     !!{RST
     Store the tabulated solution to file.
     !!}
-    use :: File_Utilities    , only : Directory_Make, File_Lock, File_Path, File_Unlock, &
+    use :: File_Utilities    , only : Directory_Make           , File_Lock, File_Path, File_Unlock, &
           &                           lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File
     use :: ISO_Varying_String, only : char
+    use :: Table_Caches      , only : Table_Cache_Lattice_Write
     implicit none
     class(virialOrbitLossCone), intent(inout) :: self
-    type (hdf5File           )                :: file
     type (lockDescriptor     )                :: fileLock
 
     call Directory_Make(File_Path(self%fileName))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock     (self%fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    file=hdf5File(self%fileName,overWrite=.true.,readOnly=.false.)
-    call file%writeAttribute(self%time                                ,'time'                                )
-    call file%writeAttribute(self%massMinimum                         ,'massMinimum'                         )
-    call file%writeAttribute(self%massMaximum                         ,'massMaximum'                         )
-    call file%writeDataset  (self%mass                                ,'mass'                                )
-    call file%writeDataset  (self%velocityRadialMeanVirial            ,'velocityRadialMeanVirial'            )
-    call file%writeDataset  (self%velocityRadialDispersionVirial      ,'velocityRadialDispersionVirial'      )
-    call file%writeDataset  (self%velocityTangentialMeanVirial        ,'velocityTangentialMeanVirial'        )
-    call file%writeDataset  (self%velocityTangentialDispersionVirial  ,'velocityTangentialDispersionVirial'  )
-    call file%writeDataset  (self%velocityRadialDistributionOrbits    ,'velocityRadialDistributionOrbits'    )
-    call file%writeDataset  (self%velocityTangentialDistributionOrbits,'velocityTangentialDistributionOrbits')
-    call file%writeDataset  (self%velocityDistributionOrbits          ,'velocityDistributionOrbits'          )
-    call file%writeDataset  (self%velocityTotalRMS                    ,'velocityTotalRMS'                    )
-    call file%writeDataset  (self%velocityDistributionPeak            ,'velocityDistributionPeak'            )
+    ! As in restoreTable(), the file object is scoped to this block so that it is finalized---and so the file actually
+    ! closed---before the locks are released below.
+    hdf5FileScope: block
+      type(hdf5File) :: file
+      file=hdf5File(self%fileName,overWrite=.true.,readOnly=.false.)
+      call file%writeAttribute(self%time                                ,'time'                                )
+      ! Record the lattice, not the bounds: the bounds follow from the lattice, but the converse does not, and it is the
+      ! lattice which determines whether a tabulation read back later can be extended to cover a new range without
+      ! recomputation.
+      call Table_Cache_Lattice_Write(file,'mass',self%latticeMass)
+      call file%writeDataset  (self%mass                                ,'mass'                                )
+      call file%writeDataset  (self%velocityRadialMeanVirial            ,'velocityRadialMeanVirial'            )
+      call file%writeDataset  (self%velocityRadialDispersionVirial      ,'velocityRadialDispersionVirial'      )
+      call file%writeDataset  (self%velocityTangentialMeanVirial        ,'velocityTangentialMeanVirial'        )
+      call file%writeDataset  (self%velocityTangentialDispersionVirial  ,'velocityTangentialDispersionVirial'  )
+      call file%writeDataset  (self%velocityRadialDistributionOrbits    ,'velocityRadialDistributionOrbits'    )
+      call file%writeDataset  (self%velocityTangentialDistributionOrbits,'velocityTangentialDistributionOrbits')
+      call file%writeDataset  (self%velocityDistributionOrbits          ,'velocityDistributionOrbits'          )
+      call file%writeDataset  (self%velocityTotalRMS                    ,'velocityTotalRMS'                    )
+      call file%writeDataset  (self%velocityDistributionPeak            ,'velocityDistributionPeak'            )
+    end block hdf5FileScope
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     ! Mark the file as read, to avoid re-reading it later.

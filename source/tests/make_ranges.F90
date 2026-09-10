@@ -27,20 +27,26 @@ program Test_Make_Ranges
   !!}
   use :: Array_Utilities , only : Array_Reverse
   use :: Display         , only : displayVerbositySet , verbosityLevelStandard
-  use :: Numerical_Ranges, only : Make_Range          , rangeTypeLinear       , rangeTypeLogarithmic, Range_Pinned     , &
-       &                          rangeLattice        , gridSchemePerDecade   , gridSchemePerOctave , gridSchemePerUnit, &
-       &                          Range_Lattice_Offset, Range_Lattice_Extend
-  use :: Unit_Tests      , only : Assert              , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Numerical_Ranges, only : Make_Range          , rangeTypeLinear       , rangeTypeLogarithmic   , Range_Pinned     , &
+       &                          rangeLattice        , gridSchemePerDecade   , gridSchemePerOctave    , gridSchemePerUnit, &
+       &                          Range_Lattice_Offset, Range_Lattice_Extend  , Range_Lattice_Extend_2D
+  use :: Unit_Tests      , only : Assert              , Unit_Tests_Begin_Group, Unit_Tests_End_Group   , Unit_Tests_Finish
   implicit none
   double precision                               , dimension(1:11) :: range1
   double precision                               , dimension(0:10) :: range2
-  type            (rangeLattice)                                   :: lattice     , latticeNarrow, &
-       &                                                              latticeWide , latticeUnion
-  double precision              , allocatable    , dimension(:   ) :: values      , valuesNarrow , &
+  type            (rangeLattice)                                   :: lattice         , latticeNarrow, &
+       &                                                              latticeWide     , latticeUnion
+  double precision              , allocatable    , dimension(:   ) :: values          , valuesNarrow , &
        &                                                              valuesWide
   integer                                                          :: offset
   double precision              , allocatable    , dimension(:   ) :: valuesRaw
   logical                       , allocatable    , dimension(:   ) :: isComputedRaw
+  type            (rangeLattice)                                   :: latticeNarrowY  , latticeWideY
+  double precision              , allocatable    , dimension(:,: ) :: valuesRaw2D
+  logical                       , allocatable    , dimension(:,: ) :: isComputedRaw2D
+  integer                                                          :: offsetX         , offsetY      , &
+       &                                                              i               , j
+  logical                                                          :: valuesPreserved
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -166,6 +172,46 @@ program Test_Make_Ranges
        &      all(valuesRaw(offset+1:offset+latticeNarrow%count) == latticeNarrow%values()), &
        &      .true.                                                                         &
        &     )
+
+  ! Extension of a two-dimensional tabulation held in a raw array. Both axes are extended at once, since the block preserved is
+  ! the rectangle common to the two tabulations.
+  latticeNarrow =Range_Pinned(15.0d0,10,gridSchemePerDecade,anchorEvery=5)
+  latticeNarrowY=Range_Pinned( 3.0d0,10,gridSchemePerDecade,anchorEvery=5)
+  call Range_Lattice_Extend_2D(rangeLattice(),latticeNarrow,rangeLattice(),latticeNarrowY,valuesRaw2D,isComputedRaw2D)
+  call Assert("raw array (2D): extension of an unallocated array computes every point",count(isComputedRaw2D),0)
+  call Assert("raw array (2D): extension of an unallocated array sizes to the lattices", &
+       &      [size(valuesRaw2D,dim=1),size(valuesRaw2D,dim=2)]                        , &
+       &      [latticeNarrow%count    ,latticeNarrowY%count   ]                          &
+       &     )
+  do j=1,latticeNarrowY%count
+     do i=1,latticeNarrow%count
+        valuesRaw2D(i,j)=dble(latticeNarrow%indexMinimum+i-1)+1.0d3*dble(latticeNarrowY%indexMinimum+j-1)
+     end do
+  end do
+  ! Extend both axes - the first upward, the second downward - and check that the block already computed is preserved at the
+  ! offsets implied by the lattice indices.
+  latticeWide =Range_Pinned(1.5d3,10,gridSchemePerDecade,anchorEvery=5,latticeCurrent=latticeNarrow )
+  latticeWideY=Range_Pinned(3.0d-2,10,gridSchemePerDecade,anchorEvery=5,latticeCurrent=latticeNarrowY)
+  offsetX     =Range_Lattice_Offset(latticeNarrow ,latticeWide )
+  offsetY     =Range_Lattice_Offset(latticeNarrowY,latticeWideY)
+  call Range_Lattice_Extend_2D(latticeNarrow,latticeWide,latticeNarrowY,latticeWideY,valuesRaw2D,isComputedRaw2D)
+  call Assert("raw array (2D): extension sizes to the new lattices"                            , &
+       &      [size(valuesRaw2D,dim=1),size(valuesRaw2D,dim=2)]                                , &
+       &      [latticeWide%count      ,latticeWideY%count     ]                                  &
+       &     )
+  call Assert("raw array (2D): extension preserves precisely the previously computed points",count(isComputedRaw2D),latticeNarrow%count*latticeNarrowY%count)
+  call Assert("raw array (2D): extension marks the correct window as computed"                                  , &
+       &      all(isComputedRaw2D(offsetX+1:offsetX+latticeNarrow%count,offsetY+1:offsetY+latticeNarrowY%count)), &
+       &      .true.                                                                                              &
+       &     )
+  valuesPreserved=.true.
+  do j=1,latticeNarrowY%count
+     do i=1,latticeNarrow%count
+        valuesPreserved=      valuesPreserved                                                                                                      &
+             &          .and. valuesRaw2D(offsetX+i,offsetY+j) == dble(latticeNarrow%indexMinimum+i-1)+1.0d3*dble(latticeNarrowY%indexMinimum+j-1)
+     end do
+  end do
+  call Assert("raw array (2D): extension preserves the values bit-for-bit",valuesPreserved,.true.)
 
   ! End unit tests.
   call Unit_Tests_End_Group()

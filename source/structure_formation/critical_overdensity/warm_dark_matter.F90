@@ -144,10 +144,12 @@ contains
     !!}
     use :: Cosmology_Parameters   , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles  , only : darkMatterParticleWDMThermal
+    use :: Display                , only : displayGreen                , displayReset
     use :: FoX_DOM                , only : destroy                     , node
     use :: Error                  , only : Error_Report
     use :: Input_Paths            , only : inputPath                   , pathTypeDataStatic
     use :: IO_XML                 , only : XML_Array_Read              , XML_Get_First_Element_By_Tag_Name, XML_Parse
+    use :: ISO_Varying_String     , only : char
     use :: Numerical_Interpolation, only : GSL_Interp_CSpline
     use :: Table_Labels           , only : extrapolationTypeFix
     implicit none
@@ -193,7 +195,15 @@ contains
     fileCriticalOverdensity=inputPath(pathTypeDataStatic)//"darkMatter/criticalOverdensityWarmDarkMatterBarkana.xml"
     !$omp critical (FoX_DOM_Access)
     doc => XML_Parse(fileCriticalOverdensity,iostat=ioStatus)
-    if (ioStatus /= 0) call Error_Report('unable to find or parse the tabulated data'//{introspection:location})
+    if (ioStatus /= 0) call Error_Report(                                                                                                 &
+         &                               'Unable to find data file "'//char(fileCriticalOverdensity)//'"'                    //char(10)// &
+         &                               displayGreen()//'HELP:'//displayReset()                                                       // &
+         &                               ' this file is provided by the Galacticus datasets repository. If the path above'             // &
+         &                               ' begins with "./" then the `GALACTICUS_DATA_PATH` environment variable is not set;'          // &
+         &                               ' set it to the location of your clone of'                                                    // &
+         &                               ' https://github.com/galacticusorg/datasets'                                                  // &
+         &                               {introspection:location}                                                                         &
+         &                              )
     ! Extract the datum lists.
     element    => XML_Get_First_Element_By_Tag_Name(doc,"mass" )
     call XML_Array_Read(element,"datum",self%deltaTableMass )

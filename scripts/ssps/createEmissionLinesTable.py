@@ -241,13 +241,19 @@ def adjustAbundances(abundancesReference,metallicity,dustToMetalsRatio,args):
             abundances[element]['adjustAbundance'](abundances,metallicity*metallicityReference)
     # Apply any adjustments from the command line.
     for adjustment in args.abundanceAdjust:
-        match = re.match('([A-Za-z]+):([\+\-\.0-9]+)',adjustment)
+        match = re.match(r'([A-Za-z]+):([\+\-\.0-9]+)',adjustment)
         if match:
             element =       match.group(1)
             shift   = float(match.group(2))
             abundances[element]['logAbundanceByNumber'] += shift
         else:
             sys.exit(f'can not parse abundance adjustment: {adjustment}')
+    # Apply any shift to the abundances of all α-elements. Like the per-element adjustments above, this is applied prior to the
+    # renormalization that holds the total metallicity fixed, so it shifts the α-elements relative to the other metals (i.e. it
+    # changes the α/Fe-like abundance pattern) at fixed total metallicity.
+    if args.abundanceAdjustAlpha != 0.0:
+        for element in alphaElements:
+            abundances[element]['logAbundanceByNumber'] += args.abundanceAdjustAlpha
     # Renormalize to keep the total metallicity fixed.
     abundancesByMassNew   = np.array(list(map(lambda x: abundances[x]['atomicMass']*10.0**abundances[x]['logAbundanceByNumber'],elements)))
     renormalizationFactor = metallicity*metallicityReference/(1.0-metallicity*metallicityReference)*np.sum(abundancesByMassNew[isNotMetal])/np.sum(abundancesByMassNew[isMetal])
@@ -1040,52 +1046,57 @@ def validateSSP(grid,args):
     plt.clf()
 
     # Update results in the datasets repo GitHub pages.
-    if args.suffixGitHubPages is not None:
-        ## Clone the repo (gh-pages branch).
-        if not os.path.isdir(args.workspace+'datasets'):
-            try:
+    if args.suffixGitHubPages is not None and args.skipGitHubPages:
+        print(colored('Skipping GitHub pages update (`--skipGitHubPages` was set).','yellow'))
+    elif args.suffixGitHubPages is not None:
+        # Any failure in this section (e.g. no access to the datasets repo) must only warn, never abort - otherwise we would lose
+        # all of the computed results before the final output file is written below.
+        try:
+            ## Clone the repo (gh-pages branch).
+            if not os.path.isdir(args.workspace+'datasets'):
                 Repo.clone_from("git@github.com:galacticusorg/datasets.git", args.workspace+'datasets', branch='gh-pages')
-            except Exception as e:
-                print(f"Error cloning repository: {e}")
-        ## Parse the JSON definition file if present.
-        if os.path.exists(args.workspace+'datasets/hiiRegions/tableDefinitions.json'):
-            with open(args.workspace+'datasets/hiiRegions/tableDefinitions.json', 'r') as file:
-                next(file)
-                data = file.read()
-                definition = json.loads(data)
-        else:
-            definition = {}    
-        ## Copy and rename our plots to the repo.
-        if not os.path.isdir(args.workspace+'datasets/hiiRegions'):
-            os.mkdir(args.workspace+'datasets/hiiRegions')
-        shutil.copy(args.workspace+'bptDiagramOIIINII.svg', args.workspace+'datasets/hiiRegions/bptDiagramOIIINII_'+args.suffixGitHubPages+'.svg')
-        shutil.copy(args.workspace+'bptDiagramOIIISII.svg', args.workspace+'datasets/hiiRegions/bptDiagramOIIISII_'+args.suffixGitHubPages+'.svg')
-        shutil.copy(args.workspace+'bptDiagramNIIOII.svg' , args.workspace+'datasets/hiiRegions/bptDiagramNIIOII_' +args.suffixGitHubPages+'.svg')
-        shutil.copy(args.workspace+'bptDiagramOIIOIII.svg', args.workspace+'datasets/hiiRegions/bptDiagramOIIOIII_'+args.suffixGitHubPages+'.svg')
-        ## Update and output the JSO1N definition file.
-        definition[args.suffixGitHubPages] = {
-            "time":          str(datetime.datetime.now()),
-            "gitRevision":   grid['gitRevision'  ],
-            "cloudyVersion": grid['cloudyVersion'],
-            "commandLine":   grid['commandLine'  ],
-            "fileName":      args.outputFileName
-        }
-        if 'sspURL' in grid:
-            definition[args.suffixGitHubPages]['sspURL'] = grid['sspURL']
-        f = codecs.open(args.workspace+'datasets/hiiRegions/tableDefinitions.json', "w", "utf-8")
-        f.write("window.TABLE_DATA =\n")
-        f.write(json.dumps(definition,indent=4,ensure_ascii=False))
-        f.close()
-        ## Display instructions for updating the repo.
-        print(colored('\n\nGitHub pages content has been updated.','red', attrs=["bold"])+' To deploy, do:\n')
-        print(colored('   cd '+args.workspace+'datasets','green'))
-        print(colored('   git add hiiRegions/tableDefinitions.json','green'))
-        print(colored('   git add hiiRegions/bptDiagramOIIINII_'+args.suffixGitHubPages+'.svg','green'))
-        print(colored('   git add hiiRegions/bptDiagramOIIISII_'+args.suffixGitHubPages+'.svg','green'))
-        print(colored('   git add hiiRegions/bptDiagramNIIOII_' +args.suffixGitHubPages+'.svg','green'))
-        print(colored('   git add hiiRegions/bptDiagramOIIOIII_'+args.suffixGitHubPages+'.svg','green'))
-        print(colored('   git commit -m "feat: Update BPT diagrams"','green'))
-        print(colored('   git push\n\n','green'))
+            ## Parse the JSON definition file if present.
+            if os.path.exists(args.workspace+'datasets/hiiRegions/tableDefinitions.json'):
+                with open(args.workspace+'datasets/hiiRegions/tableDefinitions.json', 'r') as file:
+                    next(file)
+                    data = file.read()
+                    definition = json.loads(data)
+            else:
+                definition = {}
+            ## Copy and rename our plots to the repo.
+            if not os.path.isdir(args.workspace+'datasets/hiiRegions'):
+                os.mkdir(args.workspace+'datasets/hiiRegions')
+            shutil.copy(args.workspace+'bptDiagramOIIINII.svg', args.workspace+'datasets/hiiRegions/bptDiagramOIIINII_'+args.suffixGitHubPages+'.svg')
+            shutil.copy(args.workspace+'bptDiagramOIIISII.svg', args.workspace+'datasets/hiiRegions/bptDiagramOIIISII_'+args.suffixGitHubPages+'.svg')
+            shutil.copy(args.workspace+'bptDiagramNIIOII.svg' , args.workspace+'datasets/hiiRegions/bptDiagramNIIOII_' +args.suffixGitHubPages+'.svg')
+            shutil.copy(args.workspace+'bptDiagramOIIOIII.svg', args.workspace+'datasets/hiiRegions/bptDiagramOIIOIII_'+args.suffixGitHubPages+'.svg')
+            ## Update and output the JSON definition file.
+            definition[args.suffixGitHubPages] = {
+                "time":          str(datetime.datetime.now()),
+                "gitRevision":   grid['gitRevision'  ],
+                "cloudyVersion": grid['cloudyVersion'],
+                "commandLine":   grid['commandLine'  ],
+                "fileName":      args.outputFileName
+            }
+            if 'sspURL' in grid:
+                definition[args.suffixGitHubPages]['sspURL'] = grid['sspURL']
+            f = codecs.open(args.workspace+'datasets/hiiRegions/tableDefinitions.json', "w", "utf-8")
+            f.write("window.TABLE_DATA =\n")
+            f.write(json.dumps(definition,indent=4,ensure_ascii=False))
+            f.close()
+            ## Display instructions for updating the repo.
+            print(colored('\n\nGitHub pages content has been updated.','red', attrs=["bold"])+' To deploy, do:\n')
+            print(colored('   cd '+args.workspace+'datasets','green'))
+            print(colored('   git add hiiRegions/tableDefinitions.json','green'))
+            print(colored('   git add hiiRegions/bptDiagramOIIINII_'+args.suffixGitHubPages+'.svg','green'))
+            print(colored('   git add hiiRegions/bptDiagramOIIISII_'+args.suffixGitHubPages+'.svg','green'))
+            print(colored('   git add hiiRegions/bptDiagramNIIOII_' +args.suffixGitHubPages+'.svg','green'))
+            print(colored('   git add hiiRegions/bptDiagramOIIOIII_'+args.suffixGitHubPages+'.svg','green'))
+            print(colored('   git commit -m "feat: Update BPT diagrams"','green'))
+            print(colored('   git push\n\n','green'))
+        except Exception as e:
+            print(colored('WARNING: failed to update the datasets repo GitHub pages: '+str(e),'yellow'))
+            print(colored('         Continuing to the final output phase; the computed results will still be written.','yellow'))
     # Validate model success.
     selectSuccess       = grid['lineData']['status'] == 0
     selectDisaster      = grid['lineData']['status'] == 1
@@ -1302,6 +1313,7 @@ parser.add_argument('--stellarSpectrumMetallicity',default=None            ,acti
 #  but agrees with our internal calculation of this value from their data.'
 parser.add_argument('--dustToMetalsRatio'    ,default='0.401'               ,action='store'      ,type=restricted_float,help='set the dust-to-metals ratio (ξ; https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G).'                             )
 parser.add_argument('--abundanceAdjust'      ,default=[]                    ,action='append'                           ,help='specify an adjustment to the abundance of an element, e.g. `S:0.2` would increase the abundance of sulfur by 0.2 dex.')
+parser.add_argument('--abundanceAdjustAlpha' ,default=0.0                   ,action='store'      ,type=restricted_float,help='specify a shift (in dex) to apply to the abundances of all α-elements (O, Ne, Mg, Si, S, Ar, Ca, Ti), e.g. `0.2` would increase all α-element abundances by 0.2 dex. As for `--abundanceAdjust`, the total metallicity is held fixed, so this changes the α/Fe-like abundance pattern.')
 parser.add_argument('--stopOuterRadius'                                     ,action='store_true'                       ,help='set Cloudy to stop at the cloud outer radius'                                                                         )
 parser.add_argument('--stopElectronFraction' ,default='0.01'                ,action='store'      ,type=restricted_float,help='set the elctron fraction at which to stop the Cloudy models'                                                          )
 parser.add_argument('--stopLymanOpticalDepth',default='10.0'                ,action='store'      ,type=restricted_float,help='set the Lyman optical depth at which to stop the Cloudy models'                                                       )
@@ -1309,6 +1321,7 @@ parser.add_argument('--ageMaximum'           ,default='1.0e30'              ,act
 parser.add_argument('--iterationsMaximum'    ,default='0'                   ,action='store'      ,type=restricted_int  ,help='set the maximum number of iterations in Cloudy (0 to iterate to convergence)'                                         )
 parser.add_argument('--cloudyVersion'        ,default=dependencies['cloudy'],action='store'                            ,help='the version of Cloudy to use'                                                                                         )
 parser.add_argument('--suffixGitHubPages'                                   ,action='store'                            ,help='update GitHub pages content using this suffix'                                                                        )
+parser.add_argument('--skipGitHubPages'                                     ,action='store_true'                       ,help='skip updating the results in the datasets repo GitHub pages (e.g. if you lack access to that repo)'                    )
 parser.add_argument('--model'                                               ,action='store'      ,type=restricted_int  ,help='run only the given model number'                                                                                      )
 parser.add_argument('--partition'                                           ,action='store'                            ,help='the partition to which to submit jobs'                                                                                )
 parser.add_argument('--jobMaximum'                                          ,action='store'      ,type=restricted_int  ,help='the maximum number of active jobs to allow'                                                                           )
@@ -1374,6 +1387,10 @@ mega                          = 1.0000000000000e+06
 joulesPerErg                  = 1.0000000000000e-07
 secondsPerGyr                 = 3.1557600000000e-16
 unitsIntensity                = joulesPerErg*hecto**2
+
+# Define the set of α-elements (i.e. those whose most abundant isotopes are built from integer numbers of α-particles). These are
+# the elements whose abundances are shifted together by the `--abundanceAdjustAlpha` option.
+alphaElements = [ "O", "Ne", "Mg", "Si", "S", "Ar", "Ca", "Ti" ]
 
 # Specify abundances and depletion model. This is based upon the work by Gutkin, Charlot & Bruzual (2016;
 # https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G).

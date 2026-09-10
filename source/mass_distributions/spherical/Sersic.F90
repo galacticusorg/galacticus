@@ -17,11 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a S\'ersic mass distribution class.
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
+  use :: Numerical_Ranges       , only : rangeLattice
 
   !![
   <massDistribution name="massDistributionSersic" docformat="rst">
@@ -41,6 +44,7 @@
      logical                                                   :: tableInitialized              =.false.
      integer                                                   :: tableCount
      double precision                                          :: tableRadiusMaximum                    , tableRadiusMinimum
+     type            (rangeLattice)                            :: tableLattice
      double precision                                          :: table3dRadiusHalfMass
      double precision                                          :: table2dRadiusHalfMass
      double precision                                          :: gradientLogarithmicMassCentral
@@ -74,7 +78,15 @@
   end interface massDistributionSersic
 
   ! Table granularity for Sersic profiles.
-  integer                        , parameter :: tablePointsPerDecade=1000
+  integer                        , parameter :: tablePointsPerDecade     =1000
+
+  ! Seed range for the tabulation. Every range begins from this one, so that any two tabulations - built at different requested
+  ! radii - start from a common set of bounds.
+  double precision               , parameter :: tableRadiusMinimumDefault=1.0d-3                 , tableRadiusMaximumDefault=1.0d+3
+
+  ! Interval, in lattice steps, to which the tabulation bounds are pinned. A whole decade of this tabulation is a thousand
+  ! points, each an Abel integral, so the bounds are anchored to tenths of a decade instead.
+  integer                        , parameter :: tableAnchorEvery         =tablePointsPerDecade/10
 
   ! Module scope variables used in integration and root finding.
   class  (massDistributionSersic), pointer   :: self_
@@ -180,8 +192,8 @@ contains
     if (present(dimensionless)) self%dimensionless=dimensionless
     ! Initialize state.
     self%tableInitialized     =.false.
-    self%tableRadiusMaximum   =1.0d+3
-    self%tableRadiusMinimum   =1.0d-3
+    self%tableRadiusMaximum   =tableRadiusMaximumDefault
+    self%tableRadiusMinimum   =tableRadiusMinimumDefault
     self%table3dRadiusHalfMass=1.0d+0
     self%index_               =index
     ! Tabulate the profile.
@@ -410,7 +422,7 @@ contains
     !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
-    use :: Numerical_Ranges        , only : Make_Range                  , rangeTypeLogarithmic
+    use :: Numerical_Ranges        , only : Range_Pinned                , gridSchemePerDecade
     use :: Root_Finder             , only : rangeExpandMultiplicative   , rootFinder
     use :: Table_Labels            , only : extrapolationTypeExtrapolate
     implicit none
@@ -463,11 +475,29 @@ contains
        ! Try building the table until it has sufficient extent to encompass the requested radius.
        tableHasSufficientExtent=.false.
        do while (.not.tableHasSufficientExtent)
-          ! Find suitable radius limits.
-          self%tableRadiusMinimum=min(self%tableRadiusMinimum,0.5d0*radiusActual*self%table3dRadiusHalfMass)
-          self%tableRadiusMaximum=max(self%tableRadiusMaximum,2.0d0*radiusActual*self%table3dRadiusHalfMass)
-          ! Determine the number of points at which to tabulate the profile.
-          self%tableCount=int(log10(self%tableRadiusMaximum/self%tableRadiusMinimum)*dble(tablePointsPerDecade))+1
+          ! Find suitable radius limits, pinned to an absolute lattice. Unlike the tabulations converted elsewhere under this
+          ! issue, no previously computed value can be carried over here: the densities are Abel integrals taken out to
+          ! `radiusInfinity`, which is set from the upper bound; the enclosed masses are accumulated from the innermost radius
+          ! outwards; and both are then normalized by the enclosed mass at the outermost point. Every stored value therefore
+          ! moves whenever either bound moves, and the table is rebuilt in full below, as it always was.
+          !
+          ! What pinning buys is reproducibility. The bounds may now take only the discrete values which are lattice points a
+          ! multiple of `tableAnchorEvery` apart, so the tabulation - and every quantity derived from it, including the half mass
+          ! radius by which the abscissae are subsequently rescaled - depends only on which anchored interval the requested
+          ! radius fell in, not on the radius itself. Two runs which request slightly different radii falling in the same
+          ! interval build identical tables. Taking the union with the lattice already in use also guarantees the range never
+          ! shrinks, so this loop terminates.
+          self%tableLattice      =Range_Pinned(                                                                      &
+               &                                              radiusActual*self%table3dRadiusHalfMass              , &
+               &                                              tablePointsPerDecade                                 , &
+               &                                              gridSchemePerDecade                                  , &
+               &                               rangeCurrent  =[tableRadiusMinimumDefault,tableRadiusMaximumDefault], &
+               &                               latticeCurrent=self%tableLattice                                    , &
+               &                               anchorEvery   =tableAnchorEvery                                       &
+               &                              )
+          self%tableRadiusMinimum=self%tableLattice%minimum()
+          self%tableRadiusMaximum=self%tableLattice%maximum()
+          self%tableCount        =self%tableLattice%count
           ! Allocate arrays for storing the tables.
           if (allocated(self%tableRadius)) then
              deallocate(self%tableRadius      )
@@ -479,8 +509,9 @@ contains
           allocate(self%tableDensity     (self%tableCount))
           allocate(self%tableEnclosedMass(self%tableCount))
           allocate(self%tablePotential   (self%tableCount))
-          ! Create an array of logarithmically distributed radii.
-          self%tableRadius=Make_Range(self%tableRadiusMinimum,self%tableRadiusMaximum,self%tableCount,rangeType=rangeTypeLogarithmic)
+          ! Take the abscissae from the lattice rather than by subdividing the range, so that they are bit-identical to those of
+          ! any other tabulation built on the same lattice.
+          self%tableRadius=self%tableLattice%values()
           ! Compute the coefficient appearing in the Sérsic profile.
           self%coefficient=finder%find(rootGuess=coefficientGuess)
           ! Compute a suitably large approximation to infinite radius for use in integration.

@@ -26,6 +26,7 @@
    <description>
    A supernovae type Ia class with a power-law delay time distribution.
    </description>
+   <runTimeFileDependencies paths="fileName"/>
   </supernovaeTypeIa>
   !!]
   type, extends(supernovaeTypeIaMassIndependentDTD) :: supernovaeTypeIaPowerLawDTD
@@ -53,12 +54,14 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`supernovaeTypeIaPowerLawDTD` supernovae type Ia class which takes a parameter list as input.
     !!}
+    use :: Input_Paths     , only : inputPath     , pathTypeDataStatic
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (supernovaeTypeIaPowerLawDTD)                :: self
     type            (inputParameters            ), intent(inout) :: parameters
     double precision                                             :: timeMinimum  , exponent, &
           &                                                         normalization
+    type            (varying_string             )                :: fileName
 
     !![
     <inputParameter docformat="rst">
@@ -94,15 +97,23 @@ contains
       The normalization :math:`R_1` of the delay time distribution at 1 Gyr in units of Gyr\ :math:`^{-1}\,\mathrm{M}_\odot^{-1}`.
       </description>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>fileName</name>
+      <source>parameters</source>
+      <defaultValue>inputPath(pathTypeDataStatic)//'stellarAstrophysics/Supernovae_Type_Ia_Yields.xml'</defaultValue>
+      <description>
+      The name of the XML file from which to read the yields of Type Ia supernovae.
+      </description>
+    </inputParameter>
     !!]
-    self=supernovaeTypeIaPowerLawDTD(timeMinimum,exponent,normalization)
+    self=supernovaeTypeIaPowerLawDTD(timeMinimum,exponent,normalization,char(fileName))
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function powerLawDTDConstructorParameters
 
-  function powerLawDTDConstructorInternal(timeMinimum,exponent,normalization) result(self)
+  function powerLawDTDConstructorInternal(timeMinimum,exponent,normalization,fileName) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`supernovaeTypeIaPowerLawDTD` supernovae type Ia class.
     !!}
@@ -110,8 +121,9 @@ contains
     type            (supernovaeTypeIaPowerLawDTD)                :: self
     double precision                             , intent(in   ) :: timeMinimum  , exponent, &
           &                                                         normalization
+    character       (len=*                      ), intent(in   ) :: fileName
     !![
-    <constructorAssign variables="timeMinimum, exponent, normalization"/>
+    <constructorAssign variables="timeMinimum, exponent, normalization, fileName"/>
     !!]
     
     self%initialized=.false.

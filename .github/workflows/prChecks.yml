@@ -182,6 +182,25 @@ jobs:
       - name: Check no LaTeX remains inside converted docstrings
         run: |
           python3 scripts/doc/convertDocstringsToRST.py --check-residual source
+  # Contributor markers must record names only. Everything after the label in a
+  # `!+` marker is parsed as a comma-separated list of contributors, so a
+  # description of what was contributed (by a person or by an AI tool - that
+  # belongs in the commit message) is published in the documentation's
+  # Acknowledgments as if it were a person's name.
+  Validate-Contributor-Markers:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Mark directory safe
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+      - name: Check contributor markers record names only
+        run: |
+          python3 scripts/doc/extractContributors.py --check $GITHUB_WORKSPACE
   # Fortran static analysis
   Fortran-Static-Analysis:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
@@ -217,6 +236,94 @@ jobs:
             fi
           done
           exit $status
+  # Source formatting. `use` blocks and variable declaration blocks follow the
+  # column layout described in the developer guide, applied by the formatters in
+  # `scripts/aux/`. Only files touched by the pull request are checked.
+  #
+  # Advisory: this job reports through annotations and never fails. The tree was
+  # not reformatted in one sweep, so most files still predate the formatters;
+  # failing here would force the first change to any of them to carry a
+  # whole-file reformat in the same pull request, mixing it with the substantive
+  # change. Reporting instead lets that reformat be made as a separate
+  # follow-up commit.
+  Check-Source-Formatting:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Mark directory safe
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
+        with:
+          # Vendored third-party code under `source/external/` is excluded, so
+          # that it stays comparable with its upstream original.
+          files: |
+            source/**/*.F90
+            source/**/*.Inc
+          files_ignore: |
+            source/external/**
+          safe_output: false
+      - name: Check formatting of Fortran sources
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          set -f
+          : > rows.md
+          for file in ${CHANGED_FILES}; do
+            # Deleted or renamed-away files still appear in the changed list.
+            [ -f "$file" ] || continue
+            for tool in formatModuleUses formatDeclarations; do
+              # `run:` executes under `bash -e`, so the exit status has to be
+              # captured somewhere errexit does not apply — a bare call
+              # followed by `case $?` would abort the step on the first
+              # unformatted file, before anything was recorded.
+              rc=0
+              PYTHONPATH=$GITHUB_WORKSPACE/python python3 "scripts/aux/$tool.py" "$file" --check || rc=$?
+              case $rc in
+                0)
+                  ;;
+                1)
+                  printf '| `%s` | differs from the house style | `./scripts/aux/%s.py %s` |\n' \
+                    "$file" "$tool" "$file" >> rows.md
+                  # Annotations are capped at ten of each level per step, so
+                  # the job summary below — not this — is the complete record.
+                  echo "::warning file=$file::Formatting differs from the house style; see the job summary."
+                  ;;
+                *)
+                  # Exit 2 means the tool declined to touch the file — it does
+                  # not round-trip, or reformatting would change what it
+                  # declares or unbalance its preprocessor guards. That is a
+                  # tool limitation rather than a style problem, and needs no
+                  # action from the author.
+                  printf '| `%s` | `%s.py` could not process it; formatting not verified | _none needed_ |\n' \
+                    "$file" "$tool" >> rows.md
+                  ;;
+              esac
+            done
+          done
+          if [ -s rows.md ]; then
+            {
+              printf '## :warning: Source formatting (advisory)\n\n'
+              printf 'The files below differ from the house style. See '
+              printf '[how the formatting is rolled out](https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/editor-setup.html#manual-sec-formattingadoption) '
+              printf 'in the developer guide.\n\n'
+              printf '| File | Finding | To fix |\n|---|---|---|\n'
+              cat rows.md
+              printf '\n**Nothing here blocks this pull request.** Most of the tree predates the\n'
+              printf 'formatters, so the first change to a file often reformats far more lines than\n'
+              printf 'the change itself. If you do reformat, please do it as a separate commit so\n'
+              printf 'that reviewers can read the two apart.\n'
+            } >> $GITHUB_STEP_SUMMARY
+          fi
+          # Advisory only — see the comment on this job.
+          exit 0
   # Embedded XML directive validation (the LaTeX checks were retired with the
   # migration of the embedded documentation to reStructuredText).
   Validate-Embedded-XML:

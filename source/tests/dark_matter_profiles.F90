@@ -282,7 +282,7 @@ program Test_Dark_Matter_Profiles
         fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                      /radiusScale   /radius      (i)                                        )
         radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                        coordinates        ,massDistribution_,massDistribution_)
      end do
-     radiusSmall             =massDistribution_%radiusEnclosingMass         (massSmall                              )
+     radiusSmall             =massDistribution_%radiusEnclosingMass         (massSmall                              )/radiusScale
      radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                                       )
      velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                                       )
      velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum                  )
@@ -318,10 +318,13 @@ program Test_Dark_Matter_Profiles
        &      radius                 , &
        &      relTol=1.0d-6            &
        &     )
+  ! The radius enclosing a small mass is tested in units of the scale radius. In those units it is a function of the enclosed mass
+  ! fraction and the concentration alone - both fixed here - so this asserts on the small-mass solution of the profile itself, and
+  ! not, as the unnormalized radius did, on the virial radius which merely sets the scale.
   call Assert(                                          &
        &      'radius enclosing mass (at small radii)', &
        &      radiusSmall                             , &
-       &      1.6764798688849444d-9                   , &
+       &      5.1170484302260309d-4                   , &
        &      relTol=1.0d-5                             &
        &     )
   call Assert(                         &

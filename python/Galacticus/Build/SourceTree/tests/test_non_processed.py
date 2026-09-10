@@ -6,7 +6,7 @@ code-generating Process hooks AFTER `nonProcessed` has run.  Without the
 "directive 'foo' was not processed" check at the end of the pipeline.
 
 The exemption list is fixed (Methods, Workaround, Include, FunctionGlobal,
-Component, RadiusSolverPlausibility, InterTreePositionInsert, Expiry,
+Component, RadiusSolverPlausibility, Expiry,
 Scoping) plus any directive whose type ends in `Task`.
 """
 
@@ -15,8 +15,7 @@ from Galacticus.Build.SourceTree.Process.NonProcessed import is_non_processed_ty
 
 def test_known_non_processed_types():
     for t in ('methods', 'workaround', 'include', 'functionGlobal',
-              'component', 'radiusSolverPlausibility',
-              'interTreePositionInsert', 'expiry', 'scoping'):
+              'component', 'radiusSolverPlausibility', 'expiry', 'scoping'):
         assert is_non_processed_type(t), t
 
 

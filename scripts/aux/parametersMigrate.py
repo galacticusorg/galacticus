@@ -1478,7 +1478,146 @@ def vitvitska_subresolution_method_enum(input_doc, parameters, is_grid):
 # Dispatch table for special migration functions
 # ---------------------------------------------------------------------------
 
+def splashback_radius_accretion_flow(input_doc, parameters, is_grid):
+    """Special handling for the introduction of the `darkMatterHaloSplashbackRadius` class.
+
+    The `accretionFlowDiemerKravtsov2014` and `accretionFlowShi2016` dark matter profile classes
+    previously computed the radius at which the profile transitions from the virialized halo to
+    the accretion flow using the truncation radius of Diemer & Kravtsov (2014). They now obtain
+    that radius from a `darkMatterHaloSplashbackRadius` object, which defaults to the (physically
+    preferable) `diemer2020` model. To retain the original behavior of existing parameter files we
+    therefore insert an explicit `diemerKravtsov2014` splashback radius into these classes.
+
+    Note that this restores the original *model*, but not precisely the original results: the
+    `diemerKravtsov2014` class evaluates the peak height using M₂₀₀ₘ (as Diemer & Kravtsov do),
+    whereas the previous, inlined implementation used the virial mass of the halo.
+    """
+    for node in parameters.xpath(
+        ".//darkMatterProfileDMO[@value='accretionFlowDiemerKravtsov2014' or @value='accretionFlowShi2016']"
+    ):
+        # Do not override a splashback radius which has already been specified.
+        if len(node.xpath("./darkMatterHaloSplashbackRadius[@value]")) > 0:
+            continue
+        print("   insert special 'darkMatterHaloSplashbackRadius' into '" + node.get("value") + "'")
+        splashback_node = etree.Element("darkMatterHaloSplashbackRadius")
+        splashback_node.set("value", "diemerKravtsov2014")
+        if is_grid:
+            splashback_node.set("iterable", "no")
+        # Append as the final child, preserving the indentation of the existing children.
+        children = list(node)
+        if children:
+            splashback_node.tail = children[-1].tail
+            children[-1].tail = node.text
+        else:
+            # The indentation of this node is carried by the whitespace which precedes it.
+            previous = node.getprevious()
+            indentation = (previous.tail if previous is not None else node.getparent().text) or "\n  "
+            splashback_node.tail = indentation
+            node.text = indentation + "  "
+        node.append(splashback_node)
+
+
+def prompt_cusp_require_collapse_before_halo(input_doc, parameters, is_grid):
+    """Special handling for the introduction of the `requireCollapseBeforeHalo` parameter.
+
+    The `darkMatterProfilePromptCusps` node operator previously assigned a prompt cusp to every
+    halo, accepting collapse epochs which postdate the halo itself and, where no collapse epoch
+    existed at all, taking the collapse to occur at the limiting time of the search. It now follows
+    the reference implementation of Delos & White (2025) instead: since prompt cusp formation is,
+    by definition, the formation event of a halo, halos failing that condition can not have formed,
+    and are labeled so that they may be pruned from the merger tree.
+
+    This changes the physics of existing models, so we pin the original behavior here. Users who
+    want the new (more realistic) behavior should set `requireCollapseBeforeHalo` to true and add a
+    merger tree operator which prunes the labeled halos - see the documentation for the
+    `nodeOperatorDarkMatterProfilePromptCusps` class.
+    """
+    for node in parameters.xpath(".//nodeOperator[@value='darkMatterProfilePromptCusps']"):
+        # Do not override a choice which has already been made explicitly.
+        if len(node.xpath("./requireCollapseBeforeHalo[@value]")) > 0:
+            continue
+        print("   insert special 'requireCollapseBeforeHalo' into 'darkMatterProfilePromptCusps'")
+        require_node = etree.Element("requireCollapseBeforeHalo")
+        require_node.set("value", "false")
+        if is_grid:
+            require_node.set("iterable", "no")
+        # Append as the final child, preserving the indentation of the existing children.
+        children = list(node)
+        if children:
+            require_node.tail = children[-1].tail
+            children[-1].tail = node.text
+        else:
+            # The indentation of this node is carried by the whitespace which precedes it.
+            previous = node.getprevious()
+            indentation = (previous.tail if previous is not None else node.getparent().text) or "\n  "
+            require_node.tail = indentation
+            node.text = indentation + "  "
+        node.append(require_node)
+
+
+def dust_attenuation_framework(input_doc, parameters, is_grid):
+    """Special handling for the retirement of `stellarSpectraDustAttenuation` and `lmnstyStllrCF2000`.
+
+    The `lmnstyStllrCF2000` property extractor applied Charlot & Fall (2000) dust to the summed stellar luminosity of
+    a galaxy. Its replacement extracts each component's luminosity unattenuated, applies dust by wrapping them, and
+    scalarizes the sum:
+
+        scalarizer -> dustAttenuation(outputSumOnly) -> luminosityStellar(disk), luminosityStellar(spheroid)
+
+    Note the replacement evaluates the extinction curve at the rest-frame wavelength, where the old extractor used
+    the observed one. For a rest-frame filter these coincide and results are unchanged; for an observed-frame filter
+    at band redshift z the optical depth changes by a factor (1+z)^exponent. The old behavior was a bug -- dust acts
+    in the rest frame of the emitting galaxy -- so it is not reproduced here.
+    """
+    for node in parameters.xpath(".//nodePropertyExtractor[@value='lmnstyStllrCF2000']"):
+        print("   translate special './/nodePropertyExtractor[@value=\'lmnstyStllrCF2000\']'")
+        # Read the old parameters, falling back to the defaults of the retired class.
+        def setting(name, default):
+            child = node.find(name)
+            return child.get("value") if child is not None else default
+
+        filter_name    = setting("filterName"                   , "SDSS_r")
+        filter_type    = setting("filterType"                   , "rest"  )
+        coefficient_ism    = setting("depthOpticalISMCoefficient"   , "1.0"   )
+        coefficient_clouds = setting("depthOpticalCloudsCoefficient", "1.0"   )
+        exponent           = setting("wavelengthExponent"           , "0.7"   )
+        redshift_band      = node.find("redshiftBand")
+
+        scalarizer = etree.Element("nodePropertyExtractor")
+        scalarizer.set("value", "scalarizer")
+        etree.SubElement(scalarizer, "element", value="1")
+        attenuated = etree.SubElement(scalarizer, "nodePropertyExtractor", value="dustAttenuation")
+        etree.SubElement(attenuated, "outputSumOnly", value="true"             )
+        etree.SubElement(attenuated, "sumName"      , value="luminosityStellar")
+        dust = etree.SubElement(attenuated, "dustAttenuation", value="charlotFall2000")
+        etree.SubElement(dust, "coefficientBirthCloud", value=coefficient_clouds)
+        etree.SubElement(dust, "coefficientISM"       , value=coefficient_ism   )
+        etree.SubElement(dust, "timescale"            , value="1.0e-2"          )
+        etree.SubElement(dust, "exponent"             , value=exponent          )
+        # Each component carries its own column of dust, so each is extracted and attenuated separately. Both
+        # postprocessing chains are needed so that the light can be split by stellar population age, which the birth
+        # cloud component requires.
+        for component in ("disk", "spheroid"):
+            luminosity = etree.SubElement(attenuated, "nodePropertyExtractor", value="luminosityStellar")
+            etree.SubElement(luminosity, "filterName"       , value=filter_name    )
+            etree.SubElement(luminosity, "filterType"       , value=filter_type    )
+            etree.SubElement(luminosity, "component"        , value=component      )
+            etree.SubElement(luminosity, "postprocessChains", value="default recent")
+            if redshift_band is not None:
+                etree.SubElement(luminosity, "redshiftBand", value=redshift_band.get("value"))
+        # Insert the replacement and remove the original. The new subtree is indented explicitly: it is several
+        # levels deep, and inherits no useful whitespace from the single element it replaces.
+        parent = node.getparent()
+        etree.indent(scalarizer, space="  ")
+        scalarizer.tail = node.tail
+        insert_after(parent, scalarizer, node)
+        parent.remove(node)
+
+
+
 SPECIAL_FUNCTIONS = {
+    "dust_attenuation_framework": dust_attenuation_framework,
+    "prompt_cusp_require_collapse_before_halo": prompt_cusp_require_collapse_before_halo,
     "radiation_field_intergalactic_background_cmb": radiation_field_intergalactic_background_cmb,
     "black_hole_seed_mass": black_hole_seed_mass,
     "black_hole_physics": black_hole_physics,
@@ -1498,6 +1637,7 @@ SPECIAL_FUNCTIONS = {
     "vitvitska_subresolution_method": vitvitska_subresolution_method,
     "vitvitska_subresolution_method_enum": vitvitska_subresolution_method_enum,
     "johnson2021_mass_function_slope": johnson2021_mass_function_slope,
+    "splashback_radius_accretion_flow": splashback_radius_accretion_flow,
     "johnson2021_correlated_branches": johnson2021_correlated_branches,
     "chandrasekhar_suppress_extended_mass": chandrasekhar_suppress_extended_mass,
 }

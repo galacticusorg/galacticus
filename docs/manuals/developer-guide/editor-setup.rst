@@ -99,6 +99,111 @@ where ``-i3`` sets the indent for block constructs, ``-r2`` the indent for
 procedure bodies, ``-m2`` the indent for module bodies, and ``--openmp=0``
 leaves the ``!$`` sentinels untouched.
 
+.. _manual-sec-formatModuleUses:
+
+Formatting module ``use`` blocks
+--------------------------------
+
+Unlike the general-purpose formatters warned against above, ``formatModuleUses.py``
+understands Galacticus source and is safe to run on a whole file. It rewrites
+``use`` blocks into the layout described in :ref:`manual-sec-styleConventions`
+and leaves everything else in the file — including embedded directive and
+docstring blocks — byte for byte unchanged:
+
+.. code-block:: bash
+
+   ./scripts/aux/formatModuleUses.py source/path/to/file.F90
+
+The original is kept as ``file.F90~`` (change the extension with ``--suffix``, or
+suppress the backup with ``--no-backup``). Pass ``--check`` to report whether a
+file would be reformatted without modifying it; it exits with status 1 if so,
+which makes it usable as a pre-commit or continuous-integration check.
+
+Run it after any edit that adds, removes, or renames imported symbols, rather
+than realigning the columns by hand.
+
+The script refuses to write unless three conditions hold: parsing the file and
+writing it straight back out reproduces it exactly; re-parsing its own output
+yields the same set of symbols imported from each module under each
+preprocessor condition; and the file's preprocessor conditionals balance the
+same way before and after. A file that fails the first check contains something
+the parser cannot represent, and is left untouched rather than rewritten on a
+guess. The last is a whole-file text comparison rather than a check on the
+parse, because the failure it guards against is invisible to the parse: the
+structure round-trips perfectly and it is the interleaving of a rebuilt ``use``
+block with the code around it that goes wrong.
+
+.. note::
+
+   Reformatting sorts the imported symbols alphabetically and merges repeated
+   ``use`` statements for the same module, so a file that has not been formatted
+   before may change by more than alignment alone.
+
+.. _manual-sec-formatDeclarations:
+
+Formatting variable declarations
+--------------------------------
+
+``formatDeclarations.py`` is the companion tool for declaration blocks. It
+rewrites runs of declarations into the column layout described in
+:ref:`manual-sec-styleConventions`, and like ``formatModuleUses.py`` leaves the
+rest of the file untouched:
+
+.. code-block:: bash
+
+   ./scripts/aux/formatDeclarations.py source/path/to/file.F90
+
+It takes the same ``--suffix``, ``--no-backup`` and ``--check`` options, and
+refuses to write unless the file round-trips exactly and its own output
+re-parses to the same declarations — same intrinsic type, type-spec, attribute
+set, variables and initializers. Attribute *order* is excluded from that
+comparison, since the tool sets that order itself.
+
+Two kinds of statement are deliberately left alone. Third-party code under
+``source/external/`` is skipped entirely, so that it can still be compared
+against its upstream original; pass ``--include-external`` to override. And a declaration whose
+initializer is too large to fit the line-length ruler — a ``reshape([...])``
+data table, say — is written back exactly as it was, because the parser has
+already joined away the continuation lines its author used and re-emitting it
+would collapse the table onto one enormous line.
+
+.. note::
+
+   Reformatting reorders attributes into the canonical order and splits
+   declarations of more than two variables across rows, so a file that has not
+   been formatted before may change by more than alignment alone.
+
+.. _manual-sec-formattingAdoption:
+
+How the formatting is rolled out
+--------------------------------
+
+The source tree has deliberately *not* been reformatted in one sweep. Doing so
+would have rewritten around 1500 files at once, wrecking ``git blame`` and
+conflicting with every branch open at the time. Instead the tree converges on
+the house style file by file as it is worked on: both the pre-commit hook and
+the *Check-Source-Formatting* job on pull requests run the formatters in
+``--check`` mode over the files a change touches, and report what differs.
+
+Both are **advisory** — neither blocks a commit or fails a pull request. Since
+most files still predate the formatters, blocking would force the first change
+to any of them to carry a whole-file reformat in the same commit, mixed in with
+the substantive change. Reporting instead leaves the choice of when to reformat
+with you.
+
+When you do reformat, make it a commit of its own, so that reviewers can read
+the reformatting and the substantive change apart:
+
+.. code-block:: bash
+
+   ./scripts/aux/formatModuleUses.py  source/path/to/file.F90
+   ./scripts/aux/formatDeclarations.py source/path/to/file.F90
+   git commit -m "style(...): format <file>"
+
+A file that either tool declines to process is reported as a warning rather
+than a failure, and needs no action — see
+:ref:`manual-sec-formatDeclarations` for the statements the tools leave alone.
+
 .. _manual-sec-editorEmbedded:
 
 Embedded languages in Fortran source

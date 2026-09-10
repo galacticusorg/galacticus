@@ -114,6 +114,13 @@
   ! Virial density contrast definition used by Gnedin (2000) to define halos, and therefore used in the filtering mass fitting functions.
   double precision, parameter :: densityContrastVirial=200.0d0
 
+  ! Minimum hot halo mass (in M☉) for which a metal mass fraction is formed. Below this the halo holds no mass worth speaking of,
+  ! and testing simply for a positive mass is not sufficient: as the ordinary differential equations carry the hot halo mass
+  ! toward zero it passes through denormal values - masses of order 10⁻³⁰⁶ M☉ have been observed here - at which dividing the
+  ! metal mass by it overflows, and the floating point overflow trap fires. Treating such a halo as empty gives the same answer
+  ! to any accuracy which means anything, since the fraction is immediately multiplied by that same negligible mass again.
+  double precision, parameter :: massHotHaloMinimum   =  1.0d-30
+
 contains
 
   function naozBarkana2007ConstructorParameters(parameters) result(self)
@@ -616,7 +623,7 @@ contains
        if (rateCorrection > 0.0d0) then
           ! Mass is being moved from the hot reservoir to the unaccreted reservoir. Find the mass fraction of metals in the hot
           ! halo.
-          if (hotHalo%mass() > 0.0d0) then
+          if (hotHalo%mass() > massHotHaloMinimum) then
              fractionMetals=+hotHalo%abundances() &
                   &         /hotHalo%mass      ()
           else
@@ -682,7 +689,7 @@ contains
        if (rateCorrection > 0.0d0) then
           ! Mass is being moved from the hot reservoir to the unaccreted reservoir. Find the mass fraction of metals in the hot
           ! halo.
-          if (hotHalo%mass() > 0.0d0) then
+          if (hotHalo%mass() > massHotHaloMinimum) then
              fractionMetals=+hotHalo%abundances() &
                   &         /hotHalo%mass      ()
           else
@@ -752,7 +759,7 @@ contains
        if (rateCorrection > 0.0d0) then
           ! Mass is being moved from the hot reservoir to the unaccreted reservoir. Find the mass fraction of chemicals in the hot
           ! halo.
-          if (hotHalo%mass() > 0.0d0) then
+          if (hotHalo%mass() > massHotHaloMinimum) then
              fractionChemicals= hotHalo%chemicals() &
                   &            /hotHalo%mass     ()
           else

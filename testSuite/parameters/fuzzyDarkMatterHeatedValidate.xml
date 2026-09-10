@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Additional changes applied when validating the solitonNFWHeated fuzzy dark matter model. Node data are written alongside   -->
+<!-- the output analyses so that the validation script can assert on the structural state of the fuzzy dark matter halos, which -->
+<!-- the analyses alone do not expose.                                                                                          -->
+<changes>
+
+  <!-- Retain the analyzer, and additionally write per-node data. -->
+  <change type="replace" path="mergerTreeOutputter">
+    <mergerTreeOutputter value="multi">
+      <mergerTreeOutputter value="analyzer"/>
+      <mergerTreeOutputter value="standard"/>
+    </mergerTreeOutputter>
+  </change>
+
+  <!-- Output the solitonic properties, including the halo structural state. -->
+  <change type="append" path="">
+    <nodePropertyExtractor value="multi">
+      <nodePropertyExtractor value="nodeIndices"/>
+      <nodePropertyExtractor value="massBasic"/>
+      <nodePropertyExtractor value="soliton"/>
+    </nodePropertyExtractor>
+  </change>
+
+</changes>

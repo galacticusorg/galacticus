@@ -189,7 +189,8 @@ contains
             &              )**2
     end if
     if (present(multiplierGradient)) then
-       multiplierGradient=+8.0d0                 &
+       ! Note that, since fₜᵣₐₙₛ(r)=(1+x⁴)⁻² with x=r/rₜᵣₐₙₛ, the gradient dfₜᵣₐₙₛ/dr is negative.
+       multiplierGradient=-8.0d0                 &
             &             *  x**3                &
             &             /(                     &
             &               +1.0d0               &
@@ -239,7 +240,7 @@ contains
          &            +self%massDistribution_             %density              (coordinates                    ) &
          &            -self%massDistributionAccretionFlow_%density              (coordinates                    ) &
          &           )                                                                                            &
-         &          +       multiplierGradient
+         &          *       multiplierGradient
     if (logarithmic_) densityGradient=+            densityGradient              &
          &                            *coordinates%rSpherical     (           ) &
          &                            /self       %density        (coordinates)

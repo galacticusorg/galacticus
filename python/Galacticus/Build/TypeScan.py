@@ -6,21 +6,15 @@ together with the AST nodes carrying a given directive. Historically each
 script carried its own copy; they live here so fixes land once.
 """
 
-import re
-
+from Fortran.Utils              import TYPE_ATTRIBUTES_TAGGED, type_opener_regex
 from Galacticus.Build.SourceTree import walk_tree
 
 __all__ = ['TYPE_OPENER_RE', 'collect_types_and_directives', 'inherits_from']
 
 
-# Matches a derived-type definition opener, capturing (abstract, extends
-# parent, type name).
-TYPE_OPENER_RE = re.compile(
-    r'^\s*type\s*'
-    r'(?:,\s*(?:(abstract)|public|private|extends\s*\(([a-zA-Z0-9_]+)\))\s*)*'
-    r'(?:::)?\s*([a-zA-Z0-9_]+)\s*$',
-    re.IGNORECASE,
-)
+# Matches a derived-type definition opener, capturing the `abstract`,
+# `extends` and `name` groups.
+TYPE_OPENER_RE = type_opener_regex(attributes=TYPE_ATTRIBUTES_TAGGED)
 
 
 def collect_types_and_directives(tree, directive_type):
@@ -45,10 +39,9 @@ def collect_types_and_directives(tree, directive_type):
                     "TypeScan: unable to parse type definition opener: "
                     f"{node.get('opener')!r}"
                 )
-            abstract, extends, name = m.group(1), m.group(2), m.group(3)
-            classes[name] = {
-                'extends':  extends,
-                'abstract': abstract is not None,
+            classes[m.group('name')] = {
+                'extends':  m.group('extends'),
+                'abstract': m.group('abstract') is not None,
             }
     return classes, directives
 

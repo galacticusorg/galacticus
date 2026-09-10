@@ -87,6 +87,27 @@ program Tests_SIDM_Kummer_Deceleration
   ! Constant large-x deceleration factor: independent of the orbital speed.
   call Assert("constant deceleration factor, x=200",decelerationConstant%decelerationFactor(200.0d0,100.0d0),9.999333353333d-01,relTol=1.0d-9)
   call Assert("constant deceleration factor, x=150",decelerationConstant%decelerationFactor(150.0d0, 50.0d0),9.998814878025d-01,relTol=1.0d-9)
+  ! All of the assertions above use x above `xCritical`, where the deceleration factor is given by its analytic asymptotic form
+  ! and the tabulation is never consulted. The assertions below use x below that threshold, and so exercise the tabulated
+  ! branch: without them the tabulation - and the absolute lattices its axes are pinned to - would be entirely untested.
+  block
+    double precision                                      :: factorTabulated    , factorAfterExtension, factorDirect
+    type            (satelliteDecelerationSIDMKummer2018) :: decelerationReverse
+    ! A value from the tabulated branch must differ from the analytic large-x form, which tends to unity.
+    factorTabulated=decelerationVelocityDependent%decelerationFactor(5.0d0,73.0d0)
+    call Assert("tabulated branch is reached at x=5",factorTabulated < 9.9d-1,.true.)
+    ! Extending the tabulation - here by a request outside it on both axes - must leave a previously tabulated value unchanged.
+    ! The table is rebuilt rather than extended, but rebuilt on the same pinned lattice, so its abscissae do not move.
+    factorAfterExtension=decelerationVelocityDependent%decelerationFactor(9.0d0,11.0d0)
+    factorAfterExtension=decelerationVelocityDependent%decelerationFactor(5.0d0,73.0d0)
+    call Assert("extension leaves a tabulated value unchanged",factorAfterExtension == factorTabulated,.true.)
+    ! An object driven straight to the wider range must agree bit-for-bit with one which reached it by extension: the bounds
+    ! are pinned, so both tabulate on the same lattice regardless of the order in which they were asked.
+    decelerationReverse=satelliteDecelerationSIDMKummer2018(cosmologyParameters_,particleVelocityDependent,darkMatterHaloScale_,darkMatterProfileDMO_)
+    factorDirect       =decelerationReverse%decelerationFactor(9.0d0,11.0d0)
+    factorDirect       =decelerationReverse%decelerationFactor(5.0d0,73.0d0)
+    call Assert("tabulation is independent of the order of requests",factorDirect == factorTabulated,.true.)
+  end block
   ! Clean up the node-component hierarchy.
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()

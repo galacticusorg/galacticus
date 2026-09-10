@@ -645,7 +645,8 @@ contains
     !!{RST
     Implement reduction for the ``stellarVsHaloMassRelationLeauthaud2012`` output analysis class.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : char
     implicit none
     class(outputAnalysisStellarVsHaloMassRelationLeauthaud2012), intent(inout) :: self
     class(outputAnalysisClass                                 ), intent(inout) :: reduced
@@ -654,7 +655,7 @@ contains
     class is (outputAnalysisStellarVsHaloMassRelationLeauthaud2012)
        call self%outputAnalysis_%reduce(reduced%outputAnalysis_)
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [outputAnalysisStellarVsHaloMassRelationLeauthaud2012] class, but of ['//char(reduced%objectType())//'] class'//{introspection:location})
     end select
     return
   end subroutine stellarVsHaloMassRelationLeauthaud2012Reduce

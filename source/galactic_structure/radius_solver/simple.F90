@@ -153,7 +153,9 @@ contains
     !!{RST
     Hookable wrapper around the solver.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class(*       ), intent(inout)         :: self
     type (treeNode), intent(inout), target :: node
@@ -161,8 +163,10 @@ contains
     select type (self)
     type is (galacticStructureSolverSimple)
        call self%solve(node)
+    class is (functionClass)
+       call Error_Report('object is not of [galacticStructureSolverSimple] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [galacticStructureSolverSimple] class'//{introspection:location})
     end select
     return
   end subroutine simpleSolveHook
@@ -171,8 +175,10 @@ contains
     !!{RST
     Hookable wrapper around the solver.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : propertyTypeInactive
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : propertyTypeInactive
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node
@@ -182,8 +188,10 @@ contains
     select type (self)
     type is (galacticStructureSolverSimple)
        if (propertyType /= propertyTypeInactive .or. self%solveForInactiveProperties) call self%solve(node)
+    class is (functionClass)
+       call Error_Report('object is not of [galacticStructureSolverSimple] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [galacticStructureSolverSimple] class'//{introspection:location})
     end select
     return
   end subroutine simpleSolvePreDeriativeHook

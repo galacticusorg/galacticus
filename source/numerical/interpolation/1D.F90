@@ -208,17 +208,18 @@ module Numerical_Interpolation
    contains
      !![
      <methods docformat="rst">
-       <method description="Interpolate in the tabulated function."                                                 method="interpolate"         />
-       <method description="Interpolate the derivative in the tabulated function."                                  method="derivative"          />
-       <method description="Interpolate the second derivative in the tabulated function."                           method="secondDerivative"    />
-       <method description="Locate the position in the array corresponding to the given ``x``."                  method="locate"              />
-       <method description="Return factors required to perform a linear interpolation."                             method="linearFactors"       />
-       <method description="Return weights required to perform a linear interpolation."                             method="linearWeights"       />
-       <method description="Allocate GSL objects."                                                                  method="gslAllocate"         />
-       <method description="Reallocate GSL objects."                                                                method="gslReallocate"       />
-       <method description="Initialize GSL interpolator."                                                           method="gslInitialize"       />
-       <method description="Assert that the data is interpolatable."                                                method="assertInterpolatable"/>
-       <method description="Assign interpolator objects."                                                           method="assignment(=)"       />
+       <method description="Interpolate in the tabulated function."                             method="interpolate"         />
+       <method description="Interpolate the derivative in the tabulated function."              method="derivative"          />
+       <method description="Interpolate the second derivative in the tabulated function."       method="secondDerivative"    />
+       <method description="Locate the position in the array corresponding to the given ``x``." method="locate"              />
+       <method description="Return factors required to perform a linear interpolation."         method="linearFactors"       />
+       <method description="Return weights required to perform a linear interpolation."         method="linearWeights"       />
+       <method description="Allocate GSL objects."                                              method="gslAllocate"         />
+       <method description="Reallocate GSL objects."                                            method="gslReallocate"       />
+       <method description="Initialize GSL interpolator."                                       method="gslInitialize"       />
+       <method description="Assert that the data is interpolatable."                            method="assertInterpolatable"/>
+       <method description="Return the number of points in the tabulated function."             method="count"               />
+       <method description="Assign interpolator objects."                                       method="assignment(=)"       />
      </methods>
      !!]
      procedure ::                         interpolatorAssign
@@ -242,6 +243,7 @@ module Numerical_Interpolation
      procedure :: gslReallocate        => interpolatorGSLReallocate
      procedure :: gslInitialize        => interpolatorGSLInitialize
      procedure :: assertInterpolatable => interpolatorAssertInterpolatable
+     procedure :: count                => interpolatorCount
   end type interpolator
 
   interface interpolator
@@ -514,6 +516,18 @@ contains
     return
   end subroutine interpolatorAssertInterpolatable
   
+  function interpolatorCount(self) result(count_)
+    !!{RST
+    Return the number of points in the tabulated function of an ``interpolator``.
+    !!}
+    implicit none
+    integer(c_size_t    )                :: count_
+    class  (interpolator), intent(in   ) :: self
+
+    count_=self%countArray
+    return
+  end function interpolatorCount
+
   subroutine interpolatorLinearFactors(self,x,i,h)
     !!{RST
     Return interpolating factors for linear interpolation in the array ``xArray()`` given ``x``.

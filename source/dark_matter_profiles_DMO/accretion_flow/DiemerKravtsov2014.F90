@@ -21,8 +21,9 @@
   An implementation of a dark matter density profile which includes the accretion flow surrounding the halo.
   !!}
 
-  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
-  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
+  use :: Cosmology_Functions              , only : cosmologyFunctionsClass
+  use :: Cosmological_Density_Field       , only : cosmologicalMassVarianceClass      , criticalOverdensityClass
+  use :: Dark_Matter_Halo_Splashback_Radii, only : darkMatterHaloSplashbackRadiusClass
 
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOAccretionFlowDiemerKravtsov2014" docformat="rst">
@@ -36,13 +37,14 @@
      A dark matter halo profile class which implements a dark matter density profile which includes the accretion flow using the fitting function of :cite:t:`diemer_dependence_2014`.
      !!}
      private
-     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
-     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
-     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
-     class           (darkMatterProfileDMOClass    ), pointer :: darkMatterProfileDMO_     => null()
-     double precision                                         :: b0                                 , s0 , &
-          &                                                      bz                                 , sz , &
-          &                                                      bnu                                , snu     
+     class           (cosmologyFunctionsClass            ), pointer :: cosmologyFunctions_             => null()
+     class           (criticalOverdensityClass           ), pointer :: criticalOverdensity_            => null()
+     class           (cosmologicalMassVarianceClass      ), pointer :: cosmologicalMassVariance_       => null()
+     class           (darkMatterProfileDMOClass          ), pointer :: darkMatterProfileDMO_           => null()
+     class           (darkMatterHaloSplashbackRadiusClass), pointer :: darkMatterHaloSplashbackRadius_ => null()
+     double precision                                               :: b0                                       , s0 , &
+          &                                                            bz                                       , sz , &
+          &                                                            bnu                                      , snu
    contains
      final     ::        accretionFlowDiemerKravtsov2014Destructor
      procedure :: get => accretionFlowDiemerKravtsov2014Get
@@ -67,12 +69,13 @@ contains
     type            (darkMatterProfileDMOAccretionFlowDiemerKravtsov2014)                :: self
     type            (inputParameters                                    ), intent(inout) :: parameters
     class           (darkMatterProfileDMOClass                          ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterHaloSplashbackRadiusClass                ), pointer       :: darkMatterHaloSplashbackRadius_
     class           (cosmologyFunctionsClass                            ), pointer       :: cosmologyFunctions_
     class           (criticalOverdensityClass                           ), pointer       :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass                      ), pointer       :: cosmologicalMassVariance_
-    double precision                                                                     :: b0                       , s0 , &
-         &                                                                                  bz                       , sz , &
-         &                                                                                  bnu                      , snu
+    double precision                                                                     :: b0                             , s0 , &
+         &                                                                                  bz                             , sz , &
+         &                                                                                  bnu                            , snu
 
     !![
     <inputParameter docformat="rst">
@@ -141,37 +144,40 @@ contains
       The parameter :math:`s_\nu` in the fitting function :math:`s(\nu,z)=s_0 (1+z)^{s_z} \nu^{s_\nu}` for the parameter :math:`s(\nu,z)` appearing in equation (4) of :cite:t:`diemer_dependence_2014`.
       </description>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
+    <objectBuilder class="criticalOverdensity"            name="criticalOverdensity_"            source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance"       name="cosmologicalMassVariance_"       source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="parameters"/>
+    <objectBuilder class="darkMatterHaloSplashbackRadius" name="darkMatterHaloSplashbackRadius_" source="parameters"/>
     !!]
-    self=darkMatterProfileDMOAccretionFlowDiemerKravtsov2014(b0,bz,bnu,s0,sz,snu,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterProfileDMO_)
+    self=darkMatterProfileDMOAccretionFlowDiemerKravtsov2014(b0,bz,bnu,s0,sz,snu,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterProfileDMO_,darkMatterHaloSplashbackRadius_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"      />
-    <objectDestructor name="criticalOverdensity_"     />
-    <objectDestructor name="cosmologicalMassVariance_"/>
-    <objectDestructor name="darkMatterProfileDMO_"    />
+    <objectDestructor name="cosmologyFunctions_"            />
+    <objectDestructor name="criticalOverdensity_"           />
+    <objectDestructor name="cosmologicalMassVariance_"      />
+    <objectDestructor name="darkMatterProfileDMO_"          />
+    <objectDestructor name="darkMatterHaloSplashbackRadius_"/>
     !!]
     return
   end function accretionFlowDiemerKravtsov2014ConstructorParameters
 
-  function accretionFlowDiemerKravtsov2014ConstructorInternal(b0,bz,bnu,s0,sz,snu,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterProfileDMO_) result(self)
+  function accretionFlowDiemerKravtsov2014ConstructorInternal(b0,bz,bnu,s0,sz,snu,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterProfileDMO_,darkMatterHaloSplashbackRadius_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`darkMatterProfileDMOAccretionFlowDiemerKravtsov2014` dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOAccretionFlowDiemerKravtsov2014)                        :: self
     class           (darkMatterProfileDMOClass                          ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterHaloSplashbackRadiusClass                ), intent(in   ), target :: darkMatterHaloSplashbackRadius_
     class           (cosmologyFunctionsClass                            ), intent(in   ), target :: cosmologyFunctions_
     class           (criticalOverdensityClass                           ), intent(in   ), target :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass                      ), intent(in   ), target :: cosmologicalMassVariance_
-    double precision                                                     , intent(in   )         :: b0                       , s0 , &
-         &                                                                                          bz                       , sz , &
-         &                                                                                          bnu                      , snu
+    double precision                                                     , intent(in   )         :: b0                             , s0 , &
+         &                                                                                          bz                             , sz , &
+         &                                                                                          bnu                            , snu
     !![
-    <constructorAssign variables="b0, bz, bnu, s0, sz, snu, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="b0, bz, bnu, s0, sz, snu, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *darkMatterProfileDMO_, *darkMatterHaloSplashbackRadius_"/>
     !!]
 
     return
@@ -185,10 +191,11 @@ contains
     type(darkMatterProfileDMOAccretionFlowDiemerKravtsov2014), intent(inout) :: self
     
     !![
-    <objectDestructor name="self%cosmologyFunctions_"      />
-    <objectDestructor name="self%cosmologicalMassVariance_"/>
-    <objectDestructor name="self%criticalOverdensity_"     />
-    <objectDestructor name="self%darkMatterProfileDMO_"    />
+    <objectDestructor name="self%cosmologyFunctions_"            />
+    <objectDestructor name="self%cosmologicalMassVariance_"      />
+    <objectDestructor name="self%criticalOverdensity_"           />
+    <objectDestructor name="self%darkMatterProfileDMO_"          />
+    <objectDestructor name="self%darkMatterHaloSplashbackRadius_"/>
     !!]
     return
   end subroutine accretionFlowDiemerKravtsov2014Destructor
@@ -214,7 +221,7 @@ contains
          &                                                                                            radius200Mean                 , densityMean                , &
          &                                                                                            nu                            , redshift                   , &
          &                                                                                            b                             , s                          , &
-         &                                                                                            peakHeight                    , radiusTransition
+         &                                                                                            radiusTransition
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -270,15 +277,11 @@ contains
           allocate(massDistributionSphericalAccretionFlow :: massDistribution_)
           select type(massDistribution_)
           type is (massDistributionSphericalAccretionFlow)
-             ! Compute the transition radius following Diemer & Kravtsov (2014; equation 6).
-             peakHeight      =+self%criticalOverdensity_     %value       (time=time,mass=mass) &
-                  &           /self%cosmologicalMassVariance_%rootVariance(time=time,mass=mass)
-             radiusTransition=+(             &
-                  &             +1.90d0      &
-                  &             -0.18d0      &
-                  &             *peakHeight  &
-                  &            )             &
-                  &           *radius200Mean
+             ! Compute the radius at which the profile transitions from the virialized halo to the accretion flow. The
+             ! splashback radius model supplies this as a ratio to R₂₀₀ₘ, which we scale by the R₂₀₀ₘ of the virialized mass
+             ! distribution being decorated here, so that the transition radius is consistent with that profile.
+             radiusTransition=+self%darkMatterHaloSplashbackRadius_%radiusRatio(node,massDistributionVirialized_) &
+                  &           *     radius200Mean
              !![
              <referenceConstruct object="massDistribution_">
              <constructor>

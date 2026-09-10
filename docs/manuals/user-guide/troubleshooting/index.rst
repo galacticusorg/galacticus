@@ -105,6 +105,26 @@ If a model is failing to make use of the majority of the available CPU cycles, a
 
 Additionally, you can ensure that compression is switched off in the HDF5 output by setting ``[hdf5CompressionLevel]``\ =-1. Finally, adjusting the HDF5 chunk size via the ``[hdf5ChunkSize]`` parameter may make for more efficient I/O. HDF5 datasets are read/written in chunks of this size. Increasing the size may improve I/O performance.
 
+Small differences in results between runs or versions
+-----------------------------------------------------
+
+Many expensive functions in Galacticus (spherical collapse solutions, linear growth factors, the mass variance, first-crossing distributions, and many more) are tabulated once and then interpolated. In versions before August 2026 the range of such a table was chosen from the *first* value requested, so the grid, and therefore the interpolation error, depended on the order in which the model happened to evaluate things: on the tree structure, on thread scheduling, and on other parameter choices. Two runs of physically identical models could then differ at the level of the interpolation error, and tables stored under ``datasets/dynamic/`` were discarded and rebuilt whenever a run requested a value outside the stored range.
+
+Since `issue #1317 <https://github.com/galacticusorg/galacticus/issues/1317>`_ most such tables are pinned to an absolute lattice, so their grids no longer depend on the request that triggered them, stored tables grow rather than being rebuilt, and the tabulated values are reproducible across runs. Two practical consequences:
+
+* Upgrading across that change shifts results once, by the interpolation error, so regression baselines and calibrated likelihood values may need to be re-anchored.
+* If you suspect a stale table (for example after an interrupted run, or after upgrading), deleting the relevant files under ``datasets/dynamic/`` is always safe; they will be rebuilt.
+
+Merger trees appear in a different order in the output
+-------------------------------------------------------
+
+The order in which trees appear in an output file is not deterministic when Galacticus runs with more than one OpenMP thread: each thread writes a tree when it finishes it, and threads finish in an order that depends on scheduling. The content of each tree is unaffected. When comparing two output files, match trees by the ``mergerTreeIndex`` dataset (with ``mergerTreeStartIndex`` and ``mergerTreeCount`` locating each tree's nodes) rather than comparing datasets position by position. Setting ``OMP_NUM_THREADS=1`` gives a fixed order for a single run, but note that when a model writes both a state file and an HDF5 file (for example for the ``postprocessForests`` task) the two can still list trees in different orders, because they are written under different locks; the tree-by-tree comparison is the robust approach in every case. See `pull request #1373 <https://github.com/galacticusorg/galacticus/pull/1373>`_ for the details.
+
+Parameters missing from the output file
+---------------------------------------
+
+The ``Parameters`` group of an output file records every parameter the model read, including defaults. In versions before August 2026, parameters read while initializing node components on each thread (for example those of the ``hotHalo`` and ``disk`` components) were omitted from this record, and ``scripts/aux/parametersExtract.py`` silently dropped them as well, so a parameter file reconstructed from an old output could be incomplete (`issue #1377 <https://github.com/galacticusorg/galacticus/issues/1377>`_). If you rely on an output file as the record of a run, check that the component parameters you expect are present, and regenerate from the original parameter file where they are not.
+
 .. toctree::
    :maxdepth: 1
 

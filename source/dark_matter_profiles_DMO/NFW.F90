@@ -92,8 +92,6 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`darkMatterProfileDMONFW` dark matter halo profile class.
     !!}
-    use :: Error           , only : Component_List                   , Error_Report
-    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
     type   (darkMatterProfileDMONFW )                        :: self
     class  (darkMatterHaloScaleClass), intent(in   ), target :: darkMatterHaloScale_
@@ -103,16 +101,9 @@ contains
     !!]
 
     ! Ensure that the dark matter profile component supports a "scale" property.
-    if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                        &
-         & call Error_Report                                                                                             &
-         &      (                                                                                                        &
-         &       'NFW dark matter profile requires a dark matter profile component with a gettable "scale" property.'//  &
-         &       Component_List(                                                                                         &
-         &                      'darkMatterProfile'                                                                   ,  &
-         &                      defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)            &
-         &                     )                                                                                      // &
-         &      {introspection:location}                                                                                 &
-         &      )
+    !![
+    <componentPropertyAssert class="darkMatterProfile" properties="scale" require="gettable"/>
+    !!]
     return
   end function nfwConstructorInternal
 

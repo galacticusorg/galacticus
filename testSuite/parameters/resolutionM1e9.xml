@@ -4,4 +4,15 @@
 
   <change type="update" path="mergerTreeMassResolution/massResolution" value="1.0e9"/>
 
+  <!-- Ignore bins of the subhalo mass function in which the model contains no subhalos. At this mass resolution the lowest mass
+       ratios tabulated in the target data are not resolved for a Milky Way mass host, so the model contains no subhalos there
+       while the target data do. The likelihood of that analysis assumes a negative binomial distribution for the number of
+       subhalos in each bin, which can not accommodate a bin in which the model predicts none while some are observed, and so
+       returns an impossible likelihood - rendering the analysis wholly insensitive to the model. Note that the bins of this
+       analysis are read from the target data file and can not be restricted through `massRatioMinimum`, which is used only when
+       no target file is given. -->
+  <change type="replaceOrAppend" path="outputAnalysis/outputAnalysis[@value='subhaloMassFunction']/ignoreEmptyModelBins">
+    <ignoreEmptyModelBins value="true"/>
+  </change>
+
 </changes>

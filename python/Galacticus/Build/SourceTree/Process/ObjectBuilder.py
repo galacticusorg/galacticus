@@ -239,21 +239,6 @@ def _handle_object_builder(node, state_storables, function_classes):
     lines += copy_loop_close
 
     if default_name:
-        # Find a free warnObjectBuilderN__ name.
-        i = 0
-        warn_status = "warnObjectBuilder0__"
-        while declaration_exists(parent, warn_status):
-            i += 1
-            warn_status = f"warnObjectBuilder{i}__"
-        add_declarations(parent, [{
-            'intrinsic':     'logical',
-            'type':          None,
-            'openMP':        False,
-            'attributes':    ['save'],
-            'variables':     [f"{warn_status}=.false."],
-            'variableNames': [warn_status],
-            'threadprivate': True,
-        }])
         lines += "   else\n"
         lines += "      ! Object is not explicitly defined. Cause a default object of the class to be added to the parameters. Increment the reference count here as this is a new object.\n"
         lines += copy_loop_open
@@ -264,16 +249,13 @@ def _handle_object_builder(node, state_storables, function_classes):
         lines += f"      call {directive['name']}%referenceCountIncrement()\n"
         lines += f"      call {directive['name']}%autoHook()\n"
         lines += copy_loop_close
+        # Record, in the output file, that this class was not specified and so was built from its
+        # default. This replaces a "Using default class for parameter ..." warning: defaulting is
+        # an extremely common idiom, so those warnings swamped the list which `Error_Report`
+        # replays, crowding genuine warnings out of it. The marker carries the same information,
+        # per parameter, and is recoverable from the output file long after the run.
         lines += (
-            f"      if (mpiSelf%isMaster() .and. .not.{warn_status}) then\n"
-            "         block\n"
-            "            type(varying_string) :: parametersPath\n"
-            "            parametersPath=parametersCurrent%path()\n"
-            "            call Warn('Using default class for parameter "
-            f"''['//char(parametersPath)//'{parameter_name}]''')\n"
-            f"            {warn_status}=.true.\n"
-            "         end block\n"
-            "      end if\n"
+            f"      call parametersCurrent%markDefaulted('{parameter_name}')\n"
             "   end if\n"
         )
 
@@ -281,18 +263,6 @@ def _handle_object_builder(node, state_storables, function_classes):
         lines += "   if (parametersDefaultCreated) call parametersDefault%destroy()\n"
 
     insert_after_node(node, [_code_node(lines, _SOURCE_TAG)])
-
-    # MPI + varying_string module uses when using a default-named object.
-    if default_name:
-        add_uses(parent, {
-            'moduleUse': {
-                'MPI_Utilities':      {'intrinsic': False,
-                                       'only': {'mpiSelf': True}},
-                'ISO_Varying_String': {'intrinsic': False,
-                                       'only': {'varying_string': True}},
-            },
-            'moduleOrder': ['MPI_Utilities', 'ISO_Varying_String'],
-        })
 
     # Main module-use block.  The class-providing module is skipped when the
     # enclosing node is part of the same module that declares the class.
@@ -315,11 +285,10 @@ def _handle_object_builder(node, state_storables, function_classes):
                     is_self = True
                     break
 
+        # `Error` is not listed here: it is added unconditionally, in full, below.
         module_uses = {
             'Input_Parameters':   {'intrinsic': False,
                                    'only': {'inputParameter': True}},
-            'Error':              {'intrinsic': False,
-                                   'only': {'Warn': True}},
             'ISO_Varying_String': {'intrinsic': False,
                                    'only': {'char': True}},
         }

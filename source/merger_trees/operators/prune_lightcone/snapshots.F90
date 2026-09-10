@@ -149,9 +149,8 @@ contains
     !!{RST
     Validate the lightcone pruning operator.
     !!}
-    use :: Array_Utilities , only : operator(.intersection.)
-    use :: Error           , only : Component_List          , Error_Report
-    use :: Galacticus_Nodes, only : defaultPositionComponent, defaultSatelliteComponent
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : defaultPositionComponent
     implicit none
     class(mergerTreeOperatorPruneLightconeSnapshots), intent(inout) :: self
 
@@ -160,24 +159,9 @@ contains
     ! of merging can be both read and written.
     if (self%bufferIsolatedHalos) then
        self%positionHistoryAvailable=defaultPositionComponent%positionHistoryIsGettable()
-       if     (                                                                                                                               &
-            &  .not.(                                                                                                                         &
-            &         defaultSatelliteComponent%timeOfMergingIsGettable()                                                                     &
-            &        .and.                                                                                                                    &
-            &         defaultSatelliteComponent%timeOfMergingIsSettable()                                                                     &
-            &       )                                                                                                                         &
-            & )                                                                                                                               &
-            & call Error_Report                                                                                                               &
-            &      (                                                                                                                          &
-            &       'buffering isolated halos requires that the timeOfMerging property of the satellite component be gettable and settable'// &
-            &       Component_List(                                                                                                           &
-            &                      'satellite'                                                                                             ,  &
-            &                        defaultSatelliteComponent%timeOfMergingAttributeMatch(requireGettable=.true.)                            &
-            &                       .intersection.                                                                                            &
-            &                        defaultSatelliteComponent%timeOfMergingAttributeMatch(requireSettable=.true.)                            &
-            &                      )                                                                                                       // &
-            &       {introspection:location}                                                                                                  &
-            &      )
+       !![
+       <componentPropertyAssert class="satellite" properties="timeOfMerging" require="gettable settable"/>
+       !!]
     end if
     return
   end subroutine pruneLightconeSnapshotsValidate

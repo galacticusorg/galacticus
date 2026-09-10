@@ -391,10 +391,18 @@ contains
     massResolution=self%mergerTreeMassResolution_%resolution(tree)
     ! Find the critical overdensity at the earliest time to which we will build this tree. We evaluate this here to ensure that
     ! δc(t) is already evaluated over the full range of epochs that we will require - this prevents any possible retabulation
-    ! during tree construction which can potentially lead to misordering of branches. This is not the ideal solution - ideally,
-    ! critical overdensity classes which rely on tabulation and which have to retabulate themselves should ensure that they simply
-    ! expand their range without changing any of the previous computed values (as we do for expansion factor vs. time in the
-    ! cosmology function class).
+    ! during tree construction which can potentially lead to misordering of branches. The result is deliberately unused: the call
+    ! exists only for that side effect.
+    !
+    ! This was formerly described as a workaround pending tabulating classes expanding their range without changing previously
+    ! computed values, "as we do for expansion factor vs. time in the cosmology function class". Pinning abscissae to an absolute
+    ! lattice achieves that for extension at the upper end, but it does not remove the need for this call and cannot: the
+    ! tabulations δc(t) depends upon include ones integrated forward from their earliest tabulated epoch - the linear growth
+    ! factor is one - and such a tabulation cannot be extended *downward* without restarting its integration from a new starting
+    ! epoch, which moves every value in it by of order its integration tolerance. The cosmology function class cited above
+    ! discards its whole table in exactly that case, for exactly this reason. Removing this call was measured to change a small
+    ! model's results by tens of percent, by moving a branch across a threshold. Retiring it requires giving the tabulations
+    ! concerned a fixed earliest epoch, not further pinning.
     deltaCriticalEarliest=+self%criticalOverdensity_     %value       (time=self%timeEarliest/2.0d0,mass=basic%mass(),node=node) &
          &                *self%cosmologicalMassVariance_%rootVariance(time=self%timeNow           ,mass=basic%mass()          ) &
          &                /self%cosmologicalMassVariance_%rootVariance(time=self%timeEarliest/2.0d0,mass=basic%mass()          )

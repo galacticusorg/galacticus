@@ -164,13 +164,13 @@
         self%radiusCore             =+radiusCore
      else
         self%radiusCore             =+0.0d0
-        call Error_Report('no means to determine core radius')
+        call Error_Report('no means to determine core radius'//{introspection:location})
      end if
      if (present(densitySolitonCentral)) then
         self%densitySolitonCentral  =+densitySolitonCentral
      else
         self%densitySolitonCentral  =+0.0d0
-        call Error_Report('densitySolitonCentral must be specified')
+        call Error_Report('densitySolitonCentral must be specified'//{introspection:location})
      end if
      if (present(dimensionless)) then
         self%dimensionless          =dimensionless
@@ -401,30 +401,30 @@
      if (.not.containerSolitonInitialized) then
         allocate(containerSoliton)
         call containerSoliton%initialize(0)
-        containerSoliton%mass                      %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%mass                      %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%radiusEnclosingDensity    %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%radiusEnclosingDensity    %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%potential                 %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%potential                 %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%velocityDispersion1D      %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%velocityDispersion1D      %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%energy                    %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%energy                    %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%radiusFreefall            %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%radiusFreefall            %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%radiusFreefallIncreaseRate%radiusCountPer       =+ 20_c_size_t
-        containerSoliton%radiusFreefallIncreaseRate%parametersCountPer   =+ 20_c_size_t
-        containerSoliton%densityRadialMoment0      %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%densityRadialMoment0      %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%densityRadialMoment1      %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%densityRadialMoment1      %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%densityRadialMoment2      %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%densityRadialMoment2      %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%densityRadialMoment3      %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%densityRadialMoment3      %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%fourierTransform          %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%fourierTransform          %parametersCountPer   =+ 20_c_size_t
+        containerSoliton%mass                      %radiusCountPer       =+6_c_size_t
+        containerSoliton%mass                      %parametersCountPer   =+6_c_size_t
+        containerSoliton%radiusEnclosingDensity    %radiusCountPer       =+6_c_size_t
+        containerSoliton%radiusEnclosingDensity    %parametersCountPer   =+6_c_size_t
+        containerSoliton%potential                 %radiusCountPer       =+6_c_size_t
+        containerSoliton%potential                 %parametersCountPer   =+6_c_size_t
+        containerSoliton%velocityDispersion1D      %radiusCountPer       =+6_c_size_t
+        containerSoliton%velocityDispersion1D      %parametersCountPer   =+6_c_size_t
+        containerSoliton%energy                    %radiusCountPer       =+6_c_size_t
+        containerSoliton%energy                    %parametersCountPer   =+6_c_size_t
+        containerSoliton%radiusFreefall            %radiusCountPer       =+6_c_size_t
+        containerSoliton%radiusFreefall            %parametersCountPer   =+6_c_size_t
+        containerSoliton%radiusFreefallIncreaseRate%radiusCountPer       =+6_c_size_t
+        containerSoliton%radiusFreefallIncreaseRate%parametersCountPer   =+6_c_size_t
+        containerSoliton%densityRadialMoment0      %radiusCountPer       =+6_c_size_t
+        containerSoliton%densityRadialMoment0      %parametersCountPer   =+6_c_size_t
+        containerSoliton%densityRadialMoment1      %radiusCountPer       =+6_c_size_t
+        containerSoliton%densityRadialMoment1      %parametersCountPer   =+6_c_size_t
+        containerSoliton%densityRadialMoment2      %radiusCountPer       =+6_c_size_t
+        containerSoliton%densityRadialMoment2      %parametersCountPer   =+6_c_size_t
+        containerSoliton%densityRadialMoment3      %radiusCountPer       =+6_c_size_t
+        containerSoliton%densityRadialMoment3      %parametersCountPer   =+6_c_size_t
+        containerSoliton%fourierTransform          %radiusCountPer       =+6_c_size_t
+        containerSoliton%fourierTransform          %parametersCountPer   =+6_c_size_t
         containerSolitonInitialized                                      =.true.
      end if
      allocate(parameters(0))

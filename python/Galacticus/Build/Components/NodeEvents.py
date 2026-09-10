@@ -2,10 +2,10 @@
 
 Andrew Benson (ported to Python 2026)
 
-Seven hooks:
+Six hooks:
 
   types      → Build_Node_Event_Class
-  interfaces → Node_Event_Task_Interface, Node_Event_Merge_Time_Set_Interface
+  interfaces → Node_Event_Task_Interface
   functions  → Node_Event_Non_Static_Size_Of, Node_Event_Serialize_Raw,
                Node_Event_Deserialize_Raw, Node_Event_Deserialize_Raw_Polymorphic
 """
@@ -65,78 +65,6 @@ _NODE_EVENT_CLASSES = [
         'extends':     'nodeEvent',
         'data':        [],
     },
-    {
-        'name':        'nodeEventBranchJumpInterTree',
-        'description': "Class for inter-tree branch jump events attached to nodes.",
-        'extends':     'nodeEvent',
-        'data':        [
-            {
-                'intrinsic':  'integer',
-                'type':       'kind=c_size_t',
-                'attributes': ['public'],
-                'variables':  ['splitForestUniqueID'],
-            },
-            {
-                'intrinsic':  'integer',
-                'type':       'kind=kind_int8',
-                'attributes': ['public'],
-                'variables':  ['pairedNodeID'],
-            },
-            {
-                'intrinsic':  'logical',
-                'attributes': ['public'],
-                'variables':  ['isPrimary', 'hasSecondary'],
-            },
-            {
-                'intrinsic':  'class',
-                'type':       '*',
-                'attributes': ['pointer', 'public'],
-                'variables':  ['creator'],
-            },
-            {
-                'intrinsic':  'procedure',
-                'type':       'nodeEventInterTreeMergeTimeSet',
-                'attributes': ['pointer', 'nopass', 'public'],
-                'variables':  ['mergeTimeSet'],
-            },
-        ],
-    },
-    {
-        'name':        'nodeEventSubhaloPromotionInterTree',
-        'description': "Class for inter-tree subhalo promotion events attached to nodes.",
-        'extends':     'nodeEvent',
-        'data':        [
-            {
-                'intrinsic':  'integer',
-                'type':       'kind=c_size_t',
-                'attributes': ['public'],
-                'variables':  ['splitForestUniqueID'],
-            },
-            {
-                'intrinsic':  'integer',
-                'type':       'kind=kind_int8',
-                'attributes': ['public'],
-                'variables':  ['pairedNodeID'],
-            },
-            {
-                'intrinsic':  'logical',
-                'attributes': ['public'],
-                'variables':  ['isPrimary'],
-            },
-            {
-                'intrinsic':  'class',
-                'type':       '*',
-                'attributes': ['pointer', 'public'],
-                'variables':  ['creator'],
-            },
-            {
-                'intrinsic':  'procedure',
-                'type':       'nodeEventInterTreeMergeTimeSet',
-                'attributes': ['pointer', 'nopass', 'public'],
-                'variables':  ['mergeTimeSet'],
-            },
-        ],
-    },
 ]
 
 
@@ -185,29 +113,6 @@ def Node_Event_Task_Interface(build):
                 'type':       'enumerationDeadlockStatusType',
                 'attributes': ['intent(inout)'],
                 'variables':  ['deadlockStatus'],
-            },
-        ],
-    }
-
-
-def Node_Event_Merge_Time_Set_Interface(build):
-    """Emit the `nodeEventInterTreeMergeTimeSet` abstract interface."""
-    build.setdefault('interfaces', {})['nodeEventInterTreeMergeTimeSet'] = {
-        'name':      'nodeEventInterTreeMergeTimeSet',
-        'comment':   "Interface for node event inter tree merge time set functions.",
-        'intrinsic': 'void',
-        'data':      [
-            {
-                'intrinsic':  'class',
-                'type':       '*',
-                'attributes': ['intent(inout)'],
-                'variables':  ['self'],
-            },
-            {
-                'intrinsic':  'type',
-                'type':       'treeNode',
-                'attributes': ['intent(inout)', 'target'],
-                'variables':  ['nodeSatellite', 'nodeHost'],
             },
         ],
     }
@@ -433,7 +338,6 @@ def _bind(build, type_name, function, method_name):
 
 register('nodeEvents', 'types',      Build_Node_Event_Class)
 register('nodeEvents', 'interfaces', Node_Event_Task_Interface)
-register('nodeEvents', 'interfaces', Node_Event_Merge_Time_Set_Interface)
 register('nodeEvents', 'functions',  Node_Event_Non_Static_Size_Of)
 register('nodeEvents', 'functions',  Node_Event_Serialize_Raw)
 register('nodeEvents', 'functions',  Node_Event_Deserialize_Raw)

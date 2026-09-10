@@ -113,6 +113,61 @@ write:
     logical, intent(  out) :: diskRequired        , spheroidRequired   , &
          &                    radiusVirialRequired, radiusScaleRequired
 
+Like ``use`` blocks, a run of declarations is laid out as a table so that it can be scanned down a column. The conventions are:
+
+* The intrinsic type, its parenthetical (kind specifier, type name, ``len=``), the ``::`` and the variables each occupy a column, whose width is shared by every declaration in the run. A declaration with no parenthetical still leaves room for one, so its ``::`` lines up with the rest.
+* The intrinsic is padded before the bracket opens — ``double precision``, ``type            (treeNode)`` — rather than the padding going inside the brackets.
+* Attributes occupy positional columns: whichever attribute comes first on a row sits in the first attribute column, so one column may hold ``pointer`` on one row and ``intent(inout)`` on the next, sized to the wider.
+* Attributes are written in a canonical order — ``intent``, ``pointer``, ``allocatable``, ``dimension``, ``target``, ``optional``, ``parameter``, ``save``, ``value``, ``public``, ``private``, then anything else alphabetically. Fortran attaches no meaning to the order; fixing one is what lets a given attribute reliably land in the same column.
+* The argument of ``intent`` is padded to the width of the longest spelling, so that ``intent(in   )``, ``intent(inout)`` and ``intent(  out)`` form one column.
+* At most two variables per row, aligned in columns, with any ``=`` or ``=>`` initializer aligned down each column. Continuation rows carry ``&`` five columns in from the block indent.
+* A declaration needed only under OpenMP carries the ``!$`` sentinel; unconditional declarations in the same run are indented three further columns so the intrinsic types still line up.
+* Rows hold fewer variables where two would push the line past 132 columns.
+
+For example:
+
+.. code-block:: fortran
+
+       type            (treeNode), intent(inout)                            :: node
+       double precision          , intent(in   ), allocatable, dimension(:) :: radii
+       logical                   , intent(  out)                            :: isComputed
+       double precision                                                     :: massStellar        , massGas              , &
+         &                                                                     radiusScale        , velocityVirial
+       integer                                                              :: i
+    !$ integer                                                              :: threadCount
+       logical                                                              :: converged  =.false., iterating     =.true.
+
+A comment or a ``#ifdef`` between two runs of declarations does not break the alignment — the columns span it. These conventions are applied automatically by :ref:`manual-sec-formatDeclarations`.
+
+Module ``use`` statements
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Blocks of ``use`` statements are laid out as a table, so that the module names and the symbols imported from them can be scanned down a column. The conventions are:
+
+* Every ``use`` carries an explicit ``::`` and an ``only`` clause naming the symbols imported. One statement per module.
+* Within a block, the ``use``, ``::`` and ``, only :`` tokens are vertically aligned, which means module names are padded to the width of the longest.
+* At most four symbols per row, using continuation lines for more — but fewer per row where four would push the line past 132 columns. The count is chosen once for the whole block, so the symbol columns stay aligned between statements.
+* Symbols are sorted alphabetically and aligned in columns whose widths are shared across the entire block. The sort is case-sensitive, which groups ``Capitalized_With_Underscores`` procedure names ahead of ``camelCase`` types and variables.
+* Modules imported with the ``intrinsic`` attribute come first, keeping their order relative to one another.
+* A ``use`` needed only under OpenMP carries the ``!$`` sentinel. Every statement still begins at the block's own indent, so the sentinel sits out to the left of the ``use`` keyword; the three columns it occupies are made up after the module attributes, keeping the ``::`` column aligned across the block.
+* A ``use`` guarded by a preprocessor conditional keeps its own ``#ifdef``/``#endif`` wrapper.
+
+For example:
+
+.. code-block:: fortran
+
+    use, intrinsic    :: ISO_C_Binding     , only : c_size_t
+    use               :: Error             , only : Error_Report
+    use               :: Display           , only : displayIndent         , displayMessage, displayUnindent, displayVerbositySet, &
+    &                                               verbosityLevelStandard
+    use               :: ISO_Varying_String, only : assignment(=)         , varying_string
+   #ifdef USEMPI
+    use               :: MPI_Utilities     , only : mpiBarrier            , mpiSelf
+   #endif
+    !$ use            :: OMP_Lib           , only : OMP_Get_Max_Threads
+
+These conventions are applied automatically by :ref:`manual-sec-formatModuleUses`, so there is no need to align them by hand.
+
 Constants
 ~~~~~~~~~
 
@@ -463,6 +518,51 @@ A common requirement in object constructors is to assign the values of arguments
 
 will cause the value of the ``massThreshold`` argument to ``stellarMassConstructorInternal%massThreshold``. If an argument name is prefixed with ``*`` in the variables list, pointer assignment is used instead of standard assignment.
 
+.. _manual-sec-componentPropertyAssert:
+
+Component Property Assertions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Many classes work only if the active node component implementations provide certain properties with certain attributes---for example, a dark matter profile that needs a gettable ``scale`` property of the ``darkMatterProfile`` component. Since which implementations are active is chosen at run time from the parameter file, such requirements must be asserted at run time, and the resulting error message should tell the user which implementations *would* satisfy the requirement. The ``componentPropertyAssert`` directive generates that assertion:
+
+.. code-block:: none
+
+     !![
+     <componentPropertyAssert class="spheroid" properties="massStellar massGas halfMassRadius angularMomentum" require="gettable"/>
+     !!]
+
+This expands to a test that every listed property is gettable, and, if not, a call to ``Error_Report`` whose message is appended with a ``Component_List`` naming the implementations of the ``spheroid`` class that do provide all of those properties as gettable. The ``use`` statements required by the generated code are added automatically. The attributes are:
+
+``class``
+   The name of the component class, e.g. ``spheroid``. This is used both to build the name of the default component object (``defaultSpheroidComponent``) and as the class name reported in the error message---writing it once removes the risk of the two disagreeing.
+
+``properties``
+   A whitespace- and/or comma-separated list of property names of that class.
+
+``require``
+   A whitespace- and/or comma-separated list of the required attributes; any of ``gettable``, ``settable``, and ``evolvable``. Every requirement is applied to every listed property.
+
+``message``
+   Optional. Replaces the generated diagnostic. Use this where the requirement needs context that cannot be inferred from the class and property names---the location of the assertion is reported automatically, so there is no need to name the enclosing class or function.
+
+Occasionally the test must be made in one place and reported in another---typically when the test is made once in a constructor and cached, but the error is raised later at the point of use, inside a ``select type`` over component implementations. The ``assignTo`` and ``condition`` attributes split the directive across those two places:
+
+.. code-block:: none
+
+     ! In the constructor:
+     !![
+     <componentPropertyAssert class="disk" properties="radius velocity" require="gettable" assignTo="self%diskSupported"/>
+     !!]
+
+     ! At the point of use:
+     !![
+     <componentPropertyAssert class="disk" properties="radius velocity" require="gettable" condition="self%diskSupported"/>
+     !!]
+
+``assignTo`` generates only the test, assigning its result to the named ``logical`` variable (which must be declared as usual). ``condition`` generates only the error report, guarded by the supplied expression. The two attributes are mutually exclusive.
+
+Note that property names are not validated by the preprocessor: a misspelled property generates a reference to a non-existent ``%<property>IsGettable()`` binding, which the compiler rejects.
+
 .. _manual-sec-metaProperties:
 
 Meta-Properties
@@ -652,6 +752,8 @@ Crucially, that lock buys nothing on this path. It serializes only the read of t
 For this reason the dispatch block uses ``countLockless()`` instead, which reads ``count_`` *without* taking the lock. This is sound because the set of hooks is established during (single-threaded) initialization and is *static* during the parallel evolution phase, so there is no concurrent writer on the hot path. The lockless read introduces no race that the unlocked traversal did not already have: it is semantically equivalent to the locked ``count()`` on this path, minus the lock. To keep the access well defined under the OpenMP memory model rather than relying on the (aligned, naturally atomic) integer load incidentally, ``countLockless()`` reads ``count_`` via ``!$omp atomic read``, and ``attach``/``detach`` correspondingly update ``count_`` via ``!$omp atomic update``.
 
 Code that genuinely requires a serialized, consistent snapshot of the hook count (for example, logic internal to ``attach``/``detach`` themselves) should continue to use the locked ``count()``; ``countLockless()`` is intended only for hot, read-only dispatch paths that satisfy the static-hooks invariant described above.
+
+.. _manual-sec-conditionalCall:
 
 Conditional Call
 ~~~~~~~~~~~~~~~~

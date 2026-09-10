@@ -464,6 +464,7 @@ contains
     !!}
     use :: Error                  , only : Error_Report
     use :: Output_Analyses_Options, only : outputAnalysisCovarianceModelBinomial
+    use :: ISO_Varying_String     , only : char
     implicit none
     class(outputAnalysisCrossCorrelator1D), intent(inout) :: self
     class(outputAnalysisClass            ), intent(inout) :: reduced
@@ -478,7 +479,7 @@ contains
        reduced%functionCovariance      =reduced%functionCovariance   +self%functionCovariance
        !$ call reduced%accumulateLock%unset()
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [outputAnalysisCrossCorrelator1D] class, but of ['//char(reduced%objectType())//'] class'//{introspection:location})
     end select
     return
   end subroutine crossCorrelator1DReduce

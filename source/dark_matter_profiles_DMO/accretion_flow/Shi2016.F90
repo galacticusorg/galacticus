@@ -22,7 +22,7 @@
   !!}
 
   use :: Cosmology_Functions                      , only : cosmologyFunctionsClass
-  use :: Cosmological_Density_Field               , only : cosmologicalMassVarianceClass          , criticalOverdensityClass
+  use :: Dark_Matter_Halo_Splashback_Radii        , only : darkMatterHaloSplashbackRadiusClass
   use :: Spherical_Collapse_Solvers               , only : sphericalCollapseSolverClass
   use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryClass
   use :: Dark_Matter_Halo_Scales                  , only : darkMatterHaloScaleClass  
@@ -42,8 +42,7 @@
      class           (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_                => null()
      class           (darkMatterProfileDMOClass              ), pointer :: darkMatterProfileDMO_               => null()
      class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_                 => null()
-     class           (criticalOverdensityClass               ), pointer :: criticalOverdensity_                => null()
-     class           (cosmologicalMassVarianceClass          ), pointer :: cosmologicalMassVariance_           => null()
+     class           (darkMatterHaloSplashbackRadiusClass    ), pointer :: darkMatterHaloSplashbackRadius_     => null()
      class           (darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_ => null()
      class           (sphericalCollapseSolverClass           ), pointer :: sphericalCollapseSolver_            => null()
      double precision                                                   :: scaleFactorVelocity
@@ -72,8 +71,7 @@ contains
     type            (inputParameters                         ), intent(inout) :: parameters
     class           (darkMatterProfileDMOClass               ), pointer       :: darkMatterProfileDMO_
     class           (cosmologyFunctionsClass                 ), pointer       :: cosmologyFunctions_
-    class           (criticalOverdensityClass                ), pointer       :: criticalOverdensity_
-    class           (cosmologicalMassVarianceClass           ), pointer       :: cosmologicalMassVariance_
+    class           (darkMatterHaloSplashbackRadiusClass     ), pointer       :: darkMatterHaloSplashbackRadius_
     class           (darkMatterHaloScaleClass                ), pointer       :: darkMatterHaloScale_
     class           (sphericalCollapseSolverClass            ), pointer       :: sphericalCollapseSolver_
     class           (darkMatterHaloMassAccretionHistoryClass ), pointer       :: darkMatterHaloMassAccretionHistory_
@@ -89,19 +87,17 @@ contains
       </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
-    <objectBuilder class="criticalOverdensity"                name="criticalOverdensity_"                source="parameters"/>
-    <objectBuilder class="cosmologicalMassVariance"           name="cosmologicalMassVariance_"           source="parameters"/>
+    <objectBuilder class="darkMatterHaloSplashbackRadius"     name="darkMatterHaloSplashbackRadius_"     source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"               name="darkMatterProfileDMO_"               source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"                name="darkMatterHaloScale_"                source="parameters"/>
     <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
     <objectBuilder class="sphericalCollapseSolver"            name="sphericalCollapseSolver_"            source="parameters"/>
     !!]
-    self=darkMatterProfileDMOAccretionFlowShi2016(scaleFactorVelocity,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterHaloMassAccretionHistory_,sphericalCollapseSolver_)
+    self=darkMatterProfileDMOAccretionFlowShi2016(scaleFactorVelocity,cosmologyFunctions_,darkMatterHaloSplashbackRadius_,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterHaloMassAccretionHistory_,sphericalCollapseSolver_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"                />
-    <objectDestructor name="criticalOverdensity_"               />
-    <objectDestructor name="cosmologicalMassVariance_"          />
+    <objectDestructor name="darkMatterHaloSplashbackRadius_"    />
     <objectDestructor name="darkMatterProfileDMO_"              />
     <objectDestructor name="darkMatterHaloScale_"               />
     <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
@@ -110,7 +106,7 @@ contains
     return
   end function accretionFlowShi2016ConstructorParameters
 
-  function accretionFlowShi2016ConstructorInternal(scaleFactorVelocity,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterHaloMassAccretionHistory_,sphericalCollapseSolver_) result(self)
+  function accretionFlowShi2016ConstructorInternal(scaleFactorVelocity,cosmologyFunctions_,darkMatterHaloSplashbackRadius_,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterHaloMassAccretionHistory_,sphericalCollapseSolver_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`darkMatterProfileDMOAccretionFlowShi2016` dark matter halo profile class.
     !!}
@@ -118,14 +114,13 @@ contains
     type            (darkMatterProfileDMOAccretionFlowShi2016)                        :: self
     class           (darkMatterProfileDMOClass               ), intent(in   ), target :: darkMatterProfileDMO_
     class           (cosmologyFunctionsClass                 ), intent(in   ), target :: cosmologyFunctions_
-    class           (criticalOverdensityClass                ), intent(in   ), target :: criticalOverdensity_
-    class           (cosmologicalMassVarianceClass           ), intent(in   ), target :: cosmologicalMassVariance_
+    class           (darkMatterHaloSplashbackRadiusClass     ), intent(in   ), target :: darkMatterHaloSplashbackRadius_
     class           (darkMatterHaloScaleClass                ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterHaloMassAccretionHistoryClass ), intent(in   ), target :: darkMatterHaloMassAccretionHistory_
     class           (sphericalCollapseSolverClass            ), intent(in   ), target :: sphericalCollapseSolver_
     double precision                                          , intent(in   )         :: scaleFactorVelocity
     !![
-    <constructorAssign variables="scaleFactorVelocity, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *darkMatterProfileDMO_, *darkMatterHaloScale_, *sphericalCollapseSolver_, *darkMatterHaloMassAccretionHistory_"/>
+    <constructorAssign variables="scaleFactorVelocity, *cosmologyFunctions_, *darkMatterHaloSplashbackRadius_, *darkMatterProfileDMO_, *darkMatterHaloScale_, *sphericalCollapseSolver_, *darkMatterHaloMassAccretionHistory_"/>
     !!]
 
     return
@@ -140,8 +135,7 @@ contains
     
     !![
     <objectDestructor name="self%cosmologyFunctions_"                />
-    <objectDestructor name="self%cosmologicalMassVariance_"          />
-    <objectDestructor name="self%criticalOverdensity_"               />
+    <objectDestructor name="self%darkMatterHaloSplashbackRadius_"    />
     <objectDestructor name="self%darkMatterProfileDMO_"              />
     <objectDestructor name="self%darkMatterHaloMassAccretionHistory_"/>
     <objectDestructor name="self%sphericalCollapseSolver_"           />
@@ -171,9 +165,8 @@ contains
     class           (table1D                                 ), allocatable             :: ratioRadiusTurnaroundVirialTable
     double precision                                                                    :: time                            , mass                       , &
          &                                                                                 densityMean                     , radius200Mean              , &
-         &                                                                                 peakHeight                      , radiusTransition           , &
          &                                                                                 massAccretionRate               , radiusVirial               , &
-         &                                                                                 ratioRadiusTurnaroundVirial
+         &                                                                                 ratioRadiusTurnaroundVirial     , radiusTransition
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -182,6 +175,10 @@ contains
     massDistribution_ => null()
     ! If weighting is not by mass, return a null profile.
     if (weightBy_ /= weightByMass) return
+    ! Extract basic quantities for the halo.
+    basic => node %basic()
+    time  =  basic%time ()
+    mass  =  basic%mass ()
     ! Combine the virialized and accretion flow mass distributions.
     allocate(massDistributionSphericalAccretionFlow :: massDistribution_)
     select type(massDistribution_)
@@ -193,23 +190,15 @@ contains
           ! Find the radius enclosing 200 times the mean density.
           densityMean       =  self                       %cosmologyFunctions_  %matterDensityEpochal  (         time       )
           radius200Mean     =  massDistributionVirialized_                      %radiusEnclosingDensity(+200.0d0*densityMean)
-          ! Compute the transition radius following Diemer & Kravtsov (2014; equation 6).
-          peakHeight      =+self%criticalOverdensity_     %value       (time=time,mass=mass) &
-               &           /self%cosmologicalMassVariance_%rootVariance(time=time,mass=mass)
-          radiusTransition=+(             &
-               &             +1.90d0      &
-               &             -0.18d0      &
-               &             *peakHeight  &
-               &            )             &
-               &           *radius200Mean
+          ! Compute the radius at which the profile transitions from the virialized halo to the accretion flow. The
+          ! splashback radius model supplies this as a ratio to R₂₀₀ₘ, which we scale by the R₂₀₀ₘ of the virialized mass
+          ! distribution being decorated here, so that the transition radius is consistent with that profile.
+          radiusTransition=+self%darkMatterHaloSplashbackRadius_%radiusRatio(node,massDistributionVirialized_) &
+               &           *     radius200Mean
           ! Create the accretion flow mass distribution.
           allocate(massDistributionShi2016 :: massDistributionAccretionFlow_)
           select type(massDistributionAccretionFlow_)
           type is (massDistributionShi2016)
-             ! Extract basic quantities for the halo.
-             basic             => node                                     %basic            (         )
-             time              =  basic                                    %time             (         )
-             mass              =  basic                                    %mass             (         )
              radiusVirial      =  self %darkMatterHaloScale_               %radiusVirial     (node     )
              massAccretionRate =  self %darkMatterHaloMassAccretionHistory_%massAccretionRate(node,time)
              call self%sphericalCollapseSolver_%radiusTurnaround(time,tableStore=.false.,radiusTurnaround_=ratioRadiusTurnaroundVirialTable)

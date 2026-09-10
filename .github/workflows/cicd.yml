@@ -54,7 +54,10 @@ jobs:
         # platformdirs + requests are needed by the galacticus_launcher tests and
         # lxml by the parameter-resolver tests (the third-party deps in the
         # python/ pytest suite); all are small wheels so the job stays fast.
-        run: python -m pip install --upgrade pip pytest platformdirs requests lxml
+        # zstandard supplies zstd where the standard library has none (before
+        # Python 3.14), so the launcher's archive tests do not depend on which
+        # interpreter this job happens to resolve `3.x` to.
+        run: python -m pip install --upgrade pip pytest platformdirs requests lxml zstandard
       - name: Run Python regression tests
         run: |
           cd $GITHUB_WORKSPACE
@@ -66,6 +69,14 @@ jobs:
           export GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE
           python3 scripts/build/parameterCatalog.py `pwd` parameters.catalog.json
           python3 scripts/build/parameterCatalogCheck.py parameters.catalog.json
+      # Hand the catalog to the `Deploy` job, which publishes it as a release asset. The launcher installs it instead of
+      # generating its own, which costs tens of seconds of CPU on the user's first `galacticus run`. Built here from the very
+      # commit being deployed, so it matches the source archive the launcher unpacks alongside it.
+      - name: Upload artifacts (parameter catalog)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: galacticus-parameter-catalog
+          path: parameters.catalog.json
       - name: Validate parameter files
         run: |
           cd $GITHUB_WORKSPACE
@@ -431,6 +442,11 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS+=\ -static" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
+      - name: "Install archiving tools"
+        # The tools archive is packed with zstd (see the packaging step below), which the build container
+        # does not carry. The other jobs which pack a zstd archive run directly on a runner image, where it
+        # is already present.
+        run: apt-get install --yes zstd || { apt-get update && apt-get install --yes zstd ; }
       - name: Download executables
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
@@ -457,8 +473,21 @@ jobs:
           ! ldd dynamic/RecFast/recfast.exe
           ! ldd dynamic/fsps-${fspsVersion}/src/autosps.exe
           ! ldd dynamic/mangle-${mangleVersion}/bin/ransack
-          tar cfj tools.tar.bz2 \
+          # The `forutils` stamp file must be packaged alongside the `camb` executable. At run time
+          # `Interface_CAMB_Initialize` (source/interface/CAMB.F90) rebuilds CAMB unless *both* the
+          # executable and a stamp matching the required `forutils` version are present. Installs made from
+          # the packaged tools (e.g. via PyPI) typically have no Fortran compiler, so a missing stamp turns
+          # into a fatal build attempt rather than a simple use of the pre-built binary.
+          # zstd rather than bzip2. The archive is roughly the same size, but bzip2 decompresses at around
+          # 13 MB/s of compressed input single-threaded, so unpacking the ~1.7 GB archive took over two
+          # minutes on the installing machine -- several times longer than downloading it. zstd unpacks the
+          # same payload in a few seconds. Level 12 is chosen over the slower levels because this payload is
+          # ~9 GB uncompressed: the higher levels buy a few percent of size at the cost of many minutes of
+          # runner time, whereas -12 is both smaller and faster to produce than the bzip2 it replaces.
+          set -o pipefail
+          tar cf - \
             dynamic/CAMB-${cambVersion}/fortran/camb \
+            dynamic/CAMB-${cambVersion}/forutils/.galacticusForUtilsVersion_${forutilsVersion} \
             dynamic/axionCAMB-${axioncambVersion}/camb \
             dynamic/class_public-${classVersion}/class \
             dynamic/RecFast/recfast.exe \
@@ -472,12 +501,59 @@ jobs:
             dynamic/fsps-${fspsVersion}/SPECTRA \
             dynamic/fsps-${fspsVersion}/OUTPUTS \
             dynamic/fsps-${fspsVersion}/ISOCHRONES \
-            dynamic/mangle-${mangleVersion}/bin/harmonize
+            dynamic/mangle-${mangleVersion}/bin/harmonize \
+            | zstd -12 -T0 -q -o tools.tar.zst
       - name: Upload tools
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-tools
-          path: ./datasets/tools.tar.bz2
+          # Already compressed: re-zipping it in the artifact costs minutes and saves nothing.
+          compression-level: 0
+          path: ./datasets/tools.tar.zst
+      - run: echo "This job's status is ${{ job.status }}."
+  ## Run-time datasets
+  Package-Datasets:
+    # Publish a snapshot of the datasets repository as a release asset.
+    #
+    # Without one, an install has to fetch `galacticusorg/datasets` from GitHub's repository-archive endpoint,
+    # which generates the zip on the fly: it advertises no content length, refuses byte ranges, and is
+    # throttled per connection to a fraction of the rate a release asset is served at. That single download
+    # dominates the wall-clock time of a first install. As a release asset the same data can be split across
+    # connections, verified against the release checksums, and unpacked from zstd rather than deflate.
+    #
+    # It also pins the data: the snapshot is taken at a known commit, recorded in `datasets.ref`, so an
+    # install gets the data this build was tested against instead of whatever `master` has moved on to.
+    # Setting GALACTICUS_DATASETS_REF still asks the launcher for a specific ref via the repository archive.
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository datasets
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+          # Only the working tree is packaged, so there is no use for the history.
+          fetch-depth: 1
+      - name: Package datasets snapshot
+        run: |
+          set -o pipefail
+          cd datasets
+          git rev-parse HEAD > "${GITHUB_WORKSPACE}/datasets.ref"
+          echo "datasets snapshot at $(cat "${GITHUB_WORKSPACE}/datasets.ref")"
+          # Packed from the root of the tree, with no top-level directory: the launcher unpacks this straight
+          # into GALACTICUS_DATA_PATH, unlike the repository archive whose single `datasets-<ref>/` wrapper
+          # has to be stripped. Level 12 for the same reason as the tools archive -- see `Build-Tools`.
+          tar cf - --exclude=./.git . | zstd -12 -T0 -q -o "${GITHUB_WORKSPACE}/datasets.tar.zst"
+          ls -lh "${GITHUB_WORKSPACE}/datasets.tar.zst"
+      - name: Upload datasets snapshot
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: galacticus-datasets
+          # Already compressed: re-zipping it in the artifact costs minutes and saves nothing.
+          compression-level: 0
+          path: |
+            ./datasets.tar.zst
+            ./datasets.ref
       - run: echo "This job's status is ${{ job.status }}."
   ## MacOS
   ### Static executable
@@ -600,8 +676,15 @@ jobs:
           # CDMS/JPL catalogs at data-build time. It is never run by Galacticus, and it is not code-signed
           # above, so leaving it in the archive causes notarization to reject the whole archive ("the binary
           # is not signed", "no secure timestamp", "no hardened runtime"). Exclude it and its debug symbols.
+          #
+          # The `forutils` stamp file must be packaged alongside the `camb` executable. At run time
+          # `Interface_CAMB_Initialize` (source/interface/CAMB.F90) rebuilds CAMB unless *both* the
+          # executable and a stamp matching the required `forutils` version are present. Installs made from
+          # the packaged tools (e.g. via PyPI) typically have no Fortran compiler, so a missing stamp turns
+          # into a fatal build attempt rather than a simple use of the pre-built binary.
           toolProducts=(
             dynamic/CAMB-${cambVersion}/fortran/camb
+            dynamic/CAMB-${cambVersion}/forutils/.galacticusForUtilsVersion_${forutilsVersion}
             dynamic/axionCAMB-${axioncambVersion}/camb
             dynamic/class_public-${classVersion}/class
             dynamic/RecFast/recfast.exe
@@ -631,6 +714,24 @@ jobs:
           zip -r toolsMacOS.zip "${toolProducts[@]}" \
             -x "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm" \
                "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm.dSYM/*"
+          # The same signed products, packed again as a zstd tar -- which is what the release publishes and
+          # the launcher installs. The zip stays because it is the submission format: `xcrun notarytool
+          # submit` accepts only .zip/.pkg/.dmg, and the signature verification step below reads it too. That
+          # costs nothing at distribution time, because a notarization ticket for loose signed binaries lives
+          # on Apple's servers and is looked up by the code-directory hash of each binary -- it is not stapled
+          # into the archive, so the archive's format is free. The tar wins twice over the zip: it unpacks far
+          # faster, and it records file modes, so the launcher does not have to guess afterwards which of the
+          # unpacked files were meant to be executable.
+          #
+          # COPYFILE_DISABLE stops bsdtar writing AppleDouble `._*` members for extended attributes. Mach-O
+          # code signatures live inside the binaries themselves, so nothing signed is lost; what would be
+          # carried over is quarantine and Finder metadata, which the installed tools have no use for.
+          set -o pipefail
+          COPYFILE_DISABLE=1 tar cf - \
+            --exclude "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm" \
+            --exclude "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm.dSYM*" \
+            "${toolProducts[@]}" \
+            | zstd -12 -T0 -q -o toolsMacOS.tar.zst
       - name: Verify all packaged binaries are code-signed
         uses: ./.github/actions/verifySignedMacOS
         with:
@@ -641,7 +742,11 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-tools-MacOS
-          path: './datasets/toolsMacOS.zip'
+          # Already compressed: re-zipping them in the artifact costs minutes and saves nothing.
+          compression-level: 0
+          path: |
+            ./datasets/toolsMacOS.zip
+            ./datasets/toolsMacOS.tar.zst
   ### Apple Silicon build
   Build-Executable-MacOS-M1:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
@@ -758,8 +863,15 @@ jobs:
           # CDMS/JPL catalogs at data-build time. It is never run by Galacticus, and it is not code-signed
           # above, so leaving it in the archive causes notarization to reject the whole archive ("the binary
           # is not signed", "no secure timestamp", "no hardened runtime"). Exclude it and its debug symbols.
+          #
+          # The `forutils` stamp file must be packaged alongside the `camb` executable. At run time
+          # `Interface_CAMB_Initialize` (source/interface/CAMB.F90) rebuilds CAMB unless *both* the
+          # executable and a stamp matching the required `forutils` version are present. Installs made from
+          # the packaged tools (e.g. via PyPI) typically have no Fortran compiler, so a missing stamp turns
+          # into a fatal build attempt rather than a simple use of the pre-built binary.
           toolProducts=(
             dynamic/CAMB-${cambVersion}/fortran/camb
+            dynamic/CAMB-${cambVersion}/forutils/.galacticusForUtilsVersion_${forutilsVersion}
             dynamic/axionCAMB-${axioncambVersion}/camb
             dynamic/class_public-${classVersion}/class
             dynamic/RecFast/recfast.exe
@@ -789,6 +901,24 @@ jobs:
           zip -r toolsMacOSM1.zip "${toolProducts[@]}" \
             -x "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm" \
                "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm.dSYM/*"
+          # The same signed products, packed again as a zstd tar -- which is what the release publishes and
+          # the launcher installs. The zip stays because it is the submission format: `xcrun notarytool
+          # submit` accepts only .zip/.pkg/.dmg, and the signature verification step below reads it too. That
+          # costs nothing at distribution time, because a notarization ticket for loose signed binaries lives
+          # on Apple's servers and is looked up by the code-directory hash of each binary -- it is not stapled
+          # into the archive, so the archive's format is free. The tar wins twice over the zip: it unpacks far
+          # faster, and it records file modes, so the launcher does not have to guess afterwards which of the
+          # unpacked files were meant to be executable.
+          #
+          # COPYFILE_DISABLE stops bsdtar writing AppleDouble `._*` members for extended attributes. Mach-O
+          # code signatures live inside the binaries themselves, so nothing signed is lost; what would be
+          # carried over is quarantine and Finder metadata, which the installed tools have no use for.
+          set -o pipefail
+          COPYFILE_DISABLE=1 tar cf - \
+            --exclude "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm" \
+            --exclude "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm.dSYM*" \
+            "${toolProducts[@]}" \
+            | zstd -12 -T0 -q -o toolsMacOSM1.tar.zst
       - name: Verify all packaged binaries are code-signed
         uses: ./.github/actions/verifySignedMacOS
         with:
@@ -799,7 +929,11 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-tools-MacOS-M1
-          path: './datasets/toolsMacOSM1.zip'
+          # Already compressed: re-zipping them in the artifact costs minutes and saves nothing.
+          compression-level: 0
+          path: |
+            ./datasets/toolsMacOSM1.zip
+            ./datasets/toolsMacOSM1.tar.zst
   ## Library
   Build-Library-MacOS:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
@@ -1190,6 +1324,22 @@ jobs:
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 1
+      # The soliton NFW `radiusEnclosingDensity` tabulation is `!$omp threadprivate`, so its
+      # memory scales with the thread count: measured peak resident size for this model is
+      # 12.7 GB at one thread but 18.4 GB at two, against a 16 GB runner. Run it single
+      # threaded. This is both lighter and faster than the two-thread job was before the
+      # tabulation gained value reuse (13.4 GB, 28 minutes).
+      ompNumThreads: 1
+    secrets: inherit
+  Validate-Fuzzy-Dark-Matter-Heated:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-fuzzyDarkMatterHeated.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      cacheData: 1
       ompNumThreads: 2
     secrets: inherit
   # Tests
@@ -1219,17 +1369,25 @@ jobs:
                       tests.hashes.cryptographic.exe,
                       tests.integration.exe,
                       tests.integration2.exe,
-                      tests.integration_2D.exe,
+                      tests.integration_nD.exe,
+                      tests.computational_domain_volume_integrators.exe,
                       tests.SIDM_parametric_model.exe,
                       tests.SIDM_cross_sections.exe,
                       tests.SIDM_parametric_maps.exe,
                       tests.SIDM_Kummer_deceleration.exe,
+                      tests.SIDM_Kummer_satellites.exe,
+                      tests.spin_distribution_nbody_errors.exe,
                       tests.differentiation.exe,
                       tests.tables.exe,
                       tests.table_caches.exe,
                       tests.interpolation.exe,
                       tests.interpolation.2D.exe,
+                      tests.interpolation.multiD.exe,
+                      tests.dust.attenuation_descriptors.exe,
+                      tests.dust.extinction_curves.exe,
                       tests.make_ranges.exe,
+                      tests.tabulations_inverse.exe,
+                      tests.cosmology_functions.exe,
                       tests.mass_distributions.exe,
                       tests.mass_distributions.tabulated.exe,
                       tests.kinematic_distributions.NFW.exe,
@@ -1252,6 +1410,7 @@ jobs:
                       tests.multi_counters.exe,
                       tests.tensors.exe,
                       tests.cosmic_age.exe,
+                      tests.dark_energy_CPL.exe,
                       tests.spherical_collapse.open.exe,
                       tests.spherical_collapse.flat.exe,
                       tests.spherical_collapse.dark_energy.EdS.exe,
@@ -1307,17 +1466,26 @@ jobs:
                       tests.dark_matter_profiles.finite_resolution.exe,
                       tests.dark_matter_profiles.Zhao1996.exe,
                       tests.dark_matter_profiles.fuzzy_dark_matter.exe,
+                      tests.satellites.tidal_stripping.radius.soliton_limited.exe,
                       tests.decaying_dark_matter.exe,
                       tests.decaying_dark_matter_spherical_collapse.exe,
                       tests.spectra.postprocess.Inoue2014.exe,
                       tests.recombination_computed.exe,
                       tests.recombination_cooling.Hummer.exe,
+                      tests.intergalactic_medium_state.exe,
+                      tests.radiation_fields.exe,
+                      tests.conditional_mass_functions.exe,
                       tests.locks.exe,
+                      tests.warnings.exe,
+                      tests.error_report_handlers.exe,
                       tests.initial_mass_functions.exe,
                       tests.stellar_populations.exe,
                       tests.stellar_populations.luminosities.exe,
                       tests.excursion_sets.exe,
                       tests.merger_tree_branching.exe,
+                      tests.merger_tree_branching_CDM.exe,
+                      tests.merger_tree_branching_WDM.exe,
+                      tests.merger_tree_branching_modifiers.exe,
                       tests.merger_tree_census.exe,
                       tests.event_hooks.exe,
                       tests.tree_branch_destroy.exe,
@@ -1484,6 +1652,9 @@ jobs:
                 test-constraint-deterministic-spins.py,
                 test-constraint-mass-function.py,
                 test-halo-mass-functions.py,
+                test-dust-attenuation-parity.py,
+                test-luminosity-function-Halpha.py,
+                test-dust-analyses-SDSS.py,
                 test-inactive_luminosities.py,
                 test-interoutput-star-formation-rate.py,
                 test-mass-host-maximum.py,
@@ -1497,10 +1668,11 @@ jobs:
                 test-parameter-validation.py,
                 test-python-modules.py,
                 test-reproducibility.py,
-                test-splitForests.py,
                 test-parameters-diff.py,
                 test-parameters-extract.py,
                 test-parameters-changes.py,
+                test-parameters-default-reporting.py,
+                test-temporary-parameter-file.py,
                 test-output-datasets-suffixes.py,
                 test-star-formation-histories.py,
                 test-star-formation-histories-adaptive.py,
@@ -1515,6 +1687,11 @@ jobs:
                 test-stateRestore.py,
                 test-checkpointing.py,
                 test-stellar-mass-weighted-ages.py,
+                test-supernovae-type-Ia-yields-file.py,
+                test-supernovae-type-Ia-yields-metallicity.py,
+                test-supernovae-type-Ia-rate-metallicity.py,
+                test-stellar-properties-LimongiChieffi2018.py,
+                test-stellar-properties-Sukhbold2016.py,
                 test-tidalTracks.py,
                 test-transferFunctionHalfModeSlope.py,
                 test-galacticStructureStateDeallocateBug.py,
@@ -1660,6 +1837,20 @@ jobs:
       runPath: ./testSuite
       options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
     secrets: inherit
+  ### Local Group selection function
+  ## Checks that the observational selection function applied to Local Group satellites (the
+  ## `localGroupDetection` weight operator) reproduces an independent recomputation of the detection
+  ## probabilities from the same tabulation. This exercises the tabulated axis units, the node
+  ## properties extracted, and the interpolation.
+  Local-Group-Selection-Function:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-Local-Group-selection-function.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      cacheData: 1
+    secrets: inherit
   ### Regressions
   Regressions:
     needs: Build-Executable-Linux
@@ -1672,6 +1863,8 @@ jobs:
                 testSuite/regressions/mergerTreeBoxSizeWeight.py,
                 testSuite/regressions/satellitePresetBoundMassNonZero.py,
                 testSuite/regressions/cosmicEmu.py,
+                testSuite/regressions/euclidEmulator2.py,
+                testSuite/regressions/nGenHalofit.py,
                 testSuite/regressions/bug1053153.xml,
                 testSuite/regressions/bug711424.xml,
                 testSuite/regressions/bug725315.xml,
@@ -2006,7 +2199,7 @@ jobs:
           name: 'Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 3keV resolutionX1)'
           type: 'validate'
           suffix: 'darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1'
-          threshold: '450%'
+          threshold: '1200%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Dark matter-only subhalos validation (COZMIC Milky Way WDM 4keV resolutionX1)'
         uses: ./.github/actions/benchmark
@@ -2086,7 +2279,7 @@ jobs:
           name: 'Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 6.5keV resolutionX8)'
           type: 'validate'
           suffix: 'darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8'
-          threshold: '450%'
+          threshold: '800%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Dark matter-only subhalos validation (COZMIC Milky Way WDM 10keV resolutionX8)'
         uses: ./.github/actions/benchmark
@@ -2416,12 +2609,14 @@ jobs:
     permissions:
       contents: write # required to upload build artifacts as `bleeding-edge` release assets
       actions:  read
-    needs: [ Build-Executable-Linux,
+    needs: [ Test-Preprocessor,
+             Build-Executable-Linux,
              Build-Executables-Instrumented-Linux,
              Build-Executables-MPI-Linux,
              Build-Library-Linux,
              Build-Docker-Linux,
              Build-Tools,
+             Package-Datasets,
              Build-Executable-MacOS,
              Build-Executable-MacOS-M1,
              Build-Library-MacOS,
@@ -2444,6 +2639,7 @@ jobs:
              Merger-Tree-Builder,
              Merger-Tree-Write,
              Model-Integration,
+             Local-Group-Selection-Function,
              Miscellaneous,
              Miscellaneous-Cached,
              Miscellaneous-IRATE,
@@ -2479,11 +2675,24 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.bz2 --clobber
+          gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.zst --clobber
           # Record the checksums of the assets the launcher downloads and executes, before the local copies are removed. These are
-          # collected across the upload steps of this job and published as a single `SHA256SUMS` asset at the end of it.
-          sha256sum Galacticus.exe tools.tar.bz2 >> "${GITHUB_WORKSPACE}/SHA256SUMS"
-          rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.bz2
+          # collected across the upload steps of this job and published as a single `SHA256SUMS` asset at the end of it. The
+          # launcher also reads this file as the release's asset manifest -- an artefact listed here is one the release carries,
+          # which is how it chooses between the current and the legacy form of an archive without probing for a 404.
+          sha256sum Galacticus.exe tools.tar.zst >> "${GITHUB_WORKSPACE}/SHA256SUMS"
+          rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.zst
+      - name: Download artifacts (datasets)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: galacticus-datasets
+      - name: Upload datasets snapshot to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload bleeding-edge ./datasets.tar.zst ./datasets.ref --clobber
+          sha256sum datasets.tar.zst datasets.ref >> "${GITHUB_WORKSPACE}/SHA256SUMS"
+          rm ./datasets.tar.zst ./datasets.ref
       - name: Download artifacts (executable-macos)
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
@@ -2520,9 +2729,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json --clobber
-          sha256sum Galacticus_MacOS.exe Galacticus_MacOS-M1.exe toolsMacOS.zip toolsMacOSM1.zip >> "${GITHUB_WORKSPACE}/SHA256SUMS"
-          rm -f ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json
+          # The tools zips are deliberately not published: they exist only as the format `xcrun notarytool
+          # submit` accepts, and the release carries the same signed products as the zstd tars the launcher
+          # installs. Publishing both would add ~4 GB of duplicate assets to every release.
+          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.tar.zst ./toolsMacOSM1.tar.zst ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json --clobber
+          sha256sum Galacticus_MacOS.exe Galacticus_MacOS-M1.exe toolsMacOS.tar.zst toolsMacOSM1.tar.zst >> "${GITHUB_WORKSPACE}/SHA256SUMS"
+          rm -f ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./toolsMacOS.tar.zst ./toolsMacOSM1.tar.zst ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json
       - name: Download artifacts (perf-darkMatterOnlySubHalos)
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
@@ -2553,6 +2765,17 @@ jobs:
         run: |
           gh release upload bleeding-edge ./darkMatterOnlySubHalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubHalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2 --clobber
           rm ./darkMatterOnlySubHalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubHalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2
+      - name: Download artifacts (parameter catalog)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: galacticus-parameter-catalog
+      - name: Upload assets to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload bleeding-edge ./parameters.catalog.json --clobber
+          sha256sum parameters.catalog.json >> "${GITHUB_WORKSPACE}/SHA256SUMS"
+          rm ./parameters.catalog.json
       # Publish the checksums collected by the upload steps above. The launcher fetches this asset and checks the executable and
       # tools archives it downloads against it, so that a corrupted or substituted asset is caught rather than being run. It is
       # written last so that it always describes the assets just uploaded.

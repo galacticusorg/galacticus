@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the code of :cite:t:`moran_mira-titan_2023`.
 !!}
@@ -63,7 +65,11 @@ Implements a nonlinear power spectrum class in which the nonlinear power spectru
   end interface powerSpectrumNonlinearCosmicEmu
 
   ! Wavenumber range used for testing shape of primordial power spectrum.
-  double precision, parameter :: wavenumberLong=0.01d0, wavenumberShort=1.0d0
+  double precision, parameter :: wavenumberLong        =0.01d+0, wavenumberShort=1.0d0
+  ! Tolerance within which the dark energy equation of state must match the CPL form, w(a)=w₀+w_a(1-a), assumed by CosmicEmu,
+  ! along with the expansion factor at which that form is tested.
+  double precision, parameter :: toleranceEquationState=1.00d-3
+  double precision, parameter :: expansionFactorTest   =0.50d+0
 
   ! Generate a source digest.
   !![
@@ -112,11 +118,13 @@ contains
     use :: Error               , only : Error_Report
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
-    type (powerSpectrumNonlinearCosmicEmu)                        :: self
-    class(cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_
-    class(cosmologyParametersClass       ), intent(in   ), target :: cosmologyParameters_
-    class(powerSpectrumPrimordialClass   ), intent(in   ), target :: powerSpectrumPrimordial_
-    class(cosmologicalMassVarianceClass  ), intent(in   ), target :: cosmologicalMassVariance_
+    type            (powerSpectrumNonlinearCosmicEmu)                        :: self
+    class           (cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_
+    class           (cosmologyParametersClass       ), intent(in   ), target :: cosmologyParameters_
+    class           (powerSpectrumPrimordialClass   ), intent(in   ), target :: powerSpectrumPrimordial_
+    class           (cosmologicalMassVarianceClass  ), intent(in   ), target :: cosmologicalMassVariance_
+    double precision                                                         :: equationOfState0         , equationOfStateA, &
+         &                                                                      equationOfStateTest
     !![
     <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *powerSpectrumPrimordial_, *cosmologicalMassVariance_"/>
     !!]
@@ -148,8 +156,44 @@ contains
          &                   'this method is applicable only to models with no running of the spectral index'// &
          &                    {introspection:location}                                                          &
          &                  )
+    ! Check that the dark energy equation of state follows the CPL form, w(a)=w₀+w_a(1-a), assumed by CosmicEmu. The coefficient
+    ! w_a is identified by matching the derivative of w(a) at the present epoch, so the CPL form is exact for a constant equation
+    ! of state, but not, in general, for the w(a)=w₀+w₁a(1-a) form of `cosmologyFunctionsMatterDarkEnergy`.
+    equationOfState0   =self%cosmologyFunctions_%equationOfStateDarkEnergy(expansionFactor=1.0d0              )
+    equationOfStateA   =cosmicEmuEquationOfStateA(self)
+    equationOfStateTest=self%cosmologyFunctions_%equationOfStateDarkEnergy(expansionFactor=expansionFactorTest)
+    if     (                                                                                                                   &
+         &  Values_Differ(                                                                                                     &
+         &                +equationOfStateTest                                                                               , &
+         &                +equationOfState0                                                                                    &
+         &                +equationOfStateA                                                                                    &
+         &                *(1.0d0-expansionFactorTest)                                                                       , &
+         &                absTol=toleranceEquationState                                                                        &
+         &               )                                                                                                     &
+         & )                                                                                                                   &
+         & call Error_Report(                                                                                                  &
+         &                   'this method is applicable only to dark energy equations of state of the form w(a)=w₀+w_a(1-a)'// &
+         &                    {introspection:location}                                                                         &
+         &                  )
    return
   end function cosmicEmuConstructorInternal
+
+  double precision function cosmicEmuEquationOfStateA(self) result(equationOfStateA)
+    !!{RST
+    Return the coefficient :math:`w_\mathrm{a}` of the CPL dark energy equation of state, :math:`w(a)=w_0+w_\mathrm{a}(1-a)`,
+    found by matching the derivative :math:`\mathrm{d}w/\mathrm{d}a` at the present epoch.
+    !!}
+    implicit none
+    class           (powerSpectrumNonlinearCosmicEmu), intent(inout) :: self
+    double precision                                 , parameter     :: expansionFactorOffset=1.0d-3
+
+    equationOfStateA=-(                                                                                                 &
+         &             +self%cosmologyFunctions_%equationOfStateDarkEnergy(expansionFactor=1.0d0                      ) &
+         &             -self%cosmologyFunctions_%equationOfStateDarkEnergy(expansionFactor=1.0d0-expansionFactorOffset) &
+         &            )                                                                                                 &
+         &           /expansionFactorOffset
+    return
+  end function cosmicEmuEquationOfStateA
 
   subroutine cosmicEmuDestructor(self)
     !!{RST
@@ -220,8 +264,6 @@ contains
        call Directory_Make(inputPath(pathTypeDataDynamic)//"largeScaleStructure")
        powerSpectrumFile=inputPath(pathTypeDataDynamic)//"largeScaleStructure/powerSpectrumCosmicEmu"
        powerSpectrumFile=powerSpectrumFile//"_"//Hash_MD5(uniqueLabel)
-       parameterFile    =File_Name_Temporary("cosmicEmuParameters",char(inputPath(pathTypeDataDynamic)//"largeScaleStructure"))//"/xstar.dat"
-       call Directory_Make(File_Path(parameterFile))
        parameters       =''
        write (parameterLabel,'(f5.3)') +self%cosmologyParameters_     %OmegaMatter              (                                  )
        powerSpectrumFile=powerSpectrumFile//"_OmegaMatter"//trim(adjustl(parameterLabel))
@@ -245,7 +287,7 @@ contains
        write (parameterLabel,'(f6.3)') +self%cosmologyFunctions_      %equationOfStateDarkEnergy(expansionFactor=1.0d0             )
        powerSpectrumFile=powerSpectrumFile//"_w0"//trim(adjustl(parameterLabel))
        parameters=parameters//trim(adjustl(parameterLabel))//" "
-       write (parameterLabel,'(f6.3)') -self%cosmologyFunctions_      %exponentDarkEnergy       (expansionFactor=1.0d0             )
+       write (parameterLabel,'(f6.3)') +cosmicEmuEquationOfStateA                              (self                               )
        powerSpectrumFile=powerSpectrumFile//"_wa"//trim(adjustl(parameterLabel))
        parameters=parameters//trim(adjustl(parameterLabel))//" "
        parameters=parameters//"0.0 " ! Neutrino density parameter - not currently implemented.
@@ -256,8 +298,19 @@ contains
        ! Check for existence of the power spectrum, building it if necessary.
        call File_Lock(powerSpectrumFile,self%fileLock,lockIsShared=.true.)
        if (.not.File_Exists(powerSpectrumFile)) then
-          call File_Unlock(self%fileLock)
-          call File_Lock(powerSpectrumFile,self%fileLock,lockIsShared=.false.)
+          ! The power spectrum must be built, so upgrade to an exclusive lock. No sync is requested when releasing the shared lock
+          ! - nothing has been written under it, and, since `File_Unlock()` syncs by opening the file with `status='unknown'`, a
+          ! sync here would create an empty power spectrum file, causing the re-test below to always find it.
+          call File_Unlock(self%fileLock,sync=.false.)
+          call File_Lock  (powerSpectrumFile,self%fileLock,lockIsShared=.false.)
+       end if
+       ! Re-test for the file - another thread or process may have built it while we were waiting for the exclusive lock.
+       if (.not.File_Exists(powerSpectrumFile)) then
+          ! Create a working directory, and write the parameter file into it. This is done only if CosmicEmu must actually be run
+          ! - otherwise the working directory would be created (and left behind, as the clean up below is never reached) on every
+          ! call for which the time had changed.
+          parameterFile=File_Name_Temporary("cosmicEmuParameters",char(inputPath(pathTypeDataDynamic)//"largeScaleStructure"))//"/xstar.dat"
+          call Directory_Make(File_Path(parameterFile))
           open(newUnit=powerSpectrumUnit,file=char(parameterFile),status='unknown',form='formatted')
           write (powerSpectrumUnit,'(a)') char(parameters)
           close(powerSpectrumUnit)

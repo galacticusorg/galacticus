@@ -27,10 +27,12 @@ program Test_Tables
   !!}
   use :: Array_Utilities , only : directionDecreasing         , directionIncreasing
   use :: Display         , only : displayVerbositySet         , verbosityLevelStandard
-  use :: Numerical_Ranges, only : Range_Pinned                , rangeLattice            , gridSchemePerOctave               , gridSchemePerDecade
-  use :: Tables          , only : table                       , table1D                 , table1DLinearCSpline              , table1DLinearLinear, &
-          &                       table1DLinearMonotoneCSpline, table1DLogarithmicLinear, table1DNonUniformLinearLogarithmic, table2DLogLogLin
-  use :: Unit_Tests      , only : Assert                      , Unit_Tests_Begin_Group  , Unit_Tests_End_Group              , Unit_Tests_Finish
+  use :: Numerical_Ranges, only : Range_Pinned                , rangeLattice                     , gridSchemePerOctave               , gridSchemePerDecade, &
+          &                       gridSchemePerUnit
+  use :: Tables          , only : table                       , table1D                          , table1DLinearCSpline              , table1DLinearLinear, &
+          &                       table1DLinearMonotoneCSpline, table1DLogarithmicLinear         , table1DNonUniformLinearLogarithmic, table2DLogLogLin   , &
+          &                       table1DLogarithmicCSpline   , table1DLogarithmicMonotoneCSpline
+  use :: Unit_Tests      , only : Assert                      , Unit_Tests_Begin_Group           , Unit_Tests_End_Group              , Unit_Tests_Finish
   implicit none
   class           (table           ), allocatable                 :: myTable
   class           (table1D         ), allocatable                 :: myReversedTable
@@ -50,6 +52,9 @@ program Test_Tables
   type            (rangeLattice    )                              :: latticeX2D     , latticeY2D
   logical                           , allocatable, dimension(:,:) :: isComputed2D
   double precision                  , allocatable, dimension(:,:) :: zValuesNarrow2D, zValuesWide2D
+  double precision                  , allocatable, dimension(:  ) :: xValuesSpline  , interpolatedExtended, &
+       &                                                             interpolatedDirect
+  double precision                  , allocatable, dimension(:,:) :: yValuesSpline
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -470,6 +475,99 @@ program Test_Tables
        &      .true.                                                                                              &
        &     )
   call myTable2DExtend%destroy()
+
+  ! Test extension of a cubic-spline table. A cubic spline is not local - every coefficient depends on every tabulated value -
+  ! so extension preserves the tabulated values but not the interpolant between them. What it must guarantee is that an extended
+  ! table is indistinguishable from one built directly on the wider lattice, including in what it interpolates.
+  allocate(table1DLogarithmicMonotoneCSpline :: myTable)
+  select type (myTable)
+  type is (table1DLogarithmicMonotoneCSpline)
+     latticeNarrow=Range_Pinned(3.0d0,4,gridSchemePerOctave)
+     call myTable%extend(latticeNarrow,isComputed)
+     call Assert('spline extension of an empty table requires every point to be computed',count(isComputed),0                  )
+     call Assert('spline extension of an empty table gives the lattice point count'      ,myTable%size()   ,latticeNarrow%count)
+     do i=1,myTable%size()
+        call myTable%populate(myTable%x(i)**2,i)
+     end do
+     xValuesSpline=myTable%xs()
+     yValuesSpline=myTable%ys()
+     ! Extend to a wider range on the same lattice.
+     latticeWide=Range_Pinned(30.0d0,4,gridSchemePerOctave,latticeCurrent=myTable%lattice)
+     call myTable%extend(latticeWide,isComputed)
+     offset=latticeNarrow%indexMinimum-latticeWide%indexMinimum
+     call Assert('spline extension marks precisely the previously computed points as computed',count(isComputed)                                   ,latticeNarrow%count)
+     call Assert('spline extension marks the correct window as computed'                      ,all(isComputed(offset+1:offset+latticeNarrow%count)),.true.             )
+     xValuesWide=myTable%xs()
+     yValuesWide=myTable%ys()
+     call Assert('spline extension preserves abscissae bit-for-bit'                            , &
+          &      all(xValuesWide(offset+1:offset+latticeNarrow%count  ) == xValuesSpline      ), &
+          &      .true.                                                                          &
+          &     )
+     call Assert('spline extension preserves tabulated values bit-for-bit'                     , &
+          &      all(yValuesWide(offset+1:offset+latticeNarrow%count,1) == yValuesSpline(:,1) ), &
+          &      .true.                                                                          &
+          &     )
+     ! Compute the newly added points, then record what the extended table holds and interpolates.
+     do i=1,myTable%size()
+        if (.not.isComputed(i)) call myTable%populate(myTable%x(i)**2,i)
+     end do
+     xValuesWide=myTable%xs()
+     yValuesWide=myTable%ys()
+     allocate(interpolatedExtended(latticeWide%count-1))
+     do i=1,latticeWide%count-1
+        interpolatedExtended(i)=myTable%interpolate(sqrt(myTable%x(i)*myTable%x(i+1)))
+     end do
+     call myTable%destroy()
+  end select
+  deallocate(myTable)
+
+  ! Build the same table directly on the wider lattice. It must agree with the extended table not only in its tabulated values
+  ! but in what it interpolates - the spline coefficients having been rebuilt over the whole range by both routes.
+  allocate(table1DLogarithmicMonotoneCSpline :: myTable)
+  select type (myTable)
+  type is (table1DLogarithmicMonotoneCSpline)
+     call myTable%extend(latticeWide,isComputed)
+     do i=1,myTable%size()
+        call myTable%populate(myTable%x(i)**2,i)
+     end do
+     xValuesDirect=myTable%xs()
+     yValuesDirect=myTable%ys()
+     call Assert('a spline table built directly has abscissae identical to one built by extension'       ,all(xValuesDirect      == xValuesWide     ),.true.)
+     call Assert('a spline table built directly has tabulated values identical to one built by extension',all(yValuesDirect(:,1) == yValuesWide(:,1)),.true.)
+     allocate(interpolatedDirect(latticeWide%count-1))
+     do i=1,latticeWide%count-1
+        interpolatedDirect(i)=myTable%interpolate(sqrt(myTable%x(i)*myTable%x(i+1)))
+     end do
+     call Assert('a spline table built directly interpolates identically to one built by extension'      ,all(interpolatedDirect == interpolatedExtended),.true.)
+     call myTable%destroy()
+  end select
+  deallocate(myTable)
+
+  ! A linearly-spaced cubic-spline table extends onto a `perUnit` lattice in the same way.
+  allocate(table1DLinearCSpline :: myTable)
+  select type (myTable)
+  type is (table1DLinearCSpline)
+     latticeNarrow=Range_Pinned(3.0d0,4,gridSchemePerUnit)
+     call myTable%extend(latticeNarrow,isComputed)
+     do i=1,myTable%size()
+        call myTable%populate(myTable%x(i)**2,i)
+     end do
+     yValuesSpline=myTable%ys()
+     latticeWide=Range_Pinned(9.0d0,4,gridSchemePerUnit,latticeCurrent=myTable%lattice)
+     call myTable%extend(latticeWide,isComputed)
+     offset=latticeNarrow%indexMinimum-latticeWide%indexMinimum
+     yValuesWide=myTable%ys()
+     call Assert('a linearly-spaced spline table preserves tabulated values bit-for-bit on extension'    , &
+          &      all(yValuesWide(offset+1:offset+latticeNarrow%count,1) == yValuesSpline(:,1)          ), &
+          &      .true.                                                                                   &
+          &     )
+     call Assert('a linearly-spaced spline table takes its spacing from the lattice'                     , &
+          &      myTable%x(2)-myTable%x(1) == latticeWide%step()                                        , &
+          &      .true.                                                                                   &
+          &     )
+     call myTable%destroy()
+  end select
+  deallocate(myTable)
 
   ! End unit tests.
   call Unit_Tests_End_Group()

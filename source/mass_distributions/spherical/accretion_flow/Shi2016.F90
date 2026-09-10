@@ -69,15 +69,19 @@
           &                                                                   radiusSplashbackScaled                                     , radiusMinimumPhysical               , &
           &                                                                   radiusVirial                                               , mass                                , &
           &                                                                   massAccretionRate                                          , redshift                            , &
-          &                                                                   time                                                       , ratioRadiusTurnaroundVirial
+          &                                                                   time                                                       , ratioRadiusTurnaroundVirial         , &
+          &                                                                   radiusSplashbackPhysical
    contains
      !![
      <methods docformat="rst">
-       <method description="Solve for the structure of the accretion flow." method="solve" />
+       <method description="Solve for the structure of the accretion flow."                     method="solve"            />
+       <method description="Return the splashback radius (in Mpc) of the accretion flow model." method="radiusSplashback" />
      </methods>
      !!]
+     final     ::                          shi2016Destructor
+     procedure :: radiusSplashback      => shi2016RadiusSplashback
      procedure :: density               => shi2016Density
-     procedure :: densityGradientRadial => shi2016DensityGradientRadial 
+     procedure :: densityGradientRadial => shi2016DensityGradientRadial
      procedure :: solve                 => shi2016Solve
   end type massDistributionShi2016
 
@@ -213,6 +217,18 @@ contains
     !!]
     return
   end subroutine shi2016Destructor
+
+  double precision function shi2016RadiusSplashback(self) result(radiusSplashback)
+    !!{RST
+    Return the splashback radius (in Mpc) found when solving the :cite:t:`shi_outer_2016` accretion flow model. This is the
+    radius of the outermost shell which has passed through its first apocenter after collapse.
+    !!}
+    implicit none
+    class(massDistributionShi2016), intent(inout) :: self
+
+    radiusSplashback=self%radiusSplashbackPhysical
+    return
+  end function shi2016RadiusSplashback
 
   double precision function shi2016Density(self,coordinates) result(density)
     !!{RST
@@ -631,9 +647,10 @@ contains
             &                                          *           self%cosmologyFunctions_%HubbleParameterEpochal(self%time)
     end do
     ! Check that the numerical solution matches the analytic solution in the single stream region.
-    radiusSplashbackPhysical=+self%radiusSplashBackOriginal &
-         &                   *self%radiusVirial             &
-         &                   /     radiusVirialOriginal
+    radiusSplashbackPhysical     =+self%radiusSplashBackOriginal &
+         &                        *self%radiusVirial             &
+         &                        /     radiusVirialOriginal
+    self%radiusSplashbackPhysical=      radiusSplashbackPhysical
     do i=iVirial+1,countRadii-1
        if     (                                                                                                                             &
             &   radiusPhysical(i) > radiusSplashBackPhysical                                                                                &

@@ -200,6 +200,7 @@ for redshift, massReference in reference.items():
         base = interpolate(results["CDM"][redshift], mass)
         for label, referenceRatio in modelReference.items():
             if label not in results:
+                print(f"FAILED: model '{label}' did not run - no suppression available at z={redshift}, M={massReduced:.1e} M☉/h")
                 failures += 1
                 continue
             ratio = interpolate(results[label][redshift], mass) / base
@@ -224,7 +225,14 @@ if all(label in results for label in ordering):
         print(f"FAILED: ordering of suppression across models does not match their Fig. 9: {list(zip(ordering, ratios))}")
         failures += 1
 else:
+    missing = [label for label in ordering if label not in results]
+    print(f"FAILED: ordering check skipped - model(s) did not run: {', '.join(missing)}")
     failures += 1
 
 print(f"\n{failures} failures")
-sys.exit(1 if failures > 0 else 0)
+if failures > 0:
+    print(f"FAILED: {failures} check(s) failed")
+else:
+    print("SUCCESS: all checks passed")
+# Always exit with status 0 - failure is signaled by "FAILED" in the output above.
+sys.exit(0)

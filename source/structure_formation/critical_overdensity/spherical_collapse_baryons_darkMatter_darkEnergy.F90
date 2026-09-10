@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of critical overdensity for collapse based on spherical collapse accounting for non-clustering of baryons.
   !!}
@@ -46,8 +48,6 @@
      !!}
      private
      logical                                                                           :: tableInitialized                  =  .false.
-     double precision                                                                  :: tableClusteredTimeMinimum                   , tableClusteredTimeMaximum                    , &
-          &                                                                               tableUnclusteredTimeMinimum                 , tableUnclusteredTimeMaximum
      double precision                                                                  :: normalization
      double precision                                                                  :: perturbationSmall
      integer                                                                           :: tablePointsPerOctave
@@ -253,7 +253,17 @@ contains
 
     ! Check if we need to recompute our table.
     if (self%tableInitialized) then
-       remakeTable=(time < self%tableClusteredTimeMinimum .or. time > self%tableClusteredTimeMaximum .or. time < self%tableUnclusteredTimeMinimum .or. time > self%tableUnclusteredTimeMaximum)
+       ! Test the request against the tabulations' own bounds - see the collisionless matter variant of this class for why a
+       ! copy of them is not kept here.
+       remakeTable=(                                                                &
+            &        time < self%overdensityCriticalClustered  %x(+1)               &
+            &       .or.                                                            &
+            &        time > self%overdensityCriticalClustered  %x(-1)               &
+            &       .or.                                                            &
+            &        time < self%overdensityCriticalUnclustered%x(+1)               &
+            &       .or.                                                            &
+            &        time > self%overdensityCriticalUnclustered%x(-1)               &
+            &      )
     else
        remakeTable=.true.
     end if
@@ -261,10 +271,6 @@ contains
        call self%sphericalCollapseSolverUnclustered_%criticalOverdensity(time,self%tableStore,self%overdensityCriticalUnclustered)
        call self%sphericalCollapseSolverClustered_  %criticalOverdensity(time,self%tableStore,self%overdensityCriticalClustered  )
        self%tableInitialized           =.true.
-       self%tableClusteredTimeMinimum  =self%overdensityCriticalClustered  %x(+1)
-       self%tableClusteredTimeMaximum  =self%overdensityCriticalClustered  %x(-1)
-       self%tableUnclusteredTimeMinimum=self%overdensityCriticalUnclustered%x(+1)
-       self%tableUnclusteredTimeMaximum=self%overdensityCriticalUnclustered%x(-1)
     end if
     return
   end subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyRetabulate

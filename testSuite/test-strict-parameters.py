@@ -17,6 +17,24 @@ if haveGit2:
     models.append("strictOutdated"  )
     models.append("unstrictOutdated")
 
+# Report the model log on an unexpected outcome.  The `testSuite/outputs`
+# directory is not retained by the pull-request checks, so a model that fails
+# in CI leaves nothing to diagnose it with unless its log is echoed here.
+def reportLog(fileName):
+    print(f"vvvvv begin {fileName} vvvvv")
+    try:
+        lines = open(fileName,"r",errors="replace").readlines()
+    except OSError as error:
+        lines = [f"(unable to read log: {error})\n"]
+    # Keep both ends: an unexpected *success* is explained by what the model
+    # did not complain about at startup, an unexpected *failure* by how it
+    # ended.
+    if len(lines) > 300:
+        lines = lines[:50]+[f"... {len(lines)-300} lines omitted ...\n"]+lines[-250:]
+    for line in lines:
+        print(line.rstrip("\n"))
+    print(f"^^^^^ end {fileName} ^^^^^")
+
 # Iterate over models.
 for model in models:
     # Run the model and check for completion.
@@ -30,6 +48,7 @@ for model in models:
         if re.match(r'strict',model):
             # Strict model, succeeded - not expected.
             print(f"FAIL: model {model} succeeded")
+            reportLog(f"outputs/test-{model}.log")
         else:
             # Unstrict model, succeeded - expected.
             print(f"SUCCESS: model {model} succeeded")
@@ -40,4 +59,5 @@ for model in models:
         else:
             # Unstrict model, failed - not expected.
             print(f"FAIL: model {model} failed")
+            reportLog(f"outputs/test-{model}.log")
 

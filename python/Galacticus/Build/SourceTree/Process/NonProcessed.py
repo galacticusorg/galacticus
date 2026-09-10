@@ -19,7 +19,6 @@ _NON_PROCESSED_DIRECTIVES = frozenset((
     'functionGlobal',
     'component',
     'radiusSolverPlausibility',
-    'interTreePositionInsert',
     'expiry',
     'scoping',
 ))

@@ -99,9 +99,6 @@ contains
     !!{RST
     Internal constructor for the :cite:t:`white_galaxy_1991` cooling rate class.
     !!}
-    use :: Array_Utilities , only : operator(.intersection.)
-    use :: Error           , only : Component_List          , Error_Report
-    use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type            (coolingRateWhiteFrenk1991)                        :: self
     double precision                           , intent(in   )         :: velocityCutOff
@@ -112,23 +109,9 @@ contains
     !!]
 
     ! Check that the properties we need are gettable.
-    if     (                                                                                                   &
-         &  .not.(                                                                                             &
-         &         defaultHotHaloComponent%       massIsGettable()                                             &
-         &        .and.                                                                                        &
-         &         defaultHotHaloComponent%outerRadiusIsGettable()                                             &
-         &       )                                                                                             &
-         & ) call Error_Report                                                                                 &
-         &        (                                                                                            &
-         &         'mass and outerRadius properties of hot halo component must be gettable.'//                 &
-         &         Component_List(                                                                             &
-         &                        'hotHalo'                                                                 ,  &
-         &                         defaultHotHaloComponent%       massAttributeMatch(requireGettable=.true.)   &
-         &                        .intersection.                                                               &
-         &                         defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.)   &
-         &                       )                                                                          // &
-         &         {introspection:location}                                                                    &
-         &        )
+    !![
+    <componentPropertyAssert class="hotHalo" properties="mass outerRadius" require="gettable"/>
+    !!]
     return
   end function whiteFrenk1991ConstructorInternal
 

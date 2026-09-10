@@ -43,6 +43,7 @@ program Test_Prompt_Cusps
   use :: Node_Components                     , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Nodes_Operators                     , only : nodeOperatorDarkMatterProfilePromptCusps
   use :: Node_Property_Extractors            , only : nodePropertyExtractorPromptCusps
+  use :: Nodes_Labels                        , only : nodeLabelIsPresent                                            , nodeLabelRegister
   use :: Mass_Distributions                  , only : massDistributionClass
   use :: Power_Spectra                       , only : powerSpectrumStandard
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
@@ -52,7 +53,7 @@ program Test_Prompt_Cusps
   use :: Transfer_Functions                  , only : transferFunctionCAMB                                          , transferFunctionBode2001         , scaleCutOffModelVogel23SpinHalf    , transferFunctionTypeTotal
   use :: Unit_Tests                          , only : Assert                                                        , Unit_Tests_Begin_Group                                                , Unit_Tests_End_Group        , Unit_Tests_Finish
   implicit none
-  type            (treeNode                                                      ), pointer     :: node
+  type            (treeNode                                                      ), pointer     :: node                                          , nodeUnformed
   class           (nodeComponentBasic                                            ), pointer     :: basic
   class           (nodeComponentDarkMatterProfile                                ), pointer     :: darkMatterProfile
   class           (massDistributionClass                                         ), pointer     :: massDistribution_
@@ -78,6 +79,9 @@ program Test_Prompt_Cusps
   type            (coordinateSpherical                                           )              :: coordinates
   double precision                                                               , parameter    :: massHalo                           =3.15057d+8, redshiftHalo            =1.50000d+00, &
        &                                                                                           radiusSlopeMinus2                  =1.08798d-3, densityVirial200Critical=1.38923d+14
+  ! A halo far below the free-streaming cutoff scale, in which no prompt cusp can form.
+  double precision                                                               , parameter    :: massHaloUnformed                   =1.00000d+4, redshiftHaloUnformed    =0.00000d+00, &
+       &                                                                                           radiusSlopeMinus2Unformed          =1.00000d-5
   double precision                                                               , dimension(6) :: propertiesPromptCusp
   double precision                                                                              :: radiusScale                                   , densityScale                        , &
        &                                                                                           radiusVirial                                  , massVirial                          , &
@@ -254,6 +258,7 @@ program Test_Prompt_Cusps
    <constructor>
     nodeOperatorDarkMatterProfilePromptCusps                      (                                                                                                              &amp;
      &amp;                                                         nonConvergenceIsFatal                     =.true.                                                           , &amp;
+     &amp;                                                         requireCollapseBeforeHalo                 =.true.                                                           , &amp;
      &amp;                                                         alpha                                     =24.0d0                                                           , &amp;
      &amp;                                                         beta                                      = 7.3d0                                                           , &amp;
      &amp;                                                         kappa                                     = 4.5d0                                                           , &amp;
@@ -325,6 +330,24 @@ program Test_Prompt_Cusps
   call Assert("α₋₂",densitySlopeLogarithmic,-2.00000d+00,relTol=1.0d-3)
   call Assert("rᵥ" ,radiusVirial           ,+8.01838d-03,relTol=1.0d-3)
   call Assert("mᵥ" ,massVirial             ,+3.00000d+08,relTol=1.0d-3)
+  ! Test a halo far below the free-streaming cutoff scale of the power spectrum. For such a halo σ₀,collapse exceeds σ₀(t) at
+  ! every epoch, so no prompt cusp can form in it. Since prompt cusp formation is, by definition, the formation event of a halo,
+  ! such a halo can not itself have formed: it must be assigned no cusp, and labeled so that it may subsequently be pruned from
+  ! the merger tree. (This matches the reference implementation, in which `CuspHalo.collapse_a()` returns NaN both for halos with
+  ! no solution and for those whose collapse epoch would postdate the halo.)
+  nodeUnformed      => treeNode                      (                 )
+  basic             => nodeUnformed%basic            (autoCreate=.true.)
+  darkMatterProfile => nodeUnformed%darkMatterProfile(autoCreate=.true.)
+  call basic            %massSet            (                                                                               massHaloUnformed         )
+  call basic            %timeSet            (cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftHaloUnformed     )))
+  call basic            %timeLastIsolatedSet(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftHaloUnformed     )))
+  call darkMatterProfile%scaleSet           (                                                                               radiusSlopeMinus2Unformed)
+  call nodeOperator_%nodeTreeInitialize(nodeUnformed)
+  propertiesPromptCusp    =   nodePropertyExtractor_%extract(nodeUnformed,basic%time())
+  call Assert("A {no cusp}"        ,propertiesPromptCusp(1)                                                 ,+0.0d0,absTol=0.0d0)
+  call Assert("m {no cusp}"        ,propertiesPromptCusp(2)                                                 ,+0.0d0,absTol=0.0d0)
+  call Assert("y {no cusp}"        ,propertiesPromptCusp(3)                                                 ,+0.0d0,absTol=0.0d0)
+  call Assert("labeled as unformed",nodeLabelIsPresent(nodeLabelRegister('promptCuspUnformed'),nodeUnformed),.true.             )
   ! End unit tests.
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Finish                  ()

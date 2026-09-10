@@ -217,6 +217,8 @@ contains
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use :: Satellite_Promotion                , only : Satellite_Move_To_New_Host
     use :: String_Handling                    , only : operator(//)
+    use :: ISO_Varying_String                 , only : char
+    use :: Function_Classes                   , only : functionClass
     implicit none
     class(*                            ), intent(inout)          :: self
     type (mergerTree                   ), intent(in   )          :: tree
@@ -237,8 +239,10 @@ contains
     select type (self)
     class is (mergerTreeEvolveTimestepSatellite)
        call self%nodeOperator_%galaxiesMerge(node)
+    class is (functionClass)
+       call Error_Report('object is not of [mergerTreeEvolveTimestepSatellite] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [mergerTreeEvolveTimestepSatellite] class'//{introspection:location})
     end select
     !![
     <eventHook name="satelliteMerger">

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which provides computational domains.
 !!}
@@ -27,6 +29,11 @@ module Computational_Domain_Volume_Integrators
   !!}
   use :: Coordinates, only : coordinate
   private
+  public :: toleranceRelativeVolumeIntegral
+
+  ! Default relative tolerance to which volume integrals over computational domain cells are evaluated.
+  double precision, parameter :: toleranceRelativeVolumeIntegral=1.0d-2
+
   
   !![
   <functionClass docformat="rst">
@@ -42,6 +49,14 @@ module Computational_Domain_Volume_Integrators
     </description>
     <type>double precision</type>
     <pass>yes</pass>
+   </method>
+   <method name="toleranceSet" >
+    <description>
+    Set the relative and absolute tolerances to which the volume integral is to be evaluated. The absolute tolerance is expressed in the units of the integral itself, and is apportioned by the implementation between whatever one-dimensional integrals it nests to perform the integration.
+    </description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: toleranceAbsolute, toleranceRelative</argument>
    </method>
    <method name="integrate" >
     <description>

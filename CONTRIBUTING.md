@@ -158,26 +158,35 @@ We use inline markers to track who contributed to each part of the code. This is
 
 ### Fortran Contributions
 
-Add a comment at the top of the file or function:
+Add a marker comment near the top of the file, listing the contributors by name:
 
 ```fortran
+!+    Contributions to this file made by: Jane Developer, Bob Smith.
+
 module myModule
-  !+ This module was created by Jane Developer
-  !+ Contributions to this file made by: Jane Developer, Bob Smith
-  
-  implicit none
-  
-contains
-  
-  subroutine mySubroutine()
-    !+ Implementation by Jane Developer with assistance from Claude
-    ! ... rest of code
-  end subroutine mySubroutine
-  
+  ! ... rest of code
 end module myModule
 ```
 
-The [extractContributors.py](scripts/doc/extractContributors.py) script automatically generates contributor lists from these markers.
+**A `!+` marker records *names only* — never a description of what was contributed.** The names are parsed as a comma-separated list, so anything else on the line is read as if it were a contributor's name. Keep the marker to the single sentence above; nothing else belongs on the line, not even a trailing comment.
+
+So, not:
+
+```fortran
+!+    Bug fix for issue #1234 implemented by Jane Developer, with tests by Bob Smith.
+```
+
+which names neither developer in the contributor list: it is split on the comma, the first fragment is discarded as too long to be a name, and the second is published as a "contributor" called *with tests by Bob Smith*.
+
+Describe *what* changed in the commit message (and in the pull request), not in the source. This keeps the markers short and keeps the generated contributor list free of stray fragments of prose.
+
+The [extractContributors.py](scripts/doc/extractContributors.py) script automatically generates contributor lists from these markers; the result appears in the Acknowledgments section of the documentation. The same script validates them — run it before you push, as the *Validate-Contributor-Markers* CI job runs the same check on your pull request:
+
+```bash
+python3 scripts/doc/extractContributors.py --check
+```
+
+It reports any marker which is not of the names-only form above, and exits non-zero if it finds one.
 
 ## AI-Assisted Contributions
 
@@ -205,18 +214,31 @@ However, **you are responsible** for:
 2. **Review what it generated** - Read through all the code carefully
 3. **Test it locally** - Build and run your changes, including edge cases
 4. **Fix any issues** - Update the code based on your testing and review
-5. **Add attribution comments** - Document that AI tools assisted you (optional but appreciated)
+5. **Add attribution comments** - Record the AI tool as a contributor (optional but appreciated)
 6. **Submit your PR** - You're now the verified human author of this contribution
 
 ### Attribution
 
-If you used AI tools, add a comment noting the assistance:
+If you used AI tools, add the tool's name to the file's `!+` contributor marker, alongside your own:
 
 ```fortran
-subroutine doSomething()
-  !+ This subroutine was generated with Claude and thoroughly tested by Jane Developer
-  ! ... implementation
-end subroutine doSomething
+!+    Contributions to this file made by: Jane Developer, Claude.
+
+module myModule
+  ! ... rest of code
+end module myModule
+```
+
+Name the tool as you would a person — `Claude`, `Copilot`, `ChatGPT` — with **no description of what it contributed**. As with every `!+` marker (see [Contributor Attribution](#contributor-attribution) above), the line carries names only: the marker is parsed as a comma-separated list of contributors, so a description would both corrupt the generated contributor list and make the in-source marker needlessly long.
+
+Record *what* the AI contributed, and how you verified it, in the **commit message** instead — that is where the detail belongs, and where `git log`/`git blame` will surface it for whoever needs it:
+
+```
+fix(numerical): correct the dark energy equation of state parameter w_a
+
+The value passed for w_a was 3(1+w_0), which is correct only for w_0 = -1.
+Diagnosed and drafted with assistance from Claude; reviewed, tested, and
+verified by Jane Developer.
 ```
 
 This helps future maintainers understand the code's origin and appreciate your use of modern development tools.

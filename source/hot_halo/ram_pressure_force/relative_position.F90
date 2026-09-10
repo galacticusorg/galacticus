@@ -82,9 +82,6 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`hotHaloRamPressureForceRelativePosition` hot halo ram pressure force class.
     !!}
-    use :: Array_Utilities , only : operator(.intersection.)
-    use :: Error           , only : Error_Report             , Component_List
-    use :: Galacticus_Nodes, only : defaultPositionComponent
     implicit none
     type (hotHaloRamPressureForceRelativePosition)                        :: self
     class(hotHaloMassDistributionClass           ), intent(in   ), target :: hotHaloMassDistribution_
@@ -93,23 +90,9 @@ contains
     !!]
 
     ! Ensure that required methods are supported.
-    if     (                                                                                                                          &
-         &  .not.                                                                                                                     &
-         &       (                                                                                                                    &
-         &        defaultPositionComponent%positionIsGettable().and.                                                                  &
-         &        defaultPositionComponent%velocityIsGettable()                                                                       &
-         &  )                                                                                                                         &
-         & ) call Error_Report                                                                                                        &
-         &        (                                                                                                                   &
-         &         'this method requires that position, and velocity properties must all be gettable for the `position` component.'// &
-         &         Component_List(                                                                                                    &
-         &                        'position'                                                                                       ,  &
-         &                        defaultPositionComponent%positionAttributeMatch(requireGettable=.true.).intersection.               &
-         &                        defaultPositionComponent%velocityAttributeMatch(requireGettable=.true.)                             &
-         &                       )                                                                                                 // &
-         &         {introspection:location}                                                                                           &
-         &        )
-    
+    !![
+    <componentPropertyAssert class="position" properties="position velocity" require="gettable"/>
+    !!]    
     return
   end function relativePositionConstructorInternal
 

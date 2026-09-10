@@ -793,7 +793,8 @@ contains
     !!{RST
     Implement a volumeFunction1D output analysis reduction.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : char
     implicit none
     class(outputAnalysisMeanFunction1D), intent(inout) :: self
     class(outputAnalysisClass         ), intent(inout) :: reduced
@@ -804,7 +805,7 @@ contains
        call self%volumeFunctionWeighted  %reduce(reduced%volumeFunctionWeighted  )
        call self%crossCovariance         %reduce(reduced%crossCovariance         )
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [outputAnalysisMeanFunction1D] class, but of ['//char(reduced%objectType())//'] class'//{introspection:location})
     end select
     return
   end subroutine meanFunction1DReduce

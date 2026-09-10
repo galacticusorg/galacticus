@@ -359,30 +359,30 @@ contains
        allocate(containerCoredNFW)
        call containerCoredNFW%initialize(1)
        ! Specify the number of tabulation points per interval in radius and each parameter.
-       containerCoredNFW%mass                      %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%mass                      %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%radiusEnclosingDensity    %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%radiusEnclosingDensity    %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%potential                 %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%potential                 %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%velocityDispersion1D      %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%velocityDispersion1D      %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%energy                    %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%energy                    %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%radiusFreefall            %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%radiusFreefall            %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%radiusFreefallIncreaseRate%radiusCountPer       =+20_c_size_t
-       containerCoredNFW%radiusFreefallIncreaseRate%parametersCountPer   =+20_c_size_t
-       containerCoredNFW%densityRadialMoment0      %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%densityRadialMoment0      %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%densityRadialMoment1      %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%densityRadialMoment1      %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%densityRadialMoment2      %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%densityRadialMoment2      %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%densityRadialMoment3      %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%densityRadialMoment3      %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%fourierTransform          %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%fourierTransform          %parametersCountPer   =+20_c_size_t
+       containerCoredNFW%mass                      %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%mass                      %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%radiusEnclosingDensity    %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%radiusEnclosingDensity    %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%potential                 %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%potential                 %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%velocityDispersion1D      %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%velocityDispersion1D      %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%energy                    %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%energy                    %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%radiusFreefall            %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%radiusFreefall            %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%radiusFreefallIncreaseRate%radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%radiusFreefallIncreaseRate%parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%densityRadialMoment0      %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%densityRadialMoment0      %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%densityRadialMoment1      %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%densityRadialMoment1      %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%densityRadialMoment2      %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%densityRadialMoment2      %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%densityRadialMoment3      %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%densityRadialMoment3      %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%fourierTransform          %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%fourierTransform          %parametersCountPer   =+ 6_c_size_t
        ! Specify names and descriptions of the parameters.
        containerCoredNFW%nameParameters                               (1)='radiusCoreOverRadiusScale'
        containerCoredNFW%descriptionParameters                        (1)='The ratio of core to scale radii.'

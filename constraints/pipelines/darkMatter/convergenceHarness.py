@@ -640,7 +640,7 @@ def _plot(all_results, options):
 #     only the seeding threshold moves;
 #   - the constant-f family is axis 1, where depth and threshold moved together.
 # If the drift is purely a seeding-threshold effect, all families of a given
-# colour lie on top of one another.
+# color lie on top of one another.
 _FAMILIES = [
     ('massResolution', 1.0e11, '-',  'o', r'$M_\mathrm{res}=10^{11}$, vary $f$'),
     ('massResolution', 1.0e12, '--', 's', r'$M_\mathrm{res}=10^{12}$, vary $f$'),

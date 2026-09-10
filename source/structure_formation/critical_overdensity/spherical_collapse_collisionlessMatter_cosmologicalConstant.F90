@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of critical overdensity for collapse based on spherical collapse in a matter plus cosmological constant universe.
   !!}
@@ -38,7 +40,6 @@
      !!}
      private
      logical                                                                         :: tableInitialized         = .false.
-     double precision                                                                :: tableTimeMinimum                  , tableTimeMaximum
      double precision                                                                :: normalization
      logical                                                                         :: tableStore
      class           (table1D                                         ), allocatable :: overdensityCritical
@@ -201,16 +202,17 @@ contains
     logical                                                                                       :: remakeTable
 
     ! Check if we need to recompute our table.
+    ! Test the request against the tabulation's own bounds. The solver pins those to an absolute lattice, so they take only
+    ! discrete values and this test is stable; keeping a copy of them here only created a second place for them to be recorded,
+    ! and one which could fall out of step with the table it describes.
     if (self%tableInitialized) then
-       remakeTable=(time < self%tableTimeMinimum .or. time > self%tableTimeMaximum)
+       remakeTable=(time < self%overdensityCritical%x(+1) .or. time > self%overdensityCritical%x(-1))
     else
        remakeTable=.true.
     end if
     if (remakeTable) then
        call self%sphericalCollapseSolver_%criticalOverdensity(time,self%tableStore,self%overdensityCritical)
        self%tableInitialized=.true.
-       self%tableTimeMinimum=self%overdensityCritical%x(+1)
-       self%tableTimeMaximum=self%overdensityCritical%x(-1)
     end if
     return
   end subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntRetabulate
