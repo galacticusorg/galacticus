@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "33db0bfee747d9fdc6dac974d00bf482a9a8b5ac",
-        "message": "Merge pull request #1453 from galacticusorg/depup/lesgourg/class_public\n\nfix(deps): update lesgourg/class_public to 3.4.0\n",
-        "timestamp": "2026-09-09 05:09:16+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/33db0bfee747d9fdc6dac974d00bf482a9a8b5ac"
+        "id": "75fe8b2def913b997756b92093f11415fbea05d7",
+        "message": "ci(benchmarks): raise COZMIC WDM 3keV MW X1 threshold to 1200%\n",
+        "timestamp": "2026-09-09 08:28:17-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/75fe8b2def913b997756b92093f11415fbea05d7"
     },
     "results": [
         {
@@ -199,7 +199,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Symphony (Nadler et al. 2023)",
                 "comment": "Subhalo mean maximum velocity vs. bound mass relation",
                 "description": "Subhalo mean maximum velocity vs. bound mass relation",
-                "logLikelihood": "-15.953412593491969",
+                "logLikelihood": "-15.953412593491954",
                 "type": "function1D",
                 "xDataset": "massBound",
                 "yCovariance": "velocityMaximumMeanCovariance",
@@ -235,9 +235,9 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     15.78144223023723,
-                    18.2630028961656,
+                    18.263002896165595,
                     21.286672441602917,
-                    24.589118645695876,
+                    24.589118645695873,
                     29.251757075373714,
                     34.05055668432998,
                     35.35092196438682,
@@ -286,10 +286,10 @@ window.ANALYSES_DATA = {
                 "yError": [
                     0.3455104082883085,
                     0.45962929944190783,
-                    0.629041024308624,
-                    0.8451939250874252,
+                    0.629041024308626,
+                    0.8451939250874311,
                     1.1716377398938558,
-                    1.9212116161707125,
+                    1.9212116161707078,
                     0.922332756640577,
                     2.6175106044955028,
                     4.517893421819357,

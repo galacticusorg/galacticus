@@ -4,18 +4,18 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "33db0bfee747d9fdc6dac974d00bf482a9a8b5ac",
-        "message": "Merge pull request #1453 from galacticusorg/depup/lesgourg/class_public\n\nfix(deps): update lesgourg/class_public to 3.4.0\n",
-        "timestamp": "2026-09-09 05:09:16+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/33db0bfee747d9fdc6dac974d00bf482a9a8b5ac"
+        "id": "75fe8b2def913b997756b92093f11415fbea05d7",
+        "message": "ci(benchmarks): raise COZMIC WDM 3keV MW X1 threshold to 1200%\n",
+        "timestamp": "2026-09-09 08:28:17-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/75fe8b2def913b997756b92093f11415fbea05d7"
     },
     "results": [
         {
             "attributes": {
                 "name": "Symphony MilkyWay CDM resolutionX1 z=0.000 (47 realizations)",
-                "logLikelihood": "-4184.9154848037015",
+                "logLikelihood": "-4184.915484803703",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -44,7 +44,7 @@ window.ANALYSES_DATA = {
                     177827941003.89276
                 ],
                 "yDataset": [
-                    4.20883555074523,
+                    4.208835550745233,
                     2.8468646998883624,
                     1.9239493364127562,
                     1.2995957623098813,
@@ -64,7 +64,7 @@ window.ANALYSES_DATA = {
                     0.012880387446032133
                 ],
                 "yError": [
-                    0.06770132872762004,
+                    0.06770132872762005,
                     0.04779369685087736,
                     0.03420885366220669,
                     0.024898423658792437,
@@ -108,7 +108,7 @@ window.ANALYSES_DATA = {
         {
             "attributes": {
                 "name": "Symphony MilkyWay CDM resolutionX64 z=0.000",
-                "logLikelihood": "-180.1023368654853",
+                "logLikelihood": "-180.10233686550006",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -150,8 +150,8 @@ window.ANALYSES_DATA = {
                     89125093813.37473
                 ],
                 "yDataset": [
-                    228.80114280953322,
-                    187.78943798043497,
+                    228.80114280953367,
+                    187.78943798043574,
                     140.12078045786743,
                     94.02154146239343,
                     62.96667926018469,
@@ -159,8 +159,8 @@ window.ANALYSES_DATA = {
                     28.133656733352847,
                     20.67678700558773,
                     16.89445552301392,
-                    12.540871798732123,
-                    8.372725104644397,
+                    12.540871798732079,
+                    8.372725104644429,
                     5.5919555234252485,
                     3.73706412171739,
                     2.4996247551872868,
@@ -183,17 +183,17 @@ window.ANALYSES_DATA = {
                     0.024817999669127358
                 ],
                 "yError": [
-                    28.46769425026371,
-                    23.39664786942666,
-                    12.435520882595416,
+                    28.46769425026376,
+                    23.396647869426754,
+                    12.435520882595418,
                     8.385398094858338,
                     5.656556039288501,
                     3.823306363378694,
                     2.594333752164283,
                     2.7287480173187606,
                     2.2598794328537797,
-                    1.22079312763523,
-                    0.8517737464174922,
+                    1.2207931276352264,
+                    0.8517737464174955,
                     0.6037235012531453,
                     0.4359512513827907,
                     0.32130541783286465,

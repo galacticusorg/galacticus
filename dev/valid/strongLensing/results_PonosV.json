@@ -4,12 +4,12 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "33db0bfee747d9fdc6dac974d00bf482a9a8b5ac",
-        "message": "Merge pull request #1453 from galacticusorg/depup/lesgourg/class_public\n\nfix(deps): update lesgourg/class_public to 3.4.0\n",
-        "timestamp": "2026-09-09 05:09:16+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/33db0bfee747d9fdc6dac974d00bf482a9a8b5ac"
+        "id": "75fe8b2def913b997756b92093f11415fbea05d7",
+        "message": "ci(benchmarks): raise COZMIC WDM 3keV MW X1 threshold to 1200%\n",
+        "timestamp": "2026-09-09 08:28:17-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/75fe8b2def913b997756b92093f11415fbea05d7"
     },
     "surfaceDensity": {
         "percentageBelow": 57.142857142857146,

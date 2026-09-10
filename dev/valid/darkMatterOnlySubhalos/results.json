@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "33db0bfee747d9fdc6dac974d00bf482a9a8b5ac",
-        "message": "Merge pull request #1453 from galacticusorg/depup/lesgourg/class_public\n\nfix(deps): update lesgourg/class_public to 3.4.0\n",
-        "timestamp": "2026-09-09 05:09:16+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/33db0bfee747d9fdc6dac974d00bf482a9a8b5ac"
+        "id": "75fe8b2def913b997756b92093f11415fbea05d7",
+        "message": "ci(benchmarks): raise COZMIC WDM 3keV MW X1 threshold to 1200%\n",
+        "timestamp": "2026-09-09 08:28:17-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/75fe8b2def913b997756b92093f11415fbea05d7"
     },
     "results": [
         {
@@ -61,7 +61,7 @@ window.ANALYSES_DATA = {
                     170.45323863797265,
                     83.02079907865064,
                     43.827347047680746,
-                    22.77280111607963,
+                    22.772801116079627,
                     12.915191184191523,
                     6.892408031184796,
                     3.906783735272552,
@@ -196,7 +196,7 @@ window.ANALYSES_DATA = {
                     0.09830685423173939,
                     0.26222606058730236,
                     0.3962287703711554,
-                    0.8493601387827936,
+                    0.8493601387827935,
                     1.7499033960988832,
                     2.7525928959638213,
                     4.967263916887363,
@@ -243,9 +243,9 @@ window.ANALYSES_DATA = {
                     0.0629286520480953,
                     0.08957669908265851,
                     0.11885394251271333,
-                    0.1768036821957645,
+                    0.17680368219576453,
                     0.22600212714403858,
-                    0.2961052466978397,
+                    0.29610524669783966,
                     0.3686165946533223,
                     0.425474258637202,
                     0.4843523454565489
@@ -284,7 +284,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Caterpillar (Griffen et al. 2016)",
                 "comment": "Subhalo mean maximum velocity vs. bound mass relation",
                 "description": "Subhalo mean maximum velocity vs. bound mass relation",
-                "logLikelihood": "-14825.828668002156",
+                "logLikelihood": "-14825.828668002177",
                 "type": "function1D",
                 "xDataset": "massBound",
                 "yCovariance": "velocityMaximumMeanCovariance",
@@ -354,10 +354,10 @@ window.ANALYSES_DATA = {
                     119.56
                 ],
                 "yError": [
-                    0.03348327036035434,
-                    0.02507505569544468,
+                    0.03348327036035439,
+                    0.025075055695444614,
                     0.02767656761888296,
-                    0.03286907138188977,
+                    0.03286907138188987,
                     0.04315853280451634,
                     0.04854481177134102,
                     0.06512576284967542,
