@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788952846155,
+  "lastUpdate": 1789002087761,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "f8499939ca9a4f15772eaabc0dc955a98b2722d4",
-          "message": "Merge pull request #876 from galacticusorg/fixLargeParametersWrite\n\nForce the use of dense attribute storage for the `Parameters` group",
-          "timestamp": "2025-07-04T03:04:34Z",
-          "tree_id": "c5997ef9dc3a1f1ebbb7b74989a5e68fa1d2889f",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f8499939ca9a4f15772eaabc0dc955a98b2722d4"
-        },
-        "date": 1751627309921,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 60.932,
-            "unit": "seconds",
-            "range": 0.108025922815083
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8800,6 +8770,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 14825.828668002156,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "75fe8b2def913b997756b92093f11415fbea05d7",
+          "message": "ci(benchmarks): raise COZMIC WDM 3keV MW X1 threshold to 1200%",
+          "timestamp": "2026-09-09T08:28:17-07:00",
+          "tree_id": "77605637a11898db1c885f70ec5ed0db75c88c7f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/75fe8b2def913b997756b92093f11415fbea05d7"
+        },
+        "date": 1789002083273,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 26.092000000000002,
+            "range": "0.08188772801830567",
+            "unit": "seconds"
           }
         ]
       }
