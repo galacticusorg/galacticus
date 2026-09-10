@@ -26,7 +26,7 @@
   !![
   <radiationField name="radiationFieldCosmicMicrowaveBackground" docformat="rst">
    <description>
-   A radiation field class for the cosmic microwave background (CMB), modelled as a blackbody with temperature :math:`T_\mathrm{CMB}(z) = T_0\,(1+z)` that evolves with redshift according to the adopted cosmology.
+   A radiation field class for the cosmic microwave background (CMB), modeled as a blackbody with temperature :math:`T_\mathrm{CMB}(z) = T_0\,(1+z)` that evolves with redshift according to the adopted cosmology.
    </description>
   </radiationField>
   !!]

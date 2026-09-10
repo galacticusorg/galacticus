@@ -30,7 +30,7 @@
   !![
   <nodeOperator name="nodeOperatorBlackHolesRadialMigration" docformat="rst">
    <description>
-   Evolves the positions of off-center black holes toward the galactic center via dynamical friction, modelling the orbital decay of black holes displaced by galaxy mergers and enabling treatment of off-center and wandering black hole populations.
+   Evolves the positions of off-center black holes toward the galactic center via dynamical friction, modeling the orbital decay of black holes displaced by galaxy mergers and enabling treatment of off-center and wandering black hole populations.
    </description>
   </nodeOperator>
   !!]
