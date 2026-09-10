@@ -1,6 +1,6 @@
 """Processes the functionClass lifecycle directives — objectBuilder,
 objectDestructor, referenceCountIncrement, referenceAcquire,
-referenceConstruct, deepCopy — by synthesising the appropriate
+referenceConstruct, deepCopy — by synthesizing the appropriate
 reference-counted get / release / build / copy code and wiring in the
 required moduleUse imports and local declarations.
 
@@ -81,7 +81,7 @@ def _dict_to_parameters_xml(data):
     root = ET.Element('parameters')
     _fill_element(root, data)
     text = ET.tostring(root, encoding='unicode')
-    # Normalise to a compact single line — a format requirement for the
+    # Normalize to a compact single line — a format requirement for the
     # generated code.
     text = re.sub(r'\s*\n\s*', '', text)
     text = re.sub(r'\s{2,}', ' ', text)

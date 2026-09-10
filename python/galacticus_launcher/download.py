@@ -1,4 +1,4 @@
-"""Fetch and unpack Galacticus release artefacts into a managed install.
+"""Fetch and unpack Galacticus release artifacts into a managed install.
 
 Provisioning is idempotent: each component drops a sentinel file once complete,
 and a present sentinel means the component is skipped.  Only managed installs
@@ -102,7 +102,7 @@ def load_checksums(tag, *, log=print):
 
     The release workflow writes this file alongside the binary and tools archives (see the `Deploy` job in
     ``.github/workflows/cicd.yml``). It is fetched over HTTPS from the same release as the assets it covers, so it does not
-    protect against a compromise of the account or workflow which publishes them -- what it does establish is that the artefacts
+    protect against a compromise of the account or workflow which publishes them -- what it does establish is that the artifacts
     actually received are the ones that release published, so a corrupted, truncated, or substituted asset is caught rather than
     being executed. Releases published before this file existed simply have no checksums; that is reported and provisioning
     continues, since refusing would break every existing install.
@@ -131,7 +131,7 @@ def _sha256(path):
 def _verify(path, name, checksums, *, log=print):
     """Check the file at `path` against its expected SHA-256, if one is published.
 
-    A mismatch is always fatal, and the offending file is removed: these artefacts are executed, so a file which is not what the
+    A mismatch is always fatal, and the offending file is removed: these artifacts are executed, so a file which is not what the
     release published must not be left on disk where a later run could find it and skip the download.
     """
     if checksums is None:
@@ -168,11 +168,11 @@ def provision(install, *, force=False, log=print):
                  install.dynamic_path):
         path.mkdir(parents=True, exist_ok=True)
 
-    # Fetch the published checksums once, and verify each downloaded artefact against them below.
+    # Fetch the published checksums once, and verify each downloaded artifact against them below.
     checksums = load_checksums(install.tag, log=log)
     if checksums is None:
         log(f"  note: release {install.tag} publishes no {CHECKSUM_ASSET}; "
-            "downloaded artefacts can not be verified against it.")
+            "downloaded artifacts can not be verified against it.")
 
     if _provision_exec(install, force=force, log=log, checksums=checksums):
         done.append("exec")
@@ -387,7 +387,7 @@ def _extract(archive, dest, fmt):
     Tar archives are unpacked with the ``data`` filter, which refuses members whose paths would escape `dest` (via an absolute
     path, a ``..`` component, or a symlink pointing outside the destination). Without it, unpacking a tar archive lets the archive
     choose where its contents land -- see https://docs.python.org/3/library/tarfile.html#tarfile-extraction-filter . Python 3.14
-    makes this the default; setting it explicitly means the behaviour does not depend on the interpreter version. ``zipfile``
+    makes this the default; setting it explicitly means the behavior does not depend on the interpreter version. ``zipfile``
     already sanitizes member paths itself, so needs no equivalent.
     """
     dest.mkdir(parents=True, exist_ok=True)

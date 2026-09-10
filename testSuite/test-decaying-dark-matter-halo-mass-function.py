@@ -45,7 +45,7 @@ models = {
 # Suppression of dn/dlnM relative to the cold dark matter limit, extracted from the semi-analytic-fit
 # ("dashed") curves of Montandon et al. (2026), their Fig. 9, at the given collapsed masses [M_Solar/h].
 # The reference curves were taken from a vector (SVG) copy of the figure with the N-body points removed,
-# rendered at high resolution and read off by nearest-colour classification (calibrated from the axis
+# rendered at high resolution and read off by nearest-color classification (calibrated from the axis
 # ticks). The reference masses are chosen at 2 and 5e14 M_Solar/h -- well inside the plotted range, where
 # all five curves are cleanly separated (at the left frame edge, 1e14 M_Solar/h, the curves cross and the
 # extraction is unreliable). Structured as: redshift -> mass -> {model: ratio}.

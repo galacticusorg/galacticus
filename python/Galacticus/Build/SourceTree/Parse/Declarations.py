@@ -21,7 +21,7 @@ def parse_declaration(line):
     Returns
     -------
     dict or None
-        None if the line is not a recognised variable declaration.
+        None if the line is not a recognized variable declaration.
         Otherwise a dict with keys:
           'intrinsic'     : str   — e.g. 'integer', 'real', 'double precision', …
           'type'          : str or None — kind/type spec (parentheses stripped)

@@ -155,7 +155,7 @@ def test_fortran_reassignments_fixed_array_passed_directly():
 def test_assign_c_types_deferred_array_inserts_count_companion():
     """A double precision, dimension(:) argument gets a hidden c_size_t
     count companion immediately after it; both are flagged so the rest of
-    the pipeline can recognise them."""
+    the pipeline can recognize them."""
     raw = [{'name': 'times', 'intrinsic': 'double precision', 'type': None,
             'attributes': ['intent(in)', 'dimension(:)']}]
     out = assign_c_types(raw, lib_function_classes={})
@@ -306,7 +306,7 @@ def test_python_reassignments_non_optional_function_class():
     assert out[0].py_reassignment == ''
 
 
-def test_python_reassignments_optional_function_class_synthesises_block():
+def test_python_reassignments_optional_function_class_synthesizes_block():
     """Optional functionClass args get a Python if/else block that
     extracts _glcObj/_classID or sets them to None."""
     parent = ArgSpec(name='engine', is_function_class=True, is_optional=True,
@@ -486,7 +486,7 @@ def test_python_call_code_array_arg_not_wrapped_in_ctype():
     """Array args are passed as POINTER(...) expressions; wrapping them
     in `{ctype}(pa)` (e.g. `c_double(<pointer>)`) — which is what
     python_call_code does for scalar optional args — would crash at
-    runtime.  python_call_code must recognise is_array and pass the
+    runtime.  python_call_code must recognize is_array and pass the
     expression directly."""
     arr = ArgSpec(name='valueTarget', intrinsic='double precision',
                   ctype='c_double', is_array=True, is_optional=True,

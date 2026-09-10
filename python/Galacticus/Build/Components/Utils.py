@@ -46,7 +46,7 @@ def register(owner: str, phase: str, function: Callable) -> None:
 
 boolean_label                            = ('false', 'true')
 
-# Maximum lengths of various labels.  Initialised to 0 and then set by
+# Maximum lengths of various labels.  Initialized to 0 and then set by
 # `Label_Lengths` during the `gather` phase; downstream code never reads
 # them before that (we choose 0 over None so the pad_* helpers' arithmetic stays
 # well-typed; reading any of these before Label_Lengths simply produces a
@@ -86,7 +86,7 @@ output_type_map = {
 
 
 def is_intrinsic(type_name: str | None) -> bool:
-    """Return True if `type_name` is one of the recognised intrinsic types."""
+    """Return True if `type_name` is one of the recognized intrinsic types."""
     return type_name in intrinsic_types
 
 
@@ -312,7 +312,7 @@ register('utils', 'gather', Label_Lengths)
 # ---------------------------------------------------------------------------
 
 def _as_list(value: Any) -> list:
-    """Normalise XMLin's "scalar or list" idiom into a list."""
+    """Normalize XMLin's "scalar or list" idiom into a list."""
     if value is None:
         return []
     if isinstance(value, list):

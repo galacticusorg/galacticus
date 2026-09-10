@@ -1,4 +1,4 @@
-"""Regression tests for top-level `Galacticus.Build.SourceTree` behaviour.
+"""Regression tests for top-level `Galacticus.Build.SourceTree` behavior.
 
 Bug class: embedded LaTeX (`!!{ … !!}`) and XML (`!![ … !!]`) blocks must
 survive the parse → serialize round-trip in a form the Fortran compiler

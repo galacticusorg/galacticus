@@ -19,7 +19,7 @@ import re
 from pathlib import Path
 
 # `type, [optional attrs (abstract, public, private, extends(...))]
-#  [::] <name>` — same shape Fortran.Utils.UNIT_OPENERS['type'] recognises,
+#  [::] <name>` — same shape Fortran.Utils.UNIT_OPENERS['type'] recognizes,
 # but with the parent name captured.  Only matches when the `extends(...)`
 # attribute is present; types without it have no parent edge to record.
 _TYPE_EXTENDS_RX = re.compile(

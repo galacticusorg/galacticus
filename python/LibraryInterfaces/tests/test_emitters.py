@@ -2,7 +2,7 @@
 
 Ten emitters that turn enriched ArgSpec lists into the Fortran/Python code
 strings consumed by the build of `libgalacticus.so` and its `galacticus.py`
-wrapper.  These tests focus on the cross-cutting behaviours -- ctypes
+wrapper.  These tests focus on the cross-cutting behaviors -- ctypes
 wrapping, optional-arg branching, ISO_C_Binding symbol collection, and
 functionClass interface-block emission -- rather than every byte of
 generated text.
