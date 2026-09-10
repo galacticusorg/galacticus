@@ -31,75 +31,78 @@
   ! The tabulations published on Zenodo, with the record each belongs to and the spheroid profile it was
   ! computed for, so that naming a file is enough to fetch it and to place spheroids on it correctly. A
   ! file which is not one of these can still be used, by giving `url` and `spheroidProfile` explicitly.
-  integer                                       , parameter                        :: compendiumFilesCount=21
-  character       (len=82                       ), parameter, dimension(compendiumFilesCount) :: compendiumFileName  =[ &
-       & 'Ferrara1999_GRASIL_dustD03Rv3.1_hzStars0.1_hzDust1.0_highRes_Attenuations.hdf5    ', &
-       & 'Ferrara1999_GRASIL_dustD03Rv3.1_hzStars0.5_hzDust1.0_highRes_Attenuations.hdf5    ', &
-       & 'Ferrara1999_GRASIL_dustD03Rv5.5_hzStars0.1_hzDust1.0_highRes_Attenuations.hdf5    ', &
-       & 'Ferrara1999_GRASIL_dustD03Rv5.5_hzStars0.5_hzDust1.0_highRes_Attenuations.hdf5    ', &
-       & 'Ferrara1999_MW_hz0.4_Attenuations.hdf5                                            ', &
-       & 'Ferrara1999_MW_hz0.4_highRes_Attenuations.hdf5                                    ', &
-       & 'Ferrara1999_MW_hz1.0_Attenuations.hdf5                                            ', &
-       & 'Ferrara1999_MW_hz1.0_highRes_Attenuations.hdf5                                    ', &
-       & 'Ferrara1999_MW_hz2.5_Attenuations.hdf5                                            ', &
-       & 'Ferrara1999_MW_hz2.5_highRes_Attenuations.hdf5                                    ', &
-       & 'Ferrara1999_SMC_hz0.4_Attenuations.hdf5                                           ', &
-       & 'Ferrara1999_SMC_hz0.4_highRes_Attenuations.hdf5                                   ', &
-       & 'Ferrara1999_SMC_hz1.0_Attenuations.hdf5                                           ', &
-       & 'Ferrara1999_SMC_hz1.0_highRes_Attenuations.hdf5                                   ', &
-       & 'Ferrara1999_SMC_hz2.5_Attenuations.hdf5                                           ', &
-       & 'Ferrara1999_SMC_hz2.5_highRes_Attenuations.hdf5                                   ', &
-       & 'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustD03Rv3.1_Attenuations.hdf5      ', &
-       & 'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustD03Rv4.0_Attenuations.hdf5      ', &
-       & 'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustD03Rv5.5_Attenuations.hdf5      ', &
-       & 'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustKMH94FullRv3.1_Attenuations.hdf5', &
-       & 'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustKMH94HGRv3.1_Attenuations.hdf5  '  &
+  integer                                        , parameter                                  :: compendiumFilesCount=21
+  character       (len=82                       ), parameter, dimension(compendiumFilesCount) :: compendiumFileName  =   &
+       & [                                                                                                               &
+       &  'Ferrara1999_GRASIL_dustD03Rv3.1_hzStars0.1_hzDust1.0_highRes_Attenuations.hdf5    ',                          &
+       &  'Ferrara1999_GRASIL_dustD03Rv3.1_hzStars0.5_hzDust1.0_highRes_Attenuations.hdf5    ',                          &
+       &  'Ferrara1999_GRASIL_dustD03Rv5.5_hzStars0.1_hzDust1.0_highRes_Attenuations.hdf5    ',                          &
+       &  'Ferrara1999_GRASIL_dustD03Rv5.5_hzStars0.5_hzDust1.0_highRes_Attenuations.hdf5    ',                          &
+       &  'Ferrara1999_MW_hz0.4_Attenuations.hdf5                                            ',                          &
+       &  'Ferrara1999_MW_hz0.4_highRes_Attenuations.hdf5                                    ',                          &
+       &  'Ferrara1999_MW_hz1.0_Attenuations.hdf5                                            ',                          &
+       &  'Ferrara1999_MW_hz1.0_highRes_Attenuations.hdf5                                    ',                          &
+       &  'Ferrara1999_MW_hz2.5_Attenuations.hdf5                                            ',                          &
+       &  'Ferrara1999_MW_hz2.5_highRes_Attenuations.hdf5                                    ',                          &
+       &  'Ferrara1999_SMC_hz0.4_Attenuations.hdf5                                           ',                          &
+       &  'Ferrara1999_SMC_hz0.4_highRes_Attenuations.hdf5                                   ',                          &
+       &  'Ferrara1999_SMC_hz1.0_Attenuations.hdf5                                           ',                          &
+       &  'Ferrara1999_SMC_hz1.0_highRes_Attenuations.hdf5                                   ',                          &
+       &  'Ferrara1999_SMC_hz2.5_Attenuations.hdf5                                           ',                          &
+       &  'Ferrara1999_SMC_hz2.5_highRes_Attenuations.hdf5                                   ',                          &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustD03Rv3.1_Attenuations.hdf5      ',                          &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustD03Rv4.0_Attenuations.hdf5      ',                          &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustD03Rv5.5_Attenuations.hdf5      ',                          &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustKMH94FullRv3.1_Attenuations.hdf5',                          &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustKMH94HGRv3.1_Attenuations.hdf5  '                           &
        & ]
-  character       (len=7                        ), parameter, dimension(compendiumFilesCount) :: compendiumRecord    =[ &
-       & '6335951', &
-       & '6335951', &
-       & '6335951', &
-       & '6335951', &
-       & '6336095', &
-       & '6336097', &
-       & '6336095', &
-       & '6336097', &
-       & '6336095', &
-       & '6336097', &
-       & '6336095', &
-       & '6336097', &
-       & '6336095', &
-       & '6336097', &
-       & '6336095', &
-       & '6336097', &
-       & '6335021', &
-       & '6335545', &
-       & '6335642', &
-       & '6335668', &
-       & '6335670'  &
+  character       (len=7                        ), parameter, dimension(compendiumFilesCount) :: compendiumRecord    =   &
+       & [                                                                                                               &
+       &  '6335951',                                                                                                     &
+       &  '6335951',                                                                                                     &
+       &  '6335951',                                                                                                     &
+       &  '6335951',                                                                                                     &
+       &  '6336095',                                                                                                     &
+       &  '6336097',                                                                                                     &
+       &  '6336095',                                                                                                     &
+       &  '6336097',                                                                                                     &
+       &  '6336095',                                                                                                     &
+       &  '6336097',                                                                                                     &
+       &  '6336095',                                                                                                     &
+       &  '6336097',                                                                                                     &
+       &  '6336095',                                                                                                     &
+       &  '6336097',                                                                                                     &
+       &  '6336095',                                                                                                     &
+       &  '6336097',                                                                                                     &
+       &  '6335021',                                                                                                     &
+       &  '6335545',                                                                                                     &
+       &  '6335642',                                                                                                     &
+       &  '6335668',                                                                                                     &
+       &  '6335670'                                                                                                      &
        & ]
-  logical                                       , parameter, dimension(compendiumFilesCount) :: compendiumJaffe     =[ &
-       & .true. , &
-       & .true. , &
-       & .true. , &
-       & .true. , &
-       & .true. , &
-       & .true. , &
-       & .true. , &
-       & .true. , &
-       & .true. , &
-       & .true. , &
-       & .true. , &
-       & .true. , &
-       & .true. , &
-       & .true. , &
-       & .true. , &
-       & .true. , &
-       & .false., &
-       & .false., &
-       & .false., &
-       & .false., &
-       & .false.  &
+  logical                                       , parameter, dimension(compendiumFilesCount) :: compendiumJaffe     =    &
+       & [                                                                                                               &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .false.,                                                                                                        &
+       & .false.,                                                                                                        &
+       & .false.,                                                                                                        &
+       & .false.,                                                                                                        &
+       & .false.                                                                                                         &
        & ]
 
   !![
@@ -322,16 +325,16 @@ contains
     Internal constructor for the :galacticus-class:`dustAttenuationAtlasCompendium` dust attenuation class. The
     tabulation is located---downloading it if necessary---read once, here, and interpolators built over it.
     !!}
-    use, intrinsic :: ISO_C_Binding      , only : c_size_t
-    use :: Error             , only : Error_Report
-    use :: File_Utilities    , only : Directory_Make      , File_Exists       , File_Lock     , File_Remove   , &
-          &                           File_Unlock         , lockDescriptor
-    use :: HDF5_Access       , only : hdf5Access
-    use :: Input_Paths       , only : inputPath           , pathTypeDataDynamic
-    use :: IO_HDF5           , only : hdf5File
-    use :: ISO_Varying_String, only : char                , operator(//)      , operator(==)  , varying_string
-    use :: System_Download   , only : download
-    use :: Table_Labels      , only : extrapolationTypeFix
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: Error             , only : Error_Report
+    use            :: File_Utilities    , only : Directory_Make      , File_Exists       , File_Lock     , File_Remove   , &
+          &                                      File_Unlock         , lockDescriptor
+    use            :: HDF5_Access       , only : hdf5Access
+    use            :: Input_Paths       , only : inputPath           , pathTypeDataDynamic
+    use            :: IO_HDF5           , only : hdf5File
+    use            :: ISO_Varying_String, only : char                , operator(//)      , operator(==)  , varying_string
+    use            :: System_Download   , only : download
+    use            :: Table_Labels      , only : extrapolationTypeFix
     implicit none
     type            (dustAttenuationAtlasCompendium          )                                  :: self
     type            (varying_string                          ), intent(in   )                   :: fileName                    , url
@@ -342,7 +345,7 @@ contains
     type            (hdf5File                                )                                  :: file
     type            (lockDescriptor                          )                                  :: lock
     type            (varying_string                          )                                  :: pathFile                    , pathDirectory
-    integer                                                                                     :: status                      , known               , &
+    integer                                                                                     :: status                      , known                           , &
          &                                                                                         i
     integer         (c_size_t                                )                                  :: sizeFile
     double precision                                          , allocatable, dimension(:      ) :: depthOptical
@@ -382,17 +385,17 @@ contains
             & call Error_Report('`'//self%fileName//'` was computed with Jaffe spheroids, so `spheroidProfile` must be `jaffe`'        //{introspection:location})
        if     (.not.  compendiumJaffe(known) .and. self%spheroidProfile /= compendiumSpheroidProfileHernquist) &
             & call Error_Report('`'//self%fileName//'` was computed with Hernquist spheroids, so `spheroidProfile` must be `hernquist`'//{introspection:location})
-       if (self%url == 'none')                                                                            &
-            & self%url=  'https://zenodo.org/api/records/'//trim(compendiumRecord(known))//'/files/' &
-            &          //self%fileName                                                              &
-            &          //'/content'
+       if (self%url == 'none')                                                                       &
+            & self%url='https://zenodo.org/api/records/'//trim(compendiumRecord(known))//'/files/'// &
+            &          self%fileName                                                              // &
+            &          '/content'
     end if
     pathDirectory=inputPath(pathTypeDataDynamic)//'dust/compendium'
     pathFile     =pathDirectory//'/'//self%fileName
     if (.not.File_Exists(pathFile)) then
        if (self%url == 'none') call Error_Report('the compendium tabulation `'//self%fileName//'` is not present, is not one of the published tabulations, and no `url` was given from which to download it'//{introspection:location})
-       call Directory_Make(pathDirectory)
-       call File_Lock     (char(pathFile),lock,lockIsShared=.false.)
+       call Directory_Make(pathDirectory                          )
+       call File_Lock     (pathFile     ,lock,lockIsShared=.false.)
        if (.not.File_Exists(pathFile)) then
           ! Zenodo returns an HTTP error intermittently, so allow a few attempts before giving up.
           call download(char(self%url),char(pathFile),retries=3,retryWait=10,status=status)
@@ -447,9 +450,9 @@ contains
             & call Error_Report('`attenuationSpheroid` is not unity at zero optical depth'//{introspection:location})
        if     (size(depthOptical) < 3)                                                                                            &
             & call Error_Report('the optical depth axis is too short to interpolate in once its zero entry is dropped'//{introspection:location})
-       self%depthOptical        =depthOptical        (  2:      )
-       self%transmissionDisk    =transmissionDisk    (2:,:  ,:  )
-       self%transmissionSpheroid=transmissionSpheroid(: ,2:,:,:)
+       self%depthOptical        =depthOptical        (2:       )
+       self%transmissionDisk    =transmissionDisk    (2:, :,:  )
+       self%transmissionSpheroid=transmissionSpheroid( :,2:,:,:)
     else
        call move_alloc(depthOptical        ,self%depthOptical        )
        call move_alloc(transmissionDisk    ,self%transmissionDisk    )
@@ -617,8 +620,8 @@ contains
     ! towards unit transmission, which is the value the dropped zero-optical-depth entry held. Clamping instead would
     ! leave a galaxy with almost no dust as attenuated as one at the tabulation's lower edge, which in the
     ! ultraviolet is not a small difference.
-    blending              =       self%depthOpticalZeroTabulated       &
-         &                  .and.      depthOptical < self%depthOpticalMinimum
+    blending              =       self%depthOpticalZeroTabulated                            &
+         &                  .and.      depthOptical              < self%depthOpticalMinimum
     if (blending) then
        blendZero          =+     depthOptical        &
             &              /self%depthOpticalMinimum
@@ -708,12 +711,12 @@ contains
        end if
        ! Guarded rather than applied unconditionally: for a strongly attenuated parcel, 1+(T-1) would lose precision
        ! to cancellation.
-       if (blending)                              &
-            & transmission(i)=+1.0d0              &
-            &                 +blendZero          &
-            &                 *(                  &
-            &                   +transmission(i)  &
-            &                   -1.0d0            &
+       if (blending)                             &
+            & transmission(i)=+1.0d0             &
+            &                 +blendZero         &
+            &                 *(                 &
+            &                   +transmission(i) &
+            &                   -1.0d0           &
             &                  )
     end do
     return
