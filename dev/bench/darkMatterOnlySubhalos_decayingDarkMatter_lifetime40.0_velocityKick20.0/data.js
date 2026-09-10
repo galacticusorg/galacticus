@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788953001059,
+  "lastUpdate": 1789002239944,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=20 km/s)": [
@@ -6693,6 +6693,40 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/33db0bfee747d9fdc6dac974d00bf482a9a8b5ac"
         },
         "date": 1788953000157,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": 12.136987863621071,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": 23.035334480857546,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "75fe8b2def913b997756b92093f11415fbea05d7",
+          "message": "ci(benchmarks): raise COZMIC WDM 3keV MW X1 threshold to 1200%",
+          "timestamp": "2026-09-09T08:28:17-07:00",
+          "tree_id": "77605637a11898db1c885f70ec5ed0db75c88c7f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/75fe8b2def913b997756b92093f11415fbea05d7"
+        },
+        "date": 1789002239100,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
