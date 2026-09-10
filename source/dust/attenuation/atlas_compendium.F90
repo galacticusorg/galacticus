@@ -24,6 +24,7 @@
   !!}
 
   use :: Galactic_Inclinations         , only : galacticInclinationClass
+  use :: Locks                         , only : ompReadWriteLock
   use :: ISO_Varying_String            , only : varying_string
   use :: Numerical_Interpolation       , only : interpolator
   use :: Numerical_Interpolation_MultiD, only : interpolatorMultiD
@@ -31,6 +32,32 @@
   ! The tabulations published on Zenodo, with the record each belongs to and the spheroid profile it was
   ! computed for, so that naming a file is enough to fetch it and to place spheroids on it correctly. A
   ! file which is not one of these can still be used, by giving `url` and `spheroidProfile` explicitly.
+  ! A store of tabulations shared by every instance and every thread which wants them. The tables are read-only
+  ! once built and are the bulk of this class's memory---297 MB for a high resolution tabulation---so holding one
+  ! copy per OpenMP thread per instance, as deep copying the object otherwise does, costs gigabytes for no benefit.
+  ! Entries are keyed by the file they came from together with the trimming applied to it, so two instances reading
+  ! different files, or the same file trimmed differently, get separate tables and can not interfere.
+  !
+  ! The interpolators are deliberately *not* shared. Each caches a bracket index and a GSL accelerator which it
+  ! mutates as it interpolates, so a shared one would be a data race; they stay per-thread, where they are small.
+  !
+  ! Access follows the pattern of the filter store in `source/instruments/filters.F90`: a read/write lock, so that
+  ! any number of threads may read the tables at once while a thread adding one has them to itself. Entries are
+  ! never removed---a tabulation wanted once is wanted for the life of the run---so an index into the store stays
+  ! valid, which is what lets an object carry one across a deep copy and share the table rather than duplicate it.
+  type :: compendiumTable
+     type            (varying_string)                                          :: key
+     double precision                , allocatable, dimension(:,:,:        )   :: transmissionDisk
+     double precision                , allocatable, dimension(:,:,:,:      )   :: transmissionSpheroid
+     double precision                , allocatable, dimension(:,:          )   :: extrapolationDiskConstant       , extrapolationDiskLogarithmic
+     double precision                , allocatable, dimension(:,:,:        )   :: extrapolationSpheroidConstant   , extrapolationSpheroidLogarithmic
+  end type compendiumTable
+  type   (compendiumTable ), allocatable, dimension(:) :: compendiumTables
+  integer                                  , parameter :: compendiumTablesCapacity       =16
+  integer                                              :: compendiumTablesCount          =0
+  type   (ompReadWriteLock)                            :: compendiumTablesLock
+  logical                                              :: compendiumTablesLockInitialized =.false.
+
   ! The tabulations are in microns, while parcels, and the trimming parameters, are in Angstroms.
   double precision                               , parameter                                  :: angstromsPerMicron  =1.0d+4
   integer                                        , parameter                                  :: compendiumFilesCount=21
@@ -147,10 +174,13 @@
    not read; the attenuations and their extrapolation coefficients come to 297 MB, almost all of it the spheroid
    table.
 
-   That 297 MB is *per copy*, and there is one copy per OpenMP thread per instance of this class, since each thread
-   works on a deep copy of the attenuator. A parameter file with two of these attenuators, run on twenty threads,
-   therefore holds forty copies: 12 GB of tabulation, measured. Restricting each axis to the range actually needed
-   is what keeps that in hand---``wavelengthMinimum``, ``wavelengthMaximum``, ``opticalDepthMaximum``,
+   The tables themselves are held once and shared, rather than being duplicated by the deep copy which gives each
+   OpenMP thread its own attenuator, so that figure is paid once per distinct tabulation rather than once per thread
+   per instance. Two instances reading different files, or the same file trimmed differently, get separate tables.
+   The interpolators are *not* shared, each caching a bracket index and a GSL accelerator which it mutates as it
+   works; they stay per-thread, where they are small.
+
+   Restricting each axis to the range actually needed reduces what is held further---``wavelengthMinimum``, ``wavelengthMaximum``, ``opticalDepthMaximum``,
    ``radiusSpheroidMinimum``, and ``radiusSpheroidMaximum`` below. Only the retained part of each axis is read from
    the file, as an HDF5 hyperslab, so a trimmed tabulation is never held at full size even transiently. Trimming
    changes no result which lies inside the retained range: the bracketing nodes on either side are kept, so values
@@ -227,14 +257,10 @@
      ! spheroid scale radius in units of the disk scale length.
      double precision                                          , allocatable, dimension(:      ) :: wavelength                              , inclination                     , &
           &                                                                                         depthOptical                            , radiusSpheroid
-     ! Tabulated transmission. The datasets are written (wavelength, inclination, opticalDepth[, radius]) as a
-     ! row-major reader sees them, so the Fortran dimensions are the reverse of that.
-     double precision                                          , allocatable, dimension(:,:,:  ) :: transmissionDisk
-     double precision                                          , allocatable, dimension(:,:,:,:) :: transmissionSpheroid
-     ! Coefficients of the high-optical-depth extrapolation, split into their constant and logarithmic terms at read
-     ! time so that each is a contiguous array the interpolators can be handed directly.
-     double precision                                          , allocatable, dimension(:,:    ) :: extrapolationDiskConstant               , extrapolationDiskLogarithmic
-     double precision                                          , allocatable, dimension(:,:,:  ) :: extrapolationSpheroidConstant           , extrapolationSpheroidLogarithmic
+     ! The tabulated transmission and extrapolation coefficients live in the shared store above; this is which
+     ! entry of it belongs to this object. It is not stored as part of the object's state: it is resolved from the
+     ! file name and trimming, which are.
+     integer                                                                                     :: tableIndex
      type            (interpolatorMultiD                      )                                  :: interpolatorDisk                        , interpolatorSpheroid            , &
           &                                                                                         interpolatorDiskExtrapolate             , interpolatorSpheroidExtrapolate
      ! The axis interpolators are retained as well as being handed to the multilinear interpolators above. Only the
@@ -423,6 +449,8 @@ contains
          &                                                                                         beginExtrapolationDisk      , countExtrapolationDisk
     integer         (hsize_t                                 )              , dimension(4     ) :: beginSpheroid               , countSpheroid       , &
          &                                                                                         beginExtrapolationSpheroid  , countExtrapolationSpheroid
+    type            (varying_string                          )                                  :: tableKey
+    character       (len=128                                 )                                  :: labelTable
     integer                                                                                     :: indexWavelengthBegin        , indexWavelengthEnd  , &
          &                                                                                         indexDepthOpticalBegin      , indexDepthOpticalEnd, &
          &                                                                                         indexRadiusSpheroidBegin    , indexRadiusSpheroidEnd
@@ -524,6 +552,13 @@ contains
          &                   ' transmission at the retained boundary instead, or raise `opticalDepthMaximum`.'       //  &
          &                   {introspection:location}                                                                    &
          &                  )
+    ! The key identifies the tabulation together with the trimming applied to it, so that the same file trimmed two
+    ! different ways yields two entries and one trimmed identically yields one. The resolved index bounds are used
+    ! rather than the parameters themselves, so that two requests which land on the same nodes share a table.
+    write (labelTable,'(6(i0,a1))') indexWavelengthBegin    ,':',indexWavelengthEnd    ,':', &
+         &                          indexDepthOpticalBegin  ,':',indexDepthOpticalEnd  ,':', &
+         &                          indexRadiusSpheroidBegin,':',indexRadiusSpheroidEnd,':'
+    tableKey=self%fileName//'|'//trim(labelTable)
     ! Read the attenuations as a hyperslab covering only the retained part of each axis, so that a trimmed
     ! tabulation is never held at full size, even transiently. `readBegin` and `readCount` are given in the order of
     ! the Fortran array, which for these datasets is the reverse of the order they were written in.
@@ -545,8 +580,8 @@ contains
     self%wavelength    =self%wavelength    (indexWavelengthBegin    :indexWavelengthEnd    )
     self%radiusSpheroid=self%radiusSpheroid(indexRadiusSpheroidBegin:indexRadiusSpheroidEnd)
     depthOptical       =     depthOptical  (indexDepthOpticalBegin  :indexDepthOpticalEnd  )
-    ! Check that the tables have the shape the axes imply, before anything is sliced. A transposed read would
-    ! otherwise show up much later as quietly wrong attenuation.
+    ! Check that the tables have the shape the axes imply. A transposed read would otherwise show up much later as
+    ! quietly wrong attenuation.
     if (any(shape(     transmissionDisk    ) /= [size(     depthOptical   ),size(self%inclination ),size(self%wavelength)                       ])) &
          & call Error_Report('`attenuationDisk` does not have the shape implied by the axes'                  //{introspection:location})
     if (any(shape(     transmissionSpheroid) /= [size(self%radiusSpheroid),size(     depthOptical ),size(self%inclination),size(self%wavelength)])) &
@@ -561,30 +596,66 @@ contains
     ! than assume it, since a tabulation which disagreed would be telling us something about itself.
     self%depthOpticalZeroTabulated=depthOptical(1) <= 0.0d0
     if (self%depthOpticalZeroTabulated) then
-       if     (any(transmissionDisk    (1,:,:  ) /= 1.0d0))                                                                       &
-            & call Error_Report('`attenuationDisk` is not unity at zero optical depth'    //{introspection:location})
-       if     (any(transmissionSpheroid(:,1,:,:) /= 1.0d0))                                                                       &
-            & call Error_Report('`attenuationSpheroid` is not unity at zero optical depth'//{introspection:location})
-       if     (size(depthOptical) < 3)                                                                                            &
+       if     (any(transmissionDisk    (1,:,:  ) /= 1.0d0))                                                                            &
+            & call Error_Report('`attenuationDisk` is not unity at zero optical depth'                                //{introspection:location})
+       if     (any(transmissionSpheroid(:,1,:,:) /= 1.0d0))                                                                            &
+            & call Error_Report('`attenuationSpheroid` is not unity at zero optical depth'                            //{introspection:location})
+       if     (size(depthOptical) < 3)                                                                                                 &
             & call Error_Report('the optical depth axis is too short to interpolate in once its zero entry is dropped'//{introspection:location})
-       self%depthOptical        =depthOptical        (2:       )
-       self%transmissionDisk    =transmissionDisk    (2:, :,:  )
-       self%transmissionSpheroid=transmissionSpheroid( :,2:,:,:)
+       self%depthOptical=depthOptical(2:)
     else
-       call move_alloc(depthOptical        ,self%depthOptical        )
-       call move_alloc(transmissionDisk    ,self%transmissionDisk    )
-       call move_alloc(transmissionSpheroid,self%transmissionSpheroid)
+       self%depthOptical=depthOptical
     end if
-    if (allocated(depthOptical        )) deallocate(depthOptical        )
-    if (allocated(transmissionDisk    )) deallocate(transmissionDisk    )
-    if (allocated(transmissionSpheroid)) deallocate(transmissionSpheroid)
+    if (allocated(depthOptical)) deallocate(depthOptical)
     self%depthOpticalMinimum=self%depthOptical(1)
-    ! Split the extrapolation coefficients into their constant and logarithmic terms, so that each is a contiguous
-    ! array rather than a strided section of a larger one.
-    self%extrapolationDiskConstant       =extrapolationDisk    (:,:  ,1)
-    self%extrapolationDiskLogarithmic    =extrapolationDisk    (:,:  ,2)
-    self%extrapolationSpheroidConstant   =extrapolationSpheroid(:,:,:,1)
-    self%extrapolationSpheroidLogarithmic=extrapolationSpheroid(:,:,:,2)
+    ! Hand the tables to the shared store, or discard them if another instance got there first, and keep only the
+    ! index of the entry. That index survives the deep copy which gives each thread its own attenuator, so every
+    ! thread reads the one table rather than carrying its own.
+    if (.not.compendiumTablesLockInitialized) then
+       !$omp critical (dustAttenuationCompendiumTablesLock)
+       if (.not.compendiumTablesLockInitialized) then
+          compendiumTablesLock           =ompReadWriteLock()
+          compendiumTablesLockInitialized=.true.
+       end if
+       !$omp end critical (dustAttenuationCompendiumTablesLock)
+    end if
+    call compendiumTablesLock%setWrite(haveReadLock=.false.)
+    self%tableIndex=0
+    do i=1,compendiumTablesCount
+       if (compendiumTables(i)%key == tableKey) self%tableIndex=i
+    end do
+    if (self%tableIndex == 0) then
+       ! The store is allocated once at its full capacity rather than grown. Growing it would mean copying the
+       ! tables already in it, which for a high resolution tabulation is a transient 297 MB per entry for no
+       ! purpose. The capacity is far beyond any plausible model: it bounds the number of *distinct* tabulations,
+       ! counting a file trimmed two ways as two, and each one costs hundreds of megabytes to hold.
+       if (.not.allocated(compendiumTables)) allocate(compendiumTables(compendiumTablesCapacity))
+       if (compendiumTablesCount == compendiumTablesCapacity) then
+          call compendiumTablesLock%unsetWrite(haveReadLock=.false.)
+          call Error_Report('more distinct compendium tabulations are in use than can be held at once'//{introspection:location})
+       end if
+       compendiumTablesCount=compendiumTablesCount+1
+       self%tableIndex      =compendiumTablesCount
+       compendiumTables(self%tableIndex)%key=tableKey
+       if (self%depthOpticalZeroTabulated) then
+          compendiumTables(self%tableIndex)%transmissionDisk    =transmissionDisk    (2:, :,:  )
+          compendiumTables(self%tableIndex)%transmissionSpheroid=transmissionSpheroid( :,2:,:,:)
+       else
+          call move_alloc(transmissionDisk    ,compendiumTables(self%tableIndex)%transmissionDisk    )
+          call move_alloc(transmissionSpheroid,compendiumTables(self%tableIndex)%transmissionSpheroid)
+       end if
+       ! Split the extrapolation coefficients into their constant and logarithmic terms, so that each is a
+       ! contiguous array which the interpolators can be handed directly.
+       compendiumTables(self%tableIndex)%extrapolationDiskConstant       =extrapolationDisk    (:,:  ,1)
+       compendiumTables(self%tableIndex)%extrapolationDiskLogarithmic    =extrapolationDisk    (:,:  ,2)
+       compendiumTables(self%tableIndex)%extrapolationSpheroidConstant   =extrapolationSpheroid(:,:,:,1)
+       compendiumTables(self%tableIndex)%extrapolationSpheroidLogarithmic=extrapolationSpheroid(:,:,:,2)
+    end if
+    call compendiumTablesLock%unsetWrite(haveReadLock=.false.)
+    if (allocated(transmissionDisk     )) deallocate(transmissionDisk     )
+    if (allocated(transmissionSpheroid )) deallocate(transmissionSpheroid )
+    if (allocated(extrapolationDisk    )) deallocate(extrapolationDisk    )
+    if (allocated(extrapolationSpheroid)) deallocate(extrapolationSpheroid)
     ! Build interpolators, ordered from the most rapidly varying dimension of the table outward. Optical depth and
     ! spheroid size are interpolated logarithmically, being tabulated on geometric grids; wavelength likewise. Values
     ! outside the tabulated ranges are held at the boundary.
@@ -728,7 +799,7 @@ contains
          &                                                                                           inclinationDegrees               , coefficientConstant, &
          &                                                                                           coefficientLogarithmic           , blendZero
     logical                                                                                       :: radiusSpheroidComputed           , extrapolating      , &
-         &                                                                                           blending
+         &                                                                                           blending                         , isLocked
     integer                                                                                       :: i
     ! Bracketing indices and linear weights, per dimension, in the order the tables are laid out: for the disk
     ! (optical depth, inclination, wavelength), and for the spheroid (spheroid size, optical depth, inclination,
@@ -785,6 +856,10 @@ contains
          &                   depthOptical > self%depthOptical(size(self%depthOptical))
     radiusSpheroidComputed=.false.
     radiusSpheroid        =0.0d0
+    ! Hold the shared tables for reading while they are interpolated in. The lock is shared between readers, so
+    ! threads do not wait on one another; it excludes only a thread adding a table, which would move the store.
+    isLocked=compendiumTablesLock%owned()
+    if (.not.isLocked) call compendiumTablesLock%setRead()
     ! Bracket the axes which are properties of the galaxy rather than of a parcel, once. Only the set of factors
     ! belonging to the interpolator which will actually be used is maintained.
     call self%interpolatorInclination%linearFactors(inclinationDegrees,indexInclination,weightInclination)
@@ -817,15 +892,15 @@ contains
        end if
        if      (descriptors(i)%componentType == componentTypeDisk    ) then
           if (extrapolating) then
-             coefficientConstant   =self%interpolatorDiskExtrapolate%interpolateFactors(self%extrapolationDiskConstant   ,indicesDiskExtrapolate,weightsDiskExtrapolate)
-             coefficientLogarithmic=self%interpolatorDiskExtrapolate%interpolateFactors(self%extrapolationDiskLogarithmic,indicesDiskExtrapolate,weightsDiskExtrapolate)
+             coefficientConstant   =self%interpolatorDiskExtrapolate%interpolateFactors(compendiumTables(self%tableIndex)%extrapolationDiskConstant   ,indicesDiskExtrapolate,weightsDiskExtrapolate)
+             coefficientLogarithmic=self%interpolatorDiskExtrapolate%interpolateFactors(compendiumTables(self%tableIndex)%extrapolationDiskLogarithmic,indicesDiskExtrapolate,weightsDiskExtrapolate)
              transmission(i)       =exp(                        &
                   &                     +coefficientConstant    &
                   &                     +coefficientLogarithmic &
                   &                     *logDepth               &
                   &                    )
           else
-             transmission(i)       =self%interpolatorDisk%interpolateFactors(self%transmissionDisk,indicesDisk,weightsDisk)
+             transmission(i)       =self%interpolatorDisk%interpolateFactors(compendiumTables(self%tableIndex)%transmissionDisk,indicesDisk,weightsDisk)
           end if
        else if (descriptors(i)%componentType == componentTypeSpheroid) then
           if (.not.radiusSpheroidComputed) then
@@ -845,15 +920,15 @@ contains
              weightsSpheroidExtrapolate(:,1)=weightRadiusSpheroid
           end if
           if (extrapolating) then
-             coefficientConstant   =self%interpolatorSpheroidExtrapolate%interpolateFactors(self%extrapolationSpheroidConstant   ,indicesSpheroidExtrapolate,weightsSpheroidExtrapolate)
-             coefficientLogarithmic=self%interpolatorSpheroidExtrapolate%interpolateFactors(self%extrapolationSpheroidLogarithmic,indicesSpheroidExtrapolate,weightsSpheroidExtrapolate)
+             coefficientConstant   =self%interpolatorSpheroidExtrapolate%interpolateFactors(compendiumTables(self%tableIndex)%extrapolationSpheroidConstant   ,indicesSpheroidExtrapolate,weightsSpheroidExtrapolate)
+             coefficientLogarithmic=self%interpolatorSpheroidExtrapolate%interpolateFactors(compendiumTables(self%tableIndex)%extrapolationSpheroidLogarithmic,indicesSpheroidExtrapolate,weightsSpheroidExtrapolate)
              transmission(i)       =exp(                        &
                   &                     +coefficientConstant    &
                   &                     +coefficientLogarithmic &
                   &                     *logDepth               &
                   &                    )
           else
-             transmission(i)       =self%interpolatorSpheroid%interpolateFactors(self%transmissionSpheroid,indicesSpheroid,weightsSpheroid)
+             transmission(i)       =self%interpolatorSpheroid%interpolateFactors(compendiumTables(self%tableIndex)%transmissionSpheroid,indicesSpheroid,weightsSpheroid)
           end if
        else
           transmission(i)=1.0d0
@@ -869,6 +944,7 @@ contains
             &                   -1.0d0           &
             &                  )
     end do
+    if (.not.isLocked) call compendiumTablesLock%unsetRead()
     return
   end function atlasCompendiumTransmission
 
