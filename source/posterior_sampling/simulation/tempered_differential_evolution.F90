@@ -34,7 +34,7 @@
    ``[temperatureMaximum]``
       The maximum temperature to use when tempering.
 
-   ``[temperedLevels]``
+   ``[temperingLevelCount]``
       The number of tempered levels to use.
 
    ``[stepsPerLevel]``

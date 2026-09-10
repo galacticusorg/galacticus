@@ -27,7 +27,7 @@ Implements an N-body data operator which determines the kinetic and Chandrasekha
   !![
   <nbodyOperator name="nbodyOperatorEnergyTensors" docformat="rst">
    <description>
-   An N-body data operator which determines the kinetic and Chandrasekhar potential energy tensors of a particle distribution, characterizing the dynamical state and shape of N-body halos. Self-bound particle restriction is controlled by ``[selfBoundOnly]``, and statistical uncertainties can be estimated using bootstrap resampling via ``[bootstrapSampleCount]``.
+   An N-body data operator which determines the kinetic and Chandrasekhar potential energy tensors of a particle distribution, characterizing the dynamical state and shape of N-body halos. Self-bound particle restriction is controlled by ``[selfBoundParticlesOnly]``, and statistical uncertainties can be estimated using bootstrap resampling via ``[bootstrapSampleCount]``.
    </description>
   </nbodyOperator>
   !!]

@@ -88,8 +88,8 @@ Next we set up the linear theory power spectrum. We choose to use the `Eisenstei
    <!-- Structure formation options -->
    <linearGrowth          value="collisionlessMatter"                       />
    <haloMassFunction      value="tinker2008"                                />
-   <criticalOverdensity   value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
-   <virialDensityContrast value="sphericalCollapseCllsnlssMttrCsmlgclCnstnt"/>
+   <criticalOverdensity   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+   <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 
 This section deals with structure growth. We choose to model linear growth assuming collisionless matter, specify that critical overdensities for collapse of halos (as used in `Press-Schechter <http://adsabs.harvard.edu/abs/1974ApJ...187..425P>`_-type models) and virial density contrasts of halos are computed using the spherical collapse model, and that the halo mass function should be computed using the fitting function of `Tinker et al. (2008) <http://adsabs.harvard.edu/abs/2008ApJ...688..709T>`_.
 
@@ -104,7 +104,7 @@ We next specify how dark matter halo density profiles should be computed. We cho
 .. code-block:: xml
 
    <!-- Output options -->
-   <galacticusOutputFileName value="haloMassFunction.hdf5"/>
+   <outputFileName          value="haloMassFunction.hdf5"/>
    <outputTimes value="list">
      <redshifts value="0.0 1.0"/>
    </outputTimes>

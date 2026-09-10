@@ -124,7 +124,7 @@
     The scale radius which corresponds to this energy is then solved for. If the total energy is found to be positive the
     model has failed (no bound profile corresponds to a positive energy), and the scale radius of the primary progenitor is
     used unchanged. The number of nodes for which this occurs, as a fraction of those to which the energy model was applied,
-    is reported at the end of the run by :galacticus-class:`Johnson2021_Statistics`. The rate of such failures is a function
+    is reported at the end of the run by ``Johnson2021_Statistics``. The rate of such failures is a function
     of both mass resolution and power spectrum, so it should be monitored when calibrating this model: it is a bias in
     precisely the regime of interest.
 

@@ -44,7 +44,7 @@
   !![
   <virialOrbit name="virialOrbitLossCone" docformat="rst">
    <description>
-   A virial orbit class that draws satellite infall orbital parameters using a loss cone model, accounting for the depletion of nearly radial orbits due to merging. The velocity range and resolution of the orbital distribution grid are controlled by the ``[velocityMinimum]``, ``[velocityMaximum]``, ``[velocitiesPerUnit]``, and ``[massesPerDecade]`` parameters.
+   A virial orbit class that draws satellite infall orbital parameters using a loss cone model, accounting for the depletion of nearly radial orbits due to merging. The velocity range and resolution of the orbital distribution grid are controlled by the ``[velocityMinimum]``, ``[velocityMaximum]``, ``[countVelocitiesPerUnit]``, and ``[countMassesPerDecade]`` parameters.
    </description>
   </virialOrbit>
   !!]

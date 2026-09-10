@@ -625,7 +625,7 @@ Galacticus typically solves the system of :term:`ODE` which describe the evoluti
 Simple Disk Satellites
 ~~~~~~~~~~~~~~~~~~~~~~
 
-This solver, which can be activated by setting ``[diskVerySimpleUseAnalyticSolver]``\ :math:`=`\ ``true`` is applicable to satellite systems in the very simple disk component. In particular, the following conditions must be met for it to be valid:
+This solver, which is activated by including the :galacticus-class:`nodeOperatorDiskVerySimpleAnalyticSolver` node operator, is applicable to satellite systems in the very simple disk component. In particular, the following conditions must be met for it to be valid:
 
 * The hot halo component must be of type ``verySimple`` or ``verySimpleDelayed``;
 * The satellite component must be of type ``verySimple``;

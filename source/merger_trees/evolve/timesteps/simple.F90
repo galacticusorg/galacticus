@@ -29,7 +29,7 @@
       \Delta t &amp; \le t_\mathrm{simple}, \\
       \Delta t &amp; \le \epsilon_\mathrm{simple} (a/\dot{a}),
 
-   where :math:`t_\mathrm{simple}=`\ ``[timestepSimpleAbsolute]``, :math:`\epsilon_\mathrm{simple}=`\ ``[timestepSimpleRelative]``, and :math:`a` is expansion factor. These criteria are intended to prevent any one node evolving over an excessively large time in one step. In general, these criteria are not necessary, as nodes should be free to evolve as far as possible unless prevented by some physical requirement. These criteria are therefore present to provide a simple example of how timestep criteria work.
+   where :math:`t_\mathrm{simple}=`\ ``[timeStepAbsolute]``, :math:`\epsilon_\mathrm{simple}=`\ ``[timeStepRelative]``, and :math:`a` is expansion factor. These criteria are intended to prevent any one node evolving over an excessively large time in one step. In general, these criteria are not necessary, as nodes should be free to evolve as far as possible unless prevented by some physical requirement. These criteria are therefore present to provide a simple example of how timestep criteria work.
    </description>
   </mergerTreeEvolveTimestep>
   !!]

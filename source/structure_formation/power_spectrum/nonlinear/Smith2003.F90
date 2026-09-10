@@ -28,7 +28,7 @@ Implements a nonlinear power spectrum class in which the nonlinear power spectru
   !![
   <powerSpectrumNonlinear name="powerSpectrumNonlinearSmith2003" docformat="rst">
    <description>
-   Provides a nonlinear matter power spectrum computed using the halofit algorithm of :cite:t:`smith_stable_2003`, which models the transition from linear to nonlinear scales via contributions from quasi-linear modes and collapsed dark matter halos. Optional corrections from John Peacock's halofit web page can be included via ``[peacockCorrection]``.
+   Provides a nonlinear matter power spectrum computed using the halofit algorithm of :cite:t:`smith_stable_2003`, which models the transition from linear to nonlinear scales via contributions from quasi-linear modes and collapsed dark matter halos. Optional corrections from John Peacock's halofit web page can be included via ``[includePeacockCorrection]``.
    </description>
   </powerSpectrumNonlinear>
   !!]

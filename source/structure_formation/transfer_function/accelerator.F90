@@ -27,7 +27,7 @@
   !![
   <transferFunction name="transferFunctionAccelerator" docformat="rst">
    <description>
-   A transfer function class which accelerates calculations of another transfer function class by pre-tabulating the transfer function over a grid of wavenumbers and then using rapid interpolation for subsequent evaluations. The density of the tabulation grid in wavenumber is set by ``[wavenumberPerDecade]``.
+   A transfer function class which accelerates calculations of another transfer function class by pre-tabulating the transfer function over a grid of wavenumbers and then using rapid interpolation for subsequent evaluations. The density of the tabulation grid in wavenumber is set by ``[tablePointsPerDecade]``.
    </description>
   </transferFunction>
   !!]

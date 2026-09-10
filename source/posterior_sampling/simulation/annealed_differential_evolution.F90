@@ -29,7 +29,7 @@
    ``[temperatureMaximum]``
       The maximum temperature to use when tempering.
 
-   ``[temperatureLevels]``
+   ``[temperatureLevelCount]``
       The number of temperature levels to use.
 
    The temperature at level :math:`i` is given by:
@@ -38,7 +38,7 @@
 
       \log T_i = {i-1 \over N-1} \log T_\mathrm{max},
 
-   where :math:`T_\mathrm{max}=`\ ``[temperatureMaximum]`` and :math:`N=`\ ``[temperatureLevels]``.
+   where :math:`T_\mathrm{max}=`\ ``[temperatureMaximum]`` and :math:`N=`\ ``[temperatureLevelCount]``.
    </description>
   </posteriorSampleSimulation>
   !!]

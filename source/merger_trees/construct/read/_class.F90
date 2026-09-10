@@ -150,7 +150,7 @@
 
    **Requirements for Galacticus Input Parameters:** The following requirements must be met for the input parameters to Galacticus when using merger trees read from file:
 
-   * The cosmological parameters (:math:`\Omega_\mathrm{M}`, :math:`\Omega_\Lambda`, :math:`\Omega_\mathrm{b}`, :math:`H_0`, :math:`\sigma_8`), if defined in the file, must be set identically in the Galacticus input file unless you set ``[mismatchIsFatal]``\ :math:`=`\ ``false`` in which case you'll just be warned about any mismatch;
+   * The cosmological parameters (:math:`\Omega_\mathrm{M}`, :math:`\Omega_\Lambda`, :math:`\Omega_\mathrm{b}`, :math:`H_0`, :math:`\sigma_8`), if defined in the file, must be set identically in the Galacticus input file unless you set ``[fatalMismatches]``\ :math:`=`\ ``false`` in the :galacticus-class:`mergerTreeImporterGalacticus` importer in which case you'll just be warned about any mismatch;
    * Galacticus assumes by default that all merger trees exist at the final output time---if this is not the case set ``[allTreesExistAtFinalTime]``\ :math:`=`\ ``false``.
 
    **Dark Matter Scale Radii**:  If ``[presetScaleRadii]``\ :math:`=`\ ``true`` and the ``halfMassRadius`` dataset is available within the ``haloTrees`` group (see :ref:`here &lt;forest-halos-group&gt;`) then the half-mass radii of nodes will be used to compute the corresponding scale length of the dark matter halo profile\ [#]_. This requires a dark matter profile scale component which supports setting of the scale length (see :ref:`here &lt;manual-sec-ComponentClasses&gt;`).
@@ -391,7 +391,7 @@ contains
     <inputParameter docformat="rst">
       <name>fileNames</name>
       <description>
-      The name of the file(s) from which merger tree data should be read when using the ``[mergerTreeConstruct]``\ :math:`=`\ ``read`` tree construction method.
+      The name of the file(s) from which merger tree data should be read when using the ``[mergerTreeConstructor]``\ :math:`=`\ ``read`` tree construction method.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -610,7 +610,7 @@ contains
        <inputParameter docformat="rst">
          <name>presetNamedReals</name>
          <description>
-         Names of real datasets to be additionally read and stored in the nodes of the merger tree when using the ``[mergerTreeConstruct]``\ :math:`=`\ ``read`` tree construction method.
+         Names of real datasets to be additionally read and stored in the nodes of the merger tree when using the ``[mergerTreeConstructor]``\ :math:`=`\ ``read`` tree construction method.
          </description>
          <source>parameters</source>
        </inputParameter>
@@ -622,7 +622,7 @@ contains
        <inputParameter docformat="rst">
          <name>presetNamedIntegers</name>
          <description>
-         Names of integer datasets to be additionally read and stored in the nodes of the merger tree when using the ``[mergerTreeConstruct]``\ :math:`=`\ ``read`` tree construction method.
+         Names of integer datasets to be additionally read and stored in the nodes of the merger tree when using the ``[mergerTreeConstructor]``\ :math:`=`\ ``read`` tree construction method.
          </description>
          <source>parameters</source>
        </inputParameter>

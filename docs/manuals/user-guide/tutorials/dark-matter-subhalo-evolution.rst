@@ -115,31 +115,35 @@ Here we select a simple model of the evolution of the IGM. The thermal history o
        <nonAnalyticSolver          value="numerical"/>
      </darkMatterProfileDMO>
      <darkMatterProfileHeating     value="tidal"              />
-     <darkMatterProfileScaleRadius value="ludlow2016"          >
-       <C                                  value="700.27000"    /> <!-- Best fit values from Johnson, Benson, & Grin (2020). -->
-       <f                                  value="  0.07534"    />
-       <timeFormationSeekDelta             value="  0.00000"    />
-       <darkMatterProfileScaleRadius value="concentration" >
-         <correctForConcentrationDefinition    value="true"              />
-         <darkMatterProfileConcentration value="diemerKravtsov2014" >
-   	<alpha   value="1.12"/>
-   	<beta    value="1.69"/>
-   	<eta0    value="6.82"/>
-   	<eta1    value="1.42"/>
-   	<kappa   value="0.69"/>
-   	<phi0    value="6.58"/>
-   	<phi1    value="1.37"/>
-   	<scatter value="0.00"/>
-         </darkMatterProfileConcentration>
-       </darkMatterProfileScaleRadius>
+     <darkMatterProfileScaleRadius value="concentrationLimiter">
+      <concentrationMinimum value="  4.0"/>
+      <concentrationMaximum value="100.0"/>
+      <darkMatterProfileScaleRadius value="johnson2021">
+        <!-- Scale radii are computed using the energy random walk model of Johnson, Benson, & Grin (2021; ApJ; 908; 33; http://adsabs.harvard.edu/abs/2021ApJ...908...33J). -->
+        <!-- Best fit value from Johnson, Benson, & Grin (2020) -->
+        <energyBoost      value="0.6773"/>
+        <massExponent     value="1.5552"/>
+        <unresolvedEnergy value="0.5500"/>
+        <darkMatterProfileScaleRadius value="ludlow2016"          >
+          <C                                  value="700.27000"    /> <!-- Best fit values from Johnson, Benson, & Grin (2020). -->
+          <f                                  value="  0.07534"    />
+          <timeFormationSeekDelta             value="  0.00000"    />
+          <darkMatterProfileScaleRadius value="concentration" >
+            <correctForConcentrationDefinition    value="true"              />
+            <darkMatterProfileConcentration value="diemerKravtsov2014" >
+              <alpha   value="1.12"/>
+              <beta    value="1.69"/>
+              <eta0    value="6.82"/>
+              <eta1    value="1.42"/>
+              <kappa   value="0.69"/>
+              <phi0    value="6.58"/>
+              <phi1    value="1.37"/>
+              <scatter value="0.00"/>
+            </darkMatterProfileConcentration>
+          </darkMatterProfileScaleRadius>
+        </darkMatterProfileScaleRadius>
+      </darkMatterProfileScaleRadius>
      </darkMatterProfileScaleRadius>
-     <darkMatterProfileMinimumConcentration value="  4.0"/>
-     <darkMatterProfileMaximumConcentration value="100.0"/>
-
-     <!-- Concentration model -->
-     <darkMatterProfileScaleVirialTheoremUnresolvedEnergy value="0.5500"/> <!-- Best fit value from Johnson, Benson, & Grin (2020) -->
-     <darkMatterProfileScaleVirialTheoremMassExponent     value="1.5552"/>
-     <darkMatterProfileScaleVirialTheoremEnergyBoost      value="0.6773"/>
 
 Here we select our model for dark matter halo profiles - we use an NFW profile but allowing for "heating" of the profile as described in `Pullen et al. (2016) <http://adsabs.harvard.edu/abs/2014ApJ...792...24P>`_. We also define parameters of the concentration model. In this model scale radii of halos are computed using the random walk approach of `Johnson, Benson & Grin (2021) <https://ui.adsabs.harvard.edu/abs/2020arXiv200615231J>`_. The parameters of that model are given here, along with the parameters of the "fallback" model used for nodes in the merger tree for which the random walk model can not be applied.
 
@@ -147,12 +151,11 @@ Here we select our model for dark matter halo profiles - we use an NFW profile b
 
      <!-- Dark matter halo spin -->
      <haloSpinDistribution value="bett2007"> <!-- Values from Benson (2017) -->
-       <alpha   value="1.7091800"/>
-       <lambda0 value="0.0420190"/>
+      <alpha   value="1.7091800"/>
+      <lambda0 value="0.0420190"/>
      </haloSpinDistribution>
-     <spinVitvitskaMassExponent value="0.10475"/> <!-- Best fit value from Benson, Behrens, & Lu (2020) -->
 
-Halo spin parameters are also modeled using a random walk approach `Benson, Behrens & Lu (2020) <http://adsabs.harvard.edu/abs/2020MNRAS.496.3371B>`_ - here we specify the parameters of that random walk model and a "fallback" spin distribution to be used for halos for which the random walk model can not be applied.
+Halo spin parameters are also modeled using a random walk approach `Benson, Behrens & Lu (2020) <http://adsabs.harvard.edu/abs/2020MNRAS.496.3371B>`_ - here we specify a "fallback" spin distribution to be used for halos for which the random walk model can not be applied. The random walk itself is applied by the :galacticus-class:`nodeOperatorHaloAngularMomentumVitvitska2002` node operator, which is included in the list of node operators given below.
 
 .. code-block:: xml
 
@@ -192,7 +195,6 @@ The preceding block acts to switch off various baryonic physics which we want to
          <sigmaRatioLow          value="+0.07458 +0.09040 +0.06981"/>
        </virialOrbit>
      </virialOrbit>
-     <satelliteOrbitStoreOrbitalParameters value="true"/>
 
 When halos first become subhalos they are assigned orbital parameters. The above defines the distribution of those parameters, using the `Jiang et al. (2015) <https://ui.adsabs.harvard.edu/abs/2015MNRAS.448.1674J/abstract>`_ model for the distribution of radial and tangential velocities, plus the model of `Benson, Behrens & Lu (2020) <http://adsabs.harvard.edu/abs/2020MNRAS.496.3371B>`_ for the anisotropy of the distribution of orbits.
 
@@ -217,6 +219,11 @@ Here we define parameters of the various physics models applied to the evolution
 
      <!-- Node evolution and physics -->
      <nodeOperator value="multi">
+       <!-- Halo angular momentum -->
+       <nodeOperator value="haloAngularMomentumVitvitska2002"  >
+         <exponentMass value="1.10475"/> <!-- Best fit value from Benson, Behrens, & Lu (2020) offset for fix to Keplerian orbit propagation -->
+       </nodeOperator>
+       <nodeOperator value="haloAngularMomentumInterpolate"/>
        <!-- Subhalo hierarchy -->
        <nodeOperator value="subsubhaloPromotion"   />
        <!-- Subhalo orbits -->
@@ -228,8 +235,8 @@ Here we define parameters of the various physics models applied to the evolution
          <radiusVirialFraction      value="0.01"/>
        </nodeOperator>
        <nodeOperator value="satelliteDestructionMassThreshold" >
-         <massDestruction           value="=[mergerTreeMassResolution::massResolution]"/>
-         <massDestructionFractional value="0.0e0"/>
+         <massDestructionAbsolute            value="=[mergerTreeMassResolution::massResolution]"/>
+         <massDestructionMassInfallFraction  value="0.0e0"/>
        </nodeOperator>
      </nodeOperator>
 
@@ -238,7 +245,7 @@ This block applies various physical processes to subhalos.
 .. code-block:: xml
 
      <!-- Output options -->
-     <galacticusOutputFileName value="darkMatterOnlySubHalos.hdf5"/>
+     <outputFileName          value="darkMatterOnlySubHalos.hdf5"/>
      <mergerTreeOutputter value="multi">
        <mergerTreeOutputter value="standard">
          <outputReferences value="false"/>

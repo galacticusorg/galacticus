@@ -27,7 +27,7 @@
   <dustExtinctionCurve name="dustExtinctionCurveNoll2009" docformat="rst">
    <description>
    The modified starburst attenuation curve of :cite:t:`noll_analysis_2009`, which augments the
-   :cite:t:`calzetti_dust_2000` curve with a variable-strength :math:`2175\,`Å absorption bump and an adjustable
+   :cite:t:`calzetti_dust_2000` curve with a variable-strength :math:`2175\,`\ Å absorption bump and an adjustable
    overall slope:
 
    .. math::
@@ -40,11 +40,11 @@
 
       D(\lambda) = \frac{E_\mathrm{b} (\lambda \Delta\lambda)^2}{(\lambda^2-\lambda_0^2)^2 + (\lambda \Delta\lambda)^2},
 
-   with :math:`\lambda_0=2175\,`Å and :math:`\Delta\lambda=350\,`Å. Setting ``bumpStrength`` and ``slope`` to zero
+   with :math:`\lambda_0=2175\,`\ Å and :math:`\Delta\lambda=350\,`\ Å. Setting ``bumpStrength`` and ``slope`` to zero
    recovers :cite:t:`calzetti_dust_2000` exactly. This two-parameter family is the one most commonly varied when
    fitting attenuation curves to observed spectral energy distributions.
 
-   Because the underlying :cite:t:`calzetti_dust_2000` curve returns zero outside :math:`0.12`--:math:`2.20\,\mu`m,
+   Because the underlying :cite:t:`calzetti_dust_2000` curve returns zero outside :math:`0.12`--:math:`2.20\,\mu`\ m,
    so does this one.
    </description>
   </dustExtinctionCurve>
@@ -91,7 +91,7 @@ contains
       <name>bumpStrength</name>
       <defaultValue>0.0d0</defaultValue>
       <description>
-      The amplitude :math:`E_\mathrm{b}` of the :math:`2175\,`Å bump in the :cite:t:`noll_analysis_2009` attenuation
+      The amplitude :math:`E_\mathrm{b}` of the :math:`2175\,`\ Å bump in the :cite:t:`noll_analysis_2009` attenuation
       curve. Zero gives no bump, as in :cite:t:`calzetti_dust_2000`; the Milky Way value is approximately 3.5.
       </description>
       <source>parameters</source>

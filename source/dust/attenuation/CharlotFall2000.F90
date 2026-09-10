@@ -134,7 +134,7 @@ contains
       <defaultValue>wavelengthVBand</defaultValue>
       <description>
       The wavelength, in Å, at which the power-law extinction curve is normalized to unity. Set it to
-      :math:`5500\,`Å to reproduce the ``lmnstyStllrCF2000`` property extractor exactly.
+      :math:`5500\,`\ Å to reproduce the ``lmnstyStllrCF2000`` property extractor exactly.
       </description>
       <source>parameters</source>
     </inputParameter>
