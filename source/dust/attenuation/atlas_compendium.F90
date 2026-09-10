@@ -139,8 +139,11 @@
    known to this class, so naming one is enough; ``url`` is needed only for a tabulation which is not among them,
    such as one the user has produced themselves.
 
-   Be aware that all but the six original-resolution :cite:t:`ferrara_atlas_1999` tabulations are 584 MB apiece,
-   and that most of that is read into memory and held for the life of the run.
+   Be aware of the size of these files. All but the six original-resolution :cite:t:`ferrara_atlas_1999`
+   tabulations are 584 MB apiece, tabulated on a grid of 250 wavelengths, 46 inclinations, 60 optical depths, and
+   51 spheroid sizes. Half of each file is Monte Carlo uncertainties, which are not read; the attenuations and their
+   extrapolation coefficients come to 297 MB, and are held for the life of the run. Almost all of that is the
+   spheroid table, which alone is 282 MB.
 
    Two quantities are supplied per galaxy rather than tabulated:
 
