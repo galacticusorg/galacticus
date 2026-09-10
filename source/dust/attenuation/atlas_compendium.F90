@@ -31,6 +31,8 @@
   ! The tabulations published on Zenodo, with the record each belongs to and the spheroid profile it was
   ! computed for, so that naming a file is enough to fetch it and to place spheroids on it correctly. A
   ! file which is not one of these can still be used, by giving `url` and `spheroidProfile` explicitly.
+  ! The tabulations are in microns, while parcels, and the trimming parameters, are in Angstroms.
+  double precision                               , parameter                                  :: angstromsPerMicron  =1.0d+4
   integer                                        , parameter                                  :: compendiumFilesCount=21
   character       (len=82                       ), parameter, dimension(compendiumFilesCount) :: compendiumFileName  =   &
        & [                                                                                                               &
@@ -139,11 +141,20 @@
    known to this class, so naming one is enough; ``url`` is needed only for a tabulation which is not among them,
    such as one the user has produced themselves.
 
-   Be aware of the size of these files. All but the six original-resolution :cite:t:`ferrara_atlas_1999`
-   tabulations are 584 MB apiece, tabulated on a grid of 250 wavelengths, 46 inclinations, 60 optical depths, and
-   51 spheroid sizes. Half of each file is Monte Carlo uncertainties, which are not read; the attenuations and their
-   extrapolation coefficients come to 297 MB, and are held for the life of the run. Almost all of that is the
-   spheroid table, which alone is 282 MB.
+   Be aware of the size of these files, which is the reason for the trimming parameters below. All but the six
+   original-resolution :cite:t:`ferrara_atlas_1999` tabulations are 584 MB apiece, on a grid of 250 wavelengths, 46
+   inclinations, 60 optical depths, and 51 spheroid sizes. Half of each file is Monte Carlo uncertainties, which are
+   not read; the attenuations and their extrapolation coefficients come to 297 MB, almost all of it the spheroid
+   table.
+
+   That 297 MB is *per copy*, and there is one copy per OpenMP thread per instance of this class, since each thread
+   works on a deep copy of the attenuator. A parameter file with two of these attenuators, run on twenty threads,
+   therefore holds forty copies: 12 GB of tabulation, measured. Restricting each axis to the range actually needed
+   is what keeps that in hand---``wavelengthMinimum``, ``wavelengthMaximum``, ``opticalDepthMaximum``,
+   ``radiusSpheroidMinimum``, and ``radiusSpheroidMaximum`` below. Only the retained part of each axis is read from
+   the file, as an HDF5 hyperslab, so a trimmed tabulation is never held at full size even transiently. Trimming
+   changes no result which lies inside the retained range: the bracketing nodes on either side are kept, so values
+   within the range are interpolated exactly as they would have been from the full table.
 
    Two quantities are supplied per galaxy rather than tabulated:
 
@@ -203,7 +214,9 @@
      type            (varying_string                          )                                  :: fileName                                , url
      type            (enumerationCompendiumSpheroidProfileType)                                  :: spheroidProfile
      double precision                                                                            :: dustToMetalsRatio                       , opacity                         , &
-          &                                                                                         radiusSpheroidHalfMassToScale
+          &                                                                                         radiusSpheroidHalfMassToScale           , wavelengthMinimum               , &
+          &                                                                                         wavelengthMaximum                       , opticalDepthMaximum             , &
+          &                                                                                         radiusSpheroidMinimum                   , radiusSpheroidMaximum
      logical                                                                                     :: extrapolateOpticalDepth                 , inclinationAvailable            , &
           &                                                                                         depthOpticalZeroTabulated
      ! The smallest *positive* tabulated optical depth. Tabulations generally include a zero-optical-depth entry,
@@ -259,7 +272,9 @@ contains
     class           (galacticInclinationClass      ), pointer       :: galacticInclination_
     type            (varying_string                )                :: fileName               , url, &
          &                                                             spheroidProfile
-    double precision                                                :: dustToMetalsRatio
+    double precision                                                :: dustToMetalsRatio      , wavelengthMinimum    , &
+         &                                                             wavelengthMaximum      , opticalDepthMaximum  , &
+         &                                                             radiusSpheroidMinimum  , radiusSpheroidMaximum
     logical                                                         :: extrapolateOpticalDepth
 
     !![
@@ -294,6 +309,56 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter docformat="rst">
+      <name>wavelengthMinimum</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>
+      The shortest wavelength, in Angstroms, which need be represented. Tabulated wavelengths below this are not
+      read. Zero retains the whole axis.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>wavelengthMaximum</name>
+      <defaultValue>huge(0.0d0)</defaultValue>
+      <description>
+      The longest wavelength, in Angstroms, which need be represented. Tabulated wavelengths above this are not read.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>opticalDepthMaximum</name>
+      <defaultValue>huge(0.0d0)</defaultValue>
+      <description>
+      The largest :math:`V`-band optical depth which need be represented. Tabulated depths above this are not read,
+      and galaxies exceeding it have their transmission held at the retained boundary. There is no corresponding
+      minimum: the low-depth end of the axis costs little and is always needed.
+
+      Trimming this axis requires ``extrapolateOpticalDepth`` to be false, and is refused otherwise. The
+      extrapolation coefficients describe the behavior beyond the largest depth in the *file* and are anchored
+      there; applied just above a trimmed boundary they are far outside the range they were fitted over, and for the
+      published high-resolution tabulation would overestimate the transmission by a factor of seven at an optical
+      depth of five.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>radiusSpheroidMinimum</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>
+      The smallest spheroid size, as a scale radius in units of the disk scale length, which need be represented.
+      Zero retains the whole axis.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>radiusSpheroidMaximum</name>
+      <defaultValue>huge(0.0d0)</defaultValue>
+      <description>
+      The largest spheroid size, as a scale radius in units of the disk scale length, which need be represented.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
       <name>extrapolateOpticalDepth</name>
       <defaultValue>.true.</defaultValue>
       <description>
@@ -315,7 +380,7 @@ contains
     </inputParameter>
     <objectBuilder class="galacticInclination" name="galacticInclination_" source="parameters"/>
     !!]
-    self=dustAttenuationAtlasCompendium(fileName,url,dustToMetalsRatio,extrapolateOpticalDepth,enumerationCompendiumSpheroidProfileEncode(char(spheroidProfile),includesPrefix=.false.),galacticInclination_)
+    self=dustAttenuationAtlasCompendium(fileName,url,dustToMetalsRatio,wavelengthMinimum,wavelengthMaximum,opticalDepthMaximum,radiusSpheroidMinimum,radiusSpheroidMaximum,extrapolateOpticalDepth,enumerationCompendiumSpheroidProfileEncode(char(spheroidProfile),includesPrefix=.false.),galacticInclination_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="galacticInclination_"/>
@@ -323,7 +388,7 @@ contains
     return
   end function atlasCompendiumConstructorParameters
 
-  function atlasCompendiumConstructorInternal(fileName,url,dustToMetalsRatio,extrapolateOpticalDepth,spheroidProfile,galacticInclination_) result(self)
+  function atlasCompendiumConstructorInternal(fileName,url,dustToMetalsRatio,wavelengthMinimum,wavelengthMaximum,opticalDepthMaximum,radiusSpheroidMinimum,radiusSpheroidMaximum,extrapolateOpticalDepth,spheroidProfile,galacticInclination_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`dustAttenuationAtlasCompendium` dust attenuation class. The
     tabulation is located---downloading it if necessary---read once, here, and interpolators built over it.
@@ -334,6 +399,7 @@ contains
           &                                      File_Unlock         , lockDescriptor
     use            :: HDF5_Access       , only : hdf5Access
     use            :: Input_Paths       , only : inputPath           , pathTypeDataDynamic
+    use            :: HDF5              , only : hsize_t
     use            :: IO_HDF5           , only : hdf5File
     use            :: ISO_Varying_String, only : char                , operator(//)      , operator(==)  , varying_string
     use            :: System_Download   , only : download
@@ -341,7 +407,9 @@ contains
     implicit none
     type            (dustAttenuationAtlasCompendium          )                                  :: self
     type            (varying_string                          ), intent(in   )                   :: fileName                    , url
-    double precision                                          , intent(in   )                   :: dustToMetalsRatio
+    double precision                                          , intent(in   )                   :: dustToMetalsRatio           , wavelengthMinimum   , &
+         &                                                                                         wavelengthMaximum           , opticalDepthMaximum , &
+         &                                                                                         radiusSpheroidMinimum       , radiusSpheroidMaximum
     logical                                                   , intent(in   )                   :: extrapolateOpticalDepth
     type            (enumerationCompendiumSpheroidProfileType), intent(in   )                   :: spheroidProfile
     class           (galacticInclinationClass                ), intent(in   ), target           :: galacticInclination_
@@ -351,6 +419,13 @@ contains
     integer                                                                                     :: status                      , known                           , &
          &                                                                                         i
     integer         (c_size_t                                )                                  :: sizeFile
+    integer         (hsize_t                                 )              , dimension(3     ) :: beginDisk                   , countDisk           , &
+         &                                                                                         beginExtrapolationDisk      , countExtrapolationDisk
+    integer         (hsize_t                                 )              , dimension(4     ) :: beginSpheroid               , countSpheroid       , &
+         &                                                                                         beginExtrapolationSpheroid  , countExtrapolationSpheroid
+    integer                                                                                     :: indexWavelengthBegin        , indexWavelengthEnd  , &
+         &                                                                                         indexDepthOpticalBegin      , indexDepthOpticalEnd, &
+         &                                                                                         indexRadiusSpheroidBegin    , indexRadiusSpheroidEnd
     double precision                                          , allocatable, dimension(:      ) :: depthOptical
     double precision                                          , allocatable, dimension(:,:,:  ) :: extrapolationDisk           , transmissionDisk
     double precision                                          , allocatable, dimension(:,:,:,:) :: extrapolationSpheroid       , transmissionSpheroid
@@ -358,7 +433,7 @@ contains
     type            (interpolator                            )             , dimension(4      ) :: interpolatorsSpheroid
     type            (interpolator                            )             , dimension(2      ) :: interpolatorsDiskExtrapolate
     !![
-    <constructorAssign variables="fileName, url, dustToMetalsRatio, extrapolateOpticalDepth, spheroidProfile, *galacticInclination_"/>
+    <constructorAssign variables="fileName, url, dustToMetalsRatio, wavelengthMinimum, wavelengthMaximum, opticalDepthMaximum, radiusSpheroidMinimum, radiusSpheroidMaximum, extrapolateOpticalDepth, spheroidProfile, *galacticInclination_"/>
     !!]
 
     ! An inclination must be available, either per galaxy or imposed by an attenuator averaging over orientation.
@@ -426,11 +501,50 @@ contains
     call file%readDataset  ('inclination'                      ,self%inclination          )
     call file%readDataset  ('opticalDepth'                     ,     depthOptical         )
     call file%readDataset  ('spheroidScaleRadial'              ,self%radiusSpheroid       )
-    call file%readDataset  ('attenuationDisk'                  ,     transmissionDisk     )
-    call file%readDataset  ('attenuationSpheroid'              ,     transmissionSpheroid )
-    call file%readDataset  ('extrapolationCoefficientsDisk'    ,     extrapolationDisk    )
-    call file%readDataset  ('extrapolationCoefficientsSpheroid',     extrapolationSpheroid)
+    ! Work out which part of each axis need be retained. The bracketing nodes on either side of the requested range
+    ! are kept, so that anything inside it is interpolated rather than held at a boundary. Inclination is never
+    ! trimmed: it is one of the shortest axes, and the whole of it is always needed.
+    call axisRange(self%wavelength    *angstromsPerMicron,self%wavelengthMinimum,self%wavelengthMaximum,indexWavelengthBegin   ,indexWavelengthEnd   )
+    call axisRange(     depthOptical                     ,-1.0d0                ,self%opticalDepthMaximum  ,indexDepthOpticalBegin ,indexDepthOpticalEnd )
+    call axisRange(self%radiusSpheroid                   ,self%radiusSpheroidMinimum,self%radiusSpheroidMaximum,indexRadiusSpheroidBegin,indexRadiusSpheroidEnd)
+    ! The low-depth end of the optical depth axis is always retained, so that the zero entry, and the approach to
+    ! unit transmission, survive trimming.
+    indexDepthOpticalBegin=1
+    ! Trimming the optical depth axis and extrapolating beyond it are incompatible, and silently so, which is why
+    ! this is an error rather than a quiet choice made on the user's behalf. The extrapolation coefficients describe
+    ! the asymptotic behavior beyond the depth at which the *file* stops, and are anchored there. Evaluated just
+    ! above a trimmed boundary they are far outside the range they were fitted over: for the published high
+    ! resolution tabulation they overestimate the transmission by a factor of seven at an optical depth of five, and
+    ! by a factor of thirty at unity. They would also not join continuously to the retained table.
+    if (self%extrapolateOpticalDepth .and. indexDepthOpticalEnd < size(depthOptical))                                    &
+         & call Error_Report(                                                                                            &
+         &                   '`opticalDepthMaximum` trims the tabulation, but `extrapolateOpticalDepth` is true: the'//  &
+         &                   ' extrapolation coefficients are only valid beyond the largest depth in the file, not'  //  &
+         &                   ' beyond a trimmed boundary. Set `extrapolateOpticalDepth` to false to hold the'        //  &
+         &                   ' transmission at the retained boundary instead, or raise `opticalDepthMaximum`.'       //  &
+         &                   {introspection:location}                                                                    &
+         &                  )
+    ! Read the attenuations as a hyperslab covering only the retained part of each axis, so that a trimmed
+    ! tabulation is never held at full size, even transiently. `readBegin` and `readCount` are given in the order of
+    ! the Fortran array, which for these datasets is the reverse of the order they were written in.
+    beginDisk    =int([indexDepthOpticalBegin  ,1                                    ,indexWavelengthBegin                    ],kind=hsize_t)
+    countDisk    =int([indexDepthOpticalEnd-indexDepthOpticalBegin+1,size(self%inclination),indexWavelengthEnd-indexWavelengthBegin+1],kind=hsize_t)
+    beginSpheroid=[int(indexRadiusSpheroidBegin,kind=hsize_t),beginDisk]
+    countSpheroid=[int(indexRadiusSpheroidEnd-indexRadiusSpheroidBegin+1,kind=hsize_t),countDisk]
+    call file%readDataset  ('attenuationDisk'                  ,     transmissionDisk     ,readBegin=beginDisk    ,readCount=countDisk    )
+    call file%readDataset  ('attenuationSpheroid'              ,     transmissionSpheroid ,readBegin=beginSpheroid,readCount=countSpheroid)
+    ! The extrapolation coefficients carry no optical depth axis, but are trimmed on the others.
+    beginExtrapolationDisk    =int([1                    ,indexWavelengthBegin                    ,1],kind=hsize_t)
+    countExtrapolationDisk    =int([size(self%inclination),indexWavelengthEnd-indexWavelengthBegin+1,2],kind=hsize_t)
+    beginExtrapolationSpheroid=[int(indexRadiusSpheroidBegin,kind=hsize_t),beginExtrapolationDisk]
+    countExtrapolationSpheroid=[int(indexRadiusSpheroidEnd-indexRadiusSpheroidBegin+1,kind=hsize_t),countExtrapolationDisk]
+    call file%readDataset  ('extrapolationCoefficientsDisk'    ,     extrapolationDisk    ,readBegin=beginExtrapolationDisk    ,readCount=countExtrapolationDisk    )
+    call file%readDataset  ('extrapolationCoefficientsSpheroid',     extrapolationSpheroid,readBegin=beginExtrapolationSpheroid,readCount=countExtrapolationSpheroid)
     !$ call hdf5Access%unset()
+    ! Trim the axes to match what was read.
+    self%wavelength    =self%wavelength    (indexWavelengthBegin    :indexWavelengthEnd    )
+    self%radiusSpheroid=self%radiusSpheroid(indexRadiusSpheroidBegin:indexRadiusSpheroidEnd)
+    depthOptical       =     depthOptical  (indexDepthOpticalBegin  :indexDepthOpticalEnd  )
     ! Check that the tables have the shape the axes imply, before anything is sliced. A transposed read would
     ! otherwise show up much later as quietly wrong attenuation.
     if (any(shape(     transmissionDisk    ) /= [size(     depthOptical   ),size(self%inclination ),size(self%wavelength)                       ])) &
@@ -496,6 +610,41 @@ contains
     self%interpolatorRadiusSpheroid        =interpolatorsSpheroid(1)
     return
   end function atlasCompendiumConstructorInternal
+
+  subroutine axisRange(axis,valueMinimum,valueMaximum,indexBegin,indexEnd)
+    !!{RST
+    Return the range of indices of ``axis`` which must be retained in order to represent every value between
+    ``valueMinimum`` and ``valueMaximum``.
+
+    The bracketing nodes on either side of the requested range are kept, so that a value anywhere inside it is
+    interpolated rather than held at a boundary. At least two nodes are always returned, since an axis of a single
+    node can not be interpolated in.
+    !!}
+    implicit none
+    double precision, intent(in   ), dimension(:) :: axis
+    double precision, intent(in   )               :: valueMinimum, valueMaximum
+    integer         , intent(  out)               :: indexBegin  , indexEnd
+    integer                                       :: i
+
+    indexBegin=1
+    indexEnd  =size(axis)
+    do i=1,size(axis)
+       if (axis(i) <= valueMinimum) indexBegin=i
+    end do
+    do i=size(axis),1,-1
+       if (axis(i) >= valueMaximum) indexEnd  =i
+    end do
+    ! Guarantee at least two nodes, whatever was asked for.
+    if (indexEnd <= indexBegin) then
+       if (indexBegin < size(axis)) then
+          indexEnd  =indexBegin+1
+       else
+          indexBegin=indexEnd  -1
+       end if
+    end if
+    return
+  end subroutine axisRange
+
 
   subroutine atlasCompendiumDestructor(self)
     !!{RST
@@ -574,8 +723,6 @@ contains
     type            (emissionDescriptor            ), intent(in   ), dimension(:                ) :: descriptors
     double precision                                , intent(in   ), optional                     :: inclination
     double precision                                               , dimension(size(descriptors)) :: transmission
-    ! The tabulation is in microns, while parcels report their wavelength in Angstroms.
-    double precision                                , parameter                                   :: micronsPerAngstrom        =1.0d-4
     double precision                                                                              :: depthOptical                     , inclination_       , &
          &                                                                                           radiusSpheroid                   , logDepth           , &
          &                                                                                           inclinationDegrees               , coefficientConstant, &
@@ -656,7 +803,7 @@ contains
        weightsSpheroid           (:,2:3)=weightsDisk       (:,1:2)
     end if
     do i=1,size(descriptors)
-       call self%interpolatorWavelength%linearFactors(log(descriptors(i)%wavelength*micronsPerAngstrom),indexWavelength,weightWavelength)
+       call self%interpolatorWavelength%linearFactors(log(descriptors(i)%wavelength/angstromsPerMicron),indexWavelength,weightWavelength)
        if (extrapolating) then
           indicesDiskExtrapolate    (  2)=indexWavelength
           weightsDiskExtrapolate    (:,2)=weightWavelength
