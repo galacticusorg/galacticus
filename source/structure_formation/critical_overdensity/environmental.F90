@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements an environmental critical overdensity class.
 !!}
@@ -35,7 +37,8 @@ Implements an environmental critical overdensity class.
      private
      class           (criticalOverdensityClass), pointer :: criticalOverdensity_ => null()
      class           (haloEnvironmentClass    ), pointer :: haloEnvironment_     => null()
-     double precision                                    :: a                             , massEnvironment
+     double precision                                    :: a                              , massEnvironment
+     logical                                             :: warnedNoNode         =  .false.
     contains
      final     ::                    environmentalDestructor
      procedure :: value           => environmentalValue
@@ -140,7 +143,6 @@ contains
     !!{RST
     Return the critical overdensity for collapse at the given time and mass.
     !!}
-    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (criticalOverdensityEnvironmental), intent(inout)           :: self
@@ -150,7 +152,13 @@ contains
     type            (treeNode                        ), intent(inout), optional :: node
     class           (nodeComponentBasic              ), pointer                 :: basic
 
-    if (.not.present(node)) call Error_Report('"node" must be provided to give access to environment'//{introspection:location})
+    ! With no node no environment is available, so assume the mean environment - a linear overdensity of zero - for which the
+    ! environmental factor below is unity, and the result is simply that of the wrapped critical overdensity.
+    if (.not.present(node)) then
+       call environmentalWarnNoNode(self)
+       environmentalValue=      self%criticalOverdensity_         %value            (time,expansionFactor,collapsing,mass                      )
+       return
+    end if
     ! Get the critical overdensity at zero environmental overdensity and scale by some power of the linear growth factor.
     environmentalValue   =  +  self%criticalOverdensity_         %value            (time,expansionFactor,collapsing,mass,node                  )
     basic                =>    node%hostTree            %nodeBase%basic            (                                                           )
@@ -170,7 +178,6 @@ contains
     Return the gradient with respect to time of critical overdensity at the given time and mass.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
-    use :: Error           , only : Error_Report
     implicit none
     class           (criticalOverdensityEnvironmental), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: time      , expansionFactor
@@ -182,7 +189,13 @@ contains
     <optionalArgument name="expansionFactor" defaultsTo="self%cosmologyFunctions_%expansionFactor(time)" />
     !!]
 
-    if (.not.present(node)) call Error_Report('"node" must be provided to give access to environment'//{introspection:location})
+    ! With no node no environment is available, so assume the mean environment - a linear overdensity of zero - for which the
+    ! environmental terms below vanish, and the result is simply that of the wrapped critical overdensity.
+    if (.not.present(node)) then
+       call environmentalWarnNoNode(self)
+       environmentalGradientTime=    self%criticalOverdensity_%gradientTime                        (time,expansionFactor ,collapsing,mass                      )
+       return
+    end if
     basic => node%hostTree%nodeBase%basic()
     if (basic%mass() < self%massEnvironment) then
        environmentalGradientTime=+   self%criticalOverdensity_%gradientTime                        (time,expansionFactor ,collapsing,mass,node                  ) &
@@ -212,7 +225,6 @@ contains
     Return the gradient with respect to mass of critical overdensity at the given time and mass.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
-    use :: Error           , only : Error_Report
     implicit none
     class           (criticalOverdensityEnvironmental), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: time      , expansionFactor
@@ -221,7 +233,13 @@ contains
     type            (treeNode                        ), intent(inout), optional :: node
     class           (nodeComponentBasic              ), pointer                 :: basic
 
-    if (.not.present(node)) call Error_Report('"node" must be provided to give access to environment'//{introspection:location})
+    ! With no node no environment is available, so assume the mean environment - a linear overdensity of zero - for which the
+    ! environmental factor below is unity, and the result is simply that of the wrapped critical overdensity.
+    if (.not.present(node)) then
+       call environmentalWarnNoNode(self)
+       environmentalGradientMass=   self%criticalOverdensity_%gradientMass     (time,expansionFactor,collapsing,mass                      )
+       return
+    end if
     basic => node%hostTree%nodeBase%basic()
     if (basic%mass() < self%massEnvironment) then
        environmentalGradientMass=  +self%criticalOverdensity_%gradientMass     (time,expansionFactor,collapsing,mass,node                  ) &
@@ -235,6 +253,31 @@ contains
     end if
     return
   end function environmentalGradientMass
+
+  subroutine environmentalWarnNoNode(self)
+    !!{RST
+    Issue a one-time warning that environment-independent critical overdensities are being returned because no node is available.
+    !!}
+    use :: Display           , only : displayGreen  , displayMagenta, displayMessage, displayReset
+    use :: ISO_Varying_String, only : varying_string, assignment(=) , operator(//)
+    implicit none
+    class(criticalOverdensityEnvironmental), intent(inout) :: self
+    type (varying_string                  )                :: message
+
+    !$omp critical (criticalOverdensityEnvironmentalWarnNoNode)
+    if (.not.self%warnedNoNode) then
+       message=displayMagenta()//"WARNING:"//displayReset()//" the `criticalOverdensityEnvironmental` class was asked for a value with no node"//char(10)// &
+            &  displayGreen()//"    HELP:"//displayReset()//" the environmental overdensity is a property of a node, so where no node is"      //char(10)// &
+            &                                               "          available the mean environment - a linear overdensity of zero - is"     //char(10)// &
+            &                                               "          assumed. The value returned is then that of the wrapped"                //char(10)// &
+            &                                               "          `criticalOverdensity` class, unmodified: those parts of your model are" //char(10)// &
+            &                                               "          using an environment-independent threshold for collapse."
+       call displayMessage(message)
+       self%warnedNoNode=.true.
+    end if
+    !$omp end critical (criticalOverdensityEnvironmentalWarnNoNode)
+    return
+  end subroutine environmentalWarnNoNode
 
   logical function environmentalIsMassDependent(self)
     !!{RST
