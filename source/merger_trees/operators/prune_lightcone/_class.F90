@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a prune-by-lightcone operator on merger trees.
   !!}
@@ -88,15 +90,30 @@ contains
     !!{RST
     Internal constructor for the prune-by-lightcone merger tree operator class.
     !!}
+    use :: Display            , only : displayGreen         , displayReset
+    use :: Error              , only : Error_Report
+    use :: Geometry_Lightcones, only : geometryLightconeNull
+    use :: ISO_Varying_String , only : varying_string       , assignment(=), operator(//)
     implicit none
     type   (mergerTreeOperatorPruneLightcone)                        :: self
     class  (geometryLightconeClass          ), intent(in   ), target :: geometryLightcone_
     class  (outputTimesClass                ), intent(in   ), target :: outputTimes_
     logical                                  , intent(in   )         :: splitTrees
+    type   (varying_string                  )                        :: message
     !![
     <constructorAssign variables="*geometryLightcone_, *outputTimes_, splitTrees"/>
     !!]
 
+    ! Validate the lightcone geometry. This operator prunes away every tree which does not intersect the lightcone, so it can not
+    ! be used without one. With a null lightcone no node ever intersects the lightcone, so every tree would be silently pruned.
+    select type (geometryLightcone_)
+    class is (geometryLightconeNull)
+       message=                                             "the `mergerTreeOperatorPruneLightcone` class requires a lightcone geometry"    //char(10)// &
+            &  displayGreen()//"    HELP:"//displayReset()//" this operator prunes trees which do not intersect the lightcone, but you have"//char(10)// &
+            &                                               "          no lightcone geometry configured - so every tree would be pruned."   //char(10)// &
+            &                                               "          Either set a non-null `geometryLightcone`, or remove this operator."
+       call Error_Report(message//{introspection:location})
+    end select
     self%bufferIsolatedHalos=.false.
     return
   end function pruneLightconeConstructorInternal
