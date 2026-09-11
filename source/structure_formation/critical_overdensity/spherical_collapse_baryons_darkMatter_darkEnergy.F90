@@ -30,7 +30,7 @@
   use :: Tables                               , only : table1D
 
   !![
-  <criticalOverdensity name="criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy" docformat="rst">
+  <criticalOverdensity name="criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy" alias="sphericalCollapseBaryonsDarkMatterDarkEnergy" docformat="rst">
    <description>
    Critical overdensity for the gravitational collapse of dark matter halos, computed by numerically solving the spherical collapse model in a universe containing baryons, collisionless dark matter, and dark energy. Baryons may be treated as non-clustering relative to dark matter. The normalization of the result can be adjusted via ``[normalization]``, and tabulation can be stored to file for efficiency.
    </description>

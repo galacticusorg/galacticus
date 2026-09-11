@@ -114,6 +114,25 @@ def _short_name(full_name, directive_name):
     return short
 
 
+def _selector_names(non_abstract_class, directive_name):
+    """Return `(canonical, accepted)` parameter-file values for an implementation.
+
+    `accepted` is every value the parameter reader will match, `canonical` the
+    one written into descriptors, documentation, and error listings.
+
+    Where an implementation carries an `alias`, the alias is canonical and the
+    abbreviated short name remains accepted, so existing parameter files keep
+    working.  An alias exists only where the readable name would push a
+    generated Fortran identifier past the 63-character limit -- see the
+    *Naming conventions* section of the developer guide.
+    """
+    short = _short_name(non_abstract_class['name'], directive_name)
+    alias = (non_abstract_class.get('alias') or '').strip()
+    if not alias:
+        return short, [short]
+    return alias, [short, alias]
+
+
 def _xml_escape(s):
     """Escape `&`, `<`, `>`, `"` for XML attribute / text contexts."""
     return xml_escape(s)
@@ -285,14 +304,11 @@ def _build_object_type_method(directive, non_abstract_classes, methods):
     )
     for non_abstract in non_abstract_classes:
         class_name = non_abstract['name']
-        # shortName is computed the same way loadAndSortClasses does —
-        # lowercase the first letter unless the remainder is already an
-        # all-caps acronym of 2+ letters.
-        type_short = class_name
-        if type_short.startswith(directive_name):
-            type_short = type_short[len(directive_name):]
-        if not re.match(r'^[A-Z]{2,}', type_short):
-            type_short = type_short[:1].lower() + type_short[1:]
+        # The short form is the value naming this implementation in a parameter
+        # file: its `alias` where it has one, else the class name with the
+        # directive prefix stripped (lowercasing the first letter unless the
+        # remainder is already an all-caps acronym of 2+ letters).
+        type_short = _selector_names(non_abstract, directive_name)[0]
         code += (
             f"type is ({class_name})\n"
             "if (short_) then\n"
@@ -399,13 +415,18 @@ def _load_and_sort_classes(directive, directive_locations):
         if not re.match(r'^[A-Z]{2,}', short):
             short = short[:1].lower() + short[1:]
         non_abstract['shortName'] = short
+        # An implementation may carry a readable `alias` where its Fortran name
+        # had to be abbreviated; either form may name it as the class default.
+        non_abstract['canonicalName'] = (
+            (non_abstract.get('alias') or '').strip() or short)
 
     # Validate optional `default` attribute.
     if 'default' in directive:
         wanted = directive['default']
-        if not any(wanted == c['shortName'] for c in non_abstract_classes):
+        if not any(wanted in (c['shortName'], c['canonicalName'])
+                   for c in non_abstract_classes):
             allowed = '\n'.join(
-                f"    {c['shortName']}" for c in non_abstract_classes)
+                f"    {c['canonicalName']}" for c in non_abstract_classes)
             raise RuntimeError(
                 f"unrecognized default '{wanted}' for class "
                 f"'{directive['name']}'\n  allowed defaults are:\n{allowed}"
@@ -869,12 +890,7 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
         from Galacticus.Build.SourceTree.Process.FunctionClass.Utils \
             import declaration_rank
 
-        short = non_abstract['name']
-        if short.startswith(directive['name']):
-            short = short[len(directive['name']):]
-        if not re.match(r'^[A-Z]{2,}', short):
-            short = short[:1].lower() + short[1:]
-        label = short
+        label = _selector_names(non_abstract, directive['name'])[0]
 
         descriptor_code += f"type is ({non_abstract['name']})\n"
 
@@ -2993,6 +3009,20 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
 
     if 'default' in directive:
         default = directive['default']
+        # `default` names the implementation internally: it builds the class
+        # name looked up below and the OpenMP critical-section identifier, both
+        # of which must stay within Fortran's 63-character limit, so it always
+        # uses the (possibly abbreviated) short name.  `default_value` is the
+        # value written into the parameter tree, which uses the alias where one
+        # exists so a model built from defaults records the readable name.
+        default_value = default
+        for _c in non_abstract_classes:
+            short, accepted = (_short_name(_c['name'], directive_name),
+                               _selector_names(_c, directive_name)[1])
+            if default in accepted:
+                default, default_value = short, _selector_names(
+                    _c, directive_name)[0]
+                break
         default_uc = _ucfirst(default)
         # Find the matching default class entry.
         target_name = directive_name + default_uc
@@ -3017,7 +3047,7 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
             f".and. copyInstance_ == 1 "
             f".and. .not.parameters%isPresent(char(parameterName_))) then\n"
             f"        call parameters%addParameter"
-            f"('{directive_name}','{default}')\n"
+            f"('{directive_name}','{default_value}')\n"
             f"        parameterNode => parameters%node"
             f"('{directive_name}',requireValue=.true.)\n"
         )
@@ -3081,8 +3111,9 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
         '      select case (char(instanceName))\n'
     )
     for c in non_abstract_classes:
-        name = _short_name(c['name'], directive_name)
-        post['content'] += f"     case ('{name}')\n"
+        _, accepted = _selector_names(c, directive_name)
+        labels = ','.join(f"'{a}'" for a in accepted)
+        post['content'] += f"     case ({labels})\n"
         post['content'] += f"        allocate({c['name']} :: self)\n"
         if c.get('recursive') == 'yes':
             # Record the in-progress object on the (already-pushed) build-stack entry so a re-entrant build that
@@ -3101,9 +3132,9 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
         "         message='Unrecognized type \"'//trim(instanceName)//'\" "
         "Available options are:'\n"
     )
-    class_names = sorted([c['name'] for c in non_abstract_classes])
-    for cn in class_names:
-        sn = _short_name(cn, directive_name)
+    for sn in sorted(
+            _selector_names(c, directive_name)[0]
+            for c in non_abstract_classes):
         post['content'] += (
             f"         message=message//char(10)//'   -> {sn}'\n"
         )

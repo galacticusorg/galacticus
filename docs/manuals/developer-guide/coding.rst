@@ -1042,6 +1042,17 @@ In the above example, we define a "simple" implementation of the cosmologyParame
 Name:
    The name should always be prefixed with the function class name. In this case, we have a ``simple`` implementation of the ``cosmologyParameters`` function class, and so our name is ``cosmologyParametersSimple``.
 
+   The remainder of the name, after the class prefix, is the value which selects this implementation in a parameter file---``simple`` here. Choose a readable one: it is part of the user-facing API, not merely an internal identifier.
+
+   Occasionally a readable name cannot be used, because Fortran limits an identifier to **63 characters** and the build generates further identifiers from this name by appending suffixes (``ConstructorParameters``, a method name, a trailing underscore for the implementation's submodule, and so on). Where that limit forces an abbreviated name, give the directive an ``alias`` attribute carrying the readable form:
+
+   .. code-block:: xml
+
+      <virialDensityContrast name="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt"
+                             alias="sphericalCollapseCollisionlessMatterCosmologicalConstant">
+
+   The alias is the value documented, written into descriptors, and reported by the ``objectType`` method and by the error message listing the available implementations. The abbreviated name continues to be accepted in parameter files, so adding an alias breaks nothing and needs no migration. Use an alias *only* where the length limit forces it---an abbreviation which would fit unabbreviated should simply be renamed.
+
 Extends:
    The base class for the function class is always the function class name suffixed with ``Class``, in this case ``cosmologyParametersClass``. Implementations must always be extensions of either this base class, or of another implementation.
 

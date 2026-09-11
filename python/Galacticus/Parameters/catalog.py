@@ -463,6 +463,10 @@ def harvest_file(path, base_names, source_root):
         base = registration['type']
         implementation_type = _scalar(registration['directive']['name'])
         label = derive_label(base, implementation_type)
+        # An implementation whose Fortran name had to be abbreviated to stay
+        # within the 63-character identifier limit may carry a readable
+        # `alias`; both it and the abbreviated label select the implementation.
+        alias = _scalar(registration['directive'].get('alias') or '') or None
         constructor = _find_constructor(function_nodes, label, len(registrations))
         scope = constructor if constructor is not None else tree
         parameters, objects = _harvest_parameters(
@@ -472,6 +476,7 @@ def harvest_file(path, base_names, source_root):
             'type':            implementation_type,
             'functionClass':   base,
             'label':           label,
+            'alias':           alias,
             'module':          module,
             'sourceFile':      relative,
             'constructorFound': constructor is not None,
@@ -713,8 +718,10 @@ def build_catalog(source_root, log=None, jobs=None, cache_path=None):
         for entry in entries:
             implementations[entry['type']] = entry
             base = entry['functionClass']
-            if base in bases and entry['label'] not in bases[base]['implementations']:
-                bases[base]['implementations'].append(entry['label'])
+            if base in bases:
+                for selector in (entry['label'], entry.get('alias')):
+                    if selector and selector not in bases[base]['implementations']:
+                        bases[base]['implementations'].append(selector)
 
     # Rebuilt from the files that exist now, so entries for deleted files are
     # dropped rather than accumulating.

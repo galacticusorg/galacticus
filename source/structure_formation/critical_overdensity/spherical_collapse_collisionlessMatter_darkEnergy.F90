@@ -22,7 +22,7 @@
   !!}
 
   !![
-  <criticalOverdensity name="criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy" docformat="rst">
+  <criticalOverdensity name="criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy" alias="sphericalCollapseCollisionlessMatterDarkEnergy" docformat="rst">
    <description>
    Critical overdensity for gravitational collapse of dark matter halos, computed numerically via the spherical collapse model in a universe containing collisionless matter and dark energy. The normalization of the result can be adjusted via ``[normalization]``, and tabulated solutions can be stored to and restored from file for computational efficiency.
    </description>
