@@ -29,7 +29,7 @@
   use :: Numerical_Ranges   , only : rangeLattice
 
   !![
-  <sphericalCollapseSolver name="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt" docformat="rst">
+  <sphericalCollapseSolver name="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt" alias="collisionlessMatterCosmologicalConstant" docformat="rst">
    <description>
    A spherical collapse solver for universes consisting of collisionless matter and a cosmological constant.
    </description>

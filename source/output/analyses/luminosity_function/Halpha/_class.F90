@@ -294,7 +294,7 @@ contains
     use :: Geometry_Surveys                        , only : surveyGeometryClass
     use :: ISO_Varying_String                      , only : var_str                                        , varying_string
     use :: Dust_Attenuations                       , only : dustAttenuationClass
-    use :: Node_Property_Extractors                , only : multiExtractorList                             , nodePropertyExtractorDustAttenuation        , nodePropertyExtractorLmnstyEmssnLinePanuzzo2003, &
+    use :: Node_Property_Extractors                , only : multiExtractorList                             , nodePropertyExtractorDustAttenuation        , nodePropertyExtractorLuminosityEmissionLinePanuzzo2003, &
          &                                                  nodePropertyExtractorScalarizer
     use :: Numerical_Constants_Astronomical        , only : megaParsec
     use :: Numerical_Constants_Units               , only : ergs
@@ -302,10 +302,10 @@ contains
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                                 , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog , outputAnalysisDistributionNormalizerSequence
     use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorClass
-    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10        , outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10         , &
+    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10        , outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorCosmologyLuminosityDistance, outputAnalysisPropertyOperatorLog10         , &
           &                                                 outputAnalysisPropertyOperatorSequence         , propertyOperatorList
     use :: Output_Analysis_Utilities               , only : Output_Analysis_Output_Weight_Survey_Volume
-    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorCsmlgyVolume
+    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorCosmologyVolume
     use :: Output_Times                            , only : outputTimesClass
     use :: Star_Formation_Rates_Disks              , only : starFormationRateDisksClass
     use :: Star_Formation_Rates_Spheroids          , only : starFormationRateSpheroidsClass
@@ -328,15 +328,15 @@ contains
     type            (varying_string                                 ), intent(in   ), optional                 :: targetLabel
     double precision                                                 , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                                 , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
-    type            (nodePropertyExtractorLmnstyEmssnLinePanuzzo2003)               , pointer                  :: nodePropertyExtractorLines_
+    type            (nodePropertyExtractorLuminosityEmissionLinePanuzzo2003)               , pointer                  :: nodePropertyExtractorLines_
     type            (nodePropertyExtractorDustAttenuation           )               , pointer                  :: nodePropertyExtractorAttenuated_
     type            (nodePropertyExtractorScalarizer                )               , pointer                  :: nodePropertyExtractor_
     type            (multiExtractorList                             )               , pointer                  :: extractors
     type            (outputAnalysisPropertyOperatorLog10            )               , pointer                  :: outputAnalysisPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorAntiLog10        )               , pointer                  :: outputAnalysisPropertyOperatorAntiLog10_
-    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)               , pointer                  :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
+    type            (outputAnalysisPropertyOperatorCosmologyLuminosityDistance)               , pointer                  :: outputAnalysisPropertyOperatorCosmologyLuminosityDistance_
     type            (outputAnalysisPropertyOperatorSequence         )               , pointer                  :: outputAnalysisPropertyOperatorSequence_
-    type            (outputAnalysisWeightOperatorCsmlgyVolume       )               , pointer                  :: outputAnalysisWeightOperator_
+    type            (outputAnalysisWeightOperatorCosmologyVolume       )               , pointer                  :: outputAnalysisWeightOperator_
     type            (outputAnalysisDistributionNormalizerSequence   )               , pointer                  :: outputAnalysisDistributionNormalizer_
     type            (outputAnalysisDistributionNormalizerBinWidth   )               , pointer                  :: outputAnalysisDistributionNormalizerBinWidth_
     type            (outputAnalysisDistributionNormalizerLog10ToLog )               , pointer                  :: outputAnalysisDistributionNormalizerLog10ToLog_
@@ -375,7 +375,7 @@ contains
     allocate(nodePropertyExtractorAttenuated_)
     allocate(nodePropertyExtractor_          )
     !![
-    <referenceConstruct object="nodePropertyExtractorLines_"      constructor="nodePropertyExtractorLmnstyEmssnLinePanuzzo2003(starFormationRateDisks_,starFormationRateSpheroids_,outputTimes_,lineNames,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
+    <referenceConstruct object="nodePropertyExtractorLines_"      constructor="nodePropertyExtractorLuminosityEmissionLinePanuzzo2003(starFormationRateDisks_,starFormationRateSpheroids_,outputTimes_,lineNames,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
     !!]
     allocate(extractors)
     extractors%extractor_ => nodePropertyExtractorLines_
@@ -393,15 +393,15 @@ contains
     !![
     <referenceConstruct object="outputAnalysisPropertyOperatorAntiLog10_"         constructor="outputAnalysisPropertyOperatorAntiLog10        (                                                                                                                                      )"/>
     !!]
-    allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
+    allocate(outputAnalysisPropertyOperatorCosmologyLuminosityDistance_)
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctions_           ,cosmologyFunctionsData,outputTimes_                                                                    )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorCosmologyLuminosityDistance_" constructor="outputAnalysisPropertyOperatorCosmologyLuminosityDistance(cosmologyFunctions_           ,cosmologyFunctionsData,outputTimes_                                                                    )"/>
     !!]
     select type (outputAnalysisPropertyOperator_)
     type is (outputAnalysisPropertyOperatorSequence)
        ! Existing property operator is a sequence operator - simply prepend our magnitude and cosmological luminosity distance operators to it.
        call outputAnalysisPropertyOperator_%prepend(outputAnalysisPropertyOperatorLog10_            )
-       call outputAnalysisPropertyOperator_%prepend(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
+       call outputAnalysisPropertyOperator_%prepend(outputAnalysisPropertyOperatorCosmologyLuminosityDistance_)
        !![
        <referenceAcquire target="outputAnalysisPropertyOperatorSequence_" source="outputAnalysisPropertyOperator_"/>
        !!]
@@ -410,7 +410,7 @@ contains
        allocate(propertyOperatorSequence          )
        allocate(propertyOperatorSequence%next     )
        allocate(propertyOperatorSequence%next%next)
-       propertyOperatorSequence          %operator_ => outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
+       propertyOperatorSequence          %operator_ => outputAnalysisPropertyOperatorCosmologyLuminosityDistance_
        propertyOperatorSequence%next     %operator_ => outputAnalysisPropertyOperatorLog10_
        propertyOperatorSequence%next%next%operator_ => outputAnalysisPropertyOperator_
        allocate(outputAnalysisPropertyOperatorSequence_)
@@ -421,7 +421,7 @@ contains
     ! Create a cosmological volume correction weight operator.
     allocate(outputAnalysisWeightOperator_)
     !![
-    <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorCsmlgyVolume       (cosmologyFunctions_,cosmologyFunctionsData                    ,surveyGeometry_)"/>
+    <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorCosmologyVolume       (cosmologyFunctions_,cosmologyFunctionsData                    ,surveyGeometry_)"/>
     !!]
     ! Create a bin width distribution normalizer.
     allocate(outputAnalysisDistributionNormalizerBinWidth_  )
@@ -495,7 +495,7 @@ contains
     <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
     <objectDestructor name="outputAnalysisPropertyOperatorAntiLog10_"        />
     <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />
-    <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
+    <objectDestructor name="outputAnalysisPropertyOperatorCosmologyLuminosityDistance_"/>
     <objectDestructor name="outputAnalysisDistributionNormalizer_"           />
     <objectDestructor name="outputAnalysisWeightOperator_"                   />
     <objectDestructor name="outputAnalysisDistributionNormalizerBinWidth_"   />

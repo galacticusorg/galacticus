@@ -157,9 +157,9 @@ contains
     use :: Input_Paths                           , only : inputPath                                      , pathTypeDataStatic
     use :: Geometry_Surveys                      , only : surveyGeometryMartin2010ALFALFA
     use :: Gravitational_Lensing                 , only : gravitationalLensingClass
-    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorClass, outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorSequence
+    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorClass, outputAnalysisDistributionOperatorGravitationalLensing, outputAnalysisDistributionOperatorSequence
     use :: Output_Analysis_Molecular_Ratios      , only : outputAnalysisMolecularRatioClass
-    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystematicPolynomial
     implicit none
     type            (outputAnalysisMassFunctionHIALFALFAMartin2010  )                              :: self
     class           (cosmologyFunctionsClass                        ), intent(in   ), target       :: cosmologyFunctions_
@@ -174,8 +174,8 @@ contains
     double precision                                                 , intent(in   )               :: covarianceBinomialMassHaloMinimum                          , covarianceBinomialMassHaloMaximum
     type            (galacticFilterISMMass                          )               , pointer      :: galacticFilter_
     type            (surveyGeometryMartin2010ALFALFA                )               , pointer      :: surveyGeometry_
-    type            (outputAnalysisPropertyOperatorSystmtcPolynomial)               , pointer      :: outputAnalysisPropertyOperator_
-    type            (outputAnalysisDistributionOperatorGrvtnlLnsng  )               , pointer      :: outputAnalysisDistributionOperatorGrvtnlLnsng_
+    type            (outputAnalysisPropertyOperatorSystematicPolynomial)               , pointer      :: outputAnalysisPropertyOperator_
+    type            (outputAnalysisDistributionOperatorGravitationalLensing  )               , pointer      :: outputAnalysisDistributionOperatorGravitationalLensing_
     type            (outputAnalysisDistributionOperatorSequence     )               , pointer      :: outputAnalysisDistributionOperator_
     type            (cosmologyParametersSimple                      )               , pointer      :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                 )               , pointer      :: cosmologyFunctionsData
@@ -222,14 +222,14 @@ contains
     !! Systematic error model.
     allocate(outputAnalysisPropertyOperator_    )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperator_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient)"/>
+    <referenceConstruct object="outputAnalysisPropertyOperator_" constructor="outputAnalysisPropertyOperatorSystematicPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient)"/>
     !!]
     ! Build a gravitational lensing distribution operator.
-    allocate(outputAnalysisDistributionOperatorGrvtnlLnsng_)
+    allocate(outputAnalysisDistributionOperatorGravitationalLensing_)
     !![
-    <referenceConstruct object="outputAnalysisDistributionOperatorGrvtnlLnsng_">
+    <referenceConstruct object="outputAnalysisDistributionOperatorGravitationalLensing_">
     <constructor>
-      outputAnalysisDistributionOperatorGrvtnlLnsng(                                    &amp;
+      outputAnalysisDistributionOperatorGravitationalLensing(                                    &amp;
          &amp;                                      gravitationalLensing_             , &amp;
          &amp;                                      outputTimes_                      , &amp;
          &amp;                                      sizeSourceLensing                   &amp;
@@ -242,7 +242,7 @@ contains
     allocate(distributionOperatorSequence           %next)
     allocate(outputAnalysisDistributionOperator_     )
     distributionOperatorSequence            %operator_   => outputAnalysisDistributionOperatorRandomError_
-    distributionOperatorSequence       %next%operator_   => outputAnalysisDistributionOperatorGrvtnlLnsng_
+    distributionOperatorSequence       %next%operator_   => outputAnalysisDistributionOperatorGravitationalLensing_
     !![
     <referenceConstruct object="outputAnalysisDistributionOperator_">
     <constructor>
@@ -278,7 +278,7 @@ contains
     <objectDestructor name="cosmologyParametersData"                       />
     <objectDestructor name="cosmologyFunctionsData"                        />
     <objectDestructor name="outputAnalysisDistributionOperator_"           />
-    <objectDestructor name="outputAnalysisDistributionOperatorGrvtnlLnsng_"/>
+    <objectDestructor name="outputAnalysisDistributionOperatorGravitationalLensing_"/>
     !!]
     nullify(distributionOperatorSequence)
     return

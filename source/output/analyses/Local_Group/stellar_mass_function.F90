@@ -237,8 +237,8 @@ contains
     use :: Numerical_Ranges                        , only : Make_Range                                         , rangeTypeLinear
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerIdentity
-    use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRandomErrorPlynml
-    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSystmtcPolynomial, &
+    use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRandomErrorPolynomial
+    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSystematicPolynomial, &
           &                                                 propertyOperatorList
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorSubsampling            , outputAnalysisWeightOperatorLocalGroupDetection, outputAnalysisWeightOperatorSequence   , weightOperatorList
     use :: Output_Times                            , only : outputTimesClass
@@ -253,7 +253,7 @@ contains
     type            (enumerationPositionTypeType                        ), intent(in   )                 :: positionType
     class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
     type            (nodePropertyExtractorMassStellar                   )               , pointer        :: nodePropertyExtractor_
-    type            (outputAnalysisPropertyOperatorSystmtcPolynomial    )               , pointer        :: outputAnalysisPropertyOperatorSystmtcPolynomial_
+    type            (outputAnalysisPropertyOperatorSystematicPolynomial    )               , pointer        :: outputAnalysisPropertyOperatorSystematicPolynomial_
     type            (outputAnalysisPropertyOperatorLog10                )               , pointer        :: outputAnalysisPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorSequence             )               , pointer        :: outputAnalysisPropertyOperator_
     type            (outputAnalysisPropertyOperatorAntiLog10            )               , pointer        :: outputAnalysisPropertyUnoperator_
@@ -262,7 +262,7 @@ contains
     type            (outputAnalysisWeightOperatorSequence               )               , pointer        :: outputAnalysisWeightOperatorSatellites_
     type            (weightOperatorList                                 )               , pointer        :: weightOperators_
     type            (outputAnalysisDistributionNormalizerIdentity       )               , pointer        :: outputAnalysisDistributionNormalizerCentrals_             , outputAnalysisDistributionNormalizerSatellites_
-    type            (outputAnalysisDistributionOperatorRandomErrorPlynml)               , pointer        :: outputAnalysisDistributionOperator_
+    type            (outputAnalysisDistributionOperatorRandomErrorPolynomial)               , pointer        :: outputAnalysisDistributionOperator_
     type            (galacticFilterHaloIsolated                         )               , pointer        :: galacticFilterHaloIsolated_
     type            (galacticFilterHaloNotIsolated                      )               , pointer        :: galacticFilterHaloNotIsolated_
     type            (galacticFilterHostMassRange                        )               , pointer        :: galacticFilterHostMassRange_
@@ -334,14 +334,14 @@ contains
     !![
     <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                   )"/>
     !!]
-    allocate(outputAnalysisPropertyOperatorSystmtcPolynomial_)
+    allocate(outputAnalysisPropertyOperatorSystematicPolynomial_)
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorZeroPoint,systematicErrorPolynomialCoefficient)"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorSystematicPolynomial_" constructor="outputAnalysisPropertyOperatorSystematicPolynomial(errorZeroPoint,systematicErrorPolynomialCoefficient)"/>
     !!]
     allocate(operators_     )
     allocate(operators_%next)
     operators_     %operator_ => outputAnalysisPropertyOperatorLog10_
-    operators_%next%operator_ => outputAnalysisPropertyOperatorSystmtcPolynomial_
+    operators_%next%operator_ => outputAnalysisPropertyOperatorSystematicPolynomial_
     allocate(outputAnalysisPropertyOperator_                 )
     !![
     <referenceConstruct object="outputAnalysisPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence         (operators_                                         )"/>
@@ -385,7 +385,7 @@ contains
     !![
     <referenceConstruct object="outputAnalysisDistributionOperator_">
     <constructor>
-    outputAnalysisDistributionOperatorRandomErrorPlynml (                                  &amp;
+    outputAnalysisDistributionOperatorRandomErrorPolynomial (                                  &amp;
          &amp;                                           randomErrorMinimum              , &amp;
          &amp;                                           randomErrorMaximum              , &amp;
          &amp;                                           errorZeroPoint                  , &amp;
@@ -534,7 +534,7 @@ contains
     <objectDestructor name="nodePropertyExtractor_"                          />
     <objectDestructor name="outputAnalysisPropertyOperator_"                 />
     <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
-    <objectDestructor name="outputAnalysisPropertyOperatorSystmtcPolynomial_"/>
+    <objectDestructor name="outputAnalysisPropertyOperatorSystematicPolynomial_"/>
     <objectDestructor name="outputAnalysisPropertyUnoperator_"               />
     <objectDestructor name="outputAnalysisWeightOperatorSatellites_"         />
     <objectDestructor name="outputAnalysisWeightOperatorSubsampling_"        />

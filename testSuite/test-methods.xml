@@ -247,7 +247,7 @@
   	  </mergerTreeMassResolution>
   	</mergerTreeBuildMassDistribution>
   	<mergerTreeBuildMassDistribution value="haloMassFunction" parameterLevel="top"/>
-  	<mergerTreeBuildMassDistribution value="stllrMssFnctn" parameterLevel="top">
+  	<mergerTreeBuildMassDistribution value="stellarMassFunction" parameterLevel="top">
   	  <massMaximum value="7.5857758e11"/>
   	  <massMinimum value="1.2589254e8"/>
   	  <constant value="1.0e-8"/>
@@ -3188,7 +3188,7 @@
       <redshiftMaximum value="30"/>
       <toleranceResolutionParent value="2.0e-2"/>
     </mergerTreeBuilder>
-    <mergerTreeBranchingProbability value="gnrlzdPrssSchchtr">
+    <mergerTreeBranchingProbability value="generalizedPressSchechter">
       <massMinimum value="1.0e5"/>
     </mergerTreeBranchingProbability>
     <mergerTreeBranchingProbabilityModifier value="parkinson2008">

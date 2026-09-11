@@ -22,13 +22,13 @@
   !!}
 
   !![
-  <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndpndntLklhdsSqntl" docformat="rst">
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndependentLikelihoodsSequential" docformat="rst">
    <description>
    A posterior sampling likelihood class which sequentially combines other likelihoods assumed to be independent. This class begins by evaluating the first likelihood. If the likelihood is negative, then it is immediately returned, without evaluation of any further likelihoods. If it is positive, then the next likelihood is evaluated and the same conditions applied. This process repeats until either a negative likelihood is found, or all likelihoods are evaluated. Once a given likelihood has been evaluated it will be evaluated on all subsequent calls. Additionally, when a new likelihood is evaluated for the first time, acceptance of the proposed state will be forced. This class therefore allows a sequence of likelihoods to be specified which must be sequentially made sufficiently "good" before evaluating the next. The approach is intended to allow crude, but rapid constraints to be placed on parameters before progressing to more detailed, but slow to evaluate constraints.
    </description>
   </posteriorSampleLikelihood>
   !!]
-  type, extends(posteriorSampleLikelihoodIndependentLikelihoods) :: posteriorSampleLikelihoodIndpndntLklhdsSqntl
+  type, extends(posteriorSampleLikelihoodIndependentLikelihoods) :: posteriorSampleLikelihoodIndependentLikelihoodsSequential
      !!{RST
      Implementation of a posterior sampling likelihood class which sequentially combines other likelihoods assumed to be independent.
      !!}
@@ -41,15 +41,15 @@
    contains
      procedure :: evaluate => independentLikelihoodsSequentialEvaluate
      procedure :: restore  => independentLikelihoodsSequentialRestore
-  end type posteriorSampleLikelihoodIndpndntLklhdsSqntl
+  end type posteriorSampleLikelihoodIndependentLikelihoodsSequential
 
-  interface posteriorSampleLikelihoodIndpndntLklhdsSqntl
+  interface posteriorSampleLikelihoodIndependentLikelihoodsSequential
      !!{RST
-     Constructors for the :galacticus-class:`posteriorSampleLikelihoodIndpndntLklhdsSqntl` posterior sampling likelihood class.
+     Constructors for the :galacticus-class:`posteriorSampleLikelihoodIndependentLikelihoodsSequential` posterior sampling likelihood class.
      !!}
      module procedure independentLikelihoodsSequentialConstructorParameters
      module procedure independentLikelihoodsSequentialConstructorInternal
-  end interface posteriorSampleLikelihoodIndpndntLklhdsSqntl
+  end interface posteriorSampleLikelihoodIndependentLikelihoodsSequential
 
   double precision, parameter :: logLikelihoodIncrement=1.0d2
 
@@ -57,12 +57,12 @@ contains
 
   function independentLikelihoodsSequentialConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`posteriorSampleLikelihoodIndpndntLklhdsSqntl` posterior sampling likelihood class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodIndependentLikelihoodsSequential` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type   (posteriorSampleLikelihoodIndpndntLklhdsSqntl)                :: self
+    type   (posteriorSampleLikelihoodIndependentLikelihoodsSequential)                :: self
     type   (inputParameters                             ), intent(inout) :: parameters
     integer                                                              :: i
 
@@ -117,10 +117,10 @@ contains
 
   function independentLikelihoodsSequentialConstructorInternal(modelLikelihoods,finalLikelihoodFullEvaluation,restoreLevels,likelihoodMultiplier,likelihoodAccept) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`posteriorSampleLikelihoodIndpndntLklhdsSqntl` posterior sampling likelihood class.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodIndependentLikelihoodsSequential` posterior sampling likelihood class.
     !!}
     implicit none
-    type            (posteriorSampleLikelihoodIndpndntLklhdsSqntl)                              :: self
+    type            (posteriorSampleLikelihoodIndependentLikelihoodsSequential)                              :: self
     type            (posteriorSampleLikelihoodList               ), intent(in   ), target       :: modelLikelihoods
     logical                                                       , intent(in   )               :: finalLikelihoodFullEvaluation, restoreLevels
     double precision                                              , intent(in   ), dimension(:) :: likelihoodMultiplier         , likelihoodAccept
@@ -147,7 +147,7 @@ contains
     use :: Models_Likelihoods_Constants, only : logImpossible , logImprobable
     use :: String_Handling             , only : operator(//)
     implicit none
-    class           (posteriorSampleLikelihoodIndpndntLklhdsSqntl), intent(inout), target       :: self
+    class           (posteriorSampleLikelihoodIndependentLikelihoodsSequential), intent(inout), target       :: self
     class           (posteriorSampleStateClass                   ), intent(inout)               :: simulationState
     type            (modelParameterList                          ), intent(inout), dimension(:) :: modelParametersActive_, modelParametersInactive_
     class           (posteriorSampleConvergenceClass             ), intent(inout)               :: simulationConvergence
@@ -340,7 +340,7 @@ contains
     Process a previous state to restore progress state.
     !!}
     implicit none
-    class           (posteriorSampleLikelihoodIndpndntLklhdsSqntl), intent(inout)               :: self
+    class           (posteriorSampleLikelihoodIndependentLikelihoodsSequential), intent(inout)               :: self
     double precision                                              , intent(in   ), dimension(:) :: simulationState
     double precision                                              , intent(in   )               :: logLikelihood
     !$GLC attributes unused :: simulationState

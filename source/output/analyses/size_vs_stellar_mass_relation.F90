@@ -279,10 +279,10 @@ contains
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Numerical_Constants_Prefixes          , only : giga
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelPoisson
-    use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPolynomial
     use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
-    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10                       , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, propertyOperatorList                          , outputAnalysisPropertyOperatorLog10, &
-          &                                               outputAnalysisPropertyOperatorSequence                        , outputAnalysisPropertyOperatorSystmtcPolynomial, outputAnalysisPropertyOperatorCsmlgyAnglrDstnc
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10                       , outputAnalysisPropertyOperatorCosmologyLuminosityDistance, propertyOperatorList                          , outputAnalysisPropertyOperatorLog10, &
+          &                                               outputAnalysisPropertyOperatorSequence                        , outputAnalysisPropertyOperatorSystematicPolynomial, outputAnalysisPropertyOperatorCosmologyAngularDistance
     use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
     use :: String_Handling                       , only : operator(//)
@@ -313,16 +313,16 @@ contains
     class           (galacticFilterClass                                ), pointer                       :: galacticFilterSelection_
     type            (galacticFilterAll                                  ), pointer                       :: galacticFilterAll_
     type            (filterList                                         ), pointer                       :: filters_
-    type            (outputAnalysisDistributionOperatorRandomErrorPlynml), pointer                       :: outputAnalysisDistributionOperator_
+    type            (outputAnalysisDistributionOperatorRandomErrorPolynomial), pointer                       :: outputAnalysisDistributionOperator_
     type            (outputAnalysisWeightOperatorIdentity               ), pointer                       :: outputAnalysisWeightOperator_
     type            (outputAnalysisPropertyOperatorLog10                ), pointer                       :: outputAnalysisPropertyOperatorLog10_                         , outputAnalysisWeightPropertyOperatorLog10_             , &
          &                                                                                                  outputAnalysisWeightPropertyOperatorLog10Second_             , outputAnalysisPropertyOperatorLog10Second_
     type            (outputAnalysisPropertyOperatorAntiLog10            ), pointer                       :: outputAnalysisPropertyUnoperator_                            , outputAnalysisWeightPropertyOperatorAntiLog10_         , &
          &                                                                                                  outputAnalysisPropertyOperatorAntiLog10_
-    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc    ), pointer                       :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
+    type            (outputAnalysisPropertyOperatorCosmologyLuminosityDistance    ), pointer                       :: outputAnalysisPropertyOperatorCosmologyLuminosityDistance_
     type            (outputAnalysisPropertyOperatorSequence             ), pointer                       :: outputAnalysisWeightPropertyOperator_                        , outputAnalysisPropertyOperator_
-    type            (outputAnalysisPropertyOperatorCsmlgyAnglrDstnc     ), pointer                       :: outputAnalysisWeightPropertyOperatorCsmlgyAnglrDstnc_
-    type            (outputAnalysisPropertyOperatorSystmtcPolynomial    ), pointer                       :: outputAnalysisWeightPropertyOperatorSystmtcPolynomial_       , outputAnalysisPropertyOperatorSystmtcPolynomial_
+    type            (outputAnalysisPropertyOperatorCosmologyAngularDistance     ), pointer                       :: outputAnalysisWeightPropertyOperatorCosmologyAngularDistance_
+    type            (outputAnalysisPropertyOperatorSystematicPolynomial    ), pointer                       :: outputAnalysisWeightPropertyOperatorSystematicPolynomial_       , outputAnalysisPropertyOperatorSystematicPolynomial_
     type            (nodePropertyExtractorMassStellar                   ), pointer                       :: nodePropertyExtractor_
     type            (nodePropertyExtractorRadiusEffectiveStellar        ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (propertyOperatorList                               ), pointer                       :: propertyOperators_                                           , propertyOperatorsMassStellar_
@@ -506,7 +506,7 @@ contains
     !![
     <referenceConstruct object="outputAnalysisDistributionOperator_">
      <constructor>
-     outputAnalysisDistributionOperatorRandomErrorPlynml(                                             &amp;
+     outputAnalysisDistributionOperatorRandomErrorPolynomial(                                             &amp;
         &amp;                                            randomErrorMassStellarMinimum              , &amp;
         &amp;                                            randomErrorMassStellarMaximum              , &amp;
         &amp;                                            errorPolynomialZeroPoint                   , &amp;
@@ -516,13 +516,13 @@ contains
     </referenceConstruct>
     !!]
     ! Build a sequence (log10(), polynomial systematic anti-log10, cosmological luminosity distance, log10) property operator.
-    allocate   (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_              )
+    allocate   (outputAnalysisPropertyOperatorCosmologyLuminosityDistance_              )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctions_     ,cosmologyFunctionsTarget                      ,outputTimes_)"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorCosmologyLuminosityDistance_" constructor="outputAnalysisPropertyOperatorCosmologyLuminosityDistance(cosmologyFunctions_     ,cosmologyFunctionsTarget                      ,outputTimes_)"/>
     !!]
-    allocate   (outputAnalysisPropertyOperatorSystmtcPolynomial_             )
+    allocate   (outputAnalysisPropertyOperatorSystematicPolynomial_             )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorPolynomialZeroPoint,systematicErrorMassStellarPolynomialCoefficient            )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorSystematicPolynomial_" constructor="outputAnalysisPropertyOperatorSystematicPolynomial(errorPolynomialZeroPoint,systematicErrorMassStellarPolynomialCoefficient            )"/>
     !!]
     allocate   (outputAnalysisPropertyOperatorLog10_                         )
     !![
@@ -542,22 +542,22 @@ contains
     allocate(propertyOperatorsMassStellar_%next%next%next     )
     allocate(propertyOperatorsMassStellar_%next%next%next%next)
     propertyOperatorsMassStellar_                    %operator_ => outputAnalysisPropertyOperatorLog10_
-    propertyOperatorsMassStellar_%next               %operator_ => outputAnalysisPropertyOperatorSystmtcPolynomial_
+    propertyOperatorsMassStellar_%next               %operator_ => outputAnalysisPropertyOperatorSystematicPolynomial_
     propertyOperatorsMassStellar_%next%next          %operator_ => outputAnalysisPropertyOperatorAntiLog10_
-    propertyOperatorsMassStellar_%next%next%next     %operator_ => outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
+    propertyOperatorsMassStellar_%next%next%next     %operator_ => outputAnalysisPropertyOperatorCosmologyLuminosityDistance_
     propertyOperatorsMassStellar_%next%next%next%next%operator_ => outputAnalysisPropertyOperatorLog10Second_
     allocate(outputAnalysisPropertyOperator_                          )
     !![
     <referenceConstruct object="outputAnalysisPropertyOperator_"                       constructor="outputAnalysisPropertyOperatorSequence          (propertyOperatorsMassStellar_                                               )"/>
     !!]
     ! Build a sequence (log10, polynomial systematic, anti-log10, cosmological angular distance, log10) of weight property operators.
-    allocate   (outputAnalysisWeightPropertyOperatorCsmlgyAnglrDstnc_        )
+    allocate   (outputAnalysisWeightPropertyOperatorCosmologyAngularDistance_        )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorCsmlgyAnglrDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyAnglrDstnc  (cosmologyFunctions_     ,cosmologyFunctionsTarget              ,outputTimes_)"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorCosmologyAngularDistance_" constructor="outputAnalysisPropertyOperatorCosmologyAngularDistance  (cosmologyFunctions_     ,cosmologyFunctionsTarget              ,outputTimes_)"/>
     !!]
-    allocate   (outputAnalysisWeightPropertyOperatorSystmtcPolynomial_       )
+    allocate   (outputAnalysisWeightPropertyOperatorSystematicPolynomial_       )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient               )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorSystematicPolynomial_" constructor="outputAnalysisPropertyOperatorSystematicPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient               )"/>
     !!]
     allocate   (outputAnalysisWeightPropertyOperatorLog10_                   )
     !![
@@ -577,9 +577,9 @@ contains
     allocate(propertyOperators_          %next%next%next     )
     allocate(propertyOperators_          %next%next%next%next)
     propertyOperators_                              %operator_ => outputAnalysisWeightPropertyOperatorLog10_
-    propertyOperators_          %next               %operator_ => outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
+    propertyOperators_          %next               %operator_ => outputAnalysisWeightPropertyOperatorSystematicPolynomial_
     propertyOperators_          %next%next          %operator_ => outputAnalysisWeightPropertyOperatorAntiLog10_
-    propertyOperators_          %next%next%next     %operator_ => outputAnalysisWeightPropertyOperatorCsmlgyAnglrDstnc_
+    propertyOperators_          %next%next%next     %operator_ => outputAnalysisWeightPropertyOperatorCosmologyAngularDistance_
     propertyOperators_          %next%next%next%next%operator_ => outputAnalysisWeightPropertyOperatorLog10Second_
     ! Create a stellar mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                          )
@@ -728,16 +728,16 @@ contains
     <objectDestructor name="outputAnalysisDistributionOperator_"                   />
     <objectDestructor name="outputAnalysisWeightOperator_"                         />
     <objectDestructor name="outputAnalysisPropertyOperatorLog10_"                  />
-    <objectDestructor name="outputAnalysisPropertyOperatorSystmtcPolynomial_"      />
+    <objectDestructor name="outputAnalysisPropertyOperatorSystematicPolynomial_"      />
     <objectDestructor name="outputAnalysisPropertyOperatorLog10Second_"            />
     <objectDestructor name="outputAnalysisPropertyOperatorAntiLog10_"              />
-    <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"      />
+    <objectDestructor name="outputAnalysisPropertyOperatorCosmologyLuminosityDistance_"      />
     <objectDestructor name="outputAnalysisPropertyOperator_"                       />
-    <objectDestructor name="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_"/>
+    <objectDestructor name="outputAnalysisWeightPropertyOperatorSystematicPolynomial_"/>
     <objectDestructor name="outputAnalysisWeightPropertyOperatorLog10_"            />
     <objectDestructor name="outputAnalysisWeightPropertyOperatorLog10Second_"      />
     <objectDestructor name="outputAnalysisWeightPropertyOperatorAntiLog10_"        />
-    <objectDestructor name="outputAnalysisWeightPropertyOperatorCsmlgyAnglrDstnc_" />
+    <objectDestructor name="outputAnalysisWeightPropertyOperatorCosmologyAngularDistance_" />
     <objectDestructor name="outputAnalysisWeightPropertyOperator_"                 />
     <objectDestructor name="outputAnalysisPropertyUnoperator_"                     />
     <objectDestructor name="outputAnalysisWeightPropertyExtractor_"                />

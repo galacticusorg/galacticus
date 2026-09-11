@@ -25,13 +25,13 @@ Implements a cosmological volume corrector analysis weight operator class.
   use :: Geometry_Surveys   , only : surveyGeometryClass
 
   !![
-  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorCsmlgyVolume" docformat="rst">
+  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorCosmologyVolume" docformat="rst">
    <description>
    An output analysis weight operator class which corrects weights for the difference in cosmological volume between true and assumed (i.e. in the observational analysis) cosmologies. Typically the observational data will have been analyzed assuming some specific set of cosmological parameters which will differ from that in the current model. Therefore, the comoving volume occupied by a population of galaxies must be adjusted to match what would be inferred if they were assessed using the same cosmological parameters as were used for the observational data. Typically, this will mean that weights are scaled in proportion to :math:`V_\mathrm{max} / V^\prime_\mathrm{max}`, where :math:`V_\mathrm{max}` and :math:`V^\prime_\mathrm{max}` are the maximum volumes within which the galaxy would have been detected in the true and assumed cosmologies respectively.
    </description>
   </outputAnalysisWeightOperator>
   !!]
-  type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorCsmlgyVolume
+  type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorCosmologyVolume
      !!{RST
      A cosmological volume corrector analysis weight operator class.
      !!}
@@ -39,27 +39,27 @@ Implements a cosmological volume corrector analysis weight operator class.
      class(cosmologyFunctionsClass), pointer :: cosmologyFunctionsModel => null(), cosmologyFunctionsData => null()
      class(surveyGeometryClass    ), pointer :: surveyGeometry_         => null()
    contains
-     final     ::            csmlgyVolumeDestructor
-     procedure :: operate => csmlgyVolumeOperate
-  end type outputAnalysisWeightOperatorCsmlgyVolume
+     final     ::            cosmologyVolumeDestructor
+     procedure :: operate => cosmologyVolumeOperate
+  end type outputAnalysisWeightOperatorCosmologyVolume
 
-  interface outputAnalysisWeightOperatorCsmlgyVolume
+  interface outputAnalysisWeightOperatorCosmologyVolume
      !!{RST
-     Constructors for the :galacticus-class:`outputAnalysisWeightOperatorCsmlgyVolume` output analysis weight operator class.
+     Constructors for the :galacticus-class:`outputAnalysisWeightOperatorCosmologyVolume` output analysis weight operator class.
      !!}
-     module procedure csmlgyVolumeConstructorParameters
-     module procedure csmlgyVolumeConstructorInternal
-  end interface outputAnalysisWeightOperatorCsmlgyVolume
+     module procedure cosmologyVolumeConstructorParameters
+     module procedure cosmologyVolumeConstructorInternal
+  end interface outputAnalysisWeightOperatorCosmologyVolume
 
 contains
 
-  function csmlgyVolumeConstructorParameters(parameters) result(self)
+  function cosmologyVolumeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`outputAnalysisWeightOperatorCsmlgyVolume` output analysis weight operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisWeightOperatorCosmologyVolume` output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type   (outputAnalysisWeightOperatorCsmlgyVolume)                :: self
+    type   (outputAnalysisWeightOperatorCosmologyVolume)                :: self
     type   (inputParameters                         ), intent(inout) :: parameters
     class  (cosmologyFunctionsClass                 ), pointer       :: cosmologyFunctionsModel, cosmologyFunctionsData
     class  (surveyGeometryClass                     ), pointer       :: surveyGeometry_
@@ -73,7 +73,7 @@ contains
     <objectBuilder class="surveyGeometry"     name="surveyGeometry_"         source="dataAnalysisParameters"/>
     !!]
     ! Construct the object.
-    self=outputAnalysisWeightOperatorCsmlgyVolume(cosmologyFunctionsModel,cosmologyFunctionsData,surveyGeometry_)
+    self=outputAnalysisWeightOperatorCosmologyVolume(cosmologyFunctionsModel,cosmologyFunctionsData,surveyGeometry_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctionsModel"/>
@@ -81,14 +81,14 @@ contains
     <objectDestructor name="surveyGeometry_"        />
     !!]
     return
-  end function csmlgyVolumeConstructorParameters
+  end function cosmologyVolumeConstructorParameters
 
-  function csmlgyVolumeConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData,surveyGeometry_) result(self)
+  function cosmologyVolumeConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData,surveyGeometry_) result(self)
     !!{RST
-    Internal constructor for the :galacticus-class:`outputAnalysisWeightOperatorCsmlgyVolume` output analysis weight operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisWeightOperatorCosmologyVolume` output analysis weight operator class.
     !!}
     implicit none
-    type   (outputAnalysisWeightOperatorCsmlgyVolume)                        :: self
+    type   (outputAnalysisWeightOperatorCosmologyVolume)                        :: self
     class  (cosmologyFunctionsClass                 ), intent(in   ), target :: cosmologyFunctionsModel, cosmologyFunctionsData
     class  (surveyGeometryClass                     ), intent(in   ), target :: surveyGeometry_
     !![
@@ -96,14 +96,14 @@ contains
     !!]
 
     return
-  end function csmlgyVolumeConstructorInternal
+  end function cosmologyVolumeConstructorInternal
 
-  subroutine csmlgyVolumeDestructor(self)
+  subroutine cosmologyVolumeDestructor(self)
     !!{RST
-    Destructor for the :galacticus-class:`outputAnalysisWeightOperatorCsmlgyVolume` output analysis weight operator class.
+    Destructor for the :galacticus-class:`outputAnalysisWeightOperatorCosmologyVolume` output analysis weight operator class.
     !!}
     implicit none
-    type(outputAnalysisWeightOperatorCsmlgyVolume), intent(inout) :: self
+    type(outputAnalysisWeightOperatorCosmologyVolume), intent(inout) :: self
 
     !![
     <objectDestructor name="self%cosmologyFunctionsModel"/>
@@ -111,18 +111,18 @@ contains
     <objectDestructor name="self%surveyGeometry_"        />
     !!]
     return
-  end subroutine csmlgyVolumeDestructor
+  end subroutine cosmologyVolumeDestructor
 
-  double precision function csmlgyVolumeOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
+  double precision function cosmologyVolumeOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !!{RST
-    Implement an csmlgyVolume output analysis weight operator.
+    Implement an cosmologyVolume output analysis weight operator.
     !!}
     use            :: Error                  , only : Error_Report
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity, outputAnalysisPropertyQuantityStarFormationRate,outputAnalysisPropertyQuantityMass, outputAnalysisPropertyTypeLinear, &
           &                                           outputAnalysisPropertyTypeMagnitude     , outputAnalysisPropertyTypeLog10
     implicit none
-    class           (outputAnalysisWeightOperatorCsmlgyVolume     ), intent(inout) :: self
+    class           (outputAnalysisWeightOperatorCosmologyVolume     ), intent(inout) :: self
     type            (treeNode                                     ), intent(inout) :: node
     double precision                                               , intent(in   ) :: propertyValue         , propertyValueIntrinsic, &
          &                                                                            weightValue
@@ -273,7 +273,7 @@ contains
        call Error_Report('model volume is non-zero, but data volume is zero'//{introspection:location})
     end if
     ! Multiply by the correction factor.
-    csmlgyVolumeOperate=+weightValue      &
+    cosmologyVolumeOperate=+weightValue      &
          &              *correctionFactor
     return
-  end function csmlgyVolumeOperate
+  end function cosmologyVolumeOperate

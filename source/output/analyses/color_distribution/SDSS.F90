@@ -109,7 +109,7 @@ contains
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                                    , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerSequence, outputAnalysisDistributionNormalizerUnitarity
     use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRandomErrorFixed
-    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   , outputAnalysisPropertyOperatorIdentity      , outputAnalysisPropertyOperatorMagnitude     , outputAnalysisPropertyOperatorSequence       , &
+    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorCosmologyLuminosityDistance   , outputAnalysisPropertyOperatorIdentity      , outputAnalysisPropertyOperatorMagnitude     , outputAnalysisPropertyOperatorSequence       , &
           &                                                 propertyOperatorList
     use :: Output_Analysis_Utilities               , only : Output_Analysis_Output_Weight_Survey_Volume
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorNormal
@@ -132,7 +132,7 @@ contains
     ! Both postprocessing chains are extracted so that the wrapper can split each component's light by stellar
     ! population age, which the birth cloud component of the dust model requires.
     type            (varying_string                                    ), allocatable, dimension(:)   :: postprocessChains
-    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   ), pointer                     :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
+    type            (outputAnalysisPropertyOperatorCosmologyLuminosityDistance   ), pointer                     :: outputAnalysisPropertyOperatorCosmologyLuminosityDistance_
     type            (outputAnalysisPropertyOperatorMagnitude           ), pointer                     :: outputAnalysisPropertyOperatorMagnitude_
     type            (outputAnalysisPropertyOperatorSequence            ), pointer                     :: outputAnalysisWeightPropertyOperatorSequence_
     type            (outputAnalysisPropertyOperatorIdentity            ), pointer                     :: outputAnalysisPropertyOperatorIdentity_
@@ -265,15 +265,15 @@ contains
     <referenceConstruct object="nodePropertyExtractorRatio_"            constructor="nodePropertyExtractorRatio              ('color','SDSS u-r color',nodePropertyExtractorBandU_,nodePropertyExtractorBandR_                                 )"/>
     !!]
     ! Create magnitude, and cosmological luminosity distance property operators.
-    allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
+    allocate(outputAnalysisPropertyOperatorCosmologyLuminosityDistance_)
     allocate(outputAnalysisPropertyOperatorMagnitude_        )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   (cosmologyFunctions_,cosmologyFunctionsData,outputTimes_                                                                              )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorCosmologyLuminosityDistance_" constructor="outputAnalysisPropertyOperatorCosmologyLuminosityDistance   (cosmologyFunctions_,cosmologyFunctionsData,outputTimes_                                                                              )"/>
     <referenceConstruct object="outputAnalysisPropertyOperatorMagnitude_"         constructor="outputAnalysisPropertyOperatorMagnitude()"/>
     !!]
     allocate(weightPropertyOperatorSequence                  )
     allocate(weightPropertyOperatorSequence%next             )
-    weightPropertyOperatorSequence     %operator_ => outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
+    weightPropertyOperatorSequence     %operator_ => outputAnalysisPropertyOperatorCosmologyLuminosityDistance_
     weightPropertyOperatorSequence%next%operator_ => outputAnalysisPropertyOperatorMagnitude_
     allocate(outputAnalysisWeightPropertyOperatorSequence_   )
     !![
@@ -377,7 +377,7 @@ contains
     !![
     <objectDestructor name="outputAnalysisWeightPropertyOperatorSequence_"   />
     <objectDestructor name="outputAnalysisPropertyOperatorMagnitude_"        />
-    <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
+    <objectDestructor name="outputAnalysisPropertyOperatorCosmologyLuminosityDistance_"/>
     <objectDestructor name="outputAnalysisPropertyOperatorIdentity_"         />
     <objectDestructor name="outputAnalysisDistributionNormalizer_"           />
     <objectDestructor name="outputAnalysisDistributionOperator_"             />

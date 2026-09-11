@@ -33,7 +33,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   use :: Power_Spectra_Primordial             , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred , only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectrum_Window_Functions      , only : powerSpectrumWindowFunctionSharpKSpace
-  use :: Spherical_Collapse_Solvers           , only : cllsnlssMttrDarkEnergyFixedAtTurnaround
+  use :: Spherical_Collapse_Solvers           , only : collisionlessMatterDarkEnergyFixedAtTurnaround
   use :: Transfer_Functions                   , only : transferFunctionIdentity
   use :: Unit_Tests                           , only : Assert                                                    , Unit_Tests_Begin_Group                                        , Unit_Tests_End_Group                                        , Unit_Tests_Finish
   use :: Virial_Density_Contrast              , only : virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy, virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
@@ -189,7 +189,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      intergalacticMediumFilteringMass_       =intergalacticMediumFilteringMassGnedin2000_, &
           &                                                                                                                      tablePointsPerOctave                    =300                                        , &
           &                                                                                                                      tableStore                              =.false.                                    , &
-          &                                                                                                                      energyFixedAt                           =cllsnlssMttrDarkEnergyFixedAtTurnaround    , &
+          &                                                                                                                      energyFixedAt                           =collisionlessMatterDarkEnergyFixedAtTurnaround    , &
           &                                                                                                                      perturbationSmall                       =1.0d-3                                     , &
           &                                                                                                                      normalization                           =1.0d+0                                       &
           &                                                                                                                     )
@@ -201,7 +201,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
      virialDensityContrastSphrclCllpsBrynsDrkMttrDrkEnrgy_      =virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy     (                                                                                      &
           &                                                                                                                      tableStore                              =.true.                                     , &
           &                                                                                                                      tablePointsPerOctave                    =300                                        , &
-          &                                                                                                                      energyFixedAt                           =cllsnlssMttrDarkEnergyFixedAtTurnaround    , &
+          &                                                                                                                      energyFixedAt                           =collisionlessMatterDarkEnergyFixedAtTurnaround    , &
           &                                                                                                                      perturbationSmall                       =1.0d-3                                     , &
           &                                                                                                                      cosmologyParameters_                    =cosmologyParametersDMO_                    , &
           &                                                                                                                      cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_            , &

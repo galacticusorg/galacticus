@@ -33,7 +33,7 @@ program Tests_Excursion_Sets
   use :: Galacticus_Nodes                    , only : treeNode
   use :: ISO_Varying_String                  , only : var_str
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
-  use :: Merger_Tree_Branching               , only : mergerTreeBranchingProbabilityGnrlzdPrssSchchtr, mergerTreeBranchingProbabilityParkinsonColeHelly
+  use :: Merger_Tree_Branching               , only : mergerTreeBranchingProbabilityGeneralizedPressSchechter, mergerTreeBranchingProbabilityParkinsonColeHelly
   use :: Merger_Tree_Branching_Modifiers     , only : mergerTreeBranchingProbabilityModifierIdentity
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple

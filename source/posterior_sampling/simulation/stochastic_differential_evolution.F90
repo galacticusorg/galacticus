@@ -22,7 +22,7 @@
   !!}
 
   !![
-  <posteriorSampleSimulation name="posteriorSampleSimulationStochasticDffrntlEvltn" docformat="rst">
+  <posteriorSampleSimulation name="posteriorSampleSimulationStochasticDifferentialEvolution" docformat="rst">
    <description>
    This option extends the ``differentialEvolution`` option to run chains at a temperature matched to the uncertainty in the log-likelihood. This is designed to work with stochastic likelihood functions where an estimate of the uncertainty in the log-likelihood is available, and prevents the chains from becoming trapped in local maxima arising purely from random fluctuations.  In addition to the options for the ``differentialEvolution`` algorithm, the details of the algorithm are controlled by the following parameters:
 
@@ -39,7 +39,7 @@
    </description>
   </posteriorSampleSimulation>
   !!]
-  type, extends(posteriorSampleSimulationDifferentialEvolution) :: posteriorSampleSimulationStochasticDffrntlEvltn
+  type, extends(posteriorSampleSimulationDifferentialEvolution) :: posteriorSampleSimulationStochasticDifferentialEvolution
      !!{RST
      Implementation of a posterior sampling simulation class which implements a stochastic differential evolution algorithm.
      !!}
@@ -53,25 +53,25 @@
      !!]
      procedure :: acceptProposal => stochasticDifferentialEvolutionAcceptProposal
      procedure :: initialize     => stochasticDifferentialEvolutionInitialize
-  end type posteriorSampleSimulationStochasticDffrntlEvltn
+  end type posteriorSampleSimulationStochasticDifferentialEvolution
 
-  interface posteriorSampleSimulationStochasticDffrntlEvltn
+  interface posteriorSampleSimulationStochasticDifferentialEvolution
      !!{RST
-     Constructors for the :galacticus-class:`posteriorSampleSimulationStochasticDffrntlEvltn` posterior sampling simulation class.
+     Constructors for the :galacticus-class:`posteriorSampleSimulationStochasticDifferentialEvolution` posterior sampling simulation class.
      !!}
      module procedure stochasticDifferentialEvolutionConstructorParameters
      module procedure stochasticDifferentialEvolutionConstructorInternal
-  end interface posteriorSampleSimulationStochasticDffrntlEvltn
+  end interface posteriorSampleSimulationStochasticDifferentialEvolution
 
 contains
 
   function stochasticDifferentialEvolutionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`posteriorSampleSimulationStochasticDffrntlEvltn` posterior sampling simulation class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleSimulationStochasticDifferentialEvolution` posterior sampling simulation class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (posteriorSampleSimulationStochasticDffrntlEvltn)                :: self
+    type            (posteriorSampleSimulationStochasticDifferentialEvolution)                :: self
     type            (inputParameters                                ), intent(inout) :: parameters
     double precision                                                                 :: temperatureScale
 
@@ -97,7 +97,7 @@ contains
     Internal constructor for the "stochasticDifferentialEvolution" simulation class.
     !!}
     implicit none
-    type            (posteriorSampleSimulationStochasticDffrntlEvltn)                                      :: self
+    type            (posteriorSampleSimulationStochasticDifferentialEvolution)                                      :: self
     type            (modelParameterList                             ), intent(in   ), target, dimension(:) :: modelParametersActive_                  , modelParametersInactive_
     class           (posteriorSampleLikelihoodClass                 ), intent(in   ), target               :: posteriorSampleLikelihood_
     class           (posteriorSampleConvergenceClass                ), intent(in   ), target               :: posteriorSampleConvergence_
@@ -127,7 +127,7 @@ contains
     Finished initialization of stochastic differential evolution simulation objects during construction.
     !!}
     implicit none
-    class           (posteriorSampleSimulationStochasticDffrntlEvltn), intent(inout) :: self
+    class           (posteriorSampleSimulationStochasticDifferentialEvolution), intent(inout) :: self
     double precision                                                 , intent(in   ) :: temperatureScale
 
     self%temperatureScale=temperatureScale
@@ -141,7 +141,7 @@ contains
     use :: Error                         , only : Error_Report
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceGelmanRubin
     implicit none
-    class           (posteriorSampleSimulationStochasticDffrntlEvltn), intent(inout) :: self
+    class           (posteriorSampleSimulationStochasticDifferentialEvolution), intent(inout) :: self
     double precision                                                 , intent(in   ) :: logPosterior                , logPosteriorProposed         , &
          &                                                                              logLikelihoodVariance       , logLikelihoodVarianceProposed
     double precision                                                                 :: x                           , temperature                  , &

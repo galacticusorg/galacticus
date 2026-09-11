@@ -1864,7 +1864,7 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="PCHPlus"/>
           <xs:enumeration value="fakhouri2010"/>
-          <xs:enumeration value="gnrlzdPrssSchchtr"/>
+          <xs:enumeration value="generalizedPressSchechter"/>
           <xs:enumeration value="parkinsonColeHelly"/>
          </xs:restriction>
         </xs:simpleType>
@@ -1926,7 +1926,7 @@
           <xs:enumeration value="gaussian"/>
           <xs:enumeration value="haloMassFunction"/>
           <xs:enumeration value="powerLaw"/>
-          <xs:enumeration value="stllrMssFnctn"/>
+          <xs:enumeration value="stellarMassFunction"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
@@ -2613,9 +2613,9 @@
           <xs:enumeration value="lightcone"/>
           <xs:enumeration value="list"/>
           <xs:enumeration value="list2D"/>
-          <xs:enumeration value="lmnstyEmssnLineAGN"/>
-          <xs:enumeration value="lmnstyEmssnLinePanuzzo2003"/>
           <xs:enumeration value="luminosityEmissionLine"/>
+          <xs:enumeration value="luminosityEmissionLineAGN"/>
+          <xs:enumeration value="luminosityEmissionLinePanuzzo2003"/>
           <xs:enumeration value="luminosityStellar"/>
           <xs:enumeration value="luminosityStellarFromSED"/>
           <xs:enumeration value="magnitudesAbsolute"/>
@@ -2861,16 +2861,17 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="diskSizeInclntn"/>
-          <xs:enumeration value="grvtnlLnsng"/>
+          <xs:enumeration value="gravitationalLensing"/>
           <xs:enumeration value="identity"/>
           <xs:enumeration value="massIncompleteness"/>
           <xs:enumeration value="massRatioNBody"/>
           <xs:enumeration value="randomError"/>
           <xs:enumeration value="randomErrorALFLF"/>
           <xs:enumeration value="randomErrorFixed"/>
-          <xs:enumeration value="randomErrorPlynml"/>
+          <xs:enumeration value="randomErrorNbodyConcentration"/>
+          <xs:enumeration value="randomErrorNbodyMass"/>
+          <xs:enumeration value="randomErrorPolynomial"/>
           <xs:enumeration value="rndmErrNbdyCnc"/>
-          <xs:enumeration value="rndmErrNbodyMass"/>
           <xs:enumeration value="sequence"/>
           <xs:enumeration value="spinNBodyErrors"/>
          </xs:restriction>
@@ -2905,9 +2906,9 @@
           <xs:enumeration value="HIMass"/>
           <xs:enumeration value="antiLog10"/>
           <xs:enumeration value="boolean"/>
+          <xs:enumeration value="cosmologyAngularDistance"/>
+          <xs:enumeration value="cosmologyLuminosityDistance"/>
           <xs:enumeration value="cosmologySZ"/>
-          <xs:enumeration value="csmlgyAnglrDstnc"/>
-          <xs:enumeration value="csmlgyLmnstyDstnc"/>
           <xs:enumeration value="filterHighPass"/>
           <xs:enumeration value="identity"/>
           <xs:enumeration value="log10"/>
@@ -2919,7 +2920,7 @@
           <xs:enumeration value="normal"/>
           <xs:enumeration value="sequence"/>
           <xs:enumeration value="square"/>
-          <xs:enumeration value="systmtcPolynomial"/>
+          <xs:enumeration value="systematicPolynomial"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
@@ -2949,7 +2950,7 @@
        <xs:attribute name="value" use="optional">
         <xs:simpleType>
          <xs:restriction base="xs:string">
-          <xs:enumeration value="csmlgyVolume"/>
+          <xs:enumeration value="cosmologyVolume"/>
           <xs:enumeration value="filterHighPass"/>
           <xs:enumeration value="identity"/>
           <xs:enumeration value="localGroupDetection"/>
@@ -3067,12 +3068,12 @@
           <xs:enumeration value="haloMassFunction"/>
           <xs:enumeration value="heated"/>
           <xs:enumeration value="independentLikelihoods"/>
-          <xs:enumeration value="indpndntLklhdsSqntl"/>
+          <xs:enumeration value="independentLikelihoodsSequential"/>
           <xs:enumeration value="massFunction"/>
           <xs:enumeration value="mltiVrtNormalStochastic"/>
           <xs:enumeration value="multivariateNormal"/>
           <xs:enumeration value="posteriorAsPrior"/>
-          <xs:enumeration value="prjctdCorrelationFunction"/>
+          <xs:enumeration value="projectedCorrelationFunction"/>
           <xs:enumeration value="spinDistribution"/>
          </xs:restriction>
         </xs:simpleType>
@@ -3088,13 +3089,13 @@
        <xs:attribute name="value" use="optional">
         <xs:simpleType>
          <xs:restriction base="xs:string">
-          <xs:enumeration value="annealedDffrntlEvltn"/>
+          <xs:enumeration value="annealedDifferentialEvolution"/>
           <xs:enumeration value="differentialEvolution"/>
           <xs:enumeration value="grid"/>
           <xs:enumeration value="initialState"/>
           <xs:enumeration value="particleSwarm"/>
-          <xs:enumeration value="stochasticDffrntlEvltn"/>
-          <xs:enumeration value="temperedDffrntlEvltn"/>
+          <xs:enumeration value="stochasticDifferentialEvolution"/>
+          <xs:enumeration value="temperedDifferentialEvolution"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
@@ -3604,7 +3605,8 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="baryonsDarkMatterDarkEnergy"/>
           <xs:enumeration value="cllsnlssMttrCsmlgclCnstnt"/>
-          <xs:enumeration value="cllsnlssMttrDarkEnergy"/>
+          <xs:enumeration value="collisionlessMatterCosmologicalConstant"/>
+          <xs:enumeration value="collisionlessMatterDarkEnergy"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
@@ -3782,7 +3784,7 @@
           <xs:enumeration value="rateLimit"/>
           <xs:enumeration value="summation"/>
           <xs:enumeration value="superWind"/>
-          <xs:enumeration value="vlctyMxSclng"/>
+          <xs:enumeration value="velocityMaximumScaling"/>
           <xs:enumeration value="zero"/>
          </xs:restriction>
         </xs:simpleType>

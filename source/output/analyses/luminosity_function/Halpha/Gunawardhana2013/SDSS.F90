@@ -191,8 +191,8 @@ contains
     use :: Input_Paths                           , only : inputPath                                      , pathTypeDataStatic
     use :: Geometry_Surveys                      , only : surveyGeometryGunawardhana2013SDSS
     use :: Gravitational_Lensing                 , only : gravitationalLensingClass
-    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorRandomErrorPlynml, outputAnalysisDistributionOperatorSequence
-    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
+    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGravitationalLensing, outputAnalysisDistributionOperatorRandomErrorPolynomial, outputAnalysisDistributionOperatorSequence
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystematicPolynomial
     use :: Star_Formation_Rates_Disks            , only : starFormationRateDisksClass
     use :: Star_Formation_Rates_Spheroids        , only : starFormationRateSpheroidsClass
     implicit none
@@ -210,9 +210,9 @@ contains
     double precision                                                      , intent(in   )               :: covarianceBinomialMassHaloMinimum                         , covarianceBinomialMassHaloMaximum
     type            (galacticFilterStellarMass                           )               , pointer      :: galacticFilter_
     type            (surveyGeometryGunawardhana2013SDSS                  )               , pointer      :: surveyGeometry_
-    type            (outputAnalysisPropertyOperatorSystmtcPolynomial     )               , pointer      :: outputAnalysisPropertyOperator_
-    type            (outputAnalysisDistributionOperatorRandomErrorPlynml )               , pointer      :: outputAnalysisDistributionOperatorRandomErrorPlynml_
-    type            (outputAnalysisDistributionOperatorGrvtnlLnsng       )               , pointer      :: outputAnalysisDistributionOperatorGrvtnlLnsng_
+    type            (outputAnalysisPropertyOperatorSystematicPolynomial     )               , pointer      :: outputAnalysisPropertyOperator_
+    type            (outputAnalysisDistributionOperatorRandomErrorPolynomial )               , pointer      :: outputAnalysisDistributionOperatorRandomErrorPolynomial_
+    type            (outputAnalysisDistributionOperatorGravitationalLensing       )               , pointer      :: outputAnalysisDistributionOperatorGravitationalLensing_
     type            (outputAnalysisDistributionOperatorSequence          )               , pointer      :: outputAnalysisDistributionOperator_
     type            (cosmologyParametersSimple                           )               , pointer      :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                      )               , pointer      :: cosmologyFunctionsData
@@ -259,14 +259,14 @@ contains
     !! Systematic error model.
     allocate(outputAnalysisPropertyOperator_    )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperator_"    constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient)"/>
+    <referenceConstruct object="outputAnalysisPropertyOperator_"    constructor="outputAnalysisPropertyOperatorSystematicPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient)"/>
     !!]
     ! Build a random error distribution operator.
-    allocate(outputAnalysisDistributionOperatorRandomErrorPlynml_)
+    allocate(outputAnalysisDistributionOperatorRandomErrorPolynomial_)
     !![
-    <referenceConstruct object="outputAnalysisDistributionOperatorRandomErrorPlynml_">
+    <referenceConstruct object="outputAnalysisDistributionOperatorRandomErrorPolynomial_">
      <constructor>
-      outputAnalysisDistributionOperatorRandomErrorPlynml (                                  &amp;
+      outputAnalysisDistributionOperatorRandomErrorPolynomial (                                  &amp;
         &amp;                                              randomErrorMinimum              , &amp;
         &amp;                                              randomErrorMaximum              , &amp;
         &amp;                                              errorPolynomialZeroPoint        , &amp;
@@ -276,11 +276,11 @@ contains
     </referenceConstruct>
     !!]
     ! Build a gravitational lensing distribution operator.
-    allocate(outputAnalysisDistributionOperatorGrvtnlLnsng_)
+    allocate(outputAnalysisDistributionOperatorGravitationalLensing_)
     !![
-    <referenceConstruct object="outputAnalysisDistributionOperatorGrvtnlLnsng_">
+    <referenceConstruct object="outputAnalysisDistributionOperatorGravitationalLensing_">
      <constructor>
-      outputAnalysisDistributionOperatorGrvtnlLnsng       (                                  &amp;
+      outputAnalysisDistributionOperatorGravitationalLensing       (                                  &amp;
         &amp;                                              gravitationalLensing_           , &amp;
         &amp;                                              outputTimes_                    , &amp;
         &amp;                                              sizeSourceLensing                 &amp;
@@ -292,8 +292,8 @@ contains
     allocate(distributionOperatorSequence            )
     allocate(distributionOperatorSequence       %next)
     allocate(outputAnalysisDistributionOperator_     )
-    distributionOperatorSequence            %operator_   => outputAnalysisDistributionOperatorRandomErrorPlynml_
-    distributionOperatorSequence       %next%operator_   => outputAnalysisDistributionOperatorGrvtnlLnsng_
+    distributionOperatorSequence            %operator_   => outputAnalysisDistributionOperatorRandomErrorPolynomial_
+    distributionOperatorSequence       %next%operator_   => outputAnalysisDistributionOperatorGravitationalLensing_
     !![
     <referenceConstruct object="outputAnalysisDistributionOperator_">
      <constructor>
@@ -332,8 +332,8 @@ contains
     <objectDestructor name="cosmologyFunctionsData"                              />
     <objectDestructor name="outputAnalysisPropertyOperator_"                     />
     <objectDestructor name="outputAnalysisDistributionOperator_"                 />
-    <objectDestructor name="outputAnalysisDistributionOperatorGrvtnlLnsng_"      />
-    <objectDestructor name="outputAnalysisDistributionOperatorRandomErrorPlynml_"/>
+    <objectDestructor name="outputAnalysisDistributionOperatorGravitationalLensing_"      />
+    <objectDestructor name="outputAnalysisDistributionOperatorRandomErrorPolynomial_"/>
     !!]
     nullify(distributionOperatorSequence)
     return
