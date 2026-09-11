@@ -275,7 +275,7 @@ contains
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerBinWidth
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorClass
-    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorCosmologyLuminosityDistance, outputAnalysisPropertyOperatorIdentity, outputAnalysisPropertyOperatorMagnitude, &
+    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorIdentity, outputAnalysisPropertyOperatorMagnitude, &
           &                                                 outputAnalysisPropertyOperatorSequence      , propertyOperatorList
     use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Utilities               , only : Output_Analysis_Output_Weight_Survey_Volume
@@ -307,7 +307,7 @@ contains
     type            (varying_string                                  ), allocatable  , dimension(:)             :: postprocessChains
     type            (outputAnalysisPropertyOperatorMagnitude         )               , pointer                  :: outputAnalysisPropertyOperatorMagnitude_
     type            (outputAnalysisPropertyOperatorIdentity          )               , pointer                  :: outputAnalysisPropertyOperatorIdentity_
-    type            (outputAnalysisPropertyOperatorCosmologyLuminosityDistance )               , pointer                  :: outputAnalysisPropertyOperatorCosmologyLuminosityDistance_
+    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc )               , pointer                  :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorSequence          )               , pointer                  :: outputAnalysisPropertyOperatorSequence_
     type            (outputAnalysisWeightOperatorCosmologyVolume        )               , pointer                  :: outputAnalysisWeightOperator_
     type            (outputAnalysisDistributionNormalizerBinWidth    )               , pointer                  :: outputAnalysisDistributionNormalizer_
@@ -363,15 +363,15 @@ contains
     !![
     <referenceConstruct object="outputAnalysisPropertyOperatorIdentity_"          constructor="outputAnalysisPropertyOperatorIdentity          (                                                                                                  )"/>
     !!]
-    allocate(outputAnalysisPropertyOperatorCosmologyLuminosityDistance_)
+    allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorCosmologyLuminosityDistance_" constructor="outputAnalysisPropertyOperatorCosmologyLuminosityDistance (cosmologyFunctions_,cosmologyFunctionsData,outputTimes_                                           )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc (cosmologyFunctions_,cosmologyFunctionsData,outputTimes_                                           )"/>
     !!]
     select type (outputAnalysisPropertyOperator_)
     type is (outputAnalysisPropertyOperatorSequence)
        ! Existing property operator is a sequence operator - simply prepend our magnitude and cosmological luminosity distance operators to it.
        call outputAnalysisPropertyOperator_%prepend(outputAnalysisPropertyOperatorMagnitude_        )
-       call outputAnalysisPropertyOperator_%prepend(outputAnalysisPropertyOperatorCosmologyLuminosityDistance_)
+       call outputAnalysisPropertyOperator_%prepend(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
        !![
        <referenceAcquire target="outputAnalysisPropertyOperatorSequence_" source="outputAnalysisPropertyOperator_"/>
        !!]
@@ -380,7 +380,7 @@ contains
        allocate(propertyOperatorSequence          )
        allocate(propertyOperatorSequence%next     )
        allocate(propertyOperatorSequence%next%next)
-       propertyOperatorSequence          %operator_ => outputAnalysisPropertyOperatorCosmologyLuminosityDistance_
+       propertyOperatorSequence          %operator_ => outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
        propertyOperatorSequence%next     %operator_ => outputAnalysisPropertyOperatorMagnitude_
        propertyOperatorSequence%next%next%operator_ => outputAnalysisPropertyOperator_
        allocate(outputAnalysisPropertyOperatorSequence_)
@@ -462,7 +462,7 @@ contains
     <objectDestructor name="outputAnalysisPropertyOperatorMagnitude_"        />
     <objectDestructor name="outputAnalysisPropertyOperatorIdentity_"         />
     <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />
-    <objectDestructor name="outputAnalysisPropertyOperatorCosmologyLuminosityDistance_"/>
+    <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
     <objectDestructor name="outputAnalysisDistributionNormalizer_"           />
     <objectDestructor name="outputAnalysisWeightOperator_"                   />
     !!]

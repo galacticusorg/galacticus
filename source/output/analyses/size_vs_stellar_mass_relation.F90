@@ -281,7 +281,7 @@ contains
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPolynomial
     use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
-    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10                       , outputAnalysisPropertyOperatorCosmologyLuminosityDistance, propertyOperatorList                          , outputAnalysisPropertyOperatorLog10, &
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10                       , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, propertyOperatorList                          , outputAnalysisPropertyOperatorLog10, &
           &                                               outputAnalysisPropertyOperatorSequence                        , outputAnalysisPropertyOperatorSystematicPolynomial, outputAnalysisPropertyOperatorCosmologyAngularDistance
     use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
@@ -319,7 +319,7 @@ contains
          &                                                                                                  outputAnalysisWeightPropertyOperatorLog10Second_             , outputAnalysisPropertyOperatorLog10Second_
     type            (outputAnalysisPropertyOperatorAntiLog10            ), pointer                       :: outputAnalysisPropertyUnoperator_                            , outputAnalysisWeightPropertyOperatorAntiLog10_         , &
          &                                                                                                  outputAnalysisPropertyOperatorAntiLog10_
-    type            (outputAnalysisPropertyOperatorCosmologyLuminosityDistance    ), pointer                       :: outputAnalysisPropertyOperatorCosmologyLuminosityDistance_
+    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc    ), pointer                       :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorSequence             ), pointer                       :: outputAnalysisWeightPropertyOperator_                        , outputAnalysisPropertyOperator_
     type            (outputAnalysisPropertyOperatorCosmologyAngularDistance     ), pointer                       :: outputAnalysisWeightPropertyOperatorCosmologyAngularDistance_
     type            (outputAnalysisPropertyOperatorSystematicPolynomial    ), pointer                       :: outputAnalysisWeightPropertyOperatorSystematicPolynomial_       , outputAnalysisPropertyOperatorSystematicPolynomial_
@@ -516,9 +516,9 @@ contains
     </referenceConstruct>
     !!]
     ! Build a sequence (log10(), polynomial systematic anti-log10, cosmological luminosity distance, log10) property operator.
-    allocate   (outputAnalysisPropertyOperatorCosmologyLuminosityDistance_              )
+    allocate   (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_              )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorCosmologyLuminosityDistance_" constructor="outputAnalysisPropertyOperatorCosmologyLuminosityDistance(cosmologyFunctions_     ,cosmologyFunctionsTarget                      ,outputTimes_)"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctions_     ,cosmologyFunctionsTarget                      ,outputTimes_)"/>
     !!]
     allocate   (outputAnalysisPropertyOperatorSystematicPolynomial_             )
     !![
@@ -544,7 +544,7 @@ contains
     propertyOperatorsMassStellar_                    %operator_ => outputAnalysisPropertyOperatorLog10_
     propertyOperatorsMassStellar_%next               %operator_ => outputAnalysisPropertyOperatorSystematicPolynomial_
     propertyOperatorsMassStellar_%next%next          %operator_ => outputAnalysisPropertyOperatorAntiLog10_
-    propertyOperatorsMassStellar_%next%next%next     %operator_ => outputAnalysisPropertyOperatorCosmologyLuminosityDistance_
+    propertyOperatorsMassStellar_%next%next%next     %operator_ => outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     propertyOperatorsMassStellar_%next%next%next%next%operator_ => outputAnalysisPropertyOperatorLog10Second_
     allocate(outputAnalysisPropertyOperator_                          )
     !![
@@ -731,7 +731,7 @@ contains
     <objectDestructor name="outputAnalysisPropertyOperatorSystematicPolynomial_"      />
     <objectDestructor name="outputAnalysisPropertyOperatorLog10Second_"            />
     <objectDestructor name="outputAnalysisPropertyOperatorAntiLog10_"              />
-    <objectDestructor name="outputAnalysisPropertyOperatorCosmologyLuminosityDistance_"      />
+    <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"      />
     <objectDestructor name="outputAnalysisPropertyOperator_"                       />
     <objectDestructor name="outputAnalysisWeightPropertyOperatorSystematicPolynomial_"/>
     <objectDestructor name="outputAnalysisWeightPropertyOperatorLog10_"            />

@@ -131,7 +131,7 @@ contains
     use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators  , only : distributionOperatorList                     , lensedPropertySize                            , outputAnalysisDistributionOperatorClass        , outputAnalysisDistributionOperatorDiskSizeInclntn, &
           &                                                 outputAnalysisDistributionOperatorGravitationalLensing, outputAnalysisDistributionOperatorIdentity    , outputAnalysisDistributionOperatorSequence
-    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10      , outputAnalysisPropertyOperatorCosmologyAngularDistance, outputAnalysisPropertyOperatorCosmologyLuminosityDistance, outputAnalysisPropertyOperatorLog10              , &
+    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10      , outputAnalysisPropertyOperatorCosmologyAngularDistance, outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10              , &
           &                                                 outputAnalysisPropertyOperatorMultiply       , outputAnalysisPropertyOperatorSequence        , propertyOperatorList
     use :: Output_Analysis_Utilities               , only : Output_Analysis_Output_Weight_Survey_Volume
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorNormal
@@ -148,7 +148,7 @@ contains
     type            (nodePropertyExtractorRadiusHalfMassStellar     ), pointer                     :: nodePropertyExtractor_
     type            (nodePropertyExtractorMassStellar               ), pointer                     :: outputAnalysisWeightPropertyExtractor_
     type            (outputAnalysisPropertyOperatorCosmologyAngularDistance ), pointer                     :: outputAnalysisPropertyOperatorCosmologyAngularDistance_
-    type            (outputAnalysisPropertyOperatorCosmologyLuminosityDistance), pointer                     :: outputAnalysisPropertyOperatorCosmologyLuminosityDistance_
+    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), pointer                     :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorLog10            ), pointer                     :: outputAnalysisPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorMultiply         ), pointer                     :: outputAnalysisPropertyOperatorMultiply_
     type            (outputAnalysisPropertyOperatorSequence         ), pointer                     :: outputAnalysisPropertyOperatorSequence_         , outputAnalysisWeightPropertyOperatorSequence_
@@ -273,9 +273,9 @@ contains
     !![
     <referenceConstruct object="outputAnalysisPropertyOperatorCosmologyAngularDistance_"  constructor="outputAnalysisPropertyOperatorCosmologyAngularDistance    (cosmologyFunctions_             ,cosmologyFunctionsData,outputTimes_                                                                                        )"/>
     !!]
-    allocate(outputAnalysisPropertyOperatorCosmologyLuminosityDistance_)
+    allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorCosmologyLuminosityDistance_" constructor="outputAnalysisPropertyOperatorCosmologyLuminosityDistance   (cosmologyFunctions_             ,cosmologyFunctionsData,outputTimes_                                                                                        )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   (cosmologyFunctions_             ,cosmologyFunctionsData,outputTimes_                                                                                        )"/>
     !!]
     allocate(propertyOperatorSequence          )
     allocate(propertyOperatorSequence%next     )
@@ -289,7 +289,7 @@ contains
     !!]
     allocate(weightPropertyOperatorSequence          )
     allocate(weightPropertyOperatorSequence%next     )
-    weightPropertyOperatorSequence     %operator_ => outputAnalysisPropertyOperatorCosmologyLuminosityDistance_
+    weightPropertyOperatorSequence     %operator_ => outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     weightPropertyOperatorSequence%next%operator_ => outputAnalysisPropertyOperatorLog10_
     allocate(outputAnalysisWeightPropertyOperatorSequence_ )
     !![
@@ -472,7 +472,7 @@ contains
     <objectDestructor name="outputAnalysisPropertyOperatorMultiply_"         />
     <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
     <objectDestructor name="outputAnalysisPropertyOperatorCosmologyAngularDistance_" />
-    <objectDestructor name="outputAnalysisPropertyOperatorCosmologyLuminosityDistance_"/>
+    <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
     <objectDestructor name="outputAnalysisPropertyOperatorAntiLog10_"        />
     <objectDestructor name="outputAnalysisDistributionNormalizer_"           />
     <objectDestructor name="outputAnalysisWeightPropertyExtractor_"          />

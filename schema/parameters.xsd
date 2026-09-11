@@ -2909,6 +2909,7 @@
           <xs:enumeration value="cosmologyAngularDistance"/>
           <xs:enumeration value="cosmologyLuminosityDistance"/>
           <xs:enumeration value="cosmologySZ"/>
+          <xs:enumeration value="csmlgyLmnstyDstnc"/>
           <xs:enumeration value="filterHighPass"/>
           <xs:enumeration value="identity"/>
           <xs:enumeration value="log10"/>

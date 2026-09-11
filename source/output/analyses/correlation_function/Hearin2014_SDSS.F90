@@ -174,7 +174,7 @@ contains
     use, intrinsic :: ISO_C_Binding                         , only : c_size_t
     use            :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar
     use            :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPolynomial
-    use            :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorCosmologyAngularDistance     , outputAnalysisPropertyOperatorCosmologyLuminosityDistance, outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorSequence, &
+    use            :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorCosmologyAngularDistance     , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorSequence, &
           &                                                          outputAnalysisPropertyOperatorSystematicPolynomial    , propertyOperatorList
     implicit none
     type            (outputAnalysisCorrelationFunctionHearin2013SDSS    )                                :: self
@@ -196,7 +196,7 @@ contains
     type            (outputAnalysisPropertyOperatorLog10                ), pointer                       :: massPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorSystematicPolynomial    )               , pointer        :: massPropertyOperatorSystematicPolynomial_
     type            (outputAnalysisDistributionOperatorRandomErrorPolynomial)               , pointer        :: massDistributionOperator_
-    type            (outputAnalysisPropertyOperatorCosmologyLuminosityDistance    ), pointer                       :: massPropertyOperatorCosmologyLuminosityDistance_
+    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc    ), pointer                       :: massPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorCosmologyAngularDistance     ), pointer                       :: separationPropertyOperator_
     type            (nodePropertyExtractorMassStellar                   ), pointer                       :: massPropertyExtractor_
     type            (outputAnalysisPropertyOperatorSequence             ), pointer                       :: massPropertyOperator_
@@ -248,9 +248,9 @@ contains
     <referenceConstruct object="massPropertyExtractor_" constructor="nodePropertyExtractorMassStellar                               (                                                                           )"/>
     !!]
     ! Sequence of property operators to correct for cosmological model, convert to logarithm, and apply systematic errors.
-    allocate(massPropertyOperatorCosmologyLuminosityDistance_)
+    allocate(massPropertyOperatorCsmlgyLmnstyDstnc_)
     !![
-    <referenceConstruct object="massPropertyOperatorCosmologyLuminosityDistance_" constructor="outputAnalysisPropertyOperatorCosmologyLuminosityDistance(cosmologyFunctions_     ,cosmologyFunctionsData_              ,outputTimes_)"/>
+    <referenceConstruct object="massPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctions_     ,cosmologyFunctionsData_              ,outputTimes_)"/>
     !!]
     allocate(massPropertyOperatorLog10_            )
     !![
@@ -264,7 +264,7 @@ contains
     allocate(propertyOperators_                    )
     allocate(propertyOperators_%next               )
     allocate(propertyOperators_%next%next          )
-    propertyOperators_          %operator_ => massPropertyOperatorCosmologyLuminosityDistance_
+    propertyOperators_          %operator_ => massPropertyOperatorCsmlgyLmnstyDstnc_
     propertyOperators_%next     %operator_ => massPropertyOperatorLog10_
     propertyOperators_%next%next%operator_ => massPropertyOperatorSystematicPolynomial_
     allocate(massPropertyOperator_                 )
@@ -324,7 +324,7 @@ contains
     <objectDestructor name="cosmologyParametersData_"              />
     <objectDestructor name="cosmologyFunctionsData_"               />
     <objectDestructor name="massPropertyExtractor_"                />
-    <objectDestructor name="massPropertyOperatorCosmologyLuminosityDistance_"/>
+    <objectDestructor name="massPropertyOperatorCsmlgyLmnstyDstnc_"/>
     <objectDestructor name="massPropertyOperatorLog10_"            />
     <objectDestructor name="massPropertyOperatorSystematicPolynomial_"/>
     <objectDestructor name="massPropertyOperator_"                 />

@@ -25,13 +25,13 @@ Implements a cosmological luminosity distance corrector analysis property operat
   use :: Output_Times       , only : outputTimesClass
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCosmologyLuminosityDistance" docformat="rst">
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc" alias="cosmologyLuminosityDistance" docformat="rst">
    <description>
    An output analysis property operator class which corrects properties for the difference in cosmological luminosity distance between true and assumed (i.e. in the observational analysis) cosmologies. Typically the observational data will have been analyzed assuming some specific set of cosmological parameters which will differ from that in the current model. Therefore, the luminosity or mass of a galaxy must be adjusted to match what would be inferred if they were assessed using the same cosmological parameters as were used for the observational data. Typically, this will mean that luminosities and stellar masses are scaled in proportion to :math:`D^{\prime 2}_\mathrm{L}(z)/D_\mathrm{L}^2(z)`, where :math:`D_\mathrm{L}(z)` and :math:`D^\prime_\mathrm{L}(z)` are the luminosity distances to redshift :math:`z` in the true and assumed cosmologies respectively.
    </description>
   </outputAnalysisPropertyOperator>
   !!]
-  type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorCosmologyLuminosityDistance
+  type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc
      !!{RST
      A cosmological luminosity distance corrector analysis property operator class.
      !!}
@@ -42,25 +42,25 @@ Implements a cosmological luminosity distance corrector analysis property operat
    contains
      final     ::            csmlgyLuminosityDistanceDestructor
      procedure :: operate => csmlgyLuminosityDistanceOperate
-  end type outputAnalysisPropertyOperatorCosmologyLuminosityDistance
+  end type outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc
 
-  interface outputAnalysisPropertyOperatorCosmologyLuminosityDistance
+  interface outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc
      !!{RST
-     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorCosmologyLuminosityDistance` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc` output analysis property operator class.
      !!}
      module procedure csmlgyLuminosityDistanceConstructorParameters
      module procedure csmlgyLuminosityDistanceConstructorInternal
-  end interface outputAnalysisPropertyOperatorCosmologyLuminosityDistance
+  end interface outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc
 
 contains
 
   function csmlgyLuminosityDistanceConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorCosmologyLuminosityDistance` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (outputAnalysisPropertyOperatorCosmologyLuminosityDistance)                :: self
+    type (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)                :: self
     type (inputParameters                                ), intent(inout) :: parameters
     class(cosmologyFunctionsClass                        ), pointer       :: cosmologyFunctionsModel, cosmologyFunctionsData
     class(outputTimesClass                               ), pointer       :: outputTimes_
@@ -74,7 +74,7 @@ contains
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctionsData"  source="dataAnalysisParameters"/>
     !!]
     ! Construct the object.
-    self=outputAnalysisPropertyOperatorCosmologyLuminosityDistance(cosmologyFunctionsModel,cosmologyFunctionsData,outputTimes_)
+    self=outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctionsModel,cosmologyFunctionsData,outputTimes_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="outputTimes_"           />
@@ -86,12 +86,12 @@ contains
 
   function csmlgyLuminosityDistanceConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData,outputTimes_) result(self)
     !!{RST
-    Internal constructor for the :galacticus-class:`outputAnalysisPropertyOperatorCosmologyLuminosityDistance` output analysis property operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc` output analysis property operator class.
     !!}
     use            :: Error            , only : Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     implicit none
-    type            (outputAnalysisPropertyOperatorCosmologyLuminosityDistance)                        :: self
+    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)                        :: self
     class           (cosmologyFunctionsClass                        ), intent(in   ), target :: cosmologyFunctionsModel       , cosmologyFunctionsData
     class           (outputTimesClass                               ), intent(in   ), target :: outputTimes_
     double precision                                                 , parameter             :: distanceSmall          =1.0d-6
@@ -142,10 +142,10 @@ contains
 
   subroutine csmlgyLuminosityDistanceDestructor(self)
     !!{RST
-    Destructor for the :galacticus-class:`outputAnalysisPropertyOperatorCosmologyLuminosityDistance` output analysis property operator class.
+    Destructor for the :galacticus-class:`outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc` output analysis property operator class.
     !!}
     implicit none
-    type(outputAnalysisPropertyOperatorCosmologyLuminosityDistance), intent(inout) :: self
+    type(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), intent(inout) :: self
 
     if (allocated(self%correctionFactor)) deallocate(self%correctionFactor)
     !![
@@ -163,7 +163,7 @@ contains
     use :: Error                  , only : Error_Report
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeMagnitude
     implicit none
-    class           (outputAnalysisPropertyOperatorCosmologyLuminosityDistance), intent(inout)           :: self
+    class           (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), intent(inout)           :: self
     double precision                                                 , intent(in   )           :: propertyValue
     type            (treeNode                                       ), intent(inout), optional :: node
     type            (enumerationOutputAnalysisPropertyTypeType      ), intent(inout), optional :: propertyType
