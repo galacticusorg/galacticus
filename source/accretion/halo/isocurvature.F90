@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of accretion from the :term:`IGM` onto halos accounting for the effects of isocurvature perturbations following the model of :cite:t:`jessop_ripples_2026`.
   !!}
@@ -494,7 +496,7 @@ contains
          &     +1.0d0                                                           &
          &     -self%fractionBaryonsUniversal                                   &
          &    )                                                                 &
-         &   *self%criticalOverdensity_%value      (    basic%time         () ) &
+         &   *self%criticalOverdensity_%value      (    basic%time         (),node=node) &
          &   /self%linearGrowth_       %value      (    basic%time         () ) &
          &   *self%correlation         %interpolate(log(      massSmoothing  ))
     return

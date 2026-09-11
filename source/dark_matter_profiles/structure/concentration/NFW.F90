@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo profile concentrations using the :cite:t:`navarro_structure_1996` algorithm.
   !!}
@@ -275,7 +277,7 @@ contains
          &                                -self%cosmologicalMassVariance_%rootVariance(time=nodeTime,mass=    nodeMass)**2 &
          &                               )                                                                                 &
          &                             )                                                                                   &
-         &                        +        self%criticalOverdensity_     %value       (time=nodeTime,mass=    nodeMass)    &
+         &                        +        self%criticalOverdensity_     %value       (time=nodeTime,mass=    nodeMass,node=node)    &
          &                       )                                                                                         &
          &                      *          self%cosmologicalMassVariance_%rootVariance(time= nowTime,mass=    nodeMass)    &
          &                      /          self%cosmologicalMassVariance_%rootVariance(time=nodeTime,mass=    nodeMass)

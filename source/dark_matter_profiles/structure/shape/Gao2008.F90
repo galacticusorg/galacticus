@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo profile shapes  using the :cite:t:`gao_redshift_2008` algorithm.
   !!}
@@ -133,7 +135,7 @@ contains
     ! Get the basic component.
     basic => node%basic()
     ! Compute the shape parameter.
-    nu     =+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass()) &
+    nu     =+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass(),node=node) &
          &  /self%cosmologicalMassVariance_%rootVariance(time=basic%time(),mass=basic%mass())
     if (nu < nuMaximum) then
        gao2008Shape=0.155d0+0.0095d0*nu**2
