@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a critical overdensity for collapse using the revised spherical collapse model for decaying
 dark matter (DDM) of :cite:t:`montandon_decaying_2026`.
@@ -235,8 +237,8 @@ contains
 
     if (.not.present(mass)) call Error_Report('mass is required for this critical overdensity class'//{introspection:location})
     timeValue              =+decayingDarkMatterEpoch(self,time,expansionFactor)
-    decayingDarkMatterValue=+self%criticalOverdensity_%value                       (     time     ,expansionFactor,collapsing,mass) &
-         &                  *                          decayingDarkMatterCorrection(self,timeValue                           ,mass)
+    decayingDarkMatterValue=+self%criticalOverdensity_%value                       (     time     ,expansionFactor,collapsing,mass,node) &
+         &                  *                          decayingDarkMatterCorrection(self,timeValue                           ,mass     )
     return
   end function decayingDarkMatterValue
 
@@ -269,9 +271,9 @@ contains
          &               -decayingDarkMatterCorrection(self,timeValue-timeStep,mass)  &
          &              )                                                             &
          &             /(2.0d0*timeStep)
-    decayingDarkMatterGradientTime=+self%criticalOverdensity_%gradientTime(time,expansionFactor,collapsing,mass) &
-         &                         *correction                                                                   &
-         &                         +self%criticalOverdensity_%value       (time,expansionFactor,collapsing,mass) &
+    decayingDarkMatterGradientTime=+self%criticalOverdensity_%gradientTime(time,expansionFactor,collapsing,mass,node) &
+         &                         *correction                                                                        &
+         &                         +self%criticalOverdensity_%value       (time,expansionFactor,collapsing,mass,node) &
          &                         *gradientCorrection
     return
   end function decayingDarkMatterGradientTime
@@ -305,9 +307,9 @@ contains
          &               -decayingDarkMatterCorrection(self,timeValue,mass-massStep) &
          &              )                                                            &
          &             /(2.0d0*massStep)
-    decayingDarkMatterGradientMass=+self%criticalOverdensity_%gradientMass(time,expansionFactor,collapsing,mass) &
-         &                         *correction                                                                   &
-         &                         +self%criticalOverdensity_%value       (time,expansionFactor,collapsing,mass) &
+    decayingDarkMatterGradientMass=+self%criticalOverdensity_%gradientMass(time,expansionFactor,collapsing,mass,node) &
+         &                         *correction                                                                        &
+         &                         +self%criticalOverdensity_%value       (time,expansionFactor,collapsing,mass,node) &
          &                         *gradientCorrection
     return
   end function decayingDarkMatterGradientMass
