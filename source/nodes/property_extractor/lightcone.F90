@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Robertson, Andrew Benson
+!+    Contributions to this file made by: Andrew Robertson, Andrew Benson, Claude.
   
   use            :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
   use            :: Geometry_Lightcones, only : geometryLightcone , geometryLightconeClass
@@ -183,7 +183,10 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorLightcone` property extractor class.
     !!}
-    use :: Numerical_Constants_Astronomical, only : degreesToRadians, megaParsec
+    use :: Display                         , only : displayGreen         , displayMagenta, displayMessage, displayReset
+    use :: Geometry_Lightcones             , only : geometryLightconeNull
+    use :: ISO_Varying_String              , only : varying_string       , assignment(=) , operator(//)
+    use :: Numerical_Constants_Astronomical, only : degreesToRadians     , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Units_MetaData                  , only : unitType
     implicit none
@@ -193,10 +196,21 @@ contains
          &                                                            failIfNotInLightcone
     class  (cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_
     class  (geometryLightconeClass        ), intent(in   ), target :: geometryLightcone_
+    type   (varying_string                )                        :: message
     !![
     <constructorAssign variables="includeObservedRedshift, includeObservedPosition, includeAngularCoordinates, atCrossing, failIfNotInLightcone, *cosmologyFunctions_, *geometryLightcone_"/>
     !!]
 
+    ! Warn if the lightcone geometry is null. This is a valid choice - a null lightcone has zero solid angle, so nothing lies
+    ! within it - but no node then has any lightcone properties to extract, which is unlikely to be what was intended.
+    select type (geometryLightcone_)
+    class is (geometryLightconeNull)
+       message=displayMagenta()//"WARNING:"//displayReset()//" the `nodePropertyExtractorLightcone` class is in use with a null lightcone geometry" //char(10)// &
+            &  displayGreen()//"    HELP:"//displayReset()//" a null lightcone has zero solid angle, so no node ever lies within it and this"       //char(10)// &
+            &                                               "          extractor will therefore report unphysical values for every node. If that is"//char(10)// &
+            &                                               "          not what you intended, set a non-null `geometryLightcone`."
+       call displayMessage(message)
+    end select
     self%elementCount_=8
     if (includeObservedRedshift) then
        self%redshiftObservedOffset  =self%elementCount_
