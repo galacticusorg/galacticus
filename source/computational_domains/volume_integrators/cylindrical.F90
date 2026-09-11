@@ -91,7 +91,7 @@ contains
 
   function cylindricalConstructorInternal(boundaries,toleranceAbsolute,toleranceRelative) result(self)
     !!{RST
-    Internal constructor for the :galacticus-class:`computationalDomainVolumeIntegratorCylindrical` computational domain volume integrator class. The optional  toleranceAbsolute and  toleranceRelative arguments specify the tolerances to which the volume integral is to be evaluated---the absolute tolerance is apportioned between the nested one-dimensional integrals in proportion to the measure which each is integrated against by the level above it.
+    Internal constructor for the :galacticus-class:`computationalDomainVolumeIntegratorCylindrical` computational domain volume integrator class. The optional  toleranceAbsolute and  ``toleranceRelative`` arguments specify the tolerances to which the volume integral is to be evaluated---the absolute tolerance is apportioned between the nested one-dimensional integrals in proportion to the measure which each is integrated against by the level above it.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

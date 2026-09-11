@@ -20,19 +20,19 @@
 !+    Contributions to this file made by: Niusha Ahvazi
 
 !!{RST
-Contains a module which implements a selfInteracting dark matter particle class.
+Contains a module which implements a ``selfInteracting`` dark matter particle class.
 !!}
 
   !![
   <darkMatterParticle name="darkMatterParticleSelfInteractingDarkMatterConstant" docformat="rst">
    <description>
-   Provides a selfInteracting dark matter particle.
+   Provides a ``selfInteracting`` dark matter particle.
    </description>
   </darkMatterParticle>
   !!]
   type, extends(darkMatterParticleSelfInteractingDarkMatter) :: darkMatterParticleSelfInteractingDarkMatterConstant
      !!{RST
-     A selfInteracting dark matter particle class.
+     A ``selfInteracting`` dark matter particle class.
      !!}
      private
      class           (darkMatterParticleClass), pointer :: darkMatterParticle_          => null()

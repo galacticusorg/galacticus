@@ -102,7 +102,7 @@ contains
 
   function cartesian3DConstructorInternal(boundaries,toleranceAbsolute,toleranceRelative) result(self)
     !!{RST
-    Internal constructor for the :galacticus-class:`computationalDomainVolumeIntegratorCartesian3D` computational domain volume integrator class. The optional  toleranceAbsolute and  toleranceRelative arguments specify the tolerances to which the volume integral is to be evaluated---the absolute tolerance is apportioned between the nested one-dimensional integrals in proportion to the measure which each is integrated against by the level above it.
+    Internal constructor for the :galacticus-class:`computationalDomainVolumeIntegratorCartesian3D` computational domain volume integrator class. The optional  toleranceAbsolute and  ``toleranceRelative`` arguments specify the tolerances to which the volume integral is to be evaluated---the absolute tolerance is apportioned between the nested one-dimensional integrals in proportion to the measure which each is integrated against by the level above it.
     !!}
     implicit none
     type            (computationalDomainVolumeIntegratorCartesian3D)                                :: self
