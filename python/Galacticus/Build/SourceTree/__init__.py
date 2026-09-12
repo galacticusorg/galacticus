@@ -51,7 +51,7 @@ def parse_code(code, name='<string>', source=None, instrument=True):
     placeholder with the line number on which it appears; downstream
     `process_source_introspection` then expands those into a full Fortran
     expression naming the surrounding scope.  Re-parses of generic-expanded
-    or otherwise synthesised content should pass `instrument=False` so the
+    or otherwise synthesized content should pass `instrument=False` so the
     line numbers aren't tagged a second time.
     """
     if instrument:
@@ -949,7 +949,7 @@ def serialize(node, annotate=False, strip_mappings=False):
         When True, the annotations are removed from the returned source and
         collected into a second string.  In that mode the function returns a
         `(source, mappings)` 2-tuple.  When False (the default), the function
-        returns a single `source` string — matching the behaviour used by
+        returns a single `source` string — matching the behavior used by
         `Generics` / `FunctionClass` callers that do not need mappings.
 
     The algorithm is a sibling-chain walk that recurses into firstChild:

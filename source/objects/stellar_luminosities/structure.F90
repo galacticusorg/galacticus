@@ -946,7 +946,7 @@ contains
 
     The range is that reported by the postprocessing chain itself, so it stays correct if the chain is reconfigured.
     Only a sharp window may be used to isolate the light of a range of ages by differencing luminosities computed with
-    different chains; ``isSharp`` must therefore be tested before the range is relied upon. An empty window, signalled
+    different chains; ``isSharp`` must therefore be tested before the range is relied upon. An empty window, signaled
     by ``ageMaximum`` :math:`\le` ``ageMinimum``, means that the chain suppresses emission at every age.
     !!}
     use :: Error, only : Error_Report

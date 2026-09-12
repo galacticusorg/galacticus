@@ -162,7 +162,7 @@ contains
     else
        current =-1
        previous=-1
-       call Error_Report('either 1 or 2 simulations (labelled "active" and "previous" in the case of 2 simulations) should be provided'//{introspection:location})
+       call Error_Report('either 1 or 2 simulations (labeled "active" and "previous" in the case of 2 simulations) should be provided'//{introspection:location})
     end if
     ! Get simulation attributes.
     lengthSoftening  =simulations(current)%attributesReal%value('lengthSoftening')

@@ -3,7 +3,7 @@
 Several build scripts walk the `source/` tree and parse every file. The per-file
 cost is dominated by blocking file I/O (open/read over NFS); on a loaded node
 each open stalls in close-to-open metadata revalidation, so doing them one at a
-time serialises thousands of millisecond waits. Scanning the files concurrently
+time serializes thousands of millisecond waits. Scanning the files concurrently
 overlaps those waits (and the parsing CPU work).
 
 A *fork*-based process pool is used so workers are fully isolated -- callers need

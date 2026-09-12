@@ -1112,7 +1112,7 @@ For a small number of classes, however, such a construction cycle is *legitimate
    </starFormationTimescale>
    !!]
 
-That single attribute is all that is required. When the build re-enters the node currently under construction, the factory returns a generated *shim*---a lightweight ``<name>Recursive`` object that holds only a weak pointer back to the real object under construction and forwards every method call to it. All of the supporting machinery is generated automatically: the shim type and its method forwarders, its ``deepCopy``/``stateStore``/``descriptor`` behaviour, and the weak (uncounted) back-reference that keeps reference counting sound so no memory leak results. You do **not** need to write any ``recursiveSelf`` pointers, per-method guards, or custom ``deepCopy`` code---this boilerplate was removed under `issue #695 <https://github.com/galacticusorg/galacticus/issues/695>`_.
+That single attribute is all that is required. When the build re-enters the node currently under construction, the factory returns a generated *shim*---a lightweight ``<name>Recursive`` object that holds only a weak pointer back to the real object under construction and forwards every method call to it. All of the supporting machinery is generated automatically: the shim type and its method forwarders, its ``deepCopy``/``stateStore``/``descriptor`` behavior, and the weak (uncounted) back-reference that keeps reference counting sound so no memory leak results. You do **not** need to write any ``recursiveSelf`` pointers, per-method guards, or custom ``deepCopy`` code---this boilerplate was removed under `issue #695 <https://github.com/galacticusorg/galacticus/issues/695>`_.
 
 .. warning::
 

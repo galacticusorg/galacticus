@@ -861,7 +861,7 @@ contains
     integer                                                            :: i
     type            (integrator         )                              :: integrator_
 
-    ! The freefall time increases with radius. Note that each point is an independent quadrature from the centre out to its
+    ! The freefall time increases with radius. Note that each point is an independent quadrature from the center out to its
     ! own radius, so a point carried over by an extension is precisely the value which would be computed afresh.
     if (timeFreefallScaleFree_%pointsPerOctave == 0) call timeFreefallScaleFree_%reset(countRadiiPerOctave,increasing=.true.)
     if (.not.timeFreefallScaleFree_%brackets(timeScaleFree)) then

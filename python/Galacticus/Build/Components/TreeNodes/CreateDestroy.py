@@ -16,7 +16,7 @@ from Galacticus.Build.Components.Utils import register
 def Tree_Node_Creation(build):
     """Generate `treeNodeInitialize`.
 
-    Initialises pointers, allocates one
+    Initializes pointers, allocates one
     instance per active component class, then sets index, unique ID,
     timestep, subsampling weight, and physical-state flags.
     """

@@ -832,7 +832,7 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
 def _build_descriptor_methods(directive, non_abstract_classes, classes,
                               methods, tree, state_storables):
     """Populate `methods['descriptor']` (and in step 5c `hashedDescriptor`)
-    with the auto-descriptor code that serialises the class's parameter
+    with the auto-descriptor code that serializes the class's parameter
     constructor into an inputParameters tree.
 
     This
@@ -3698,7 +3698,7 @@ def _generate_method_functions(directive, methods, post, node):
         if 'code' in method:
             modules = method.get('modules')
             if modules is not None:
-                module_list = _normalise_modules(modules)
+                module_list = _normalize_modules(modules)
                 for mod in module_list:
                     prefix = '!$ ' if 'OMP_Lib' in mod['name'] else ''
                     only_clause = ''
@@ -4036,8 +4036,8 @@ def _generate_recursive_shim(directive, methods, non_abstract_classes,
     )
 
 
-def _normalise_modules(modules):
-    """Normalise the `modules` entry on a method dict into a list of
+def _normalize_modules(modules):
+    """Normalize the `modules` entry on a method dict into a list of
     `{name, only}` shapes.
     """
     if isinstance(modules, list):

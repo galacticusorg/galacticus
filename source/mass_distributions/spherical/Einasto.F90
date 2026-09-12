@@ -742,7 +742,7 @@ contains
     integer                                                                :: i
     type            (integrator             )                              :: integrator_
 
-    ! Each point is an independent quadrature from the centre out to its own radius, so a point carried over by an extension
+    ! Each point is an independent quadrature from the center out to its own radius, so a point carried over by an extension
     ! is precisely the value which would be computed afresh.
     if (.not.self%timeFreefallScaleFree_%brackets(timeScaleFree)) then
        integrator_=integrator(timeFreeFallIntegrand,toleranceRelative=1.0d-6)

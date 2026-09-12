@@ -84,7 +84,7 @@ contains
           units%isComoving=0_c_int
        end if
     end if
-    ! Initialise character arrays to null bytes then copy content.
+    ! Initialize character arrays to null bytes then copy content.
     units%description=c_null_char
     units%quantity   =c_null_char
     if (present(description)) then

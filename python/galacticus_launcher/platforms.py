@@ -3,7 +3,7 @@
 The CI ``Deploy`` job publishes one executable and one tools archive per
 platform to a GitHub release.  The names are fixed strings (there is no
 platform suffix scheme to parse), so we map ``(system, machine)`` to them
-explicitly.  Anything we do not recognise raises :class:`UnsupportedPlatform`
+explicitly.  Anything we do not recognize raises :class:`UnsupportedPlatform`
 with an actionable message rather than guessing.
 """
 

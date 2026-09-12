@@ -18,6 +18,85 @@ Variable names
 
 For a variable that is set via an input parameter, the internal variable name should match the parameter name (this allows the automatic generation of descriptor functions). If the parameter name clashes with the name of a method of the class, append an underscore to the internal variable name. For example, the ``stellarFeedbackOutflowsPowerLaw`` class has a method ``velocityCharacteristic`` and also reads a parameter of the same name, so the corresponding internal variable is named ``velocityCharacteristic_``.
 
+.. _manual-sec-namingConventions:
+
+Naming conventions
+~~~~~~~~~~~~~~~~~~
+
+The conventions below apply across the API — class, implementation, parameter, method, module, procedure, and file names. Several long-standing, deliberate exceptions are recorded here as well, so that they are not repeatedly re-flagged as defects by naming audits.
+
+Spelling
+^^^^^^^^
+
+US spelling is used throughout — in identifiers, in prose, and in parameter names and values. Write ``modeling``, ``modeled``, ``fueled``, ``catalog``, ``normalize``, ``initialize``, ``behavior``, ``color``, ``center``, and ``neighbor`` rather than their British forms.
+
+``aux/words.dict`` is the dictionary used by the documentation spelling builder. It is for *technical terms* that a general dictionary does not know (``halofit``, ``Lorentzian``, ``deprojected``); it must not be used to whitelist British spellings. Proper names — of people (``Storey``), simulations, or codes — belong there too, and are a common source of false positives in automated spelling scans.
+
+Class and implementation names
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* ``functionClass`` names are ``lowerCamelCase`` (``darkMatterProfileDMO``, ``coolingRate``).
+* An implementation name is its class name followed by an ``UpperCamelCase`` suffix naming the implementation: ``darkMatterProfileDMONFW``, ``coolingRateWhiteFrenk1991``. This is required, not merely conventional — the code generator relies on it.
+
+Because a Fortran identifier may be at most 63 characters, a small number of implementation names carry vowel-stripped abbreviations (for example ``criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt``). These are unavoidable given the length limit, but they are *not* a style to imitate: prefer a shorter, readable suffix, and abbreviate only when the full name would exceed the limit. Note that these abbreviations are user-visible, since the suffix is the value used to select the implementation in a parameter file.
+
+Parameter names
+^^^^^^^^^^^^^^^
+
+* Parameter names are ``lowerCamelCase``, matching the internal variable name (see *Variable names* above).
+* **Word order is noun-first, qualifier-second**: ``radiusVirial``, ``massStellar``, ``timeMinimum``, ``massHaloMinimum`` — not ``virialRadius``, ``stellarMass``, or ``haloMassMinimum``. This groups related quantities together when parameters are listed alphabetically. Established physics terms that read as a single concept (``scaleHeight``, ``scaleLength``, ``peakHeightExponent``) are exempt.
+* Boolean parameters should read as predicates. Two forms are accepted:
+
+  * a verb prefix — ``includeBaryonGravity``, ``useFittingFunction``, ``allowNegativeCGMMass``, ``applySubsamplingWeights``;
+  * a predicate suffix — ``convergenceFailureIsFatal``, ``mainBranchOnly``, ``accretionNegativeAllowed``.
+
+  A bare noun or adjective (``dimensionless``, ``fast``, ``forward``, ``extendedStatistics``) does not read as a question and should be avoided in new code.
+
+Two groups of parameter names are deliberately **not** ``lowerCamelCase``, and are correct as they stand:
+
+* **Cosmological parameters written as their conventional symbols**: ``OmegaMatter``, ``OmegaBaryon``, ``OmegaDarkEnergy``, ``OmegaCurvature``, ``OmegaRadiation``, ``HubbleConstant``. The corresponding ``cosmologyParameters`` methods share these names, and are the reason a handful of methods are ``UpperCamelCase``.
+* **Fitting-formula coefficients written as the symbols used in the source paper**: ``A``, ``B``, ``C``, ``alpha_0``, ``alpha_z``, ``M_0``, ``epsilon_lna``, ``sigma_8``. Preserving the paper's notation makes the implementation checkable against its reference, which outweighs uniformity here. Use this form only where the name genuinely mirrors a published symbol, and cite the paper in the ``<description>``.
+
+Method names
+^^^^^^^^^^^^
+
+Method names are ``lowerCamelCase`` and should follow the same noun-first order as parameters — ``rateMassLoss``, ``rateAccretion``, ``gradientTemperatureLogarithmic``.
+
+Where a concept already exists as a method on another class, match the existing name rather than introducing a second spelling of the same idea. Three concepts currently exist under both orders, and should converge on the noun-first form as those classes are next revised:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 26 34 26 34
+
+   * - Noun-first (preferred)
+     - Classes
+     - Verb/adjective-first
+     - Classes
+   * - ``rateMassLoss``
+     - ``ramPressureStripping``, ``stellarWinds``, ``tidalStripping``
+     - ``massLossRate``
+     - ``satelliteTidalStripping``, ``satelliteEvaporationSIDM``
+   * - ``rateAccretion``
+     - ``blackHoleAccretionRate``
+     - ``accretionRate``
+     - ``accretionHalo``, ``accretionHaloTotal``
+   * - ``gradientTemperatureLogarithmic``
+     - ``coolingTime``
+     - ``temperatureGradientLogarithmic``
+     - ``kinematicsDistribution``
+
+Renaming a method is an internal change — method names do not appear in parameter files — but it touches every caller, so it is best done as part of other work on the class rather than as a standalone sweep.
+
+The ``UpperCamelCase`` cosmological methods noted above are the sole exception to ``lowerCamelCase``.
+
+Modules, procedures, and files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* **Modules** use ``Upper_Snake_Case``: ``Dark_Matter_Profiles_DMO``, ``Numerical_Integration``.
+* **Procedures** use ``lowerCamelCase`` in new code. A large body of older code — concentrated in ``source/objects/`` and ``source/utility/`` — uses ``Upper_Snake_Case`` (``Abundances_Get_Metallicity``). Both are accepted; the older style is not a defect and is not worth a mass rename, but new procedures should be ``lowerCamelCase``.
+* **File names** describing a concept use lower ``snake_case``: ``cosmic_microwave_background.F90``, ``nuclear_star_clusters.F90``, ``radius_velocity_maximum.F90``. Directory names follow the same style.
+* Files named for a **proper noun** — a model, code, or author — keep that noun's own capitalization: ``NFW.F90``, ``Einasto.F90``, ``Zhao1996.F90``, ``RecFast.F90``. Where the name combines *several* authors, camel-case them together and do not use hyphens: ``DiemerKravtsov2014.F90``, not ``Diemer-Kravtsov2014.F90``. Both spellings are currently present in the tree (``dark_matter_profiles/structure/concentration/Diemer-Kravtsov2014.F90`` alongside ``dark_matter_profiles_DMO/accretion_flow/DiemerKravtsov2014.F90``); the unhyphenated form is the one to use in new files. File names are not user-facing, so existing hyphenated names are left as they are rather than renamed.
+
 Variable declarations
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -884,7 +963,7 @@ A translation may either rewrite the parameter file declaratively, via an ``xpat
 
    **Commit hashes in** ``migrations.xml`` **must remain valid for the lifetime of the repository.**
 
-   To decide which migrations to apply, ``parametersMigrate.py`` walks the git ancestry between the parameter file's recorded ``lastModified`` revision and the current ``HEAD``, and matches each commit in that ancestry against the ``commit`` attributes in ``migrations.xml`` **by exact string equality**. A hash which is not present in the history therefore matches nothing: the migration is *silently skipped*. There is no error and no warning — parameter files simply fail to migrate, and models built from them quietly change behaviour.
+   To decide which migrations to apply, ``parametersMigrate.py`` walks the git ancestry between the parameter file's recorded ``lastModified`` revision and the current ``HEAD``, and matches each commit in that ancestry against the ``commit`` attributes in ``migrations.xml`` **by exact string equality**. A hash which is not present in the history therefore matches nothing: the migration is *silently skipped*. There is no error and no warning — parameter files simply fail to migrate, and models built from them quietly change behavior.
 
    The practical consequences are:
 

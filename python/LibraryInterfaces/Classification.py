@@ -179,7 +179,7 @@ def normalize_method_return_type(ret_type):
 
 
 def is_internal_constructor_name(name):
-    """Recognise an Internal-suffixed module-procedure name following the
+    """Recognize an Internal-suffixed module-procedure name following the
     Galacticus convention ``<short>Constructor[Internal[Suffix]]`` or the
     alternative ``<short>Internal`` form (used by the merger-tree walkers,
     e.g. ``allAndFormationNodesInternal``). Accepts either:
@@ -319,7 +319,7 @@ def classify_arg(arg, registered_classes, *, constructor_overrides=(),
     # Object-pointer dummies with intent(out|inout): the callee may (re)point
     # the pointer, and the wrapper's local-pointer passing loses that
     # repointing silently — e.g. a tree-walker's `next(node)` would return
-    # success but never advance the caller's node.  Two flavours:
+    # success but never advance the caller's node.  Two flavors:
     #
     # * `class(...), pointer` outputs (only `class(*)` exists in the tree:
     #   timeEvolveTo's taskSelf) — an unlimited-polymorphic pointer handed

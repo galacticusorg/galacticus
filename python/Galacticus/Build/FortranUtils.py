@@ -226,7 +226,7 @@ def extract_variables(variable_list: str, lower_case: bool = True,
                 )
             variable_list = prefix + remainder
 
-    # Remove initialisation / association expressions.
+    # Remove initialization / association expressions.
     if not keep_qualifiers:
         variable_list = re.sub(r'=[^,]*(,|$)', lambda m: m.group(1), variable_list)
 

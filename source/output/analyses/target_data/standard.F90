@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  Implements the standard :galacticus-class:`outputAnalysisTargetDataClass` class --- a plain struct of axis-labelling and target-dataset fields, with all fields optional at construction.
+  Implements the standard :galacticus-class:`outputAnalysisTargetDataClass` class --- a plain struct of axis-labeling and target-dataset fields, with all fields optional at construction.
   !!}
 
   !![

@@ -189,7 +189,7 @@ def test_under_real_make_j1_has_no_jobserver(tmp_path):
 
     Nothing is over-subscribed in practice: `ParallelScan.resolve_jobs` reads the
     `-j1` from MAKEFLAGS and asks for a single worker in the first place. Pinned
-    so the division of labour between the two stays deliberate.
+    so the division of labor between the two stays deliberate.
     """
     if subprocess.run(['make', '--version'], capture_output=True).returncode != 0:
         pytest.skip("make unavailable")

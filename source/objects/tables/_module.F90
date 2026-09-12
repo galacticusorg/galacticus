@@ -510,7 +510,7 @@ contains
     type. Each concrete table type must, on return, set its own spacing and reset any cached interpolation state.
 
     **The spacing must be taken from the lattice**, never evaluated as ``xValues(2)-xValues(1)``: the difference of two
-    neighbouring lattice points varies in its final bits with position along the lattice, so deriving the interpolation factor
+    neighboring lattice points varies in its final bits with position along the lattice, so deriving the interpolation factor
     from it would change every interpolated value by of order one unit in the last place whenever the lower bound of the table
     moved---defeating the very reuse which extension exists to provide.
 

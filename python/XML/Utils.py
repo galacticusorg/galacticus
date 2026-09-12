@@ -83,7 +83,7 @@ def xml_to_dict(
 
 
 def dict_to_xml_string(root_name: str, data: dict) -> str:
-    """Serialise `data` to a pretty-printed XML string in no-attribute style:
+    """Serialize `data` to a pretty-printed XML string in no-attribute style:
     every dict key becomes a child element (no attributes); list values are
     rendered as repeated sibling elements; scalars become the element text.
     Dict keys are emitted in sorted order for deterministic output.

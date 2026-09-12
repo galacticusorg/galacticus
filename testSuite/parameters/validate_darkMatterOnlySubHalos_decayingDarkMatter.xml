@@ -246,10 +246,10 @@
     <nodePropertyExtractor value="virialProperties"/>
     <nodePropertyExtractor value="positionOrbital" />
     <nodePropertyExtractor value="velocityMaximum"  >
-      <propertyName         value="velocityMaximum"/>
+      <propertyName         value="VelocityMaximum"/>
     </nodePropertyExtractor>
     <nodePropertyExtractor value="velocityMaximum"  >
-      <propertyName         value="velocityPeak"   />
+      <propertyName         value="VelocityPeak"   />
       <darkMatterProfileDMO value="NFW"            />
     </nodePropertyExtractor>
   </nodePropertyExtractor>

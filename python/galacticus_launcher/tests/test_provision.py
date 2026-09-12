@@ -2,7 +2,7 @@
 
 Network-free: `_download` is replaced by a copy out of a locally built fixture
 "release", so the component selection logic, the ``--no-tools`` choice and its
-persistence, the choice between an artefact's current and legacy form, and the
+persistence, the choice between an artifact's current and legacy form, and the
 parameter-catalog download/generate fallback are all exercised against real
 archives on disk.
 """
@@ -213,7 +213,7 @@ def test_bad_catalog_checksum_falls_back_to_generating_one(install, fetched,
                                                            monkeypatch):
     monkeypatch.setattr(download, "load_checksums",
                         lambda tag, log=print: {"parameters.catalog.json": "0" * 64})
-    # A mismatch is fatal for artefacts which get executed; the catalog is data,
+    # A mismatch is fatal for artifacts which get executed; the catalog is data,
     # and a local build of it is equivalent, so the install continues.
     done = download.provision(install, log=_quiet)
     assert "parameter catalog" in done
@@ -226,7 +226,7 @@ def test_malformed_catalog_falls_back_to_generating_one(install, fetched, releas
     assert _catalog(install) == {"source": "generated"}
 
 
-# --- choosing between an artefact's current and legacy form ----------------
+# --- choosing between an artifact's current and legacy form ----------------
 
 def _checksums(*assets):
     """A release asset listing, with digests no test verifies against."""
@@ -299,7 +299,7 @@ def test_an_explicit_datasets_ref_bypasses_the_snapshot(install, fetched,
 
 def test_a_failed_catalog_download_does_not_abort_the_install(install, fetched,
                                                               monkeypatch):
-    """The catalog is the one artefact provisioning can rebuild itself, so a
+    """The catalog is the one artifact provisioning can rebuild itself, so a
     transfer failure has to fall back to generating it -- not discard the
     components which already downloaded."""
     real = download._download
