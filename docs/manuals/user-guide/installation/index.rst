@@ -10,8 +10,9 @@ several ways to install it, listed here from easiest to most involved:
   datasets, and tools on first use and sets the environment up for you; on
   Windows it also sets up WSL 2 (``galacticus install-wsl``). See :doc:`pip`.
 * **Pre-compiled binary** — download and configure the binary yourself; no
-  compilation required. Available for :doc:`Linux <binary>` and
-  :doc:`macOS <binary-macos>`.
+  compilation required. Available for :doc:`Linux <binary>` (x86-64) and
+  :doc:`macOS <binary-macos>` (Apple Silicon only — Intel Macs are no longer
+  built).
 * **Container** — a ready-to-use Docker image with Galacticus already installed;
   see :doc:`container`.
 * **From source** — needed if you want to modify or extend the code. Step-by-step
