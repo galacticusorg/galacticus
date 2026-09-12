@@ -34,7 +34,7 @@ module Merger_Tree_Read_Importers
   !![
   <workaround type="gfortran" PR="88632" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=88632" docformat="rst">
    <description>
-   importerUnitConvert is used by submodules, so must be exported to the object file. gfortran currently does not do this if the symbol is private, so we mark it as public.
+   ``importerUnitConvert`` is used by submodules, so must be exported to the object file. gfortran currently does not do this if the symbol is private, so we mark it as public.
    </description>
   </workaround>
   !!]

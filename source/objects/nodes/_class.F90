@@ -1673,7 +1673,7 @@ module Galacticus_Nodes
     !![
     <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446" docformat="rst">
      <description>
-     Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+     Using the sizeof() intrinsic on a ``treeNode`` object causes a bogus "type mismatch" error when this module is used.
      </description>
     </workaround>
     !!]
@@ -1684,7 +1684,7 @@ module Galacticus_Nodes
        !![
        <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446" docformat="rst">
         <description>
-        Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+        Using the sizeof() intrinsic on a ``treeNode`` object causes a bogus "type mismatch" error when this module is used.
         </description>
        </workaround>
        !!]

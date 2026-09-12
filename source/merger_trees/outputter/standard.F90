@@ -42,7 +42,7 @@
    contains
      !![
      <methods docformat="rst">
-       <method method="assignment(=)" description="Assign outputGroup objects."/>
+       <method method="assignment(=)" description="Assign ``outputGroup`` objects."/>
      </methods>
      !!]
      procedure :: outputGroupAssign

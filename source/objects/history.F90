@@ -514,7 +514,7 @@ contains
 
   subroutine History_Long_Integer_Clone(self,historyToClone)
     !!{RST
-    Clone a longIntegerHistory object.
+    Clone a ``longIntegerHistory`` object.
     !!}
     implicit none
     class(longIntegerHistory), intent(inout) :: self
