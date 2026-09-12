@@ -102,10 +102,17 @@ class _Index:
         self.implementations = catalog['implementations']
         self.enumerations = catalog.get('enumerations', {})
         self.base_names = set(self.function_classes)
-        # (base, label) -> implementation type name.
+        # (base, label) -> implementation type name.  An implementation whose
+        # Fortran name had to be abbreviated may also carry a readable `alias`;
+        # both select it, so both must resolve here.  Registering only the
+        # label would leave a file using the alias with no schema, silently
+        # skipping every check on that element's sub-parameters.
         self.type_by_base_label = {}
         for type_name, impl in self.implementations.items():
-            self.type_by_base_label[(impl['functionClass'], impl['label'])] = type_name
+            for label in (impl['label'], impl.get('alias')):
+                if label:
+                    self.type_by_base_label[
+                        (impl['functionClass'], label)] = type_name
         self._schema_cache = {}
 
     def labels_for(self, base):

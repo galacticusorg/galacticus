@@ -24,7 +24,7 @@
   use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtType
 
   !![
-  <virialDensityContrast name="virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy" docformat="rst">
+  <virialDensityContrast name="virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy" alias="sphericalCollapseCollisionlessMatterDarkEnergy" docformat="rst">
    <description>
    Dark matter halo virial density contrasts based on the spherical collapse in a matter plus dark energy universe.
    </description>

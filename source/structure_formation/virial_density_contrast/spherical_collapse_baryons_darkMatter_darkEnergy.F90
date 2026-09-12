@@ -30,7 +30,7 @@
   use :: Tables                               , only : table1D
 
   !![
-  <virialDensityContrast name="virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy" docformat="rst">
+  <virialDensityContrast name="virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy" alias="sphericalCollapseBaryonsDarkMatterDarkEnergy" docformat="rst">
    <description>
    Dark matter halo virial density contrasts based on the spherical collapse in a matter plus cosmological constant universe.
    </description>

@@ -4166,9 +4166,12 @@
           <xs:enumeration value="friendsOfFriends"/>
           <xs:enumeration value="kitayamaSuto1996"/>
           <xs:enumeration value="percolation"/>
+          <xs:enumeration value="sphericalCollapseBaryonsDarkMatterDarkEnergy"/>
           <xs:enumeration value="sphericalCollapseBrynsDrkMttrDrkEnrgy"/>
           <xs:enumeration value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
           <xs:enumeration value="sphericalCollapseClsnlssMttrDrkEnrgy"/>
+          <xs:enumeration value="sphericalCollapseCollisionlessMatterCosmologicalConstant"/>
+          <xs:enumeration value="sphericalCollapseCollisionlessMatterDarkEnergy"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
