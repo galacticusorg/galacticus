@@ -1895,7 +1895,8 @@ jobs:
                 testSuite/regressions/lightconeCrossingAtCurrentTime.xml,
                 testSuite/regressions/constrainedTreeImpossible.py,
                 testSuite/regressions/ignoreWellOrdering.xml,
-                testSuite/regressions/johnson2021CorrelatedDeviatesWithRegrid.xml ]
+                testSuite/regressions/johnson2021CorrelatedDeviatesWithRegrid.xml,
+                testSuite/regressions/starFormationHistoryOutputStateAdvance.xml ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
