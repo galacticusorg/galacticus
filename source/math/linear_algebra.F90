@@ -529,7 +529,7 @@ contains
     self%size_      =size(array,kind=c_size_t)
     self%vector_%gsl=gsl_vector_alloc(self%size_)
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
@@ -558,7 +558,7 @@ contains
     self%size_      =n
     self%vector_%gsl=gsl_vector_alloc(self%size_)
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
@@ -590,7 +590,7 @@ contains
     status          =gsl_vector_memcpy(self%vector_%gsl,source%vector_%gsl)
     if (status /= GSL_Success) call Error_Report('vector copy failed'//{introspection:location})
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
@@ -759,7 +759,7 @@ contains
     self%nonZeroRowColumnsChecked    =.false.
     self%hasZeroRowColumns           =.false.
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
@@ -793,7 +793,7 @@ contains
     self%hasZeroRowColumns          =.false.
     self%matrix_                 %gsl=gsl_matrix_alloc(self%size_(1),self%size_(2))
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
@@ -828,7 +828,7 @@ contains
     status                           =gsl_matrix_memcpy(self%matrix_%gsl   ,source%matrix_%gsl   )
     if (status /= GSL_Success) call Error_Report('matrix copy failed'//{introspection:location})
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
@@ -1123,7 +1123,7 @@ contains
        allocate(self%LUdecomposition)
        allocate(self%LUpermutation  )
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
 	 <description>
 	 ICE when passing a derived type component to a class(*) function argument.
 	 </description>
@@ -1266,7 +1266,7 @@ contains
     status               =GSL_LinAlg_LU_Decomp (self%matrix_%gsl   ,self%permutation_%gsl,self%decompositionSign)
     if (status /= GSL_Success) call Error_Report('LU decomposition failed'//{introspection:location})
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
