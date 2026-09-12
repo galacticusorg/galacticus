@@ -67,7 +67,7 @@ contains
       <defaultValue>1.0d-2</defaultValue>
       <source>parameters</source>
       <description>
-      The ``toleranceRelative`` with which to accept accelerated estimates.
+      The relative tolerance with which to accept accelerated estimates.
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
