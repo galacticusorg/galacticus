@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements linear algebra calculations.
 !!}
@@ -30,9 +32,9 @@ module Linear_Algebra
   use            :: Resource_Manager, only : resourceManager
   implicit none
   private
-  public :: vector        , matrix         , matrixRotation      , matrixRotationPlusTranslation, &
-       &    matrixLU      , assignment(=)  , operator(*)         , gsl_vector_get               , &
-       &    gsl_vector_set, gsl_vector_free, matrixRotationRandom
+  public :: vector         , matrix              , matrixRotation, matrixLU      , &
+       &    assignment(=)  , operator(*)         , gsl_vector_get, gsl_vector_set, &
+       &    gsl_vector_free, matrixRotationRandom
 
   type :: vectorWrapper
      !!{RST
@@ -1377,42 +1379,6 @@ contains
     matrixRotation       =Q*Pinverse
     return
   end function matrixRotation
-
-  function matrixRotationPlusTranslation(points,pointsRotated,translation) result(matrixRotation)
-    !!{RST
-    Given a set of 3 points, and a corresponding set of points to which some rotation has been applied, construct the corresponding rotation matrix (and, optionally, any translation between the points). The distances between the points must be the same---currently this is not checked. The method used is that of :cite:t:`robjohn2012`
-    !!}
-    implicit none
-    type            (matrix)                                :: matrixRotation
-    type            (vector), intent(in   ), dimension(3  ) :: points           , pointsRotated
-    type            (vector), intent(  out), optional       :: translation
-    type            (vector)                                :: point4           , pointRotated4 , &
-         &                                                     point21          , point31       , &
-         &                                                     pointRotated21   , pointRotated31
-    type            (matrix)                                :: P                , Q
-    double precision                       , dimension(3,3) :: matrixComponents
-
-    point21       =points       (2)-points       (1)
-    pointRotated21=pointsRotated(2)-pointsRotated(1)
-    point31       =points       (3)-points       (1)
-    pointRotated31=pointsRotated(3)-pointsRotated(1)
-    point4        =points       (1)+point21       .cross.point31
-    pointRotated4 =pointsRotated(1)+pointRotated21.cross.pointRotated31
-    matrixComponents(:,1)=point21
-    matrixComponents(:,2)=point31
-    matrixComponents(:,3)=point4       -points       (1)
-    P                    =matrix(matrixComponents)
-    matrixComponents(:,1)=pointRotated21
-    matrixComponents(:,2)=pointRotated31
-    matrixComponents(:,3)=pointRotated4-pointsRotated(1)
-    Q                    =matrix(matrixComponents)
-    matrixRotation       =Q*P%inverse()
-    if (present(translation)) &
-         & translation   = pointsRotated (1) &
-         &                -matrixRotation    &
-         &                *points        (1)
-    return
-  end function matrixRotationPlusTranslation
 
   subroutine vectorWrapperDestructor(self)
     !!{RST

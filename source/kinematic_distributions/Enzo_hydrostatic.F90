@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a kinematic distribution class that mimics the "hydrostatic" solution from the Enzo code.
   !!}
@@ -43,7 +45,7 @@
      final     ::                                   enzoHydrostaticDestructor
      procedure :: isCollisional                  => enzoHydrostaticIsCollisional
      procedure :: temperature                    => enzoHydrostaticTemperature
-     procedure :: temperatureGradientLogarithmic => enzoHydrostaticTemperature
+     procedure :: temperatureGradientLogarithmic => enzoHydrostaticTemperatureGradientLogarithmic
   end type kinematicsDistributionEnzoHydrostatic
 
   interface kinematicsDistributionEnzoHydrostatic
@@ -161,7 +163,8 @@ contains
     double precision                                                       :: massEnclosed, density
     
     if (self%temperature(coordinates) <= temperatureMinimum) then
-       temperatureGradientLogarithmic=temperatureMinimum
+       ! The temperature is at the floor value, and so is constant with radius.
+       temperatureGradientLogarithmic=0.0d0
     else
        density                   =self%massDistribution_%density             (coordinates             )
        massEnclosed              =self%massDistribution_%massEnclosedBySphere(coordinates%rSpherical())
