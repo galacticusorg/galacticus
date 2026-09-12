@@ -110,7 +110,7 @@ contains
     type            (inputParameters    ), intent(inout) :: parameters
     double precision                                     :: mass                , scaleLength  , &
          &                                                  densityNormalization, concentration, &
-         &                                                  virialRadius
+         &                                                  radiusVirial
     logical                                              :: dimensionless
     type            (varying_string     )                :: componentType
     type            (varying_string     )                :: massType
@@ -149,7 +149,7 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter docformat="rst">
-      <name>virialRadius</name>
+      <name>radiusVirial</name>
       <defaultValue>1.0d0</defaultValue>
       <description>
       The virial radius (in Mpc) :math:`r_\mathrm{vir}` of the NFW halo, which defines the outer boundary of the profile at which the mean enclosed density equals the virial overdensity threshold.
@@ -185,7 +185,7 @@ contains
      <argument name="densityNormalization" value="densityNormalization" parameterPresent="parameters"/>
      <argument name="mass"                 value="mass"                 parameterPresent="parameters"/>
      <argument name="scaleLength"          value="scaleLength"          parameterPresent="parameters"/>
-     <argument name="virialRadius"         value="virialRadius"         parameterPresent="parameters"/>
+     <argument name="radiusVirial"         value="radiusVirial"         parameterPresent="parameters"/>
      <argument name="concentration"        value="concentration"        parameterPresent="parameters"/>
      <argument name="dimensionless"        value="dimensionless"        parameterPresent="parameters"/>
     </conditionalCall>
@@ -194,7 +194,7 @@ contains
     return
   end function massDistributionNFWConstructorParameters
 
-  function massDistributionNFWConstructorInternal(scaleLength,concentration,densityNormalization,mass,virialRadius,dimensionless,componentType,massType) result(self)
+  function massDistributionNFWConstructorInternal(scaleLength,concentration,densityNormalization,mass,radiusVirial,dimensionless,componentType,massType) result(self)
     !!{RST
     Internal constructor for "nfw" mass distribution class.
     !!}
@@ -202,7 +202,7 @@ contains
     type            (massDistributionNFW         )                          :: self
     double precision                              , intent(in   ), optional :: scaleLength         , concentration, &
          &                                                                     densityNormalization, mass         , &
-         &                                                                     virialRadius
+         &                                                                     radiusVirial
     logical                                       , intent(in   ), optional :: dimensionless
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
@@ -210,11 +210,11 @@ contains
     <constructorAssign variables="componentType, massType"/>
     !!]
 
-    call self%initialize(scaleLength,concentration,densityNormalization,mass,virialRadius,dimensionless)
+    call self%initialize(scaleLength,concentration,densityNormalization,mass,radiusVirial,dimensionless)
     return
   end function massDistributionNFWConstructorInternal
 
-  subroutine nfwInitialize(self,scaleLength,concentration,densityNormalization,mass,virialRadius,dimensionless)
+  subroutine nfwInitialize(self,scaleLength,concentration,densityNormalization,mass,radiusVirial,dimensionless)
     !!{RST
     Initialize the parameters of an NFW mass distribution.
     !!}
@@ -224,7 +224,7 @@ contains
     class           (massDistributionNFW), intent(inout)           :: self
     double precision                     , intent(in   ), optional :: scaleLength         , concentration, &
          &                                                            densityNormalization, mass         , &
-         &                                                            virialRadius
+         &                                                            radiusVirial
     logical                              , intent(in   ), optional :: dimensionless
     double precision                                               :: radiusScaleFree
 
@@ -235,9 +235,9 @@ contains
        self%scaleLength=scaleLength
     else if (                            &
          &   present(concentration).and. &
-         &   present(virialRadius )      &
+         &   present(radiusVirial )      &
          &  ) then
-       self%scaleLength=virialRadius/concentration
+       self%scaleLength=radiusVirial/concentration
     else
        self%scaleLength=0.0d0
        call Error_Report('no means to determine scale length'//{introspection:location})
@@ -249,13 +249,13 @@ contains
        self%densityNormalization=densityNormalization
     else if (                                   &
          &   present(mass                ).and. &
-         &   present(virialRadius        )      &
+         &   present(radiusVirial        )      &
          &  ) then
-       radiusScaleFree          =+virialRadius/self%scaleLength
+       radiusScaleFree          =+radiusVirial/self%scaleLength
        self%densityNormalization=+mass/4.0d0/Pi/self%scaleLength**3/(log(1.0d0+radiusScaleFree)-radiusScaleFree/(1.0d0+radiusScaleFree))
     else
        self%densityNormalization=+0.00
-       call Error_Report('either "densityNormalization", or "mass" and "virialRadius" must be specified'//{introspection:location})
+       call Error_Report('either "densityNormalization", or "mass" and "radiusVirial" must be specified'//{introspection:location})
     end if
     ! Determine if profile is dimensionless.
     if      (present(dimensionless     )) then

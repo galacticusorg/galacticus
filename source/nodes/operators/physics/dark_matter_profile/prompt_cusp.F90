@@ -44,7 +44,7 @@
 
       &lt;mergerTreeOperator value="pruneByFilter"&gt;
         &lt;preservePrimaryProgenitor value="false"/&gt;
-        &lt;galacticFilter value="labelled"&gt;
+        &lt;galacticFilter value="labeled"&gt;
           &lt;label value="promptCuspUnformed"/&gt;
         &lt;/galacticFilter&gt;
       &lt;/mergerTreeOperator&gt;
@@ -497,7 +497,7 @@ contains
           ! (https://github.com/galacticusorg/cusp-halo-relation) returns NaN otherwise. Since prompt cusp formation is, by
           ! definition, the formation event of a halo, a halo in which no cusp can form is one which can not itself exist. Such
           ! nodes are assigned no cusp and are labeled, so that they may subsequently be pruned from the tree (for example by a
-          ! `mergerTreeOperatorPruneByFilter` operator using a `galacticFilterLabelled` filter). The case in which no solution
+          ! `mergerTreeOperatorPruneByFilter` operator using a `galacticFilterLabeled` filter). The case in which no solution
           ! exists at all (σ₀Collapse exceeds σ₀(t) at every epoch, which occurs for sufficiently low mass halos, since σ₀(t)
           ! grows only until the Universe becomes Λ-dominated and is constant thereafter) is treated identically - just as in the
           ! reference implementation, where such halos fall off the end of the interpolating table and are likewise assigned no

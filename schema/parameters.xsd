@@ -1162,7 +1162,7 @@
           <xs:enumeration value="hostMassRange"/>
           <xs:enumeration value="intervalPass"/>
           <xs:enumeration value="isolatedHostNode"/>
-          <xs:enumeration value="labelled"/>
+          <xs:enumeration value="labeled"/>
           <xs:enumeration value="lightcone"/>
           <xs:enumeration value="lowPass"/>
           <xs:enumeration value="mainBranch"/>

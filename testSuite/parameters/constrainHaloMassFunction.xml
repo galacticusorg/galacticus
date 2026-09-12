@@ -8,8 +8,8 @@
 
   <!-- Task -->
   <task value="haloMassFunction">
-    <haloMassMinimum value="5.61018340369020e08"/>
-    <haloMassMaximum value="8.91236460596131e15"/>
+    <massHaloMinimum value="5.61018340369020e08"/>
+    <massHaloMaximum value="8.91236460596131e15"/>
     <pointsPerDecade value="10"/>
   </task>
   <outputFileName value="testSuite/outputs/constrainHaloMassFunction.hdf5"/>
