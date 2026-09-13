@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789002214984,
+  "lastUpdate": 1789280211689,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=1.0)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "46c15af91991266c03d28180bb06645e2916f9a9",
-          "message": "feat: Report timing and memory use statistics when building SED tabulations",
-          "timestamp": "2024-08-30T07:33:51-07:00",
-          "tree_id": "2eb20194930f302c7f9a614b02301234c7ad6341",
-          "url": "https://github.com/galacticusorg/galacticus/commit/46c15af91991266c03d28180bb06645e2916f9a9"
-        },
-        "date": 1725050830374,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
-            "value": "30.592137854501512",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "16.757775541961518",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
-            "value": "17.516318637183158",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9914,6 +9875,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/75fe8b2def913b997756b92093f11415fbea05d7"
         },
         "date": 1789002214110,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": -30.592138186218683,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -16.75777556266458,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": -17.516318651448117,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "67a5e89a0dfda944e4a332fadae5bcf8f2218282",
+          "message": "Merge pull request #1459 from galacticusorg/feature/table2D-base-class\n\nfeat(tables): introduce a table2D base class and unify the 2D table interface",
+          "timestamp": "2026-09-13T00:16:59Z",
+          "tree_id": "e6b3b39911c05ca2b9c33e16c201fce52d84264e",
+          "url": "https://github.com/galacticusorg/galacticus/commit/67a5e89a0dfda944e4a332fadae5bcf8f2218282"
+        },
+        "date": 1789280210593,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
