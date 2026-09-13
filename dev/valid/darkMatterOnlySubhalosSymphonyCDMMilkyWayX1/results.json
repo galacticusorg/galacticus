@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "75fe8b2def913b997756b92093f11415fbea05d7",
-        "message": "ci(benchmarks): raise COZMIC WDM 3keV MW X1 threshold to 1200%\n",
-        "timestamp": "2026-09-09 08:28:17-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/75fe8b2def913b997756b92093f11415fbea05d7"
+        "id": "67a5e89a0dfda944e4a332fadae5bcf8f2218282",
+        "message": "Merge pull request #1459 from galacticusorg/feature/table2D-base-class\n\nfeat(tables): introduce a table2D base class and unify the 2D table interface\n",
+        "timestamp": "2026-09-13 00:16:59+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/67a5e89a0dfda944e4a332fadae5bcf8f2218282"
     },
     "results": [
         {
@@ -189,7 +189,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Symphony (Nadler et al. 2023)",
                 "comment": "Subhalo mean maximum velocity vs. bound mass relation",
                 "description": "Subhalo mean maximum velocity vs. bound mass relation",
-                "logLikelihood": "-21.65499248650979",
+                "logLikelihood": "-21.654992486509773",
                 "type": "function1D",
                 "xDataset": "massBound",
                 "yCovariance": "velocityMaximumMeanCovariance",
@@ -266,11 +266,11 @@ window.ANALYSES_DATA = {
                     0.2922337602089809,
                     0.41396086431990764,
                     0.5632262268477177,
-                    0.6931104049168798,
+                    0.6931104049168835,
                     1.090462621409427,
                     1.3935048011800895,
                     2.192201063742769,
-                    2.96862206291636,
+                    2.9686220629163405,
                     4.076722673717857,
                     2.731040520546646,
                     2.480487602491037,
