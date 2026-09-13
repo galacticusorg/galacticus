@@ -61,7 +61,7 @@
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodSEDFit" docformat="rst">
    <description>
-   A posterior sampling likelihood class which evaluates the likelihood of observed broadband spectral energy distributions (SEDs) given modeled stellar populations, including dust attenuation effects. Observed magnitudes and uncertainties are specified via ``[magnitudes]`` and ``[errors]``, with dust model and star formation history burst count controlled by ``[dustType]`` and ``[burstCount]``.
+   A posterior sampling likelihood class which evaluates the likelihood of observed broadband spectral energy distributions (SEDs) given modeled stellar populations, including dust attenuation effects. Observed magnitudes and uncertainties are specified via ``[magnitude]`` and ``[error]``, with dust model and star formation history burst count controlled by ``[dustType]`` and ``[burstCount]``.
    </description>
   </posteriorSampleLikelihood>
   !!]

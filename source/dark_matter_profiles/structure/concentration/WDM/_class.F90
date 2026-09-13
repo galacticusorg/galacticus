@@ -34,7 +34,7 @@
 
       c_\mathrm{WDM} = c_\mathrm{CDM} \left[ 1 + \gamma_1 {M_\mathrm{1/2} \over M_\mathrm{halo}}\right]^{-\gamma_2},
 
-   where :math:`\gamma_1=15`, :math:`\gamma_2=0.3`, :math:`M_\mathrm{1/2}` is the mass corresponding to the wavenumber at which the WDM transfer function is suppressed below the CDM transfer function by a factor of 2, and :math:`M_\mathrm{halo}` is the mass of the dark matter halo, to a CDM concentration algorithm as specified by ``[cdmConcentration]``.
+   where :math:`\gamma_1=15`, :math:`\gamma_2=0.3`, :math:`M_\mathrm{1/2}` is the mass corresponding to the wavenumber at which the WDM transfer function is suppressed below the CDM transfer function by a factor of 2, and :math:`M_\mathrm{halo}` is the mass of the dark matter halo, to a CDM concentration algorithm as specified by ``[darkMatterProfileConcentration]``.
    </description>
   </darkMatterProfileConcentration>
   !!]

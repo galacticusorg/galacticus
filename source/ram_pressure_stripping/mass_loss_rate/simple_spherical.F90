@@ -32,7 +32,7 @@
 
        \dot{M}_\mathrm{gas} = -\hbox{max}(\alpha,R_\mathrm{maximum}) M_\mathrm{gas}/\tau_\mathrm{spheroid},
 
-    where :math:`R_\mathrm{maximum}=`\ ``[ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMax]``
+    where :math:`R_\mathrm{maximum}=`\ ``[rateFractionalMaximum]``
 
     .. math::
 

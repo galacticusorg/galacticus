@@ -94,7 +94,7 @@
 
       \sigma_\star = \sqrt{\pi \G h_\star \Sigma_\star}
 
-   where we assume :math:`h_\star/R_\mathrm{disk}=`\ ``[heightToRadialScaleDiskBlitzRosolowsky]``.
+   where we assume :math:`h_\star/R_\mathrm{disk}=`\ ``[heightToRadialScaleDisk]``.
    </description>
   </starFormationRateSurfaceDensityDisks>
   !!]

@@ -29,9 +29,9 @@
    A merger mass movements class which implements mass movements according to:
 
    * If :math:`M_\mathrm{satellite} &gt; f_\mathrm{major} M_\mathrm{central}` then all mass from both satellite and central galaxies moves to the spheroid :term:`component` of the central galaxy;
-   * Otherwise: Gas from the satellite moves to the :term:`component` of the central specified by the ``[minorMergerGasMovesTo]`` parameter (either "``disk``" or "``spheroid``"), stars from the satellite moves to the spheroid of the central and mass in the central does not move.
+   * Otherwise: Gas from the satellite moves to the :term:`component` of the central specified by the ``[destinationGasMinorMerger]`` parameter (either "``disk``" or "``spheroid``"), stars from the satellite moves to the spheroid of the central and mass in the central does not move.
 
-   Here, :math:`f_\mathrm{major}=`\ ``[majorMergerMassRatio]`` is the mass ratio above which a merger is considered to be "major".
+   Here, :math:`f_\mathrm{major}=`\ ``[massRatioMajorMerger]`` is the mass ratio above which a merger is considered to be "major".
    </description>
   </mergerMassMovements>
   !!]

@@ -24,7 +24,7 @@
   !![
   <starFormationRateDisks name="starFormationRateDisksFixed" docformat="rst">
    <description>
-   A star formation rate class for galactic disks that returns a constant, user-specified rate regardless of the disk's gas content, mass, or dynamical properties. The fixed rate of star formation is set by the ``[starFormationRate]`` parameter in units of :math:`\mathrm{M}_\odot \hbox{Gyr}^{-1}`.
+   A star formation rate class for galactic disks that returns a constant, user-specified rate regardless of the disk's gas content, mass, or dynamical properties. The fixed rate of star formation is set by the ``[rateStarFormation]`` parameter in units of :math:`\mathrm{M}_\odot \hbox{Gyr}^{-1}`.
    </description>
   </starFormationRateDisks>
   !!]

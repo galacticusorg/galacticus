@@ -43,7 +43,7 @@
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodSpinDistribution" docformat="rst">
    <description>
-   A posterior sampling likelihood class which evaluates the likelihood of modeled dark matter halo spin parameter distributions against N-body simulation measurements, accounting for halo mass function weighting and N-body mass errors. The target spin distribution file is set by ``[fileName]``, with redshift, mass limits, and N-body particle count constraints specified by ``[redshift]``, ``[massMinimum]``, and ``[countMinimum]``.
+   A posterior sampling likelihood class which evaluates the likelihood of modeled dark matter halo spin parameter distributions against N-body simulation measurements, accounting for halo mass function weighting and N-body mass errors. The target spin distribution file is set by ``[fileName]``, with redshift, mass limits, and N-body particle count constraints specified by ``[redshift]``, ``[massHaloMinimum]``, and ``[particleCountMinimum]``.
    </description>
    <runTimeFileDependencies paths="fileName"/>
   </posteriorSampleLikelihood>

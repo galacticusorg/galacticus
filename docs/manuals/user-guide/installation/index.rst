@@ -56,8 +56,8 @@ Python
 
       pip install -e .
 
-   See :doc:`source-linux` for details and the optional ``[emulation]`` and
-   ``[test]`` extras.
+   See :doc:`source-linux` for details and the optional ``emulation`` and
+   ``test`` extras.
 
 .. toctree::
    :maxdepth: 1

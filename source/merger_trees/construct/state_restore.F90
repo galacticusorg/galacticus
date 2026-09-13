@@ -47,7 +47,7 @@
 
    #. Run the model ensuring that ``[stateFileRoot]`` is set to a suitable file root name to allow the internal state of Galacticus to be stored;
    #. Remove the code inserted above and recompile;
-   #. Run Galacticus with an input parameter file identical to the one used previously except with ``[mergerTreeConstruct]``\ :math:`=`\ ``stateRestore``, ``[stateFileRoot]`` removed, ``[stateRetrieveFileRoot]`` set to the value previously used for ``[stateFileRoot]`` and ``[fileName]``\ :math:`=`\ ``storedTree.dat``.
+   #. Run Galacticus with an input parameter file identical to the one used previously except with ``[mergerTreeConstructor]``\ :math:`=`\ ``stateRestored``, ``[stateFileRoot]`` removed, ``[stateRetrieveFileRoot]`` set to the value previously used for ``[stateFileRoot]`` and ``[fileName]``\ :math:`=`\ ``storedTree.dat``.
 
    This should restore the tree and the internal state of Galacticus precisely from the point where they were saved and produce the same subsequent evolution.
 
