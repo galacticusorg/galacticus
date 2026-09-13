@@ -391,9 +391,16 @@ jobs:
             fi
           done
           exit $status
-  # Spell-check the reStructuredText documentation (advisory — does not fail the
-  # build). Builds the docs with sphinxcontrib-spelling and posts any possible
-  # misspellings as a PR comment; add legitimate technical terms to aux/words.dict.
+  # Spell-check the reStructuredText documentation.  Fails the build on any
+  # misspelling, and still reports them in the job summary and as a PR comment so
+  # they can be read without opening the log.
+  #
+  # If a flagged word is legitimate — a technical term, or a proper name — add it
+  # to aux/words.dict.  If it is a code identifier appearing in prose, mark it up
+  # as a reStructuredText literal (``likeThis``) instead: that renders it as code
+  # and excludes it from the check, and keeps the dictionary for words.  British
+  # spellings must be corrected, never added to the dictionary; whitelisting them
+  # is what allowed them to accumulate previously.
   Spell-Check-RST:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
@@ -421,11 +428,20 @@ jobs:
       - name: Build documentation and spell-check
         run: |
           PYTHONPATH=$GITHUB_WORKSPACE/python python scripts/doc/extractDocsRST.py source docs
-          SPHINX_SPELLING=1 python -m sphinx -b spelling docs docs/_spelling || true
+          # The spelling builder exits non-zero when it finds a misspelling, so its
+          # status is recorded rather than acted on here: the reporting steps below
+          # need to run first.  A non-zero status with no `.spelling` output means
+          # the documentation build itself failed, which is fatal immediately.
+          SPHINX_SPELLING=1 python -m sphinx -b spelling docs docs/_spelling && sphinxStatus=0 || sphinxStatus=$?
+          if [ "$sphinxStatus" -ne 0 ] && ! find docs/_spelling -name '*.spelling' -size +0 | grep -q .; then
+            echo "Documentation build failed (sphinx exited $sphinxStatus) with no spelling output."
+            exit "$sphinxStatus"
+          fi
           if find docs/_spelling -name '*.spelling' -size +0 | grep -q .; then
             {
-              printf '<details><summary>RST spell-check (advisory) — possible misspellings (click to expand)</summary>\n\n'
-              printf 'Add any legitimate technical terms to `aux/words.dict`.\n\n```\n'
+              printf '<details><summary>RST spell-check — misspellings (click to expand)</summary>\n\n'
+              printf 'Correct the spelling, mark a code identifier up as ``likeThis``, or — for a\n'
+              printf 'genuine technical term or proper name — add it to `aux/words.dict`.\n\n```\n'
               cat $(find docs/_spelling -name '*.spelling') | sort -u
               printf '```\n\n</details>\n'
             } > warnings.md
@@ -445,3 +461,8 @@ jobs:
         uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3
         with:
           file-path: warnings.md
+      - name: Fail if any misspellings were found
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          echo "Documentation spell-check failed; see the job summary for the flagged words."
+          exit 1
