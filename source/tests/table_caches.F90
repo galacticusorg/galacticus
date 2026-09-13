@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a program to test persistent, mergeable caches of tabulated functions.
 !!}
@@ -30,7 +32,7 @@ program Test_Table_Caches
   use :: Cosmology_Functions                  , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                 , only : cosmologyParametersSimple
   use :: Display                              , only : displayVerbositySet                       , verbosityLevelStandard
-  use :: Error                                , only : errorStatusSuccess
+  use :: Error                                , only : errorStatusSuccess                        , errorStatusFail
   use :: Events_Hooks                         , only : eventsHooksInitialize
   use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMassGnedin2000
   use :: Intergalactic_Medium_State           , only : intergalacticMediumStateSimple
@@ -38,10 +40,10 @@ program Test_Table_Caches
   use :: File_Utilities                       , only : Directory_Make                            , File_Exists             , File_Remove
   use :: IO_HDF5                              , only : ioHDF5AccessInitialize
   use :: ISO_Varying_String                   , only : varying_string                            , assignment(=)
-  use :: Numerical_Ranges                     , only : Range_Pinned                              , rangeLattice            , gridSchemePerDecade
+  use :: Numerical_Ranges                     , only : Range_Pinned                              , rangeLattice            , gridSchemePerDecade  , gridSchemePerUnit
   use :: ISO_Varying_String                   , only : char
   use :: Table_Caches                         , only : Table_Cache_Restore                       , Table_Cache_Store       , Table_Cache_File_Name
-  use :: Tables                               , only : table1D                                   , table1DLogarithmicLinear, table2DLogLogLin
+  use :: Tables                               , only : table1D                                   , table1DLogarithmicLinear, table2DLogLogLin     , table2DLinLinLin
   use :: Unit_Tests                           , only : Assert                                    , Unit_Tests_Begin_Group  , Unit_Tests_End_Group , Unit_Tests_Finish
   implicit none
   class           (table1D                                   ), allocatable                 :: tableStored              , tableRestored         , &
@@ -51,9 +53,11 @@ program Test_Table_Caches
   type            (varying_string                            )                              :: fileName                 , fileNameFiltering     , &
        &                                                                                       fileName2D
   type            (table2DLogLogLin                          )                              :: table2DStored            , table2DRestored
+  type            (table2DLinLinLin                          )                              :: table2DLinearStored      , table2DLinearRestored
   type            (rangeLattice                              )                              :: latticeX2D               , latticeY2D
   logical                                                     , allocatable, dimension(:,:) :: isComputed2D
   double precision                                            , allocatable, dimension(:,:) :: z2DStored                , z2DRestored
+  type            (varying_string                            )                              :: fileName2DLinear
   logical                                                     , allocatable, dimension(:  ) :: isComputed
   double precision                                            , allocatable, dimension(:  ) :: xStored                  , xRestored
   double precision                                            , allocatable, dimension(:,:) :: yStored                  , yRestored
@@ -153,6 +157,33 @@ program Test_Table_Caches
        &      [latticeX2D     %indexMinimum         ,latticeX2D     %count         ,latticeY2D     %indexMinimum         ,latticeY2D     %count         ]  &
        &     )
   call Assert('the restored 2D values are bit-identical'          ,all(z2DRestored == z2DStored),.true.)
+
+  ! The same round trip for a linearly-spaced 2D table - which can participate in the cache only because `extend` is now
+  ! provided by the `table2D` base class.
+  fileName2DLinear='testSuite/outputs/tableCache2DLinear.hdf5'
+  if (File_Exists(fileName2DLinear)) call File_Remove(fileName2DLinear)
+  latticeX2D=Range_Pinned(15.0d0,4,gridSchemePerUnit,anchorEvery=2)
+  latticeY2D=Range_Pinned( 3.0d0,4,gridSchemePerUnit,anchorEvery=2)
+  call table2DLinearStored%extend(latticeX2D,latticeY2D,isComputed2D)
+  do i=1,latticeX2D%count
+     do j=1,latticeY2D%count
+        call table2DLinearStored%populate(table2DLinearStored%x(i)*table2DLinearStored%y(j),i,j)
+     end do
+  end do
+  z2DStored=table2DLinearStored%zs()
+  call Table_Cache_Store  (table2DLinearStored  ,fileName2DLinear       )
+  call Table_Cache_Restore(table2DLinearRestored,fileName2DLinear,status)
+  z2DRestored=table2DLinearRestored%zs()
+  call Assert('a cached linearly-spaced 2D tabulation is restored'                ,status,errorStatusSuccess)
+  call Assert('the restored linearly-spaced 2D tabulation is on the same lattices',                                                                                                &
+       &      [table2DLinearRestored%latticeX%indexMinimum,table2DLinearRestored%latticeX%count,table2DLinearRestored%latticeY%indexMinimum,table2DLinearRestored%latticeY%count], &
+       &      [latticeX2D           %indexMinimum         ,latticeX2D           %count         ,latticeY2D           %indexMinimum         ,latticeY2D           %count         ]  &
+       &     )
+  call Assert('the restored linearly-spaced 2D values are bit-identical'          ,all(z2DRestored == z2DStored),.true.)
+  ! A cached tabulation stored by a different table type must be ignored rather than misread - the abscissae which it records
+  ! are in the internal coordinate of that type.
+  call Table_Cache_Restore(table2DRestored,fileName2DLinear,status)
+  call Assert('a cached 2D tabulation stored by a different table type is ignored',status,errorStatusFail)
 
   ! Exercise a real, persisted tabulation which uses the cache: the Gnedin2000 filtering mass. The key property is that
   ! requesting an earlier epoch, which forces the table to be extended downwards, must not change the value already tabulated at
