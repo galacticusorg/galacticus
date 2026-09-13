@@ -26,7 +26,7 @@
   use :: Cosmology_Functions                  , only : cosmologyFunctions                          , cosmologyFunctionsClass
   use :: Cosmology_Parameters                 , only : cosmologyParameters                         , cosmologyParametersClass
   use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass            , intergalacticMediumFilteringMassClass
-  use :: Spherical_Collapse_Solvers           , only : enumerationCllsnlssMttrDarkEnergyFixedAtType, sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
+  use :: Spherical_Collapse_Solvers           , only : enumerationCollisionlessMatterDarkEnergyFixedAtType, sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
   use :: Tables                               , only : table1D
 
   !![
@@ -51,7 +51,7 @@
      integer                                                                           :: tablePointsPerOctave
      double precision                                                                  :: perturbationSmall
      logical                                                                           :: tableStore
-     type            (enumerationCllsnlssMttrDarkEnergyFixedAtType      )              :: energyFixedAt
+     type            (enumerationCollisionlessMatterDarkEnergyFixedAtType      )              :: energyFixedAt
      class           (table1D                                           ), allocatable :: deltaVirialClustered                        , deltaVirialUnclustered                       , &
           &                                                                               turnaroundClustered                         , turnaroundUnclustered
      class           (cosmologyParametersClass                          ), pointer     :: cosmologyParameters_              => null()
@@ -88,7 +88,7 @@ contains
     Constructor for the :galacticus-class:`virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy` dark matter halo virial density contrast class that takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                                , inputParameters
-    use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
+    use :: Spherical_Collapse_Solvers, only : enumerationCollisionlessMatterDarkEnergyFixedAtEncode
     implicit none
     type   (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy)                :: self
     type   (inputParameters                                           ), intent(inout) :: parameters
@@ -137,7 +137,7 @@ contains
     <objectBuilder class="cosmologyFunctions"               name="cosmologyFunctions_"               source="parameters"/>
     <objectBuilder class="intergalacticMediumFilteringMass" name="intergalacticMediumFilteringMass_" source="parameters"/>
     !!]
-    self=virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy(tableStore,tablePointsPerOctave,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),perturbationSmall,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumFilteringMass_)
+    self=virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy(tableStore,tablePointsPerOctave,enumerationCollisionlessMatterDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),perturbationSmall,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumFilteringMass_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"             />
@@ -156,7 +156,7 @@ contains
     class  (cosmologyParametersClass                                  ), intent(in   ), target :: cosmologyParameters_
     class  (cosmologyFunctionsClass                                   ), intent(in   ), target :: cosmologyFunctions_
     class  (intergalacticMediumFilteringMassClass                     ), intent(in   ), target :: intergalacticMediumFilteringMass_
-    type   (enumerationCllsnlssMttrDarkEnergyFixedAtType              ), intent(in   )         :: energyFixedAt
+    type   (enumerationCollisionlessMatterDarkEnergyFixedAtType              ), intent(in   )         :: energyFixedAt
     double precision                                                  , intent(in   )         :: perturbationSmall
     logical                                                            , intent(in   )         :: tableStore
     integer                                                            , intent(in   )         :: tablePointsPerOctave

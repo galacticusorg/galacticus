@@ -22,7 +22,7 @@
   !!}
 
   !![
-  <posteriorSampleSimulation name="posteriorSampleSimulationAnnealedDffrntlEvltn" docformat="rst">
+  <posteriorSampleSimulation name="posteriorSampleSimulationAnnealedDifferentialEvolution" docformat="rst">
    <description>
    This class extends the ``differentialEvolution`` class to include an annealing schedule---the simulation begins at high temperature, waits for convergence, lowers the temperature and repeats until convergence at :math:`T=1` is reached. In addition to the options for the ``differentialEvolution`` algorithm, the details of the algorithm are controlled by the following sub-parameters:
 
@@ -42,7 +42,7 @@
    </description>
   </posteriorSampleSimulation>
   !!]
-  type, extends(posteriorSampleSimulationDifferentialEvolution) :: posteriorSampleSimulationAnnealedDffrntlEvltn
+  type, extends(posteriorSampleSimulationDifferentialEvolution) :: posteriorSampleSimulationAnnealedDifferentialEvolution
      !!{RST
      Implementation of a posterior sampling simulation class which implements an annealed differential evolution algorithm.
      !!}
@@ -60,25 +60,25 @@
      procedure :: update         => annealedDifferentialEvolutionUpdate
      procedure :: temperature    => annealedDifferentialEvolutionTemperature
      procedure :: initialize     => annealedDifferentialEvolutionInitialize
-  end type posteriorSampleSimulationAnnealedDffrntlEvltn
+  end type posteriorSampleSimulationAnnealedDifferentialEvolution
 
-  interface posteriorSampleSimulationAnnealedDffrntlEvltn
+  interface posteriorSampleSimulationAnnealedDifferentialEvolution
      !!{RST
-     Constructors for the :galacticus-class:`posteriorSampleSimulationAnnealedDffrntlEvltn` posterior sampling simulation class.
+     Constructors for the :galacticus-class:`posteriorSampleSimulationAnnealedDifferentialEvolution` posterior sampling simulation class.
      !!}
      module procedure annealedDifferentialEvolutionConstructorParameters
      module procedure annealedDifferentialEvolutionConstructorInternal
-  end interface posteriorSampleSimulationAnnealedDffrntlEvltn
+  end interface posteriorSampleSimulationAnnealedDifferentialEvolution
 
 contains
 
   function annealedDifferentialEvolutionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`posteriorSampleSimulationAnnealedDffrntlEvltn` posterior sampling simulation class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleSimulationAnnealedDifferentialEvolution` posterior sampling simulation class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (posteriorSampleSimulationAnnealedDffrntlEvltn)                :: self
+    type            (posteriorSampleSimulationAnnealedDifferentialEvolution)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
     integer                                                                        :: temperatureLevelCount
     double precision                                                               :: temperatureMaximum
@@ -113,7 +113,7 @@ contains
     Internal constructor for the "annealedDifferentialEvolution" simulation class.
     !!}
     implicit none
-    type            (posteriorSampleSimulationAnnealedDffrntlEvltn)                                      :: self
+    type            (posteriorSampleSimulationAnnealedDifferentialEvolution)                                      :: self
     type            (modelParameterList                           ), intent(in   ), target, dimension(:) :: modelParametersActive_                  , modelParametersInactive_
     class           (posteriorSampleLikelihoodClass               ), intent(in   ), target               :: posteriorSampleLikelihood_
     class           (posteriorSampleConvergenceClass              ), intent(in   ), target               :: posteriorSampleConvergence_
@@ -143,7 +143,7 @@ contains
     Finished initialization of annealed differential evolution simulation objects during construction.
     !!}
     implicit none
-    class           (posteriorSampleSimulationAnnealedDffrntlEvltn), intent(inout) :: self
+    class           (posteriorSampleSimulationAnnealedDifferentialEvolution), intent(inout) :: self
     integer                                                        , intent(in   ) :: temperatureLevelCount
     double precision                                               , intent(in   ) :: temperatureMaximum
     integer                                                                        :: i
@@ -176,7 +176,7 @@ contains
     use :: MPI_Utilities     , only : mpiSelf
     use :: String_Handling   , only : operator(//)
     implicit none
-    class           (posteriorSampleSimulationAnnealedDffrntlEvltn), intent(inout)                                 :: self
+    class           (posteriorSampleSimulationAnnealedDifferentialEvolution), intent(inout)                                 :: self
     double precision                                               , intent(in   ), dimension(self%parameterCount) :: stateVector
     logical                                                        , allocatable  , dimension(:                  ) :: outlierMask
     integer                                                                                                        :: i
@@ -215,7 +215,7 @@ contains
     Return the temperature.
     !!}
     implicit none
-    class(posteriorSampleSimulationAnnealedDffrntlEvltn), intent(inout) :: self
+    class(posteriorSampleSimulationAnnealedDifferentialEvolution), intent(inout) :: self
 
     annealedDifferentialEvolutionTemperature=self%temperatures(self%temperatureLevelCurrent)
     return
@@ -226,7 +226,7 @@ contains
     Return whether or not to accept a proposal.
     !!}
     implicit none
-    class           (posteriorSampleSimulationAnnealedDffrntlEvltn), intent(inout) :: self
+    class           (posteriorSampleSimulationAnnealedDifferentialEvolution), intent(inout) :: self
     double precision                                               , intent(in   ) :: logPosterior         , logPosteriorProposed         , &
          &                                                                            logLikelihoodVariance, logLikelihoodVarianceProposed
     double precision                                                               :: x

@@ -259,7 +259,7 @@ An example change file can be found `here <https://raw.githubusercontent.com/gal
 
      <!-- Replace a parameter -->
      <change type="replace" path="nodeOperator/nodeOperator[@value='stellarFeedbackSpheroids']/stellarFeedbackOutflows/stellarFeedbackOutflows">
-       <stellarFeedbackOutflows value="vlctyMxSclng">
+       <stellarFeedbackOutflows value="velocityMaximumScaling">
          <fraction value="0.015"/>
          <exponentVelocity value="3.5"/>
        </stellarFeedbackOutflows>

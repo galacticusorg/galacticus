@@ -696,8 +696,8 @@ with safe_section("haloMassFunctionOndaroMallea2021 (dimension(0:2))"):
 # (parallels the `radiativeTransferMatter` smoke test above).
 with safe_section("nodePropertyExtractor* (logical(:) outputMask)"):
     for impl in ('nodePropertyExtractorLuminosityStellar',
-                 'nodePropertyExtractorLmnstyEmssnLineAGN',
-                 'nodePropertyExtractorLmnstyEmssnLinePanuzzo2003'):
+                 'nodePropertyExtractorLuminosityEmissionLineAGN',
+                 'nodePropertyExtractorLuminosityEmissionLinePanuzzo2003'):
         check_eq(f"{impl} exposed", hasattr(galacticus, impl), True)
         sig = inspect.signature(getattr(galacticus, impl).__init__)
         check_eq(f"{impl}: outputMask in signature",

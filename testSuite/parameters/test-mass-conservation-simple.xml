@@ -242,7 +242,7 @@
 	<nodeOperator value="stellarFeedbackDisks">
 	  <stellarFeedbackOutflows value="rateLimit">
             <timescaleOutflowFractionalMinimum value="0.001"/>
-            <stellarFeedbackOutflows value="vlctyMxSclng">
+            <stellarFeedbackOutflows value="velocityMaximumScaling">
 	      <fraction value="5.4973312818696149E-002"/>
 	      <exponentRedshift value="1.9464430036515628"/>
 	      <exponentVelocity value="-5.2559103933618596"/>

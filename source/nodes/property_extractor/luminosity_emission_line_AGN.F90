@@ -30,14 +30,14 @@
   use :: Accretion_Disks                     , only : accretionDisksClass
   use :: Atomic_Rates_Recombination_Radiative, only : atomicRecombinationRateRadiativeClass
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLineAGN" docformat="rst">
+  <nodePropertyExtractor name="nodePropertyExtractorLuminosityEmissionLineAGN" docformat="rst">
     <description>
     An emission line luminosity property extractor class for AGN narrow line regions. The luminosity of the named emission lines (given by the ``lineNames`` parameter) are computed, largely following the model of :cite:t:`feltre_nuclear_2016`.
     </description>
     <runTimeFileDependencies paths="cloudyTableFileName"/>
   </nodePropertyExtractor>
   !!]
-  type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorLmnstyEmssnLineAGN
+  type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorLuminosityEmissionLineAGN
      !!{RST
      A stellar luminosity output analysis property extractor class.
      !!}
@@ -60,25 +60,25 @@
           &                                                                                        densityHydrogen_                           , temperature
      type            (varying_string                       )                                    :: cloudyTableFileName
    contains
-     final     ::                        lmnstyEmssnLineAGNDestructor
-     procedure :: elementCount        => lmnstyEmssnLineAGNElementCount
-     procedure :: extract             => lmnstyEmssnLineAGNExtract
-     procedure :: names               => lmnstyEmssnLineAGNNames
-     procedure :: descriptions        => lmnstyEmssnLineAGNDescriptions
-     procedure :: unitsInSI           => lmnstyEmssnLineAGNUnitsInSI
-     procedure :: metaData            => lmnstyEmssnLineAGNMetaData
-     procedure :: units               => lmnstyEmssnLineAGNUnits
-     procedure :: supportsAttenuation => lmnstyEmssnLineAGNSupportsAttenuation
-     procedure :: decompose           => lmnstyEmssnLineAGNDecompose
-  end type nodePropertyExtractorLmnstyEmssnLineAGN
+     final     ::                        luminosityEmissionLineAGNDestructor
+     procedure :: elementCount        => luminosityEmissionLineAGNElementCount
+     procedure :: extract             => luminosityEmissionLineAGNExtract
+     procedure :: names               => luminosityEmissionLineAGNNames
+     procedure :: descriptions        => luminosityEmissionLineAGNDescriptions
+     procedure :: unitsInSI           => luminosityEmissionLineAGNUnitsInSI
+     procedure :: metaData            => luminosityEmissionLineAGNMetaData
+     procedure :: units               => luminosityEmissionLineAGNUnits
+     procedure :: supportsAttenuation => luminosityEmissionLineAGNSupportsAttenuation
+     procedure :: decompose           => luminosityEmissionLineAGNDecompose
+  end type nodePropertyExtractorLuminosityEmissionLineAGN
 
-  interface nodePropertyExtractorLmnstyEmssnLineAGN
+  interface nodePropertyExtractorLuminosityEmissionLineAGN
      !!{RST
-     Constructors for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLineAGN` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorLuminosityEmissionLineAGN` property extractor class.
      !!}
-     module procedure lmnstyEmssnLineAGNConstructorParameters
-     module procedure lmnstyEmssnLineAGNConstructorInternal
-  end interface nodePropertyExtractorLmnstyEmssnLineAGN
+     module procedure luminosityEmissionLineAGNConstructorParameters
+     module procedure luminosityEmissionLineAGNConstructorInternal
+  end interface nodePropertyExtractorLuminosityEmissionLineAGN
 
   ! Enumeration for interpolants in the AGN emission line table.
   !![
@@ -95,13 +95,13 @@
   </enumeration>
   !!]
 contains
-  function lmnstyEmssnLineAGNConstructorParameters(parameters) result(self)
+  function luminosityEmissionLineAGNConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLineAGN` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorLuminosityEmissionLineAGN` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (nodePropertyExtractorLmnstyEmssnLineAGN)                              :: self
+    type            (nodePropertyExtractorLuminosityEmissionLineAGN)                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters
     type            (varying_string                         ), allocatable  , dimension(:) :: lineNames
     class           (outputTimesClass                       ), pointer                     :: outputTimes_
@@ -166,7 +166,7 @@ contains
     <objectBuilder class="outputTimes"                      name="outputTimes_"                      source="parameters"/>
     <objectBuilder class="atomicRecombinationRateRadiative" name="atomicRecombinationRateRadiative_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorLmnstyEmssnLineAGN(cloudyTableFileName,accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogen,temperature)
+    self=nodePropertyExtractorLuminosityEmissionLineAGN(cloudyTableFileName,accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogen,temperature)
     !![
     <inputParametersValidate source="parameters"              />
     <objectDestructor name="accretionDisks_"                  />
@@ -175,11 +175,11 @@ contains
     <objectDestructor name="atomicRecombinationRateRadiative_"/>
     !!]
     return
-  end function lmnstyEmssnLineAGNConstructorParameters
+  end function luminosityEmissionLineAGNConstructorParameters
 
-  function lmnstyEmssnLineAGNConstructorInternal(cloudyTableFileName,accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogen_,temperature,outputMask) result(self)
+  function luminosityEmissionLineAGNConstructorInternal(cloudyTableFileName,accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogen_,temperature,outputMask) result(self)
     !!{RST
-    Internal constructor for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLineAGN` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorLuminosityEmissionLineAGN` property extractor class.
     !!}
     use            :: Error                         , only : Error_Report
     use            :: Input_Paths                   , only : inputPath             , pathTypeDataStatic
@@ -192,7 +192,7 @@ contains
     use            :: Galacticus_Nodes              , only : nodeComponentBlackHole
      use           :: Table_Labels                  , only : extrapolationTypeFix
     implicit none
-    type            (nodePropertyExtractorLmnstyEmssnLineAGN)                                                :: self
+    type            (nodePropertyExtractorLuminosityEmissionLineAGN)                                                :: self
     type            (varying_string                         ), intent(in   )                                 :: cloudyTableFileName
     double precision                                         , intent(in   )                                 :: indexSpectralShortWavelength     , factorFillingVolume, &
          &                                                                                                      densityHydrogen_                 , temperature
@@ -296,14 +296,14 @@ contains
     end do
     self%countLines=size(lineNames)
     return
-  end function lmnstyEmssnLineAGNConstructorInternal
+  end function luminosityEmissionLineAGNConstructorInternal
 
-  subroutine lmnstyEmssnLineAGNDestructor(self)
+  subroutine luminosityEmissionLineAGNDestructor(self)
     !!{RST
-    Destructor for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLineAGN` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorLuminosityEmissionLineAGN` property extractor class.
     !!}
     implicit none
-    type(nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout) :: self
+    type(nodePropertyExtractorLuminosityEmissionLineAGN), intent(inout) :: self
 
     !![
     <objectDestructor name="self%accretionDisks_"                  />
@@ -312,9 +312,9 @@ contains
     <objectDestructor name="self%atomicRecombinationRateRadiative_"/>
     !!]
     return
-  end subroutine lmnstyEmssnLineAGNDestructor
+  end subroutine luminosityEmissionLineAGNDestructor
 
-  function lmnstyEmssnLineAGNExtract(self,node,time,instance)
+  function luminosityEmissionLineAGNExtract(self,node,time,instance)
     !!{RST
     Implement an emission line output analysis property extractor.
     !!}
@@ -332,8 +332,8 @@ contains
     use            :: Numerical_Constants_Units           , only : metersToAngstroms
     use            :: Galactic_Structure_Options          , only : massTypeStellar
     implicit none
-    double precision                                                 , dimension(:) , allocatable :: lmnstyEmssnLineAGNExtract
-    class           (nodePropertyExtractorLmnstyEmssnLineAGN        ), intent(inout), target      :: self
+    double precision                                                 , dimension(:) , allocatable :: luminosityEmissionLineAGNExtract
+    class           (nodePropertyExtractorLuminosityEmissionLineAGN        ), intent(inout), target      :: self
     type            (treeNode                                       ), intent(inout), target      :: node
     double precision                                                 , intent(in   )              :: time
     type            (multiCounter                                   ), intent(inout), optional    :: instance
@@ -370,8 +370,8 @@ contains
     !$GLC attributes unused :: instance
 
     ! Initialize luminosities
-    allocate(lmnstyEmssnLineAGNExtract(self%countLines))
-    lmnstyEmssnLineAGNExtract=0.0d0
+    allocate(luminosityEmissionLineAGNExtract(self%countLines))
+    luminosityEmissionLineAGNExtract=0.0d0
     ! Retrieve components.
     basic     => node%basic    ()
     disk      => node%disk     ()
@@ -507,7 +507,7 @@ contains
                         &                          *                interpolateFactor(j   ,2)  &
                         &                          *                interpolateFactor(k   ,3)  &
                         &                          *                interpolateFactor(l   ,4)  
-                   lmnstyEmssnLineAGNExtract(line)=+lmnstyEmssnLineAGNExtract        (line  )  &
+                   luminosityEmissionLineAGNExtract(line)=+luminosityEmissionLineAGNExtract        (line  )  &
                         &                          +weight                                     &
                         &                          *(radiusStromgren*hecto)**2                 & ! The quantity given by Cloudy is (4π*intensity in cm⁻²). Multiply by the Strömgren radius squared to convert to luminosity.
                         &                          *10.0d0**(                                         &
@@ -527,28 +527,28 @@ contains
        end do
     end do
     return
-  end function lmnstyEmssnLineAGNExtract
+  end function luminosityEmissionLineAGNExtract
 
-  integer function lmnstyEmssnLineAGNElementCount(self,time)
+  integer function luminosityEmissionLineAGNElementCount(self,time)
     !!{RST
-    Return the number of elements in the ``lmnstyEmssnLineAGN`` property extractor.
+    Return the number of elements in the ``luminosityEmissionLineAGN`` property extractor.
     !!}
     implicit none
-    class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout) :: self
+    class           (nodePropertyExtractorLuminosityEmissionLineAGN), intent(inout) :: self
     double precision                                         , intent(in   ) :: time
     !$GLC attributes unused :: time
 
-    lmnstyEmssnLineAGNElementCount=self%countLines
+    luminosityEmissionLineAGNElementCount=self%countLines
     return
-  end function lmnstyEmssnLineAGNElementCount
+  end function luminosityEmissionLineAGNElementCount
 
-  subroutine lmnstyEmssnLineAGNNames(self,time,names)
+  subroutine luminosityEmissionLineAGNNames(self,time,names)
     !!{RST
     Return the names of the ``emissionLines``.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
-    class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout)                            :: self
+    class           (nodePropertyExtractorLuminosityEmissionLineAGN), intent(inout)                            :: self
     double precision                                         , intent(in   )                            :: time
     type            (varying_string                         ), intent(inout), dimension(:), allocatable :: names
     !$GLC attributes unused :: time
@@ -556,14 +556,14 @@ contains
     allocate(names(self%countLines))
     names=self%names_
     return
-  end subroutine lmnstyEmssnLineAGNNames
+  end subroutine luminosityEmissionLineAGNNames
 
-  subroutine lmnstyEmssnLineAGNDescriptions(self,time,descriptions)
+  subroutine luminosityEmissionLineAGNDescriptions(self,time,descriptions)
     !!{RST
     Return descriptions of the ``emission line luminosity`` property.
     !!}
     implicit none
-    class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout)                             :: self
+    class           (nodePropertyExtractorLuminosityEmissionLineAGN), intent(inout)                             :: self
     double precision                                         , intent(in   )                             :: time
     type            (varying_string                         ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
@@ -571,30 +571,30 @@ contains
     allocate(descriptions(self%countLines))
     descriptions=self%descriptions_
     return
-  end subroutine lmnstyEmssnLineAGNDescriptions
+  end subroutine luminosityEmissionLineAGNDescriptions
 
-  function lmnstyEmssnLineAGNUnitsInSI(self,time) result(unitsInSI)
+  function luminosityEmissionLineAGNUnitsInSI(self,time) result(unitsInSI)
     !!{RST
-    Return the units of the ``lmnstyEmssnLineAGN`` properties in the SI system.
+    Return the units of the ``luminosityEmissionLineAGN`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Units, only : ergs
     implicit none
     double precision                                         , allocatable  , dimension(:) :: unitsInSI
-    class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout)               :: self
+    class           (nodePropertyExtractorLuminosityEmissionLineAGN), intent(inout)               :: self
     double precision                                         , intent(in   )               :: time
     !$GLC attributes unused :: time
 
     allocate(unitsInSI(self%countLines))
     unitsInSI=ergs
     return
-  end function lmnstyEmssnLineAGNUnitsInSI
+  end function luminosityEmissionLineAGNUnitsInSI
  
-  subroutine lmnstyEmssnLineAGNMetaData(self,node,indexProperty,metaDataRank0,metaDataRank1)
+  subroutine luminosityEmissionLineAGNMetaData(self,node,indexProperty,metaDataRank0,metaDataRank1)
     !!{RST
     Interface for tuple property meta-data.
     !!}
     implicit none
-    class  (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout) :: self
+    class  (nodePropertyExtractorLuminosityEmissionLineAGN), intent(inout) :: self
     type   (treeNode                               ), intent(inout) :: node
     integer                                         , intent(in   ) :: indexProperty
     type   (doubleDictionary                       ), intent(inout) :: metaDataRank0
@@ -603,16 +603,16 @@ contains
 
     call metaDataRank0%set('wavelength',self%wavelengths(indexProperty))
     return
-  end subroutine lmnstyEmssnLineAGNMetaData
+  end subroutine luminosityEmissionLineAGNMetaData
 
-  function lmnstyEmssnLineAGNUnits(self,time) result(units)
+  function luminosityEmissionLineAGNUnits(self,time) result(units)
     !!{RST
-    Return the units of the lmnstyEmssnLineAGN properties.
+    Return the units of the luminosityEmissionLineAGN properties.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
     type            (unitType                               ), dimension(:), allocatable :: units
-    class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout)             :: self
+    class           (nodePropertyExtractorLuminosityEmissionLineAGN), intent(inout)             :: self
     double precision                                         , intent(in   )             :: time
     double precision                                         , dimension(:), allocatable :: siValues
     integer                                                                              :: i
@@ -623,21 +623,21 @@ contains
        units(i)=unitType(siValues(i),description='ergs',quantity='erg')
     end do
     return
-  end function lmnstyEmssnLineAGNUnits
+  end function luminosityEmissionLineAGNUnits
 
-  logical function lmnstyEmssnLineAGNSupportsAttenuation(self) result(supportsAttenuation)
+  logical function luminosityEmissionLineAGNSupportsAttenuation(self) result(supportsAttenuation)
     !!{RST
     Return true: active galactic nucleus emission line luminosities can be decomposed for attenuation by dust.
     !!}
     implicit none
-    class(nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout) :: self
+    class(nodePropertyExtractorLuminosityEmissionLineAGN), intent(inout) :: self
     !$GLC attributes unused :: self
 
     supportsAttenuation=.true.
     return
-  end function lmnstyEmssnLineAGNSupportsAttenuation
+  end function luminosityEmissionLineAGNSupportsAttenuation
 
-  function lmnstyEmssnLineAGNDecompose(self,node,time,request) result(decomposition)
+  function luminosityEmissionLineAGNDecompose(self,node,time,request) result(decomposition)
     !!{RST
     Decompose active galactic nucleus emission line luminosities into parcels of emission which may be attenuated
     separately---one parcel per line.
@@ -657,7 +657,7 @@ contains
     use :: Galactic_Structure_Options  , only : componentTypeBlackHole
     implicit none
     type            (luminosityDecomposition                )                              :: decomposition
-    class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout), target       :: self
+    class           (nodePropertyExtractorLuminosityEmissionLineAGN), intent(inout), target       :: self
     type            (treeNode                               ), intent(inout), target       :: node
     double precision                                         , intent(in   )               :: time
     type            (decompositionRequest                   ), intent(in   )               :: request
@@ -677,4 +677,4 @@ contains
        decomposition%descriptors (iLine)%ageMaximum   =0.0d0
     end do
     return
-  end function lmnstyEmssnLineAGNDecompose
+  end function luminosityEmissionLineAGNDecompose

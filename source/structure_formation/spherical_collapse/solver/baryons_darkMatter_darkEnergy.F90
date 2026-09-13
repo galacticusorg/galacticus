@@ -30,7 +30,7 @@
    </description>
   </sphericalCollapseSolver>
   !!]
-  type, extends(sphericalCollapseSolverCllsnlssMttrDarkEnergy) :: sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
+  type, extends(sphericalCollapseSolverCollisionlessMatterDarkEnergy) :: sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
      !!{RST
      A spherical collapse solver for universes consisting of baryons, collisionless matter, and dark energy.
      !!}
@@ -109,7 +109,7 @@ contains
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
-    self=sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(baryonsCluster,tablePointsPerOctave,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),perturbationSmall,cosmologyParameters_,cosmologyFunctions_)
+    self=sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(baryonsCluster,tablePointsPerOctave,enumerationCollisionlessMatterDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),perturbationSmall,cosmologyParameters_,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -130,7 +130,7 @@ contains
     type   (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)                                 :: self
     logical                                                             , intent(in   )         :: baryonsCluster
     integer                                                             , intent(in   )         :: tablePointsPerOctave
-    type            (enumerationCllsnlssMttrDarkEnergyFixedAtType      ), intent(in   )         :: energyFixedAt
+    type            (enumerationCollisionlessMatterDarkEnergyFixedAtType      ), intent(in   )         :: energyFixedAt
     double precision                                                    , intent(in   )         :: perturbationSmall
     class           (cosmologyFunctionsClass                           ), intent(in   ), target :: cosmologyFunctions_
     class           (cosmologyParametersClass                          ), intent(in   ), target :: cosmologyParameters_
@@ -156,7 +156,7 @@ contains
          &                             'TurnaroundRadius_'                                                                  // &
          &                             self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &                             '.hdf5'
-    if (.not.enumerationCllsnlssMttrDarkEnergyFixedAtIsValid(energyFixedAt)) call Error_Report('invalid energyFixedAt'//{introspection:location})
+    if (.not.enumerationCollisionlessMatterDarkEnergyFixedAtIsValid(energyFixedAt)) call Error_Report('invalid energyFixedAt'//{introspection:location})
     if (baryonsCluster) then
        allocate(linearGrowthCollisionlessMatter            :: self%linearGrowth_)
     else
@@ -394,9 +394,9 @@ contains
                 ! Solve the cubic equation (Percival, 2005, A&A, 443, 819, eqn. 38; but modified to include the effects of baryons)
                 ! to give the ratio of virial to turnaround radii, x.
                 select case (self%energyFixedAt%ID)
-                case (cllsnlssMttrDarkEnergyFixedAtTurnaround   %ID)
+                case (collisionlessMatterDarkEnergyFixedAtTurnaround   %ID)
                    timeEnergyFixed=timeExpansionMaximum
-                case (cllsnlssMttrDarkEnergyFixedAtVirialization%ID)
+                case (collisionlessMatterDarkEnergyFixedAtVirialization%ID)
                    timeEnergyFixed=time_
                 case default
                    call Error_Report('unrecognized epoch'//{introspection:location})

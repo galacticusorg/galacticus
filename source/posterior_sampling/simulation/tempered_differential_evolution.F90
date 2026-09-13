@@ -24,7 +24,7 @@
   use :: Posterior_Sampling_Prop_Size_Temp_Exp, only : posteriorSampleDffrntlEvltnPrpslSzTmpExpClass
 
   !![
-  <posteriorSampleSimulation name="posteriorSampleSimulationTemperedDffrntlEvltn" docformat="rst">
+  <posteriorSampleSimulation name="posteriorSampleSimulationTemperedDifferentialEvolution" docformat="rst">
    <description>
    This class extends the ``differentialEvolution`` option to include tempering during which the likelihood function is heated up and cooled down to allow chains to more easily walk through the likelihood landscape. In addition to the options for the ``differentialEvolution`` algorithm, the details of the algorithm are controlled by the following sub-parameters:
 
@@ -53,7 +53,7 @@
    </description>
   </posteriorSampleSimulation>
   !!]
-  type, extends(posteriorSampleSimulationDifferentialEvolution) :: posteriorSampleSimulationTemperedDffrntlEvltn
+  type, extends(posteriorSampleSimulationDifferentialEvolution) :: posteriorSampleSimulationTemperedDifferentialEvolution
      !!{RST
      Implementation of a posterior sampling simulation class which implements a tempered differential evolution algorithm.
      !!}
@@ -80,25 +80,25 @@
      procedure :: level          => temperedDifferentialEvolutionLevel
      procedure :: temperature    => temperedDifferentialEvolutionTemperature
      procedure :: initialize     => temperedDifferentialEvolutionInitialize
-  end type posteriorSampleSimulationTemperedDffrntlEvltn
+  end type posteriorSampleSimulationTemperedDifferentialEvolution
 
-  interface posteriorSampleSimulationTemperedDffrntlEvltn
+  interface posteriorSampleSimulationTemperedDifferentialEvolution
      !!{RST
-     Constructors for the :galacticus-class:`posteriorSampleSimulationTemperedDffrntlEvltn` posterior sampling simulation class.
+     Constructors for the :galacticus-class:`posteriorSampleSimulationTemperedDifferentialEvolution` posterior sampling simulation class.
      !!}
      module procedure temperedDifferentialEvolutionConstructorParameters
      module procedure temperedDifferentialEvolutionConstructorInternal
-  end interface posteriorSampleSimulationTemperedDffrntlEvltn
+  end interface posteriorSampleSimulationTemperedDifferentialEvolution
 
 contains
 
   function temperedDifferentialEvolutionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`posteriorSampleSimulationTemperedDffrntlEvltn` posterior sampling simulation class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleSimulationTemperedDifferentialEvolution` posterior sampling simulation class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (posteriorSampleSimulationTemperedDffrntlEvltn)                :: self
+    type            (posteriorSampleSimulationTemperedDifferentialEvolution)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
     class           (posteriorSampleDffrntlEvltnPrpslSzTmpExpClass), pointer       :: posteriorSampleDffrntlEvltnPrpslSzTmpExp_
     integer                                                                        :: temperingLevelCount                      , untemperedStepCount, &
@@ -153,7 +153,7 @@ contains
     Internal constructor for the "temperedDifferentialEvolution" simulation class.
     !!}
     implicit none
-    type            (posteriorSampleSimulationTemperedDffrntlEvltn)                                      :: self
+    type            (posteriorSampleSimulationTemperedDifferentialEvolution)                                      :: self
     type            (modelParameterList                           ), intent(in   ), target, dimension(:) :: modelParametersActive_                  , modelParametersInactive_
     class           (posteriorSampleLikelihoodClass               ), intent(in   ), target               :: posteriorSampleLikelihood_
     class           (posteriorSampleConvergenceClass              ), intent(in   ), target               :: posteriorSampleConvergence_
@@ -186,7 +186,7 @@ contains
     !!}
     use :: Posterior_Sampling_State, only : posteriorSampleStateSimple
     implicit none
-    class           (posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout)         :: self
+    class           (posteriorSampleSimulationTemperedDifferentialEvolution), intent(inout)         :: self
     class           (posteriorSampleDffrntlEvltnPrpslSzTmpExpClass), intent(in   ), target :: posteriorSampleDffrntlEvltnPrpslSzTmpExp_
     integer                                                        , intent(in   )         :: temperingLevelCount                      , untemperedStepCount, &
          &                                                                                    stepsPerLevel
@@ -223,7 +223,7 @@ contains
     Destroy a tempered differential evolution simulation object.
     !!}
     implicit none
-    type(posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
+    type(posteriorSampleSimulationTemperedDifferentialEvolution), intent(inout) :: self
 
     !![
     <objectDestructor name="self%posteriorSampleDffrntlEvltnPrpslSzTmpExp_"/>
@@ -236,7 +236,7 @@ contains
     Specifies whether or not the current state should be logged to file during differential evolution.
     !!}
     implicit none
-    class(posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
+    class(posteriorSampleSimulationTemperedDifferentialEvolution), intent(inout) :: self
 
     temperedDifferentialEvolutionLogging=(self%temperingLevelMonotonic == 0)
     return
@@ -252,7 +252,7 @@ contains
     use :: MPI_Utilities     , only : mpiSelf
     use :: String_Handling   , only : operator(//)
     implicit none
-    class           (posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout)                                 :: self
+    class           (posteriorSampleSimulationTemperedDifferentialEvolution), intent(inout)                                 :: self
     double precision                                               , intent(in   ), dimension(self%parameterCount) :: stateVector
     double precision                                                              , dimension(self%parameterCount) :: stepSize
     logical                                                        , allocatable  , dimension(:                  ) :: outlierMask
@@ -339,7 +339,7 @@ contains
     Return the actual tempering level.
     !!}
     implicit none
-    class(posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
+    class(posteriorSampleSimulationTemperedDifferentialEvolution), intent(inout) :: self
 
     temperedDifferentialEvolutionLevel=self%temperingLevelMonotonic
     if (self%temperingLevelMonotonic > self%temperingLevelCount)            &
@@ -354,7 +354,7 @@ contains
     Return the step size parameter, :math:`\gamma`, for a differential evolution step.
     !!}
     implicit none
-    class           (posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout)                  :: self
+    class           (posteriorSampleSimulationTemperedDifferentialEvolution), intent(inout)                  :: self
     logical                                                        , intent(inout)                  :: forceAcceptance
     double precision                                               , dimension(self%parameterCount) :: stepSize
     double precision                                                                                :: gammaBoostFactor
@@ -384,7 +384,7 @@ contains
     Return the temperature.
     !!}
     implicit none
-    class(posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
+    class(posteriorSampleSimulationTemperedDifferentialEvolution), intent(inout) :: self
 
     if (self%level() == 0) then
        temperedDifferentialEvolutionTemperature=1.0d0
@@ -399,7 +399,7 @@ contains
     Return whether or not to accept a proposal.
     !!}
     implicit none
-    class           (posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
+    class           (posteriorSampleSimulationTemperedDifferentialEvolution), intent(inout) :: self
     double precision                                               , intent(in   ) :: logPosterior         , logPosteriorProposed         , &
          &                                                                            logLikelihoodVariance, logLikelihoodVarianceProposed
     double precision                                                               :: x

@@ -34,7 +34,7 @@ program Tests_Merger_Tree_Branching
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
   use, intrinsic :: ISO_C_Binding             , only : c_long
   use :: Error                               , only : Error_Report                                   , Error_Handler_Register
-  use :: Merger_Tree_Branching               , only : mergerTreeBranchingProbabilityGnrlzdPrssSchchtr, mergerTreeBranchingProbabilityParkinsonColeHelly            , mergerTreeBranchingProbabilityPCHPlus, mergerTreeBranchingProbabilityClass                  , &
+  use :: Merger_Tree_Branching               , only : mergerTreeBranchingProbabilityGeneralizedPressSchechter, mergerTreeBranchingProbabilityParkinsonColeHelly            , mergerTreeBranchingProbabilityPCHPlus, mergerTreeBranchingProbabilityClass                  , &
        &                                              mergerTreeBranchingBoundLower                  , mergerTreeBranchingBoundUpper
   use :: Merger_Tree_Branching_Modifiers     , only : mergerTreeBranchingProbabilityModifierIdentity , mergerTreeBranchingProbabilityModifierPCHPlus
   use :: Numerical_Constants_Math            , only : Pi
@@ -64,7 +64,7 @@ program Tests_Merger_Tree_Branching
   type            (mergerTreeBranchingProbabilityModifierIdentity              )                           :: mergerTreeBranchingProbabilityModifierIdentity_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                           :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
   type            (mergerTreeBranchingProbabilityParkinsonColeHelly            ), dimension(            3) :: mergerTreeBranchingProbabilityParkinsonColeHelly_
-  type            (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr             ), dimension(            5) :: mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_
+  type            (mergerTreeBranchingProbabilityGeneralizedPressSchechter             ), dimension(            5) :: mergerTreeBranchingProbabilityGeneralizedPressSchechter_
   double precision                                                                                         :: time                                                                              , rootVarianceParent                             , &
        &                                                                                                      rootVarianceResolution                                                            , branchingProbabilityRate                       , &
        &                                                                                                      accretionRate                                                                     , criticalOverdensity_                           , &
@@ -308,7 +308,7 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       linearGrowth_                           =linearGrowthCollisionlessMatter_                             , &
        &                                                                                                                       excursionSetFirstCrossing_              =excursionSetFirstCrossingLinearBarrier_                        &
        &                                                                                                                      )
-  mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(1)           =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr              (                                                                                                        &
+  mergerTreeBranchingProbabilityGeneralizedPressSchechter_(1)           =mergerTreeBranchingProbabilityGeneralizedPressSchechter              (                                                                                                        &
        &                                                                                                                       deltaStepMaximum                        =1.0d-1                                                       , &
        &                                                                                                                       massMinimum                             =1.0d+0                                                       , &
        &                                                                                                                       smoothAccretion                         =.false.                                                      , &
@@ -320,7 +320,7 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       excursionSetFirstCrossing_              =excursionSetFirstCrossingLinearBarrier_                      , &
        &                                                                                                                       mergerTreeBranchingProbabilityModifier_ =mergerTreeBranchingProbabilityModifierIdentity_                &
        &                                                                                                                      )
-  mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(2)           =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr              (                                                                                                        &
+  mergerTreeBranchingProbabilityGeneralizedPressSchechter_(2)           =mergerTreeBranchingProbabilityGeneralizedPressSchechter              (                                                                                                        &
        &                                                                                                                       deltaStepMaximum                        =1.0d-1                                                       , &
        &                                                                                                                       massMinimum                             =1.0d-1*massResolution                                        , &
        &                                                                                                                       smoothAccretion                         =.false.                                                      , &
@@ -332,7 +332,7 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       excursionSetFirstCrossing_              =excursionSetFirstCrossingLinearBarrier_                      , &
        &                                                                                                                       mergerTreeBranchingProbabilityModifier_ =mergerTreeBranchingProbabilityModifierIdentity_                &
        &                                                                                                                      )
-  mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(3)           =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr              (                                                                                                        &
+  mergerTreeBranchingProbabilityGeneralizedPressSchechter_(3)           =mergerTreeBranchingProbabilityGeneralizedPressSchechter              (                                                                                                        &
        &                                                                                                                       deltaStepMaximum                        =1.0d-1                                                       , &
        &                                                                                                                       massMinimum                             =1.0d-1*massResolution                                        , &
        &                                                                                                                       smoothAccretion                         =.false.                                                      , &
@@ -344,7 +344,7 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       excursionSetFirstCrossing_              =excursionSetFirstCrossingFarahiMidpoint_                     , &
        &                                                                                                                       mergerTreeBranchingProbabilityModifier_ =mergerTreeBranchingProbabilityModifierIdentity_                &
        &                                                                                                                      )
-  mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(4)           =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr              (                                                                                                        &
+  mergerTreeBranchingProbabilityGeneralizedPressSchechter_(4)           =mergerTreeBranchingProbabilityGeneralizedPressSchechter              (                                                                                                        &
        &                                                                                                                       deltaStepMaximum                        =1.0d-1                                                       , &
        &                                                                                                                       massMinimum                             =1.0d-1*massResolution                                        , &
        &                                                                                                                       smoothAccretion                         =.true.                                                       , &
@@ -356,7 +356,7 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       excursionSetFirstCrossing_              =excursionSetFirstCrossingLinearBarrier_                      , &
        &                                                                                                                       mergerTreeBranchingProbabilityModifier_ =mergerTreeBranchingProbabilityModifierIdentity_                &
        &                                                                                                                      )
-  mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(5)           =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr              (                                                                                                        &
+  mergerTreeBranchingProbabilityGeneralizedPressSchechter_(5)           =mergerTreeBranchingProbabilityGeneralizedPressSchechter              (                                                                                                        &
        &                                                                                                                       deltaStepMaximum                        =1.0d-1                                                       , &
        &                                                                                                                       massMinimum                             =1.0d-1*massResolution                                        , &
        &                                                                                                                       smoothAccretion                         =.true.                                                       , &
@@ -412,18 +412,18 @@ program Tests_Merger_Tree_Branching
      call Unit_Tests_End_Group  (                                             )
      call Unit_Tests_End_Group  (                                             )
      call Unit_Tests_Begin_Group("Generalized Press-Schechter linear barrier branching rates")
-     branchingProbabilityRate=mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_ (1)%probability          (massParent,criticalOverdensity_,time,massResolution,node)
-     accretionRate           =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_ (1)%fractionSubresolution(massParent,criticalOverdensity_,time,massResolution,node)
+     branchingProbabilityRate=mergerTreeBranchingProbabilityGeneralizedPressSchechter_ (1)%probability          (massParent,criticalOverdensity_,time,massResolution,node)
+     accretionRate           =mergerTreeBranchingProbabilityGeneralizedPressSchechter_ (1)%fractionSubresolution(massParent,criticalOverdensity_,time,massResolution,node)
      call Assert('Branching probability rate',branchingProbabilityRate,branchingProbabilityRateTarget/rootVarianceParent,relTol=2.0d-3)
      call Assert('Accretion rate'            ,accretionRate           ,accretionRateTarget           /rootVarianceParent,relTol=2.0d-3)
      call Unit_Tests_End_Group  (                                             )
      call Unit_Tests_Begin_Group("Generalized Press-Schechter general barrier branching rates")
-     smoothAccretionRateTargetGeneral     =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(4)%fractionSubresolution(massParent,criticalOverdensity_,time,1.0d-1*massResolution,node)
-     accretionRateTargetGeneral           =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(2)%fractionSubresolution(massParent,criticalOverdensity_,time,       massResolution,node)
-     branchingProbabilityRateTargetGeneral=mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(2)%probability          (massParent,criticalOverdensity_,time,       massResolution,node)
-     smoothAccretionRate                  =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(5)%fractionSubresolution(massParent,criticalOverdensity_,time,1.0d-1*massResolution,node)
-     accretionRate                        =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(3)%fractionSubresolution(massParent,criticalOverdensity_,time,       massResolution,node)
-     branchingProbabilityRate             =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(3)%probability          (massParent,criticalOverdensity_,time,       massResolution,node)
+     smoothAccretionRateTargetGeneral     =mergerTreeBranchingProbabilityGeneralizedPressSchechter_(4)%fractionSubresolution(massParent,criticalOverdensity_,time,1.0d-1*massResolution,node)
+     accretionRateTargetGeneral           =mergerTreeBranchingProbabilityGeneralizedPressSchechter_(2)%fractionSubresolution(massParent,criticalOverdensity_,time,       massResolution,node)
+     branchingProbabilityRateTargetGeneral=mergerTreeBranchingProbabilityGeneralizedPressSchechter_(2)%probability          (massParent,criticalOverdensity_,time,       massResolution,node)
+     smoothAccretionRate                  =mergerTreeBranchingProbabilityGeneralizedPressSchechter_(5)%fractionSubresolution(massParent,criticalOverdensity_,time,1.0d-1*massResolution,node)
+     accretionRate                        =mergerTreeBranchingProbabilityGeneralizedPressSchechter_(3)%fractionSubresolution(massParent,criticalOverdensity_,time,       massResolution,node)
+     branchingProbabilityRate             =mergerTreeBranchingProbabilityGeneralizedPressSchechter_(3)%probability          (massParent,criticalOverdensity_,time,       massResolution,node)
      call Assert('Branching probability rate',branchingProbabilityRate,branchingProbabilityRateTargetGeneral,relTol=2.5d-2)
      call Assert('Accretion rate'            ,accretionRate           ,accretionRateTargetGeneral           ,relTol=2.5d-2)
      call Assert('Smooth accretion rate'     ,smoothAccretionRate     ,smoothAccretionRateTargetGeneral     ,relTol=2.5d-2)
