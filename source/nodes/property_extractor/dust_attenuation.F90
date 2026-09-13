@@ -41,6 +41,12 @@
    emits the sum of the attenuated luminosities of all children, and ``[outputSumOnly]`` emits *only* that sum. Dust
    must be applied to each component separately, since components are attenuated differently, so recovering a
    galaxy-wide total requires summing afterwards; these options do that here rather than in post-processing.
+   Every attenuated property is named for its child and for the attenuator applied to it, so two of these extractors
+   using *different* attenuator classes coexist without further ado. Two using the *same* class on the same
+   component---the same atlas at two inclinations, say---would collide, and ``[appendSuffix]`` distinguishes them.
+   Note that ``[outputUnattenuated]`` should be set on at most one of a set of siblings sharing children, since the
+   unattenuated property carries no such label and is in any case the same value.
+
    ``[outputSumOnly]`` in particular is what lets a consumer which expects a single value per galaxy, such as an
    output analysis, use this extractor at all.
 
@@ -58,7 +64,7 @@
      class  (dustAttenuationClass), pointer :: dustAttenuation_   => null()
      logical                                :: outputUnattenuated          , outputSum, &
           &                                    outputSumOnly
-     type   (varying_string      )          :: sumName
+     type   (varying_string      )          :: sumName             , appendSuffix
    contains
      !![
      <methods docformat="rst">
@@ -103,7 +109,7 @@ contains
     class  (dustAttenuationClass                ), pointer       :: dustAttenuation_
     logical                                                      :: outputUnattenuated, outputSum, &
          &                                                          outputSumOnly
-    type   (varying_string                      )                :: sumName
+    type   (varying_string                      )                :: sumName           , appendSuffix
 
     self%nodePropertyExtractorMulti=nodePropertyExtractorMulti(parameters)
     !![
@@ -149,6 +155,17 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>appendSuffix</name>
+      <defaultValue>var_str('none')</defaultValue>
+      <description>
+      An extra label appended to the name of every attenuated property emitted, after the name of the attenuator.
+      It must be set where two of these extractors apply the same attenuator class to the same component, since the
+      names would otherwise collide and the run would be refused---as they do when the same atlas is used at two
+      inclinations, or with two different tabulations. ``none`` appends nothing.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="dustAttenuation" name="dustAttenuation_" source="parameters"/>
     <inputParametersValidate source="parameters" multiParameters="nodePropertyExtractor"/>
     !!]
@@ -160,6 +177,7 @@ contains
     self%outputSum          =  outputSum
     self%outputSumOnly      =  outputSumOnly
     self%sumName            =  sumName
+    self%appendSuffix       =  appendSuffix
     call dustAttenuationValidate(self)
     !![
     <objectDestructor name="dustAttenuation_"/>
@@ -167,7 +185,7 @@ contains
     return
   end function dustAttenuationConstructorParameters
 
-  function dustAttenuationConstructorInternal(dustAttenuation_,outputUnattenuated,outputSum,outputSumOnly,sumName,extractors) result(self)
+  function dustAttenuationConstructorInternal(dustAttenuation_,outputUnattenuated,outputSum,outputSumOnly,sumName,appendSuffix,extractors) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorDustAttenuation` property extractor class.
     !!}
@@ -176,10 +194,10 @@ contains
     class  (dustAttenuationClass                ), intent(in   ), target :: dustAttenuation_
     logical                                      , intent(in   )         :: outputUnattenuated, outputSum, &
          &                                                                  outputSumOnly
-    type   (varying_string                      ), intent(in   )         :: sumName
+    type   (varying_string                      ), intent(in   )         :: sumName           , appendSuffix
     type   (multiExtractorList                  ), intent(in   ), target :: extractors
     !![
-    <constructorAssign variables="outputUnattenuated, outputSum, outputSumOnly, sumName, *dustAttenuation_"/>
+    <constructorAssign variables="outputUnattenuated, outputSum, outputSumOnly, sumName, appendSuffix, *dustAttenuation_"/>
     !!]
 
     self%nodePropertyExtractorMulti=nodePropertyExtractorMulti(extractors)
@@ -459,6 +477,7 @@ contains
     Return the names of the properties emitted. Attenuated properties take the name of the property they attenuate,
     with the name of the attenuator appended, so that the two may coexist in the same output.
     !!}
+    use :: ISO_Varying_String, only : operator(//), operator(/=)
     implicit none
     class           (nodePropertyExtractorDustAttenuation), intent(inout)                            :: self
     type            (enumerationElementTypeType          ), intent(in   )                            :: elementType
@@ -473,6 +492,7 @@ contains
     allocate(names(self%elementCount(elementType,time)))
     if (elementType /= elementTypeDouble) return
     suffix     =  ":dustAttenuated:"//self%dustAttenuation_%objectType(short=.true.)
+    if (self%appendSuffix /= 'none') suffix=suffix//":"//self%appendSuffix
     offset     =  0
     extractor_ => self%extractors
     do while (associated(extractor_))
@@ -528,6 +548,7 @@ contains
     !!{RST
     Return descriptions of the properties emitted.
     !!}
+    use :: ISO_Varying_String, only : operator(//), operator(/=)
     implicit none
     class           (nodePropertyExtractorDustAttenuation), intent(inout)                            :: self
     type            (enumerationElementTypeType          ), intent(in   )                            :: elementType
@@ -542,6 +563,7 @@ contains
     allocate(descriptions(self%elementCount(elementType,time)))
     if (elementType /= elementTypeDouble) return
     suffix     =  ", attenuated by dust using the '"//self%dustAttenuation_%objectType(short=.true.)//"' model"
+    if (self%appendSuffix /= 'none') suffix=suffix//" ("//self%appendSuffix//")"
     offset     =  0
     extractor_ => self%extractors
     do while (associated(extractor_))

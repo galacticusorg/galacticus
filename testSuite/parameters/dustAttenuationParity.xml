@@ -582,6 +582,36 @@
         <toleranceRelative value="1.0e-2"/>
       </nodePropertyExtractor>
     </nodePropertyExtractor>
+    <!-- The same atlas on the same component, edge on. This is what `appendSuffix` is for: without it the two
+         would emit properties of the same name and the run would be refused. It also gives the suite an explicit
+         edge on case, so that the orientation dependence is asserted against a value and not only bracketed. -->
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <appendSuffix value="edgeOn"/>
+      <dustAttenuation value="atlasFerrara2000">
+        <dust value="milkyWay"/>
+        <heightRatio value="1.0"/>
+        <galacticInclination value="fixed">
+          <inclination value="90.0"/>
+        </galacticInclination>
+        <dustAttenuation value="screenFixed">
+          <depthOpticalV value="2.0"/>
+          <dustExtinctionCurve value="powerLaw">
+            <exponent value="0.7"/>
+            <wavelengthReference value="5500.0"/>
+          </dustExtinctionCurve>
+        </dustAttenuation>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
     <nodePropertyExtractor value="dustAttenuation">
       <outputUnattenuated value="false"/>
       <outputSum value="false"/>

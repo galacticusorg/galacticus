@@ -462,7 +462,7 @@ contains
     allocate(nodePropertyExtractorAttenuated_)
     allocate(nodePropertyExtractor_          )
     !![
-    <referenceConstruct object="nodePropertyExtractorAttenuated_" constructor="nodePropertyExtractorDustAttenuation(dustAttenuation_,.false.,.true.,.true.,var_str('luminosityEmissionLine'),extractors)"/>
+    <referenceConstruct object="nodePropertyExtractorAttenuated_" constructor="nodePropertyExtractorDustAttenuation(dustAttenuation_,.false.,.true.,.true.,var_str('luminosityEmissionLine'),var_str('none'),extractors)"/>
     <referenceConstruct object="nodePropertyExtractor_"           constructor="nodePropertyExtractorScalarizer     (1,1,nodePropertyExtractorAttenuated_)"/>
     !!]
     ! Release our own references to the line extractors --- the wrapper holds its own.
