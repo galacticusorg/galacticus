@@ -17,12 +17,7 @@ runs:
         echo "CCOMPILER=gcc-16" >> $GITHUB_ENV
         echo "CPPCOMPILER=g++-16" >> $GITHUB_ENV
         echo "BUILDPATH=./work/build" >> $GITHUB_ENV
-        if [[ "${ver[0]}" -eq 13 ]]; then
-          # For MacOS 13 force use of the classic linker as the new linker does not support the '-commons' option - see https://trac.macports.org/ticket/68194#comment:15
-          echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib -Wl,-ld_classic" >> $GITHUB_ENV
-        else
-          echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib" >> $GITHUB_ENV
-        fi
+        echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib" >> $GITHUB_ENV
         echo "GALACTICUS_CFLAGS=-I/usr/local/include -I/opt/local/include" >> $GITHUB_ENV
         echo "GALACTICUS_CPPFLAGS=-I/usr/local/include -I/opt/local/include -I/usr/local/include/libqhullcpp" >> $GITHUB_ENV
     - name: Fix broken Apple include file
@@ -31,29 +26,18 @@ runs:
         # This removes syntax not supported by the GCC compiler prior to version 13.3.
         # It should be possible to remove this once a later version of GCC is used.
         # See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114007
-        if [[ "${OS_VER}" -ge 14 ]]; then
-           sudo sed -E -i~ s/"clang::"/"clang"/g /Library/Developer/CommandLineTools/SDKs/MacOSX${OS_VER}.sdk/usr/include/sys/cdefs.h
-        fi
+        sudo sed -E -i~ s/"clang::"/"clang"/g /Library/Developer/CommandLineTools/SDKs/MacOSX${OS_VER}.sdk/usr/include/sys/cdefs.h
     - name: Install MacPorts
       shell: bash
       run: |
-        if [[ "${OS_VER}" -eq 11 ]]; then
-           macportsversion=2.7.1
-           macportsbase=2.7.1-11-BigSur
-        elif [[ "${OS_VER}" -eq 12 ]]; then
-           macportsversion=2.9.1
-           macportsbase=2.9.1-12-Monterey
-        elif [[ "${OS_VER}" -eq 13 ]]; then
-           macportsversion=2.9.1
-           macportsbase=2.9.1-13-Ventura
-        elif [[ "${OS_VER}" -eq 14 ]]; then
-           macportsversion=2.9.1
-           macportsbase=2.9.1-14-Sonoma
-        elif [[ "${OS_VER}" -eq 15 ]]; then
+        # Each MacPorts base package is built for one macOS release, so this has to name the release the
+        # runner image actually is. Only macOS 15 (Sequoia) is used: the Intel runners -- the reason older
+        # releases were listed here -- have been retired. Add a branch when moving to a newer image.
+        if [[ "${OS_VER}" -eq 15 ]]; then
            macportsversion=2.11.6
            macportsbase=2.11.6-15-Sequoia
         else
-           echo Unknown MacOS version: ${os_ver}
+           echo "Unknown MacOS version: ${OS_VER}"
            exit 1
         fi
         curl -L --fail --retry 5 --retry-all-errors --retry-max-time 120 https://github.com/macports/macports-base/releases/download/v${macportsversion}/MacPorts-${macportsbase}.pkg --output MacPorts-${macportsbase}.pkg
@@ -156,11 +140,6 @@ runs:
         # libhdf5_hl_f90cstub. The macOS linker (ld-prime on Apple Silicon / macOS 14+) rejects that
         # malformed version. Correct the variable name so the compatibility version becomes `320.0.0`.
         sed -i~ 's/LT_HL_F_VERS_INTERFACE1/LT_HL_F_VERS_INTERFACE/' config/lt_vers.am
-        # For MacOS 13 force use of the classic linker as the new linker does not support the '-commons' option - see https://trac.macports.org/ticket/68194#comment:15
-        linkerFlags=()
-        if [[ "${OS_VER}" -eq 13 ]]; then
-           linkerFlags=(-DCMAKE_EXE_LINKER_FLAGS=-Wl,-ld_classic -DCMAKE_SHARED_LINKER_FLAGS=-Wl,-ld_classic -DCMAKE_MODULE_LINKER_FLAGS=-Wl,-ld_classic)
-        fi
         # Deprecated symbols are disabled to build against the strict HDF5 2.x API surface (Galacticus compiles cleanly against
         # it). Galacticus caps its own output format at the HDF5 1.14 version, so output remains readable by HDF5 1.14 readers.
         # The nonstandard _Float16 feature is disabled: on the Homebrew GCC toolchain HDF5's build-time probe for the FLT16_MAX
@@ -189,8 +168,7 @@ runs:
            -DHDF5_ENABLE_DEPRECATED_SYMBOLS=OFF \
            -DHDF5_ENABLE_NONSTANDARD_FEATURE_FLOAT16=OFF \
            -DHDF5_BUILD_WITH_INSTALL_NAME=ON \
-           -DHDF5_DEFAULT_API_VERSION=v200 \
-           "${linkerFlags[@]}"
+           -DHDF5_DEFAULT_API_VERSION=v200
         cmake --build build -j3
         sudo cmake --install build
         cd ..

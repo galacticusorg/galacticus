@@ -28,7 +28,7 @@
   use :: Tables                    , only : table1D
 
   !![
-  <criticalOverdensity name="criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt" docformat="rst">
+  <criticalOverdensity name="criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt" alias="sphericalCollapseCollisionlessMatterCosmologicalConstant" docformat="rst">
    <description>
    Critical overdensity for collapse based on the spherical collapse in a matter plus cosmological constant universe (see, for example, :cite:author:`percival_cosmological_2005` :cite:year:`percival_cosmological_2005`).
    </description>

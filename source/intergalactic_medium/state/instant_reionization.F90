@@ -48,7 +48,7 @@
 
   interface intergalacticMediumStateInstantReionization
      !!{RST
-     Constructors for the instantReionization :term:`IGM` state class.
+     Constructors for the :galacticus-class:`intergalacticMediumStateInstantReionization` :term:`IGM` state class.
      !!}
      module procedure instantReionizationIGMConstructorParameters
      module procedure instantReionizationIGMConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function instantReionizationIGMConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the instantReionization :term:`IGM` state class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`intergalacticMediumStateInstantReionization` :term:`IGM` state class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -83,7 +83,7 @@ contains
          <source>parameters</source>
          <variable>electronScatteringOpticalDepth</variable>
          <description>
-         The optical depth to reionization in the instantReionization :term:`IGM` state model.
+         The optical depth to reionization in the instant reionization :term:`IGM` state model.
          </description>
          <minimum>0.0</minimum>
        </inputParameter>
@@ -100,7 +100,7 @@ contains
          (:cite:author:`hinshaw_nine-year_2012` :cite:year:`hinshaw_nine-year_2012`; CMB\ :math:`+H_0+`\ BAO)
          </defaultSource>
          <description>
-         The redshift of reionization in the instantReionization :term:`IGM` state model.
+         The redshift of reionization in the instant reionization :term:`IGM` state model.
          </description>
        </inputParameter>
        !!]
@@ -112,7 +112,7 @@ contains
       <variable>reionizationTemperature</variable>
       <defaultValue>1.0d4</defaultValue>
       <description>
-      The post-reionization temperature (in units of Kelvin) in the instantReionization :term:`IGM` state model.
+      The post-reionization temperature (in units of Kelvin) in the instant reionization :term:`IGM` state model.
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
@@ -121,7 +121,7 @@ contains
       <variable>presentDayTemperature</variable>
       <defaultValue>1.0d3</defaultValue>
       <description>
-      The present day temperature (in units of Kelvin) in the instantReionization :term:`IGM` state model.
+      The present day temperature (in units of Kelvin) in the instant reionization :term:`IGM` state model.
       </description>
     </inputParameter>
     <objectBuilder class="intergalacticMediumState" name="preReionizationState" source="parameters"/>
@@ -145,7 +145,7 @@ contains
 
   function instantReionizationIGMConstructorInternal(cosmologyFunctions_,cosmologyParameters_,preReionizationState,reionizationTemperature,presentDayTemperature,reionizationRedshift,electronScatteringOpticalDepth) result(self)
     !!{RST
-    Constructor for the instantReionization :term:`IGM` state class.
+    Constructor for the :galacticus-class:`intergalacticMediumStateInstantReionization` :term:`IGM` state class.
     !!}
     use :: Error      , only : Error_Report
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
@@ -254,7 +254,7 @@ contains
 
   double precision function instantReionizationElectronFraction(self,time)
     !!{RST
-    Return the electron fraction of the :term:`IGM` in the instantReionization model.
+    Return the electron fraction of the :term:`IGM` in the :galacticus-class:`intergalacticMediumStateInstantReionization` model.
     !!}
     use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, hydrogenByMassPrimordial
     use :: Numerical_Constants_Atomic      , only : atomicMassHelium      , atomicMassHydrogen
@@ -276,7 +276,7 @@ contains
 
   double precision function instantReionizationNeutralHydrogenFraction(self,time)
     !!{RST
-    Return the neutral hydrogen fraction of the :term:`IGM` in the instantReionization model.
+    Return the neutral hydrogen fraction of the :term:`IGM` in the :galacticus-class:`intergalacticMediumStateInstantReionization` model.
     !!}
     implicit none
     class           (intergalacticMediumStateInstantReionization), intent(inout) :: self
@@ -292,7 +292,7 @@ contains
 
   double precision function instantReionizationNeutralHeliumFraction(self,time)
     !!{RST
-    Return the neutral helium fraction of the :term:`IGM` in the instantReionization model.
+    Return the neutral helium fraction of the :term:`IGM` in the :galacticus-class:`intergalacticMediumStateInstantReionization` model.
     !!}
     implicit none
     class           (intergalacticMediumStateInstantReionization), intent(inout) :: self
@@ -308,7 +308,7 @@ contains
 
   double precision function instantReionizationSinglyIonizedHeliumFraction(self,time)
     !!{RST
-    Return the singly-ionized helium fraction of the :term:`IGM` in the instantReionization model.
+    Return the singly-ionized helium fraction of the :term:`IGM` in the :galacticus-class:`intergalacticMediumStateInstantReionization` model.
     !!}
     implicit none
     class           (intergalacticMediumStateInstantReionization), intent(inout) :: self
@@ -324,7 +324,7 @@ contains
 
   double precision function instantReionizationTemperature(self,time)
     !!{RST
-    Return the temperature of the :term:`IGM` in the instantReionization model.
+    Return the temperature of the :term:`IGM` in the :galacticus-class:`intergalacticMediumStateInstantReionization` model.
     !!}
     implicit none
     class           (intergalacticMediumStateInstantReionization), intent(inout) :: self

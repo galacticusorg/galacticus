@@ -457,7 +457,7 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
     for raw in reversed(argument_list):
         arg = ArgSpec.from_raw(raw) if isinstance(raw, dict) else raw
 
-        # Initialise presence flags (mirrors the original explicit reset).
+        # Initialize presence flags (mirrors the original explicit reset).
         arg.fort_is_present       = True
         arg.py_is_present         = True
         arg.galacticus_is_present = True
@@ -479,7 +479,7 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
         # Absent-fill override: drop the arg from both wrappers AND
         # from the inner call.  Only valid for optional args — the
         # inner constructor must handle the absence via its declared
-        # default behaviour (e.g. identity-aligned principal axes for
+        # default behavior (e.g. identity-aligned principal axes for
         # the Gaussian ellipsoid's optional `axes`).  Detecting
         # `is_optional` requires the `optional` attribute on the raw
         # decl, which we've already captured in arg.attributes.
@@ -893,7 +893,7 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
                 new_list.insert(0, arg_id)
 
         # Detect 1D numeric arrays (deferred-shape or fixed-size) and set
-        # is_array / array_size so the rest of the pipeline can recognise
+        # is_array / array_size so the rest of the pipeline can recognize
         # them.  Deferred-shape gets a hidden integer(c_size_t) count
         # companion immediately after it — same trick as the _ID
         # companion for class(FooClass) args; the Python wrapper computes

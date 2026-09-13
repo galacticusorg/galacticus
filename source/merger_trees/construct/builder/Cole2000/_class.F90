@@ -144,14 +144,14 @@
 
   ! Sub-module scope variables used in tree building.
   !![
-  <workaround type="gfortran" PR="110547" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=110547" docformat="rst">
+  <workaround type="gfortran" PR="110547" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=110547" docformat="rst">
     <description>
     We use a pointer to self here rather than have self be passed to various methods (which are defined as "nopass" above) because otherwise gfortran calls the destructor of self on exit from these functions when using OpenMP task-based parallelism. This may be a compiler bug.
     </description>
   </workaround>
-  <workaround type="gfortran" PR="110548" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=110548" docformat="rst">
+  <workaround type="gfortran" PR="110548" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=110548" docformat="rst">
     <description>
-    We use an allocatable treeWalker here. Some subclasses will not need a treeWalker. Ideally this would therefore be passed to functions as an optional argument, but current optional arguments used in OpenMP tasks cause segfaults. Therefore, we instead use the allocation status of this variable as an indication of whether or not a treeWalker is needed.
+    We use an allocatable ``treeWalker`` here. Some subclasses will not need a ``treeWalker``. Ideally this would therefore be passed to functions as an optional argument, but current optional arguments used in OpenMP tasks cause segfaults. Therefore, we instead use the allocation status of this variable as an indication of whether or not a ``treeWalker`` is needed.
     </description>
   </workaround>
   !!]  

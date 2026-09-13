@@ -3,7 +3,7 @@
 The CI ``Deploy`` job publishes one executable and one tools archive per
 platform to a GitHub release.  The names are fixed strings (there is no
 platform suffix scheme to parse), so we map ``(system, machine)`` to them
-explicitly.  Anything we do not recognise raises :class:`UnsupportedPlatform`
+explicitly.  Anything we do not recognize raises :class:`UnsupportedPlatform`
 with an actionable message rather than guessing.
 """
 
@@ -18,6 +18,9 @@ from collections import namedtuple
 #                    the switch to zstd, or None if there is no earlier name.
 #   tools_legacy_format -- how to unpack `tools_legacy`.
 #   key           -- short human label for the platform (used in messages).
+#   retired       -- None for a platform still built, or a message explaining
+#                    that it is not, used when a release turns out to publish no
+#                    binary for it (see `download._require_published_binary`).
 #
 # Two tools archives are named per platform because a release only ever carries
 # the format that was current when it was cut: releases published before the
@@ -27,7 +30,26 @@ from collections import namedtuple
 # already-published version tag installable.
 PlatformAssets = namedtuple(
     "PlatformAssets",
-    ["binary", "tools", "tools_format", "tools_legacy", "tools_legacy_format", "key"],
+    ["binary", "tools", "tools_format", "tools_legacy", "tools_legacy_format", "key",
+     "retired"],
+    defaults=(None,),
+)
+
+# The last released version whose assets include a macOS Intel build.
+MACOS_INTEL_FINAL_VERSION = "0.9.12"
+
+# Why no newer release carries a macOS Intel binary.  A retired platform keeps
+# its entry above so that the releases which *do* carry its assets stay
+# installable; only a release which publishes none is refused, and then with
+# this message rather than a bare download failure.
+_MACOS_INTEL_RETIRED = (
+    "Galacticus no longer builds macOS Intel (x86-64) binaries: GitHub Actions is "
+    "retiring its Intel macOS runners, and Homebrew no longer publishes bottles "
+    f"for that platform. Releases up to and including v{MACOS_INTEL_FINAL_VERSION} "
+    f"still carry one -- `pip install 'galacticus=={MACOS_INTEL_FINAL_VERSION}'` "
+    "installs it, and an existing install keeps working. Otherwise build from "
+    "source: https://galacticus.readthedocs.io/en/latest/manuals/user-guide/"
+    "installation/source-macos.html"
 )
 
 
@@ -66,7 +88,8 @@ def detect(system=None, machine=None):
             return PlatformAssets("Galacticus_MacOS.exe",
                                   "toolsMacOS.tar.zst", "tar.zst",
                                   "toolsMacOS.zip", "zip",
-                                  "macOS x86-64")
+                                  "macOS x86-64",
+                                  _MACOS_INTEL_RETIRED)
         if machine in ("arm64", "aarch64"):
             return PlatformAssets("Galacticus_MacOS-M1.exe",
                                   "toolsMacOSM1.tar.zst", "tar.zst",
@@ -77,7 +100,8 @@ def detect(system=None, machine=None):
         )
     raise UnsupportedPlatform(
         f"Galacticus provides no pre-built binary for system '{system}'. "
-        "On Windows, use WSL 2 and install the Linux build. Otherwise build "
-        "from source: https://galacticus.readthedocs.io/en/latest/manuals/"
-        "user-guide/installation/index.html"
+        "On Windows, run `galacticus install-wsl` to set up WSL 2 and install the "
+        "Linux build inside it. Otherwise build from source: "
+        "https://galacticus.readthedocs.io/en/latest/manuals/user-guide/"
+        "installation/index.html"
     )

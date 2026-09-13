@@ -18,6 +18,85 @@ Variable names
 
 For a variable that is set via an input parameter, the internal variable name should match the parameter name (this allows the automatic generation of descriptor functions). If the parameter name clashes with the name of a method of the class, append an underscore to the internal variable name. For example, the ``stellarFeedbackOutflowsPowerLaw`` class has a method ``velocityCharacteristic`` and also reads a parameter of the same name, so the corresponding internal variable is named ``velocityCharacteristic_``.
 
+.. _manual-sec-namingConventions:
+
+Naming conventions
+~~~~~~~~~~~~~~~~~~
+
+The conventions below apply across the API — class, implementation, parameter, method, module, procedure, and file names. Several long-standing, deliberate exceptions are recorded here as well, so that they are not repeatedly re-flagged as defects by naming audits.
+
+Spelling
+^^^^^^^^
+
+US spelling is used throughout — in identifiers, in prose, and in parameter names and values. Write ``modeling``, ``modeled``, ``fueled``, ``catalog``, ``normalize``, ``initialize``, ``behavior``, ``color``, ``center``, and ``neighbor`` rather than their British forms.
+
+``aux/words.dict`` is the dictionary used by the documentation spelling builder. It is for *technical terms* that a general dictionary does not know (``halofit``, ``Lorentzian``, ``deprojected``); it must not be used to whitelist British spellings. Proper names — of people (``Storey``), simulations, or codes — belong there too, and are a common source of false positives in automated spelling scans.
+
+Class and implementation names
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* ``functionClass`` names are ``lowerCamelCase`` (``darkMatterProfileDMO``, ``coolingRate``).
+* An implementation name is its class name followed by an ``UpperCamelCase`` suffix naming the implementation: ``darkMatterProfileDMONFW``, ``coolingRateWhiteFrenk1991``. This is required, not merely conventional — the code generator relies on it.
+
+Because a Fortran identifier may be at most 63 characters, a small number of implementation names carry vowel-stripped abbreviations (for example ``criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt``). These are unavoidable given the length limit, but they are *not* a style to imitate: prefer a shorter, readable suffix, and abbreviate only when the full name would exceed the limit. Note that these abbreviations are user-visible, since the suffix is the value used to select the implementation in a parameter file.
+
+Parameter names
+^^^^^^^^^^^^^^^
+
+* Parameter names are ``lowerCamelCase``, matching the internal variable name (see *Variable names* above).
+* **Word order is noun-first, qualifier-second**: ``radiusVirial``, ``massStellar``, ``timeMinimum``, ``massHaloMinimum`` — not ``virialRadius``, ``stellarMass``, or ``haloMassMinimum``. This groups related quantities together when parameters are listed alphabetically. Established physics terms that read as a single concept (``scaleHeight``, ``scaleLength``, ``peakHeightExponent``) are exempt.
+* Boolean parameters should read as predicates. Two forms are accepted:
+
+  * a verb prefix — ``includeBaryonGravity``, ``useFittingFunction``, ``allowNegativeCGMMass``, ``applySubsamplingWeights``;
+  * a predicate suffix — ``convergenceFailureIsFatal``, ``mainBranchOnly``, ``accretionNegativeAllowed``.
+
+  A bare noun or adjective (``dimensionless``, ``fast``, ``forward``, ``extendedStatistics``) does not read as a question and should be avoided in new code.
+
+Two groups of parameter names are deliberately **not** ``lowerCamelCase``, and are correct as they stand:
+
+* **Cosmological parameters written as their conventional symbols**: ``OmegaMatter``, ``OmegaBaryon``, ``OmegaDarkEnergy``, ``OmegaCurvature``, ``OmegaRadiation``, ``HubbleConstant``. The corresponding ``cosmologyParameters`` methods share these names, and are the reason a handful of methods are ``UpperCamelCase``.
+* **Fitting-formula coefficients written as the symbols used in the source paper**: ``A``, ``B``, ``C``, ``alpha_0``, ``alpha_z``, ``M_0``, ``epsilon_lna``, ``sigma_8``. Preserving the paper's notation makes the implementation checkable against its reference, which outweighs uniformity here. Use this form only where the name genuinely mirrors a published symbol, and cite the paper in the ``<description>``.
+
+Method names
+^^^^^^^^^^^^
+
+Method names are ``lowerCamelCase`` and should follow the same noun-first order as parameters — ``rateMassLoss``, ``rateAccretion``, ``gradientTemperatureLogarithmic``.
+
+Where a concept already exists as a method on another class, match the existing name rather than introducing a second spelling of the same idea. Three concepts currently exist under both orders, and should converge on the noun-first form as those classes are next revised:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 26 34 26 34
+
+   * - Noun-first (preferred)
+     - Classes
+     - Verb/adjective-first
+     - Classes
+   * - ``rateMassLoss``
+     - ``ramPressureStripping``, ``stellarWinds``, ``tidalStripping``
+     - ``massLossRate``
+     - ``satelliteTidalStripping``, ``satelliteEvaporationSIDM``
+   * - ``rateAccretion``
+     - ``blackHoleAccretionRate``
+     - ``accretionRate``
+     - ``accretionHalo``, ``accretionHaloTotal``
+   * - ``gradientTemperatureLogarithmic``
+     - ``coolingTime``
+     - ``temperatureGradientLogarithmic``
+     - ``kinematicsDistribution``
+
+Renaming a method is an internal change — method names do not appear in parameter files — but it touches every caller, so it is best done as part of other work on the class rather than as a standalone sweep.
+
+The ``UpperCamelCase`` cosmological methods noted above are the sole exception to ``lowerCamelCase``.
+
+Modules, procedures, and files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* **Modules** use ``Upper_Snake_Case``: ``Dark_Matter_Profiles_DMO``, ``Numerical_Integration``.
+* **Procedures** use ``lowerCamelCase`` in new code. A large body of older code — concentrated in ``source/objects/`` and ``source/utility/`` — uses ``Upper_Snake_Case`` (``Abundances_Get_Metallicity``). Both are accepted; the older style is not a defect and is not worth a mass rename, but new procedures should be ``lowerCamelCase``.
+* **File names** describing a concept use lower ``snake_case``: ``cosmic_microwave_background.F90``, ``nuclear_star_clusters.F90``, ``radius_velocity_maximum.F90``. Directory names follow the same style.
+* Files named for a **proper noun** — a model, code, or author — keep that noun's own capitalization: ``NFW.F90``, ``Einasto.F90``, ``Zhao1996.F90``, ``RecFast.F90``. Where the name combines *several* authors, camel-case them together and do not use hyphens: ``DiemerKravtsov2014.F90``, not ``Diemer-Kravtsov2014.F90``. Both spellings are currently present in the tree (``dark_matter_profiles/structure/concentration/Diemer-Kravtsov2014.F90`` alongside ``dark_matter_profiles_DMO/accretion_flow/DiemerKravtsov2014.F90``); the unhyphenated form is the one to use in new files. File names are not user-facing, so existing hyphenated names are left as they are rather than renamed.
+
 Variable declarations
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -688,8 +767,8 @@ In some instances it is useful to be able to call a function with different comb
       <call>self=massDistributionBetaProfile(beta{conditions})</call>
       <argument name="densityNormalization" value="densityNormalization" parameterPresent="parameters"/>
       <argument name="mass"                 value="mass"                 parameterPresent="parameters"/>
-      <argument name="outerRadius"          value="outerRadius"          parameterPresent="parameters"/>
-      <argument name="coreRadius"           value="coreRadius"           parameterPresent="parameters"/>
+      <argument name="radiusOuter"          value="radiusOuter"          parameterPresent="parameters"/>
+      <argument name="radiusCore"           value="radiusCore"           parameterPresent="parameters"/>
       <argument name="dimensionless"        value="dimensionless"        parameterPresent="parameters"/>
      </conditionalCall>
      <inputParametersValidate source="parameters"/>
@@ -884,7 +963,7 @@ A translation may either rewrite the parameter file declaratively, via an ``xpat
 
    **Commit hashes in** ``migrations.xml`` **must remain valid for the lifetime of the repository.**
 
-   To decide which migrations to apply, ``parametersMigrate.py`` walks the git ancestry between the parameter file's recorded ``lastModified`` revision and the current ``HEAD``, and matches each commit in that ancestry against the ``commit`` attributes in ``migrations.xml`` **by exact string equality**. A hash which is not present in the history therefore matches nothing: the migration is *silently skipped*. There is no error and no warning — parameter files simply fail to migrate, and models built from them quietly change behaviour.
+   To decide which migrations to apply, ``parametersMigrate.py`` walks the git ancestry between the parameter file's recorded ``lastModified`` revision and the current ``HEAD``, and matches each commit in that ancestry against the ``commit`` attributes in ``migrations.xml`` **by exact string equality**. A hash which is not present in the history therefore matches nothing: the migration is *silently skipped*. There is no error and no warning — parameter files simply fail to migrate, and models built from them quietly change behavior.
 
    The practical consequences are:
 
@@ -1041,6 +1120,17 @@ In the above example, we define a "simple" implementation of the cosmologyParame
 
 Name:
    The name should always be prefixed with the function class name. In this case, we have a ``simple`` implementation of the ``cosmologyParameters`` function class, and so our name is ``cosmologyParametersSimple``.
+
+   The remainder of the name, after the class prefix, is the value which selects this implementation in a parameter file---``simple`` here. Choose a readable one: it is part of the user-facing API, not merely an internal identifier.
+
+   Occasionally a readable name cannot be used, because Fortran limits an identifier to **63 characters** and the build generates further identifiers from this name by appending suffixes (``ConstructorParameters``, a method name, a trailing underscore for the implementation's submodule, and so on). Where that limit forces an abbreviated name, give the directive an ``alias`` attribute carrying the readable form:
+
+   .. code-block:: xml
+
+      <virialDensityContrast name="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt"
+                             alias="sphericalCollapseCollisionlessMatterCosmologicalConstant">
+
+   The alias is the value documented, written into descriptors, and reported by the ``objectType`` method and by the error message listing the available implementations. The abbreviated name continues to be accepted in parameter files, so adding an alias breaks nothing and needs no migration. Use an alias *only* where the length limit forces it---an abbreviation which would fit unabbreviated should simply be renamed.
 
 Extends:
    The base class for the function class is always the function class name suffixed with ``Class``, in this case ``cosmologyParametersClass``. Implementations must always be extensions of either this base class, or of another implementation.
@@ -1301,6 +1391,14 @@ The ``workaround`` directive annotates code that exists only to work around a bu
     !!]
 
 The ``type`` attribute (required) names the tool containing the bug (e.g. ``gfortran``), while the optional ``PR`` and ``url`` attributes identify the relevant bug report. A ``description`` element should explain the bug being worked around. Optional ``seeAlso`` elements (with the same ``type``/``PR``/``url`` attributes) can reference related bug reports.
+
+The ``Workarounds`` workflow (``.github/workflows/workarounds.yml``) runs ``scripts/aux/workaroundChecker.py`` daily, which looks up the ``PR`` of every ``workaround`` directive in GCC's Bugzilla and fails if any of them has been marked ``RESOLVED``---so that fixed bugs do not leave dead workarounds behind. A bug being fixed upstream does not always mean the workaround can be removed immediately though: typically we must wait until the fix appears in a released compiler that is available on all of the platforms we build for. For such cases, open an issue recording what must happen before the workaround can be removed, and reference it from the directive with the optional ``issue`` attribute:
+
+.. code-block:: none
+
+    <workaround type="gfortran" PR="105807" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105807" issue="1234">
+
+The attribute takes either a bare issue number in this repository (as above) or a full URL. The checker then reports the workaround as *staged for removal* and does not fail, for as long as the referenced issue remains open---if the issue is closed while the workaround is still present the checker begins to fail again. Only one occurrence of a given ``PR`` need carry the attribute; a single issue tracks removal of all workarounds for that bug.
 
 Module Scoping
 ~~~~~~~~~~~~~~

@@ -55,8 +55,8 @@ You can look at the entire parameter file for this tutorial `here <https://raw.g
          <pointsPerDecade   value="10"    />
        </task>
        <task value="haloMassFunction"  >
-         <haloMassMinimum value="1.0e06"/>
-         <haloMassMaximum value="1.0e15"/>
+         <massHaloMinimum value="1.0e06"/>
+         <massHaloMaximum value="1.0e15"/>
          <pointsPerDecade value="10"    />
        </task>
        <task value="evolveForests"    />

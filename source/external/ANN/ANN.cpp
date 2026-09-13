@@ -28,7 +28,6 @@ extern "C"
 {
   ANNkd_tree * nearestNeighborsConstructorC(int n, int d, double *pa);
   void nearestNeighborsDestructorC(ANNkd_tree * ANN);
-  void nearestNeighborsCloseC();
   void nearestNeighborsSearchC(ANNkd_tree * ANN, double *point, int neighborCount, double tolerance, int *neighborIndex, double *neighborDistance);
   int nearestNeighborsSearchFixedRadiusC(ANNkd_tree * ANN, double *point, double radiusSquared, int neighborCount, int *neighborIndex, double *neighborDistance, double tolerance);
 }
@@ -59,18 +58,16 @@ void nearestNeighborsDestructorC(ANNkd_tree * ANN) {
   ANNpointArray ANNpa;
 
   if ( ANN != NULL ) {
-    // Get a pointer to the array of points, then deallocate it.
+    // Get a pointer to the array of points, then deallocate it. The tree does
+    // not own this array, so its destructor will not release it.
     ANNpa = ANN->thePoints();
     annDeallocPts(ANNpa);
-    // Explicitly destruct the ANN KD-tree object.
-    ANN->~ANNkd_tree();
+    // Destroy the ANN KD-tree object. This must be `delete`, not an explicit
+    // destructor call: the object was allocated with `new`, so destructing it
+    // without deleting it would run the destructor (releasing the nodes, point
+    // indices and bounding box) but leak the tree object itself.
+    delete ANN;
   }
-  return;
-}
-
-void nearestNeighborsCloseC() {
-  //% Fortran-callable wrapper around the ANN library close function.
-  annClose();
   return;
 }
 

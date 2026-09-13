@@ -136,15 +136,18 @@ jobs:
           # next `master` deploy finds only the older names on `bleeding-edge`, and the launcher installs
           # either -- so mirroring whichever exists keeps such a tag usable, rather than leaving it with no
           # tools at all. Missing names are warned about and skipped below.
+          #
+          # The macOS Intel assets (`Galacticus_MacOS.exe`, `toolsMacOS.*`) are deliberately absent: those
+          # builds have been retired (see `Build-Executable-MacOS-M1` in `cicd.yml`), so `bleeding-edge` no
+          # longer refreshes them and mirroring whatever stale copy it still carries onto a new version tag
+          # would publish a binary built from an unrelated commit. Releases cut while they were still built
+          # keep their own copies, so existing macOS Intel installs are unaffected.
           assets=(
             Galacticus.exe
-            Galacticus_MacOS.exe
             Galacticus_MacOS-M1.exe
             tools.tar.zst
-            toolsMacOS.tar.zst
             toolsMacOSM1.tar.zst
             tools.tar.bz2
-            toolsMacOS.zip
             toolsMacOSM1.zip
             datasets.tar.zst
             datasets.ref

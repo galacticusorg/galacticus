@@ -10,7 +10,7 @@ into subdirectories to any depth), this script:
   declaration (skipping text inside `!!{…!!}` LaTeX and `!![…!!]` XML blocks).
 * For every `functionClass` directive in the file, walks each instance file
   listed in `directiveLocations.xml` to discover the concrete derived types
-  and synthesises one functionClass-submodule entry per derived type.
+  and synthesizes one functionClass-submodule entry per derived type.
 * Emits Makefile rules for each discovered module / submodule target: the
   `<mod>.mod`, `<mod>@<sub>.smod`, `<src>.o`, `<src>.p.F90`, `<mod>.mod.d`,
   `<mod>.mod.gv`, `<src>.m`, `<src>.smod` dependencies the main build
@@ -258,7 +258,7 @@ def _scan_one(task):
     locations   = _WORKER['locations']
     file_path   = desc['path'] + '/' + name
 
-    # functionClass -> synthesise submodule records.
+    # functionClass -> synthesize submodule records.
     function_classes = extract_directives(file_path, 'functionClass')
     submodules_for_file = []
     for fc in function_classes:
@@ -301,7 +301,7 @@ def _scan_files(scan_list, source_root, locations):
 def _build_submodule_map(modules_per_file):
     """Return a dict mapping lowercase `<module>.mod` to the ordered list of
     submodule records associated with it.  Combines both functionClass-
-    synthesised submodules and Fortran `submodule (…)` statements.
+    synthesized submodules and Fortran `submodule (…)` statements.
     """
     submodules = {}
     for file_id, entry in modules_per_file.items():

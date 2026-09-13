@@ -30,7 +30,7 @@ import unicodedata
 def extract_braced(text: str, open_pos: int) -> tuple[str, int]:
     """Given ``text`` and the index of an opening ``{``, return ``(inner, end)``
     where ``inner`` is the balanced contents and ``end`` is the index just past
-    the matching ``}``.  Honours backslash-escaped braces ``\\{`` / ``\\}``.
+    the matching ``}``.  Honors backslash-escaped braces ``\\{`` / ``\\}``.
     """
     assert text[open_pos] == '{'
     depth = 0
@@ -263,12 +263,12 @@ _ESCAPE_REPLACEMENTS = [
 ]
 
 
-# RST inline markup is only recognised when the start-string is preceded by
+# RST inline markup is only recognized when the start-string is preceded by
 # whitespace or one of these characters, and the end-string is followed by
 # whitespace or one of these.  When a protected inline fragment lands next to a
 # character outside these sets (e.g. ``$x$\mono{y}`` -> two adjacent roles, or
 # ``f=$x$``) we splice in an escaped space ``\ `` — a zero-width separator that
-# lets docutils recognise the markup without inserting a visible space.
+# lets docutils recognize the markup without inserting a visible space.
 _OK_BEFORE = set(" \t\n-:/'\"<([{")
 _OK_AFTER  = set(" \t\n-.,:;!?/'\")]}>")
 
@@ -391,7 +391,7 @@ def _convert_citations(text: str, vault: '_Vault') -> str:
     r"""Convert natbib ``\cite*`` commands to ``sphinxcontrib-bibtex`` roles.
 
     The generated roles are stashed in ``vault`` so the adjacency fix-up can
-    separate them from neighbouring characters where needed.
+    separate them from neighboring characters where needed.
     """
     names = sorted(_CITE_ROLE, key=len, reverse=True)
     pat = re.compile(r'\\(' + '|'.join(names) + r')\b')
@@ -438,7 +438,7 @@ def _render_one_list(env: str, body: str) -> str:
     ``itemize`` / ``enumerate`` become bullet / numbered lists; ``description``
     becomes an RST definition list (so a ``\\mono`` label can carry inline
     markup, which strong-emphasis ``**…**`` cannot).  The result is padded with
-    blank lines so RST recognises the block as separate from its surroundings.
+    blank lines so RST recognizes the block as separate from its surroundings.
     """
     items = [c.strip() for c in re.split(r'\\item\b', body) if c.strip()]
     lines = []
@@ -547,8 +547,8 @@ def _convert_sections(text: str, vault: '_Vault', glsmap: dict) -> str:
 def _strip_float_envs(text: str, vault: '_Vault', glsmap: dict) -> str:
     """Convert figure/table floats.
 
-    A ``figure`` becomes ``@@FIGURE@@<image path>@@<name>@@`` + caption (finalised
-    into a ``.. figure::`` by :func:`_finalise_figures` once the caption is
+    A ``figure`` becomes ``@@FIGURE@@<image path>@@<name>@@`` + caption (finalized
+    into a ``.. figure::`` by :func:`_finalize_figures` once the caption is
     converted), or just the caption if it has no ``\\includegraphics``.  A
     ``table`` is unwrapped: the inner list-table (already stashed by
     :func:`_convert_tabular`) gains the float's caption and ``:name:`` so it can
@@ -623,7 +623,7 @@ def _strip_float_envs(text: str, vault: '_Vault', glsmap: dict) -> str:
     return text
 
 
-def _finalise_figures(text: str) -> str:
+def _finalize_figures(text: str) -> str:
     """Turn ``@@FIGURE@@path@@`` + caption placeholders (caption already
     converted) into ``.. figure::`` directives."""
     def _fig(path: str, name: str) -> str:
@@ -1232,8 +1232,8 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
     # --- Restore protected fragments -------------------------------------
     text = vault.restore(text)
 
-    # --- Finalise figures (caption now converted) ------------------------
-    text = _finalise_figures(text)
+    # --- Finalize figures (caption now converted) ------------------------
+    text = _finalize_figures(text)
 
     # --- Footnote definitions (auto-numbered, matched to ``[#]_`` in order) -
     if footnotes:

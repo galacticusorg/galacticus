@@ -2,7 +2,7 @@
 
 These functions are small, pure, and used widely across the codebase but
 previously had zero coverage.  The intent of these tests is to lock down
-the documented behaviour (None handling, scalar-vs-list dispatch,
+the documented behavior (None handling, scalar-vs-list dispatch,
 dict-keyed-vs-list-of-dicts coercion) so any accidental change is caught.
 """
 

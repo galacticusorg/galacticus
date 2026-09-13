@@ -138,7 +138,7 @@ contains
 	 <constructor>
            massDistributionEinasto(                                                                                  &amp;
            &amp;                   mass          =basic            %mass                                     (    ), &amp;
-           &amp;                   virialRadius  =self             %darkMatterHaloScale_%radiusVirial        (node), &amp;
+           &amp;                   radiusVirial  =self             %darkMatterHaloScale_%radiusVirial        (node), &amp;
            &amp;                   scaleLength   =darkMatterProfile%scale                                    (    ), &amp;
            &amp;                   shapeParameter=darkMatterProfile%shape                                    (    ), &amp;
            &amp;                   componentType=                                       componentTypeDarkHalo      , &amp;

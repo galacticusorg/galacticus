@@ -46,5 +46,5 @@ for i in range(nHalos):
     data["metricUntruncated"][i] = np.sum(np.log10(densityTarget / densityUntruncated)**2) / len(radii)
     data["metricTruncated"][i]   = np.sum(np.log10(densityTarget / densityTruncated)**2)   / len(radii)
 
-status_str = "succeeded" if np.median(data["metricTruncated"]) < 0.0125 else "FAILED"
+status_str = "SUCCESS" if np.median(data["metricTruncated"]) < 0.0125 else "FAILED"
 print(f"{status_str}: tidally truncated NFW fit")

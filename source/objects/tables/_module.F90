@@ -180,7 +180,7 @@ module Tables
      Table type supporting generic one dimensional tables.
      !!}
      !![
-     <workaround type="gfortran" PR="123938" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=123938" docformat="rst">
+     <workaround type="gfortran" PR="123938" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=123938" docformat="rst">
        <description>
        gfortran causes a memory leak with allocatable components in nested derived-types.
        </description>
@@ -803,7 +803,7 @@ contains
   end function Table1D_Integration_Weights
   
   !![
-  <workaround type="gfortran" PR="121537" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=121537" docformat="rst">
+  <workaround type="gfortran" PR="121537" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=121537" docformat="rst">
     <description>
     gfortran misses a defined-assignment of a component.
     </description>
@@ -838,7 +838,7 @@ contains
           if (associated(from%interpolators)) then
              allocate(to%interpolators(size(from%interpolators)))
              !![
-	     <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696" docformat="rst">
+	     <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=57696" docformat="rst">
 	       <description>
 	       Defined assignment for components not used when those are ALLOCATABLE
 	       </description>

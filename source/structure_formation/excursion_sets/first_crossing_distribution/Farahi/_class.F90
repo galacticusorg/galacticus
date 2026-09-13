@@ -632,7 +632,7 @@ contains
           allocate(self%firstCrossingProbability(0:self%countVariance,self%countTime))
           ! Take the abscissae from the lattices rather than by subdividing the ranges, so that they are bit-identical to those
           ! of any other tabulation built on the same lattices. Note that the step in variance likewise comes from the lattice:
-          ! taking it as the difference of two neighbouring points is not invariant under a shift of the range.
+          ! taking it as the difference of two neighboring points is not invariant under a shift of the range.
           self%time        =latticeTime    %values()
           self%variance    =latticeVariance%values()
           self%varianceStep=latticeVariance%step  ()

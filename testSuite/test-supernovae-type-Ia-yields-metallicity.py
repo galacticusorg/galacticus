@@ -26,7 +26,7 @@ import numpy as np
 # The stellar contribution is common to all three runs and cancels in both differences, so f measures only where
 # the metallicity-dependent run sits between the two tabulated extremes. It would be 0 if the reader always took
 # the lowest tabulated set, and 1 if it always took the highest; a value strictly between the two is the
-# signature of the yields actually being interpolated as the modelled galaxy enriches.
+# signature of the yields actually being interpolated as the modeled galaxy enriches.
 
 # Ensure output directory exists.
 subprocess.run("mkdir -p outputs", shell=True)

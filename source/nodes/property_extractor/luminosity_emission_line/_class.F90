@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Sachi Weerasooriya
+  !+    Contributions to this file made by: Sachi Weerasooriya, Andrew Benson, Claude.
 
   !!{RST
   Implements a property extractor class for the emission line luminosity of a component.
@@ -100,6 +100,7 @@
      procedure :: indexTemplateTime       => emissionLineLuminosityIndexTemplateTime
      procedure :: indexTemplateNode       => emissionLineLuminosityIndexTemplateNode 
      procedure :: units                   => emissionLineLuminosityUnits
+     procedure :: quantity                => emissionLineLuminosityQuantity
      procedure :: supportsAttenuation     => emissionLineLuminositySupportsAttenuation
      procedure :: decompose               => emissionLineLuminosityDecompose
   end type nodePropertyExtractorLuminosityEmissionLine
@@ -937,7 +938,7 @@ contains
     use :: Histories               , only : history
     use :: File_Utilities          , only : File_Modification_Time
     use :: String_Handling         , only : String_Join
-    use :: Star_Formation_Histories, only : starFormationHistoryAgesFixed
+    use :: Star_Formation_Histories, only : starFormationHistoryAgesFixed, starFormationHistoryAgesFixedPerOutput
     implicit none
     type            (varying_string                             )                              :: hashedDescriptor
     class           (nodePropertyExtractorLuminosityEmissionLine), intent(in   )               :: self
@@ -951,7 +952,7 @@ contains
     type            (varying_string                             )                              :: descriptorString    , values
     integer                                                                                    :: i                   , status
     !![
-    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845" docformat="rst">
+    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=102845" docformat="rst">
       <description>
       Memory leak possibly due to OpenMP parallelism, or some failing of gfortran.
       </description>
@@ -981,7 +982,14 @@ contains
     ! Times are only added if ages are not fixed. For fixed ages, the history is the same (for our purposes) always.
     if (self%starFormationHistory_%ageDistribution() /= starFormationHistoryAgesFixed) then
        values=""
-       times =self %starFormationHistory_%times(node=node,indexOutput=indexOutput,starFormationHistory=starFormationHistory)
+       ! Request the times using whichever of `indexOutput` and `node` applies to the star formation history class in use - the
+       ! base class permits only one of the two to be given. Where ages are fixed per output the tabulation is a function of the
+       ! output alone, while for arbitrary ages it must be read from the history of this node.
+       if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixedPerOutput) then
+          times=self%starFormationHistory_%times(indexOutput=indexOutput                                          )
+       else
+          times=self%starFormationHistory_%times(node       =node       ,starFormationHistory=starFormationHistory)
+       end if
        do i=1,size(times)
           !$omp critical(gfortranInternalIO)
           write (parameterLabel,'(e17.10)') times(i)
@@ -1010,7 +1018,7 @@ contains
     call descriptor%destroy()
     descriptorString=descriptorString//":sourceDigest{"//String_C_To_Fortran(nodePropertyExtractorLuminosityEmissionLine5)//"}"
     !![
-    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845" docformat="rst">
+    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=102845" docformat="rst">
      <description>
      Memory leak possibly due to OpenMP parallelism, or some failing of gfortran.
      </description>
@@ -1039,6 +1047,20 @@ contains
     end do
     return
   end function emissionLineLuminosityUnits
+
+  function emissionLineLuminosityQuantity(self) result(quantity)
+    !!{RST
+    Return the class of the emission line luminosity property.
+    !!}
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
+    implicit none
+    type (enumerationOutputAnalysisPropertyQuantityType)                :: quantity
+    class(nodePropertyExtractorLuminosityEmissionLine  ), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    quantity=outputAnalysisPropertyQuantityLuminosity
+    return
+  end function emissionLineLuminosityQuantity
 
   logical function emissionLineLuminositySupportsAttenuation(self) result(supportsAttenuation)
     !!{RST

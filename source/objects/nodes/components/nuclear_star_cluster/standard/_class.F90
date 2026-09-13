@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Matías Liempi
+  !+    Contributions to this file made by: Matías Liempi, Andrew Benson, Claude.
 
 !!{RST
 Contains a module which implements the standard :term:`NSC` node component.
@@ -265,8 +265,8 @@ contains
     !!{RST
     Initializes the standard nuclear star cluster component module for each thread.
     !!}
-    use :: Events_Hooks                    , only : dependencyDirectionAfter       , dependencyRegEx            , openMPThreadBindingAtLevel, &
-          &                                         postEvolveEvent                , satelliteMergerEvent       , mergerTreeExtraOutputEvent
+    use :: Events_Hooks                    , only : dependencyDirectionAfter       , dependencyRegEx            , openMPThreadBindingAtLevel       , &
+          &                                         postEvolveEvent                , satelliteMergerEvent       , mergerTreeOutputStateAdvanceEvent
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : defaultNSCComponent
     use :: Input_Parameters                , only : inputParameter                 , inputParameters
@@ -281,9 +281,9 @@ contains
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultNSCComponent%standardIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-       call satelliteMergerEvent      %attach(thread,satelliteMerger      ,openMPThreadBindingAtLevel,label='nodeComponentNSCStandard',dependencies=dependencies)
-       call postEvolveEvent           %attach(thread,postEvolve           ,openMPThreadBindingAtLevel,label='nodeComponentNSCStandard'                          )
-       call mergerTreeExtraOutputEvent%attach(thread,mergerTreeExtraOutput,openMPThreadBindingAtLevel,label='nodeComponentNSCStandard'                          )
+       call satelliteMergerEvent             %attach(thread,satelliteMerger             ,openMPThreadBindingAtLevel,label='nodeComponentNSCStandard',dependencies=dependencies)
+       call postEvolveEvent                  %attach(thread,postEvolve                  ,openMPThreadBindingAtLevel,label='nodeComponentNSCStandard'                          )
+       call mergerTreeOutputStateAdvanceEvent%attach(thread,mergerTreeOutputStateAdvance,openMPThreadBindingAtLevel,label='nodeComponentNSCStandard'                          )
        ! Find our parameters.
        subParameters=parameters%subParameters('componentNSC')
        !![
@@ -335,15 +335,15 @@ contains
     !!{RST
     Uninitializes the standard nuclear star cluster component module for each thread.
     !!}
-    use :: Events_Hooks                    , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeExtraOutputEvent
+    use :: Events_Hooks                    , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeOutputStateAdvanceEvent
     use :: Galacticus_Nodes                , only : defaultNSCComponent
     use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_
     implicit none
 
     if (defaultNSCComponent%standardIsActive()) then
-       if (satelliteMergerEvent      %isAttached(thread,satelliteMerger      )) call satelliteMergerEvent      %detach(thread,satelliteMerger      )
-       if (postEvolveEvent           %isAttached(thread,postEvolve           )) call postEvolveEvent           %detach(thread,postEvolve           )
-       if (mergerTreeExtraOutputEvent%isAttached(thread,mergerTreeExtraOutput)) call mergerTreeExtraOutputEvent%detach(thread,mergerTreeExtraOutput)
+       if (satelliteMergerEvent             %isAttached(thread,satelliteMerger             )) call satelliteMergerEvent             %detach(thread,satelliteMerger             )
+       if (postEvolveEvent                  %isAttached(thread,postEvolve                  )) call postEvolveEvent                  %detach(thread,postEvolve                  )
+       if (mergerTreeOutputStateAdvanceEvent%isAttached(thread,mergerTreeOutputStateAdvance)) call mergerTreeOutputStateAdvanceEvent%detach(thread,mergerTreeOutputStateAdvance)
        !![
        <objectDestructor name="stellarPopulationProperties_"/>
        <objectDestructor name="darkMatterHaloScale_"        />
@@ -1235,25 +1235,20 @@ contains
     return
   end subroutine Node_Component_NSC_Standard_Stellar_Prprts_History_Extend
 
-  subroutine mergerTreeExtraOutput(self,node,iOutput,treeIndex,nodePassesFilter,treeLock)
+  subroutine mergerTreeOutputStateAdvance(self,node,iOutput)
    !!{RST
    Update the star formation history after an output time is reached.
    !!}
      use            :: Galacticus_Nodes, only : defaultNSCComponent, nodeComponentNSC, nodeComponentNSCStandard, treeNode
      use            :: Histories       , only : history
      use, intrinsic :: ISO_C_Binding   , only : c_size_t
-     use            :: Kind_Numbers    , only : kind_int8
-     use            :: Locks           , only : ompLock
      implicit none
      class  (*               ), intent(inout)          :: self
      type   (treeNode        ), intent(inout)          :: node
      integer(c_size_t        ), intent(in   )          :: iOutput
-     integer(kind=kind_int8  ), intent(in   )          :: treeIndex
-     logical                  , intent(in   )          :: nodePassesFilter
-     type   (ompLock         ), intent(inout)          :: treeLock
      class  (nodeComponentNSC)               , pointer :: nuclearStarCluster
      type   (history         )                         :: historyStarFormation
-     !$GLC attributes unused :: self, treeIndex, nodePassesFilter, treeLock
+     !$GLC attributes unused :: self
 
      ! Check if we are the default method.
      if (.not.defaultNSCComponent%standardIsActive()) return
@@ -1267,7 +1262,7 @@ contains
         call nuclearStarCluster%starFormationHistorySet(historyStarFormation)
      end select
      return
-   end subroutine mergerTreeExtraOutput
+   end subroutine mergerTreeOutputStateAdvance
 
   !![
   <stateStoreTask function="Node_Component_NSC_Standard_State_Store"/>

@@ -66,7 +66,7 @@
        <method description="Compute the density on the isodensity surface defined by the parameter :math:`m^2`\ 2." method="densityEllipsoidal"     />
        <method description="Tabulate the gravitational acceleration due to the ellipsoid."                          method="accelerationTabulate"   />
        <method description="Interpolate in the tabulated gravitational acceleration due to the ellipsoid."          method="accelerationInterpolate"/>
-       <method description="(Re)initialize the structural properties of the Gaussian ellispoid."                    method="initialize"             />
+       <method description="(Re)initialize the structural properties of the Gaussian ellipsoid."                    method="initialize"             />
      </methods>
      !!]
      procedure :: density                        => gaussianEllipsoidDensity

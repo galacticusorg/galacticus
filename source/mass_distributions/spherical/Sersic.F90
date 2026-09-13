@@ -20,7 +20,7 @@
 !+    Contributions to this file made by: Andrew Benson, Claude.
 
   !!{RST
-  Implementation of a S\'ersic mass distribution class.
+  Implementation of a Sérsic mass distribution class.
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
@@ -29,13 +29,13 @@
   !![
   <massDistribution name="massDistributionSersic" docformat="rst">
    <description>
-   A S\'ersic mass distribution class implementing the spherically deprojected form of the S\'ersic surface brightness profile :math:`I(R) \propto \exp(-b_n [(R/R_e)^{1/n}-1])`, where :math:`n` controls the profile shape.
+   A Sérsic mass distribution class implementing the spherically deprojected form of the Sérsic surface brightness profile :math:`I(R) \propto \exp(-b_n [(R/R_e)^{1/n}-1])`, where :math:`n` controls the profile shape.
    </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionSersic
      !!{RST
-     The S\'ersic density profile.
+     The Sérsic density profile.
      !!}
      double precision                                          :: densityNormalization                  , mass              , &
           &                                                       radiusHalfMass_                       , index_
@@ -115,7 +115,7 @@ contains
       <variable>index_</variable>
       <defaultValue>4.0d0</defaultValue>
       <description>
-      The S\'ersic index :math:`n` that controls the shape of the surface brightness (or mass surface density) profile; :math:`n=1` gives an exponential profile, :math:`n=4` gives the de Vaucouleurs profile, and larger :math:`n` produces more centrally concentrated profiles.
+      The Sérsic index :math:`n` that controls the shape of the surface brightness (or mass surface density) profile; :math:`n=1` gives an exponential profile, :math:`n=4` gives the de Vaucouleurs profile, and larger :math:`n` produces more centrally concentrated profiles.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -123,7 +123,7 @@ contains
       <name>radiusHalfMass</name>
       <defaultValue>1.0d0</defaultValue>
       <description>
-      The projected half-mass (effective) radius (in Mpc) of the S\'ersic profile, :math:`R_e`, within which half the total projected mass is enclosed.
+      The projected half-mass (effective) radius (in Mpc) of the Sérsic profile, :math:`R_e`, within which half the total projected mass is enclosed.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -131,7 +131,7 @@ contains
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
       <description>
-      The total mass (in :math:`\mathrm{M}_\odot`) of the S\'ersic profile, used together with ``index`` and ``radiusHalfMass`` to set the overall normalization of the density distribution.
+      The total mass (in :math:`\mathrm{M}_\odot`) of the Sérsic profile, used together with ``index`` and ``radiusHalfMass`` to set the overall normalization of the density distribution.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -139,7 +139,7 @@ contains
       <name>dimensionless</name>
       <defaultValue>.true.</defaultValue>
       <description>
-      If true the S\'ersic profile is considered to be dimensionless.
+      If true the Sérsic profile is considered to be dimensionless.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -225,7 +225,7 @@ contains
 
   double precision function sersicDensity(self,coordinates)
     !!{RST
-    Return the density at the specified ``coordinates`` in a S\'ersic mass distribution.
+    Return the density at the specified ``coordinates`` in a Sérsic mass distribution.
     !!}
     use :: Coordinates , only : assignment(=)               , coordinateSpherical
     implicit none
@@ -248,7 +248,7 @@ contains
 
   double precision function sersicDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !!{RST
-    Returns a radial density moment for the S\'ersic mass distribution.
+    Returns a radial density moment for the Sérsic mass distribution.
     !!}
     implicit none
     class           (massDistributionSersic), intent(inout)           :: self
@@ -301,7 +301,7 @@ contains
 
   double precision function sersicMassTotal(self)
     !!{RST
-    Computes the total mass for S\'ersic mass distributions.
+    Computes the total mass for Sérsic mass distributions.
     !!}
     implicit none
     class(massDistributionSersic), intent(inout) :: self
@@ -312,7 +312,7 @@ contains
   
   double precision function sersicMassEnclosedBySphere(self,radius)
     !!{RST
-    Computes the mass enclosed within a sphere of given ``radius`` for S\'ersic mass distributions.
+    Computes the mass enclosed within a sphere of given ``radius`` for Sérsic mass distributions.
     !!}
     implicit none
     class           (massDistributionSersic), intent(inout), target :: self
@@ -348,7 +348,7 @@ contains
 
   double precision function sersicPotential(self,coordinates,status)
     !!{RST
-    Return the potential at the specified ``coordinates`` in a S\'ersic mass distribution.
+    Return the potential at the specified ``coordinates`` in a Sérsic mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)                 , coordinateSpherical
     use :: Error                           , only : Error_Report
@@ -395,7 +395,7 @@ contains
 
   double precision function sersicRadiusHalfMass(self)
     !!{RST
-    Return the half-mass radius of a S\'ersic mass distribution.
+    Return the half-mass radius of a Sérsic mass distribution.
     !!}
     implicit none
     class(massDistributionSersic), intent(inout) :: self
@@ -406,7 +406,7 @@ contains
 
   double precision function sersicRadiusHalfMassProjected(self)
     !!{RST
-    Return the half-mass radius in projection of a S\'ersic mass distribution.
+    Return the half-mass radius in projection of a Sérsic mass distribution.
     !!}
     implicit none
     class(massDistributionSersic), intent(inout) :: self
@@ -418,7 +418,7 @@ contains
 
   subroutine sersicTabulate(self,radius)
     !!{RST
-    Tabulate the density enclosed mass, and potential in a dimensionless S\'ersic profile.
+    Tabulate the density enclosed mass, and potential in a dimensionless Sérsic profile.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
@@ -586,7 +586,7 @@ contains
 
   double precision function sersicCoefficientRoot(coefficient)
     !!{RST
-    Root function used in finding the coefficient for S\'ersic profiles.
+    Root function used in finding the coefficient for Sérsic profiles.
     !!}
     use :: Gamma_Functions, only : Gamma_Function_Incomplete
     implicit none
@@ -598,7 +598,7 @@ contains
 
   double precision function sersicAbelIntegrand(radius)
     !!{RST
-    The integrand in the Abel integral used to invert the S\'ersic profile to get the corresponding 3-D profile.
+    The integrand in the Abel integral used to invert the Sérsic profile to get the corresponding 3-D profile.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
