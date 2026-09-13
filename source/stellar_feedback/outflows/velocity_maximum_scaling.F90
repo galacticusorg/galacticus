@@ -26,13 +26,13 @@
   use :: Math_Exponentiation     , only : fastExponentiator
 
   !![
-  <stellarFeedbackOutflows name="stellarFeedbackOutflowsVlctyMxSclng" docformat="rst">
+  <stellarFeedbackOutflows name="stellarFeedbackOutflowsVelocityMaximumScaling" docformat="rst">
    <description>
    A stellar feedback outflow model in which the mass outflow rate scales as a power law in the *peak* (maximum) circular velocity of the dark matter halo profile and the cosmological expansion factor, providing stronger feedback in lower-mass halos with lower peak velocities.
    </description>
   </stellarFeedbackOutflows>
   !!]
-  type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsVlctyMxSclng
+  type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsVelocityMaximumScaling
      !!{RST
      Implementation of an stellar feedback model which scales with peak halo velocity.
      !!}
@@ -45,27 +45,27 @@
      class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_     => null()
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_   => null()
    contains
-     final     ::                vlctyMxSclngDestructor
-     procedure :: outflowRate => vlctyMxSclngOutflowRate
-  end type stellarFeedbackOutflowsVlctyMxSclng
+     final     ::                velocityMaximumScalingDestructor
+     procedure :: outflowRate => velocityMaximumScalingOutflowRate
+  end type stellarFeedbackOutflowsVelocityMaximumScaling
 
-  interface stellarFeedbackOutflowsVlctyMxSclng
+  interface stellarFeedbackOutflowsVelocityMaximumScaling
      !!{RST
      Constructors for the velocity maximum scaling fraction stellar feedback class.
      !!}
-     module procedure vlctyMxSclngConstructorParameters
-     module procedure vlctyMxSclngConstructorInternal
-  end interface stellarFeedbackOutflowsVlctyMxSclng
+     module procedure velocityMaximumScalingConstructorParameters
+     module procedure velocityMaximumScalingConstructorInternal
+  end interface stellarFeedbackOutflowsVelocityMaximumScaling
 
 contains
 
-  function vlctyMxSclngConstructorParameters(parameters) result(self)
+  function velocityMaximumScalingConstructorParameters(parameters) result(self)
     !!{RST
     Constructor for the velocity maximum scaling fraction stellar feedback class which takes a parameter set as input.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type            (stellarFeedbackOutflowsVlctyMxSclng)                :: self
+    type            (stellarFeedbackOutflowsVelocityMaximumScaling)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
     double precision                                                     :: fraction             , exponentRedshift, &
          &                                                                  exponentVelocity
@@ -100,22 +100,22 @@ contains
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
-    self=stellarFeedbackOutflowsVlctyMxSclng(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterProfileDMO_)
+    self=stellarFeedbackOutflowsVelocityMaximumScaling(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"  />
     <objectDestructor name="darkMatterProfileDMO_"/>
     !!]
     return
-  end function vlctyMxSclngConstructorParameters
+  end function velocityMaximumScalingConstructorParameters
 
-  function vlctyMxSclngConstructorInternal(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
+  function velocityMaximumScalingConstructorInternal(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
     !!{RST
     Internal constructor for the halo scaling stellar feedback class.
     !!}
     use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
     implicit none
-    type            (stellarFeedbackOutflowsVlctyMxSclng)                        :: self
+    type            (stellarFeedbackOutflowsVelocityMaximumScaling)                        :: self
     double precision                                     , intent(in   )         :: fraction                     , exponentRedshift, &
          &                                                                          exponentVelocity
     class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
@@ -138,30 +138,30 @@ contains
     self%velocityExponentiator       =fastExponentiator(1.0d+0,1.0d+3,self%exponentVelocity,1.0d+1,abortOutsideRange=.false.)
     self%expansionFactorExponentiator=fastExponentiator(1.0d-3,1.0d+0,self%exponentRedshift,1.0d+3,abortOutsideRange=.false.)
     return
-  end function vlctyMxSclngConstructorInternal
+  end function velocityMaximumScalingConstructorInternal
 
-  subroutine vlctyMxSclngDestructor(self)
+  subroutine velocityMaximumScalingDestructor(self)
     !!{RST
     Destructor for the velocity maximum scaling stellar feedback class.
     !!}
     implicit none
-    type(stellarFeedbackOutflowsVlctyMxSclng), intent(inout) :: self
+    type(stellarFeedbackOutflowsVelocityMaximumScaling), intent(inout) :: self
 
     !![
     <objectDestructor name="self%cosmologyFunctions_"  />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
     return
-  end subroutine vlctyMxSclngDestructor
+  end subroutine velocityMaximumScalingDestructor
 
-  subroutine vlctyMxSclngOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
+  subroutine velocityMaximumScalingOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
     !!{RST
     Returns the outflow rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) for star formation in the given ``component``.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentBasic
     use :: Mass_Distributions, only : massDistributionClass
     implicit none
-    class           (stellarFeedbackOutflowsVlctyMxSclng), intent(inout) :: self
+    class           (stellarFeedbackOutflowsVelocityMaximumScaling), intent(inout) :: self
     class           (nodeComponent                      ), intent(inout) :: component
     double precision                                     , intent(in   ) :: rateEnergyInput    , rateStarFormation
     double precision                                     , intent(  out) :: rateOutflowEjective, rateOutflowExpulsive
@@ -196,4 +196,4 @@ contains
          &               *self%expansionFactorFactor
     rateOutflowExpulsive=+0.0d0
     return
-  end subroutine vlctyMxSclngOutflowRate
+  end subroutine velocityMaximumScalingOutflowRate

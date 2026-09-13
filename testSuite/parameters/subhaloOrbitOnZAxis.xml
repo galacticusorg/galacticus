@@ -572,7 +572,7 @@
       <ageLimit value="0.01"/>
       </hiiRegionEscapeFraction>
     </nodePropertyExtractor>
-    <nodePropertyExtractor value="lmnstyEmssnLineAGN">
+    <nodePropertyExtractor value="luminosityEmissionLineAGN">
       <!-- hard coded on main branch <cloudyTableFileNameAGN value="%DATASTATICPATH%/hiiRegions/emissionLineLuminosities_AGN.hdf5"/> -->
       <densityHydrogen value="1.0d3"/>
       <lineNames value="balmerAlpha6565 balmerBeta4863 balmerDelta4103 balmerGamma4342 nitrogenII6550 nitrogenII6585 oxygenII3727 oxygenII3730 oxygenIII4933 oxygenIII4960 oxygenIII5008 paschenAlpha18756 paschenBeta12822 sulfurII6718 sulfurII6733 sulfurIII9071 sulfurIII9533"/>

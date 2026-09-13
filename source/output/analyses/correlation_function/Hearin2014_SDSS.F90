@@ -173,9 +173,9 @@ contains
     use            :: Geometry_Surveys                      , only : surveyGeometryHearin2014SDSS
     use, intrinsic :: ISO_C_Binding                         , only : c_size_t
     use            :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar
-    use            :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
-    use            :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorCsmlgyAnglrDstnc     , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorSequence, &
-          &                                                          outputAnalysisPropertyOperatorSystmtcPolynomial    , propertyOperatorList
+    use            :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPolynomial
+    use            :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorCosmologyAngularDistance     , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorSequence, &
+          &                                                          outputAnalysisPropertyOperatorSystematicPolynomial    , propertyOperatorList
     implicit none
     type            (outputAnalysisCorrelationFunctionHearin2013SDSS    )                                :: self
     double precision                                                     , intent(in   )  , dimension(:) :: randomErrorPolynomialCoefficient              , systematicErrorPolynomialCoefficient
@@ -194,10 +194,10 @@ contains
     type            (galacticFilterStellarMass                          ), pointer                       :: galacticFilter_
     type            (surveyGeometryHearin2014SDSS                       ), pointer                       :: surveyGeometry_
     type            (outputAnalysisPropertyOperatorLog10                ), pointer                       :: massPropertyOperatorLog10_
-    type            (outputAnalysisPropertyOperatorSystmtcPolynomial    )               , pointer        :: massPropertyOperatorSystmtcPolynomial_
-    type            (outputAnalysisDistributionOperatorRandomErrorPlynml)               , pointer        :: massDistributionOperator_
+    type            (outputAnalysisPropertyOperatorSystematicPolynomial    )               , pointer        :: massPropertyOperatorSystematicPolynomial_
+    type            (outputAnalysisDistributionOperatorRandomErrorPolynomial)               , pointer        :: massDistributionOperator_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc    ), pointer                       :: massPropertyOperatorCsmlgyLmnstyDstnc_
-    type            (outputAnalysisPropertyOperatorCsmlgyAnglrDstnc     ), pointer                       :: separationPropertyOperator_
+    type            (outputAnalysisPropertyOperatorCosmologyAngularDistance     ), pointer                       :: separationPropertyOperator_
     type            (nodePropertyExtractorMassStellar                   ), pointer                       :: massPropertyExtractor_
     type            (outputAnalysisPropertyOperatorSequence             ), pointer                       :: massPropertyOperator_
     type            (propertyOperatorList                               ), pointer                       :: propertyOperators_
@@ -257,16 +257,16 @@ contains
     <referenceConstruct object="massPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                                           )"/>
     !!]
     ! Systematic error model.
-    allocate(massPropertyOperatorSystmtcPolynomial_)
+    allocate(massPropertyOperatorSystematicPolynomial_)
     !![
-    <referenceConstruct object="massPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient              )"/>
+    <referenceConstruct object="massPropertyOperatorSystematicPolynomial_" constructor="outputAnalysisPropertyOperatorSystematicPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient              )"/>
     !!]
     allocate(propertyOperators_                    )
     allocate(propertyOperators_%next               )
     allocate(propertyOperators_%next%next          )
     propertyOperators_          %operator_ => massPropertyOperatorCsmlgyLmnstyDstnc_
     propertyOperators_%next     %operator_ => massPropertyOperatorLog10_
-    propertyOperators_%next%next%operator_ => massPropertyOperatorSystmtcPolynomial_
+    propertyOperators_%next%next%operator_ => massPropertyOperatorSystematicPolynomial_
     allocate(massPropertyOperator_                 )
     !![
     <referenceConstruct object="massPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence         (propertyOperators_                                                         )"/>
@@ -276,7 +276,7 @@ contains
     !![
     <referenceConstruct object="massDistributionOperator_">
      <constructor>
-      outputAnalysisDistributionOperatorRandomErrorPlynml(                                  &amp;
+      outputAnalysisDistributionOperatorRandomErrorPolynomial(                                  &amp;
         &amp;                                             randomErrorMinimum              , &amp;
         &amp;                                             randomErrorMaximum              , &amp;
         &amp;                                             errorPolynomialZeroPoint        , &amp;
@@ -288,7 +288,7 @@ contains
     ! Build an operator for separations which corrects for cosmological model.
     allocate(separationPropertyOperator_)
     !![
-    <referenceConstruct object="separationPropertyOperator_"            constructor="outputAnalysisPropertyOperatorCsmlgyAnglrDstnc (cosmologyFunctions_     ,cosmologyFunctionsData_              ,outputTimes_)"/>
+    <referenceConstruct object="separationPropertyOperator_"            constructor="outputAnalysisPropertyOperatorCosmologyAngularDistance (cosmologyFunctions_     ,cosmologyFunctionsData_              ,outputTimes_)"/>
     !!]
     ! Build the object.
     self%outputAnalysisCorrelationFunction=                                                                                                                              &
@@ -326,7 +326,7 @@ contains
     <objectDestructor name="massPropertyExtractor_"                />
     <objectDestructor name="massPropertyOperatorCsmlgyLmnstyDstnc_"/>
     <objectDestructor name="massPropertyOperatorLog10_"            />
-    <objectDestructor name="massPropertyOperatorSystmtcPolynomial_"/>
+    <objectDestructor name="massPropertyOperatorSystematicPolynomial_"/>
     <objectDestructor name="massPropertyOperator_"                 />
     <objectDestructor name="massDistributionOperator_"             />
     <objectDestructor name="separationPropertyOperator_"           />

@@ -21,7 +21,7 @@
   An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus dark energy universe.
   !!}
 
-  use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtType
+  use :: Spherical_Collapse_Solvers, only : enumerationCollisionlessMatterDarkEnergyFixedAtType
 
   !![
   <virialDensityContrast name="virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy" alias="sphericalCollapseCollisionlessMatterDarkEnergy" docformat="rst">
@@ -35,7 +35,7 @@
      A dark matter halo virial density contrast class based on spherical collapse in a matter plus dark energy universe.
      !!}
      private
-     type(enumerationCllsnlssMttrDarkEnergyFixedAtType) :: energyFixedAt
+     type(enumerationCollisionlessMatterDarkEnergyFixedAtType) :: energyFixedAt
    contains
   end type virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy
 
@@ -54,7 +54,7 @@ contains
     Constructor for the :galacticus-class:`virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy` dark matter halo virial density contrast class that takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                                , inputParameters
-    use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
+    use :: Spherical_Collapse_Solvers, only : enumerationCollisionlessMatterDarkEnergyFixedAtEncode
     implicit none
     type   (virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy)                :: self
     type   (inputParameters                                          ), intent(inout) :: parameters
@@ -81,7 +81,7 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_" source="parameters"/>
     !!]
-    self=virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy(tableStore,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyFunctions_)
+    self=virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy(tableStore,enumerationCollisionlessMatterDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
@@ -93,10 +93,10 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy` dark matter halo virial density contrast class.
     !!}
-    use :: Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrDarkEnergy
+    use :: Spherical_Collapse_Solvers, only : sphericalCollapseSolverCollisionlessMatterDarkEnergy
     implicit none
     type   (virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy)                        :: self
-    type   (enumerationCllsnlssMttrDarkEnergyFixedAtType             ), intent(in   )         :: energyFixedAt
+    type   (enumerationCollisionlessMatterDarkEnergyFixedAtType             ), intent(in   )         :: energyFixedAt
     logical                                                           , intent(in   )         :: tableStore
     class  (cosmologyFunctionsClass                                  ), intent(in   ), target :: cosmologyFunctions_
     !![
@@ -105,11 +105,11 @@ contains
 
     self%tableInitialized     =.false.
     self%turnaroundInitialized=.false.
-    allocate(sphericalCollapseSolverCllsnlssMttrDarkEnergy :: self%sphericalCollapseSolver_)
+    allocate(sphericalCollapseSolverCollisionlessMatterDarkEnergy :: self%sphericalCollapseSolver_)
     select type (sphericalCollapseSolver_ => self%sphericalCollapseSolver_)
-    type is (sphericalCollapseSolverCllsnlssMttrDarkEnergy)
+    type is (sphericalCollapseSolverCollisionlessMatterDarkEnergy)
        !![
-       <referenceConstruct isResult="yes" owner="self" nameAssociated="sphericalCollapseSolver_" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCllsnlssMttrDarkEnergy(self%energyFixedAt,self%cosmologyFunctions_)"/>
+       <referenceConstruct isResult="yes" owner="self" nameAssociated="sphericalCollapseSolver_" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCollisionlessMatterDarkEnergy(self%energyFixedAt,self%cosmologyFunctions_)"/>
        !!]
     end select
     return

@@ -391,6 +391,68 @@
     </translation>
   </migration>
 
+  <migration commit="d8a194faa0b50129f8dd029419c92cf5005a4be7">
+    <!-- Vowel-stripped implementation names expanded. Each rule is scoped to  -->
+    <!-- the class which offers the implementation, so an identically-spelled  -->
+    <!-- value of another class is untouched. One <translation> per renamed    -->
+    <!-- value: parametersMigrate.py reads only the first <value> child of a   -->
+    <!-- translation, so grouping them would silently drop all but the first.  -->
+    <translation xpath="//mergerTreeBranchingProbability[@value]">
+      <value old="gnrlzdPrssSchchtr" new="generalizedPressSchechter"/>
+    </translation>
+    <translation xpath="//mergerTreeBuildMassDistribution[@value]">
+      <value old="stllrMssFnctn" new="stellarMassFunction"/>
+    </translation>
+    <translation xpath="//nodePropertyExtractor[@value]">
+      <value old="lmnstyEmssnLineAGN" new="luminosityEmissionLineAGN"/>
+    </translation>
+    <translation xpath="//nodePropertyExtractor[@value]">
+      <value old="lmnstyEmssnLinePanuzzo2003" new="luminosityEmissionLinePanuzzo2003"/>
+    </translation>
+    <translation xpath="//outputAnalysisDistributionOperator[@value]">
+      <value old="grvtnlLnsng" new="gravitationalLensing"/>
+    </translation>
+    <translation xpath="//outputAnalysisDistributionOperator[@value]">
+      <value old="rndmErrNbodyMass" new="randomErrorNbodyMass"/>
+    </translation>
+    <translation xpath="//outputAnalysisDistributionOperator[@value]">
+      <value old="randomErrorPlynml" new="randomErrorPolynomial"/>
+    </translation>
+    <translation xpath="//outputAnalysisPropertyOperator[@value]">
+      <value old="csmlgyAnglrDstnc" new="cosmologyAngularDistance"/>
+    </translation>
+    <translation xpath="//outputAnalysisPropertyOperator[@value]">
+      <value old="csmlgyLmnstyDstnc" new="cosmologyLuminosityDistance"/>
+    </translation>
+    <translation xpath="//outputAnalysisPropertyOperator[@value]">
+      <value old="systmtcPolynomial" new="systematicPolynomial"/>
+    </translation>
+    <translation xpath="//outputAnalysisWeightOperator[@value]">
+      <value old="csmlgyVolume" new="cosmologyVolume"/>
+    </translation>
+    <translation xpath="//posteriorSampleLikelihood[@value]">
+      <value old="indpndntLklhdsSqntl" new="independentLikelihoodsSequential"/>
+    </translation>
+    <translation xpath="//posteriorSampleLikelihood[@value]">
+      <value old="prjctdCorrelationFunction" new="projectedCorrelationFunction"/>
+    </translation>
+    <translation xpath="//posteriorSampleSimulation[@value]">
+      <value old="annealedDffrntlEvltn" new="annealedDifferentialEvolution"/>
+    </translation>
+    <translation xpath="//posteriorSampleSimulation[@value]">
+      <value old="stochasticDffrntlEvltn" new="stochasticDifferentialEvolution"/>
+    </translation>
+    <translation xpath="//posteriorSampleSimulation[@value]">
+      <value old="temperedDffrntlEvltn" new="temperedDifferentialEvolution"/>
+    </translation>
+    <translation xpath="//sphericalCollapseSolver[@value]">
+      <value old="cllsnlssMttrDarkEnergy" new="collisionlessMatterDarkEnergy"/>
+    </translation>
+    <translation xpath="//stellarFeedbackOutflows[@value]">
+      <value old="vlctyMxSclng" new="velocityMaximumScaling"/>
+    </translation>
+  </migration>
+
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
   <default parameter="componentDisk"                  value="standard"        />

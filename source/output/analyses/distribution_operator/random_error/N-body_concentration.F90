@@ -24,7 +24,7 @@
   use :: Node_Property_Extractors, only : nodePropertyExtractorClass
 
   !![
-  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRndmErrNbdyCnc" docformat="rst">
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRndmErrNbdyCnc" alias="randomErrorNbodyConcentration" docformat="rst">
    <description>
    An output analysis distribution operator that applies N-body measurement errors in :math:`\log_{10}` halo concentration, modeling the error as a polynomial in concentration (coefficients ``a``) with particle-number scaling exponent ``b`` and particle mass ``massParticle``.
    </description>

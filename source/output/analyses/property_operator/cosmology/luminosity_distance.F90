@@ -25,7 +25,7 @@ Implements a cosmological luminosity distance corrector analysis property operat
   use :: Output_Times       , only : outputTimesClass
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc" docformat="rst">
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc" alias="cosmologyLuminosityDistance" docformat="rst">
    <description>
    An output analysis property operator class which corrects properties for the difference in cosmological luminosity distance between true and assumed (i.e. in the observational analysis) cosmologies. Typically the observational data will have been analyzed assuming some specific set of cosmological parameters which will differ from that in the current model. Therefore, the luminosity or mass of a galaxy must be adjusted to match what would be inferred if they were assessed using the same cosmological parameters as were used for the observational data. Typically, this will mean that luminosities and stellar masses are scaled in proportion to :math:`D^{\prime 2}_\mathrm{L}(z)/D_\mathrm{L}^2(z)`, where :math:`D_\mathrm{L}(z)` and :math:`D^\prime_\mathrm{L}(z)` are the luminosity distances to redshift :math:`z` in the true and assumed cosmologies respectively.
    </description>

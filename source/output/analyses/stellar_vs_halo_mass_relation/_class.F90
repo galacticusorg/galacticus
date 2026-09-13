@@ -241,7 +241,7 @@ contains
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorIdentity
     use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10                       , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, propertyOperatorList      , outputAnalysisPropertyOperatorLog10, &
-          &                                               outputAnalysisPropertyOperatorSequence                        , outputAnalysisPropertyOperatorSystmtcPolynomial, 
+          &                                               outputAnalysisPropertyOperatorSequence                        , outputAnalysisPropertyOperatorSystematicPolynomial, 
     use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
     use :: String_Handling                       , only : operator(//)
@@ -277,7 +277,7 @@ contains
     type            (outputAnalysisPropertyOperatorAntiLog10        ), pointer                       :: outputAnalysisPropertyUnoperator_                            , outputAnalysisWeightPropertyOperatorAntiLog10_
     type            (outputAnalysisPropertyOperatorSequence         ), pointer                       :: outputAnalysisWeightPropertyOperator_                        , outputAnalysisPropertyOperator_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), pointer                       :: outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_
-    type            (outputAnalysisPropertyOperatorSystmtcPolynomial), pointer                       :: outputAnalysisWeightPropertyOperatorSystmtcPolynomial_       , outputAnalysisPropertyOperatorSystmtcPolynomial_
+    type            (outputAnalysisPropertyOperatorSystematicPolynomial), pointer                       :: outputAnalysisWeightPropertyOperatorSystematicPolynomial_       , outputAnalysisPropertyOperatorSystematicPolynomial_
     type            (nodePropertyExtractorMassHalo                  ), pointer                       :: nodePropertyExtractor_
     type            (nodePropertyExtractorMassStellar               ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (propertyOperatorList                           ), pointer                       :: propertyOperators_                                           , propertyOperatorsMassHalo_
@@ -425,9 +425,9 @@ contains
     <referenceConstruct object="outputAnalysisDistributionOperator_"                           constructor="outputAnalysisDistributionOperatorIdentity            (                                                                                                                              )"/>
     !!]
     ! Build a sequence (log10(), polynomial systematic) property operator.
-    allocate   (outputAnalysisPropertyOperatorSystmtcPolynomial_             )
+    allocate   (outputAnalysisPropertyOperatorSystematicPolynomial_             )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorSystmtcPolynomial_"              constructor="outputAnalysisPropertyOperatorSystmtcPolynomial       (errorPolynomialMassHaloZeroPoint,systematicErrorMassHaloPolynomialCoefficient                                                 )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorSystematicPolynomial_"              constructor="outputAnalysisPropertyOperatorSystematicPolynomial       (errorPolynomialMassHaloZeroPoint,systematicErrorMassHaloPolynomialCoefficient                                                 )"/>
     !!]
     allocate   (outputAnalysisPropertyOperatorLog10_                         )
     !![
@@ -436,7 +436,7 @@ contains
     allocate(propertyOperatorsMassHalo_     )
     allocate(propertyOperatorsMassHalo_%next)
     propertyOperatorsMassHalo_     %operator_ => outputAnalysisPropertyOperatorLog10_
-    propertyOperatorsMassHalo_%next%operator_ => outputAnalysisPropertyOperatorSystmtcPolynomial_
+    propertyOperatorsMassHalo_%next%operator_ => outputAnalysisPropertyOperatorSystematicPolynomial_
     allocate(outputAnalysisPropertyOperator_                          )
     !![
     <referenceConstruct object="outputAnalysisPropertyOperator_"                               constructor="outputAnalysisPropertyOperatorSequence                (propertyOperatorsMassHalo_                                                                                                    )"/>
@@ -446,9 +446,9 @@ contains
     !![
     <referenceConstruct object="outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_"        constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc       (cosmologyFunctions_     ,cosmologyFunctionsTarget              ,outputTimes_                                                    )"/>
     !!]
-    allocate   (outputAnalysisWeightPropertyOperatorSystmtcPolynomial_       )
+    allocate   (outputAnalysisWeightPropertyOperatorSystematicPolynomial_       )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_"        constructor="outputAnalysisPropertyOperatorSystmtcPolynomial       (errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient                                                                 )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorSystematicPolynomial_"        constructor="outputAnalysisPropertyOperatorSystematicPolynomial       (errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient                                                                 )"/>
     !!]
     allocate   (outputAnalysisWeightPropertyOperatorLog10_                   )
     !![
@@ -468,7 +468,7 @@ contains
     allocate(propertyOperators_          %next%next%next     )
     allocate(propertyOperators_          %next%next%next%next)
     propertyOperators_                              %operator_ => outputAnalysisWeightPropertyOperatorLog10_
-    propertyOperators_          %next               %operator_ => outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
+    propertyOperators_          %next               %operator_ => outputAnalysisWeightPropertyOperatorSystematicPolynomial_
     propertyOperators_          %next%next          %operator_ => outputAnalysisWeightPropertyOperatorAntiLog10_
     propertyOperators_          %next%next%next     %operator_ => outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_
     propertyOperators_          %next%next%next%next%operator_ => outputAnalysisWeightPropertyOperatorLog10Second_
@@ -647,10 +647,10 @@ contains
     <objectDestructor name="outputAnalysisDistributionOperator_"                          />
     <objectDestructor name="outputAnalysisWeightOperator_"                                />
     <objectDestructor name="outputAnalysisPropertyOperatorLog10_"                         />
-    <objectDestructor name="outputAnalysisPropertyOperatorSystmtcPolynomial_"             />
+    <objectDestructor name="outputAnalysisPropertyOperatorSystematicPolynomial_"             />
     <objectDestructor name="outputAnalysisPropertyOperator_"                              />
     <objectDestructor name="outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_"       />
-    <objectDestructor name="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_"       />
+    <objectDestructor name="outputAnalysisWeightPropertyOperatorSystematicPolynomial_"       />
     <objectDestructor name="outputAnalysisWeightPropertyOperatorLog10_"                   />
     <objectDestructor name="outputAnalysisWeightPropertyOperatorLog10Second_"             />
     <objectDestructor name="outputAnalysisWeightPropertyOperatorAntiLog10_"               />

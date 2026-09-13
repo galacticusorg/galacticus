@@ -107,7 +107,7 @@
       <massConstrained     value="1.0e12" ignoreWarnings="true"/>
       <redshiftConstrained value="8.0"    ignoreWarnings="true"/>
       <constructionOption value="constrainedAndMainBranchOnly"/>
-      <mergerTreeBranchingProbabilityConstrained value="gnrlzdPrssSchchtr">
+      <mergerTreeBranchingProbabilityConstrained value="generalizedPressSchechter">
         <distributionFunctionLowerHalfOnly value="false"/>
         <excursionSetFirstCrossing value="farahiMidpointBrownianBridge">
           <massConstrained                value="=[mergerTreeBuilder/mergerTreeBuildController/massConstrained]"    />
@@ -120,7 +120,7 @@
           <excursionSetFirstCrossing idRef="excursionUnconstrained"/>
         </excursionSetFirstCrossing>
       </mergerTreeBranchingProbabilityConstrained>
-      <mergerTreeBranchingProbabilityUnconstrained value="gnrlzdPrssSchchtr">
+      <mergerTreeBranchingProbabilityUnconstrained value="generalizedPressSchechter">
         <distributionFunctionLowerHalfOnly value="false"/>
         <excursionSetFirstCrossing value="farahiMidpoint" id="excursionUnconstrained">
           <fileName                value="auto"/>
