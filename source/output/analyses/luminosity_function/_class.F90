@@ -351,7 +351,7 @@ contains
     extractorSpheroid%extractor_ => nodePropertyExtractorSpheroid_
     extractorSpheroid%next       => null()
     !![
-    <referenceConstruct object="nodePropertyExtractorAttenuated_" constructor="nodePropertyExtractorDustAttenuation(dustAttenuation_,.false.,.true.,.true.,var_str('luminosityStellar'),extractors)"/>
+    <referenceConstruct object="nodePropertyExtractorAttenuated_" constructor="nodePropertyExtractorDustAttenuation(dustAttenuation_,.false.,.true.,.true.,var_str('luminosityStellar'),var_str('none'),extractors)"/>
     <referenceConstruct object="nodePropertyExtractor_"           constructor="nodePropertyExtractorScalarizer     (1,1,nodePropertyExtractorAttenuated_)"/>
     !!]
     ! Prepend magnitude and cosmological luminosity distance property operators.
