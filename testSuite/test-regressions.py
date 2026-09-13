@@ -17,6 +17,11 @@ subprocess.run(f"mkdir -p {outputDirectory}", shell=True)
 # Find all regression parameter files and run them.
 overallStatus = "SUCCESS"
 for filePath in sorted(glob.glob("regressions/**/*.xml", recursive=True) + glob.glob("regressions/**/*.py", recursive=True)):
+    # Skip any parameter file which has a same-named Python script alongside it - that script is its driver, and runs
+    # (and judges) the model itself. Some such models are designed to abort (e.g. `constrainedTreeImpossible.xml`), so
+    # running them standalone would report a spurious failure.
+    if filePath.endswith(".xml") and os.path.exists(os.path.splitext(filePath)[0]+".py"):
+        continue
     status      = None
     logFilePath = None
     if filePath.endswith(".xml"):
