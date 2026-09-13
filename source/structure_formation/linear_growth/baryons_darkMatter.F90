@@ -466,7 +466,7 @@ contains
        ! Interpolating factors for the present epoch, at which the growth factor is normalized to unity. They are found once,
        ! since the epoch is the same for every wavenumber, and are applied *within* a single column rather than through the
        ! table's two-dimensional interpolation. Confining them to the column matters: a column computed afresh alongside
-       ! carried-over columns which are already normalized would otherwise pick up a contribution from a neighbour on a
+       ! carried-over columns which are already normalized would otherwise pick up a contribution from a neighbor on a
        ! different normalization, at the level of the rounding error in the interpolating weight - which would make its own
        ! normalization depend on which columns happened to have been carried over.
        if      (log(timePresent) <  self%growthFactor%xv(1                      )) then

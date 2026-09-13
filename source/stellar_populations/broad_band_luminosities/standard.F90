@@ -358,7 +358,7 @@ contains
              call Move_Alloc(self%luminosityTables,luminosityTablesTemporary)
              allocate(self%luminosityTables(populationID))
              !![
-	     <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696" docformat="rst">
+	     <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=57696" docformat="rst">
 	       <description>
 	       Defined assignment for components not used when those are ALLOCATABLE.
 	       </description>

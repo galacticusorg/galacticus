@@ -141,7 +141,7 @@ module Cosmological_Density_Field
    </method>
    <method name="isMassDependent" >
     <description>
-    Return true if the critical overdensity :math:`\delta_\mathrm{c}` depends on halo mass (as in ellipsoidal collapse models), signalling that the mass argument must be supplied and cached values are mass-specific.
+    Return true if the critical overdensity :math:`\delta_\mathrm{c}` depends on halo mass (as in ellipsoidal collapse models), signaling that the mass argument must be supplied and cached values are mass-specific.
     </description>
     <type>logical</type>
     <pass>yes</pass>

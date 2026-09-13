@@ -590,7 +590,7 @@ contains
                    nodeIndex      (nodeCount+indexHistory)=nodeIndex(nodeCount)+(indexHistory-1_c_size_t+indexHistoryStart           )*nodeIndexOffset
                    descendantIndex(nodeCount+indexHistory)=nodeIndex(nodeCount)+(indexHistory-1_c_size_t+indexHistoryStart+1_c_size_t)*nodeIndexOffset
                 end if
-                ! Set ths host index to that of the current host.
+                ! Set this host index to that of the current host.
                 hostIndex      (nodeCount+indexHistory)=nodeHost%index()
                 ! Set node mass.
                 if (haveMassHistory) then

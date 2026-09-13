@@ -18,6 +18,11 @@
       <xs:attribute name="type" use="required"/>
       <xs:attribute name="PR"                 />
       <xs:attribute name="url"                />
+      <!-- issue="<number>" (in this repository) or issue="<url>" records that
+           removal of the workaround has been staged as an issue.  The
+           workaroundChecker then reports the workaround as staged, rather than
+           failing, when its PR is marked as resolved upstream. -->
+      <xs:attribute name="issue"              />
       <!-- docformat="rst" marks the description as reStructuredText. -->
       <xs:attribute name="docformat"          />
     </xs:complexType>

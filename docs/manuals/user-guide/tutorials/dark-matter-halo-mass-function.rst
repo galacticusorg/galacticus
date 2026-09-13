@@ -119,15 +119,15 @@ The range and resolution of the mass tabulation can be controlled by three optio
 .. code-block:: xml
 
    <task value="haloMassFunction">
-    <haloMassMinimum value="1.0e06"/>
-    <haloMassMaximum value="1.0e15"/>
+    <massHaloMinimum value="1.0e06"/>
+    <massHaloMaximum value="1.0e15"/>
     <pointsPerDecade value="30"    />
    </task>
 
 The parameters have the following meanings:
 
-* ``haloMassMinimum``: The lowest mass halo (in units of :math:`M_\odot`) at which to tabulate;
-* ``haloMassMaximum``: The highest mass halo (in units of :math:`M_\odot`) at which to tabulate;
+* ``massHaloMinimum``: The lowest mass halo (in units of :math:`M_\odot`) at which to tabulate;
+* ``massHaloMaximum``: The highest mass halo (in units of :math:`M_\odot`) at which to tabulate;
 * ``pointsPerDecade``: The number of points per decade of halo mass at which to tabulate.
 
 Understanding the output

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements various utility functions for extracting data from XML files, including DOM tree traversal, XPath-like element lookup, data array extraction, and XInclude reference resolution.
 !!}
@@ -29,10 +31,10 @@ module IO_XML
   use :: ISO_Varying_String, only : varying_string
   implicit none
   private
-  public :: XML_Extrapolation_Element_Decode , XML_Array_Read                , XML_Array_Read_Static       , &
-       &    XML_Get_First_Element_By_Tag_Name, XML_Count_Elements_By_Tag_Name, XML_Path_Exists             , &
-       &    XML_Extract_Text                 , XML_Parse                     , XML_Get_Elements_By_Tag_Name, &
-       &    xmlNodeList                      , XML_Get_Child_Elements
+  public :: XML_Array_Read                   , XML_Array_Read_Static         , XML_Path_Exists             , &
+       &    XML_Get_First_Element_By_Tag_Name, XML_Count_Elements_By_Tag_Name, XML_Extract_Text            , &
+       &    XML_Parse                        , XML_Get_Elements_By_Tag_Name  , XML_Get_Child_Elements      , &
+       &    xmlNodeList
 
   ! Interface for array reading functions.
   interface XML_Array_Read
@@ -565,40 +567,6 @@ contains
     return
   end function XML_Path_Exists
 
-  subroutine XML_Extrapolation_Element_Decode(extrapolationElement,limitType,extrapolationMethod,allowedMethods)
-    !!{RST
-    Extracts information from a standard XML ``extrapolationElement``. Optionally a set of ``allowedMethods`` can be specified---if the extracted method does not match one of these an error is issued.
-    !!}
-    use :: FoX_dom     , only : extractDataContent                , node
-    use :: Error       , only : Error_Report
-    use :: Table_Labels, only : enumerationExtrapolationTypeEncode, enumerationExtrapolationTypeType
-    implicit none
-    type     (node                            )              , intent(in   ), pointer     :: extrapolationElement
-    character(len=*                           )              , intent(  out)              :: limitType
-    type     (enumerationExtrapolationTypeType)              , intent(  out)              :: extrapolationMethod
-    type     (enumerationExtrapolationTypeType), dimension(:), intent(in   ), optional    :: allowedMethods
-    type     (node                            )                             , pointer     :: limitElement        , methodElement
-    type     (xmlNodeList                     ), dimension(:)               , allocatable :: elementList
-    character(len=32                          )                                           :: methodType
-
-    ! Extract the limit type.
-    call XML_Get_Elements_By_Tag_Name(extrapolationElement,"limit",elementList)
-    if (size(elementList) /= 1) call Error_Report('extrapolation element must contain exactly one limit element'//{introspection:location})
-    limitElement => elementList(0)%element
-    call extractDataContent(limitElement,limitType)
-    ! Extract the method type.
-    call XML_Get_Elements_By_Tag_Name(extrapolationElement,"method",elementList)
-    if (size(elementList) /= 1) call Error_Report('extrapolation element must contain exactly one method element'//{introspection:location})
-    methodElement => elementList(0)%element
-    call extractDataContent(methodElement,methodType)
-    extrapolationMethod=enumerationExtrapolationTypeEncode(trim(methodType),includesPrefix=.false.)
-    ! Validate the method type.
-    if (present(allowedMethods)) then
-       if (all(allowedMethods /= extrapolationMethod)) call Error_Report('unallowed extrapolation method'//{introspection:location})
-    end if
-    return
-  end subroutine XML_Extrapolation_Element_Decode
-  
   function XML_Parse_VarStr(fileName,iostat,ex,fileNameCurrent) result(document)
     !!{RST
     Parse an XML document, automatically resolve XInclude references.

@@ -123,7 +123,8 @@ the PR:
   well-formedness of changed YAML, XML, and Python files.
 * **Fortran-Static-Analysis** — ``scripts/aux/staticAnalyzer.py`` checks for
   common Fortran issues (empty constructors/destructors, duplicate variables in
-  ``constructorAssign`` directives, and similar).
+  ``constructorAssign`` directives, destructors and internal constructors which
+  are never bound, and similar).
 * **Validate-Docstrings-RST** — ``scripts/doc/convertDocstringsToRST.py --check``
   ensures every embedded docstring is reStructuredText (no old-style LaTeX).
 * **Validate-Test-Markers** — ``scripts/aux/auditTestMarkers.py --check`` audits

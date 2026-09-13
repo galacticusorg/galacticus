@@ -177,7 +177,7 @@ module Tables
      Table type supporting generic one dimensional tables.
      !!}
      !![
-     <workaround type="gfortran" PR="123938" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=123938" docformat="rst">
+     <workaround type="gfortran" PR="123938" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=123938" docformat="rst">
        <description>
        gfortran causes a memory leak with allocatable components in nested derived-types.
        </description>
@@ -510,7 +510,7 @@ contains
     type. Each concrete table type must, on return, set its own spacing and reset any cached interpolation state.
 
     **The spacing must be taken from the lattice**, never evaluated as ``xValues(2)-xValues(1)``: the difference of two
-    neighbouring lattice points varies in its final bits with position along the lattice, so deriving the interpolation factor
+    neighboring lattice points varies in its final bits with position along the lattice, so deriving the interpolation factor
     from it would change every interpolated value by of order one unit in the last place whenever the lower bound of the table
     moved---defeating the very reuse which extension exists to provide.
 
@@ -742,7 +742,7 @@ contains
   end function Table1D_Integration_Weights
   
   !![
-  <workaround type="gfortran" PR="121537" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=121537" docformat="rst">
+  <workaround type="gfortran" PR="121537" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=121537" docformat="rst">
     <description>
     gfortran misses a defined-assignment of a component.
     </description>
@@ -777,7 +777,7 @@ contains
           if (associated(from%interpolators)) then
              allocate(to%interpolators(size(from%interpolators)))
              !![
-	     <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696" docformat="rst">
+	     <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=57696" docformat="rst">
 	       <description>
 	       Defined assignment for components not used when those are ALLOCATABLE
 	       </description>

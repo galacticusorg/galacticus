@@ -25,7 +25,7 @@ Have questions? Ask in the [discussion forum](https://github.com/galacticusorg/g
 > galacticus run parameters/quickTest.xml
 > ```
 >
-> The first run downloads the right binary, datasets, and tools for your platform (Linux x86-64, macOS Intel, or macOS Apple Silicon) and configures the environment for you. On Windows, run `galacticus install-wsl` first: it sets up WSL 2 and installs Galacticus inside it, after which `galacticus run` works from any Windows command prompt. See the [pip installation guide](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/pip.html). The rest of this section covers building from source, which you need only if you want to modify or extend Galacticus.
+> The first run downloads the right binary, datasets, and tools for your platform (Linux x86-64 or macOS Apple Silicon) and configures the environment for you. On Windows, run `galacticus install-wsl` first: it sets up WSL 2 and installs Galacticus inside it, after which `galacticus run` works from any Windows command prompt. See the [pip installation guide](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/pip.html). The rest of this section covers building from source, which you need only if you want to modify or extend Galacticus.
 
 This section walks you through building and running a minimal Galacticus model for the first time.
 

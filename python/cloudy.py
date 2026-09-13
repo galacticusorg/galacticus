@@ -34,7 +34,7 @@ def initialize(options: dict) -> tuple[str, str]:
     Parameters
     ----------
     options : dict
-        Configuration dictionary.  The following keys are recognised:
+        Configuration dictionary.  The following keys are recognized:
 
         ``'version'`` : str, optional
             Cloudy release string, e.g. ``"23.01"``.  Populated automatically

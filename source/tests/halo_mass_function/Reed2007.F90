@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a program which tests the :cite:t:`reed_halo_2007` mass function by comparing to Darren Reed's `genmf <http://icc.dur.ac.uk/Research/PublicDownloads/genmf_readme.html>`_ code.
+Contains a program which tests the :cite:t:`reed_halo_2007` mass function by comparing to Darren Reed's `genmf <https://web.archive.org/web/20250711045335/http://icc.dur.ac.uk/Research/PublicDownloads/genmf_readme.html>`_ code.
 !!}
 
 program Tests_Halo_Mass_Function_Reed2007
   !!{RST
-  Tests the :cite:t:`reed_halo_2007` mass function by comparing to Darren Reed's `genmf <http://icc.dur.ac.uk/Research/PublicDownloads/genmf_readme.html>`_ code.
+  Tests the :cite:t:`reed_halo_2007` mass function by comparing to Darren Reed's `genmf <https://web.archive.org/web/20250711045335/http://icc.dur.ac.uk/Research/PublicDownloads/genmf_readme.html>`_ code.
   !!}
   use :: Cosmological_Density_Field          , only : criticalOverdensityFixed                , cosmologicalMassVarianceFilteredPower
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda

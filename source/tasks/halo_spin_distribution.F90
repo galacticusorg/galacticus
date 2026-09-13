@@ -39,7 +39,7 @@
      class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_       => null()
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_      => null()
      double precision                                     :: spinMinimum                         , spinMaximum    , &
-          &                                                  spinPointsPerDecade                 , haloMassMinimum
+          &                                                  spinPointsPerDecade                 , massHaloMinimum
      type            (varying_string           )          :: outputGroup
      ! Pointer to the parameters for this task.
      type            (inputParameters          )          :: parameters
@@ -76,7 +76,7 @@ contains
     type            (inputParameters          ), pointer               :: parametersRoot
     type            (varying_string           )                        :: outputGroup
     double precision                                                   :: spinMinimum          , spinMaximum    , &
-         &                                                                spinPointsPerDecade  , haloMassMinimum
+         &                                                                spinPointsPerDecade  , massHaloMinimum
 
     ! Ensure the nodes objects are initialized.
     if (associated(parameters%parent)) then
@@ -121,8 +121,8 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter docformat="rst">
-      <name>haloMassMinimum</name>
-      <variable>haloMassMinimum</variable>
+      <name>massHaloMinimum</name>
+      <variable>massHaloMinimum</variable>
       <defaultValue>0.0d0</defaultValue>
       <description>
       Minimum halo mass above which spin distribution should be averaged.
@@ -142,7 +142,7 @@ contains
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !!]
-    self=taskHaloSpinDistribution(spinMinimum,spinMaximum,spinPointsPerDecade,haloMassMinimum,outputGroup,darkMatterHaloScale_,haloSpinDistribution_,outputTimes_,cosmologyFunctions_,parametersRoot)
+    self=taskHaloSpinDistribution(spinMinimum,spinMaximum,spinPointsPerDecade,massHaloMinimum,outputGroup,darkMatterHaloScale_,haloSpinDistribution_,outputTimes_,cosmologyFunctions_,parametersRoot)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="haloSpinDistribution_"/>
@@ -153,7 +153,7 @@ contains
     return
   end function haloSpinDistributionConstructorParameters
 
-  function haloSpinDistributionConstructorInternal(spinMinimum,spinMaximum,spinPointsPerDecade,haloMassMinimum,outputGroup,darkMatterHaloScale_,haloSpinDistribution_,outputTimes_,cosmologyFunctions_,parameters) result(self)
+  function haloSpinDistributionConstructorInternal(spinMinimum,spinMaximum,spinPointsPerDecade,massHaloMinimum,outputGroup,darkMatterHaloScale_,haloSpinDistribution_,outputTimes_,cosmologyFunctions_,parameters) result(self)
     !!{RST
     Constructor for the :galacticus-class:`taskHaloSpinDistribution` task class which takes a parameter set as input.
     !!}
@@ -165,10 +165,10 @@ contains
     class           (darkMatterHaloScaleClass ), intent(in   ), target :: darkMatterHaloScale_
     type            (varying_string           ), intent(in   )         :: outputGroup
     double precision                           , intent(in   )         :: spinMinimum          , spinMaximum    , &
-         &                                                                spinPointsPerDecade  , haloMassMinimum
+         &                                                                spinPointsPerDecade  , massHaloMinimum
     type            (inputParameters          ), intent(in   ), target :: parameters
     !![
-    <constructorAssign variables="spinMinimum, spinMaximum, spinPointsPerDecade, haloMassMinimum, outputGroup, *darkMatterHaloScale_, *haloSpinDistribution_, *outputTimes_, *cosmologyFunctions_"/>
+    <constructorAssign variables="spinMinimum, spinMaximum, spinPointsPerDecade, massHaloMinimum, outputGroup, *darkMatterHaloScale_, *haloSpinDistribution_, *outputTimes_, *cosmologyFunctions_"/>
     !!]
 
     self%parameters=inputParameters(parameters)
@@ -250,7 +250,7 @@ contains
           spin(iSpin)=exp(log(self%spinMinimum)+log(self%spinMaximum/self%spinMinimum)*dble(iSpin-1)/dble(spinCount-1))
           call nodeSpin%angularMomentumSet(spin(iSpin)*Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterHaloScale_))
           ! Evaluate the distribution.
-          if (self%haloMassMinimum <= 0.0d0) then
+          if (self%massHaloMinimum <= 0.0d0) then
              ! No minimum halo mass specified - simply evaluate the spin distribution.
              spinDistribution(iSpin)=self%haloSpinDistribution_%distribution(node)
           else
@@ -258,7 +258,7 @@ contains
              ! supports this.
              select type (haloSpinDistribution_ => self%haloSpinDistribution_)
              class is (haloSpinDistributionNbodyErrors)
-                spinDistribution(iSpin)=haloSpinDistribution_%distributionAveraged(node,self%haloMassMinimum)
+                spinDistribution(iSpin)=haloSpinDistribution_%distributionAveraged(node,self%massHaloMinimum)
              class default
                 call Error_Report('halo spin distribution class does not support averaging over halo mass'//{introspection:location})
              end select
