@@ -55,7 +55,7 @@ Parameter names
 Two groups of parameter names are deliberately **not** ``lowerCamelCase``, and are correct as they stand:
 
 * **Cosmological parameters written as their conventional symbols**: ``OmegaMatter``, ``OmegaBaryon``, ``OmegaDarkEnergy``, ``OmegaCurvature``, ``OmegaRadiation``, ``HubbleConstant``. The corresponding ``cosmologyParameters`` methods share these names, and are the reason a handful of methods are ``UpperCamelCase``.
-* **Fitting-formula coefficients written as the symbols used in the source paper**: ``A``, ``B``, ``C``, ``alpha_0``, ``alpha_z``, ``M_0``, ``epsilon_lna``, ``sigma_8``. Preserving the paper's notation makes the implementation checkable against its reference, which outweighs uniformity here. Use this form only where the name genuinely mirrors a published symbol, and cite the paper in the ``<description>``.
+* **Fitting-formula coefficients written as the symbols used in the source paper**: ``A``, ``B``, ``C``, ``alpha_0``, ``alpha_z``, ``M_0``, ``epsilon_lna``, ``sigma_8``. Preserving the paper's notation lets the implementation be checked against its reference, which outweighs uniformity here. Use this form only where the name genuinely mirrors a published symbol, and cite the paper in the ``<description>``.
 
 Method names
 ^^^^^^^^^^^^
@@ -95,7 +95,7 @@ Modules, procedures, and files
 * **Modules** use ``Upper_Snake_Case``: ``Dark_Matter_Profiles_DMO``, ``Numerical_Integration``.
 * **Procedures** use ``lowerCamelCase`` in new code. A large body of older code — concentrated in ``source/objects/`` and ``source/utility/`` — uses ``Upper_Snake_Case`` (``Abundances_Get_Metallicity``). Both are accepted; the older style is not a defect and is not worth a mass rename, but new procedures should be ``lowerCamelCase``.
 * **File names** describing a concept use lower ``snake_case``: ``cosmic_microwave_background.F90``, ``nuclear_star_clusters.F90``, ``radius_velocity_maximum.F90``. Directory names follow the same style.
-* Files named for a **proper noun** — a model, code, or author — keep that noun's own capitalization: ``NFW.F90``, ``Einasto.F90``, ``Zhao1996.F90``, ``RecFast.F90``. Where the name combines *several* authors, camel-case them together and do not use hyphens: ``DiemerKravtsov2014.F90``, not ``Diemer-Kravtsov2014.F90``. Both spellings are currently present in the tree (``dark_matter_profiles/structure/concentration/Diemer-Kravtsov2014.F90`` alongside ``dark_matter_profiles_DMO/accretion_flow/DiemerKravtsov2014.F90``); the unhyphenated form is the one to use in new files. File names are not user-facing, so existing hyphenated names are left as they are rather than renamed.
+* Files named for a **proper noun** — a model, code, or author — keep that noun's own capitalization: ``NFW.F90``, ``Einasto.F90``, ``Zhao1996.F90``, ``RecFast.F90``. Where the name combines *several* authors, camel-case them together and do not use hyphens: ``DiemerKravtsov2014.F90``, not ``Diemer-Kravtsov2014.F90``. Both spellings are currently present in the tree (``dark_matter_profiles/structure/concentration/Diemer-Kravtsov2014.F90`` alongside ``dark_matter_profiles_DMO/accretion_flow/DiemerKravtsov2014.F90``); the form without hyphens is the one to use in new files. File names are not user-facing, so existing hyphenated names are left as they are rather than renamed.
 
 Variable declarations
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -1130,7 +1130,7 @@ Name:
       <virialDensityContrast name="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt"
                              alias="sphericalCollapseCollisionlessMatterCosmologicalConstant">
 
-   The alias is the value documented, written into descriptors, and reported by the ``objectType`` method and by the error message listing the available implementations. The abbreviated name continues to be accepted in parameter files, so adding an alias breaks nothing and needs no migration. Use an alias *only* where the length limit forces it---an abbreviation which would fit unabbreviated should simply be renamed.
+   The alias is the value documented, written into descriptors, and reported by the ``objectType`` method and by the error message listing the available implementations. The abbreviated name continues to be accepted in parameter files, so adding an alias breaks nothing and needs no migration. Use an alias *only* where the length limit forces it---an abbreviation which would fit in full should simply be renamed.
 
 Extends:
    The base class for the function class is always the function class name suffixed with ``Class``, in this case ``cosmologyParametersClass``. Implementations must always be extensions of either this base class, or of another implementation.

@@ -242,7 +242,7 @@ On a version tag the workflow:
    <https://docs.pypi.org/trusted-publishers/>`_ (OIDC), so no API token is
    stored in the repository; and
 #. mirrors the current ``bleeding-edge`` binary and tools assets onto the
-   versioned GitHub release, so the launcher fetches artefacts pinned to that
+   versioned GitHub release, so the launcher fetches artifacts pinned to that
    version.
 
 Because the launcher resolves the GitHub release tag from the installed package
