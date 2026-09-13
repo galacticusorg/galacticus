@@ -60,7 +60,7 @@ module Radiative_Transfer_Matters
    </method>
    <method name="density" >
     <description>
-    Return the mass density of the matter at the given coordinates. This is the integrand of the volume integral performed by the  populateDomain method, and is exposed separately so that the computational domain can cheaply estimate a characteristic density for the domain with which to set the absolute tolerance of that integral.
+    Return the mass density of the matter at the given coordinates. This is the integrand of the volume integral performed by the  ``populateDomain`` method, and is exposed separately so that the computational domain can cheaply estimate a characteristic density for the domain with which to set the absolute tolerance of that integral.
     </description>
     <type>double precision</type>
     <pass>yes</pass>

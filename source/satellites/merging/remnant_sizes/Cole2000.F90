@@ -104,7 +104,7 @@ contains
       <name>energyOrbital</name>
       <defaultValue>1.0d0</defaultValue>
       <description>
-      The orbital energy used in the "cole2000" merger remnant sizes calculation in units of the characteristic orbital energy.
+      The orbital energy used in the ``cole2000`` merger remnant sizes calculation in units of the characteristic orbital energy.
       </description>
       <source>parameters</source>
     </inputParameter>

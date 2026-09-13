@@ -1,4 +1,4 @@
-"""Fetch and unpack Galacticus release artefacts into a managed install.
+"""Fetch and unpack Galacticus release artifacts into a managed install.
 
 Provisioning is idempotent: each component drops a sentinel file once complete,
 and a present sentinel means the component is skipped.  Only managed installs
@@ -15,7 +15,7 @@ Four components make up a runnable install:
 * **tools**    -- the pre-built run-time tools archive.  Its entries are
   prefixed ``dynamic/`` (the location the un-relocated binary expects); we strip
   that prefix so the contents land directly under ``GALACTICUS_TOOLS_PATH``.
-  This is by far the largest artefact, and models which use none of the tools it
+  This is by far the largest artifact, and models which use none of the tools it
   carries (CAMB, CLASS, Cloudy, ...) do not need it, so it is the one component
   which can be skipped -- see :func:`provision`.
 * **parameter catalog** -- the machine-readable catalog of accepted input
@@ -54,6 +54,8 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import requests
+
+from . import platforms
 
 REPO = "galacticusorg/galacticus"
 DATASETS_REPO = "galacticusorg/datasets"
@@ -160,14 +162,14 @@ def load_checksums(tag, *, log=print):
 
     The release workflow writes this file alongside the binary and tools archives (see the `Deploy` job in
     ``.github/workflows/cicd.yml``). It is fetched over HTTPS from the same release as the assets it covers, so it does not
-    protect against a compromise of the account or workflow which publishes them -- what it does establish is that the artefacts
+    protect against a compromise of the account or workflow which publishes them -- what it does establish is that the artifacts
     actually received are the ones that release published, so a corrupted, truncated, or substituted asset is caught rather than
     being executed. Releases published before this file existed simply have no checksums; that is reported and provisioning
     continues, since refusing would break every existing install.
 
     It doubles as the manifest of what a release carries: an asset listed here is
     one the release has, which is how provisioning chooses between the current
-    and the legacy form of an artefact without probing for a 404.
+    and the legacy form of an artifact without probing for a 404.
     """
     body = _read_remote_text(asset_url(tag, CHECKSUM_ASSET))
     if not body:
@@ -198,7 +200,7 @@ def _sha256(path):
 def _verify(path, name, checksums, *, log=print):
     """Check the file at `path` against its expected SHA-256, if one is published.
 
-    A mismatch is always fatal, and the offending file is removed: these artefacts are executed, so a file which is not what the
+    A mismatch is always fatal, and the offending file is removed: these artifacts are executed, so a file which is not what the
     release published must not be left on disk where a later run could find it and skip the download.
     """
     if checksums is None:
@@ -271,11 +273,11 @@ def provision(install, *, force=False, log=print, tools=None):
                  install.dynamic_path):
         path.mkdir(parents=True, exist_ok=True)
 
-    # Fetch the published checksums once, and verify each downloaded artefact against them below.
+    # Fetch the published checksums once, and verify each downloaded artifact against them below.
     checksums = load_checksums(install.tag, log=log)
     if checksums is None:
         log(f"  note: release {install.tag} publishes no {CHECKSUM_ASSET}; "
-            "downloaded artefacts can not be verified against it.")
+            "downloaded artifacts can not be verified against it.")
 
     done = []
     fetcher = _Fetcher(log=log)
@@ -411,11 +413,40 @@ def _sentinel(directory, name):
     return Path(directory) / f".galacticus-{name}"
 
 
+def _require_published_binary(context):
+    """Refuse, with the reason, to install a retired platform from a release which
+    carries no binary for it.
+
+    A platform whose builds have been retired keeps its entry in
+    :mod:`platforms`, because the releases cut while it was still built do carry
+    its assets and must stay installable.  What has to be caught is the other
+    case -- a newer release, which publishes nothing for it.  The published
+    checksums double as the release's asset manifest, so the absence is visible
+    up front; without this the install would instead grind through the download
+    retry schedule and end in a bare 404.
+
+    A release old enough to publish no checksums at all predates every
+    retirement, so it is left alone.  This is checked only when the executable is
+    about to be fetched, so an install already provisioned from a release which
+    did carry the binary keeps running.
+    """
+    assets, checksums = context.install.assets, context.checksums
+    if not assets.retired or checksums is None:
+        return
+    if _publishes(checksums, assets.binary):
+        return
+    raise platforms.UnsupportedPlatform(
+        f"release {context.install.tag} publishes no {assets.binary} for "
+        f"{assets.key}. {assets.retired}"
+    )
+
+
 def _plan_exec(context):
     install, log = context.install, context.log
     sentinel = _sentinel(install.exec_path, "exec")
     if sentinel.exists() and not context.force:
         return None
+    _require_published_binary(context)
     log(f"Fetching Galacticus source ({install.tag}) ...")
     work = context.workspace(install.exec_path)
     archive = work / "source.zip"
@@ -447,7 +478,7 @@ def _plan_datasets(context):
 
     The datasets repository archive is generated on the fly by GitHub and served
     from a throttled endpoint which supports neither byte ranges nor a content
-    length, so it is the slowest artefact of an install by a wide margin.  A
+    length, so it is the slowest artifact of an install by a wide margin.  A
     release which publishes a `datasets.tar.zst` snapshot is used instead: it is a
     release asset like any other, so it can be split across connections, verified
     against the release checksums, and unpacked far faster than a zip.  It also
@@ -558,10 +589,10 @@ def _plan_tools(context, tools):
 class _Job:
     """One queued download, and whether it turned out to be there.
 
-    `optional` marks an artefact the install can do without.  Such a job records
+    `optional` marks an artifact the install can do without.  Such a job records
     a failure rather than raising it, because the components are fetched together
     and a failure escaping the fetch phase discards every staging directory --
-    losing gigabytes which did arrive over one small artefact which did not.
+    losing gigabytes which did arrive over one small artifact which did not.
     """
 
     def __init__(self, url, dest, label, missing_ok, optional):
@@ -633,7 +664,7 @@ def _download(url, dest, *, log=print, retries=4, missing_ok=False, progress=Non
     simply does not publish this asset -- returns False immediately instead of
     retrying an absence through the full backoff schedule.
 
-    The first request asks for ``bytes=0-``: a server which honours byte ranges
+    The first request asks for ``bytes=0-``: a server which honors byte ranges
     answers 206 and states the total size, which is the signal that the transfer
     can be split (and, for a large enough asset, it then is).  One which does not
     -- GitHub's on-the-fly repository archives -- answers 200, and its response is
@@ -765,7 +796,7 @@ def _total_length(response):
 
 
 class _Progress:
-    """One labelled bar's worth of state; rendered by its :class:`_Display`."""
+    """One labeled bar's worth of state; rendered by its :class:`_Display`."""
 
     def __init__(self, label, total, *, display):
         self.label = label
@@ -919,7 +950,7 @@ def _extract(archive, dest, fmt, *, log=print):
     Tar archives are unpacked with the ``data`` filter, which refuses members whose paths would escape `dest` (via an absolute
     path, a ``..`` component, or a symlink pointing outside the destination). Without it, unpacking a tar archive lets the archive
     choose where its contents land -- see https://docs.python.org/3/library/tarfile.html#tarfile-extraction-filter . Python 3.14
-    makes this the default; setting it explicitly means the behaviour does not depend on the interpreter version. ``zipfile``
+    makes this the default; setting it explicitly means the behavior does not depend on the interpreter version. ``zipfile``
     already sanitizes member paths itself, so needs no equivalent.
 
     Unpacking the release archives takes long enough to look like a hang, so both

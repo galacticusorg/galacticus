@@ -645,7 +645,7 @@ program Tests_Merger_Tree_Branching
         call Assert('subresolution accretion rate',fractionActual,fractionExpected,relTol=toleranceClosedForm(i))
      else
         ! The direct evaluation loses precision as x → 0, where the argument of the hypergeometric function approaches its
-        ! singular point and 1-z is formed by a cancelling subtraction from unity. Only the tabulated route uses the series in
+        ! singular point and 1-z is formed by a canceling subtraction from unity. Only the tabulated route uses the series in
         ! 1-z which avoids that cancellation, so this is the looser of the two at small x.
         call Unit_Tests_Begin_Group(trim(label)//"; computed ₂F₁"  )
         call Assert('subresolution accretion rate',fractionActual,fractionExpected,relTol=toleranceClosedForm(i))
@@ -830,7 +830,7 @@ program Tests_Merger_Tree_Branching
   ! The maximum step is checked on an object on which nothing else has been called, since it must not depend on state left behind
   ! by some earlier call. The remaining assertions pin the behavior at the edges of the domain: a halo at twice the mass
   ! resolution has no resolved progenitors, and a mass resolution above the halo mass admits no subresolution accretion rate at
-  ! all, which is signalled by a negative return value on which the tree builder branches.
+  ! all, which is signaled by a negative return value on which the tree builder branches.
   ! ----------------------------------------------------------------------------------------------------------------------------------
   call Unit_Tests_Begin_Group("Maximum step, limiting cases, and sentinels")
   branchingFresh_=mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                                                       &

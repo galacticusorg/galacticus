@@ -207,7 +207,7 @@ program Tests_Halo_Mass_Function_Tinker
   ! here was simply whichever one that history produced; it is not a converged result. Refining the tabulation by a factor of
   ! eight moves the value below by under 2e-7, so it is converged with respect to the grid, and moving the epoch at which the
   ! growth integration begins deeper into matter domination moves it by ~1e-5 - away from, not toward, the value asserted
-  ! previously. That last figure is the accuracy to which this quantity is determined at all, being a modelling choice rather
+  ! previously. That last figure is the accuracy to which this quantity is determined at all, being a modeling choice rather
   ! than a numerical one, so do not tighten the tolerance below it.
   call Assert('critical overdensity for collapse consistency',criticalOverdensity_%value          (time)                                                           ,1.6755410082306628d00,relTol=1.0d-6)
   ! Compute mass function for each reference mass.

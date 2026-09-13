@@ -71,6 +71,20 @@
      :math:`V` band. For an exponential disk :math:`\Sigma_0 = M/2\pi r_\mathrm{d}^2`, which is what
      ``screenSurfaceDensityMetals`` computes, so the definitions agree.
 
+   * The size of the spheroid, on the axis the atlas tabulates. That axis is *not* a radius of the profile the
+     atlas actually simulated: :cite:t:`ferrara_atlas_1999` realize their spheroids as Jaffe profiles, but label
+     the axis with the effective radius :math:`R_\mathrm{e}` of the :math:`R^{1/4}` profile those Jaffe profiles
+     stand in for. :cite:t:`bianchi_monte_carlo_1996`, whose radiative transfer code the atlas was computed with,
+     give the correspondence in their appendix as :math:`r_\mathrm{b} = 1.16 R_\mathrm{e}`, with
+     :math:`r_\mathrm{b}` the Jaffe scale radius---chosen as the relation which best matches the luminosity
+     enclosed within a given radius, since that is what their Monte Carlo samples.
+
+     For a Jaffe profile the enclosed mass is :math:`M(r)/M = (r/r_0)/(1+r/r_0)`, so the half-mass radius is exactly
+     the scale radius. One unit of the tabulated axis therefore corresponds to :math:`1.16` half-mass radii, and a
+     model galaxy's half-mass radius is divided by that factor before being interpolated in. Omitting it would place
+     every spheroid 16 percent too far out along the axis, worth up to about ten percent in transmission at the
+     largest tabulated optical depths, and little at small ones.
+
    * The inclination, from a :galacticus-class:`galacticInclinationClass` object, or from the ``inclination``
      argument when one is imposed, as :galacticus-class:`dustAttenuationInclinationAveraged` does. One or the other
      must be available, and an error is reported if neither is.
@@ -285,8 +299,12 @@ contains
     type            (emissionDescriptor             ), intent(in   ), dimension(:                ) :: descriptors
     double precision                                 , intent(in   ), optional                     :: inclination
     double precision                                                , dimension(size(descriptors)) :: transmission
-    double precision                                                                               :: depthOptical          , inclination_, &
-         &                                                                                            radiusSpheroid        , logDepth    , &
+    ! Half-mass radii per unit of the tabulated spheroid axis. The atlas labels that axis with the effective radius
+    ! of an R^1/4 profile, while realizing the spheroid as a Jaffe profile of scale radius r_b = 1.16 Rₑ (Bianchi
+    ! et al. 1996, appendix); the Jaffe half-mass radius is exactly its scale radius.
+    double precision                                 , parameter                                   :: radiusHalfMassToEffective=1.16d0
+    double precision                                                                               :: depthOptical                    , inclination_, &
+         &                                                                                            radiusSpheroid                  , logDepth    , &
          &                                                                                            inclinationDegrees
     logical                                                                                        :: radiusSpheroidComputed
     integer                                                                                        :: i
@@ -333,10 +351,15 @@ contains
           transmission(i)=self%interpolatorDisk    %interpolateFactors(self%transmissionDisk    ,indicesDisk    ,weightsDisk    )
        else if (descriptors(i)%componentType == componentTypeSpheroid) then
           if (.not.radiusSpheroidComputed) then
-             ! Clamp into the tabulated range before taking a logarithm. A galaxy may have no spheroid, or no disk
-             ! to measure one against, giving a ratio of zero whose logarithm would trap; and the interpolator holds
-             ! values at the boundary in any case, so nothing is lost by clamping here rather than there.
-             radiusSpheroid        =max(atlasFerrara2000RadiusSpheroid(node),minval(self%radiusSpheroid))
+             ! Convert the half-mass radius to the effective radius the atlas is tabulated against, then clamp into
+             ! the tabulated range before taking a logarithm. A galaxy may have no spheroid, or no disk to measure
+             ! one against, giving a ratio of zero whose logarithm would trap; and the interpolator holds values at
+             ! the boundary in any case, so nothing is lost by clamping here rather than there.
+             radiusSpheroid        =max(                               &
+                  &                     +radiusSpheroidRelative(node)  &
+                  &                     /radiusHalfMassToEffective   , &
+                  &                     +minval(self%radiusSpheroid)   &
+                  &                    )
              radiusSpheroidComputed=.true.
              call self%interpolatorRadiusSpheroid%linearFactors(log(radiusSpheroid),indicesSpheroid(1),weightsSpheroid(:,1))
           end if
@@ -348,57 +371,6 @@ contains
     end do
     return
   end function atlasFerrara2000Transmission
-
-  double precision function atlasFerrara2000RadiusSpheroid(node) result(radiusSpheroid)
-    !!{RST
-    Return the size of the spheroid in the units the atlas is tabulated against: its half-mass radius, in units of
-    the disk scale length.
-
-    :cite:t:`ferrara_atlas_1999` model spheroids as Jaffe profiles and tabulate against the spheroid effective
-    radius. For a Jaffe profile the enclosed mass is :math:`M(r)/M = (r/r_0)/(1+r/r_0)`, so the half-mass radius is
-    exactly the scale radius :math:`r_0`, and the tabulated axis is therefore a half-mass radius.
-
-    A model galaxy's spheroid will in general follow some other profile, for which the scale radius is *not* the
-    half-mass radius---for a Hernquist profile the latter is :math:`(1+\sqrt{2})` times the former---so the
-    half-mass radius is taken from the stellar mass distribution of the spheroid rather than from its scale radius.
-    That is the radius which means the same thing whatever profile either side assumes, and matching on it is what
-    makes the atlas applicable to a spheroid it was not computed for.
-
-    The disk is measured by its scale radius, which is what :cite:t:`ferrara_atlas_1999` normalize to, and which is
-    what the disk component's radius already is for an exponential profile.
-    !!}
-    use :: Error                     , only : Error_Report
-    use :: Galactic_Structure_Options, only : componentTypeSpheroid, massTypeStellar
-    use :: Galacticus_Nodes          , only : nodeComponentDisk
-    use :: Mass_Distributions        , only : massDistributionClass, massDistributionSpherical
-    implicit none
-    type            (treeNode             ), intent(inout), target  :: node
-    class           (nodeComponentDisk    )               , pointer :: disk
-    class           (massDistributionClass)               , pointer :: massDistributionSpheroid
-    double precision                                                :: radiusDisk
-
-    disk       => node%disk  ()
-    radiusDisk =  disk%radius()
-    ! With no disk there is no scale to measure the spheroid against, and no dust either, so the value is
-    ! immaterial: return zero, which the caller clamps into the tabulated range.
-    if (radiusDisk <= 0.0d0) then
-       radiusSpheroid=0.0d0
-       return
-    end if
-    massDistributionSpheroid => node%massDistribution(componentTypeSpheroid,massTypeStellar)
-    select type (massDistributionSpheroid)
-    class is (massDistributionSpherical)
-       radiusSpheroid=+massDistributionSpheroid%radiusHalfMass() &
-            &         /                         radiusDisk
-    class default
-       radiusSpheroid=0.0d0
-       call Error_Report('a half-mass radius is needed for the spheroid, which requires a spherical mass distribution'//{introspection:location})
-    end select
-    !![
-    <objectDestructor name="massDistributionSpheroid"/>
-    !!]
-    return
-  end function atlasFerrara2000RadiusSpheroid
 
   function atlasFerrara2000Request(self) result(request)
     !!{RST

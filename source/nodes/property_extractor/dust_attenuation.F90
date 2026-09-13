@@ -177,7 +177,7 @@ contains
     logical                                      , intent(in   )         :: outputUnattenuated, outputSum, &
          &                                                                  outputSumOnly
     type   (varying_string                      ), intent(in   )         :: sumName
-    type   (multiExtractorList                  ), intent(in   )         :: extractors
+    type   (multiExtractorList                  ), intent(in   ), target :: extractors
     !![
     <constructorAssign variables="outputUnattenuated, outputSum, outputSumOnly, sumName, *dustAttenuation_"/>
     !!]

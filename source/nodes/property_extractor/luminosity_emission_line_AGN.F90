@@ -643,9 +643,9 @@ contains
     separately---one parcel per line.
 
     The parcels are attributed to the black hole component and marked as nebular in origin: the lines are
-    recombination lines from gas photoionized by the accretion disk, but the emitting gas lies at the very centre of
+    recombination lines from gas photoionized by the accretion disk, but the emitting gas lies at the very center of
     the galaxy. That placement is what distinguishes them for the purposes of dust attenuation, since light from the
-    centre traverses the whole column of the host rather than the fraction a typical star sees, and it is why an
+    center traverses the whole column of the host rather than the fraction a typical star sees, and it is why an
     attenuator which derives its optical depth from the properties of a *stellar* component will decline to attenuate
     them.
 

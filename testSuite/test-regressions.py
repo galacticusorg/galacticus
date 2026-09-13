@@ -36,7 +36,8 @@ for filePath in sorted(glob.glob("regressions/**/*.xml", recursive=True) + glob.
                 shell=True, stdout=logFile, stderr=subprocess.STDOUT
             )
     result1 = subprocess.run(f"grep -q -i -e fatal -e aborted {logFilePath}", shell=True)
-    result2 = subprocess.run(f"grep -q FAIL {logFilePath}"                  , shell=True)
+    # Match "FAIL" rather than "FAILED" so that a regression script using either spelling is caught.
+    result2 = subprocess.run(f"grep -q FAIL {logFilePath}"                  , shell=True) # markers: exempt
     if result1.returncode == 0 or result2.returncode == 0 or status.returncode != 0:
         print(f"FAILED: regression '{filePath}'")
         with open(logFilePath) as f:

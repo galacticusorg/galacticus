@@ -356,6 +356,41 @@
     <translation function="dust_attenuation_framework"/>
   </migration>
 
+  <migration commit="48c5e9fe8c7ed983d45d1b0018a81c2bc09f709e">
+    <!-- Adjective-first parameter names settled on the noun-first form, and the -->
+    <!-- `labelled` galactic filter renamed to `labeled`. Each rename is scoped  -->
+    <!-- to the implementation which reads it, so that identically-named         -->
+    <!-- parameters of other classes, and the `outerRadius` *property* of the    -->
+    <!-- hot halo components, are left alone.                                    -->
+    <translation xpath="//*[@value='exponentialDisk']/scaleRadius[@value]">
+      <name new="radiusScale"/>
+    </translation>
+    <translation xpath="//*[@value='NFW' or @value='einasto']/virialRadius[@value]">
+      <name new="radiusVirial"/>
+    </translation>
+    <translation xpath="//*[@value='betaProfile']/outerRadius[@value]">
+      <name new="radiusOuter"/>
+    </translation>
+    <translation xpath="//*[@value='betaProfile']/coreRadius[@value]">
+      <name new="radiusCore"/>
+    </translation>
+    <translation xpath="//task[@value='haloMassFunction' or @value='haloSpinDistribution']/haloMassMinimum[@value]">
+      <name new="massHaloMinimum"/>
+    </translation>
+    <translation xpath="//task[@value='haloMassFunction']/haloMassMaximum[@value]">
+      <name new="massHaloMaximum"/>
+    </translation>
+    <translation xpath="//posteriorSampleLikelihood[@value='massFunction' or @value='prjctdCorrelationFunction']/haloMassMinimum[@value]">
+      <name new="massHaloMinimum"/>
+    </translation>
+    <translation xpath="//posteriorSampleLikelihood[@value='massFunction' or @value='prjctdCorrelationFunction']/haloMassMaximum[@value]">
+      <name new="massHaloMaximum"/>
+    </translation>
+    <translation xpath="//galacticFilter[@value]">
+      <value old="labelled" new="labeled"/>
+    </translation>
+  </migration>
+
   <migration commit="d8a194faa0b50129f8dd029419c92cf5005a4be7">
     <!-- Vowel-stripped implementation names expanded. Each rule is scoped to  -->
     <!-- the class which offers the implementation, so an identically-spelled  -->

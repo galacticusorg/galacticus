@@ -1038,7 +1038,7 @@ contains
 
   subroutine progenitorMassFunctionLogLikelihoodWrite(self,analysisGroup)
     !!{RST
-    Write the log-likelihood of the progenitor mass function to the output group. This overrides the :galacticus-class:`outputAnalysisVolumeFunction1D` default so that our own  logLikelihood method is used, and the parent-class  logLikelihood method (which requires a covariance matrix that we do not construct) is never evaluated.
+    Write the log-likelihood of the progenitor mass function to the output group. This overrides the :galacticus-class:`outputAnalysisVolumeFunction1D` default so that our own  ``logLikelihood`` method is used, and the parent-class  ``logLikelihood`` method (which requires a covariance matrix that we do not construct) is never evaluated.
     !!}
     use :: IO_HDF5, only : hdf5File, hdf5Group
     implicit none

@@ -216,7 +216,7 @@ def _top_level_element_spans(block_body: str):
                 otag = None
     # A top-level element opened but never closed within this block — e.g. a
     # `<workaround>` that brackets code and is closed in a later `!![…!!]`.
-    # Still mark its opening tag so its description is recognised as RST.
+    # Still mark its opening tag so its description is recognized as RST.
     if depth > 0 and otag is not None:
         yield (elem_start, len(block_body), otag.start(), otag.end())
 

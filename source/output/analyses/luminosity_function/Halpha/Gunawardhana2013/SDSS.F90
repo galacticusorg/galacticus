@@ -58,23 +58,25 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`outputAnalysisLuminosityFunctionGunawardhana2013SDSS` output analysis class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters              , only : inputParameter                 , inputParameters
-    use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
-    use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisLuminosityFunctionGunawardhana2013SDSS)                              :: self
     type            (inputParameters                                     ), intent(inout)               :: parameters
     class           (cosmologyFunctionsClass                             ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                                    ), pointer                     :: outputTimes_
     class           (gravitationalLensingClass                           ), pointer                     :: gravitationalLensing_
-    class           (starFormationRateDisksClass                         ), pointer                     :: starFormationRateDisks_
-    class           (starFormationRateSpheroidsClass                     ), pointer                     :: starFormationRateSpheroids_
+    class           (starFormationHistoryClass                           ), pointer                     :: starFormationHistory_
+    class           (hiiRegionLuminosityFunctionClass                    ), pointer                     :: hiiRegionLuminosityFunction_
+    class           (hiiRegionMassFunctionClass                          ), pointer                     :: hiiRegionMassFunction_
+    class           (hiiRegionDensityDistributionClass                   ), pointer                     :: hiiRegionDensityDistribution_
+    class           (hiiRegionEscapeFractionClass                        ), pointer                     :: hiiRegionEscapeFraction_
     class           (dustAttenuationClass                                ), pointer                     :: dustAttenuation_
     double precision                                                      , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
     integer                                                                                             :: covarianceBinomialBinsPerDecade
     double precision                                                                                    :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
          &                                                                                                 randomErrorMinimum               , randomErrorMaximum                  , &
-         &                                                                                                 sizeSourceLensing
+         &                                                                                                 sizeSourceLensing                , toleranceRelative
+    type            (varying_string                                      )                              :: cloudyTableFileName
 
     ! Check and read parameters.
     if (parameters%isPresent(    'randomErrorPolynomialCoefficient')) then
@@ -134,6 +136,24 @@ contains
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
+      <name>cloudyTableFileName</name>
+      <source>parameters</source>
+      <variable>cloudyTableFileName</variable>
+      <defaultValue>var_str('%DATASTATICPATH%/hiiRegions/emissionLineLuminosities_BC2003_highResolution_imfChabrier.hdf5')</defaultValue>
+      <description>
+      The file of tabulated emission line luminosities to use.
+      </description>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>toleranceRelative</name>
+      <source>parameters</source>
+      <variable>toleranceRelative</variable>
+      <defaultValue>1.0d-3</defaultValue>
+      <description>
+      The relative tolerance used in integration over stellar population spectra when computing line luminosities.
+      </description>
+    </inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <variable>covarianceBinomialBinsPerDecade</variable>
@@ -160,28 +180,34 @@ contains
       The maximum halo mass to consider when constructing SDSS H\ :math:`\alpha` luminosity function covariance matrices for main branch galaxies.
       </description>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
-    <objectBuilder class="outputTimes"                 name="outputTimes_"                 source="parameters"/>
-    <objectBuilder class="gravitationalLensing"        name="gravitationalLensing_"        source="parameters"/>
-    <objectBuilder class="starFormationRateDisks"      name="starFormationRateDisks_"      source="parameters"/>
-    <objectBuilder class="starFormationRateSpheroids"  name="starFormationRateSpheroids_"  source="parameters"/>
-    <objectBuilder class="dustAttenuation"             name="dustAttenuation_"             source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
+    <objectBuilder class="outputTimes"                  name="outputTimes_"                  source="parameters"/>
+    <objectBuilder class="gravitationalLensing"         name="gravitationalLensing_"         source="parameters"/>
+    <objectBuilder class="starFormationHistory"         name="starFormationHistory_"         source="parameters"/>
+    <objectBuilder class="hiiRegionLuminosityFunction"  name="hiiRegionLuminosityFunction_"  source="parameters"/>
+    <objectBuilder class="hiiRegionMassFunction"        name="hiiRegionMassFunction_"        source="parameters"/>
+    <objectBuilder class="hiiRegionDensityDistribution" name="hiiRegionDensityDistribution_" source="parameters"/>
+    <objectBuilder class="hiiRegionEscapeFraction"      name="hiiRegionEscapeFraction_"      source="parameters"/>
+    <objectBuilder class="dustAttenuation"              name="dustAttenuation_"              source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisLuminosityFunctionGunawardhana2013SDSS(cosmologyFunctions_,gravitationalLensing_,dustAttenuation_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
+    self=outputAnalysisLuminosityFunctionGunawardhana2013SDSS(cosmologyFunctions_,gravitationalLensing_,dustAttenuation_,outputTimes_,cloudyTableFileName,toleranceRelative,starFormationHistory_,hiiRegionLuminosityFunction_,hiiRegionMassFunction_,hiiRegionDensityDistribution_,hiiRegionEscapeFraction_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"        />
-    <objectDestructor name="outputTimes_"               />
-    <objectDestructor name="gravitationalLensing_"      />
-    <objectDestructor name="starFormationRateDisks_"    />
-    <objectDestructor name="starFormationRateSpheroids_"/>
-    <objectDestructor name="dustAttenuation_"           />
+    <objectDestructor name="cosmologyFunctions_"          />
+    <objectDestructor name="outputTimes_"                 />
+    <objectDestructor name="gravitationalLensing_"        />
+    <objectDestructor name="starFormationHistory_"        />
+    <objectDestructor name="hiiRegionLuminosityFunction_" />
+    <objectDestructor name="hiiRegionMassFunction_"       />
+    <objectDestructor name="hiiRegionDensityDistribution_"/>
+    <objectDestructor name="hiiRegionEscapeFraction_"     />
+    <objectDestructor name="dustAttenuation_"             />
     !!]
     return
   end function luminosityFunctionGunawardhana2013SDSSConstructorParameters
 
-  function luminosityFunctionGunawardhana2013SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,dustAttenuation_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
+  function luminosityFunctionGunawardhana2013SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,dustAttenuation_,outputTimes_,cloudyTableFileName,toleranceRelative,starFormationHistory_,hiiRegionLuminosityFunction_,hiiRegionMassFunction_,hiiRegionDensityDistribution_,hiiRegionEscapeFraction_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{RST
     Constructor for the :galacticus-class:`outputAnalysisLuminosityFunctionGunawardhana2013SDSS` output analysis class for internal use.
     !!}
@@ -193,16 +219,19 @@ contains
     use :: Gravitational_Lensing                 , only : gravitationalLensingClass
     use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGravitationalLensing, outputAnalysisDistributionOperatorRandomErrorPolynomial, outputAnalysisDistributionOperatorSequence
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystematicPolynomial
-    use :: Star_Formation_Rates_Disks            , only : starFormationRateDisksClass
-    use :: Star_Formation_Rates_Spheroids        , only : starFormationRateSpheroidsClass
     implicit none
     type            (outputAnalysisLuminosityFunctionGunawardhana2013SDSS)                              :: self
     class           (cosmologyFunctionsClass                             ), intent(in   ), target       :: cosmologyFunctions_
     class           (outputTimesClass                                    ), intent(inout), target       :: outputTimes_
     class           (gravitationalLensingClass                           ), intent(in   ), target       :: gravitationalLensing_
     class           (dustAttenuationClass                                ), intent(in   ), target       :: dustAttenuation_
-    class           (starFormationRateDisksClass                         ), intent(in   ), target       :: starFormationRateDisks_
-    class           (starFormationRateSpheroidsClass                     ), intent(in   ), target       :: starFormationRateSpheroids_
+    type            (varying_string                                      ), intent(in   )               :: cloudyTableFileName
+    double precision                                                      , intent(in   )               :: toleranceRelative
+    class           (starFormationHistoryClass                           ), intent(in   ), target       :: starFormationHistory_
+    class           (hiiRegionLuminosityFunctionClass                    ), intent(in   ), target       :: hiiRegionLuminosityFunction_
+    class           (hiiRegionMassFunctionClass                          ), intent(in   ), target       :: hiiRegionMassFunction_
+    class           (hiiRegionDensityDistributionClass                   ), intent(in   ), target       :: hiiRegionDensityDistribution_
+    class           (hiiRegionEscapeFractionClass                        ), intent(in   ), target       :: hiiRegionEscapeFraction_
     double precision                                                      , intent(in   )               :: randomErrorMinimum                                        , randomErrorMaximum                  , &
          &                                                                                                 sizeSourceLensing
     double precision                                                      , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                          , systematicErrorPolynomialCoefficient
@@ -310,6 +339,8 @@ contains
          &                                  var_str('H$\alpha$ luminosity function for the Gunawardhana et al. (2013) SDSS analysis')                               , &
          &                                  char(inputPath(pathTypeDataStatic)//'/observations/luminosityFunctions/hAlphaLuminosityFunctionGunawardhana13SDSS.hdf5'), &
          &                                  .false.                                                                                                                 , &
+         &                                  cloudyTableFileName                                                                                                     , &
+         &                                  toleranceRelative                                                                                                       , &
          &                                  galacticFilter_                                                                                                         , &
          &                                  surveyGeometry_                                                                                                         , &
          &                                  dustAttenuation_                                                                                                        , &
@@ -318,8 +349,11 @@ contains
          &                                  outputAnalysisPropertyOperator_                                                                                         , &
          &                                  outputAnalysisDistributionOperator_                                                                                     , &
          &                                  outputTimes_                                                                                                            , &
-         &                                  starFormationRateDisks_                                                                                                 , &
-         &                                  starFormationRateSpheroids_                                                                                             , &
+         &                                  starFormationHistory_                                                                                                   , &
+         &                                  hiiRegionLuminosityFunction_                                                                                            , &
+         &                                  hiiRegionMassFunction_                                                                                                  , &
+         &                                  hiiRegionDensityDistribution_                                                                                           , &
+         &                                  hiiRegionEscapeFraction_                                                                                                , &
          &                                  covarianceBinomialBinsPerDecade                                                                                         , &
          &                                  covarianceBinomialMassHaloMinimum                                                                                       , &
          &                                  covarianceBinomialMassHaloMaximum                                                                                         &

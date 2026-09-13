@@ -100,6 +100,7 @@
      procedure :: indexTemplateTime       => emissionLineLuminosityIndexTemplateTime
      procedure :: indexTemplateNode       => emissionLineLuminosityIndexTemplateNode 
      procedure :: units                   => emissionLineLuminosityUnits
+     procedure :: quantity                => emissionLineLuminosityQuantity
      procedure :: supportsAttenuation     => emissionLineLuminositySupportsAttenuation
      procedure :: decompose               => emissionLineLuminosityDecompose
   end type nodePropertyExtractorLuminosityEmissionLine
@@ -951,7 +952,7 @@ contains
     type            (varying_string                             )                              :: descriptorString    , values
     integer                                                                                    :: i                   , status
     !![
-    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845" docformat="rst">
+    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=102845" docformat="rst">
       <description>
       Memory leak possibly due to OpenMP parallelism, or some failing of gfortran.
       </description>
@@ -1017,7 +1018,7 @@ contains
     call descriptor%destroy()
     descriptorString=descriptorString//":sourceDigest{"//String_C_To_Fortran(nodePropertyExtractorLuminosityEmissionLine5)//"}"
     !![
-    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845" docformat="rst">
+    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=102845" docformat="rst">
      <description>
      Memory leak possibly due to OpenMP parallelism, or some failing of gfortran.
      </description>
@@ -1046,6 +1047,20 @@ contains
     end do
     return
   end function emissionLineLuminosityUnits
+
+  function emissionLineLuminosityQuantity(self) result(quantity)
+    !!{RST
+    Return the class of the emission line luminosity property.
+    !!}
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
+    implicit none
+    type (enumerationOutputAnalysisPropertyQuantityType)                :: quantity
+    class(nodePropertyExtractorLuminosityEmissionLine  ), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    quantity=outputAnalysisPropertyQuantityLuminosity
+    return
+  end function emissionLineLuminosityQuantity
 
   logical function emissionLineLuminositySupportsAttenuation(self) result(supportsAttenuation)
     !!{RST

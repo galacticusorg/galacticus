@@ -498,7 +498,7 @@ def _harvest_worker(path):
     A parse failure is returned rather than raised: one unparseable file must
     not abort the whole catalog (and would otherwise take the pool down with
     it), so the caller reports it and carries on -- matching the serial
-    behaviour this replaced.
+    behavior this replaced.
     """
     try:
         entries = harvest_file(path, _WORKER['base_names'], _WORKER['source_root'])
@@ -582,7 +582,7 @@ def _load_scan_cache(cache_path):
 def _save_scan_cache(cache_path, cache, log):
     """Write the scan cache, only-if-changed (preserving mtime when identical).
 
-    Failures are reported and swallowed: the cache is an optimisation, and an
+    Failures are reported and swallowed: the cache is an optimization, and an
     unwritable `$BUILDPATH` must not break a catalog that is already built.
     """
     if not cache_path:
@@ -686,7 +686,7 @@ def build_catalog(source_root, log=None, jobs=None, cache_path=None):
     # --- Phase 3. A file needs a full parse only if it registers an
     # implementation, i.e. carries a named directive whose root is a base class.
     registering  = [path for path in source_files if scans[path][2] & base_names]
-    # `harvest_file` reads `base_names` only to recognise those registrations, so
+    # `harvest_file` reads `base_names` only to recognize those registrations, so
     # a cached harvest stays valid exactly while this file's own registrations
     # do -- letting an unrelated new base class avoid invalidating the tree.
     registered   = {path: sorted(scans[path][2] & base_names)
@@ -738,7 +738,7 @@ def build_catalog(source_root, log=None, jobs=None, cache_path=None):
         base['implementations'].sort()
 
     _log(f"parsed {parsed_files} implementation files; "
-         f"catalogued {len(implementations)} implementations")
+         f"cataloged {len(implementations)} implementations")
     return {
         'functionClasses': bases,
         'implementations': implementations,

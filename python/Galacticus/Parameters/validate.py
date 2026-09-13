@@ -339,7 +339,7 @@ def validate_parameters(root, catalog):
 
             # 6. Anything else inside a functionClass scope is an unknown
             #    parameter name.  (At the root scope we do not flag -- globals
-            #    and meta parameters legitimately live there.)  Honour
+            #    and meta parameters legitimately live there.)  Honor
             #    `ignoreWarnings="true"`, Galacticus's own opt-out for
             #    deliberately-unusual parameters (input_parameters.F90).
             if schema is not None and child.get('ignoreWarnings') != 'true':
@@ -558,7 +558,7 @@ def _expand_xincludes(element, base_dir, findings, label, seen, depth=0):
 # NOTE: expression/conditional `[path]` references are intentionally NOT checked.
 # The bracket mini-language supports defaults (`[path|0.0]`, so an unresolved
 # path is legal), printf-style formats (`[%4.4d|path]`), and relative paths --
-# which makes path-resolution checking low-value (defaults legalise misses) and
+# which makes path-resolution checking low-value (defaults legalize misses) and
 # error-prone; left for a future expression-aware resolver if needed.
 
 

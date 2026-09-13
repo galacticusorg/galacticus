@@ -22,6 +22,8 @@ from Fortran.Utils import type_opener_regex                          # noqa: E40
 #  4. Empty finalizer subroutines.
 #  5. Error_Report calls building a message from a string literal without
 #     appending {introspection:location}.
+#  6. Destructors and internal constructors which are defined but never bound,
+#     so that the compiler silently skips them.
 
 if len(sys.argv) != 2:
     print("Usage: staticAnalyzer.py <fileName>", file=sys.stderr)
@@ -445,5 +447,48 @@ for start_line, line in _join_continuations_numbered(raw_lines):
     print(f"Error_Report at line {start_line} of file '{file_name}'"
           f" does not append {{introspection:location}} to its message")
     status = 1
+
+# ── Check 6: destructors and internal constructors defined but never bound ────
+#
+# A `<name>Destructor` is bound to its type with `final ::`, and a
+# `<name>ConstructorInternal` is added to the type's generic interface with
+# `module procedure`. Where that line is missing the procedure still compiles,
+# but nothing ever reaches it: the destructor never runs (so the objects it
+# releases leak, and any event hook it detaches is left attached to freed
+# memory), while the constructor call falls back to the intrinsic structure
+# constructor, which skips the reference counting that `<constructorAssign>`
+# would have emitted.
+#
+# Both are module-private helpers referenced only from within their own file, so
+# counting whole-word occurrences here is sufficient: an unbound procedure is
+# named exactly twice, by its own opening and closing statements.
+
+# `impure elemental`, `recursive`, `pure` and `module` all precede the keyword,
+# so the prefixes must be consumed as `_FUNCTION` and `_SUBROUTINE` above do.
+_PREFIXES        = r'(?:(?:pure|impure|elemental|recursive|non_recursive|module)\s+)*'
+_DESTRUCTOR_DEF  = re.compile(
+    r'^\s*' + _PREFIXES + r'subroutine\s+([a-zA-Z0-9_]*destructor)\s*\(',
+    re.IGNORECASE)
+_CONSTRUCTOR_DEF = re.compile(
+    r'^\s*' + _PREFIXES + r'function\s+([a-zA-Z0-9_]*constructorInternal)\s*\(',
+    re.IGNORECASE)
+
+_BINDINGS = {'destructor': 'a `final ::` declaration',
+             'constructor': 'a `module procedure` line in the generic interface'}
+
+source_text = ''.join(raw_lines)
+for kind, pattern in (('destructor', _DESTRUCTOR_DEF), ('constructor', _CONSTRUCTOR_DEF)):
+    for start_line, line in _join_continuations_numbered(raw_lines):
+        m = pattern.match(line)
+        if not m:
+            continue
+        name       = m.group(1)
+        references = len(re.findall(r'\b' + re.escape(name) + r'\b',
+                                    source_text, re.IGNORECASE))
+        if references > 2:
+            continue
+        print(f"Procedure '{name}' at line {start_line} of file '{file_name}'"
+              f" is never bound - it needs {_BINDINGS[kind]}")
+        status = 1
 
 raise SystemExit(status)

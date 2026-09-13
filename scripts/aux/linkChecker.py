@@ -70,6 +70,21 @@ def record_success(url, failures):
 # literals (`` ``url`` ``) and are never valid inside a URL.
 _URL_RE = re.compile(r'https?://[^\s<>"}\]`]+')
 
+# A delimiter that terminates a URL, but which may be hidden behind an entity
+# reference in the source -- an RST link target ``<url>`` embedded in an XML
+# directive writes its closing ``>`` as ``&gt;``, which the regex above cannot
+# see and which unescaping then leaves stuck to the end of the URL.
+_URL_TERMINATOR_RE = re.compile(r'[\s<>"`]')
+
+# Fortran string concatenation immediately inside, or immediately following, a
+# matched URL: ``'https://…/archive/v'//version//'.tar.gz'``.  The literal is
+# only a *fragment* of a URL which is assembled at run time, so there is no
+# complete URL here to check -- and the fragment, checked as though it were
+# one, is reported as broken.  Such URLs are skipped: missing a link is much
+# cheaper than a standing false alarm.
+_CONCATENATION_RE       = re.compile(r'[\'"]\s*//')
+_CONCATENATION_AFTER_RE = re.compile(r'^[\'"]?\s*//')
+
 # URLs matching any of these patterns are placeholders / illustrative
 # examples (not real links) and are skipped during checking.
 _EXCLUDED_URL_RES = [
@@ -78,7 +93,41 @@ _EXCLUDED_URL_RES = [
     re.compile(r'^https://drive\.google\.com/open\?id=0B7vqPPPgOdtIfjUtb3RsV2JUOTFFX29WV1FZNURPMHAxTEtZQjhJOGtyNXZUTTNVSzFZazQ$'),
     # Defunct Maraston stellar population model link, retained only for the historical record.
     re.compile(r"^http://www\.icg\.port\.ac\.uk/~maraston/Claudia's_Stellar_Population_Model\.html$"),
+    # A documentation URL written with a placeholder version, naming the form of
+    # a per-release documentation URL rather than any one release's -- see the
+    # "Versions and Releases" page of the developer guide.
+    re.compile(r'^https://galacticus\.readthedocs\.io/en/vX\.Y\.Z(?:[/?#]|$)'),
+    # Defunct link to Inoue's own IGM attenuation code, from which the file that
+    # `source/tests/spectra/postprocess/Inoue2014.F90` compares against was
+    # extracted.  No archived copy of the tarball could be found, so the URL is
+    # retained only to record where that file came from.
+    re.compile(r'^http://www\.las\.osaka-sandai\.ac\.jp/~inoue/ANAIGM/ANAIGM\.tar\.gz$'),
+    # RFC 2606 reserves the `.invalid` TLD, and the `example.com`/`.net`/`.org`
+    # domains, for use in documentation and testing.  The source uses both for
+    # URLs which are deliberately not real -- the download system test's
+    # shell-injection payloads and its dummy download target, for example -- so
+    # such a URL failing is the expected result, not a broken link.
+    re.compile(r'^https?://[^/?#]*\.invalid(?:[:/?#]|$)'),
+    re.compile(r'^https?://(?:[^/?#]*\.)?example\.(?:com|net|org)(?:[:/?#]|$)'),
 ]
+
+
+# Hosts which serve HTTP 403 to the checker -- bot or datacenter-IP blocking by
+# a CDN -- while the page is up for ordinary clients.  A browser-like
+# user-agent does not help for these (unlike w3schools.com, handled with one
+# below), and a genuinely-missing page would answer 404/410, so a 403 from one
+# of these hosts is tolerated rather than reported.
+_FORBIDDEN_TOLERATED_RES = [
+    re.compile(r'^https://www\.openmp\.org/'),
+    re.compile(r'^https?://(?:www\.)?math\.stackexchange\.com/'),
+    re.compile(r'^https://goldbook\.iupac\.org/'),
+    re.compile(r'^https://journals\.aps\.org/'),
+]
+
+
+def tolerates_forbidden(url):
+    """Return True if an HTTP 403 from this URL's host is expected, not a fault."""
+    return any(pattern.search(url) for pattern in _FORBIDDEN_TOLERATED_RES)
 
 
 def is_excluded(url):
@@ -94,23 +143,52 @@ def scan_file(file_name, path, urls):
             for line in f:
                 line_number += 1
                 for m in _URL_RE.finditer(line):
-                    # Unescape XML/LaTeX (``&amp;``, ``&#x2F;``, ``\_`` …) and
-                    # drop trailing sentence punctuation and any closing-quote
-                    # delimiter (a ``'`` that wraps the URL, vs. an apostrophe
-                    # inside it which is followed by further URL characters).
-                    url = html.unescape(m.group(0)).rstrip('.,;:\'')
+                    # Skip a URL which is only one operand of a Fortran string
+                    # concatenation — it is a fragment, not a URL.
+                    if (_CONCATENATION_RE.search(m.group(0)) or
+                            _CONCATENATION_AFTER_RE.match(line[m.end():])):
+                        continue
+                    # Unescape XML/LaTeX (``&amp;``, ``&#x2F;``, ``\_`` …).
+                    url = html.unescape(m.group(0))
                     url = re.sub(r'\\(.)', r'\1', url)
-                    # Drop a trailing ``)`` that closes an enclosing construct
+                    # Unescaping can expose a delimiter that terminated the URL
+                    # in the source but was entity-encoded there, so truncate
+                    # again before trimming punctuation.
+                    url = _URL_TERMINATOR_RE.split(url, 1)[0]
+                    # Drop trailing sentence punctuation, any closing-quote
+                    # delimiter (a ``'`` that wraps the URL, vs. an apostrophe
+                    # inside it which is followed by further URL characters),
+                    # and a trailing ``)`` that closes an enclosing construct
                     # (shell ``$(curl ...)``, prose parenthetical) rather than
                     # belonging to the URL.  Balanced parens — e.g. Wikipedia's
                     # ``..._(computer_programming)`` — are kept; only an excess
-                    # of closing over opening parens is stripped.
-                    while url.endswith(')') and url.count(')') > url.count('('):
-                        url = url[:-1]
+                    # of closing over opening parens is stripped.  Repeat until
+                    # stable, since the two forms interleave (``…/meta.)``).
+                    previous = None
+                    while url != previous:
+                        previous = url
+                        url = url.rstrip('.,;:\'')
+                        while url.endswith(')') and url.count(')') > url.count('('):
+                            url = url[:-1]
+                    if not re.match(r'^https?://\S', url):
+                        continue
                     urls.setdefault(url, []).append(
                         {'file': file_name, 'path': path, 'lineNumber': line_number})
     except OSError as e:
         print(f"Warning: could not read {path}/{file_name}: {e}")
+
+
+def scan_sources(source_path, urls):
+    """Collect URLs from every Fortran source file under `source_path`.
+
+    The tree must be *walked*: `source/` is a directory hierarchy, so all but a
+    handful of its files live in subdirectories, and a non-recursive listing
+    would see almost none of the URLs embedded in the source.
+    """
+    for root, _dirs, files in os.walk(source_path):
+        for file_name in files:
+            if re.search(r'\.(F90|Inc)$', file_name):
+                scan_file(file_name, root, urls)
 
 
 def _find_closing_paren(s, open_pos):
@@ -237,12 +315,7 @@ def check_urls(urls, api_token, failures):
                                 line):
                             error = False
                             break
-                    if re.search(r'www\.openmp\.org', url):
-                        # openmp.org sits behind Cloudflare, which serves HTTP
-                        # 403 to the checker's datacenter IP even with a
-                        # browser-like user-agent, while the page is up for
-                        # ordinary clients. A genuinely-missing page would
-                        # return 404/410, so treat only this 403 as tolerated.
+                    if tolerates_forbidden(url):
                         if re.search(
                                 r'curl: \(22\) The requested URL returned error: 403',
                                 line):
@@ -338,11 +411,7 @@ def main():
     urls = {}
 
     # Embedded docstrings (RST) and constant/workaround directive attributes.
-    source_path = './source'
-    if os.path.isdir(source_path):
-        for file_name in os.listdir(source_path):
-            if re.search(r'\.(F90|Inc)$', file_name):
-                scan_file(file_name, source_path, urls)
+    scan_sources('./source', urls)
 
     # Committed RST documentation (manuals + landing page) and the glossary.
     for base in ('./docs', './doc'):
