@@ -58,6 +58,17 @@ jobs:
           SHA=$(git rev-parse HEAD)
           echo '{"reported": true}' > "notarization-complete-${SHA}.json"
           gh release upload bleeding-edge "notarization-complete-${SHA}.json" --clobber
+      - name: Prune superseded notarization assets
+        # Housekeeping, not part of the report: the two bookkeeping assets are written per commit and
+        # `gh release upload --clobber` never removes them, so without this they accumulate on
+        # `bleeding-edge` indefinitely and come to dominate its asset list. Only the HEAD commit's pair is
+        # ever read (see the script), which is what makes the older ones safe to drop. `continue-on-error`
+        # keeps a transient `gh` failure from turning a successful notarization poll red; the script
+        # annotates whatever it could not delete, and the next scheduled run retries it.
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 ./scripts/aux/notarizationPrune.py
       - name: Fail on notarization failure
         if: steps.poll.outputs.overall_status == 'failure'
         run: |
