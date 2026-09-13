@@ -15,8 +15,8 @@ table happens to span. A table built on such a lattice can be extended, and
 every point it already held---and every value interpolated between those
 points---is unchanged, bit for bit. The pieces are ``Range_Pinned`` and
 ``rangeLattice`` (in ``Numerical_Ranges``), the ``extend`` methods of the
-``table1D`` and ``table2DLogLogLin`` classes, and, for tabulations expensive
-enough to keep between runs, ``Table_Caches``.
+``table1D`` and ``table2D`` classes, and, for tabulations expensive enough to
+keep between runs, ``Table_Caches``.
 
 Why a naively-grown tabulation is a problem
 -------------------------------------------
@@ -230,8 +230,8 @@ table's current lattice as ``latticeCurrent``.
 
 ``extend`` is supported for the table types with uniformly-spaced *internal*
 abscissae---the linear and logarithmic types, with linear or cubic-spline
-interpolation---and is an error for the others. The two-dimensional
-``table2DLogLogLin`` takes a lattice per axis, each pinned independently:
+interpolation---and is an error for the others. A two-dimensional table takes a
+lattice per axis, each pinned independently:
 
 .. code-block:: fortran
 
@@ -240,7 +240,9 @@ interpolation---and is an error for the others. The two-dimensional
 Here the preserved values form a rectangular block, so ``isComputed`` is true
 over that block and false over the L-shaped remainder. Both axes are extended in
 one call because the block preserved is the rectangle common to the two
-tabulations.
+tabulations. Unlike the one-dimensional case ``populate`` is a method of the
+abstract ``table2D``, so no ``select type`` is needed to fill in the missing
+points of a table held as a ``class(table2D)``.
 
 Tabulations held in raw arrays
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

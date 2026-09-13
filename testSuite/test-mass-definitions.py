@@ -21,7 +21,7 @@ for optionTime in ("current", "infall"):
         shell=True
     )
     if status.returncode != 0:
-        print("FAIL: failed to run mass definitions model")
+        print("FAILED: failed to run mass definitions model")
         continue
 
     # Read all data.
@@ -42,7 +42,8 @@ for optionTime in ("current", "infall"):
     elif optionTime == "infall":
         halos["densityMean"] = densityMean * ((1.0 + halos["redshiftLastIsolated"]) / (1.0 + halos["redshift"]))**3
     else:
-        raise ValueError(f"unrecognized time option: {optionTime}")
+        print(f"FAILED: unrecognized time option in the test case table: {optionTime}")
+        sys.exit(0)
 
     # Compute the target density, which is 200 times the mean density.
     densityTarget = 200.0 * halos["densityMean"]
@@ -55,4 +56,4 @@ for optionTime in ("current", "infall"):
     if np.all(error < 1.0e-4):
         print(f"SUCCESS: mass definitions for '{optionTime}' time")
     else:
-        print(f"FAIL: mass definitions for '{optionTime}' time")
+        print(f"FAILED: mass definitions for '{optionTime}' time")

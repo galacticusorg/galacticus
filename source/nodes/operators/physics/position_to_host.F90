@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that relocates subhalos to the position of their host.
   !!}
@@ -34,6 +36,7 @@
      !!}
      private
    contains
+     final     ::                positionToHostDestructor
      procedure :: nodePromote => positionToHostNodePromote
      procedure :: nodesMerge  => positionToHostNodesMerge
      procedure :: autoHook    => positionToHostAutoHook

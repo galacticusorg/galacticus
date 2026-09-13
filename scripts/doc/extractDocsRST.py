@@ -392,7 +392,8 @@ def scan_source(source_dir: str):
       type-bound methods declared in that file's ``<methods>`` block(s).
     * ``modules``: ``[{name, file, description, classRef}, …]`` — one per
       documented module (``classRef`` links class modules to their page).
-    * ``workarounds``: ``[{type, pr, url, description, seeAlso, file}, …]``.
+    * ``workarounds``: ``[{type, pr, url, issue, description, seeAlso, file},
+      …]``.
     * ``components``: ``{class: [{name, description, isDefault, extends,
       properties, file}, …]}`` — the node component implementations.
     """
@@ -477,6 +478,9 @@ def scan_source(source_dir: str):
                         'type':        _attr(wattrs, 'type'),
                         'pr':          _attr(wattrs, 'PR'),
                         'url':         _attr(wattrs, 'url'),
+                        # Our own issue tracking removal of the workaround, if
+                        # one has been opened (see the workaroundChecker).
+                        'issue':       _attr(wattrs, 'issue'),
                         'description': wdesc.group(1),
                         'seeAlso':     [{'type': _attr(s, 'type'),
                                          'pr':   _attr(s, 'PR'),
@@ -560,6 +564,10 @@ def scan_source(source_dir: str):
         key = (w.get('type'), w.get('pr'),
                ' '.join((w.get('description') or '').split()))
         entry = deduped.setdefault(key, {**w, 'seeAlso': []})
+        # Only one of a set of identical occurrences need carry the ``issue``
+        # attribute, so keep the first one found rather than the first entry's.
+        if not entry.get('issue') and w.get('issue'):
+            entry['issue'] = w['issue']
         have = {(s.get('type'), s.get('pr'), s.get('url'))
                 for s in entry['seeAlso']}
         for s in w.get('seeAlso') or []:
@@ -902,6 +910,16 @@ def render_modules(modules: list[dict]) -> str:
     return '\n'.join(out) + '\n'
 
 
+def _issue_link(issue: str) -> str:
+    """Render an ``issue`` attribute (a bare number, or a full URL) as a link."""
+    issue = html.unescape(issue)
+    if re.fullmatch(r'#?\d+', issue):
+        number = issue.lstrip('#')
+        return (f'`issue #{number} '
+                f'<https://github.com/galacticusorg/galacticus/issues/{number}>`_')
+    return f'`issue <{issue}>`_'
+
+
 def render_workarounds(workarounds: list[dict], glsmap: dict) -> str:
     """A developer reference of the compiler workarounds documented in source."""
     def link(typ, pr, url):
@@ -919,6 +937,10 @@ def render_workarounds(workarounds: list[dict], glsmap: dict) -> str:
         for s in w.get('seeAlso') or []:
             body += ('\n\nSee also: '
                      + link(s.get('type'), s.get('pr'), s.get('url')) + '.')
+        issue = w.get('issue')
+        if issue:
+            body += ('\n\nRemoval of this workaround is tracked by '
+                     + _issue_link(issue) + '.')
         out.append(link(w.get('type'), w.get('pr'), w.get('url')))
         out.append(textwrap.indent(body, '   '))
         out.append('')

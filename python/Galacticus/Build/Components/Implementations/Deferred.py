@@ -29,7 +29,7 @@ from Galacticus.Build.Components.Utils              import (
 
 
 def _bindings(member):
-    """Return the list of bindings on `member`, normalised to a list."""
+    """Return the list of bindings on `member`, normalized to a list."""
     bindings = (member.get('bindings') or {}).get('binding') or []
     if not isinstance(bindings, list):
         bindings = [bindings]

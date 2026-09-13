@@ -10,23 +10,23 @@ from contextlib import contextmanager
 # Andrew Benson (23-April-2026)
 
 # Constructs various objects and asserts that their methods return results
-# that match expectations.  Writes PASS/FAIL for each test, so CI catches
+# that match expectations.  Writes SUCCESS/FAILED for each test, so CI catches
 # regressions even if the script is interrupted before the failure summary
 # is printed.  Always exits with status 0, per project convention: failure
-# is signaled by the "FAIL" markers in the output, not by the exit status.
+# is signaled by the "FAILED" markers in the output, not by the exit status.
 
 _failures = 0
 
 
 def check(label, actual, expected, rtol=1.0e-6, fmt=".2f", unit=""):
-    """Compare actual vs expected; print PASS/FAIL and tally failures."""
+    """Compare actual vs expected; print SUCCESS/FAILED and tally failures."""
     global _failures
     suffix = f" {unit}" if unit else ""
     if np.isclose(actual, expected, rtol=rtol):
-        print(f'   PASS: {label} = {actual:{fmt}}{suffix}')
+        print(f'   SUCCESS: {label} = {actual:{fmt}}{suffix}')
     else:
         _failures += 1
-        print(f'   FAIL: {label} = {actual:{fmt}}{suffix} '
+        print(f'   FAILED: {label} = {actual:{fmt}}{suffix} '
               f'(expected {expected:{fmt}}, Δ={actual-expected:.3g})')
 
 
@@ -34,15 +34,15 @@ def check_eq(label, actual, expected):
     """Exact-equality variant for non-numeric values (strings, etc.)."""
     global _failures
     if actual == expected:
-        print(f'   PASS: {label} = {actual!r}')
+        print(f'   SUCCESS: {label} = {actual!r}')
     else:
         _failures += 1
-        print(f'   FAIL: {label} = {actual!r} (expected {expected!r})')
+        print(f'   FAILED: {label} = {actual!r} (expected {expected!r})')
 
 
 @contextmanager
 def safe_section(name):
-    """Wrap a test section so an unexpected exception is reported as FAIL
+    """Wrap a test section so an unexpected exception is reported as FAILED
     rather than aborting the rest of the suite."""
     global _failures
     print(f"--- {name} ---")
@@ -50,7 +50,7 @@ def safe_section(name):
         yield
     except Exception as exc:
         _failures += 1
-        print(f'   FAIL: section raised {type(exc).__name__}: {exc}')
+        print(f'   FAILED: section raised {type(exc).__name__}: {exc}')
 
 
 # Library-level utilities.
@@ -328,7 +328,7 @@ with safe_section("distributionFunction1DNonCentralChiDegree3"):
 # `<method name="yield">`; `yield` is a reserved word in Python, so the
 # wrapper renames it to `yield_` (PEP 8).  Just confirm the rename:
 # calling it would need a stellar age / metallicity dataset we don't
-# initialise here.
+# initialize here.
 with safe_section("supernovaeTypeIaPowerLawDTDDifferential"):
     sn1a = galacticus.supernovaeTypeIaPowerLawDTDDifferential(
         timeMinimum=0.04, exponent=-1.0, normalization=2.0e-3,
@@ -442,7 +442,7 @@ with safe_section("nodeOperatorPositionInterpolated"):
 # `mergerTreeImporter` — exercises the kind-aliased integer method
 # *return* types.  `treeCount` / `nodeCount` / `subhaloTraceCount`
 # declare `integer(kind=c_size_t)` and `treeIndex` declares
-# `integer(kind=kind_int8)`.  Before the alias normalisation in
+# `integer(kind=kind_int8)`.  Before the alias normalization in
 # `_normalize_method_return_type`, the generator's return-type switch
 # only had branches for the unprefixed `integer(c_size_t)` /
 # `integer(c_long)` forms, so these methods fell through and were
@@ -691,7 +691,7 @@ with safe_section("haloMassFunctionOndaroMallea2021 (dimension(0:2))"):
 # populates it via an elemental `logical()` cast before the inner call.
 #
 # Constructing one of these impls end-to-end needs filter / stellar
-# state we don't initialise here, so the meaningful check is that the
+# state we don't initialize here, so the meaningful check is that the
 # wrapper symbol exists and exposes `outputMask` in its signature
 # (parallels the `radiativeTransferMatter` smoke test above).
 with safe_section("nodePropertyExtractor* (logical(:) outputMask)"):
@@ -769,7 +769,7 @@ with safe_section("darkMatterProfileConcentrationDuttonMaccio2014 (internal=…)
 # Both impls share three null-filled args
 # (initializationFunction / initializationSelf / initializationArgument);
 # constructing one of them end-to-end needs a stack of other
-# functionClass deps we don't initialise here, so the meaningful end-to-
+# functionClass deps we don't initialize here, so the meaningful end-to-
 # end check is that the wrapper symbols exist (parallels the
 # `radiativeTransferMatter` smoke test above).
 with safe_section("value='null' constructor-arg overrides"):
@@ -874,7 +874,7 @@ with safe_section("starFormationHistoryMetallicitySplit (allocatable return)"):
              True)
 
 # Nested-paren dynamic-size return — exercises the regex fix that lets
-# the dynamic-size-array return-type recogniser match shapes with
+# the dynamic-size-array return-type recognizer match shapes with
 # nested parens like `dimension(size(<arg>))` in addition to the
 # already-supported `dimension(self%X)`.  Affected methods all need
 # heavy deps (treeNode / posteriorSampleState / lists of model
@@ -985,7 +985,7 @@ with safe_section("merger-tree build/walk/extract"):
     check_eq("construct beyond suite returns None", treeBeyond, None)
     check_eq("finished True beyond suite"         , finished.value, True)
 
-# Final summary. Always exit with status 0 - failure is signaled by "FAIL" in the output.
+# Final summary. Always exit with status 0 - failure is signaled by "FAILED" in the output.
 print(f"--- {_failures} failure(s) ---")
 if _failures:
     print(f"FAILED: {_failures} check(s) failed")

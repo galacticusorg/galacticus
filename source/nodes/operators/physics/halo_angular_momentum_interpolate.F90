@@ -84,7 +84,7 @@ contains
       <defaultValue>.true.</defaultValue>
       <description>
 	Controls whether the specific angular momentum of accreted material is estimated using the dark matter only accretion
-	rate (``true``; excluding growth due to mergers), or from the next change in dark matter only mass (``false``; includng
+	rate (``true``; excluding growth due to mergers), or from the next change in dark matter only mass (``false``; including
 	growth due to mergers).
       </description>
       <source>parameters</source>

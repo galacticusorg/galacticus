@@ -2,7 +2,7 @@
 choice not to split, and running several downloads at once.
 
 Network-free: ``requests.get`` is replaced by a fake origin server which serves
-one byte string and honours ``Range`` the way GitHub's release assets do (or
+one byte string and honors ``Range`` the way GitHub's release assets do (or
 refuses to, the way its on-the-fly repository archives do).
 """
 
@@ -218,7 +218,7 @@ def test_fetcher_reports_a_failed_job(tmp_path, monkeypatch):
 def test_an_optional_job_that_fails_does_not_sink_the_others(tmp_path,
                                                              monkeypatch):
     """The components are fetched together into staging directories which are
-    torn down if the fetch phase raises. An artefact the install can rebuild for
+    torn down if the fetch phase raises. An artifact the install can rebuild for
     itself must therefore not raise -- otherwise one small failed download
     discards the gigabytes which did arrive."""
     def fake_download(url, dest, *, log=print, missing_ok=False, progress=None):

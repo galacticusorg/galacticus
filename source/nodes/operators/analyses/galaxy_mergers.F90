@@ -30,7 +30,7 @@
 
     * The index of the satellite halo in the merger;
 
-    * The stellar/gas mass of te host/satellite galaxy;
+    * The stellar/gas mass of the host/satellite galaxy;
 
     * The time at which the merger occurred.
 

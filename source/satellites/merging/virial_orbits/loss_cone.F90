@@ -700,7 +700,7 @@ contains
          &                                                                               massEnvironment                                , radiusEnvironment                         , &
          &                                                                               jacobianFactor                                 , jacobianSign                              , &
          &                                                                               radiusEvaluateLagrangian                       , overdensityEnvironmentMinimum             , &
-         &                                                                               energyOrbitDoubled
+         &                                                                               energyOrbitDoubled                             , normalizationEnvironment
     type            (interpolator                  )                    , allocatable :: interpolatorVelocityDispersionLinear
     type            (integrator                    )                    , allocatable :: integratorEnvironment                          , integratorEnvironmentNormalizer
     
@@ -821,7 +821,7 @@ contains
        countTotal=countTotal+count(.not.isComputed(iHost,1:iHost))
     end do
     countProgress=0
-    !$omp parallel private(iHost,iSatellite,massHost,massSatellite,tree,nodeHost,nodeSatellite,basicHost,basicSatellite,radiusVirialHost,velocityVirialHost,velocityDispersionLinear,indexVelocityRadial,indexVelocityTangential,velocityRadialVirial,velocityTangentialVirial,countVelocityRadialInfall,indexVelocityRadialInfall,velocityRadialInfall,radiusInfallTerm1,radiusInfallTerm2,radiiEvaluation,iEvaluate,radiusEvaluateVirial,timeEvaluate,radiusApocenterVirial,radiusPericenterVirial,timeOfFlightVirial,timeOfFlight,radiusEvaluate,radiusEvaluateComoving,velocityDispersionEvaluate,velocityRadialMeanEvaluate,velocityDispersionRadialEvaluateVirial,velocityDispersionTangentialEvaluateVirial,velocityMeanRadialEvaluateVirial,velocityTangentialInfall,jacobianFactor,jacobianDeterminant,distributionFunction,interpolatorVelocityDispersionLinear,integratorEnvironment,integratorEnvironmentNormalizer,factorEnvironmental,massEnvironment,radiusEnvironment,overdensityEnvironmentMinimum,energyOrbitDoubled)
+    !$omp parallel private(iHost,iSatellite,massHost,massSatellite,tree,nodeHost,nodeSatellite,basicHost,basicSatellite,radiusVirialHost,velocityVirialHost,velocityDispersionLinear,indexVelocityRadial,indexVelocityTangential,velocityRadialVirial,velocityTangentialVirial,countVelocityRadialInfall,indexVelocityRadialInfall,velocityRadialInfall,radiusInfallTerm1,radiusInfallTerm2,radiiEvaluation,iEvaluate,radiusEvaluateVirial,timeEvaluate,radiusApocenterVirial,radiusPericenterVirial,timeOfFlightVirial,timeOfFlight,radiusEvaluate,radiusEvaluateComoving,velocityDispersionEvaluate,velocityRadialMeanEvaluate,velocityDispersionRadialEvaluateVirial,velocityDispersionTangentialEvaluateVirial,velocityMeanRadialEvaluateVirial,velocityTangentialInfall,jacobianFactor,jacobianDeterminant,distributionFunction,interpolatorVelocityDispersionLinear,integratorEnvironment,integratorEnvironmentNormalizer,factorEnvironmental,normalizationEnvironment,massEnvironment,radiusEnvironment,overdensityEnvironmentMinimum,energyOrbitDoubled)
     allocate(tree                                                                          )
     allocate(     cosmologyFunctions_            ,mold=self%cosmologyFunctions_            )
     allocate(     cosmologyParameters_           ,mold=self%cosmologyParameters_           )
@@ -952,10 +952,23 @@ contains
        ! Compute host virial properties.
        radiusVirialHost  =darkMatterHaloScale_%radiusVirial  (nodeHost)
        velocityVirialHost=darkMatterHaloScale_%velocityVirial(nodeHost)
-       ! Compute the environmental boost factor for velocity dispersion.
-       timeEvaluate_      =+self                           %time
-       factorEnvironmental=+integratorEnvironment          %integrate(overdensityEnvironmentMinimum,haloEnvironment_%overdensityLinearMaximum()) &
-            &              /integratorEnvironmentNormalizer%integrate(overdensityEnvironmentMinimum,haloEnvironment_%overdensityLinearMaximum())
+       ! Compute the environmental boost factor for velocity dispersion. This is the mean of (1+δ)^μ over environmental
+       ! overdensity, weighted by the product of the halo mass function, the branching rate, and the environmental
+       ! overdensity PDF. Since the mass lattice is deliberately epoch-independent (see "massTableMinimum" and
+       ! "massTableMaximum"), every tabulation---no matter how early the epoch at which it is built---includes hosts as
+       ! massive as 10¹⁵ M☉. At sufficiently early epochs such a host lies so far into the exponential tail of the halo
+       ! mass function that the mass function and branching rate underflow to exactly zero at every overdensity in the
+       ! range of integration. That product is a factor of both integrands, so both integrals then evaluate to exactly
+       ! zero and the ratio is an invalid operation (0/0), not a division by zero (issue #1426). With no weight anywhere
+       ! the appropriate limit is simply no environmental boost, i.e. unity.
+       timeEvaluate_           =+self                           %time
+       normalizationEnvironment=+integratorEnvironmentNormalizer%integrate(overdensityEnvironmentMinimum,haloEnvironment_%overdensityLinearMaximum())
+       if (normalizationEnvironment > 0.0d0) then
+          factorEnvironmental  =+integratorEnvironment          %integrate(overdensityEnvironmentMinimum,haloEnvironment_%overdensityLinearMaximum()) &
+               &                /normalizationEnvironment
+       else
+          factorEnvironmental  =+1.0d0
+       end if
        ! Iterate over satellite masses.
        do iSatellite=1,countMasses          
           ! Only consider satellites less (or equally) massive than their host.

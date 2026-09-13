@@ -218,10 +218,19 @@ def _write_calibrated_containers(output_dir, params_determined):
     Each parameter ``root/leaf/...`` whose container ``{output_dir}{root}.xml``
     exists has its element at that path set to the calibrated value; parameters
     with no matching container file are left to the base-file injection.
+
+    A parameter whose name contains no ``/`` (e.g.
+    ``varianceFractionalModelDiscrepancy``) is not rooted in a container of its
+    own name, but may still appear as a top-level element of one - it is written
+    to whichever containers already define it.
     """
     roots = {}
+    flat  = []
     for name in params_determined:
-        roots.setdefault(name.split('/', 1)[0], []).append(name)
+        if '/' in name:
+            roots.setdefault(name.split('/', 1)[0], []).append(name)
+        else:
+            flat.append(name)
     for root, names in sorted(roots.items()):
         container_path = f'{output_dir}{root}.xml'
         if not os.path.exists(container_path):
@@ -229,6 +238,7 @@ def _write_calibrated_containers(output_dir, params_determined):
         tree = ET.parse(container_path)
         container_root = tree.getroot()
         updated = 0
+        names = names+[name for name in flat if container_root.find(name) is not None]
         for name in names:
             elem = _find_param_element(container_root, name)
             if elem is not None:

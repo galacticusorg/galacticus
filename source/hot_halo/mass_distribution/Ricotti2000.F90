@@ -199,9 +199,9 @@ contains
 	 <constructor>
            massDistributionBetaProfile(                                            &amp;
              &amp;                     beta                 =beta                , &amp;
-             &amp;                     coreRadius           =radiusCore          , &amp;
+             &amp;                     radiusCore           =radiusCore          , &amp;
              &amp;                     mass                 =mass                , &amp;
-             &amp;                     outerRadius          =radiusOuter         , &amp;
+             &amp;                     radiusOuter          =radiusOuter         , &amp;
              &amp;                     truncateAtOuterRadius=.true.              , &amp;
              &amp;                     componentType        =componentTypeHotHalo, &amp;
              &amp;                     massType             =massTypeGaseous       &amp;

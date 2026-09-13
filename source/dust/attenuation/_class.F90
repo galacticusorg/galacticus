@@ -58,7 +58,7 @@ module Dust_Attenuations
   ! Made public so that it survives into the object file: it is called only from the submodules into which the
   ! implementations of this class are generated, never from this module itself, and a private procedure with no
   ! caller in its own module can be discarded before those submodules are linked against it.
-  public :: componentGasProperties
+  public :: componentGasProperties, radiusSpheroidRelative
 
   ! Metallicity of the local interstellar medium, by mass. Dust-to-gas ratios are scaled relative to this value, on
   ! the assumption that the dust-to-metals ratio is universal. Declared here, rather than in an implementation file,
@@ -197,5 +197,64 @@ contains
     metallicity=abundancesGas%metallicity(metallicityTypeLinearByMass)
     return
   end subroutine componentGasProperties
+
+  double precision function radiusSpheroidRelative(node) result(radiusSpheroid)
+    !!{RST
+    Return the half-mass radius of the spheroid, in units of the disk scale length.
+
+    Each radiative transfer atlas tabulates the spheroid along an axis of its own, and none of those axes is
+    directly a model galaxy's spheroid radius: the atlas simulated a particular density profile, and labeled the
+    axis with a particular radius of it. What is returned here is the one measure that means the same thing whatever
+    profile either side assumes---the half-mass radius, taken from the stellar mass distribution of the spheroid
+    rather than from its scale radius, since for a Hernquist profile the latter is smaller by
+    :math:`(1+\sqrt{2})`. Each atlas then converts this to its own axis by dividing by the half-mass radius that one
+    unit of that axis corresponds to.
+
+    Matching two differently shaped profiles on a single radius is itself an approximation, and not the best one
+    available: :cite:t:`bianchi_monte_carlo_1996` matched an :math:`R^{1/4}` profile to a Jaffe profile by fitting
+    their enclosed luminosity, and obtained a relation differing by :math:`\approx 14` percent from what matching
+    half-light radii would have given. Attenuations for a spheroid whose profile is not the one an atlas simulated
+    should therefore not be relied upon at better than the ten percent level, whatever the optical depth.
+
+    The disk is measured by its scale radius, which is what the atlases normalize to, and which is what the disk
+    component's radius already is for an exponential profile.
+
+    A galaxy with no disk has no scale to measure the spheroid against, and no dust either, so the value is
+    immaterial: zero is returned, which callers clamp into the tabulated range.
+
+    This lives here, alongside ``componentGasProperties``, rather than in either atlas: each implementation of
+    this class is generated into its own submodule, and while a submodule can see its parent module it can not see
+    its siblings.
+    !!}
+    use :: Error                     , only : Error_Report
+    use :: Galactic_Structure_Options, only : componentTypeSpheroid, massTypeStellar
+    use :: Galacticus_Nodes          , only : nodeComponentDisk
+    use :: Mass_Distributions        , only : massDistributionClass, massDistributionSpherical
+    implicit none
+    type            (treeNode             ), intent(inout), target  :: node
+    class           (nodeComponentDisk    )               , pointer :: disk
+    class           (massDistributionClass)               , pointer :: massDistributionSpheroid
+    double precision                                                :: radiusDisk
+
+    disk       => node%disk  ()
+    radiusDisk =  disk%radius()
+    if (radiusDisk <= 0.0d0) then
+       radiusSpheroid=0.0d0
+       return
+    end if
+    massDistributionSpheroid => node%massDistribution(componentTypeSpheroid,massTypeStellar)
+    select type (massDistributionSpheroid)
+    class is (massDistributionSpherical)
+       radiusSpheroid=+massDistributionSpheroid%radiusHalfMass() &
+            &         /                         radiusDisk
+    class default
+       radiusSpheroid=0.0d0
+       call Error_Report('a half-mass radius is needed for the spheroid, which requires a spherical mass distribution'//{introspection:location})
+    end select
+    !![
+    <objectDestructor name="massDistributionSpheroid"/>
+    !!]
+    return
+  end function radiusSpheroidRelative
 
 end module Dust_Attenuations

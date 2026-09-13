@@ -4,7 +4,7 @@
 Drives ``libraryInterfaces.interfaces_methods`` on synthetic functionClasses
 and pins the generated Fortran wrapper, the ctypes signature, and the Python
 wrapper, plus the whole-method gate that keeps disqualified methods blocked.
-The runtime behaviour of the emitted Python (byref out-params, from_address,
+The runtime behavior of the emitted Python (byref out-params, from_address,
 copy, tuple assembly, zero-size guard) is validated separately against a C
 shim that mimics the Fortran ABI; these tests keep the *shape* of the
 generated code from regressing without needing a compiler in CI.

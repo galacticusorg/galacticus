@@ -555,199 +555,8 @@ jobs:
             ./datasets.tar.zst
             ./datasets.ref
       - run: echo "This job's status is ${{ job.status }}."
-  ## MacOS
+  ## MacOS (Apple Silicon)
   ### Static executable
-  Build-Executable-MacOS:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
-    runs-on: macos-15-intel
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Check out repository datasets
-        # Required by the tool build (buildTools.xml) below, which writes into
-        # $GALACTICUS_DATA_PATH (set to $GITHUB_WORKSPACE/datasets by the
-        # buildMacOS action).
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Set up build environment
-        uses: ./.github/actions/buildMacOS
-      - name: Build Galacticus
-        run: |
-          set -o pipefail
-          make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe tests.hashes.cryptographic.exe 2>&1 | tee build.log
-          ./scripts/build/staticRelinker.py `grep '\-o Galacticus.exe' build.log`
-          ./scripts/build/staticRelinker.py `grep '\-o tests.hashes.cryptographic.exe' build.log`
-          dsymutil -o Galacticus.exe.dSYM Galacticus.exe
-          zip -r debugSymbolsMacOS.zip Galacticus.exe.dSYM
-          mv Galacticus.exe Galacticus_MacOS.exe
-      - name: Sign Galacticus executable
-        uses: ./.github/actions/codeSignMacOS
-        with:
-          files: Galacticus_MacOS.exe
-          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
-          macos_certificate_password: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
-          macos_keychain_password: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
-          macos_developer_id: ${{ secrets.MACOS_DEVELOPER_ID }}
-      - name: Package notarization ZIP
-        run: |
-          zip Galacticus_MacOS.zip Galacticus_MacOS.exe
-      - name: Upload Galacticus executable
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: galacticus-exec-MacOS
-          path: |
-            Galacticus_MacOS.exe
-            Galacticus_MacOS.zip
-      - name: Upload test code executables
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: test-execs-MacOS
-          path: 'tests.*.exe'
-      - name: Upload Galacticus debug symbols
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: galacticus-debug-MacOS
-          path: 'debugSymbolsMacOS.zip'
-      - name: Build tools
-        id: buildTools
-        run: |
-          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          mangleVersion=`awk '{if ($1 == "mangle:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          axioncambVersion=`awk '{if ($1 == "axioncamb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          # Export the dependency versions so the later "Package" step (a separate shell) can see them.
-          echo "classVersion=${classVersion}"       >> $GITHUB_ENV
-          echo "cambVersion=${cambVersion}"         >> $GITHUB_ENV
-          echo "forutilsVersion=${forutilsVersion}" >> $GITHUB_ENV
-          echo "fspsVersion=${fspsVersion}"         >> $GITHUB_ENV
-          echo "cloudyVersion=${cloudyVersion}"     >> $GITHUB_ENV
-          echo "mangleVersion=${mangleVersion}"     >> $GITHUB_ENV
-          echo "axioncambVersion=${axioncambVersion}" >> $GITHUB_ENV
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          mkdir -p $GALACTICUS_DATA_PATH/dynamic
-          set -o pipefail
-          # Use the statically-linked executable already built by this job to build the tools.
-          ./Galacticus_MacOS.exe parameters/buildTools.xml 2>&1 | tee build.log
-          cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
-          cd $GALACTICUS_DATA_PATH/dynamic/axionCAMB-${axioncambVersion}/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb
-          cd $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion}/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o class ' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/RecFast/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
-          cd $GALACTICUS_DATA_PATH/dynamic/c${cloudyVersion}/source/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/src/
-          cp ../bin/harmonize .
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
-          echo "camb=${GALACTICUS_DATA_PATH}/dynamic/CAMB-${cambVersion}/fortran/camb" >> "$GITHUB_OUTPUT"
-          echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/axionCAMB-${axioncambVersion}/camb" >> "$GITHUB_OUTPUT"
-          echo "class=${GALACTICUS_DATA_PATH}/dynamic/class_public-${classVersion}/class" >> "$GITHUB_OUTPUT"
-          echo "recfast=${GALACTICUS_DATA_PATH}/dynamic/RecFast/recfast.exe" >> "$GITHUB_OUTPUT"
-          echo "cloudy=${GALACTICUS_DATA_PATH}/dynamic/c${cloudyVersion}/source/cloudy.exe" >> "$GITHUB_OUTPUT"
-          echo "fsps=${GALACTICUS_DATA_PATH}/dynamic/fsps-${fspsVersion}/src/autosps.exe" >> "$GITHUB_OUTPUT"
-          echo "mangle=${GALACTICUS_DATA_PATH}/dynamic/mangle-${mangleVersion}/bin/harmonize" >> "$GITHUB_OUTPUT"
-      - name: Sign tool executables
-        uses: ./.github/actions/codeSignMacOS
-        with:
-          files: ${{ steps.buildTools.outputs.camb }} ${{ steps.buildTools.outputs.axioncamb }} ${{ steps.buildTools.outputs.class }} ${{ steps.buildTools.outputs.recfast }} ${{ steps.buildTools.outputs.cloudy }} ${{ steps.buildTools.outputs.fsps }} ${{ steps.buildTools.outputs.mangle }}
-          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
-          macos_certificate_password: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
-          macos_keychain_password: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
-          macos_developer_id: ${{ secrets.MACOS_DEVELOPER_ID }}
-      - name: Package
-        run: |
-          # Package the zip with the signed executables
-          cd $GALACTICUS_DATA_PATH
-          # `convert_calpgm` is a helper that Cloudy compiles inside its own data directory to convert the
-          # CDMS/JPL catalogs at data-build time. It is never run by Galacticus, and it is not code-signed
-          # above, so leaving it in the archive causes notarization to reject the whole archive ("the binary
-          # is not signed", "no secure timestamp", "no hardened runtime"). Exclude it and its debug symbols.
-          #
-          # The `forutils` stamp file must be packaged alongside the `camb` executable. At run time
-          # `Interface_CAMB_Initialize` (source/interface/CAMB.F90) rebuilds CAMB unless *both* the
-          # executable and a stamp matching the required `forutils` version are present. Installs made from
-          # the packaged tools (e.g. via PyPI) typically have no Fortran compiler, so a missing stamp turns
-          # into a fatal build attempt rather than a simple use of the pre-built binary.
-          toolProducts=(
-            dynamic/CAMB-${cambVersion}/fortran/camb
-            dynamic/CAMB-${cambVersion}/forutils/.galacticusForUtilsVersion_${forutilsVersion}
-            dynamic/axionCAMB-${axioncambVersion}/camb
-            dynamic/class_public-${classVersion}/class
-            dynamic/RecFast/recfast.exe
-            dynamic/RecFast/currentVersion
-            dynamic/c${cloudyVersion}/source/cloudy.exe
-            dynamic/c${cloudyVersion}/data
-            dynamic/fsps-${fspsVersion}/src/autosps.exe
-            dynamic/fsps-${fspsVersion}/dust
-            dynamic/fsps-${fspsVersion}/data
-            dynamic/fsps-${fspsVersion}/nebular
-            dynamic/fsps-${fspsVersion}/SPECTRA
-            dynamic/fsps-${fspsVersion}/OUTPUTS
-            dynamic/fsps-${fspsVersion}/ISOCHRONES
-            dynamic/mangle-${mangleVersion}/bin/harmonize
-          )
-          # `zip` only warns (and still exits successfully) when a named path does not exist, so any error in
-          # the paths above -- for example an unset version variable -- would silently produce an archive
-          # missing most of the tools. Require every path to be present before packaging.
-          missingProducts=0
-          for toolProduct in "${toolProducts[@]}"; do
-            if [ ! -e "${toolProduct}" ]; then
-              echo "::error::tool product to be packaged does not exist: ${toolProduct}"
-              missingProducts=1
-            fi
-          done
-          [ ${missingProducts} -eq 0 ] || exit 1
-          zip -r toolsMacOS.zip "${toolProducts[@]}" \
-            -x "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm" \
-               "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm.dSYM/*"
-          # The same signed products, packed again as a zstd tar -- which is what the release publishes and
-          # the launcher installs. The zip stays because it is the submission format: `xcrun notarytool
-          # submit` accepts only .zip/.pkg/.dmg, and the signature verification step below reads it too. That
-          # costs nothing at distribution time, because a notarization ticket for loose signed binaries lives
-          # on Apple's servers and is looked up by the code-directory hash of each binary -- it is not stapled
-          # into the archive, so the archive's format is free. The tar wins twice over the zip: it unpacks far
-          # faster, and it records file modes, so the launcher does not have to guess afterwards which of the
-          # unpacked files were meant to be executable.
-          #
-          # COPYFILE_DISABLE stops bsdtar writing AppleDouble `._*` members for extended attributes. Mach-O
-          # code signatures live inside the binaries themselves, so nothing signed is lost; what would be
-          # carried over is quarantine and Finder metadata, which the installed tools have no use for.
-          set -o pipefail
-          COPYFILE_DISABLE=1 tar cf - \
-            --exclude "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm" \
-            --exclude "dynamic/c${cloudyVersion}/data/cdms+jpl/convert_calpgm.dSYM*" \
-            "${toolProducts[@]}" \
-            | zstd -12 -T0 -q -o toolsMacOS.tar.zst
-      - name: Verify all packaged binaries are code-signed
-        uses: ./.github/actions/verifySignedMacOS
-        with:
-          archive: toolsMacOS.zip
-          working_directory: ${{ env.GALACTICUS_DATA_PATH }}
-          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
-      - name: Upload tool executables
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: galacticus-tools-MacOS
-          # Already compressed: re-zipping them in the artifact costs minutes and saves nothing.
-          compression-level: 0
-          path: |
-            ./datasets/toolsMacOS.zip
-            ./datasets/toolsMacOS.tar.zst
-  ### Apple Silicon build
   Build-Executable-MacOS-M1:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: macos-15
@@ -773,8 +582,9 @@ jobs:
           set -o pipefail
           # Disable link-time optimization: on Apple Silicon the DWARF emitted by LTO causes the dsymutil
           # step below to be OOM-killed (see the LTO option in the Makefile).
-          make -j`sysctl -n hw.activecpu` USEGIT2=no LTO=disabled Galacticus.exe 2>&1 | tee build.log
+          make -j`sysctl -n hw.activecpu` USEGIT2=no LTO=disabled Galacticus.exe tests.hashes.cryptographic.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.py `grep '\-o Galacticus.exe' build.log`
+          ./scripts/build/staticRelinker.py `grep '\-o tests.hashes.cryptographic.exe' build.log`
           dsymutil -o Galacticus.exe.dSYM Galacticus.exe
           zip -r debugSymbolsMacOS-M1.zip Galacticus.exe.dSYM
           mv Galacticus.exe Galacticus_MacOS-M1.exe
@@ -796,6 +606,11 @@ jobs:
           path: |
             Galacticus_MacOS-M1.exe
             Galacticus_MacOS-M1.zip
+      - name: Upload test code executables
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: test-execs-MacOS-M1
+          path: 'tests.*.exe'
       - name: Upload Galacticus debug symbols
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -937,7 +752,7 @@ jobs:
   ## Library
   Build-Library-MacOS:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
-    runs-on: macos-15-intel
+    runs-on: macos-15
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -979,7 +794,9 @@ jobs:
           mkdir galacticus/lib
           mkdir galacticus/python
           # Find all dynamic libraries needed (filtering out any non-"local" ones) and copy to our folder.
-          otool -L libgalacticus.so | awk '{if (NR > 1) print $1}' | grep -e /usr/local -e /opt/local | xargs -n 1 -I{} cp {} galacticus/lib/
+          # `/opt/homebrew` is Homebrew's prefix on Apple Silicon (it is `/usr/local` on Intel), and is where
+          # the GCC run-time libraries the library links against live.
+          otool -L libgalacticus.so | awk '{if (NR > 1) print $1}' | grep -e /usr/local -e /opt/local -e /opt/homebrew | xargs -n 1 -I{} cp {} galacticus/lib/
           mv galacticus.py galacticus/python/
           mv libgalacticus.so galacticus/lib/
           zip -r libgalacticusMacOS.zip galacticus
@@ -994,28 +811,20 @@ jobs:
           ! grep -q -e FAIL pythonTest.log
       - run: echo "This job's status is ${{ job.status }}."
   Submit-Notarization-MacOS:
-    runs-on: macos-15-intel
+    runs-on: macos-15
     if: github.ref == 'refs/heads/master'
     permissions:
       contents: read
-    # The tool artifacts (galacticus-tools-MacOS{,-M1}) are now produced by the
-    # executable build jobs, so those two jobs cover both executables and tools.
-    needs: [ Build-Executable-MacOS, Build-Executable-MacOS-M1 ]
+    # The tool artifact (galacticus-tools-MacOS-M1) is now produced by the
+    # executable build job, so that one job covers both executable and tools.
+    needs: [ Build-Executable-MacOS-M1 ]
     steps:
       - name: Check out repository code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Download artifacts (executable-macos)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: galacticus-exec-MacOS
       - name: Download artifacts (executable-macos-m1)
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-exec-MacOS-M1
-      - name: Download artifacts (tools-macos)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: galacticus-tools-MacOS
       - name: Download artifacts (tools-macos-m1)
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
@@ -1380,6 +1189,7 @@ jobs:
                       tests.differentiation.exe,
                       tests.tables.exe,
                       tests.table_caches.exe,
+                      tests.history.exe,
                       tests.interpolation.exe,
                       tests.interpolation.2D.exe,
                       tests.interpolation.multiD.exe,
@@ -1717,7 +1527,14 @@ jobs:
                 test-library-interfaces.py,
                 test-merger-tree-read-ties.py,
                 test-node-trajectory.py,
-                test-virial-orbit-loss-cone.py ]
+                test-virial-orbit-loss-cone.py,
+                test-CGM-ram-pressure-outer-radius.py,
+                test-parameter-resolver.py,
+                test-prompt-cusps-unformed.py,
+                test-radius-specifiers-soliton.py,
+                test-radius-specifiers-zero.py,
+                test-splashback-radius.py,
+                test-tree-processing-time.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1894,7 +1711,8 @@ jobs:
                 testSuite/regressions/lightconeCrossingAtCurrentTime.xml,
                 testSuite/regressions/constrainedTreeImpossible.py,
                 testSuite/regressions/ignoreWellOrdering.xml,
-                testSuite/regressions/johnson2021CorrelatedDeviatesWithRegrid.xml ]
+                testSuite/regressions/johnson2021CorrelatedDeviatesWithRegrid.xml,
+                testSuite/regressions/starFormationHistoryOutputStateAdvance.xml ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -2119,10 +1937,10 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           python3 tutorials/executeNotebooks.py
       - run: echo "This job's status is ${{ job.status }}."
-  ## MacOS
+  ## MacOS (Apple Silicon)
   ### Test Codes
   Codes-MacOS:
-    needs: Build-Executable-MacOS
+    needs: Build-Executable-MacOS-M1
     strategy:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
@@ -2130,9 +1948,9 @@ jobs:
         executable: [ tests.hashes.cryptographic.exe ]
     uses: ./.github/workflows/testCode.yml
     with:
-      runner: macos-15-intel
+      runner: macos-15
       executable: ${{ matrix.executable }}
-      artifact: test-execs-MacOS
+      artifact: test-execs-MacOS-M1
     secrets: inherit
   # Validate, deploy and update
   Validate:
@@ -2617,7 +2435,6 @@ jobs:
              Build-Docker-Linux,
              Build-Tools,
              Package-Datasets,
-             Build-Executable-MacOS,
              Build-Executable-MacOS-M1,
              Build-Library-MacOS,
              Submit-Notarization-MacOS,
@@ -2693,14 +2510,6 @@ jobs:
           gh release upload bleeding-edge ./datasets.tar.zst ./datasets.ref --clobber
           sha256sum datasets.tar.zst datasets.ref >> "${GITHUB_WORKSPACE}/SHA256SUMS"
           rm ./datasets.tar.zst ./datasets.ref
-      - name: Download artifacts (executable-macos)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: galacticus-exec-MacOS
-      - name: Download artifacts (debug-macos)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: galacticus-debug-MacOS
       - name: Download artifacts (executable-macos-m1)
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
@@ -2713,10 +2522,6 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-library-MacOS
-      - name: Download artifacts (tools-macos)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: galacticus-tools-MacOS
       - name: Download artifacts (tools-macos-m1)
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
@@ -2729,12 +2534,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # The tools zips are deliberately not published: they exist only as the format `xcrun notarytool
-          # submit` accepts, and the release carries the same signed products as the zstd tars the launcher
-          # installs. Publishing both would add ~4 GB of duplicate assets to every release.
-          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.tar.zst ./toolsMacOSM1.tar.zst ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json --clobber
-          sha256sum Galacticus_MacOS.exe Galacticus_MacOS-M1.exe toolsMacOS.tar.zst toolsMacOSM1.tar.zst >> "${GITHUB_WORKSPACE}/SHA256SUMS"
-          rm -f ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./toolsMacOS.tar.zst ./toolsMacOSM1.tar.zst ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json
+          # The tools zip is deliberately not published: it exists only as the format `xcrun notarytool
+          # submit` accepts, and the release carries the same signed products as the zstd tar the launcher
+          # installs. Publishing both would add ~2 GB of duplicate assets to every release.
+          gh release upload bleeding-edge ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOSM1.tar.zst ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json --clobber
+          sha256sum Galacticus_MacOS-M1.exe toolsMacOSM1.tar.zst >> "${GITHUB_WORKSPACE}/SHA256SUMS"
+          rm -f ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOSM1.zip ./toolsMacOSM1.tar.zst ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json
       - name: Download artifacts (perf-darkMatterOnlySubHalos)
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
