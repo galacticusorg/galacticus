@@ -423,7 +423,10 @@ jobs:
       - name: Install tools
         run: |
           sudo apt -y update
-          sudo apt install -y enchant-2 aspell aspell-en poppler-utils
+          # pandoc is required by nbsphinx to convert the tutorial notebooks; without
+          # it the documentation build aborts on the first notebook.  Kept in step
+          # with the list in .readthedocs.yaml.
+          sudo apt install -y enchant-2 aspell aspell-en poppler-utils pandoc
           pip install -r docs/requirements.txt sphinxcontrib-spelling pyenchant
       - name: Build documentation and spell-check
         run: |
