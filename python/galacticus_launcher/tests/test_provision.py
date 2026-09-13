@@ -315,3 +315,52 @@ def test_a_failed_catalog_download_does_not_abort_the_install(install, fetched,
     assert (install.exec_path / "parameters" / "quickTest.xml").is_file()
     assert (install.tools_path / "camb").is_file()
     assert _catalog(install) == {"source": "generated"}
+
+
+# --- a platform whose builds have been retired -----------------------------
+
+@pytest.fixture
+def retired_install(install):
+    """The same install, for a platform Galacticus no longer builds."""
+    return install._replace(
+        assets=install.assets._replace(retired="No more of those."))
+
+
+def test_a_retired_platform_installs_from_a_release_which_carries_its_binary(
+        retired_install, fetched, monkeypatch):
+    """Retirement must not break the releases cut while the platform was still
+    built: they publish its binary, and have to stay installable."""
+    monkeypatch.setattr(download, "load_checksums",
+                        lambda tag, log=print: _checksums("Galacticus.exe"))
+    monkeypatch.setattr(download, "_verify", lambda *a, **k: None)
+    assert "exec" in download.provision(retired_install, log=_quiet)
+
+
+def test_a_retired_platform_is_refused_by_a_release_which_carries_no_binary(
+        retired_install, fetched, monkeypatch):
+    monkeypatch.setattr(download, "load_checksums",
+                        lambda tag, log=print: _checksums("tools.tar.zst"))
+    with pytest.raises(platforms.UnsupportedPlatform) as raised:
+        download.provision(retired_install, log=_quiet)
+    # The reason, not a bare download failure.
+    assert "No more of those." in str(raised.value)
+    assert not fetched
+
+
+def test_a_release_publishing_no_checksums_predates_every_retirement(
+        retired_install, fetched, monkeypatch):
+    """Such a release has no manifest to consult, and is old enough that the
+    binary is there; the default `load_checksums` stub already returns None."""
+    monkeypatch.setattr(download, "_verify", lambda *a, **k: None)
+    assert "exec" in download.provision(retired_install, log=_quiet)
+
+
+def test_a_retired_platform_already_installed_keeps_working(
+        retired_install, fetched, monkeypatch):
+    """The check gates the download of the executable, so an install provisioned
+    while the binary was still published is never refused afterwards."""
+    monkeypatch.setattr(download, "_verify", lambda *a, **k: None)
+    download.provision(retired_install, log=_quiet)
+    monkeypatch.setattr(download, "load_checksums",
+                        lambda tag, log=print: _checksums("tools.tar.zst"))
+    assert download.provision(retired_install, log=_quiet) == []

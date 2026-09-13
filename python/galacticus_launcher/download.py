@@ -55,6 +55,8 @@ from pathlib import Path
 
 import requests
 
+from . import platforms
+
 REPO = "galacticusorg/galacticus"
 DATASETS_REPO = "galacticusorg/datasets"
 
@@ -411,11 +413,40 @@ def _sentinel(directory, name):
     return Path(directory) / f".galacticus-{name}"
 
 
+def _require_published_binary(context):
+    """Refuse, with the reason, to install a retired platform from a release which
+    carries no binary for it.
+
+    A platform whose builds have been retired keeps its entry in
+    :mod:`platforms`, because the releases cut while it was still built do carry
+    its assets and must stay installable.  What has to be caught is the other
+    case -- a newer release, which publishes nothing for it.  The published
+    checksums double as the release's asset manifest, so the absence is visible
+    up front; without this the install would instead grind through the download
+    retry schedule and end in a bare 404.
+
+    A release old enough to publish no checksums at all predates every
+    retirement, so it is left alone.  This is checked only when the executable is
+    about to be fetched, so an install already provisioned from a release which
+    did carry the binary keeps running.
+    """
+    assets, checksums = context.install.assets, context.checksums
+    if not assets.retired or checksums is None:
+        return
+    if _publishes(checksums, assets.binary):
+        return
+    raise platforms.UnsupportedPlatform(
+        f"release {context.install.tag} publishes no {assets.binary} for "
+        f"{assets.key}. {assets.retired}"
+    )
+
+
 def _plan_exec(context):
     install, log = context.install, context.log
     sentinel = _sentinel(install.exec_path, "exec")
     if sentinel.exists() and not context.force:
         return None
+    _require_published_binary(context)
     log(f"Fetching Galacticus source ({install.tag}) ...")
     work = context.workspace(install.exec_path)
     archive = work / "source.zip"

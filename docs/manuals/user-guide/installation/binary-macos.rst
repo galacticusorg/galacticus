@@ -5,6 +5,10 @@ Installing a Pre-compiled Binary (macOS)
 
    macOS support is in beta-testing - this may or may not work for you. Please report success or failure in the `discussion forum <https://github.com/galacticusorg/galacticus/discussions>`_.
 
+.. note::
+
+   Pre-compiled binaries are provided for Apple Silicon (M1 and newer) only. Builds for Intel (x86-64) Macs have been retired: GitHub Actions is retiring its Intel macOS runners, and Homebrew no longer publishes pre-built packages for that platform. Releases up to and including `v0.9.12 <https://github.com/galacticusorg/galacticus/releases/tag/v0.9.12>`_ still carry a ``Galacticus_MacOS.exe`` built for Intel; for anything newer on an Intel Mac you must `build from source <https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/source-macos.html>`_.
+
 This assumes that you want to install a pre-compiled Galacticus in a folder called ``Galacticus`` from your home directory. (You can also attempt to `install Galacticus from source <https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/source-macos.html>`_ - usually necessary only if you want to modify the code.)
 
 #. Download and unpack the `source <https://github.com/galacticusorg/galacticus/archive/master.zip>`_ and `datasets <https://github.com/galacticusorg/datasets>`_ that are needed at run-time:
@@ -22,35 +26,22 @@ This assumes that you want to install a pre-compiled Galacticus in a folder call
 
 #. Download the pre-compiled binary and the tools package, move them to the ``~/Galacticus`` folder, and unpack it:
 
-   * For x86 chips (older Macs):
+   .. code-block:: bash
 
-     .. code-block:: bash
+      cd ~/Galacticus
+      curl -L https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_MacOS-M1.exe --output Galacticus_MacOS-M1.exe
+      mv Galacticus_MacOS-M1.exe galacticus/Galacticus.exe
+      chmod u=wrx galacticus/Galacticus.exe
+      curl -L https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/toolsMacOSM1.tar.zst --output toolsMacOSM1.tar.zst
+      mkdir -p datasets
+      mv toolsMacOSM1.tar.zst datasets/
+      cd datasets
+      tar xf toolsMacOSM1.tar.zst
+      cd ..
 
-        cd ~/Galacticus
-        curl -L https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_MacOS.exe --output Galacticus_MacOS.exe
-        mv Galacticus_MacOS.exe galacticus/Galacticus.exe
-        chmod u=wrx galacticus/Galacticus.exe
-        curl -L https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/toolsMacOS.zip --output toolsMacOS.zip
-        mkdir datasets
-        mv toolsMacOS.zip datasets/
-        cd datasets
-        unzip toolsMacOS.zip
-        cd ..
+   .. note::
 
-   * For Apple Silicon (M1 and newer chips):
-
-     .. code-block:: bash
-
-        cd ~/Galacticus
-        curl -L https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_MacOS.exe --output Galacticus_MacOS-M1.exe
-        mv Galacticus_MacOS-M1.exe galacticus/Galacticus.exe
-        chmod u=wrx galacticus/Galacticus.exe
-        curl -L https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/toolsMacOS.zip --output toolsMacOS-M1.zip
-        mkdir datasets
-        mv toolsMacOS-M1.zip datasets/
-        cd datasets
-        unzip toolsMacOS-M1.zip
-        cd ..
+      The tools archive is compressed with `zstd <https://facebook.github.io/zstd/>`_. The ``tar`` shipped with macOS understands it; if yours does not, install ``zstd`` (for example ``brew install zstd`` or ``sudo port install zstd``) and unpack with ``zstd -d toolsMacOSM1.tar.zst`` followed by ``tar xf toolsMacOSM1.tar``.
 
 #. Set environment variables to indicate the locations at which you downloaded the source and data:
 
@@ -81,4 +72,4 @@ This assumes that you want to install a pre-compiled Galacticus in a folder call
 Debugging
 ---------
 
-If you run into problems using Galacticus under macOS it can be useful to download the `debug symbols <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/debugSymbolsMacOS.zip>`_ (or these `debug symbols <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/debugSymbolsMacOS-M1.zip>`_ for Apple Silicon chips) and unpack them into the same folder as your ``Galacticus.exe`` executable to allow backtrace information to be generated.
+If you run into problems using Galacticus under macOS it can be useful to download the `debug symbols <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/debugSymbolsMacOS-M1.zip>`_ and unpack them into the same folder as your ``Galacticus.exe`` executable to allow backtrace information to be generated.
