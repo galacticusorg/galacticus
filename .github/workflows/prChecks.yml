@@ -410,6 +410,11 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # Full history: `spelling_ignore_contributor_names` in docs/conf.py reads
+          # the contributor names from the git log, so a shallow clone would leave
+          # them unrecognised and flag every one of them.
+          fetch-depth: 0
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
