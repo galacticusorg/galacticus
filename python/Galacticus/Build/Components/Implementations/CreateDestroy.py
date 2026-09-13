@@ -23,7 +23,7 @@ def Implementation_Creation(build, class_dict, member):
 
     Allocates parent state, walks
     `selfXxx%` references in classDefault.code to add cross-component
-    pointer locals, and either initialises every non-virtual property
+    pointer locals, and either initializes every non-virtual property
     from its `classDefault.code` or sets it to the matching null value.
     Active classes also allocate the meta-property storage arrays.
     """

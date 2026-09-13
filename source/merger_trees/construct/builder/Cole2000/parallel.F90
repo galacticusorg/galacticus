@@ -48,7 +48,7 @@
 
   ! Sub-module scope variables used in tree building.
   !![
-  <workaround type="gfortran" PR="110547" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=110547" docformat="rst">
+  <workaround type="gfortran" PR="110547" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=110547" docformat="rst">
     <description>
     We use a pointer to self here rather than have self be passed to various methods (which are defined as "nopass" in the parent class) because otherwise gfortran calls the destructor of self on exit from these functions when using OpenMP task-based parallelism. This may be a compiler bug. Note that we use a separate pointer here that is not threadprivate as threadprivate variables can not be passed as arguments in untied OpenMP tasks.
     </description>

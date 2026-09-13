@@ -86,7 +86,7 @@ contains
     allocate(names         (countPostprocessors))
     allocate(postprocessors(countPostprocessors))
     !![
-    <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336" docformat="rst">
+    <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=37336" docformat="rst">
       <description>
       Missing finalization of array constructors after their use in gfortran (PR#37336); workaround initializes the default names array using ``var_str`` before passing to ``inputParameter``.
       </description>

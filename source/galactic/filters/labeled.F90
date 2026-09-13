@@ -22,13 +22,13 @@ Implements a galactic filter which tests whether the given node has a specified 
 !!}
   
   !![
-  <galacticFilter name="galacticFilterLabelled" docformat="rst">
+  <galacticFilter name="galacticFilterLabeled" docformat="rst">
    <description>
    Tests whether the given node has been assigned the label specified by ``[label]``. This filter passes only nodes that carry the designated label, enabling targeted selection of nodes based on categorical metadata attached during tree construction or post-processing.
    </description>
   </galacticFilter>
   !!]
-  type, extends(galacticFilterClass) :: galacticFilterLabelled
+  type, extends(galacticFilterClass) :: galacticFilterLabeled
      !!{RST
      Tests whether the given node has a specified label.
      !!}
@@ -36,28 +36,28 @@ Implements a galactic filter which tests whether the given node has a specified 
      type   (varying_string) :: label
      integer                 :: labelID
    contains
-     procedure :: passes => labelledPasses
-  end type galacticFilterLabelled
+     procedure :: passes => labeledPasses
+  end type galacticFilterLabeled
 
-  interface galacticFilterLabelled
+  interface galacticFilterLabeled
      !!{RST
-     Constructors for the :galacticus-class:`galacticFilterLabelled` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterLabeled` galactic filter class.
      !!}
-     module procedure labelledConstructorParameters
-     module procedure labelledConstructorInternal
-  end interface galacticFilterLabelled
+     module procedure labeledConstructorParameters
+     module procedure labeledConstructorInternal
+  end interface galacticFilterLabeled
 
 contains
 
-  function labelledConstructorParameters(parameters) result(self)
+  function labeledConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`galacticFilterLabelled` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterLabeled` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(galacticFilterLabelled)                :: self
-    type(inputParameters       ), intent(inout) :: parameters
-    type(varying_string        )                :: label
+    type(galacticFilterLabeled)                :: self
+    type(inputParameters      ), intent(inout) :: parameters
+    type(varying_string       )                :: label
 
     !![
     <inputParameter docformat="rst">
@@ -68,38 +68,38 @@ contains
       </description>
     </inputParameter>
     !!]
-    self=galacticFilterLabelled(label)
+    self=galacticFilterLabeled(label)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
-  end function labelledConstructorParameters
+  end function labeledConstructorParameters
   
-  function labelledConstructorInternal(label) result(self)
+  function labeledConstructorInternal(label) result(self)
     !!{RST
-    Internal constructor for the :galacticus-class:`galacticFilterLabelled` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterLabeled` galactic filter class.
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
-    type(galacticFilterLabelled)                :: self
-    type(varying_string        ), intent(in   ) :: label
+    type(galacticFilterLabeled)                :: self
+    type(varying_string       ), intent(in   ) :: label
     !![
     <constructorAssign variables="label"/>
     !!]
 
     self%labelID=nodeLabelRegister(char(label))
     return
-  end function labelledConstructorInternal
+  end function labeledConstructorInternal
 
-  logical function labelledPasses(self,node)
+  logical function labeledPasses(self,node)
     !!{RST
     Implement a filter on node labels.
     !!}
     use :: Nodes_Labels, only : nodeLabelIsPresent
     implicit none
-    class(galacticFilterLabelled), intent(inout)         :: self
-    type (treeNode              ), intent(inout), target :: node
+    class(galacticFilterLabeled), intent(inout)         :: self
+    type (treeNode             ), intent(inout), target :: node
 
-    labelledPasses=nodeLabelIsPresent(self%labelID,node)
+    labeledPasses=nodeLabelIsPresent(self%labelID,node)
     return
-  end function labelledPasses
+  end function labeledPasses

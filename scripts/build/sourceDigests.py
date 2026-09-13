@@ -156,7 +156,7 @@ def _prewarm_file_digests(object_files, build_path, use_locks):
 
     Each source file is a single task with a single writer, so the parallel
     pass needs no intra-run lock (the `flock` inside `ensure_file_digest`,
-    taken when `use_locks`, still serialises concurrent *external* builds).
+    taken when `use_locks`, still serializes concurrent *external* builds).
     This is a pure warm-up: any file it skips — including one that is stale
     only via a data-file dependency the cheap filter below ignores — is still
     computed, correctly and serially, by `find_hash`.

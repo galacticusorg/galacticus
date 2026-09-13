@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that sets the positions of orphaned subhalos.
   !!}
@@ -35,6 +37,7 @@
      private
      class(satelliteOrphanDistributionClass), pointer :: satelliteOrphanDistribution_ => null()
    contains
+     final     ::                                        positionOrphansDestructor
      procedure :: differentialEvolutionStepFinalState => positionOrphansDifferentialEvolutionStepFinalState
   end type nodeOperatorPositionOrphans
   

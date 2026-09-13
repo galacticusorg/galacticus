@@ -35,7 +35,7 @@ def _source_files_recursive(root):
 #
 # Reading each candidate source file (to detect a `program` statement) is the
 # slow, serial part on NFS: each open blocks on close-to-open metadata
-# revalidation, so doing them one at a time serialises thousands of millisecond
+# revalidation, so doing them one at a time serializes thousands of millisecond
 # waits. Each file is scanned independently and produces only its own result
 # (the Makefile rule text plus the executable name it contributes, if any),
 # writing to no shared state. The read-only `source_directory`/`work_dir` are

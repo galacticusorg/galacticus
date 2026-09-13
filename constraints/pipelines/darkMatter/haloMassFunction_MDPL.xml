@@ -6,8 +6,8 @@
   
   <!-- Task and output -->
   <task value="haloMassFunction">
-   <haloMassMinimum                     value=" 1.122018454e06"/>
-   <haloMassMaximum                     value=" 1.122018454e16"/>
+   <massHaloMinimum                     value=" 1.122018454e06"/>
+   <massHaloMaximum                     value=" 1.122018454e16"/>
    <pointsPerDecade                     value="10.0"           />
    <includeMassAccretionRate            value="false"          />
    <includeUnevolvedSubhaloMassFunction value="false"          />

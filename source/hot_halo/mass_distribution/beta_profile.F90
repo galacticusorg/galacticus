@@ -181,9 +181,9 @@ contains
           ! this node.
           call massDistribution__%initialize(                                   &
                &                             beta                 =self%beta  , &
-               &                             coreRadius           =radiusScale, &
+               &                             radiusCore           =radiusScale, &
                &                             mass                 =mass       , &
-               &                             outerRadius          =radiusOuter, &
+               &                             radiusOuter          =radiusOuter, &
                &                             truncateAtOuterRadius=.true.       &
                &                            )
        else
@@ -193,9 +193,9 @@ contains
 	    <constructor>
               massDistributionBetaProfile(                                                 &amp;
                 &amp;                     beta                 =self%beta                , &amp;
-                &amp;                     coreRadius           =     radiusScale         , &amp;
+                &amp;                     radiusCore           =     radiusScale         , &amp;
                 &amp;                     mass                 =     mass                , &amp;
-                &amp;                     outerRadius          =     radiusOuter         , &amp;
+                &amp;                     radiusOuter          =     radiusOuter         , &amp;
                 &amp;                     truncateAtOuterRadius=     .true.              , &amp;
                 &amp;                     componentType        =     componentTypeHotHalo, &amp;
                 &amp;                     massType             =     massTypeGaseous       &amp;

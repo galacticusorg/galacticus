@@ -42,7 +42,7 @@
    contains
      !![
      <methods docformat="rst">
-       <method method="assignment(=)" description="Assign outputGroup objects."/>
+       <method method="assignment(=)" description="Assign ``outputGroup`` objects."/>
      </methods>
      !!]
      procedure :: outputGroupAssign
@@ -1262,8 +1262,8 @@ contains
           self%outputGroupsCount=max(self%outputGroupsCount+standardOutputGroupsIncrement,(indexOutput/standardOutputGroupsIncrement+1)*standardOutputGroupsIncrement)
           allocate(self%outputGroups(self%outputGroupsCount))
           !![
-	  <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696" docformat="rst">
-	    <seeAlso type="gfortran" PR="124012" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=124012"/>
+	  <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=57696" docformat="rst">
+	    <seeAlso type="gfortran" PR="124012" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=124012"/>
 	    <description>
 	    Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
 

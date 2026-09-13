@@ -82,7 +82,7 @@ module Stellar_Luminosities_Structure
      <methods docformat="rst">
        <method description="Multiply stellar luminosities by a scalar." method="operator(*)" />
        <method description="Divide stellar luminosities by a scalar." method="operator(/)" />
-       <method description="Add two stellarLuminosities." method="operator(+)" />
+       <method description="Add two ``stellarLuminosities``." method="operator(+)" />
        <method description="Subtract one abundance from another." method="operator(-)" />
        <method description="Increment a stellar luminosities object." method="increment" />
        <method description="Return a count of the number of properties in a serialized stellar luminosities object." method="serializeCount" />
@@ -482,7 +482,7 @@ contains
   
   subroutine Stellar_Luminosities_Destroy(self)
     !!{RST
-    Destroy an stellarLuminosities object.
+    Destroy a ``stellarLuminosities`` object.
     !!}
     implicit none
     class(stellarLuminosities), intent(inout) :: self
@@ -550,7 +550,7 @@ contains
 
   subroutine Stellar_Luminosities_Dump_Raw(self,fileHandle)
     !!{RST
-    Dump an stellarLuminosities object to binary.
+    Dump a ``stellarLuminosities`` object to binary.
     !!}
     implicit none
     class  (stellarLuminosities), intent(in   ) :: self
@@ -570,7 +570,7 @@ contains
 
   subroutine Stellar_Luminosities_Read_Raw(self,fileHandle)
     !!{RST
-    Read an stellarLuminosities object from binary.
+    Read a ``stellarLuminosities`` object from binary.
     !!}
     implicit none
     class  (stellarLuminosities), intent(inout) :: self
@@ -595,7 +595,7 @@ contains
 
   subroutine Stellar_Luminosities_Reset(self)
     !!{RST
-    Reset an stellarLuminosities object.
+    Reset a ``stellarLuminosities`` object.
     !!}
     implicit none
     class(stellarLuminosities), intent(inout) :: self
@@ -609,7 +609,7 @@ contains
 
   subroutine Stellar_Luminosities_Set_To_Unity(self)
     !!{RST
-    Set an stellarLuminosities object to unity.
+    Set a ``stellarLuminosities`` object to unity.
     !!}
     implicit none
     class(stellarLuminosities), intent(inout) :: self
@@ -623,7 +623,7 @@ contains
 
   logical function Stellar_Luminosities_Is_Zero(self)
     !!{RST
-    Test whether an stellarLuminosities object is zero.
+    Test whether a ``stellarLuminosities`` object is zero.
     !!}
     implicit none
     class(stellarLuminosities), intent(in   ) :: self
@@ -946,7 +946,7 @@ contains
 
     The range is that reported by the postprocessing chain itself, so it stays correct if the chain is reconfigured.
     Only a sharp window may be used to isolate the light of a range of ages by differencing luminosities computed with
-    different chains; ``isSharp`` must therefore be tested before the range is relied upon. An empty window, signalled
+    different chains; ``isSharp`` must therefore be tested before the range is relied upon. An empty window, signaled
     by ``ageMaximum`` :math:`\le` ``ageMinimum``, means that the chain suppresses emission at every age.
     !!}
     use :: Error, only : Error_Report

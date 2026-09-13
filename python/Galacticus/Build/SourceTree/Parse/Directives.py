@@ -180,6 +180,11 @@ _FUNCTION_CLASS_SCHEMA = """<?xml version="1.0"?>
        </xs:element>
       </xs:sequence>
       <xs:attribute name="name"      use="required"/>
+      <!-- alias="..." gives a readable parameter-file value for an
+           implementation whose Fortran name had to be abbreviated to stay
+           within the 63-character identifier limit. The abbreviated value
+           keeps working; the alias is the documented one. -->
+      <xs:attribute name="alias"     use="optional"/>
       <xs:attribute name="recursive" use="optional" >
        <xs:simpleType>
         <xs:restriction base="xs:string">

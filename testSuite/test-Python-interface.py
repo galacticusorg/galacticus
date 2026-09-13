@@ -328,7 +328,7 @@ with safe_section("distributionFunction1DNonCentralChiDegree3"):
 # `<method name="yield">`; `yield` is a reserved word in Python, so the
 # wrapper renames it to `yield_` (PEP 8).  Just confirm the rename:
 # calling it would need a stellar age / metallicity dataset we don't
-# initialise here.
+# initialize here.
 with safe_section("supernovaeTypeIaPowerLawDTDDifferential"):
     sn1a = galacticus.supernovaeTypeIaPowerLawDTDDifferential(
         timeMinimum=0.04, exponent=-1.0, normalization=2.0e-3,
@@ -442,7 +442,7 @@ with safe_section("nodeOperatorPositionInterpolated"):
 # `mergerTreeImporter` — exercises the kind-aliased integer method
 # *return* types.  `treeCount` / `nodeCount` / `subhaloTraceCount`
 # declare `integer(kind=c_size_t)` and `treeIndex` declares
-# `integer(kind=kind_int8)`.  Before the alias normalisation in
+# `integer(kind=kind_int8)`.  Before the alias normalization in
 # `_normalize_method_return_type`, the generator's return-type switch
 # only had branches for the unprefixed `integer(c_size_t)` /
 # `integer(c_long)` forms, so these methods fell through and were
@@ -691,7 +691,7 @@ with safe_section("haloMassFunctionOndaroMallea2021 (dimension(0:2))"):
 # populates it via an elemental `logical()` cast before the inner call.
 #
 # Constructing one of these impls end-to-end needs filter / stellar
-# state we don't initialise here, so the meaningful check is that the
+# state we don't initialize here, so the meaningful check is that the
 # wrapper symbol exists and exposes `outputMask` in its signature
 # (parallels the `radiativeTransferMatter` smoke test above).
 with safe_section("nodePropertyExtractor* (logical(:) outputMask)"):
@@ -769,7 +769,7 @@ with safe_section("darkMatterProfileConcentrationDuttonMaccio2014 (internal=…)
 # Both impls share three null-filled args
 # (initializationFunction / initializationSelf / initializationArgument);
 # constructing one of them end-to-end needs a stack of other
-# functionClass deps we don't initialise here, so the meaningful end-to-
+# functionClass deps we don't initialize here, so the meaningful end-to-
 # end check is that the wrapper symbols exist (parallels the
 # `radiativeTransferMatter` smoke test above).
 with safe_section("value='null' constructor-arg overrides"):
@@ -874,7 +874,7 @@ with safe_section("starFormationHistoryMetallicitySplit (allocatable return)"):
              True)
 
 # Nested-paren dynamic-size return — exercises the regex fix that lets
-# the dynamic-size-array return-type recogniser match shapes with
+# the dynamic-size-array return-type recognizer match shapes with
 # nested parens like `dimension(size(<arg>))` in addition to the
 # already-supported `dimension(self%X)`.  Affected methods all need
 # heavy deps (treeNode / posteriorSampleState / lists of model

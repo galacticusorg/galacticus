@@ -33,7 +33,7 @@ Implements a pruning-by-filter operator on merger trees.
    progenitors. (To prune the complement---i.e. to retain only those nodes which pass some filter---wrap that filter in a
    :galacticus-class:`galacticFilterNot`.) This is intended for cases in which some earlier stage of tree initialization has
    identified nodes which should not be present in the tree, for example by labeling them (see
-   :galacticus-class:`galacticFilterLabelled`).
+   :galacticus-class:`galacticFilterLabeled`).
    </description>
   </mergerTreeOperator>
   !!]

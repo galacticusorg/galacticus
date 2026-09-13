@@ -173,7 +173,7 @@ def test_attributes_match_no_guards_for_fully_capable_property():
     Attributes_Match(build, class_dict)
     body = build['types']['nodeComponentDarkMatter']['boundFunctions'][0]['descriptor']['content']
     # No `.not.require*Actual` guards in the per-member section (we still
-    # have the prologue lines initialising the requireXxxActual variables).
+    # have the prologue lines initializing the requireXxxActual variables).
     assert 'if (' not in body or '.not.require' not in body
     # The matches-append is unguarded, i.e. it appears at the top level
     # of the per-member section.

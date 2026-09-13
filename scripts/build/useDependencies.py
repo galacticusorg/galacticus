@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate `Makefile_Use_Dependencies`: per-source-file dependency rules
 covering module `use`s, library linking, OpenMP helpers, `eventHook` /
-`functionClass` wiring, and GraphViz source-tree visualisation.
+`functionClass` wiring, and GraphViz source-tree visualization.
 
 The scanning is preprocessor-conditional and directive-aware, including
 detection of `-D<NAME>` flags in `FCFLAGS` (across active `ifdef`/`ifeq`
@@ -105,7 +105,7 @@ def _scan_one(task):
     # -- including files served from the cache, which are not rescanned here --
     # since the modules a hook imports are needed by the file carrying the event
     # hook manager, not by the file declaring the hook (see
-    # `_finalise_event_hooks_manager`).
+    # `_finalize_event_hooks_manager`).
     entry['eventHookModules'] = list(event_hook_modules)
     # For the file carrying the manager, keep a pristine record of its own `use`
     # dependencies so that the pool can be injected afresh on each run, rather
@@ -143,7 +143,7 @@ def _collect_preprocessor_directives(build_path):
 
     Parses every `Makefile*` (under the project root and under
     `$BUILDPATH`) for `-D<NAME>` flags on active `FCFLAGS += …` lines,
-    honouring `ifdef`/`ifeq`/`endif` conditionals.  Falls back to the C
+    honoring `ifdef`/`ifeq`/`endif` conditionals.  Falls back to the C
     compiler's `-dM -E` output for
     any toolchain-provided macros, and merges `GALACTICUS_FCFLAGS` env
     var contents if set.
@@ -287,8 +287,8 @@ def _find_containing_module(file_path, state_storables):
 def _functionclass_state_storables_map(state_storables):
     """XML::Simple under `KeyAttr` implicit keying gives us
     `state_storables['functionClasses']` as either a list of dicts (default
-    xml_to_dict behaviour) or, when the downstream code keys by name, a
-    dict.  Normalise to `{name -> {module, ...}}` for easy lookup.
+    xml_to_dict behavior) or, when the downstream code keys by name, a
+    dict.  Normalize to `{name -> {module, ...}}` for easy lookup.
     """
     if not state_storables:
         return {}
@@ -318,7 +318,7 @@ def _modules_from_eventhook(event_hook):
         return as_array(module_field)
     if isinstance(module_field, dict):
         return hash_list(module_field, key_as='name')
-    # List of dicts (already normalised by xml_to_dict).
+    # List of dicts (already normalized by xml_to_dict).
     return as_array(module_field)
 
 
@@ -881,7 +881,7 @@ def _source_files_to_process(root_source_dir, build_path):
 # Aggregation + submodule map
 # ---------------------------------------------------------------------------
 
-def _finalise_event_hooks_manager(uses_per_file, event_hook_modules):
+def _finalize_event_hooks_manager(uses_per_file, event_hook_modules):
     """Inject accumulated event-hook module deps into the file that carries
     the `eventHookManager` directive (if any).
     """
@@ -907,7 +907,7 @@ def _finalise_event_hooks_manager(uses_per_file, event_hook_modules):
 
 def _build_submodule_map(uses_per_file, work_dir):
     """Return `{work_dir+lc(mod): [submodule names]}` covering both
-    functionClass-synthesised submodules and Fortran `submodule (…)`
+    functionClass-synthesized submodules and Fortran `submodule (…)`
     statements.
     """
     submodules = {}
@@ -1179,7 +1179,7 @@ def main(argv):
         if cached:
             event_hook_modules.extend(cached.get('eventHookModules') or [])
 
-    _finalise_event_hooks_manager(uses_per_file, event_hook_modules)
+    _finalize_event_hooks_manager(uses_per_file, event_hook_modules)
 
     submodule_map = _build_submodule_map(uses_per_file, work_dir)
 

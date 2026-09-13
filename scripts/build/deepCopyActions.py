@@ -98,7 +98,7 @@ def main(argv):
         scan_list.append((file_identifier, file_name))
 
     # Parse the files concurrently; merge in scan order, reproducing the serial
-    # pop-then-maybe-set behaviour exactly.
+    # pop-then-maybe-set behavior exactly.
     for file_identifier, entries in parallel_scan(
             scan_list, _scan_one, 'deepCopyActions.py'):
         actions_per_file.pop(file_identifier, None)
