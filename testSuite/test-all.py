@@ -37,12 +37,17 @@ for script in testScripts:
             shell=True, stdout=logFile, stderr=subprocess.STDOUT
         )
     elapsed = time.time() - startTime
-    # Check log for FAIL.
+    # Judge the outcome from the log. A test signals failure by printing a line containing "FAILED", and a whole-test skip
+    # (an unmet prerequisite, such as too few MPI processes) by printing a line beginning "SKIPPED". A non-zero exit status is
+    # also a failure - it means the script died before it could print its own marker.
     logPath = f"outputs/{os.path.basename(script).replace('.py', '.log')}"
-    result  = subprocess.run(f"grep -q -e FAIL -e FAILED {logPath}", shell=True)
-    if result.returncode == 0 or status.returncode != 0:
+    failed  = subprocess.run(f"grep -q -e FAIL -e FAILED {logPath}"  , shell=True).returncode == 0
+    skipped = subprocess.run(f"grep -q '^SKIPPED' {logPath}"         , shell=True).returncode == 0
+    if failed or status.returncode != 0:
         testStatus = "FAILED"
         overallStatus = "FAILED"
+    elif skipped:
+        testStatus = "SKIPPED"
     else:
         testStatus = "PASSED"
     results.append((script, testStatus, elapsed))
@@ -51,5 +56,9 @@ for script in testScripts:
 print("\n\n=== Test Summary ===")
 for script, testStatus, elapsed in results:
     print(f"  {testStatus:8s}: {script} ({elapsed:.1f}s)")
+
+skippedCount = sum(1 for _, testStatus, _ in results if testStatus == "SKIPPED")
+if skippedCount > 0:
+    print(f"\n{skippedCount} test(s) were skipped because a prerequisite was not met - they tested nothing.")
 
 print(f"\nOverall: {overallStatus}")

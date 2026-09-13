@@ -1527,7 +1527,14 @@ jobs:
                 test-library-interfaces.py,
                 test-merger-tree-read-ties.py,
                 test-node-trajectory.py,
-                test-virial-orbit-loss-cone.py ]
+                test-virial-orbit-loss-cone.py,
+                test-CGM-ram-pressure-outer-radius.py,
+                test-parameter-resolver.py,
+                test-prompt-cusps-unformed.py,
+                test-radius-specifiers-soliton.py,
+                test-radius-specifiers-zero.py,
+                test-splashback-radius.py,
+                test-tree-processing-time.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}

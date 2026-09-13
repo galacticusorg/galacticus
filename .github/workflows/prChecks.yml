@@ -201,6 +201,23 @@ jobs:
       - name: Check contributor markers record names only
         run: |
           python3 scripts/doc/extractContributors.py --check $GITHUB_WORKSPACE
+  # Test outcome markers. Every `testSuite/test-*.py` and `testSuite/validate-*.py` script signals its outcome by printing
+  # a `FAILED:`, `SUCCESS:` or `SKIPPED:` marker and exiting zero. The harnesses judge a test by scanning its log for
+  # `FAIL`, so a script with no marker at all, or one whose passing output contains `FAIL`, is silently mis-reported.
+  #
+  # Unlike the source formatters this check is blocking: the suite is fully compliant, so any report is a new drift rather
+  # than a pre-existing one.
+  Validate-Test-Markers:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Check test scripts against the outcome-marker convention
+        run: |
+          python3 scripts/aux/auditTestMarkers.py --check
   # Fortran static analysis
   Fortran-Static-Analysis:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}

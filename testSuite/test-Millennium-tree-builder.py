@@ -38,4 +38,6 @@ if validator:
         print("FAILED: IRATE-format file generated from Millennium database output did not validate")
         sys.exit(0)
 else:
-    print("SKIPPED: iratevalidate is not installed - validation of IRATE-format file will be skipped")
+    print("iratevalidate is not installed - validation of the IRATE-format file will be skipped")
+
+print("SUCCESS: Millennium merger tree file build")
