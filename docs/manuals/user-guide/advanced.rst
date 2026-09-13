@@ -564,7 +564,7 @@ To allow locating of nodes belonging to a given merger tree in the datasets in t
 mergerTree subgroups
 """"""""""""""""""""
 
-These subgroups will be present if the ``[mergerTreeOutputReferences]`` parameter is set to true. Each ``mergerTree`` subgroup contains HDF5 references to all data on a single merger tree. The group consists of a collection of scalar references each of which points to the appropriate region of the corresponding dataset in the ``nodeData`` group. Additionally, the ``volumeWeight`` attribute of this group gives the weight (in Mpc\ :math:`^{-3}`) which should be assigned to this tree (and all nodes in it) to create a volume-averaged sample. (A second attribute, ``units``, gives the units of ``volumeWeight`` in the SI system, along with human-readable, ``astropy.units``-parseable descriptions, and a boolean indicating that these are in comoving coordinates.)
+These subgroups will be present if the ``[outputReferences]`` sub-parameter of the :galacticus-class:`mergerTreeOutputterStandard` outputter is set to true. Each ``mergerTree`` subgroup contains HDF5 references to all data on a single merger tree. The group consists of a collection of scalar references each of which points to the appropriate region of the corresponding dataset in the ``nodeData`` group. Additionally, the ``volumeWeight`` attribute of this group gives the weight (in Mpc\ :math:`^{-3}`) which should be assigned to this tree (and all nodes in it) to create a volume-averaged sample. (A second attribute, ``units``, gives the units of ``volumeWeight`` in the SI system, along with human-readable, ``astropy.units``-parseable descriptions, and a boolean indicating that these are in comoving coordinates.)
 
 .. _manual-sec-onTheFlyAnalyses:
 
@@ -727,22 +727,26 @@ The ``runFile`` is an XML file with the following structure:
     </parameters>
 
     <parameters>
-     <starFormationFeedbackDisks value="powerLaw">
+     <stellarFeedbackOutflows value="powerLaw">
       <exponent value="2.5"/>
       <exponent value="3.0"/>
-     </starFormationFeedbackDisks>
-     <starFormationFeedbackDisks value="creasey2012"/>
+     </stellarFeedbackOutflows>
+     <stellarFeedbackOutflows value="creasey2013"/>
     </parameters>
 
     <parameters>
-     <imfSelection value="fixed">
-       <imfSelectionFixed value="Chabrier" parameterLevel="top"/>
-       <imfSelectionFixed value="Salpeter" parameterLevel="top"/>
-     </imfSelection>
-     <imfSelection value="diskSpheroid">
-       <imfSelectionDisk     value="Chabrier"  parameterLevel="top"/>
-       <imfSelectionSpheroid value="Kennicutt" parameterLevel="top"/>
-     </imfSelection>
+     <stellarPopulationSelector value="fixed">
+       <initialMassFunction value="chabrier2001" parameterLevel="top"/>
+       <initialMassFunction value="salpeter1955" parameterLevel="top"/>
+     </stellarPopulationSelector>
+     <stellarPopulationSelector value="diskSpheroid">
+       <stellarPopulationDisk value="standard">
+        <initialMassFunction value="chabrier2001"/>
+       </stellarPopulationDisk>
+       <stellarPopulationSpheroid value="standard">
+        <initialMassFunction value="kennicutt1983"/>
+       </stellarPopulationSpheroid>
+     </stellarPopulationSelector>
     </parameters>
 
     <parameters>
@@ -755,7 +759,7 @@ The ``runFile`` is an XML file with the following structure:
 
    </parameterGrid>
 
-Each ``parameters`` block contains a list of parameters following the format used in standard Galacticus parameter files, with the difference that each parameter can appear multiple times, each time with a different ``value`` attribute, as is the case for ``stabilityThresholdStellar`` in the first ``parameters`` element in the above. A model will be run for all possible combinations of these values. For nested parameters with multiple values, all possible values of these parameters will be looped over when, and only when, the appropriate value of the containing parameter is being used. For example, in the second ``parameters`` element in the above example, models will be run with subparameter ``[exponent]``\ :math:`=`\ ``2.5`` and ``3.5`` for the ``starFormationFeedbackDisks`` element only when ``[starFormationFeedbackDisks]``\ :math:`=`\ ``powerLaw`` and not when ``[starFormationFeedbackDisks]``\ :math:`=`\ ``creasey2012``. It is also possible to specify that subparameter should be promoted to the top-level of the parameter file. In the third ``parameters`` element in the above example, ``imfSelectionFixed`` will take on values of ``Chabrier`` and ``Salpeter`` only when ``imfSelection``\ :math:`=`\ ``fixed``, and the ``imfSelectionFixed`` element will be promoted from a sub-parameter of ``imfSelection`` to the top-level of the parameter file due to the presence of the ``parameterLevel="top"`` attribute. Finally in some cases a parameter which appears multiple times is not to be iterated over. In the fourth ``parameters`` element in the above example, this is the case for the ``coolingFunction`` subparameters. The addition of an ``iterable="no"`` attribute specifies that these parameters are not to be iterated over, but simply left as they are.
+Each ``parameters`` block contains a list of parameters following the format used in standard Galacticus parameter files, with the difference that each parameter can appear multiple times, each time with a different ``value`` attribute, as is the case for ``stabilityThresholdStellar`` in the first ``parameters`` element in the above. A model will be run for all possible combinations of these values. For nested parameters with multiple values, all possible values of these parameters will be looped over when, and only when, the appropriate value of the containing parameter is being used. For example, in the second ``parameters`` element in the above example, models will be run with subparameter ``[exponent]``\ :math:`=`\ ``2.5`` and ``3.0`` for the ``stellarFeedbackOutflows`` element only when ``[stellarFeedbackOutflows]``\ :math:`=`\ ``powerLaw`` and not when ``[stellarFeedbackOutflows]``\ :math:`=`\ ``creasey2013``. It is also possible to specify that subparameter should be promoted to the top-level of the parameter file. In the third ``parameters`` element in the above example, ``initialMassFunction`` will take on values of ``chabrier2001`` and ``salpeter1955`` only when ``stellarPopulationSelector``\ :math:`=`\ ``fixed``, and the ``initialMassFunction`` element will be promoted from a sub-parameter of ``stellarPopulationSelector`` to the top-level of the parameter file due to the presence of the ``parameterLevel="top"`` attribute. Finally in some cases a parameter which appears multiple times is not to be iterated over. In the fourth ``parameters`` element in the above example, this is the case for the ``coolingFunction`` subparameters. The addition of an ``iterable="no"`` attribute specifies that these parameters are not to be iterated over, but simply left as they are.
 
 Some variables, which are expanded at run time, are available. These include:
 
@@ -926,7 +930,7 @@ The name and e-mail address in the ``contact`` section will be stored in any Gal
 Writing Data To a Temporary File
 --------------------------------
 
-When running Galacticus on a compute cluster it is often advantageous to have output written to a local scratch disk during run time and only moved to networked storage after the run is complete. (Otherwise, Galacticus will perform many small writes to networked storage which can result in extremely slow run times.) To do this, simply set the parameter ``[galacticusOutputScratchFileName]`` to the full path of a file to write to on local scratch space. During the run, data will be written to this file. After the run is finished, Galacticus will move this file to its permanent location as specified by the parameter ``[galacticusOutputFileName]``.
+When running Galacticus on a compute cluster it is often advantageous to have output written to a local scratch disk during run time and only moved to networked storage after the run is complete. (Otherwise, Galacticus will perform many small writes to networked storage which can result in extremely slow run times.) To do this, simply set the parameter ``[outputScratchFileName]`` to the full path of a file to write to on local scratch space. During the run, data will be written to this file. After the run is finished, Galacticus will move this file to its permanent location as specified by the parameter ``[outputFileName]``.
 
 Error Handling
 --------------
@@ -973,12 +977,12 @@ OpenMP
 
 When running a model in parallel using OpenMP, a separate state file will be written for each thread, with the thread number appended to the end of each state file name. For debugging purposes, it is suggested that a crashed OpenMP run be restarted using just a single thread. To do this, change the appended thread number on the state files corresponding to the thread which crashed to 0 such that they will be used by the single thread when the run is restarted.
 
-Processing Individual Merger Trees In Parallel
-----------------------------------------------
+Processing Merger Trees In Parallel
+-----------------------------------
 
 By default, Galacticus utilizes the available parallel threads to process multiple merger trees simultaneously, with one tree processed by each thread. When the total number of trees to be processed is large, and there are not a small number of outlier trees with masses very much larger than the other trees, this approach generally results in good parallel efficiency.
 
-However, in cases where a small number of trees are much more massive than any other (or are just slow to process for some other reason) it may be more efficient to have multiple parallel threads process each tree. To achieve this, set ``[treeEvolveSingleForest]``\ :math:`=`\ ``true``. In this case, trees are processed sequentially, with multiple threads assigned to each tree. To do this, a tree is broken up into a set of time slices, or "sections". The number of sections between each successive output (or between the earliest node in the tree and the first output) is specified by the ``[treeEvolveSingleForestSections]`` parameter. Individual branches of the tree within each section are assigned to parallel threads. *Note that this results in valid evolution only if the evolution of disjoint tree branches are independent of each other.*
+Setting ``[evolveForestsInParallel]``\ :math:`=`\ ``false`` in the :galacticus-class:`taskEvolveForests` task instead causes a single thread to evolve all forests, which is useful when debugging. How forests are shared out between threads (and, under MPI, between processes) is controlled by the :galacticus-class:`evolveForestsWorkShareClass` class.
 
 .. [#] This approach allows a direct connection to be made between the structure of the input parameter XML file and the internal object hierarchy used by Galacticus, allowing very fine-grained control over the composition of Galacticus functionality. In particular it permits easy construction of objects which work by modifying results from other objects, such as the :galacticus-class:`darkMatterProfileConcentrationSchneider2015` model for dark matter halo concentrations.
 .. [#] This functionality requires that ``libmatheval`` is installed.

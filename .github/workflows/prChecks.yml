@@ -182,6 +182,13 @@ jobs:
       - name: Check no LaTeX remains inside converted docstrings
         run: |
           python3 scripts/doc/convertDocstringsToRST.py --check-residual source
+      # Docstrings and manuals name parameters, classes, implementations, and
+      # bibliography keys in prose. Nothing in the documentation build checks
+      # that those names still exist, so a parameter rename silently leaves the
+      # prose which mentions it pointing at a name the user cannot find.
+      - name: Check documentation names things which exist
+        run: |
+          python3 scripts/aux/docBlockAudit.py --check
   # Contributor markers must record names only. Everything after the label in a
   # `!+` marker is parsed as a comma-separated list of contributors, so a
   # description of what was contributed (by a person or by an AI tool - that

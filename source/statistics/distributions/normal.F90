@@ -38,10 +38,10 @@
    ``[variance]``
       The variance, :math:`S`;
 
-   ``[minimum]``
+   ``[limitLower]``
       The lower limit of the range, :math:`x_\mathrm{l}`;
 
-   ``[maximum]``
+   ``[limitUpper]``
       The upper limit of the range, :math:`x_\mathrm{u}`.
    </description>
   </distributionFunction1D>

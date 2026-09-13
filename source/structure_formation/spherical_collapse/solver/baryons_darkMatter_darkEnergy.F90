@@ -26,7 +26,7 @@
   !![
   <sphericalCollapseSolver name="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy" docformat="rst">
    <description>
-   A spherical collapse solver for universes consisting of baryons, collisionless dark matter, and dark energy, computing the evolution of a spherical top-hat overdensity through turnaround and virialization. Baryons can be treated as either clustering or non-clustering via ``[baryonsClustering]``, and the energy-fixing radius for dark energy is set by ``[radiusFixed]``.
+   A spherical collapse solver for universes consisting of baryons, collisionless dark matter, and dark energy, computing the evolution of a spherical top-hat overdensity through turnaround and virialization. Baryons can be treated as either clustering or non-clustering via ``[baryonsCluster]``, and the radius at which the energy of the perturbation is taken to be fixed is set by ``[energyFixedAt]``.
    </description>
   </sphericalCollapseSolver>
   !!]

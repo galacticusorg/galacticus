@@ -29,7 +29,7 @@ Implements a merger tree build controller class which builds constrained trees.
   !![
   <mergerTreeBuildController name="mergerTreeBuildControllerConstrained" docformat="rst">
    <description>
-   A merger tree build controller class which builds constrained merger trees using a Brownian bridge approach, enforcing specified overdensity and mass constraints at a target redshift. Controls which branches are built via the ``[constructionOption]`` parameter, with Brownian bridge endpoints set by ``[criticalOverdensity]``, ``[variance]``, ``[redshift]``, and ``[haloMass]``.
+   A merger tree build controller class which builds constrained merger trees using a Brownian bridge approach, enforcing specified overdensity and mass constraints at a target redshift. Controls which branches are built via the ``[constructionOption]`` parameter, with Brownian bridge endpoints set by ``[criticalOverdensityConstrained]``, ``[varianceConstrained]``, ``[redshiftConstrained]``, and ``[massConstrained]``.
    </description>
   </mergerTreeBuildController>
   !!]

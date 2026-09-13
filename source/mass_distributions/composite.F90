@@ -487,7 +487,7 @@ contains
 
   subroutine compositeSelfAcquire(self,self_)
     !!{RST
-    Return a counted reference to self (used by :galacticus-class:`compositeSubset` when the
+    Return a counted reference to self (used by ``compositeSubset`` when the
     requested subset is identical to the whole composite). A submodule-local equivalent of the
     module-level selfAcquire, declared here so it is linkable from this submodule.
     !!}

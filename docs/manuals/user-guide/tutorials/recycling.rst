@@ -15,20 +15,20 @@ useful for testing and comparison) by setting:
 
 .. code-block:: xml
 
-   <stellarPopulations value="standard">
+   <stellarPopulation value="standard">
      <!-- Force the calculation of recycling, yields etc. to   -->
      <!-- be done assuming instantaneous recycling             -->
      <instantaneousRecyclingApproximation value="true"/>
      <!-- Set the recycled fraction and yield -->
      <recycledFraction value="0.35"/>
      <metalYield       value="0.02"/>
-   </stellarPopulationProperties>
+   </stellarPopulation>
 
 where the recycled fraction and metal yield are specified directly, or
 
 .. code-block:: xml
 
-   <stellarPopulations value="standard">
+   <stellarPopulation value="standard">
      <!-- Force the calculation of recycling to be done       -->
      <!-- assuming the instantaneous recycling approximation  -->
      <instantaneousRecyclingApproximation value="true"/>
@@ -39,7 +39,7 @@ where the recycled fraction and metal yield are specified directly, or
      <!-- Set the effective age of populations to use in this -->
      <!-- approximation when computing SNe numbers.           -->
      <ageEffective value="13.8"/>
-   </stellarPopulationProperties>
+   </stellarPopulation>
 
 in which case the recycled fraction and metal yield will be computed assuming that all stars with mass greater than ``massLongLived`` have fully evolved, and energy input (from stellar winds and supernovae) will be computed assuming that stellar populations instantaneously reach an age of ``ageEffective``.
 
@@ -47,7 +47,7 @@ Similar options are available to control whether metal yields and energy input f
 
 .. code-block:: xml
 
-   <stellarPopulations value="standard">
+   <stellarPopulation value="standard">
      <!-- Force the calculation of recycling to be done       -->
      <!-- assuming the instantaneous recycling approximation  -->
      <instantaneousRecyclingApproximation value="true"/>
@@ -64,4 +64,4 @@ Similar options are available to control whether metal yields and energy input f
      <!-- Set the effective age of populations to use in this -->
      <!-- approximation when computing SNe numbers.           -->
      <ageEffective value="13.8"/>
-   </stellarPopulationProperties>
+   </stellarPopulation>

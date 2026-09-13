@@ -27,7 +27,7 @@
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodGalaxyPopulation" docformat="rst">
    <description>
-   A posterior sampling likelihood class which evaluates the likelihood of Galacticus galaxy formation model outputs against observational constraints, supporting parallelized model evaluation across MPI process groups. The number of collaborative MPI groups is set by ``[countCollaborativeGroups]``, with analysis storage controlled by ``[storeResults]``.
+   A posterior sampling likelihood class which evaluates the likelihood of Galacticus galaxy formation model outputs against observational constraints, supporting parallelized model evaluation across MPI process groups. The number of collaborative MPI groups is set by ``[countCollaborativeGroups]``, with analysis storage controlled by ``[outputAnalyses]``.
    </description>
   </posteriorSampleLikelihood>
   !!]
