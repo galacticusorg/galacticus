@@ -52,10 +52,11 @@
      private
      class(dustAttenuationClass), pointer :: dustAttenuation_ => null()
    contains
-     final     ::                      mixedSlabDestructor
-     procedure :: transmission      => mixedSlabTransmission
-     procedure :: request           => mixedSlabRequest
-     procedure :: supportsComponent => mixedSlabSupportsComponent
+     final     ::                           mixedSlabDestructor
+     procedure :: transmission           => mixedSlabTransmission
+     procedure :: request                => mixedSlabRequest
+     procedure :: supportsComponent      => mixedSlabSupportsComponent
+     procedure :: isOrientationDependent => mixedSlabIsOrientationDependent
   end type dustAttenuationMixedSlab
 
   interface dustAttenuationMixedSlab
@@ -132,9 +133,10 @@ contains
     double precision                                         , parameter                    :: depthOpticalSmall=1.0d-6
     integer                                                                                 :: i
     double precision                                                                        :: depthOptical
-    !$GLC attributes unused :: inclination
 
-    transmission=self%dustAttenuation_%transmission(node,descriptors)
+    ! Any inclination is forwarded, so that an orientation-dependent attenuator wrapped here can be averaged over
+    ! orientation by an enclosing `inclinationAveraged`.
+    transmission=self%dustAttenuation_%transmission(node,descriptors,inclination)
     do i=1,size(transmission)
        if (transmission(i) >= 1.0d0) then
           ! No attenuation at all.
@@ -185,3 +187,14 @@ contains
     supportsComponent=self%dustAttenuation_%supportsComponent(componentType)
     return
   end function mixedSlabSupportsComponent
+
+  logical function mixedSlabIsOrientationDependent(self) result(isOrientationDependent)
+    !!{RST
+    Return whether the wrapped attenuator depends on orientation: changing the geometry does not remove that dependence.
+    !!}
+    implicit none
+    class(dustAttenuationMixedSlab), intent(inout) :: self
+
+    isOrientationDependent=self%dustAttenuation_%isOrientationDependent()
+    return
+  end function mixedSlabIsOrientationDependent
