@@ -45,6 +45,14 @@
    The two parameters are physically distinct: the ratio sets how much dust a galaxy has, and the opacity how strongly
    that dust extinguishes light. Changing the ratio alone changes the mass of dust, and every optical depth derived
    from it, in proportion; the opacity is not adjusted to compensate.
+
+   In the far infrared, where dust emits, the absorption opacity is a power law,
+   :math:`\kappa_\mathrm{abs}(\lambda) = \kappa_\mathrm{ref} (\lambda_\mathrm{ref}/\lambda)^\beta`, with
+   :math:`\kappa_\mathrm{ref}` (``opacityAbsorptionReference``) at :math:`\lambda_\mathrm{ref}`
+   (``wavelengthReferenceAbsorption``) and emissivity index :math:`\beta` (``exponentAbsorption``). The defaults,
+   :math:`\kappa_\mathrm{ref}=0.77\,\hbox{cm}^2\,\hbox{g}^{-1}` at :math:`850\,\mu\hbox{m}` and :math:`\beta=2`, are
+   those of :cite:t:`dunne_scuba_2000`. The V-band extinction opacity and this far-infrared absorption opacity describe
+   different regimes, and are set independently.
    </description>
   </dustProperties>
   !!]
@@ -53,10 +61,13 @@
      A dust properties class with a universal dust-to-metals ratio and a fixed opacity.
      !!}
      private
-     double precision :: dustToMetalsRatio_, opacityExtinctionV_
+     double precision :: dustToMetalsRatio_         , opacityExtinctionV_           , &
+          &              opacityAbsorptionReference_, wavelengthReferenceAbsorption_, &
+          &              exponentAbsorption_
    contains
-     procedure :: dustToMetalsRatio  => simpleDustToMetalsRatio
-     procedure :: opacityExtinctionV => simpleOpacityExtinctionV
+     procedure :: dustToMetalsRatio         => simpleDustToMetalsRatio
+     procedure :: opacityExtinctionV        => simpleOpacityExtinctionV
+     procedure :: opacityAbsorptionPowerLaw => simpleOpacityAbsorptionPowerLaw
   end type dustPropertiesSimple
 
   interface dustPropertiesSimple
@@ -78,7 +89,9 @@ contains
     implicit none
     type            (dustPropertiesSimple)                :: self
     type            (inputParameters     ), intent(inout) :: parameters
-    double precision                                      :: dustToMetalsRatio_, opacityExtinctionV_
+    double precision                                      :: dustToMetalsRatio_         , opacityExtinctionV_           , &
+         &                                                   opacityAbsorptionReference_, wavelengthReferenceAbsorption_, &
+         &                                                   exponentAbsorption_
 
     !![
     <inputParameter docformat="rst">
@@ -101,30 +114,67 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>opacityAbsorptionReference</name>
+      <variable>opacityAbsorptionReference_</variable>
+      <defaultValue>0.77d0</defaultValue>
+      <defaultSource>:cite:t:`dunne_scuba_2000`</defaultSource>
+      <description>
+      The far-infrared absorption opacity per unit mass of dust at ``wavelengthReferenceAbsorption``, in cm² g⁻¹.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>wavelengthReferenceAbsorption</name>
+      <variable>wavelengthReferenceAbsorption_</variable>
+      <defaultValue>8.5d6</defaultValue>
+      <defaultSource>:cite:t:`dunne_scuba_2000`</defaultSource>
+      <description>
+      The wavelength, in Å, at which ``opacityAbsorptionReference`` is given.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>exponentAbsorption</name>
+      <variable>exponentAbsorption_</variable>
+      <defaultValue>2.0d0</defaultValue>
+      <defaultSource>:cite:t:`dunne_scuba_2000`</defaultSource>
+      <description>
+      The emissivity index :math:`\beta` of the far-infrared absorption opacity,
+      :math:`\kappa_\mathrm{abs} \propto \lambda^{-\beta}`.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
-    self=dustPropertiesSimple(dustToMetalsRatio_,opacityExtinctionV_)
+    self=dustPropertiesSimple(dustToMetalsRatio_,opacityExtinctionV_,opacityAbsorptionReference_,wavelengthReferenceAbsorption_,exponentAbsorption_)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function simpleConstructorParameters
 
-  function simpleConstructorInternal(dustToMetalsRatio_,opacityExtinctionV_) result(self)
+  function simpleConstructorInternal(dustToMetalsRatio_,opacityExtinctionV_,opacityAbsorptionReference_,wavelengthReferenceAbsorption_,exponentAbsorption_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`dustPropertiesSimple` dust properties class.
     !!}
     use :: Error, only : Error_Report
     implicit none
     type            (dustPropertiesSimple)                :: self
-    double precision                      , intent(in   ) :: dustToMetalsRatio_, opacityExtinctionV_
+    double precision                      , intent(in   ) :: dustToMetalsRatio_         , opacityExtinctionV_           , &
+         &                                                   opacityAbsorptionReference_, wavelengthReferenceAbsorption_, &
+         &                                                   exponentAbsorption_
     !![
-    <constructorAssign variables="dustToMetalsRatio_, opacityExtinctionV_"/>
+    <constructorAssign variables="dustToMetalsRatio_, opacityExtinctionV_, opacityAbsorptionReference_, wavelengthReferenceAbsorption_, exponentAbsorption_"/>
     !!]
 
-    if (self%dustToMetalsRatio_  < 0.0d0 .or. self%dustToMetalsRatio_ > 1.0d0) &
+    if (self%dustToMetalsRatio_             <  0.0d0 .or. self%dustToMetalsRatio_ > 1.0d0) &
          & call Error_Report('`dustToMetalsRatio` must lie between zero and one'//{introspection:location})
-    if (self%opacityExtinctionV_ < 0.0d0                                     ) &
-         & call Error_Report('`opacityExtinctionV` must be non-negative'         //{introspection:location})
+    if (self%opacityExtinctionV_            <  0.0d0                                     ) &
+         & call Error_Report('`opacityExtinctionV` must be non-negative'        //{introspection:location})
+    if (self%opacityAbsorptionReference_    <  0.0d0                                     ) &
+         & call Error_Report('`opacityAbsorptionReference` must be non-negative'//{introspection:location})
+    if (self%wavelengthReferenceAbsorption_ <= 0.0d0                                     ) &
+         & call Error_Report('`wavelengthReferenceAbsorption` must be positive' //{introspection:location})
     return
   end function simpleConstructorInternal
 
@@ -152,3 +202,17 @@ contains
     opacity=self%opacityExtinctionV_
     return
   end function simpleOpacityExtinctionV
+
+  subroutine simpleOpacityAbsorptionPowerLaw(self,opacityReference,wavelengthReference,exponent)
+    !!{RST
+    Return the parameters of the power law describing the far-infrared absorption opacity.
+    !!}
+    implicit none
+    class           (dustPropertiesSimple), intent(inout) :: self
+    double precision                      , intent(  out) :: opacityReference, wavelengthReference, exponent
+
+    opacityReference   =self%opacityAbsorptionReference_
+    wavelengthReference=self%wavelengthReferenceAbsorption_
+    exponent           =self%exponentAbsorption_
+    return
+  end subroutine simpleOpacityAbsorptionPowerLaw
