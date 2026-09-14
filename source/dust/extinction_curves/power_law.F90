@@ -84,7 +84,7 @@ contains
       <description>
       The wavelength, in Å, at which the power law is normalized to unity. The default is the effective wavelength of
       the Buser :math:`V` filter, which is the definition used throughout this framework. Set it to
-      :math:`5500\,`Å to reproduce results from the ``lmnstyStllrCF2000`` property extractor, which adopted that
+      :math:`5500\,\text{Å}` to reproduce results from the ``lmnstyStllrCF2000`` property extractor, which adopted that
       round value instead.
       </description>
       <source>parameters</source>

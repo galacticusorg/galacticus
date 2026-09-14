@@ -4,7 +4,7 @@ This module is the central registry and helper-set for the components-build
 pipeline.  It owns:
   - the `component_utils` hook registry (mutated at import time by every
     sister module via `register(...)`),
-  - intrinsic / output-intrinsic type recognisers,
+  - intrinsic / output-intrinsic type recognizers,
   - the `offset_name` Fortran-symbol builder (two arities),
   - the `pad_*` column-aligners (read module-level length-max globals),
   - `argument_list` for extracting Fortran argument names,
@@ -12,7 +12,7 @@ pipeline.  It owns:
   - `Label_Lengths` for computing those length-max globals.
 
 It carried zero coverage despite being on the critical path of every
-components-build phase.  These tests pin the documented behaviour so any
+components-build phase.  These tests pin the documented behavior so any
 accidental change to a frequently-called primitive is caught.
 """
 
@@ -297,7 +297,7 @@ def test_pad_extra_pad_minimum_floor(with_lengths):
     (42,             [42]),
     ({'a': 1},       [{'a': 1}]),
 ])
-def test_as_list_normalises_xmlin_idiom(input_, expected):
+def test_as_list_normalizes_xmlin_idiom(input_, expected):
     assert _as_list(input_) == expected
 
 

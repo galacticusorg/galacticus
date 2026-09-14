@@ -10,6 +10,7 @@ Below is a flowchart indicating the ingredients of Galacticus merger tree buildi
       Masses[<a href='https://galacticus.readthedocs.io/en/latest/physics/mergerTreeBuildMassDistribution.html' style='text-decoration: none'>Mass Distribution</a>]
       Branching[<a href='https://galacticus.readthedocs.io/en/latest/physics/mergerTreeBranchingProbability.html' style='text-decoration: none'>Branching Distribution</a>]
       Excursion[<a href='https://galacticus.readthedocs.io/en/latest/physics/excursionSetFirstCrossing.html' style='text-decoration: none'>Excursion Set Solver</a>]
+      Barrier[<a href='https://galacticus.readthedocs.io/en/latest/physics/excursionSetBarrier.html' style='text-decoration: none'>Excursion Set Barrier</a>]
       Controller[<a href='https://galacticus.readthedocs.io/en/latest/physics/mergerTreeBuildController.html' style='text-decoration: none'>Controller</a>]
       Variance["<a href='https://galacticus.readthedocs.io/en/latest/physics/cosmologicalMassVariance.html' style='text-decoration: none'>σ(M)</a>"]
       Critical["<a href='https://galacticus.readthedocs.io/en/latest/physics/criticalOverdensity.html' style='text-decoration: none'>δ<sub>c</sub>(t)</a>"]
@@ -19,7 +20,10 @@ Below is a flowchart indicating the ingredients of Galacticus merger tree buildi
       Masses --> Builder
       Controller --> Builder
       Branching --> Controller
+      Barrier -.-> Excursion
       Excursion -.-> Branching
       Variance --> Builder
       Critical --> Builder
+      Critical -.-> Barrier
+      Variance -.-> Barrier
       Resolution --> Controller

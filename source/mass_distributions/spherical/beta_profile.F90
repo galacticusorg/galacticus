@@ -32,9 +32,9 @@
      !!{RST
      The :math:`\beta`-profile: :math:`\rho(r)=\rho_0/[1+(r/r_\mathrm{core})^2]^{3\beta/2}`
      !!}
-     double precision :: beta                  , coreRadius           , densityNormalization  , &
+     double precision :: beta                  , radiusCore           , densityNormalization  , &
           &              momentRadial2Previous , momentRadial3Previous, momentRadial2XPrevious, &
-          &              momentRadial3XPrevious, outerRadius
+          &              momentRadial3XPrevious, radiusOuter
      logical          :: betaIsTwoThirds       , truncateAtOuterRadius
    contains
      !![
@@ -74,8 +74,8 @@ contains
     type            (massDistributionBetaProfile)                :: self
     type            (inputParameters            ), intent(inout) :: parameters
     double precision                                             :: beta         , densityNormalization , &
-         &                                                          mass         , outerRadius          , &
-         &                                                          coreRadius
+         &                                                          mass         , radiusOuter          , &
+         &                                                          radiusCore
     logical                                                      :: dimensionless, truncateAtOuterRadius
     type            (varying_string             )                :: componentType
     type            (varying_string             )                :: massType
@@ -106,7 +106,7 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter docformat="rst">
-      <name>outerRadius</name>
+      <name>radiusOuter</name>
       <defaultValue>0.0d0</defaultValue>
       <description>
       The outer radius of a :math:`\beta`-model mass distribution.
@@ -114,7 +114,7 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter docformat="rst">
-      <name>coreRadius</name>
+      <name>radiusCore</name>
       <defaultValue>0.0d0</defaultValue>
       <description>
       The core radius of a :math:`\beta`-model mass distribution.
@@ -157,8 +157,8 @@ contains
      <call>self=massDistributionBetaProfile(beta,componentType=enumerationComponentTypeEncode(componentType,includesPrefix=.false.),massType=enumerationMassTypeEncode(massType,includesPrefix=.false.){conditions})</call>
      <argument name="densityNormalization"  value="densityNormalization"  parameterPresent="parameters"/>
      <argument name="mass"                  value="mass"                  parameterPresent="parameters"/>
-     <argument name="outerRadius"           value="outerRadius"           parameterPresent="parameters"/>
-     <argument name="coreRadius"            value="coreRadius"            parameterPresent="parameters"/>
+     <argument name="radiusOuter"           value="radiusOuter"           parameterPresent="parameters"/>
+     <argument name="radiusCore"            value="radiusCore"            parameterPresent="parameters"/>
      <argument name="dimensionless"         value="dimensionless"         parameterPresent="parameters"/>
      <argument name="truncateAtOuterRadius" value="truncateAtOuterRadius" parameterPresent="parameters"/>
     </conditionalCall>
@@ -167,7 +167,7 @@ contains
     return
   end function betaProfileConstructorParameters
 
-  function betaProfileConstructorInternal(beta,densityNormalization,mass,outerRadius,coreRadius,dimensionless,truncateAtOuterRadius,componentType,massType) result(self)
+  function betaProfileConstructorInternal(beta,densityNormalization,mass,radiusOuter,radiusCore,dimensionless,truncateAtOuterRadius,componentType,massType) result(self)
     !!{RST
     Constructor for the :galacticus-class:`massDistributionBetaProfile` mass distribution class.
     !!}
@@ -175,7 +175,7 @@ contains
     type            (massDistributionBetaProfile )                          :: self
     double precision                              , intent(in   )           :: beta
     double precision                              , intent(in   ), optional :: densityNormalization, mass                 , &
-         &                                                                     outerRadius         , coreRadius
+         &                                                                     radiusOuter         , radiusCore
     logical                                       , intent(in   ), optional :: dimensionless       , truncateAtOuterRadius
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
@@ -183,11 +183,11 @@ contains
     <constructorAssign variables="componentType, massType"/>
     !!]
 
-    call self%initialize(beta,densityNormalization,mass,outerRadius,coreRadius,dimensionless,truncateAtOuterRadius)
+    call self%initialize(beta,densityNormalization,mass,radiusOuter,radiusCore,dimensionless,truncateAtOuterRadius)
     return
   end function betaProfileConstructorInternal
 
-  subroutine betaProfileInitialize(self,beta,densityNormalization,mass,outerRadius,coreRadius,dimensionless,truncateAtOuterRadius)
+  subroutine betaProfileInitialize(self,beta,densityNormalization,mass,radiusOuter,radiusCore,dimensionless,truncateAtOuterRadius)
     !!{RST
     (Re)initialize the parameters of a :galacticus-class:`massDistributionBetaProfile` mass distribution. Factored out of the constructor so that a pooled object can be re-used (re-initialized for a new :term:`node`) without being reallocated.
     !!}
@@ -201,7 +201,7 @@ contains
     class           (massDistributionBetaProfile ), intent(inout)           :: self
     double precision                              , intent(in   )           :: beta
     double precision                              , intent(in   ), optional :: densityNormalization               , mass                     , &
-         &                                                                     outerRadius                        , coreRadius
+         &                                                                     radiusOuter                        , radiusCore
     logical                                       , intent(in   ), optional :: dimensionless                      , truncateAtOuterRadius
     double precision                              , parameter               :: radiusTiny                  =1.0d-6
     double precision                                                        :: r
@@ -217,20 +217,20 @@ contains
     if (present(dimensionless)) self%dimensionless=dimensionless
     ! If dimensionless, then set scale length and mass to unity.
     if (self%dimensionless) then
-       if (present(coreRadius          )) then
-          if (Values_Differ(coreRadius          ,1.0d0,absTol=1.0d-6)) call Error_Report('coreRadius should be unity for a dimensionless profile (or simply do not specify a scale length)'                  //{introspection:location})
+       if (present(radiusCore          )) then
+          if (Values_Differ(radiusCore          ,1.0d0,absTol=1.0d-6)) call Error_Report('radiusCore should be unity for a dimensionless profile (or simply do not specify a scale length)'                  //{introspection:location})
        end if
        if (present(densityNormalization)) then
           if (Values_Differ(densityNormalization,1.0d0,absTol=1.0d-6)) call Error_Report('densityNormalization should be unity for a dimensionless profile (or simply do not specify a densityNormalization)'//{introspection:location})
        end if
        if (present(mass                ))                              call Error_Report('mass cannot be specified for a dimensionless profile'                                                              //{introspection:location})
-       if (present(outerRadius         ))                              call Error_Report('outer radius cannot be specified for a dimensionless profile'                                                      //{introspection:location})
-       self%coreRadius          =1.0d0
+       if (present(radiusOuter         ))                              call Error_Report('outer radius cannot be specified for a dimensionless profile'                                                      //{introspection:location})
+       self%radiusCore          =1.0d0
        self%densityNormalization=1.0d0
     else
        ! Set core radius.
-       if (.not.present(coreRadius)) call Error_Report('core radius must be specified for dimensionful profiles'//{introspection:location})
-       self%coreRadius=coreRadius
+       if (.not.present(radiusCore)) call Error_Report('core radius must be specified for dimensionful profiles'//{introspection:location})
+       self%radiusCore=radiusCore
        ! Determine density normalization.
        if      (                                   &
             &   present(densityNormalization)      &
@@ -238,10 +238,10 @@ contains
           self%densityNormalization=densityNormalization
        else if (                                   &
             &   present(mass                ).and. &
-            &   present(outerRadius         )      &
+            &   present(radiusOuter         )      &
             &  ) then
-          r=outerRadius/coreRadius
-          if (outerRadius > 0.0d0) then
+          r=radiusOuter/radiusCore
+          if (radiusOuter > 0.0d0) then
              if (self%betaIsTwoThirds) then
                 if (r /= radiusCoreFractionalPrevious) then
                    radiusCoreFractionalPrevious=r
@@ -253,26 +253,26 @@ contains
                       normalizationFactorStored=1.0d0/(r-atan(r))
                    end if
                 end if
-                self%densityNormalization=      mass/4.0d0/Pi/coreRadius **3*normalizationFactorStored
+                self%densityNormalization=      mass/4.0d0/Pi/radiusCore **3*normalizationFactorStored
              else
-                self%densityNormalization=3.0d0*mass/4.0d0/Pi/outerRadius**3/Hypergeometric_2F1([1.5d0,1.5d0*beta],[2.5d0],-r**2)
+                self%densityNormalization=3.0d0*mass/4.0d0/Pi/radiusOuter**3/Hypergeometric_2F1([1.5d0,1.5d0*beta],[2.5d0],-r**2)
              end if
           else
              call Error_Report('unphysical outer radius'//{introspection:location})
           end if
           ! Assert that the mass within the outer radius equals that specified.
           if (displayVerbosity() >= verbosityLevelDebug) then
-             if (.not.Values_Agree(self%massEnclosedBySphere(outerRadius),mass,relTol=1.0d-6,absTol=tiny(0.0d0))) then
+             if (.not.Values_Agree(self%massEnclosedBySphere(radiusOuter),mass,relTol=1.0d-6,absTol=tiny(0.0d0))) then
                 call displayIndent('beta-profile parameters:')
-                write (message,'(a,e12.6)') '    coreRadius: ',coreRadius
+                write (message,'(a,e12.6)') '    radiusCore: ',radiusCore
                 call displayMessage(message)
-                write (message,'(a,e12.6)') '   outerRadius: ',outerRadius
+                write (message,'(a,e12.6)') '   radiusOuter: ',radiusOuter
                 call displayMessage(message)
                 write (message,'(a,e12.6)') '          mass: ',mass
                 call displayMessage(message)
                 write (message,'(a,e12.6)') '          beta: ',beta
                 call displayMessage(message)
-                write (message,'(a,e12.6)') 'mass(<r_outer): ',self%massEnclosedBySphere(outerRadius)
+                write (message,'(a,e12.6)') 'mass(<r_outer): ',self%massEnclosedBySphere(radiusOuter)
                 call displayMessage(message)
                 call displayUnindent('done')
                 call Error_Report('profile normalization failed'//{introspection:location})
@@ -287,8 +287,8 @@ contains
        self%truncateAtOuterRadius=.false.
     end if
     if (self%truncateAtOuterRadius) then
-       if (.not.present(outerRadius)) call Error_Report('can not truncate profile without an outer radius'//{introspection:location})
-       self%outerRadius=outerRadius
+       if (.not.present(radiusOuter)) call Error_Report('can not truncate profile without an outer radius'//{introspection:location})
+       self%radiusOuter=radiusOuter
     end if
     ! Initialize stored results.
     self%momentRadial2XPrevious=-1.0d0
@@ -311,10 +311,10 @@ contains
 
     ! Compute density.
     radius=coordinates%rSpherical()
-    if (self%truncateAtOuterRadius .and. radius > self%outerRadius) then
+    if (self%truncateAtOuterRadius .and. radius > self%radiusOuter) then
        betaProfileDensity=0.0d0
     else
-       betaProfileDensity=self%densityNormalization/(1.0d0+(radius/self%coreRadius)**2)**(1.5d0*self%beta)
+       betaProfileDensity=self%densityNormalization/(1.0d0+(radius/self%radiusCore)**2)**(1.5d0*self%beta)
     end if
     return
   end function betaProfileDensity
@@ -336,12 +336,12 @@ contains
     ! Get position in spherical coordinate system.
     radius=coordinates%rSpherical()
     ! Apply truncation.
-    if (self%truncateAtOuterRadius .and. radius > self%outerRadius) then
+    if (self%truncateAtOuterRadius .and. radius > self%radiusOuter) then
        betaProfileDensityGradientRadial=0.0d0
        return
     end if
     ! Convert to dimensionless radius.
-    radius=radius/self%coreRadius
+    radius=radius/self%radiusCore
     ! Compute density gradient.
     if (logarithmicActual) then
        betaProfileDensityGradientRadial=                  &
@@ -354,7 +354,7 @@ contains
             & -3.0d0                                      &
             & *self%beta                                  &
             & *self%densityNormalization                  &
-            & /self%coreRadius                            &
+            & /self%radiusCore                            &
             & * radius                                    &
             & /(radius**2+1.0d0)**(1.5d0*self%beta+1.0d0)
     end if
@@ -386,12 +386,12 @@ contains
     double precision                              , parameter             :: radiusTiny      =1.0d-6
     double precision                                                      :: fractionalRadius       , radius_
 
-    if (self%truncateAtOuterRadius .and. radius > self%outerRadius) then
-       radius_=self%outerRadius
+    if (self%truncateAtOuterRadius .and. radius > self%radiusOuter) then
+       radius_=self%radiusOuter
     else
        radius_=radius
     end if
-    fractionalRadius=radius_/self%coreRadius
+    fractionalRadius=radius_/self%radiusCore
     if (self%betaIsTwoThirds) then
        ! Solution for special case of β=2/3.
        if (fractionalRadius < radiusTiny) then
@@ -400,7 +400,7 @@ contains
                & +4.0d0                                    &
                & *Pi                                       &
                & *self%densityNormalization                &
-               & *self%coreRadius                 **3      &
+               & *self%radiusCore                 **3      &
                & *                fractionalRadius**3      &
                & *(  +1.0d0/3.0d0+fractionalRadius**2      &
                & * ( -1.0d0/5.0d0+fractionalRadius**2      &
@@ -417,7 +417,7 @@ contains
                &   +     fractionalRadius                  &
                &   -atan(fractionalRadius)                 &
                &  )                                        &
-               & *self%coreRadius**3
+               & *self%radiusCore**3
        end if
     else
        ! General solution.
@@ -466,10 +466,10 @@ contains
     if (present(status)) status=structureErrorCodeSuccess
     ! Compute the potential at this position.
     radius=coordinates%rSpherical()
-    if (self%truncateAtOuterRadius .and. radius > self%outerRadius) then
-       fractionalRadius=self%outerRadius/self%coreRadius
+    if (self%truncateAtOuterRadius .and. radius > self%radiusOuter) then
+       fractionalRadius=self%radiusOuter/self%radiusCore
     else
-       fractionalRadius=          radius/self%coreRadius
+       fractionalRadius=          radius/self%radiusCore
     end if
     if (Values_Agree(self%beta,2.0d0/3.0d0,absTol=1.0d-6)) then
        if (fractionalRadius < fractionalRadiusMinimum) then
@@ -574,8 +574,8 @@ contains
        radiusMaximum_   =    radiusMaximum
     end if
     if (self%truncateAtOuterRadius) then
-       radiusMinimum_   =min(radiusMinimum_,self%outerRadius)
-       radiusMaximum_   =min(radiusMaximum_,self%outerRadius)
+       radiusMinimum_   =min(radiusMinimum_,self%radiusOuter)
+       radiusMaximum_   =min(radiusMaximum_,self%radiusOuter)
        haveRadiusMinimum=.true.
        haveRadiusMaximum=.true.
     end if
@@ -594,7 +594,7 @@ contains
     end if
     if (present(isInfinite)) isInfinite=.false.
     if (haveRadiusMaximum) then
-       fractionalRadiusMaximum=radiusMaximum_/self%coreRadius
+       fractionalRadiusMaximum=radiusMaximum_/self%radiusCore
        if (specialCaseMoment /= -huge(0)) then
           ! Special case for 0ᵗʰ, 1ˢᵗ, 2ⁿᵈ, and 3ʳᵈ moments of a β=2/3 distribution.
           betaProfileDensityRadialMoment=                    &
@@ -627,7 +627,7 @@ contains
        end if
     end if
     if (haveRadiusMinimum) then
-       fractionalRadiusMinimum=radiusMinimum_/self%coreRadius
+       fractionalRadiusMinimum=radiusMinimum_/self%radiusCore
        if (specialCaseMoment /= -huge(0)) then
           ! Special case for 0ᵗʰ, 1ˢᵗ, 2ⁿᵈ, and 3ʳᵈ moments of a β=2/3 distribution.
           betaProfileDensityRadialMoment=                                          &
@@ -659,7 +659,7 @@ contains
     betaProfileDensityRadialMoment                         &
          & =betaProfileDensityRadialMoment                 &
          & *self%densityNormalization                      &
-         & *self%coreRadius               **(1.0d0+moment)
+         & *self%radiusCore               **(1.0d0+moment)
     return
 
   contains
@@ -758,8 +758,8 @@ contains
        radiusMaximum_   =    radiusMaximum
     end if
     if (self%truncateAtOuterRadius) then
-       radiusMinimum_   =min(radiusMinimum_,self%outerRadius)
-       radiusMaximum_   =min(radiusMaximum_,self%outerRadius)
+       radiusMinimum_   =min(radiusMinimum_,self%radiusOuter)
+       radiusMaximum_   =min(radiusMaximum_,self%radiusOuter)
        haveRadiusMinimum=.true.
        haveRadiusMaximum=.true.
     end if
@@ -768,14 +768,14 @@ contains
        ! Compute the integral for the case β=2/3.
        if (haveRadiusMinimum) then
           fractionalRadiusMinimum=+     radiusMinimum_ &
-               &                  /self%coreRadius
+               &                  /self%radiusCore
           betaProfileDensitySquareIntegral=+betaProfileDensitySquareIntegral-4.0d0*Pi*(atan(fractionalRadiusMinimum)/2.0d0-fractionalRadiusMinimum/2.0d0/(1.0d0+fractionalRadiusMinimum**2))
        else
           betaProfileDensitySquareIntegral=+betaProfileDensitySquareIntegral+0.0d0
        end if
        if (haveRadiusMaximum) then
           fractionalRadiusMaximum=+     radiusMaximum_ &
-               &                  /self%coreRadius
+               &                  /self%radiusCore
           betaProfileDensitySquareIntegral=betaProfileDensitySquareIntegral+4.0d0*Pi*(atan(fractionalRadiusMaximum)/2.0d0-fractionalRadiusMaximum/2.0d0/(1.0d0+fractionalRadiusMaximum**2))
        else
           betaProfileDensitySquareIntegral=betaProfileDensitySquareIntegral+Pi**2
@@ -784,14 +784,14 @@ contains
        ! Compute the integral for the general case.
        if (haveRadiusMinimum) then
           fractionalRadiusMinimum=+     radiusMinimum_ &
-               &                  /self%coreRadius
+               &                  /self%radiusCore
           betaProfileDensitySquareIntegral=+betaProfileDensitySquareIntegral-4.0d0*Pi/3.0d0*fractionalRadiusMinimum**3*Hypergeometric_2F1([1.5d0,3.0d0*self%beta],[2.5d0],-fractionalRadiusMinimum**2)
        else
           betaProfileDensitySquareIntegral=+betaProfileDensitySquareIntegral+0.0d0
        end if
        if (haveRadiusMaximum) then
           fractionalRadiusMaximum=+     radiusMaximum_ &
-               &                  /self%coreRadius
+               &                  /self%radiusCore
           betaProfileDensitySquareIntegral=+betaProfileDensitySquareIntegral+4.0d0*Pi/3.0d0*fractionalRadiusMaximum**3*Hypergeometric_2F1([1.5d0,3.0d0*self%beta],[2.5d0],-fractionalRadiusMaximum**2)
        else
           if (self%beta > 2.0d0/3.0d0) then
@@ -809,7 +809,7 @@ contains
     ! Convert to dimensionful units.
     betaProfileDensitySquareIntegral=+betaProfileDensitySquareIntegral    &
          &                           *self%densityNormalization       **2 &
-         &                           *self%coreRadius                 **3
+         &                           *self%radiusCore                 **3
     return
   end function betaProfileDensitySquareIntegral
   
@@ -832,7 +832,7 @@ contains
     call parameters%addParameter('densityNormalization',trim(adjustl(parameterLabel)))
     write (parameterLabel,'(e17.10)') self%beta
     call parameters%addParameter('beta'                ,trim(adjustl(parameterLabel)))
-    write (parameterLabel,'(e17.10)') self%coreRadius
-    call parameters%addParameter('coreRadius'          ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%radiusCore
+    call parameters%addParameter('radiusCore'          ,trim(adjustl(parameterLabel)))
     return
   end subroutine betaProfileDescriptor

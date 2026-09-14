@@ -132,20 +132,25 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          # Both the current and the superseded name of each tools archive are listed. A tag cut before the
-          # next `master` deploy finds only the older names on `bleeding-edge`, and the launcher installs
-          # either -- so mirroring whichever exists keeps such a tag usable, rather than leaving it with no
-          # tools at all. Missing names are warned about and skipped below.
+          # Only names `bleeding-edge` still refreshes may be listed here. An asset the deploy no longer
+          # uploads is never removed from that rolling release by `gh release upload --clobber`, so it sits
+          # there frozen at whatever commit last produced it -- and mirroring such a copy onto a new version
+          # tag would publish an artefact built from an unrelated commit. Missing names are warned about and
+          # skipped below, so a superseded name is dropped from this list rather than kept "just in case".
+          #
+          # Deliberately absent for that reason: the macOS Intel assets (`Galacticus_MacOS.exe`,
+          # `toolsMacOS.*`), whose builds have been retired (see `Build-Executable-MacOS-M1` in `cicd.yml`),
+          # and the superseded tools archives `tools.tar.bz2` and `toolsMacOSM1.zip`, which the deploy
+          # stopped publishing when the tools moved to a zstd tar (the macOS zip now exists only as the
+          # format `xcrun notarytool submit` accepts). Releases cut while those assets were still published
+          # keep their own copies, so existing installs are unaffected -- the launcher's fallback to a legacy
+          # archive name (see `download._tools_archive`) is what keeps those tags installable, and it reads
+          # each release's own assets, not this list.
           assets=(
             Galacticus.exe
-            Galacticus_MacOS.exe
             Galacticus_MacOS-M1.exe
             tools.tar.zst
-            toolsMacOS.tar.zst
             toolsMacOSM1.tar.zst
-            tools.tar.bz2
-            toolsMacOS.zip
-            toolsMacOSM1.zip
             datasets.tar.zst
             datasets.ref
             parameters.catalog.json

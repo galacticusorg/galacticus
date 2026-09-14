@@ -24,7 +24,7 @@ Implements an N-body data operator which filters particles outside a cuboid regi
   !![
   <nbodyOperator name="nbodyOperatorFilterBox" docformat="rst">
    <description>
-   An N-body data operator which retains only particles whose positions fall within a specified axis-aligned cuboid region, enabling spatially localized analysis of simulation volumes. The lower and upper boundaries of the cuboid are specified as three-element coordinate arrays via ``[cornerLower]`` and ``[cornerUpper]``.
+   An N-body data operator which retains only particles whose positions fall within a specified axis-aligned cuboid region, enabling spatially localized analysis of simulation volumes. The lower and upper boundaries of the cuboid are specified as three-element coordinate arrays via ``[boundLow]`` and ``[boundHigh]``.
    </description>
   </nbodyOperator>
   !!]

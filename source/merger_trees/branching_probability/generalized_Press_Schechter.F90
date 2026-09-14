@@ -31,7 +31,7 @@ Implements a merger tree branching probability class using a generalized Press-S
   use :: Numerical_Integration          , only : integrator
 
   !![
-  <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityGnrlzdPrssSchchtr" docformat="rst">
+  <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityGeneralizedPressSchechter" docformat="rst">
    <description>
    A merger tree branching probability class using a generalized Press-Schechter approach. Branching probabilities are computed from solutions to the excursion set barrier first crossing rate problem. Specifically, the branching probability per unit time is:
 
@@ -58,7 +58,7 @@ Implements a merger tree branching probability class using a generalized Press-S
    </description>
   </mergerTreeBranchingProbability>
   !!]
-  type, extends(mergerTreeBranchingProbabilityClass) :: mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
+  type, extends(mergerTreeBranchingProbabilityClass) :: mergerTreeBranchingProbabilityGeneralizedPressSchechter
      !!{RST
      A merger tree branching probability class using a generalized Press-Schechter approach.
      !!}
@@ -113,18 +113,18 @@ Implements a merger tree branching probability class using a generalized Press-S
      procedure :: stepMaximum           => generalizedPressSchechterStepMaximum
      procedure :: computeCommonFactors  => generalizedPressSchechterComputeCommonFactors
      procedure :: excursionSetTest      => generalizedPressSchechterExcursionSetTest
-  end type mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
+  end type mergerTreeBranchingProbabilityGeneralizedPressSchechter
 
-  interface mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
+  interface mergerTreeBranchingProbabilityGeneralizedPressSchechter
      !!{RST
-     Constructors for the :galacticus-class:`mergerTreeBranchingProbabilityGnrlzdPrssSchchtr` merger tree branching probability class.
+     Constructors for the :galacticus-class:`mergerTreeBranchingProbabilityGeneralizedPressSchechter` merger tree branching probability class.
      !!}
      module procedure generalizedPressSchechterConstructorParameters
      module procedure generalizedPressSchechterConstructorInternal
-  end interface mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
+  end interface mergerTreeBranchingProbabilityGeneralizedPressSchechter
 
   ! Module-scope pointer to self used for root-finding.
-  class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), pointer   :: self_
+  class           (mergerTreeBranchingProbabilityGeneralizedPressSchechter), pointer   :: self_
   !$omp threadprivate(self_)
 
   ! Module-scope variables used in integrands.
@@ -138,10 +138,10 @@ contains
 
   function generalizedPressSchechterConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`mergerTreeBranchingProbabilityGnrlzdPrssSchchtr` merger tree branching probability class which reads parameters from a provided parameter list.
+    Constructor for the :galacticus-class:`mergerTreeBranchingProbabilityGeneralizedPressSchechter` merger tree branching probability class which reads parameters from a provided parameter list.
     !!}
     implicit none
-    type            (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr)                :: self
+    type            (mergerTreeBranchingProbabilityGeneralizedPressSchechter)                :: self
     type            (inputParameters                                ), intent(inout) :: parameters
     class           (criticalOverdensityClass                       ), pointer       :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass                  ), pointer       :: cosmologicalMassVariance_
@@ -199,7 +199,7 @@ contains
     <objectBuilder class="excursionSetFirstCrossing"              name="excursionSetFirstCrossing_"              source="parameters"/>
     <objectBuilder class="mergerTreeBranchingProbabilityModifier" name="mergerTreeBranchingProbabilityModifier_" source="parameters"/>
     !!]
-    self=mergerTreeBranchingProbabilityGnrlzdPrssSchchtr(deltaStepMaximum,massMinimum,smoothAccretion,distributionFunctionLowerHalfOnly,distributionFunctionNormalize,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,excursionSetFirstCrossing_,mergerTreeBranchingProbabilityModifier_)
+    self=mergerTreeBranchingProbabilityGeneralizedPressSchechter(deltaStepMaximum,massMinimum,smoothAccretion,distributionFunctionLowerHalfOnly,distributionFunctionNormalize,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,excursionSetFirstCrossing_,mergerTreeBranchingProbabilityModifier_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="criticalOverdensity_"                   />
@@ -217,7 +217,7 @@ contains
     !!}
     use :: Numerical_Integration, only : GSL_Integ_Gauss15
     implicit none
-    type            (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr)                        :: self
+    type            (mergerTreeBranchingProbabilityGeneralizedPressSchechter)                        :: self
     class           (cosmologicalMassVarianceClass                  ), intent(in   ), target :: cosmologicalMassVariance_
     class           (criticalOverdensityClass                       ), intent(in   ), target :: criticalOverdensity_
     class           (cosmologyFunctionsClass                        ), intent(in   ), target :: cosmologyFunctions_
@@ -257,7 +257,7 @@ contains
 
   subroutine generalizedPressSchechterDestructor(self)
     implicit none
-    type(mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout) :: self
+    type(mergerTreeBranchingProbabilityGeneralizedPressSchechter), intent(inout) :: self
 
     !![
     <objectDestructor name="self%criticalOverdensity_"                   />
@@ -274,7 +274,7 @@ contains
     Make a call to excursion set routines with the maximum :math:`\sigma` that we will use to ensure that they can handle it.
     !!}
     implicit none
-    class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout) :: self
+    class           (mergerTreeBranchingProbabilityGeneralizedPressSchechter), intent(inout) :: self
     type            (treeNode                                       ), intent(inout) :: node
     double precision                                                                 :: presentTime    , testResult, &
          &                                                                              varianceMaximum
@@ -299,7 +299,7 @@ contains
     use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : varying_string
     implicit none
-    class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
+    class           (mergerTreeBranchingProbabilityGeneralizedPressSchechter), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical                  , haloMass           , &
          &                                                                                      massResolution                 , probabilityFraction, &
          &                                                                                      time
@@ -391,7 +391,7 @@ contains
     Return the rate per unit mass and per unit change in :math:`\delta_\mathrm{crit}` that a halo of mass ``haloMass`` at time ``deltaCritical`` will undergo a branching to progenitors with mass ``massBranch``.
     !!}
     implicit none
-    class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
+    class           (mergerTreeBranchingProbabilityGeneralizedPressSchechter), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical, mass     , &
          &                                                                                      massBranch   , time
     type            (treeNode                                       ), intent(inout), target :: node
@@ -420,7 +420,7 @@ contains
     Return the maximum allowed step in :math:`\delta_\mathrm{crit}` that a halo of mass ``haloMass`` at time ``deltaCritical`` should be allowed to take.
     !!}
     implicit none
-    class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout) :: self
+    class           (mergerTreeBranchingProbabilityGeneralizedPressSchechter), intent(inout) :: self
     double precision                                                 , intent(in   ) :: deltaCritical , haloMass, &
          &                                                                              massResolution, time
     !$GLC attributes unused :: deltaCritical, haloMass, massResolution, time
@@ -434,7 +434,7 @@ contains
     Return bounds on the probability per unit change in :math:`\delta_\mathrm{crit}` that a halo of mass ``haloMass`` at time ``deltaCritical`` will undergo a branching to progenitors with mass greater than ``massResolution``.
     !!}
     implicit none
-    class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout)         :: self
+    class           (mergerTreeBranchingProbabilityGeneralizedPressSchechter), intent(inout)         :: self
     double precision                                                 , intent(in   )         :: deltaCritical , haloMass, &
          &                                                                                      massResolution, time
     type            (enumerationMergerTreeBranchingBoundType        ), intent(in   )         :: bound
@@ -450,7 +450,7 @@ contains
     Return the probability per unit change in :math:`\delta_\mathrm{crit}` that a halo of mass ``haloMass`` at time ``deltaCritical`` will undergo a branching to progenitors with mass greater than ``massResolution``.
     !!}
     implicit none
-    class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
+    class           (mergerTreeBranchingProbabilityGeneralizedPressSchechter), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical , haloMass   , &
          &                                                                                      massResolution, time
     type            (treeNode                                       ), intent(inout), target :: node
@@ -490,7 +490,7 @@ contains
     use :: Error             , only : Warn          , errorStatusSuccess
     use :: ISO_Varying_String, only : varying_string
     implicit none
-    class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
+    class           (mergerTreeBranchingProbabilityGeneralizedPressSchechter), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical                                 , haloMass      , &
          &                                                                                      massResolution                                , time
     type            (treeNode                                       ), intent(inout), target :: node
@@ -654,7 +654,7 @@ contains
     Precomputes some useful factors that are used in the generalized Press-Schechter branching integrals.
     !!}
     implicit none
-    class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout)         :: self
+    class           (mergerTreeBranchingProbabilityGeneralizedPressSchechter), intent(inout)         :: self
     type            (treeNode                                       ), intent(inout), target :: node
     double precision                                                 , intent(in   )         :: haloMass, deltaCritical, &
          &                                                                                      time

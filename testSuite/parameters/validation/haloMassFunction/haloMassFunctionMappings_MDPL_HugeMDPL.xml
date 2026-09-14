@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <detectionMassMinimumParticleCount value="=[haloMassFunctionParameters/massMinimumParticleCountMDPL1]" ignoreWarnings="true"/>
+  <detectionEfficiencyAtMassMinimum  value="=[haloMassFunctionParameters/efficiencyAtMassMinimumMDPL1]"  ignoreWarnings="true"/>
+  <detectionExponentMass             value="=[haloMassFunctionParameters/exponentMassDetectionMDPL1]"     ignoreWarnings="true"/>
+  <detectionExponentRedshift         value="=[haloMassFunctionParameters/exponentRedshiftDetectionMDPL1]" ignoreWarnings="true"/>
+  <perturbationFractional value="=[haloMassFunctionParameters/perturbationCubeHugeMDPL]"/>
+</parameters>

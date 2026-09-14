@@ -47,7 +47,7 @@ for model in models:
     if status.returncode == 0:
         if re.match(r'strict',model):
             # Strict model, succeeded - not expected.
-            print(f"FAIL: model {model} succeeded")
+            print(f"FAILED: model {model} succeeded")
             reportLog(f"outputs/test-{model}.log")
         else:
             # Unstrict model, succeeded - expected.
@@ -58,6 +58,6 @@ for model in models:
             print(f"SUCCESS: model {model} failed")
         else:
             # Unstrict model, failed - not expected.
-            print(f"FAIL: model {model} failed")
+            print(f"FAILED: model {model} failed")
             reportLog(f"outputs/test-{model}.log")
 

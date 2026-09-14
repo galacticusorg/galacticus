@@ -100,7 +100,7 @@ contains
     type            (inputParameters        ), intent(inout) :: parameters
     double precision                                         :: mass                , scaleLength  , &
          &                                                      densityNormalization, concentration, &
-         &                                                      virialRadius        , shapeParameter
+         &                                                      radiusVirial        , shapeParameter
     logical                                                  :: dimensionless
     type            (varying_string         )                :: componentType
     type            (varying_string         )                :: massType
@@ -146,7 +146,7 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter docformat="rst">
-      <name>virialRadius</name>
+      <name>radiusVirial</name>
       <defaultValue>1.0d0</defaultValue>
       <description>
       The virial radius of the Einasto profile.
@@ -182,7 +182,7 @@ contains
      <argument name="densityNormalization" value="densityNormalization" parameterPresent="parameters"/>
      <argument name="mass"                 value="mass"                 parameterPresent="parameters"/>
      <argument name="scaleLength"          value="scaleLength"          parameterPresent="parameters"/>
-     <argument name="virialRadius"         value="virialRadius"         parameterPresent="parameters"/>
+     <argument name="radiusVirial"         value="radiusVirial"         parameterPresent="parameters"/>
      <argument name="concentration"        value="concentration"        parameterPresent="parameters"/>
      <argument name="dimensionless"        value="dimensionless"        parameterPresent="parameters"/>
     </conditionalCall>
@@ -191,7 +191,7 @@ contains
     return
   end function massDistributionEinastoConstructorParameters
 
-  function massDistributionEinastoConstructorInternal(shapeParameter,scaleLength,concentration,densityNormalization,mass,virialRadius,dimensionless,componentType,massType) result(self)
+  function massDistributionEinastoConstructorInternal(shapeParameter,scaleLength,concentration,densityNormalization,mass,radiusVirial,dimensionless,componentType,massType) result(self)
     !!{RST
     Internal constructor for "einasto" mass distribution class.
     !!}
@@ -203,7 +203,7 @@ contains
     double precision                              , intent(in   )           :: shapeParameter
     double precision                              , intent(in   ), optional :: scaleLength         , concentration, &
          &                                                                     densityNormalization, mass         , &
-         &                                                                     virialRadius
+         &                                                                     radiusVirial
     logical                                       , intent(in   ), optional :: dimensionless
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
@@ -219,9 +219,9 @@ contains
        self%scaleLength=scaleLength
     else if (                            &
          &   present(concentration).and. &
-         &   present(virialRadius )      &
+         &   present(radiusVirial )      &
          &  ) then
-       self%scaleLength=virialRadius/concentration
+       self%scaleLength=radiusVirial/concentration
     else
        self%scaleLength=0.0d0
        call Error_Report('no means to determine scale length'//{introspection:location})
@@ -234,15 +234,15 @@ contains
        self%massTotal_          =+4.0d0*Pi*densityNormalization*self%scaleLength**3/shapeParameter/(2.0d0/shapeParameter)**(3.0d0/shapeParameter)*Gamma_Function(3.0d0/shapeParameter)*exp(2.0d0/shapeParameter)
     else if (                                   &
          &   present(mass                ).and. &
-         &   present(virialRadius        )      &
+         &   present(radiusVirial        )      &
          &  ) then
-       radiusScaleFree          =+virialRadius/self%scaleLength
+       radiusScaleFree          =+radiusVirial/self%scaleLength
        self%densityNormalization=+mass/4.0d0/Pi/self%scaleLength**3*shapeParameter*exp(-2.0d0/shapeParameter)*(2.0d0/shapeParameter)**(3.0d0/shapeParameter)/Gamma_Function(3.0d0/shapeParameter)
        self%massTotal_          =+mass
     else
        self%densityNormalization=+0.0d0
        self%massTotal_          =+0.0d0
-       call Error_Report('either "densityNormalization", or "mass" and "virialRadius" must be specified'//{introspection:location})
+       call Error_Report('either "densityNormalization", or "mass" and "radiusVirial" must be specified'//{introspection:location})
     end if
     ! Determine if profile is dimensionless.
     if      (present(dimensionless     )) then
@@ -742,7 +742,7 @@ contains
     integer                                                                :: i
     type            (integrator             )                              :: integrator_
 
-    ! Each point is an independent quadrature from the centre out to its own radius, so a point carried over by an extension
+    ! Each point is an independent quadrature from the center out to its own radius, so a point carried over by an extension
     ! is precisely the value which would be computed afresh.
     if (.not.self%timeFreefallScaleFree_%brackets(timeScaleFree)) then
        integrator_=integrator(timeFreeFallIntegrand,toleranceRelative=1.0d-6)

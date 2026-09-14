@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Check that the Halpha luminosity function analysis reaches the dust attenuation framework.
 
-The analysis no longer carries a dust normalization of its own. Instead it wraps its emission line extractor in
+The analysis no longer carries a dust normalization of its own. Instead it wraps its emission line extractors in
 `nodePropertyExtractorDustAttenuation` and scalarizes the summed, attenuated luminosity:
 
-    scalarizer -> dustAttenuation(outputSumOnly) -> Panuzzo2003
+    scalarizer -> dustAttenuation(outputSumOnly) -> luminosityEmissionLine (one child per line)
 
 so the dust model given to the analysis is what determines the attenuation. This runs the analysis twice, once with
 no dust and once with a screen whose optical depth follows the surface density of metals, and checks that the dust

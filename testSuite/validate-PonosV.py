@@ -42,7 +42,7 @@ hostsFinal         = np.nonzero(data['0.0']['nodeIsIsolated'] == 1)
 radiusVirialTarget = 0.6005 # Virial radius of PonosV from Table 1 of Fiacconi et al. (2016; https://ui.adsabs.harvard.edu/abs/2016ApJ...824..144F).
 offsetFractional   = (data['0.0']['darkMatterOnlyRadiusVirial'][hostsFinal]-radiusVirialTarget)/radiusVirialTarget
 if np.any(offsetFractional > 0.01):
-    print("FAIL: PonosV z=0.0 host virial radii")
+    print("FAILED: PonosV z=0.0 host virial radii")
     print("   Expected: "+str(radiusVirialTarget))
     print("   Found: "+str(data['0.0']['darkMatterOnlyRadiusVirial'][hostsFinal]))
 else:
@@ -132,7 +132,7 @@ subhaloSurfaceDensity8PonosV = 0.006
 above = np.nonzero(subhaloSurfaceDensity8 > subhaloSurfaceDensity8PonosV)
 percentageAbove = 100.0*np.count_nonzero(subhaloSurfaceDensity8 > subhaloSurfaceDensity8PonosV)/treeCount
 percentageBelow = 100.0-percentageAbove
-statusSurfaceDensity = "SUCCESS" if percentageAbove > 5.0 or percentageBelow > 5.0 else "FAIL"
+statusSurfaceDensity = "SUCCESS" if percentageAbove > 5.0 or percentageBelow > 5.0 else "FAILED"
 print(f"{statusSurfaceDensity}: Percentage of realizations above/below the PonosV subhalo surface density: {percentageAbove:5.1f}/{percentageBelow:5.1f}")
 
 # Compute the mean slope of the subhalo mass function, and report.
@@ -142,7 +142,7 @@ alphas      = -np.log(        subhaloSurfaceDensity8[nonZero]     /        subha
               /np.log(np.sqrt(massBoundMinimum8*massBoundMaximum8)/np.sqrt(massBoundMinimum9*massBoundMaximum9))
 percentageAboveSlope = 100.0*np.count_nonzero(alphas > alphaPonosV)/len(alphas)
 percentageBelowSlope = 100.0-percentageAboveSlope
-statusSlope = "SUCCESS" if percentageAboveSlope > 5.0 or percentageBelowSlope > 5.0 else "FAIL"
+statusSlope = "SUCCESS" if percentageAboveSlope > 5.0 or percentageBelowSlope > 5.0 else "FAILED"
 print(f"{statusSlope}: Percentage of realizations above/below the PonosV subhalo mass function slope: {percentageAboveSlope:5.1f}/{percentageBelowSlope:5.1f}")
 
 # Interface with git.

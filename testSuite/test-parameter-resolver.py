@@ -9,7 +9,7 @@ application -- because Galacticus bakes both into the DOM before any value is
 read (see the plan in ~/.claude/plans/galacticus-parameter-resolver.md).
 
 Run from the `testSuite/` directory (as `test-all.py` does). Prints `FAILED` on
-any divergence; `SKIP` (not a failure) if no built `Galacticus.exe` is found.
+any divergence; `SKIPPED` (not a failure) if no built `Galacticus.exe` is found.
 
 Andrew Benson (2026).
 """
@@ -142,7 +142,7 @@ CHANGE_CASES = {
 
 def main():
     if not os.path.isfile(BINARY):
-        print(f"SKIP: no built Galacticus.exe at {BINARY}; "
+        print(f"SKIPPED: no built Galacticus.exe at {BINARY}; "
               "differential resolver test requires the binary.")
         return 0
 

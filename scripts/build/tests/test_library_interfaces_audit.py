@@ -1,7 +1,7 @@
 """Regression tests for libraryInterfacesAudit.py's methods pass.
 
 Two bugs made the audit's method-level report silently misleading — the
-exact report a developer consults to prioritise library-interface coverage
+exact report a developer consults to prioritize library-interface coverage
 work:
 
 * ``_FC_BLOCK_RX`` required a *bare* ``<functionClass>`` open tag, but

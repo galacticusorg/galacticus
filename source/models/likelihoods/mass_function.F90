@@ -58,9 +58,9 @@
      class           (haloMassFunctionClass  ), pointer                     :: haloMassFunction_     => null()
      class           (surveyGeometryClass    ), pointer                     :: surveyGeometry_       => null()
      logical                                                                :: useSurveyLimits                , modelSurfaceBrightness
-     double precision                                                       :: haloMassMinimum                , haloMassMaximum       , &
+     double precision                                                       :: massHaloMinimum                , massHaloMaximum       , &
           &                                                                    redshiftMinimum                , redshiftMaximum       , &
-          &                                                                    logHaloMassMinimum             , logHaloMassMaximum    , &
+          &                                                                    logMassHaloMinimum             , logMassHaloMaximum    , &
           &                                                                    surfaceBrightnessLimit
      double precision                         , dimension(:  ), allocatable :: mass                           , massFunctionObserved  , &
           &                                                                    massMinimum                    , massMaximum           , &
@@ -95,7 +95,7 @@ contains
     type            (posteriorSampleLikelihoodMassFunction)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters
     double precision                                                       :: redshiftMinimum       , redshiftMaximum       , &
-         &                                                                    haloMassMinimum       , haloMassMaximum       , &
+         &                                                                    massHaloMinimum       , massHaloMaximum       , &
          &                                                                    surfaceBrightnessLimit
     logical                                                                :: useSurveyLimits       , modelSurfaceBrightness
     type            (varying_string                       )                :: massFunctionFileName
@@ -112,14 +112,14 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter docformat="rst">
-      <name>haloMassMinimum</name>
+      <name>massHaloMinimum</name>
       <description>
       The minimum halo mass over which to integrate.
       </description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter docformat="rst">
-      <name>haloMassMaximum</name>
+      <name>massHaloMaximum</name>
       <description>
       The maximum halo mass over which to integrate.
       </description>
@@ -164,7 +164,7 @@ contains
     <objectBuilder class="haloMassFunction"   name="haloMassFunction_"   source="parameters"/>
     <objectBuilder class="surveyGeometry"     name="surveyGeometry_"     source="parameters"/>
     !!]
-    self=posteriorSampleLikelihoodMassFunction(haloMassMinimum,haloMassMaximum,redshiftMinimum,redshiftMaximum,useSurveyLimits,char(massFunctionFileName),modelSurfaceBrightness,surfaceBrightnessLimit,cosmologyFunctions_,haloMassFunction_,surveyGeometry_)
+    self=posteriorSampleLikelihoodMassFunction(massHaloMinimum,massHaloMaximum,redshiftMinimum,redshiftMaximum,useSurveyLimits,char(massFunctionFileName),modelSurfaceBrightness,surfaceBrightnessLimit,cosmologyFunctions_,haloMassFunction_,surveyGeometry_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
@@ -174,7 +174,7 @@ contains
     return
   end function massFunctionConstructorParameters
 
-  function massFunctionConstructorInternal(haloMassMinimum,haloMassMaximum,redshiftMinimum,redshiftMaximum,useSurveyLimits,massFunctionFileName,modelSurfaceBrightness,surfaceBrightnessLimit,cosmologyFunctions_,haloMassFunction_,surveyGeometry_) result(self)
+  function massFunctionConstructorInternal(massHaloMinimum,massHaloMaximum,redshiftMinimum,redshiftMaximum,useSurveyLimits,massFunctionFileName,modelSurfaceBrightness,surfaceBrightnessLimit,cosmologyFunctions_,haloMassFunction_,surveyGeometry_) result(self)
     !!{RST
     Constructor for the :galacticus-class:`posteriorSampleLikelihoodMassFunction` posterior sampling likelihood class.
     !!}
@@ -185,7 +185,7 @@ contains
     use :: Linear_Algebra, only : assignment(=)
     type            (posteriorSampleLikelihoodMassFunction)                              :: self
     double precision                                       , intent(in   )               :: redshiftMinimum        , redshiftMaximum       , &
-         &                                                                                  haloMassMinimum        , haloMassMaximum       , &
+         &                                                                                  massHaloMinimum        , massHaloMaximum       , &
          &                                                                                  surfaceBrightnessLimit
     logical                                                , intent(in   )               :: useSurveyLimits        , modelSurfaceBrightness
     character       (len=*                                ), intent(in   )               :: massFunctionFileName
@@ -198,11 +198,11 @@ contains
     type            (matrix                               )                              :: eigenVectors
     type            (vector                               )                              :: eigenValues
     !![
-    <constructorAssign variables="haloMassMinimum, haloMassMaximum, redshiftMinimum, redshiftMaximum, modelSurfaceBrightness, surfaceBrightnessLimit, useSurveyLimits, massFunctionFileName, *cosmologyFunctions_, *haloMassFunction_, *surveyGeometry_"/>
+    <constructorAssign variables="massHaloMinimum, massHaloMaximum, redshiftMinimum, redshiftMaximum, modelSurfaceBrightness, surfaceBrightnessLimit, useSurveyLimits, massFunctionFileName, *cosmologyFunctions_, *haloMassFunction_, *surveyGeometry_"/>
     !!]
 
-    self%logHaloMassMinimum=log10(haloMassMinimum)
-    self%logHaloMassMaximum=log10(haloMassMaximum)
+    self%logMassHaloMinimum=log10(massHaloMinimum)
+    self%logMassHaloMaximum=log10(massHaloMaximum)
     ! Read the mass function file.
     !$ call hdf5Access%set()
     massFunctionFile=hdf5File(inputPath(pathTypeDataStatic)//massFunctionFileName,readOnly=.true.)
@@ -414,54 +414,54 @@ contains
       integer                                         :: errorStatus
       type            (varying_string)                :: message
       character       (len=14        )                :: label
-      double precision                                :: haloMassMinimum, haloMassMaximum
+      double precision                                :: massHaloMinimum, massHaloMaximum
 
       ! Check for zero contribution from the ends of our halo mass range.
-      haloMassMinimum=10.0d0**self%logHaloMassMinimum
-      haloMassMaximum=10.0d0**self%logHaloMassMaximum
+      massHaloMinimum=10.0d0**self%logMassHaloMinimum
+      massHaloMaximum=10.0d0**self%logMassHaloMaximum
       if          (                                                                                  &
-           &        conditionalMassFunction_%massFunction(      haloMassMinimum,self%massMinimum(i)) &
+           &        conditionalMassFunction_%massFunction(      massHaloMinimum,self%massMinimum(i)) &
            &         ==                                                                              &
-           &        conditionalMassFunction_%massFunction(      haloMassMinimum,self%massMaximum(i)) &
+           &        conditionalMassFunction_%massFunction(      massHaloMinimum,self%massMaximum(i)) &
            &       .and.                                                                             &
-           &        conditionalMassFunction_%massFunction(      haloMassMinimum,self%massMinimum(i)) &
+           &        conditionalMassFunction_%massFunction(      massHaloMinimum,self%massMinimum(i)) &
            &         ==                                                                              &
            &        0.0d0                                                                            &
            &       .and.                                                                             &
-           &        conditionalMassFunction_%massFunction(      haloMassMaximum,self%massMinimum(i)) &
+           &        conditionalMassFunction_%massFunction(      massHaloMaximum,self%massMinimum(i)) &
            &         ==                                                                              &
-           &        conditionalMassFunction_%massFunction(      haloMassMaximum,self%massMaximum(i)) &
+           &        conditionalMassFunction_%massFunction(      massHaloMaximum,self%massMaximum(i)) &
            &       .and.                                                                             &
-           &        conditionalMassFunction_%massFunction(      haloMassMaximum,self%massMinimum(i)) &
+           &        conditionalMassFunction_%massFunction(      massHaloMaximum,self%massMinimum(i)) &
            &         >                                                                               &
            &        0.0d0                                                                            &
            &      ) then
          do while (                                                                                  &
-              &     conditionalMassFunction_%massFunction(2.0d0*haloMassMinimum,self%massMinimum(i)) &
+              &     conditionalMassFunction_%massFunction(2.0d0*massHaloMinimum,self%massMinimum(i)) &
               &      ==                                                                              &
-              &     conditionalMassFunction_%massFunction(2.0d0*haloMassMinimum,self%massMaximum(i)) &
+              &     conditionalMassFunction_%massFunction(2.0d0*massHaloMinimum,self%massMaximum(i)) &
               &    .and.                                                                             &
-              &     conditionalMassFunction_%massFunction(2.0d0*haloMassMinimum,self%massMinimum(i)) &
+              &     conditionalMassFunction_%massFunction(2.0d0*massHaloMinimum,self%massMinimum(i)) &
               &      ==                                                                              &
               &     0.0d0                                                                            &
               &   )
-            haloMassMinimum=2.0d0*haloMassMinimum
+            massHaloMinimum=2.0d0*massHaloMinimum
          end do
          do while (                                                                                  &
-              &     conditionalMassFunction_%massFunction(0.5d0*haloMassMaximum,self%massMinimum(i)) &
+              &     conditionalMassFunction_%massFunction(0.5d0*massHaloMaximum,self%massMinimum(i)) &
               &      ==                                                                              &
-              &     conditionalMassFunction_%massFunction(0.5d0*haloMassMaximum,self%massMaximum(i)) &
+              &     conditionalMassFunction_%massFunction(0.5d0*massHaloMaximum,self%massMaximum(i)) &
               &    .and.                                                                             &
-              &     conditionalMassFunction_%massFunction(0.5d0*haloMassMaximum,self%massMinimum(i)) &
+              &     conditionalMassFunction_%massFunction(0.5d0*massHaloMaximum,self%massMinimum(i)) &
               &      >                                                                               &
               &     0.0d0                                                                            &
               &   )
-            haloMassMaximum=0.5d0*haloMassMaximum
+            massHaloMaximum=0.5d0*massHaloMaximum
          end do
       end if
       time                =timePrime
       integrator_                        = integrator                                               (likelihoodMassFunctionHaloMassIntegrand,toleranceRelative=1.0d-3                ,toleranceAbsolute=1.0d-9     )
-      likelihoodMassFunctionTimeIntegrand=+integrator_                    %integrate                (log10(haloMassMinimum)                 ,                  log10(haloMassMaximum),status           =errorStatus) &
+      likelihoodMassFunctionTimeIntegrand=+integrator_                    %integrate                (log10(massHaloMinimum)                 ,                  log10(massHaloMaximum),status           =errorStatus) &
            &                              *self       %cosmologyFunctions_%comovingVolumeElementTime(timePrime                                                                                                     )
       if (errorStatus /= errorStatusSuccess) then
          message='integration failed - state vector follows'

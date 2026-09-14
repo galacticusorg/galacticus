@@ -37,6 +37,22 @@ def test_detect_supported(system, machine, binary, tools, legacy):
     assert assets.tools_legacy == legacy
 
 
+@pytest.mark.parametrize("system,machine,retired", [
+    ("Linux", "x86_64", False),
+    ("Darwin", "arm64", False),
+    # macOS Intel builds have been retired, but the releases which published them
+    # must stay installable, so the platform keeps its asset mapping and is
+    # refused only by a release carrying no binary for it (see
+    # `download._require_published_binary`).
+    ("Darwin", "x86_64", True),
+])
+def test_detect_marks_retired_platforms(system, machine, retired):
+    assets = platforms.detect(system, machine)
+    assert (assets.retired is not None) == retired
+    if retired:
+        assert platforms.MACOS_INTEL_FINAL_VERSION in assets.retired
+
+
 @pytest.mark.parametrize("system,machine", [
     ("Linux", "ppc64le"),
     ("Darwin", "i386"),

@@ -28,7 +28,7 @@
   !![
   <mergerTreeBuildMasses name="mergerTreeBuildMassesFixedMass" docformat="rst">
    <description>
-   A merger tree masses class which assigns fixed, user-specified halo masses to merger trees for galaxy formation modeling. Multiple mass values and tree counts can be provided, with ``[masses]``, ``[treeCount]``, and, optionally, ``[radii]`` controlling the halo mass, number of trees per mass, and the reference radius within which masses are defined.
+   A merger tree masses class which assigns fixed, user-specified halo masses to merger trees for galaxy formation modeling. Multiple mass values and tree counts can be provided, with ``[massTree]``, ``[treeCount]``, and, optionally, ``[radiusTree]`` controlling the halo mass, number of trees per mass, and the reference radius within which masses are defined.
    </description>
   </mergerTreeBuildMasses>
   !!]

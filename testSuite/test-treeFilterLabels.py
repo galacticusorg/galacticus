@@ -36,12 +36,12 @@ if len(lmcs) < len(hosts):
     sys.exit(0)
 
 if np.any(basicTimeLastIsolated[lmcs] < 11.8):
-    print("FAILED: LMCs labelled prior to infall time")
+    print("FAILED: LMCs labeled prior to infall time")
     sys.exit(0)
 
 # Allow some tolerance in Vmax test as peak velocities are determined numerically for tidally-heated subhalos.
 if np.any(darkMatterVmax[lmcs] < 54.0):
-    print("FAILED: LMCs labelled at low Vmax")
+    print("FAILED: LMCs labeled at low Vmax")
     sys.exit(0)
 
 print("SUCCESS: filtered tree labeling")

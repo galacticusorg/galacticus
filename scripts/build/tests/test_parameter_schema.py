@@ -88,7 +88,7 @@ def test_schema_compiles_and_validates():
 @pytest.fixture
 def fake_tree(tmp_path, monkeypatch):
     """A source directory whose catalog is stubbed out, so the CLI's write /
-    check / exit-code behaviour is exercised without parsing real Fortran."""
+    check / exit-code behavior is exercised without parsing real Fortran."""
     import parameterSchema
 
     (tmp_path / 'source').mkdir()

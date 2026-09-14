@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a mass distribution heating class that sums heating over other classes.
   !!}
@@ -42,6 +44,7 @@
      private
       type(massDistributionHeatingList), pointer :: massDistributionHeatings => null()
    contains
+     final     ::                                   summationDestructor
      procedure :: specificEnergy                 => summationSpecificEnergy
      procedure :: specificEnergyGradient         => summationSpecificEnergyGradient
      procedure :: specificEnergyIsEveryWhereZero => summationSpecificEnergyIsEverywhereZero

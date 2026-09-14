@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module defining the history object type.
 !!}
@@ -514,7 +516,7 @@ contains
 
   subroutine History_Long_Integer_Clone(self,historyToClone)
     !!{RST
-    Clone a longIntegerHistory object.
+    Clone a ``longIntegerHistory`` object.
     !!}
     implicit none
     class(longIntegerHistory), intent(inout) :: self
@@ -1008,16 +1010,14 @@ contains
      !!{RST
      Adds the data in ``addHistory`` to that in ``history_``. This function is designed for histories that track instantaneous rates. The rates in ``addHistory`` are interpolated to the times in ``history_`` and added to the rates in ``history_``.
      !!}
-     use            :: Error                  , only : Error_Report
-     use, intrinsic :: ISO_C_Binding          , only : c_size_t
-     use            :: Numerical_Interpolation, only : interpolator
+     use            :: Error        , only : Error_Report
+     use, intrinsic :: ISO_C_Binding, only : c_size_t
      implicit none
-     class           (history     ), intent(inout) :: history_
-     type            (history     ), intent(in   ) :: addHistory
-     double precision              , dimension(2)  :: interpolationFactors
-     integer                                       :: iPoint              , iHistory
-     integer         (c_size_t    )                :: interpolationPoint  , addHistoryPointCount
-     type            (interpolator)                :: interpolator_
+     class           (history ), intent(inout) :: history_
+     type            (history ), intent(in   ) :: addHistory
+     double precision          , dimension(2)  :: interpolationFactors
+     integer                                   :: iPoint              , iHistory
+     integer         (c_size_t)                :: interpolationPoint  , addHistoryPointCount
 
      select type (history_)
      type is (history)
@@ -1045,7 +1045,6 @@ contains
         if (size(history_%data,dim=2) /= size(addHistory%data,dim=2)) call Error_Report('two objects contain differing numbers of histories'//{introspection:location})
         ! Loop over each entry in history_.
         interpolationPoint=1
-        interpolator_     =interpolator(addHistory%time)
         do iPoint=1,size(history_%time)
            ! If within range of history spanned by addHistory then....
            if (history_%time(iPoint) >= addHistory%time(1) .and. history_%time(iPoint) <= addHistory%time(addHistoryPointCount)) then
@@ -1053,11 +1052,18 @@ contains
               do while (history_%time(iPoint) > addHistory%time(interpolationPoint) .and. interpolationPoint < addHistoryPointCount-1)
                  interpolationPoint=interpolationPoint+1
               end do
-              call interpolator_%linearWeights(history_%time(iPoint),interpolationPoint,interpolationFactors)
+              ! Compute the linear interpolation weights directly. The bracketing index is already known (it is advanced
+              ! monotonically above), so an `interpolator` object - which would copy the time array and allocate GSL objects -
+              ! is not needed.
+              interpolationFactors(1)=+(addHistory%time(interpolationPoint+1)-history_  %time(iPoint            )) &
+                   &                  /(addHistory%time(interpolationPoint+1)-addHistory%time(interpolationPoint))
+              interpolationFactors(2)=+1.0d0                                                                       &
+                   &                  -interpolationFactors(1)
               ! Add them.
               forall(iHistory=1:size(history_%data,dim=2))
-                 history_%data (iPoint,iHistory)=history_%data (iPoint,iHistory)+addHistory%data(interpolationPoint,iHistory)&
-                      &*interpolationFactors(1)+addHistory%data(interpolationPoint+1,iHistory)*interpolationFactors(2)
+                 history_%data (iPoint,iHistory)=+history_  %data(iPoint              ,iHistory)                         &
+                      &                          +addHistory%data(interpolationPoint  ,iHistory)*interpolationFactors(1) &
+                      &                          +addHistory%data(interpolationPoint+1,iHistory)*interpolationFactors(2)
               end forall
            end if
 

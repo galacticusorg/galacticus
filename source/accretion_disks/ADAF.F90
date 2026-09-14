@@ -273,7 +273,7 @@ contains
       <source>parameters</source>
       <defaultValue>var_str('fit')</defaultValue>
       <description>
-      Controls how the viscosity parameter :math:`\alpha` in an ADAF is determined. ``fit`` will cause :math:`\alpha` to be computed using the fitting function of :cite:t:`benson_maximum_2009`; ``fixed`` will cause :math:`\alpha=`\ ``[adafViscosityFixedAlpha]`` to be used.
+      Controls how the viscosity parameter :math:`\alpha` in an ADAF is determined. ``fit`` will cause :math:`\alpha` to be computed using the fitting function of :cite:t:`benson_maximum_2009`; ``fixed`` will cause :math:`\alpha=`\ ``[viscosityAlpha]`` to be used.
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
@@ -281,7 +281,7 @@ contains
       <source>parameters</source>
       <defaultValue>0.1d0</defaultValue>
       <description>
-      The value for the viscosity parameter :math:`\alpha` in an ADAF to be used if ``[adafViscosityOption]``\ :math:`=`\ ``fixed``.
+      The value for the viscosity parameter :math:`\alpha` in an ADAF to be used if ``[viscosityOption]``\ :math:`=`\ ``fixed``.
       </description>
     </inputParameter>
     <inputParameter docformat="rst">

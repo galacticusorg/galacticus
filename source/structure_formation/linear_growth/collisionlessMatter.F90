@@ -257,7 +257,7 @@ contains
           call growthFactor%extend(latticeTime,isComputed)
           ! Solve the ODE for the epochs not already solved for. The state of the integration is carried in the solution vector
           ! rather than read back from the table between steps: where the integration is resumed the table holds *normalized*
-          ! values, which are not the state the equations were left in. For a tabulation built afresh this is behaviour
+          ! values, which are not the state the equations were left in. For a tabulation built afresh this is behavior
           ! preserving, since reading `y(i-1)` back returned exactly what the previous step populated.
           if (carryOver) then
              growthFactorODEVariables(1)=self%growthFactorFinal

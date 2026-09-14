@@ -20,7 +20,7 @@
 !+    Contributions to this file made by: Niusha Ahvazi
 
 !!{RST
-Implements a selfInteracting dark matter particle class.
+Implements a ``selfInteracting`` dark matter particle class.
 !!}
 
   use :: Numerical_Interpolation, only : interpolator

@@ -191,14 +191,18 @@ The next block of parameters specifies how Galacticus should handle the hierarch
    <!-- Substructure hierarchy options -->
    <mergerTreeNodeMerger value="singleLevelHierarchy"/>
 
-We next specify how the structure of our dark matter halos is to be determined. We'll use `NFW <http://adsabs.harvard.edu/abs/1997ApJ...490..493N>`_ density profiles, and choose their concentrations using the `Gao et al. (2008) <http://adsabs.harvard.edu/abs/2008MNRAS.387..536G>`_ fitting function. We'll also set a limit on the concentration so that it can never go below 4 (which is unphysical, but can happen if the fitting function is applied far outside its range of validity):
+We next specify how the structure of our dark matter halos is to be determined. We'll use `NFW <http://adsabs.harvard.edu/abs/1997ApJ...490..493N>`_ density profiles, and choose their concentrations using the `Gao et al. (2008) <http://adsabs.harvard.edu/abs/2008MNRAS.387..536G>`_ fitting function. We'll also set a limit on the concentration so that it can never go below 4 (which is unphysical, but can happen if the fitting function is applied far outside its range of validity), or above 100:
 
 .. code-block:: xml
 
    <!-- Dark matter halo structure options -->
    <darkMatterProfileDMO            value="NFW"    />
    <darkMatterProfileConcentration  value="gao2008"/>
-   <darkMatterProfileMinimumConcentration value="4"      />
+   <darkMatterProfileScaleRadius value="concentrationLimiter">
+     <concentrationMinimum value="  4.0"/>
+     <concentrationMaximum value="100.0"/>
+     <darkMatterProfileScaleRadius value="concentration"/>
+   </darkMatterProfileScaleRadius>
 
 Since we want to run a dark matter-only calculation we need to switch off some baryonic physics that is on by default. Specifically we set the distribution of hot gas in halos to "``null``".
 
@@ -226,7 +230,7 @@ Finally we specify what we want to be output. We'll choose a file name for the o
 .. code-block:: xml
 
    <!-- Output options -->
-   <galacticusOutputFileName value="darkMatterOnlyMergerTrees.hdf5"/>
+   <outputFileName          value="darkMatterOnlyMergerTrees.hdf5"/>
    <outputTimes value="list">
      <redshifts value="0.0 1.0"/>
    </outputTimes>

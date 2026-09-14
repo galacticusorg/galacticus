@@ -1,0 +1,999 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
+  !!{RST
+  Implements a dust attenuation class using the dust compendium of :cite:t:`benson_compendium_2018`.
+  !!}
+
+  use :: Galactic_Inclinations         , only : galacticInclinationClass
+  use :: Locks                         , only : ompReadWriteLock
+  use :: ISO_Varying_String            , only : varying_string
+  use :: Numerical_Interpolation       , only : interpolator
+  use :: Numerical_Interpolation_MultiD, only : interpolatorMultiD
+
+  ! The tabulations published on Zenodo, with the record each belongs to and the spheroid profile it was
+  ! computed for, so that naming a file is enough to fetch it and to place spheroids on it correctly. A
+  ! file which is not one of these can still be used, by giving `url` and `spheroidProfile` explicitly.
+  ! A store of tabulations shared by every instance and every thread which wants them. The tables are read-only
+  ! once built and are the bulk of this class's memory---297 MB for a high resolution tabulation---so holding one
+  ! copy per OpenMP thread per instance, as deep copying the object otherwise does, costs gigabytes for no benefit.
+  ! Entries are keyed by the file they came from together with the trimming applied to it, so two instances reading
+  ! different files, or the same file trimmed differently, get separate tables and can not interfere.
+  !
+  ! The interpolators are deliberately *not* shared. Each caches a bracket index and a GSL accelerator which it
+  ! mutates as it interpolates, so a shared one would be a data race; they stay per-thread, where they are small.
+  !
+  ! Access follows the pattern of the filter store in `source/instruments/filters.F90`: a read/write lock, so that
+  ! any number of threads may read the tables at once while a thread adding one has them to itself. Entries are
+  ! never removed---a tabulation wanted once is wanted for the life of the run---so an index into the store stays
+  ! valid, which is what lets an object carry one across a deep copy and share the table rather than duplicate it.
+  type :: compendiumTable
+     type            (varying_string)                                          :: key
+     double precision                , allocatable, dimension(:,:,:        )   :: transmissionDisk
+     double precision                , allocatable, dimension(:,:,:,:      )   :: transmissionSpheroid
+     double precision                , allocatable, dimension(:,:          )   :: extrapolationDiskConstant       , extrapolationDiskLogarithmic
+     double precision                , allocatable, dimension(:,:,:        )   :: extrapolationSpheroidConstant   , extrapolationSpheroidLogarithmic
+  end type compendiumTable
+  type   (compendiumTable ), allocatable, dimension(:) :: compendiumTables
+  ! The store starts at this many entries and doubles if that is exceeded.
+  integer                                  , parameter :: compendiumTablesCapacityInitial=16
+  integer                                              :: compendiumTablesCount          =0
+  type   (ompReadWriteLock)                            :: compendiumTablesLock
+  logical                                              :: compendiumTablesLockInitialized =.false.
+
+  ! The tabulations are in microns, while parcels, and the trimming parameters, are in Angstroms.
+  double precision                               , parameter                                  :: angstromsPerMicron  =1.0d+4
+  integer                                        , parameter                                  :: compendiumFilesCount=21
+  character       (len=82                       ), parameter, dimension(compendiumFilesCount) :: compendiumFileName  =   &
+       & [                                                                                                               &
+       &  'Ferrara1999_GRASIL_dustD03Rv3.1_hzStars0.1_hzDust1.0_highRes_Attenuations.hdf5    ',                          &
+       &  'Ferrara1999_GRASIL_dustD03Rv3.1_hzStars0.5_hzDust1.0_highRes_Attenuations.hdf5    ',                          &
+       &  'Ferrara1999_GRASIL_dustD03Rv5.5_hzStars0.1_hzDust1.0_highRes_Attenuations.hdf5    ',                          &
+       &  'Ferrara1999_GRASIL_dustD03Rv5.5_hzStars0.5_hzDust1.0_highRes_Attenuations.hdf5    ',                          &
+       &  'Ferrara1999_MW_hz0.4_Attenuations.hdf5                                            ',                          &
+       &  'Ferrara1999_MW_hz0.4_highRes_Attenuations.hdf5                                    ',                          &
+       &  'Ferrara1999_MW_hz1.0_Attenuations.hdf5                                            ',                          &
+       &  'Ferrara1999_MW_hz1.0_highRes_Attenuations.hdf5                                    ',                          &
+       &  'Ferrara1999_MW_hz2.5_Attenuations.hdf5                                            ',                          &
+       &  'Ferrara1999_MW_hz2.5_highRes_Attenuations.hdf5                                    ',                          &
+       &  'Ferrara1999_SMC_hz0.4_Attenuations.hdf5                                           ',                          &
+       &  'Ferrara1999_SMC_hz0.4_highRes_Attenuations.hdf5                                   ',                          &
+       &  'Ferrara1999_SMC_hz1.0_Attenuations.hdf5                                           ',                          &
+       &  'Ferrara1999_SMC_hz1.0_highRes_Attenuations.hdf5                                   ',                          &
+       &  'Ferrara1999_SMC_hz2.5_Attenuations.hdf5                                           ',                          &
+       &  'Ferrara1999_SMC_hz2.5_highRes_Attenuations.hdf5                                   ',                          &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustD03Rv3.1_Attenuations.hdf5      ',                          &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustD03Rv4.0_Attenuations.hdf5      ',                          &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustD03Rv5.5_Attenuations.hdf5      ',                          &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustKMH94FullRv3.1_Attenuations.hdf5',                          &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustKMH94HGRv3.1_Attenuations.hdf5  '                           &
+       & ]
+  character       (len=7                        ), parameter, dimension(compendiumFilesCount) :: compendiumRecord    =   &
+       & [                                                                                                               &
+       &  '6335951',                                                                                                     &
+       &  '6335951',                                                                                                     &
+       &  '6335951',                                                                                                     &
+       &  '6335951',                                                                                                     &
+       &  '6336095',                                                                                                     &
+       &  '6336097',                                                                                                     &
+       &  '6336095',                                                                                                     &
+       &  '6336097',                                                                                                     &
+       &  '6336095',                                                                                                     &
+       &  '6336097',                                                                                                     &
+       &  '6336095',                                                                                                     &
+       &  '6336097',                                                                                                     &
+       &  '6336095',                                                                                                     &
+       &  '6336097',                                                                                                     &
+       &  '6336095',                                                                                                     &
+       &  '6336097',                                                                                                     &
+       &  '6335021',                                                                                                     &
+       &  '6335545',                                                                                                     &
+       &  '6335642',                                                                                                     &
+       &  '6335668',                                                                                                     &
+       &  '6335670'                                                                                                      &
+       & ]
+  logical                                       , parameter, dimension(compendiumFilesCount) :: compendiumJaffe     =    &
+       & [                                                                                                               &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .true. ,                                                                                                        &
+       & .false.,                                                                                                        &
+       & .false.,                                                                                                        &
+       & .false.,                                                                                                        &
+       & .false.,                                                                                                        &
+       & .false.                                                                                                         &
+       & ]
+
+  !![
+  <enumeration docformat="rst">
+   <name>compendiumSpheroidProfile</name>
+   <description>
+   Enumerates the spheroid density profiles for which dust compendium tabulations have been computed.
+   </description>
+   <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <visibility>public</visibility>
+   <entry label="hernquist"/>
+   <entry label="jaffe"    />
+  </enumeration>
+  !!]
+
+  !![
+  <dustAttenuation name="dustAttenuationAtlasCompendium" docformat="rst">
+   <description>
+   Dust attenuation from the dust compendium of :cite:t:`benson_compendium_2018`: radiative transfer solutions for simple
+   galactic geometries, tabulating the fraction of light escaping a galaxy as a function of wavelength, inclination,
+   optical depth, and---for the spheroid---the size of the spheroid relative to the disk.
+
+   This is a *non-separable* attenuator, exactly as :galacticus-class:`dustAttenuationAtlasFerrara2000` is: the
+   tabulated escape fraction is the result of a radiative transfer calculation through a specified geometry, and is
+   not the exponential of a single optical depth times a wavelength-dependent curve, so it takes no
+   ``dustExtinctionCurve``. It also means the transmission can slightly exceed unity where scattering redirects more
+   light into the line of sight than the dust removes from it.
+
+   The tabulations are published as a set of HDF5 files, one per combination of grain properties and geometry, and
+   are described in the :doc:`dust compendium datasets &lt;/manuals/user-guide/data/dust-compendium-datasets&gt;` section
+   of the user guide. ``fileName`` selects one. If that file is not already present it is downloaded and cached
+   under the dynamic datasets path, so a file is fetched once and reused thereafter. The published file names are
+   known to this class, so naming one is enough; ``url`` is needed only for a tabulation which is not among them,
+   such as one the user has produced themselves.
+
+   Be aware of the size of these files, which is the reason for the trimming parameters below. All but the six
+   original-resolution :cite:t:`ferrara_atlas_1999` tabulations are 584 MB apiece, on a grid of 250 wavelengths, 46
+   inclinations, 60 optical depths, and 51 spheroid sizes. Half of each file is Monte Carlo uncertainties, which are
+   not read; the attenuations and their extrapolation coefficients come to 297 MB, almost all of it the spheroid
+   table.
+
+   The tables themselves are held once and shared, rather than being duplicated by the deep copy which gives each
+   OpenMP thread its own attenuator, so that figure is paid once per distinct tabulation rather than once per thread
+   per instance. Two instances reading different files, or the same file trimmed differently, get separate tables.
+   The interpolators are *not* shared, each caching a bracket index and a GSL accelerator which it mutates as it
+   works; they stay per-thread, where they are small.
+
+   Restricting each axis to the range actually needed reduces what is held further---``wavelengthMinimum``, ``wavelengthMaximum``, ``opticalDepthMaximum``,
+   ``radiusSpheroidMinimum``, and ``radiusSpheroidMaximum`` below. Only the retained part of each axis is read from
+   the file, as an HDF5 hyperslab, so a trimmed tabulation is never held at full size even transiently. Trimming
+   changes no result which lies inside the retained range: the bracketing nodes on either side are kept, so values
+   within the range are interpolated exactly as they would have been from the full table.
+
+   Two quantities are supplied per galaxy rather than tabulated:
+
+   * The :math:`V`-band optical depth through the center of the galaxy, perpendicular to the plane. Unlike
+     :galacticus-class:`dustAttenuationAtlasFerrara2000`, which delegates this to a
+     :galacticus-class:`dustAttenuationScreen`, it is computed here from the tabulation's *own* opacity, read from
+     the ``opacity`` attribute of the file:
+
+     .. math::
+
+        \tau_\mathrm{V} = \kappa_\mathrm{V} \, f_\mathrm{dust:metals} \, \Sigma_\mathrm{Z},
+
+     with :math:`\kappa_\mathrm{V}` the :math:`V`-band opacity per unit mass of dust used in the radiative transfer
+     calculation, :math:`f_\mathrm{dust:metals}` the dust-to-metals ratio (``dustToMetalsRatio``), and
+     :math:`\Sigma_\mathrm{Z} = Z M_\mathrm{gas} / 2 \pi r_\mathrm{d}^2` the central surface density of gas-phase
+     metals of the disk. Using the opacity which produced the table is what makes the optical depth mean the same
+     thing to the model as it does to the tabulation; a screen calibrated to the Milky Way, as
+     :galacticus-class:`dustAttenuationScreenSurfaceDensityMetals` is, need not agree with it.
+
+     As in :galacticus-class:`dustAttenuationAtlasFerrara2000`, the optical depth is *always* that of the disk,
+     whichever component is being attenuated: the dust lies in the disk, and a spheroid is reddened by the disk's
+     dust.
+
+   * The inclination, from a :galacticus-class:`galacticInclinationClass` object, or from the ``inclination``
+     argument when one is imposed, as :galacticus-class:`dustAttenuationInclinationAveraged` does. One or the other
+     must be available, and an error is reported if neither is.
+
+   * The size of the spheroid, in the units the ``spheroidScaleRadial`` axis is tabulated against. Note that this
+     axis does *not* mean the same thing as the corresponding axis of
+     :galacticus-class:`dustAttenuationAtlasFerrara2000`: :cite:t:`ferrara_atlas_1999` tabulate against the spheroid
+     *effective* radius, whereas the compendium tabulates against the spheroid *scale* radius. ``spheroidProfile``
+     names the profile the tabulation was computed for---``hernquist`` for most of them, ``jaffe`` for those
+     computed to match :cite:t:`ferrara_atlas_1999`---and the model's spheroid is matched to it on half-mass radius,
+     which is the radius that means the same thing whatever profile either side assumes, then converted to that
+     profile's scale radius. For a Hernquist profile the half-mass radius is :math:`(1+\sqrt{2})` times the scale
+     radius, and for a Jaffe profile the two are equal.
+
+   Beyond the largest tabulated optical depth the transmission is extrapolated as
+   :math:`T = \exp(c_0 + c_1 \ln \tau_\mathrm{V})`, using coefficients tabulated alongside the attenuations. Setting
+   ``extrapolateOpticalDepth`` to false instead holds the transmission at its value at the tabulation boundary.
+
+   The optical depth axis is interpolated logarithmically, which is worth roughly a factor of two in accuracy over
+   interpolating linearly on the geometric grids these tabulations use, but which a tabulated zero can not take part
+   in. The tabulations generally do carry a zero-optical-depth entry, at which the transmission is unity; it is
+   dropped on reading, and below the smallest remaining depth the transmission is instead interpolated linearly
+   back towards unity. Clamping there would leave a galaxy with almost no dust as attenuated as one at the
+   tabulation's lower edge, which in the ultraviolet is not a small difference.
+   </description>
+  </dustAttenuation>
+  !!]
+  type, extends(dustAttenuationClass) :: dustAttenuationAtlasCompendium
+     !!{RST
+     A dust attenuation class using the dust compendium of :cite:t:`benson_compendium_2018`.
+     !!}
+     private
+     class           (galacticInclinationClass                ), pointer                         :: galacticInclination_          => null()
+     type            (varying_string                          )                                  :: fileName                                , url
+     type            (enumerationCompendiumSpheroidProfileType)                                  :: spheroidProfile
+     double precision                                                                            :: dustToMetalsRatio                       , opacity                         , &
+          &                                                                                         radiusSpheroidHalfMassToScale           , wavelengthMinimum               , &
+          &                                                                                         wavelengthMaximum                       , opticalDepthMaximum             , &
+          &                                                                                         radiusSpheroidMinimum                   , radiusSpheroidMaximum
+     logical                                                                                     :: extrapolateOpticalDepth                 , inclinationAvailable            , &
+          &                                                                                         depthOpticalZeroTabulated
+     ! The smallest *positive* tabulated optical depth. Tabulations generally include a zero-optical-depth entry,
+     ! which is dropped because the axis is interpolated logarithmically; below this depth the transmission is
+     ! recovered by interpolating linearly back towards unity, which is what that entry holds.
+     double precision                                                                            :: depthOpticalMinimum
+     ! Grid axes. Wavelengths are in microns and inclinations in degrees, as tabulated; the spheroid axis is the
+     ! spheroid scale radius in units of the disk scale length.
+     double precision                                          , allocatable, dimension(:      ) :: wavelength                              , inclination                     , &
+          &                                                                                         depthOptical                            , radiusSpheroid
+     ! The tabulated transmission and extrapolation coefficients live in the shared store above; this is which
+     ! entry of it belongs to this object. It is not stored as part of the object's state: it is resolved from the
+     ! file name and trimming, which are.
+     integer                                                                                     :: tableIndex
+     type            (interpolatorMultiD                      )                                  :: interpolatorDisk                        , interpolatorSpheroid            , &
+          &                                                                                         interpolatorDiskExtrapolate             , interpolatorSpheroidExtrapolate
+     ! The axis interpolators are retained as well as being handed to the multilinear interpolators above. Only the
+     ! wavelength changes between the parcels of a galaxy, so bracketing the other axes once per galaxy and reusing
+     ! the result saves that work on every parcel.
+     type            (interpolator                            )                                  :: interpolatorWavelength                  , interpolatorInclination         , &
+          &                                                                                         interpolatorDepthOptical                , interpolatorRadiusSpheroid
+   contains
+     final     ::                      atlasCompendiumDestructor
+     procedure :: transmission      => atlasCompendiumTransmission
+     procedure :: request           => atlasCompendiumRequest
+     procedure :: supportsComponent => atlasCompendiumSupportsComponent
+  end type dustAttenuationAtlasCompendium
+
+  interface dustAttenuationAtlasCompendium
+     !!{RST
+     Constructors for the :galacticus-class:`dustAttenuationAtlasCompendium` dust attenuation class.
+     !!}
+     module procedure atlasCompendiumConstructorParameters
+     module procedure atlasCompendiumConstructorInternal
+  end interface dustAttenuationAtlasCompendium
+
+contains
+
+  function atlasCompendiumConstructorParameters(parameters) result(self)
+    !!{RST
+    Constructor for the :galacticus-class:`dustAttenuationAtlasCompendium` dust attenuation class which takes a
+    parameter set as input.
+    !!}
+    use :: Input_Parameters  , only : inputParameter, inputParameters
+    use :: ISO_Varying_String, only : char          , var_str        , varying_string
+    implicit none
+    type            (dustAttenuationAtlasCompendium)                :: self
+    type            (inputParameters               ), intent(inout) :: parameters
+    class           (galacticInclinationClass      ), pointer       :: galacticInclination_
+    type            (varying_string                )                :: fileName               , url, &
+         &                                                             spheroidProfile
+    double precision                                                :: dustToMetalsRatio      , wavelengthMinimum    , &
+         &                                                             wavelengthMaximum      , opticalDepthMaximum  , &
+         &                                                             radiusSpheroidMinimum  , radiusSpheroidMaximum
+    logical                                                         :: extrapolateOpticalDepth
+
+    !![
+    <inputParameter docformat="rst">
+      <name>fileName</name>
+      <description>
+      The name of the dust compendium tabulation file to use, for example
+      ``Ferrara1999_MW_hz1.0_Attenuations.hdf5``. If no file of this name is present under the ``dust/compendium``
+      directory of the dynamic datasets path it is downloaded---from the Zenodo record holding it if it is one of
+      the published tabulations, and otherwise from ``url``.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>url</name>
+      <defaultValue>var_str('none')</defaultValue>
+      <description>
+      The URL from which to download ``fileName`` if it is not already present and is not one of the published
+      tabulations, whose locations this class already knows. If ``none``, such a file must be supplied by other
+      means.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>dustToMetalsRatio</name>
+      <defaultValue>0.44d0</defaultValue>
+      <defaultSource>Approximately correct for the Milky Way (e.g. :cite:t:`popping_dust_2017`).</defaultSource>
+      <description>
+      The fraction of the mass of metals which is in dust, used with the opacity of the tabulation to convert a
+      surface density of metals into an optical depth.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>wavelengthMinimum</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>
+      The shortest wavelength, in Angstroms, which need be represented. Tabulated wavelengths below this are not
+      read. Zero retains the whole axis.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>wavelengthMaximum</name>
+      <defaultValue>huge(0.0d0)</defaultValue>
+      <description>
+      The longest wavelength, in Angstroms, which need be represented. Tabulated wavelengths above this are not read.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>opticalDepthMaximum</name>
+      <defaultValue>huge(0.0d0)</defaultValue>
+      <description>
+      The largest :math:`V`-band optical depth which need be represented. Tabulated depths above this are not read,
+      and galaxies exceeding it have their transmission held at the retained boundary. There is no corresponding
+      minimum: the low-depth end of the axis costs little and is always needed.
+
+      Trimming this axis requires ``extrapolateOpticalDepth`` to be false, and is refused otherwise. The
+      extrapolation coefficients describe the behavior beyond the largest depth in the *file* and are anchored
+      there; applied just above a trimmed boundary they are far outside the range they were fitted over, and for the
+      published high-resolution tabulation would overestimate the transmission by a factor of seven at an optical
+      depth of five.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>radiusSpheroidMinimum</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>
+      The smallest spheroid size, as a scale radius in units of the disk scale length, which need be represented.
+      Zero retains the whole axis.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>radiusSpheroidMaximum</name>
+      <defaultValue>huge(0.0d0)</defaultValue>
+      <description>
+      The largest spheroid size, as a scale radius in units of the disk scale length, which need be represented.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>extrapolateOpticalDepth</name>
+      <defaultValue>.true.</defaultValue>
+      <description>
+      If true, transmissions for optical depths beyond the largest tabulated value are extrapolated using the
+      coefficients supplied with the tabulation. If false, they are held at the value at the tabulation boundary.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>spheroidProfile</name>
+      <defaultValue>var_str('hernquist')</defaultValue>
+      <description>
+      The spheroid density profile for which the tabulation was computed: ``hernquist``, or ``jaffe`` for
+      tabulations computed to match :cite:t:`ferrara_atlas_1999`. This sets how a model galaxy's spheroid is mapped
+      onto the ``spheroidScaleRadial`` axis. For a published tabulation the value is checked against the profile
+      that file was actually computed with, since getting it wrong is a silent error of tens of percent.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="galacticInclination" name="galacticInclination_" source="parameters"/>
+    !!]
+    self=dustAttenuationAtlasCompendium(fileName,url,dustToMetalsRatio,wavelengthMinimum,wavelengthMaximum,opticalDepthMaximum,radiusSpheroidMinimum,radiusSpheroidMaximum,extrapolateOpticalDepth,enumerationCompendiumSpheroidProfileEncode(char(spheroidProfile),includesPrefix=.false.),galacticInclination_)
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticInclination_"/>
+    !!]
+    return
+  end function atlasCompendiumConstructorParameters
+
+  function atlasCompendiumConstructorInternal(fileName,url,dustToMetalsRatio,wavelengthMinimum,wavelengthMaximum,opticalDepthMaximum,radiusSpheroidMinimum,radiusSpheroidMaximum,extrapolateOpticalDepth,spheroidProfile,galacticInclination_) result(self)
+    !!{RST
+    Internal constructor for the :galacticus-class:`dustAttenuationAtlasCompendium` dust attenuation class. The
+    tabulation is located---downloading it if necessary---read once, here, and interpolators built over it.
+    !!}
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: Display           , only : displayMagenta    , displayMessage    , displayReset  , verbosityLevelSilent
+    use            :: Error             , only : Error_Report
+    use            :: File_Utilities    , only : Directory_Make      , File_Exists       , File_Lock     , File_Remove   , &
+          &                                      File_Unlock         , lockDescriptor
+    use            :: HDF5_Access       , only : hdf5Access
+    use            :: Input_Paths       , only : inputPath           , pathTypeDataDynamic
+    use            :: HDF5              , only : hsize_t
+    use            :: IO_HDF5           , only : hdf5File
+    use            :: ISO_Varying_String, only : char                , operator(//)      , operator(==)  , varying_string
+    use            :: System_Download   , only : download
+    use            :: Table_Labels      , only : extrapolationTypeFix
+    implicit none
+    type            (dustAttenuationAtlasCompendium          )                                  :: self
+    type            (varying_string                          ), intent(in   )                   :: fileName                    , url
+    double precision                                          , intent(in   )                   :: dustToMetalsRatio           , wavelengthMinimum   , &
+         &                                                                                         wavelengthMaximum           , opticalDepthMaximum , &
+         &                                                                                         radiusSpheroidMinimum       , radiusSpheroidMaximum
+    logical                                                   , intent(in   )                   :: extrapolateOpticalDepth
+    type            (enumerationCompendiumSpheroidProfileType), intent(in   )                   :: spheroidProfile
+    class           (galacticInclinationClass                ), intent(in   ), target           :: galacticInclination_
+    type            (hdf5File                                )                                  :: file
+    type            (lockDescriptor                          )                                  :: lock
+    type            (varying_string                          )                                  :: pathFile                    , pathDirectory
+    integer                                                                                     :: status                      , known                           , &
+         &                                                                                         i
+    integer         (c_size_t                                )                                  :: sizeFile
+    integer         (hsize_t                                 )              , dimension(3     ) :: beginDisk                   , countDisk           , &
+         &                                                                                         beginExtrapolationDisk      , countExtrapolationDisk
+    integer         (hsize_t                                 )              , dimension(4     ) :: beginSpheroid               , countSpheroid       , &
+         &                                                                                         beginExtrapolationSpheroid  , countExtrapolationSpheroid
+    type            (compendiumTable                         ), allocatable, dimension(:      ) :: compendiumTablesTemporary
+    type            (varying_string                          )                                  :: tableKey
+    character       (len=256                                 )                                  :: labelTable
+    integer                                                                                     :: indexWavelengthBegin        , indexWavelengthEnd  , &
+         &                                                                                         indexDepthOpticalBegin      , indexDepthOpticalEnd, &
+         &                                                                                         indexRadiusSpheroidBegin    , indexRadiusSpheroidEnd
+    double precision                                          , allocatable, dimension(:      ) :: depthOptical
+    double precision                                          , allocatable, dimension(:,:,:  ) :: extrapolationDisk           , transmissionDisk
+    double precision                                          , allocatable, dimension(:,:,:,:) :: extrapolationSpheroid       , transmissionSpheroid
+    type            (interpolator                            )             , dimension(3      ) :: interpolatorsDisk           , interpolatorsSpheroidExtrapolate
+    type            (interpolator                            )             , dimension(4      ) :: interpolatorsSpheroid
+    type            (interpolator                            )             , dimension(2      ) :: interpolatorsDiskExtrapolate
+    !![
+    <constructorAssign variables="fileName, url, dustToMetalsRatio, wavelengthMinimum, wavelengthMaximum, opticalDepthMaximum, radiusSpheroidMinimum, radiusSpheroidMaximum, extrapolateOpticalDepth, spheroidProfile, *galacticInclination_"/>
+    !!]
+
+    ! An inclination must be available, either per galaxy or imposed by an attenuator averaging over orientation.
+    self%inclinationAvailable=self%galacticInclination_%isAvailable()
+    ! The ratio of half-mass to scale radius for the profile the tabulation was computed with. A model galaxy's
+    ! spheroid is matched to the tabulation on half-mass radius, then divided by this to reach the scale radius that
+    ! the `spheroidScaleRadial` axis is measured in.
+    select case (self%spheroidProfile%ID)
+    case (compendiumSpheroidProfileHernquist%ID)
+       self%radiusSpheroidHalfMassToScale=1.0d0+sqrt(2.0d0)
+    case (compendiumSpheroidProfileJaffe    %ID)
+       self%radiusSpheroidHalfMassToScale=1.0d0
+    case default
+       self%radiusSpheroidHalfMassToScale=0.0d0
+       call Error_Report('unrecognized spheroid profile'//{introspection:location})
+    end select
+    ! Locate the tabulation, downloading it if we do not already have it. The lock makes concurrent processes wait
+    ! for the first of them to finish the download rather than each starting one of their own.
+    ! Look the file up among the published tabulations, which supplies both where to fetch it from and which
+    ! spheroid profile it was computed for.
+    known=0
+    do i=1,compendiumFilesCount
+       if (trim(compendiumFileName(i)) == char(self%fileName)) known=i
+    end do
+    if (known > 0) then
+       if     (       compendiumJaffe(known) .and. self%spheroidProfile /= compendiumSpheroidProfileJaffe    ) &
+            & call Error_Report('`'//self%fileName//'` was computed with Jaffe spheroids, so `spheroidProfile` must be `jaffe`'        //{introspection:location})
+       if     (.not.  compendiumJaffe(known) .and. self%spheroidProfile /= compendiumSpheroidProfileHernquist) &
+            & call Error_Report('`'//self%fileName//'` was computed with Hernquist spheroids, so `spheroidProfile` must be `hernquist`'//{introspection:location})
+       if (self%url == 'none')                                                                       &
+            & self%url='https://zenodo.org/api/records/'//trim(compendiumRecord(known))//'/files/'// &
+            &          self%fileName                                                              // &
+            &          '/content'
+    end if
+    pathDirectory=inputPath(pathTypeDataDynamic)//'dust/compendium'
+    pathFile     =pathDirectory//'/'//self%fileName
+    if (.not.File_Exists(pathFile)) then
+       if (self%url == 'none') call Error_Report('the compendium tabulation `'//self%fileName//'` is not present, is not one of the published tabulations, and no `url` was given from which to download it'//{introspection:location})
+       call Directory_Make(pathDirectory                          )
+       call File_Lock     (pathFile     ,lock,lockIsShared=.false.)
+       if (.not.File_Exists(pathFile)) then
+          ! Zenodo returns an HTTP error intermittently, so allow a few attempts before giving up.
+          call download(char(self%url),char(pathFile),retries=3,retryWait=10,status=status)
+          ! Judge the download by what actually landed on disk, not by the reported status alone: a downloader which
+          ! fails at the TLS layer can leave an empty file behind, and were that left in place it would be read as
+          ! though it were the tabulation on this and every subsequent run.
+          sizeFile=0_c_size_t
+          if (File_Exists(pathFile)) inquire(file=char(pathFile),size=sizeFile)
+          if (status /= 0 .or. sizeFile <= 0_c_size_t) then
+             if (File_Exists(pathFile)) call File_Remove(pathFile)
+             call File_Unlock(lock)
+             call Error_Report('unable to download the compendium tabulation from `'//self%url//'`'//{introspection:location})
+          end if
+       end if
+       call File_Unlock(lock)
+    end if
+    !$ call hdf5Access%set()
+    file=hdf5File(char(pathFile),readOnly=.true.)
+    if (.not.file%hasAttribute('opacity')) then
+       !$ call hdf5Access%unset()
+       call Error_Report('`'//self%fileName//'` has no `opacity` attribute, so is not a dust compendium tabulation'//{introspection:location})
+    end if
+    call file%readAttribute('opacity'                          ,self%opacity              )
+    call file%readDataset  ('wavelength'                       ,self%wavelength           )
+    call file%readDataset  ('inclination'                      ,self%inclination          )
+    call file%readDataset  ('opticalDepth'                     ,     depthOptical         )
+    call file%readDataset  ('spheroidScaleRadial'              ,self%radiusSpheroid       )
+    ! Work out which part of each axis need be retained. The bracketing nodes on either side of the requested range
+    ! are kept, so that anything inside it is interpolated rather than held at a boundary. Inclination is never
+    ! trimmed: it is one of the shortest axes, and the whole of it is always needed.
+    call axisRange(self%wavelength    *angstromsPerMicron,self%wavelengthMinimum,self%wavelengthMaximum,indexWavelengthBegin   ,indexWavelengthEnd   )
+    call axisRange(     depthOptical                     ,-1.0d0                ,self%opticalDepthMaximum  ,indexDepthOpticalBegin ,indexDepthOpticalEnd )
+    call axisRange(self%radiusSpheroid                   ,self%radiusSpheroidMinimum,self%radiusSpheroidMaximum,indexRadiusSpheroidBegin,indexRadiusSpheroidEnd)
+    ! The low-depth end of the optical depth axis is always retained, so that the zero entry, and the approach to
+    ! unit transmission, survive trimming.
+    indexDepthOpticalBegin=1
+    ! Trimming the optical depth axis and extrapolating beyond it are incompatible, and silently so, which is why
+    ! this is an error rather than a quiet choice made on the user's behalf. The extrapolation coefficients describe
+    ! the asymptotic behavior beyond the depth at which the *file* stops, and are anchored there. Evaluated just
+    ! above a trimmed boundary they are far outside the range they were fitted over: for the published high
+    ! resolution tabulation they overestimate the transmission by a factor of seven at an optical depth of five, and
+    ! by a factor of thirty at unity. They would also not join continuously to the retained table.
+    if (self%extrapolateOpticalDepth .and. indexDepthOpticalEnd < size(depthOptical))                                    &
+         & call Error_Report(                                                                                            &
+         &                   '`opticalDepthMaximum` trims the tabulation, but `extrapolateOpticalDepth` is true: the'//  &
+         &                   ' extrapolation coefficients are only valid beyond the largest depth in the file, not'  //  &
+         &                   ' beyond a trimmed boundary. Set `extrapolateOpticalDepth` to false to hold the'        //  &
+         &                   ' transmission at the retained boundary instead, or raise `opticalDepthMaximum`.'       //  &
+         &                   {introspection:location}                                                                    &
+         &                  )
+    ! The key identifies the tabulation together with the trimming applied to it, so that the same file trimmed two
+    ! different ways yields two entries and one trimmed identically yields one. The resolved index bounds are used
+    ! rather than the parameters themselves, so that two requests which land on the same nodes share a table.
+    write (labelTable,'(6(i0,a1))') indexWavelengthBegin    ,':',indexWavelengthEnd    ,':', &
+         &                          indexDepthOpticalBegin  ,':',indexDepthOpticalEnd  ,':', &
+         &                          indexRadiusSpheroidBegin,':',indexRadiusSpheroidEnd,':'
+    tableKey=self%fileName//'|'//trim(labelTable)
+    ! Read the attenuations as a hyperslab covering only the retained part of each axis, so that a trimmed
+    ! tabulation is never held at full size, even transiently. `readBegin` and `readCount` are given in the order of
+    ! the Fortran array, which for these datasets is the reverse of the order they were written in.
+    beginDisk    =int([indexDepthOpticalBegin  ,1                                    ,indexWavelengthBegin                    ],kind=hsize_t)
+    countDisk    =int([indexDepthOpticalEnd-indexDepthOpticalBegin+1,size(self%inclination),indexWavelengthEnd-indexWavelengthBegin+1],kind=hsize_t)
+    beginSpheroid=[int(indexRadiusSpheroidBegin,kind=hsize_t),beginDisk]
+    countSpheroid=[int(indexRadiusSpheroidEnd-indexRadiusSpheroidBegin+1,kind=hsize_t),countDisk]
+    call file%readDataset  ('attenuationDisk'                  ,     transmissionDisk     ,readBegin=beginDisk    ,readCount=countDisk    )
+    call file%readDataset  ('attenuationSpheroid'              ,     transmissionSpheroid ,readBegin=beginSpheroid,readCount=countSpheroid)
+    ! The extrapolation coefficients carry no optical depth axis, but are trimmed on the others.
+    beginExtrapolationDisk    =int([1                    ,indexWavelengthBegin                    ,1],kind=hsize_t)
+    countExtrapolationDisk    =int([size(self%inclination),indexWavelengthEnd-indexWavelengthBegin+1,2],kind=hsize_t)
+    beginExtrapolationSpheroid=[int(indexRadiusSpheroidBegin,kind=hsize_t),beginExtrapolationDisk]
+    countExtrapolationSpheroid=[int(indexRadiusSpheroidEnd-indexRadiusSpheroidBegin+1,kind=hsize_t),countExtrapolationDisk]
+    call file%readDataset  ('extrapolationCoefficientsDisk'    ,     extrapolationDisk    ,readBegin=beginExtrapolationDisk    ,readCount=countExtrapolationDisk    )
+    call file%readDataset  ('extrapolationCoefficientsSpheroid',     extrapolationSpheroid,readBegin=beginExtrapolationSpheroid,readCount=countExtrapolationSpheroid)
+    !$ call hdf5Access%unset()
+    ! Trim the axes to match what was read.
+    self%wavelength    =self%wavelength    (indexWavelengthBegin    :indexWavelengthEnd    )
+    self%radiusSpheroid=self%radiusSpheroid(indexRadiusSpheroidBegin:indexRadiusSpheroidEnd)
+    depthOptical       =     depthOptical  (indexDepthOpticalBegin  :indexDepthOpticalEnd  )
+    ! Check that the tables have the shape the axes imply. A transposed read would otherwise show up much later as
+    ! quietly wrong attenuation.
+    if (any(shape(     transmissionDisk    ) /= [size(     depthOptical   ),size(self%inclination ),size(self%wavelength)                       ])) &
+         & call Error_Report('`attenuationDisk` does not have the shape implied by the axes'                  //{introspection:location})
+    if (any(shape(     transmissionSpheroid) /= [size(self%radiusSpheroid),size(     depthOptical ),size(self%inclination),size(self%wavelength)])) &
+         & call Error_Report('`attenuationSpheroid` does not have the shape implied by the axes'              //{introspection:location})
+    if (any(shape(     extrapolationDisk   ) /= [size(self%inclination   ),size(self%wavelength  ),2                                            ])) &
+         & call Error_Report('`extrapolationCoefficientsDisk` does not have the shape implied by the axes'    //{introspection:location})
+    if (any(shape(     extrapolationSpheroid) /= [size(self%radiusSpheroid),size(self%inclination ),size(self%wavelength),2                     ])) &
+         & call Error_Report('`extrapolationCoefficientsSpheroid` does not have the shape implied by the axes'//{introspection:location})
+    ! The optical depth axis is interpolated logarithmically, which a tabulated zero can not take part in. Such an
+    ! entry is dropped here and its role taken over by the linear interpolation towards unity applied below the
+    ! smallest remaining depth. Nothing is lost in doing so---no dust transmits everything---but check that, rather
+    ! than assume it, since a tabulation which disagreed would be telling us something about itself.
+    self%depthOpticalZeroTabulated=depthOptical(1) <= 0.0d0
+    if (self%depthOpticalZeroTabulated) then
+       if     (any(transmissionDisk    (1,:,:  ) /= 1.0d0))                                                                            &
+            & call Error_Report('`attenuationDisk` is not unity at zero optical depth'                                //{introspection:location})
+       if     (any(transmissionSpheroid(:,1,:,:) /= 1.0d0))                                                                            &
+            & call Error_Report('`attenuationSpheroid` is not unity at zero optical depth'                            //{introspection:location})
+       if     (size(depthOptical) < 3)                                                                                                 &
+            & call Error_Report('the optical depth axis is too short to interpolate in once its zero entry is dropped'//{introspection:location})
+       self%depthOptical=depthOptical(2:)
+    else
+       self%depthOptical=depthOptical
+    end if
+    if (allocated(depthOptical)) deallocate(depthOptical)
+    self%depthOpticalMinimum=self%depthOptical(1)
+    ! Hand the tables to the shared store, or discard them if another instance got there first, and keep only the
+    ! index of the entry. That index survives the deep copy which gives each thread its own attenuator, so every
+    ! thread reads the one table rather than carrying its own.
+    if (.not.compendiumTablesLockInitialized) then
+       !$omp critical (dustAttenuationCompendiumTablesLock)
+       if (.not.compendiumTablesLockInitialized) then
+          compendiumTablesLock           =ompReadWriteLock()
+          compendiumTablesLockInitialized=.true.
+       end if
+       !$omp end critical (dustAttenuationCompendiumTablesLock)
+    end if
+    call compendiumTablesLock%setWrite(haveReadLock=.false.)
+    self%tableIndex=0
+    do i=1,compendiumTablesCount
+       if (compendiumTables(i)%key == tableKey) self%tableIndex=i
+    end do
+    if (self%tableIndex == 0) then
+       ! The store is allocated at a capacity which no plausible model reaches---it bounds the number of *distinct*
+       ! tabulations, counting a file trimmed two ways as two, and each costs hundreds of megabytes to hold---but
+       ! grows if one does. Growing does not copy the tables: their allocations are transferred to the new array,
+       ! so the cost is that of the descriptors alone, whatever the tables contain.
+       if (.not.allocated(compendiumTables)) allocate(compendiumTables(compendiumTablesCapacityInitial))
+       if (compendiumTablesCount == size(compendiumTables)) then
+          write (labelTable,'(a,i0,a,i0,a)')                                                                       &
+               & 'dust compendium tabulation store grown from ',size(compendiumTables),' entries to ',              &
+               & 2*size(compendiumTables),                                                                          &
+               & ' - raise `compendiumTablesCapacityInitial` if your models routinely need more, to avoid this'
+          call displayMessage(displayMagenta()//"WARNING: "//displayReset()//trim(labelTable),verbosityLevelSilent)
+          call move_alloc(compendiumTables,compendiumTablesTemporary)
+          allocate(compendiumTables(2*compendiumTablesCount))
+          do i=1,compendiumTablesCount
+             compendiumTables(i)%key=compendiumTablesTemporary(i)%key
+             call move_alloc(compendiumTablesTemporary(i)%transmissionDisk                ,compendiumTables(i)%transmissionDisk                )
+             call move_alloc(compendiumTablesTemporary(i)%transmissionSpheroid            ,compendiumTables(i)%transmissionSpheroid            )
+             call move_alloc(compendiumTablesTemporary(i)%extrapolationDiskConstant       ,compendiumTables(i)%extrapolationDiskConstant       )
+             call move_alloc(compendiumTablesTemporary(i)%extrapolationDiskLogarithmic    ,compendiumTables(i)%extrapolationDiskLogarithmic    )
+             call move_alloc(compendiumTablesTemporary(i)%extrapolationSpheroidConstant   ,compendiumTables(i)%extrapolationSpheroidConstant   )
+             call move_alloc(compendiumTablesTemporary(i)%extrapolationSpheroidLogarithmic,compendiumTables(i)%extrapolationSpheroidLogarithmic)
+          end do
+          deallocate(compendiumTablesTemporary)
+       end if
+       compendiumTablesCount=compendiumTablesCount+1
+       self%tableIndex      =compendiumTablesCount
+       compendiumTables(self%tableIndex)%key=tableKey
+       if (self%depthOpticalZeroTabulated) then
+          compendiumTables(self%tableIndex)%transmissionDisk    =transmissionDisk    (2:, :,:  )
+          compendiumTables(self%tableIndex)%transmissionSpheroid=transmissionSpheroid( :,2:,:,:)
+       else
+          call move_alloc(transmissionDisk    ,compendiumTables(self%tableIndex)%transmissionDisk    )
+          call move_alloc(transmissionSpheroid,compendiumTables(self%tableIndex)%transmissionSpheroid)
+       end if
+       ! Split the extrapolation coefficients into their constant and logarithmic terms, so that each is a
+       ! contiguous array which the interpolators can be handed directly.
+       compendiumTables(self%tableIndex)%extrapolationDiskConstant       =extrapolationDisk    (:,:  ,1)
+       compendiumTables(self%tableIndex)%extrapolationDiskLogarithmic    =extrapolationDisk    (:,:  ,2)
+       compendiumTables(self%tableIndex)%extrapolationSpheroidConstant   =extrapolationSpheroid(:,:,:,1)
+       compendiumTables(self%tableIndex)%extrapolationSpheroidLogarithmic=extrapolationSpheroid(:,:,:,2)
+    end if
+    call compendiumTablesLock%unsetWrite(haveReadLock=.false.)
+    if (allocated(transmissionDisk     )) deallocate(transmissionDisk     )
+    if (allocated(transmissionSpheroid )) deallocate(transmissionSpheroid )
+    if (allocated(extrapolationDisk    )) deallocate(extrapolationDisk    )
+    if (allocated(extrapolationSpheroid)) deallocate(extrapolationSpheroid)
+    ! Build interpolators, ordered from the most rapidly varying dimension of the table outward. Optical depth and
+    ! spheroid size are interpolated logarithmically, being tabulated on geometric grids; wavelength likewise. Values
+    ! outside the tabulated ranges are held at the boundary.
+    interpolatorsDisk                   (1)=interpolator(log(self%depthOptical  ),extrapolationType=extrapolationTypeFix)
+    interpolatorsDisk                   (2)=interpolator(    self%inclination    ,extrapolationType=extrapolationTypeFix)
+    interpolatorsDisk                   (3)=interpolator(log(self%wavelength    ),extrapolationType=extrapolationTypeFix)
+    interpolatorsSpheroid               (1)=interpolator(log(self%radiusSpheroid),extrapolationType=extrapolationTypeFix)
+    interpolatorsSpheroid               (2)=interpolatorsDisk    (1)
+    interpolatorsSpheroid               (3)=interpolatorsDisk    (2)
+    interpolatorsSpheroid               (4)=interpolatorsDisk    (3)
+    interpolatorsDiskExtrapolate        (1)=interpolatorsDisk    (2)
+    interpolatorsDiskExtrapolate        (2)=interpolatorsDisk    (3)
+    interpolatorsSpheroidExtrapolate    (1)=interpolatorsSpheroid(1)
+    interpolatorsSpheroidExtrapolate    (2)=interpolatorsDisk    (2)
+    interpolatorsSpheroidExtrapolate    (3)=interpolatorsDisk    (3)
+    self%interpolatorDisk                  =interpolatorMultiD(interpolatorsDisk               )
+    self%interpolatorSpheroid              =interpolatorMultiD(interpolatorsSpheroid           )
+    self%interpolatorDiskExtrapolate       =interpolatorMultiD(interpolatorsDiskExtrapolate    )
+    self%interpolatorSpheroidExtrapolate   =interpolatorMultiD(interpolatorsSpheroidExtrapolate)
+    self%interpolatorDepthOptical          =interpolatorsDisk    (1)
+    self%interpolatorInclination           =interpolatorsDisk    (2)
+    self%interpolatorWavelength            =interpolatorsDisk    (3)
+    self%interpolatorRadiusSpheroid        =interpolatorsSpheroid(1)
+    return
+  end function atlasCompendiumConstructorInternal
+
+  subroutine axisRange(axis,valueMinimum,valueMaximum,indexBegin,indexEnd)
+    !!{RST
+    Return the range of indices of ``axis`` which must be retained in order to represent every value between
+    ``valueMinimum`` and ``valueMaximum``.
+
+    The bracketing nodes on either side of the requested range are kept, so that a value anywhere inside it is
+    interpolated rather than held at a boundary. At least two nodes are always returned, since an axis of a single
+    node can not be interpolated in.
+    !!}
+    implicit none
+    double precision, intent(in   ), dimension(:) :: axis
+    double precision, intent(in   )               :: valueMinimum, valueMaximum
+    integer         , intent(  out)               :: indexBegin  , indexEnd
+    integer                                       :: i
+
+    indexBegin=1
+    indexEnd  =size(axis)
+    do i=1,size(axis)
+       if (axis(i) <= valueMinimum) indexBegin=i
+    end do
+    do i=size(axis),1,-1
+       if (axis(i) >= valueMaximum) indexEnd  =i
+    end do
+    ! Guarantee at least two nodes, whatever was asked for.
+    if (indexEnd <= indexBegin) then
+       if (indexBegin < size(axis)) then
+          indexEnd  =indexBegin+1
+       else
+          indexBegin=indexEnd  -1
+       end if
+    end if
+    return
+  end subroutine axisRange
+
+
+  subroutine atlasCompendiumDestructor(self)
+    !!{RST
+    Destructor for the :galacticus-class:`dustAttenuationAtlasCompendium` dust attenuation class.
+    !!}
+    implicit none
+    type(dustAttenuationAtlasCompendium), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%galacticInclination_"/>
+    !!]
+    return
+  end subroutine atlasCompendiumDestructor
+
+  double precision function atlasCompendiumDepthOpticalV(self,node) result(depthOpticalV)
+    !!{RST
+    Return the :math:`V`-band optical depth through the center of the disk, perpendicular to its plane, computed
+    from the opacity of the tabulation itself.
+
+    The tabulation records the opacity per unit mass of dust which was used in the radiative transfer calculation
+    which produced it, so combining that with a dust-to-metals ratio and the surface density of gas-phase metals
+    places a model galaxy on the tabulation using the same definition of optical depth that the tabulation was built
+    with.
+    !!}
+    use :: Galactic_Structure_Options      , only : componentTypeDisk
+    use :: Numerical_Constants_Astronomical, only : massSolar        , megaParsec
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Prefixes    , only : hecto            , kilo
+    implicit none
+    class           (dustAttenuationAtlasCompendium), intent(inout)         :: self
+    type            (treeNode                      ), intent(inout), target :: node
+    double precision                                                        :: massGas             , radius, &
+         &                                                                     metallicity         ,         &
+         &                                                                     densitySurfaceMetals
+
+    call componentGasProperties(node,componentTypeDisk,massGas,radius,metallicity)
+    ! A disk with no gas, or no size, has no dust.
+    if (massGas <= 0.0d0 .or. radius <= 0.0d0) then
+       depthOpticalV=0.0d0
+       return
+    end if
+    ! Central surface density of metals, in g/cm².
+    densitySurfaceMetals=+metallicity      &
+         &               *massGas          &
+         &               *massSolar        &
+         &               *kilo             &
+         &               /2.0d0            &
+         &               /Pi               &
+         &               /(                &
+         &                 +radius         &
+         &                 *megaParsec     &
+         &                 *hecto          &
+         &                )**2
+    depthOpticalV       =+self%opacity           &
+         &               *self%dustToMetalsRatio &
+         &               *densitySurfaceMetals
+    return
+  end function atlasCompendiumDepthOpticalV
+
+  function atlasCompendiumTransmission(self,node,descriptors,inclination) result(transmission)
+    !!{RST
+    Return the transmission of each parcel, interpolated in the compendium tabulation.
+
+    The optical depth and the inclination are properties of the galaxy rather than of a parcel, so both are obtained
+    once here and reused across every parcel, as is the spheroid size if any parcel needs it. Whether the optical
+    depth lies beyond the tabulation---and so whether the transmission is interpolated or extrapolated---is likewise
+    a property of the galaxy, and is decided once.
+    !!}
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use            :: Error                           , only : Error_Report
+    use            :: Galactic_Structure_Options      , only : componentTypeDisk, componentTypeSpheroid
+    use            :: Numerical_Constants_Astronomical, only : degreesToRadians
+    implicit none
+    class           (dustAttenuationAtlasCompendium), intent(inout)                               :: self
+    type            (treeNode                      ), intent(inout), target                       :: node
+    type            (emissionDescriptor            ), intent(in   ), dimension(:                ) :: descriptors
+    double precision                                , intent(in   ), optional                     :: inclination
+    double precision                                               , dimension(size(descriptors)) :: transmission
+    double precision                                                                              :: depthOptical                     , inclination_       , &
+         &                                                                                           radiusSpheroid                   , logDepth           , &
+         &                                                                                           inclinationDegrees               , coefficientConstant, &
+         &                                                                                           coefficientLogarithmic           , blendZero
+    logical                                                                                       :: radiusSpheroidComputed           , extrapolating      , &
+         &                                                                                           blending                         , isLocked
+    integer                                                                                       :: i
+    ! Bracketing indices and linear weights, per dimension, in the order the tables are laid out: for the disk
+    ! (optical depth, inclination, wavelength), and for the spheroid (spheroid size, optical depth, inclination,
+    ! wavelength). The extrapolation coefficients carry no optical depth axis, so drop it. Only the wavelength entry
+    ! changes between parcels.
+    integer         (c_size_t                      )                , dimension(    3)            :: indicesDisk
+    double precision                                                , dimension(0:1,3)            :: weightsDisk
+    integer         (c_size_t                      )                , dimension(    4)            :: indicesSpheroid
+    double precision                                                , dimension(0:1,4)            :: weightsSpheroid
+    integer         (c_size_t                      )                , dimension(    2)            :: indicesDiskExtrapolate
+    double precision                                                , dimension(0:1,2)            :: weightsDiskExtrapolate
+    integer         (c_size_t                      )                , dimension(    3)            :: indicesSpheroidExtrapolate
+    double precision                                                , dimension(0:1,3)            :: weightsSpheroidExtrapolate
+    integer         (c_size_t                      )                                              :: indexInclination                 , indexWavelength   , &
+         &                                                                                           indexRadiusSpheroid              , indexDepthOptical
+    double precision                                                , dimension(0:1  )            :: weightInclination                , weightWavelength  , &
+         &                                                                                           weightRadiusSpheroid             , weightDepthOptical
+
+    ! The dust lies in the disk in this model, and a spheroid is reddened by the disk's dust, so the optical depth is
+    ! always that of the disk.
+    depthOptical=atlasCompendiumDepthOpticalV(self,node)
+    if (present(inclination)) then
+       inclination_=inclination
+    else if (self%inclinationAvailable) then
+       inclination_=self%galacticInclination_%inclination(node)
+    else
+       inclination_=0.0d0
+       call Error_Report('this attenuator depends on orientation, but no inclination is available: either set `galacticInclination` to a class which supplies one, or wrap this attenuator in `inclinationAveraged`'//{introspection:location})
+    end if
+    ! The tabulation is in degrees, and interpolated logarithmically in optical depth. A galaxy with no dust at all
+    ! transmits everything, so guard the logarithm rather than letting it overflow.
+    inclinationDegrees=+inclination_     &
+         &             /degreesToRadians
+    if (depthOptical <= 0.0d0) then
+       transmission=1.0d0
+       return
+    end if
+    ! Below the smallest tabulated depth, evaluate the table at that depth and interpolate the result linearly back
+    ! towards unit transmission, which is the value the dropped zero-optical-depth entry held. Clamping instead would
+    ! leave a galaxy with almost no dust as attenuated as one at the tabulation's lower edge, which in the
+    ! ultraviolet is not a small difference.
+    blending              =       self%depthOpticalZeroTabulated                            &
+         &                  .and.      depthOptical              < self%depthOpticalMinimum
+    if (blending) then
+       blendZero          =+     depthOptical        &
+            &              /self%depthOpticalMinimum
+       logDepth           =log(self%depthOpticalMinimum)
+    else
+       blendZero          =1.0d0
+       logDepth           =log(     depthOptical      )
+    end if
+    extrapolating         =  self%extrapolateOpticalDepth                              &
+         &                 .and.                                                       &
+         &                   depthOptical > self%depthOptical(size(self%depthOptical))
+    radiusSpheroidComputed=.false.
+    radiusSpheroid        =0.0d0
+    ! Hold the shared tables for reading while they are interpolated in. The lock is shared between readers, so
+    ! threads do not wait on one another; it excludes only a thread adding a table, which would move the store.
+    isLocked=compendiumTablesLock%owned()
+    if (.not.isLocked) call compendiumTablesLock%setRead()
+    ! Bracket the axes which are properties of the galaxy rather than of a parcel, once. Only the set of factors
+    ! belonging to the interpolator which will actually be used is maintained.
+    call self%interpolatorInclination%linearFactors(inclinationDegrees,indexInclination,weightInclination)
+    if (extrapolating) then
+       indicesDiskExtrapolate    (  1  )=indexInclination
+       weightsDiskExtrapolate    (:,1  )=weightInclination
+       indicesSpheroidExtrapolate(  2  )=indexInclination
+       weightsSpheroidExtrapolate(:,2  )=weightInclination
+    else
+       call self%interpolatorDepthOptical%linearFactors(logDepth,indexDepthOptical,weightDepthOptical)
+       indicesDisk               (  1  )=indexDepthOptical
+       weightsDisk               (:,1  )=weightDepthOptical
+       indicesDisk               (  2  )=indexInclination
+       weightsDisk               (:,2  )=weightInclination
+       indicesSpheroid           (  2:3)=indicesDisk       (  1:2)
+       weightsSpheroid           (:,2:3)=weightsDisk       (:,1:2)
+    end if
+    do i=1,size(descriptors)
+       call self%interpolatorWavelength%linearFactors(log(descriptors(i)%wavelength/angstromsPerMicron),indexWavelength,weightWavelength)
+       if (extrapolating) then
+          indicesDiskExtrapolate    (  2)=indexWavelength
+          weightsDiskExtrapolate    (:,2)=weightWavelength
+          indicesSpheroidExtrapolate(  3)=indexWavelength
+          weightsSpheroidExtrapolate(:,3)=weightWavelength
+       else
+          indicesDisk               (  3)=indexWavelength
+          weightsDisk               (:,3)=weightWavelength
+          indicesSpheroid           (  4)=indexWavelength
+          weightsSpheroid           (:,4)=weightWavelength
+       end if
+       if      (descriptors(i)%componentType == componentTypeDisk    ) then
+          if (extrapolating) then
+             coefficientConstant   =self%interpolatorDiskExtrapolate%interpolateFactors(compendiumTables(self%tableIndex)%extrapolationDiskConstant   ,indicesDiskExtrapolate,weightsDiskExtrapolate)
+             coefficientLogarithmic=self%interpolatorDiskExtrapolate%interpolateFactors(compendiumTables(self%tableIndex)%extrapolationDiskLogarithmic,indicesDiskExtrapolate,weightsDiskExtrapolate)
+             transmission(i)       =exp(                        &
+                  &                     +coefficientConstant    &
+                  &                     +coefficientLogarithmic &
+                  &                     *logDepth               &
+                  &                    )
+          else
+             transmission(i)       =self%interpolatorDisk%interpolateFactors(compendiumTables(self%tableIndex)%transmissionDisk,indicesDisk,weightsDisk)
+          end if
+       else if (descriptors(i)%componentType == componentTypeSpheroid) then
+          if (.not.radiusSpheroidComputed) then
+             ! Clamp into the tabulated range before taking a logarithm. A galaxy may have no spheroid, or no disk
+             ! to measure one against, giving a ratio of zero whose logarithm would trap; and the interpolator holds
+             ! values at the boundary in any case, so nothing is lost by clamping here rather than there.
+             radiusSpheroid        =max(                                     &
+                  &                     +radiusSpheroidRelative(node)        &
+                  &                     /self%radiusSpheroidHalfMassToScale, &
+                  &                     +minval(self%radiusSpheroid)         &
+                  &                    )
+             radiusSpheroidComputed=.true.
+             call self%interpolatorRadiusSpheroid%linearFactors(log(radiusSpheroid),indexRadiusSpheroid,weightRadiusSpheroid)
+             indicesSpheroid           (  1)=indexRadiusSpheroid
+             weightsSpheroid           (:,1)=weightRadiusSpheroid
+             indicesSpheroidExtrapolate(  1)=indexRadiusSpheroid
+             weightsSpheroidExtrapolate(:,1)=weightRadiusSpheroid
+          end if
+          if (extrapolating) then
+             coefficientConstant   =self%interpolatorSpheroidExtrapolate%interpolateFactors(compendiumTables(self%tableIndex)%extrapolationSpheroidConstant   ,indicesSpheroidExtrapolate,weightsSpheroidExtrapolate)
+             coefficientLogarithmic=self%interpolatorSpheroidExtrapolate%interpolateFactors(compendiumTables(self%tableIndex)%extrapolationSpheroidLogarithmic,indicesSpheroidExtrapolate,weightsSpheroidExtrapolate)
+             transmission(i)       =exp(                        &
+                  &                     +coefficientConstant    &
+                  &                     +coefficientLogarithmic &
+                  &                     *logDepth               &
+                  &                    )
+          else
+             transmission(i)       =self%interpolatorSpheroid%interpolateFactors(compendiumTables(self%tableIndex)%transmissionSpheroid,indicesSpheroid,weightsSpheroid)
+          end if
+       else
+          transmission(i)=1.0d0
+          call Error_Report('this tabulation covers only disk and spheroid components'//{introspection:location})
+       end if
+       ! Guarded rather than applied unconditionally: for a strongly attenuated parcel, 1+(T-1) would lose precision
+       ! to cancellation.
+       if (blending)                             &
+            & transmission(i)=+1.0d0             &
+            &                 +blendZero         &
+            &                 *(                 &
+            &                   +transmission(i) &
+            &                   -1.0d0           &
+            &                  )
+    end do
+    if (.not.isLocked) call compendiumTablesLock%unsetRead()
+    return
+  end function atlasCompendiumTransmission
+
+  function atlasCompendiumRequest(self) result(request)
+    !!{RST
+    Return the decomposition required: the attenuation differs between disk and spheroid, but depends on nothing
+    else which varies within a component.
+    !!}
+    implicit none
+    type (decompositionRequest          )                :: request
+    class(dustAttenuationAtlasCompendium), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    request%resolveComponents =.true.
+    request%resolveMetallicity=.false.
+    request%resolveRadius     =.false.
+    return
+  end function atlasCompendiumRequest
+
+  logical function atlasCompendiumSupportsComponent(self,componentType) result(supportsComponent)
+    !!{RST
+    Return true only for the disk and spheroid, which are the components this tabulation covers.
+    !!}
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid
+    implicit none
+    class(dustAttenuationAtlasCompendium), intent(inout) :: self
+    type (enumerationComponentTypeType  ), intent(in   ) :: componentType
+    !$GLC attributes unused :: self
+
+    supportsComponent=  componentType == componentTypeDisk     &
+         &            .or.                                     &
+         &              componentType == componentTypeSpheroid
+    return
+  end function atlasCompendiumSupportsComponent

@@ -183,7 +183,7 @@ def test_normalize_default():
 
 
 def test_capture_constraints():
-    # Bare text -> inclusive by default; an `inclusive` attribute is honoured.
+    # Bare text -> inclusive by default; an `inclusive` attribute is honored.
     assert _capture_constraints({
         'minimum': '0.0',
         'maximum': {'inclusive': 'false', 'content': '1.0'},
@@ -338,7 +338,7 @@ def test_build_catalog_end_to_end(tmp_path):
 
 
 def test_build_catalog_parallel_matches_serial(tmp_path):
-    """The catalog feeds a committed, diffed artefact: it must not depend on the
+    """The catalog feeds a committed, diffed artifact: it must not depend on the
     worker count."""
     source_root = _write_tree(tmp_path)
     assert build_catalog(str(source_root), jobs=4) == \
@@ -409,7 +409,7 @@ def _backdate(source_root, seconds=10):
 
 
 def test_cache_matches_uncached(tmp_path):
-    """The cache is an optimisation: it must never change the catalog."""
+    """The cache is an optimization: it must never change the catalog."""
     source_root = _write_tree(tmp_path)
     blob = str(tmp_path / 'cache.blob')
 

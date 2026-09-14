@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Test the proposed-state log and the step labelling of sampled model vectors.
+"""Test the proposed-state log and the step labeling of sampled model vectors.
 
 Differential evolution needs at least two chains, hence MPI.
 
-Two behaviours are checked, both concerning whether output recorded *during* a
+Two behaviors are checked, both concerning whether output recorded *during* a
 likelihood evaluation can be joined back to the parameters that produced it:
 
 1. ``[logProposals]`` writes every evaluated proposal, accepted or not.  The
@@ -186,18 +186,18 @@ def check(processes, chains=CHAINS, samples=SAMPLES):
         if not np.all(np.isin(stepped, chain_step)):
             failures.append(
                 f"rank {rank}: sampled model vector steps are absent from the chain "
-                f"log - the step labelling of [pathSamples] output is offset"
+                f"log - the step labeling of [pathSamples] output is offset"
             )
             continue
         # Every acceptance was necessarily evaluated, so must have been recorded.
-        # This is the decisive check on step labelling: under the previous
-        # convention an acceptance at step s had its record labelled s-1, leaving
+        # This is the decisive check on step labeling: under the previous
+        # convention an acceptance at step s had its record labeled s-1, leaving
         # most accepted steps unaccounted for.
         missing = accepted_steps - set(stepped.tolist())
         if missing:
             failures.append(
                 f"rank {rank}: {len(missing)} accepted steps have no sampled model "
-                f"vector (e.g. {sorted(missing)[:5]}) - step labelling is offset"
+                f"vector (e.g. {sorted(missing)[:5]}) - step labeling is offset"
             )
         # Every evaluated step must have been proposed, but not conversely: a
         # proposal falling outside the prior is logged yet never reaches the
@@ -246,7 +246,7 @@ def main():
         for failure in failures:
             print(f"FAILED: {failure}")
         return
-    print("SUCCESS: proposed-state log and sampled model vector step labelling")
+    print("SUCCESS: proposed-state log and sampled model vector step labeling")
 
 
 if __name__ == "__main__":
