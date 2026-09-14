@@ -31,15 +31,21 @@
 
    .. math::
 
-      \tau_\mathrm{V} = C \frac{Z}{Z_\mathrm{ISM}},
+      \tau_\mathrm{V} = \kappa_\mathrm{V} \, f_\mathrm{dust:metals} \, Z \, \Sigma_\mathrm{cloud},
 
-   proportional to the metallicity :math:`Z` of the gas of the component in which they formed, relative to that of the
-   local interstellar medium; stars older than ``timescale`` are not attenuated at all by this class. This is the
-   birth cloud term of the :cite:t:`charlot_simple_2000` model, in which the coefficient :math:`C` (``coefficient``)
-   is the optical depth of a birth cloud of local interstellar medium metallicity.
+   the column of dust through a birth cloud of gas surface density :math:`\Sigma_\mathrm{cloud}` (``densitySurfaceGas``)
+   whose metallicity :math:`Z` is that of the gas of the component in which the stars formed. The :math:`V`-band
+   extinction opacity per unit mass of dust, :math:`\kappa_\mathrm{V}`, and the dust-to-metals ratio,
+   :math:`f_\mathrm{dust:metals}`, are supplied by a :galacticus-class:`dustPropertiesClass` object---normally the same
+   one which sets the dust content of the diffuse interstellar medium. Stars older than ``timescale`` are not
+   attenuated at all by this class. This is the birth cloud term of the :cite:t:`charlot_simple_2000` model.
 
-   Note that the optical depth depends only on metallicity, not on the surface density of the gas: a birth cloud is a
-   local structure, and its column is not set by the global structure of the galaxy.
+   The default column, :math:`\Sigma_\mathrm{cloud} \approx 22.8\,M_\odot\,\hbox{pc}^{-2}`, is the one for which a cloud of
+   local interstellar medium metallicity has :math:`\tau_\mathrm{V}=1` with the default
+   :galacticus-class:`dustPropertiesSimple`.
+
+   Note that the optical depth depends only on the metallicity of the host component, not on its surface density: a
+   birth cloud is a local structure, and its column is not set by the global structure of the galaxy.
 
    A parcel of emission whose age is unresolved spans all ages, and is therefore treated as old and left unattenuated
    rather than being attenuated as though it were entirely young. Combine this class with a
@@ -54,7 +60,8 @@
      !!}
      private
      class           (dustExtinctionCurveClass), pointer :: dustExtinctionCurve_ => null()
-     double precision                                    :: coefficient                   , timescale
+     class           (dustPropertiesClass     ), pointer :: dustProperties_      => null()
+     double precision                                    :: densitySurfaceGas             , timescale
    contains
      final     ::                 birthCloudDestructor
      procedure :: transmission => birthCloudTransmission
@@ -81,14 +88,16 @@ contains
     type            (dustAttenuationBirthCloud)                :: self
     type            (inputParameters          ), intent(inout) :: parameters
     class           (dustExtinctionCurveClass ), pointer       :: dustExtinctionCurve_
-    double precision                                           :: coefficient         , timescale
+    class           (dustPropertiesClass      ), pointer       :: dustProperties_
+    double precision                                           :: densitySurfaceGas   , timescale
 
     !![
     <inputParameter docformat="rst">
-      <name>coefficient</name>
-      <defaultValue>1.0d0</defaultValue>
+      <name>densitySurfaceGas</name>
+      <defaultValue>densitySurfaceGasDepthOpticalVUnitMilkyWay</defaultValue>
+      <defaultSource>The column for which a cloud of local interstellar medium metallicity has unit :math:`V`-band optical depth with the default dust properties.</defaultSource>
       <description>
-      The :math:`V`-band optical depth of a birth cloud of local interstellar medium metallicity.
+      The surface density of gas through a stellar birth cloud, in :math:`M_\odot\,\hbox{pc}^{-2}`.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -103,27 +112,32 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="dustExtinctionCurve" name="dustExtinctionCurve_" source="parameters"/>
+    <objectBuilder class="dustProperties"      name="dustProperties_"      source="parameters"/>
     !!]
-    self=dustAttenuationBirthCloud(coefficient,timescale,dustExtinctionCurve_)
+    self=dustAttenuationBirthCloud(densitySurfaceGas,timescale,dustExtinctionCurve_,dustProperties_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="dustExtinctionCurve_"/>
+    <objectDestructor name="dustProperties_"     />
     !!]
     return
   end function birthCloudConstructorParameters
 
-  function birthCloudConstructorInternal(coefficient,timescale,dustExtinctionCurve_) result(self)
+  function birthCloudConstructorInternal(densitySurfaceGas,timescale,dustExtinctionCurve_,dustProperties_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`dustAttenuationBirthCloud` dust attenuation class.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     type            (dustAttenuationBirthCloud)                        :: self
-    double precision                           , intent(in   )         :: coefficient         , timescale
+    double precision                           , intent(in   )         :: densitySurfaceGas   , timescale
     class           (dustExtinctionCurveClass ), intent(in   ), target :: dustExtinctionCurve_
+    class           (dustPropertiesClass      ), intent(in   ), target :: dustProperties_
     !![
-    <constructorAssign variables="coefficient, timescale, *dustExtinctionCurve_"/>
+    <constructorAssign variables="densitySurfaceGas, timescale, *dustExtinctionCurve_, *dustProperties_"/>
     !!]
 
+    if (self%densitySurfaceGas < 0.0d0) call Error_Report('`densitySurfaceGas` must be non-negative'//{introspection:location})
     return
   end function birthCloudConstructorInternal
 
@@ -136,6 +150,7 @@ contains
 
     !![
     <objectDestructor name="self%dustExtinctionCurve_"/>
+    <objectDestructor name="self%dustProperties_"     />
     !!]
     return
   end subroutine birthCloudDestructor
@@ -144,7 +159,9 @@ contains
     !!{RST
     Return the transmission through the dust of a stellar birth cloud.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeMax, componentTypeMin
+    use :: Galactic_Structure_Options      , only : componentTypeMax, componentTypeMin
+    use :: Numerical_Constants_Astronomical, only : massSolar       , parsec
+    use :: Numerical_Constants_Prefixes    , only : hecto           , kilo
     implicit none
     class           (dustAttenuationBirthCloud), intent(inout)                                               :: self
     type            (treeNode                 ), intent(inout), target                                       :: node
@@ -169,9 +186,17 @@ contains
        indexComponent=descriptors(i)%componentType%ID
        if (.not.computed(indexComponent)) then
           call componentGasProperties(node,descriptors(i)%componentType,massGas,radius,metallicity)
-          depthOpticalV(indexComponent)=+self%coefficient    &
-               &                        *metallicity         &
-               &                        /metallicityISMLocal
+          ! The column of the cloud is converted from M☉/pc² to g/cm², the units of the opacity.
+          depthOpticalV(indexComponent)=+self%dustProperties_%opacityExtinctionV(                                 ) &
+               &                        *self%dustProperties_%dustToMetalsRatio (node,descriptors(i)%componentType) &
+               &                        *metallicity                                                                &
+               &                        *self                %densitySurfaceGas                                     &
+               &                        *massSolar                                                                  &
+               &                        *kilo                                                                       &
+               &                        /(                                                                          &
+               &                          +parsec                                                                   &
+               &                          *hecto                                                                    &
+               &                         )**2
           computed     (indexComponent)=.true.
        end if
        transmission(i)=exp(                                                                          &
