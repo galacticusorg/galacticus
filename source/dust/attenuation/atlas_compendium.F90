@@ -288,10 +288,11 @@
      type            (interpolator                            )                                  :: interpolatorWavelength                  , interpolatorInclination         , &
           &                                                                                         interpolatorDepthOptical                , interpolatorRadiusSpheroid
    contains
-     final     ::                      atlasCompendiumDestructor
-     procedure :: transmission      => atlasCompendiumTransmission
-     procedure :: request           => atlasCompendiumRequest
-     procedure :: supportsComponent => atlasCompendiumSupportsComponent
+     final     ::                           atlasCompendiumDestructor
+     procedure :: transmission           => atlasCompendiumTransmission
+     procedure :: request                => atlasCompendiumRequest
+     procedure :: supportsComponent      => atlasCompendiumSupportsComponent
+     procedure :: isOrientationDependent => atlasCompendiumIsOrientationDependent
   end type dustAttenuationAtlasCompendium
 
   interface dustAttenuationAtlasCompendium
@@ -1027,3 +1028,15 @@ contains
          &              componentType == componentTypeSpheroid
     return
   end function atlasCompendiumSupportsComponent
+
+  logical function atlasCompendiumIsOrientationDependent(self) result(isOrientationDependent)
+    !!{RST
+    Return true: the transmission of a radiative transfer atlas depends on the inclination at which the galaxy is seen.
+    !!}
+    implicit none
+    class(dustAttenuationAtlasCompendium), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isOrientationDependent=.true.
+    return
+  end function atlasCompendiumIsOrientationDependent

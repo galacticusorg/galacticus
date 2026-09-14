@@ -47,6 +47,12 @@ module Dust_Attenuations
   attenuator distinguishes and which other axes it depends upon, so that an age-independent screen applied to a
   broad-band luminosity is handed one parcel per component, rather than one per wavelength, age and metallicity.
 
+  **Absorption.** Light which does not reach the observer has either been absorbed by dust, or scattered into some
+  other direction. Only the former heats the dust, and so only it is re-emitted in the infrared. ``absorbedFractions``
+  therefore reports what each *phase* of dust absorbs---birth clouds and the diffuse interstellar medium, for
+  example---averaged over orientation, which is the quantity a dust emission model needs, and which differs from one
+  minus the directional ``transmission`` of an orientation-dependent attenuator.
+
   Note that any constant which must be shared between implementations of this class has to be declared here rather
   than in an implementation file, because each implementation is generated into its own submodule and so cannot see
   module-level declarations made by its siblings.
@@ -55,11 +61,12 @@ module Dust_Attenuations
   use :: Dust_Properties             , only : componentGasProperties, densitySurfaceGasDepthOpticalVUnitMilkyWay, dustPropertiesClass
   use :: Galactic_Structure_Options  , only : componentTypeAll      , enumerationComponentTypeType
   use :: Galacticus_Nodes            , only : treeNode
+  use :: ISO_Varying_String          , only : varying_string
   private
   ! Made public so that it survives into the object file: it is called only from the submodules into which the
   ! implementations of this class are generated, never from this module itself, and a private procedure with no
   ! caller in its own module can be discarded before those submodules are linked against it.
-  public :: radiusSpheroidRelative
+  public :: absorbedFractionsPhases, gaussLegendreRule, radiusSpheroidRelative
 
   !![
   <functionClass docformat="rst">
@@ -130,10 +137,184 @@ module Dust_Attenuations
      dustAttenuationSupportsComponent=(componentType /= componentTypeAll)
     </code>
    </method>
+   <method name="countPhases" >
+    <description>
+    Return the number of distinct phases of dust---birth clouds and the diffuse interstellar medium, for example---into
+    which this attenuator divides the absorption of light, so that the energy absorbed by each can be re-emitted with a
+    spectrum of its own. The default is a single phase.
+    </description>
+    <type>integer</type>
+    <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+     dustAttenuationCountPhases=1
+    </code>
+   </method>
+   <method name="labelPhase" >
+    <description>
+    Return a label for the phase of dust with index ``indexPhase``, used to name the luminosity it absorbs. The default
+    is the short name of the class.
+    </description>
+    <type>type(varying_string)</type>
+    <pass>yes</pass>
+    <argument>integer, intent(in   ) :: indexPhase</argument>
+    <code>
+     !$GLC attributes unused :: indexPhase
+     dustAttenuationLabelPhase=self%objectType(short=.true.)
+    </code>
+   </method>
+   <method name="transmissionPhases" >
+    <description>
+    Return the transmission through each phase of dust separately, for each of the given parcels of emission. The first
+    index of the result runs over parcels and the second over phases, which are ordered along the path of the light:
+    the first phase is the one in which the light is emitted. The product over phases is the transmission returned by
+    ``transmission``, and ``inclination`` has the same meaning as there. The default is a single phase, whose
+    transmission is that returned by ``transmission``.
+    </description>
+    <type>double precision, allocatable, dimension(:,:)</type>
+    <pass>yes</pass>
+    <argument>type(treeNode          ), intent(inout), target       :: node       </argument>
+    <argument>type(emissionDescriptor), intent(in   ), dimension(:) :: descriptors</argument>
+    <argument>double precision        , intent(in   ), optional     :: inclination</argument>
+    <code>
+     allocate(dustAttenuationTransmissionPhases(size(descriptors),1))
+     dustAttenuationTransmissionPhases(:,1)=self%transmission(node,descriptors,inclination)
+    </code>
+   </method>
+   <method name="isOrientationDependent" >
+    <description>
+    Return true if the transmission depends on the orientation of the galaxy relative to the observer. The luminosity
+    absorbed by dust must then be averaged over orientation, since light scattered out of one line of sight escapes
+    along another rather than being absorbed. The default is false.
+    </description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+     dustAttenuationIsOrientationDependent=.false.
+    </code>
+   </method>
+   <method name="absorbedFractions" >
+    <description>
+    Return the fraction of the emission of each of the given parcels which is absorbed by each phase of dust, averaged
+    over orientation. The first index of the result runs over parcels and the second over phases.
+
+    For a phase :math:`k` of transmission :math:`T_k`, reached by light which has already passed through phases
+    :math:`1` to :math:`k-1`, the absorbed fraction is :math:`f_k = (1-T_k)\prod_{j&lt;k} T_j`, so that the fractions
+    sum to one minus the total transmission. Counting one minus the transmission as absorbed is exact for an attenuator
+    which conserves energy once averaged over orientation---a radiative transfer atlas, for example---and is the
+    standard interpretation of the *effective* attenuation laws applied through screens, such as that of
+    :cite:t:`charlot_simple_2000`, whose transmission already allows on average for light scattered back into the line
+    of sight. It over-estimates absorption if a screen is given the extinction curve of the grains themselves, since
+    that counts scattered light as absorbed.
+
+    Where the attenuator depends on orientation the fractions are computed at each abscissa of the quadrature rule
+    given by ``cosineInclination`` and ``weight``---whose weights must sum to unity, so that the rule averages over
+    :math:`\cos i` between zero and one---and then averaged. The product over phases is formed at each orientation
+    before averaging, since the average of a product is not the product of the averages. An orientation-independent
+    attenuator is evaluated once. Fractions are clamped to be non-negative: a directional transmission may exceed
+    unity, and although its average over orientation should not, a tabulation is only so accurate.
+    </description>
+    <type>double precision, allocatable, dimension(:,:)</type>
+    <pass>yes</pass>
+    <argument>type(treeNode          ), intent(inout), target       :: node             </argument>
+    <argument>type(emissionDescriptor), intent(in   ), dimension(:) :: descriptors      </argument>
+    <argument>double precision        , intent(in   ), dimension(:) :: cosineInclination</argument>
+    <argument>double precision        , intent(in   ), dimension(:) :: weight           </argument>
+    <code>
+     integer :: i
+     if (self%isOrientationDependent()) then
+        allocate(dustAttenuationAbsorbedFractions(size(descriptors),self%countPhases()))
+        dustAttenuationAbsorbedFractions=0.0d0
+        do i=1,size(weight)
+           dustAttenuationAbsorbedFractions=dustAttenuationAbsorbedFractions+weight(i)*absorbedFractionsPhases(self%transmissionPhases(node,descriptors,acos(cosineInclination(i))))
+        end do
+     else
+        dustAttenuationAbsorbedFractions=absorbedFractionsPhases(self%transmissionPhases(node,descriptors))
+     end if
+     dustAttenuationAbsorbedFractions=max(dustAttenuationAbsorbedFractions,0.0d0)
+    </code>
+   </method>
   </functionClass>
   !!]
 
 contains
+
+  function absorbedFractionsPhases(transmission) result(fraction)
+    !!{RST
+    Return the fraction of the emission of each parcel absorbed by each phase of dust, given the transmission through
+    each phase in the order the light passes through them: :math:`f_k = (1-T_k)\prod_{j<k} T_j`. The first index of
+    both arrays runs over parcels, and the second over phases.
+    !!}
+    implicit none
+    double precision, intent(in   ), dimension(:,:                                       ) :: transmission
+    double precision               , dimension(size(transmission,1),size(transmission,2)) :: fraction
+    double precision               , dimension(size(transmission,1)                     ) :: transmitted
+    integer                                                                               :: k
+
+    transmitted=1.0d0
+    do k=1,size(transmission,2)
+       fraction   (:,k)=+transmitted*(1.0d0-transmission(:,k))
+       transmitted     =+transmitted*       transmission(:,k)
+    end do
+    return
+  end function absorbedFractionsPhases
+
+  subroutine gaussLegendreRule(order,abscissae,weights)
+    !!{RST
+    Return the abscissae and weights of the Gauss-Legendre rule of the given ``order`` on the interval
+    :math:`[0,1]`.
+
+    The nodes are the roots of the Legendre polynomial of that order, found by Newton iteration from the standard
+    Chebyshev-like starting guess, with the polynomial and its derivative evaluated by the usual recurrence. Both are
+    then mapped from :math:`[-1,1]` onto :math:`[0,1]`, and the weights scaled by the half-width of the interval so
+    that they sum to unity---which is what makes the result an average rather than an integral.
+
+    Averages over orientation are needed both by :galacticus-class:`dustAttenuationInclinationAveraged` and by any
+    consumer of ``absorbedFractions``, so the rule lives here rather than in an implementation.
+    !!}
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    integer                       , intent(in   )               :: order
+    double precision, allocatable , intent(inout), dimension(:) :: abscissae                     , weights
+    double precision              , parameter                   :: toleranceRelative     =1.0d-15
+    integer                       , parameter                   :: countIterationsMaximum=100
+    double precision                                            :: root                          , rootPrevious , &
+         &                                                         legendre                      , legendreLower, &
+         &                                                         legendreLowerLower            , derivative
+    integer                                                     :: i                             , j            , &
+         &                                                         countIterations
+
+    if (allocated(abscissae)) deallocate(abscissae)
+    if (allocated(weights  )) deallocate(weights  )
+    allocate(abscissae(order))
+    allocate(weights  (order))
+    do i=1,order
+       ! Initial guess for the i'th root of the Legendre polynomial of this order.
+       root=cos(Pi*(dble(i)-0.25d0)/(dble(order)+0.5d0))
+       countIterations=0
+       do
+          ! Evaluate the Legendre polynomial and its derivative at the current estimate by recurrence.
+          legendre     =1.0d0
+          legendreLower=0.0d0
+          do j=1,order
+             legendreLowerLower=legendreLower
+             legendreLower     =legendre
+             legendre          =(dble(2*j-1)*root*legendreLower-dble(j-1)*legendreLowerLower)/dble(j)
+          end do
+          derivative  =dble(order)*(root*legendre-legendreLower)/(root**2-1.0d0)
+          rootPrevious=root
+          root        =rootPrevious-legendre/derivative
+          countIterations=countIterations+1
+          if (abs(root-rootPrevious) <= toleranceRelative*abs(root) .or. countIterations >= countIterationsMaximum) exit
+       end do
+       ! Map from [-1,1] onto [0,1]. The weights are halved along with the interval, so that they sum to unity and
+       ! the quadrature returns a mean.
+       abscissae(i)=0.5d0*(1.0d0-root)
+       weights  (i)=1.0d0/((1.0d0-root**2)*derivative**2)
+    end do
+    return
+  end subroutine gaussLegendreRule
 
   double precision function radiusSpheroidRelative(node) result(radiusSpheroid)
     !!{RST
