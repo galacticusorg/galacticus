@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "67a5e89a0dfda944e4a332fadae5bcf8f2218282",
-        "message": "Merge pull request #1459 from galacticusorg/feature/table2D-base-class\n\nfeat(tables): introduce a table2D base class and unify the 2D table interface\n",
-        "timestamp": "2026-09-13 00:16:59+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/67a5e89a0dfda944e4a332fadae5bcf8f2218282"
+        "id": "6fadd3ce9b9cf6c1ba1d3913a3e179718f6942dd",
+        "message": "Merge pull request #1484 from galacticusorg/fix/method-description-block-directives\n\nfix(docs): emit method, parameter and enumeration descriptions as written\n",
+        "timestamp": "2026-09-14 00:46:15+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/6fadd3ce9b9cf6c1ba1d3913a3e179718f6942dd"
     },
     "results": [
         {
