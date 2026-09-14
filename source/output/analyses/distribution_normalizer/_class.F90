@@ -46,6 +46,19 @@ module Output_Analysis_Distribution_Normalizers
     <argument>double precision, intent(inout), dimension(:,:), optional :: covariance</argument>
     <argument>double precision, intent(in   ), dimension(:  )           :: propertyValueMinimum, propertyValueMaximum</argument>
    </method>
+   <method name="requiresDistribution" >
+    <description>
+    Return true if this normalizer requires the ``distribution`` argument of the ``normalize`` method. Analyses which
+    accumulate no binned distribution---a cross-correlation, which produces only a covariance matrix---must reject such a
+    normalizer rather than call it.
+    </description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+     outputAnalysisDistributionNormalizerRequiresDistribution=.false.
+    </code>
+   </method>
   </functionClass>
   !!]
 

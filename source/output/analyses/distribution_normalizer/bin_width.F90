@@ -34,7 +34,8 @@
      !!}
      private
    contains
-     procedure :: normalize => binWidthNormalize
+     procedure :: normalize            => binWidthNormalize
+     procedure :: requiresDistribution => binWidthRequiresDistribution
   end type outputAnalysisDistributionNormalizerBinWidth
 
   interface outputAnalysisDistributionNormalizerBinWidth
@@ -96,3 +97,15 @@ contains
     end if
     return
   end subroutine binWidthNormalize
+
+  logical function binWidthRequiresDistribution(self) result(requiresDistribution)
+    !!{RST
+    This normalizer operates on the distribution itself, so requires it to be supplied.
+    !!}
+    implicit none
+    class(outputAnalysisDistributionNormalizerBinWidth), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    requiresDistribution=.true.
+    return
+  end function binWidthRequiresDistribution

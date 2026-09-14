@@ -40,8 +40,9 @@ Implements a cosmological luminosity distance corrector analysis property operat
      class           (outputTimesClass       ), pointer                   :: outputTimes_            => null()
      double precision                         , allocatable, dimension(:) :: correctionFactor
    contains
-     final     ::            csmlgyLuminosityDistanceDestructor
-     procedure :: operate => csmlgyLuminosityDistanceOperate
+     final     ::                      csmlgyLuminosityDistanceDestructor
+     procedure :: operate           => csmlgyLuminosityDistanceOperate
+     procedure :: isOutputDependent => csmlgyLmnstyDstncIsOutputDependent
   end type outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc
 
   interface outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc
@@ -187,3 +188,15 @@ contains
     end select
     return
   end function csmlgyLuminosityDistanceOperate
+
+  logical function csmlgyLmnstyDstncIsOutputDependent(self) result(isOutputDependent)
+    !!{RST
+    This operator requires an output index, which sets the epoch of the luminosity distance correction.
+    !!}
+    implicit none
+    class(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isOutputDependent=.true.
+    return
+  end function csmlgyLmnstyDstncIsOutputDependent
