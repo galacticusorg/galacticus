@@ -2367,7 +2367,7 @@
   	<massRatioCount value="25"/>
   	<massRatioMaximum value="2.0"/>
   	<massRatioMinimum value="2.0e-6"/>
-  	<nameGroupOutput value="treeStatisticsAfterInsertion"/>
+  	<outputGroupName value="treeStatisticsAfterInsertion"/>
   	<countMassParent value="20"/>
   	<massParentMaximum value="1.0e15"/>
   	<massParentMinimum value="2.36e10"/>
@@ -2483,7 +2483,7 @@
       <massRatioCount value="25"/>
       <massRatioMaximum value="2.0"/>
       <massRatioMinimum value="2.0e-6"/>
-      <nameGroupOutput value="conditionalMassFunction"/>
+      <outputGroupName value="conditionalMassFunction"/>
       <countMassParent value="20"/>
       <massParentMaximum value="1.0e15"/>
       <massParentMinimum value="2.36e10"/>

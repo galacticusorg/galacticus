@@ -118,7 +118,7 @@
 
   <!-- Statistics -->
   <mergerTreeOperator value="conditionalMF">
-    <nameGroupOutput value="conditionalMassFunction"/>
+    <outputGroupName value="conditionalMassFunction"/>
     <countMassParent value="4"/>
     <massParentMinimum value="1.0e11"/>
     <massParentMaximum value="1.0e15"/>
