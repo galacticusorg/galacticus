@@ -40,6 +40,7 @@ module Dust_Properties
   :math:`\lambda^{-0.7}` law of :cite:t:`charlot_simple_2000`, for example---and so need not share the wavelength
   dependence of the grains themselves.
   !!}
+  use :: Error                           , only : Error_Report
   use :: Galactic_Structure_Options      , only : enumerationComponentTypeType
   use :: Galacticus_Nodes                , only : treeNode
   use :: Numerical_Constants_Astronomical, only : hydrogenByMassSolar         , massSolar, opticalDepthToMagnitudes, parsec
@@ -102,6 +103,41 @@ module Dust_Properties
     </description>
     <type>double precision</type>
     <pass>yes</pass>
+   </method>
+   <method name="opacityAbsorptionPowerLaw" >
+    <description>
+    Return the parameters of a power law describing the far-infrared absorption opacity per unit mass of dust,
+    :math:`\kappa_\mathrm{abs}(\lambda) = \kappa_\mathrm{ref} (\lambda_\mathrm{ref}/\lambda)^\beta`:
+    ``opacityReference`` (:math:`\kappa_\mathrm{ref}`, in cm² g⁻¹), ``wavelengthReference`` (:math:`\lambda_\mathrm{ref}`,
+    in Å), and ``exponent`` (the emissivity index :math:`\beta`). Dust emission models which assume this form---a
+    modified blackbody, for which it gives the temperature in closed form---require it. The default reports an error.
+    </description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(  out) :: opacityReference, wavelengthReference, exponent</argument>
+    <code>
+     !$GLC attributes unused :: self
+     opacityReference   =0.0d0
+     wavelengthReference=0.0d0
+     exponent           =0.0d0
+     call Error_Report('this dust properties class does not describe the far-infrared absorption opacity as a power law'//{introspection:location})
+    </code>
+   </method>
+   <method name="opacityAbsorption" >
+    <description>
+    Return the absorption opacity per unit mass of dust, in cm² g⁻¹, at the given rest-frame ``wavelength`` (in Å):
+    absorption alone, excluding scattering, which is what heats the dust and what sets how efficiently it radiates. The
+    default evaluates the power law given by ``opacityAbsorptionPowerLaw``. That describes the far infrared, where dust
+    emits, and should not be relied upon in the optical or ultraviolet.
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: wavelength</argument>
+    <code>
+     double precision :: opacityReference, wavelengthReference, exponent
+     call self%opacityAbsorptionPowerLaw(opacityReference,wavelengthReference,exponent)
+     dustPropertiesOpacityAbsorption=opacityReference*(wavelengthReference/wavelength)**exponent
+    </code>
    </method>
    <method name="massDust" >
     <description>
