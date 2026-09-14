@@ -251,6 +251,7 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`outputAnalysisCrossCorrelator1D` output analysis class for internal use.
     !!}
+    use :: Display                 , only : displayGreen                         , displayReset
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass           , nodePropertyExtractorScalar
     use :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial
@@ -282,6 +283,34 @@ contains
     class default
        call Error_Report('property extrator must be of scalar class'//{introspection:location})
     end select
+    ! Validate the un-operator. It is applied to the bin centers once the model has run, where neither a node nor an output
+    ! index exists, so an operator which requires either can not be used in that role - it would abort at the end of the run.
+    if (self%outputAnalysisPropertyUnoperator_%isNodeDependent  ())                                                            &
+         & call Error_Report(                                                                                                  &
+         &                   'the `outputAnalysisPropertyUnoperator` requires a node, but the un-operator is applied to bin'// &
+         &                   ' centers, for which no node exists'//char(10)//                                                  &
+         &                   displayGreen()//'   HELP:'//displayReset()//' use an un-operator which depends only on the'//     &
+         &                   ' property value, such as `antiLog10`.'//                                                         &
+         &                   {introspection:location}                                                                          &
+         &                  )
+    if (self%outputAnalysisPropertyUnoperator_%isOutputDependent())                                                            &
+         & call Error_Report(                                                                                                  &
+         &                   'the `outputAnalysisPropertyUnoperator` requires an output index, but the un-operator is'//       &
+         &                   ' applied to bin centers, for which no output index exists'//char(10)//                           &
+         &                   displayGreen()//'   HELP:'//displayReset()//' use an un-operator which depends only on the'//     &
+         &                   ' property value, such as `antiLog10`.'//                                                         &
+         &                   {introspection:location}                                                                          &
+         &                  )
+    ! Validate the normalizer. This analysis accumulates only a covariance matrix - it has no binned distribution - so a
+    ! normalizer which operates on the distribution itself can not be used.
+    if (self%outputAnalysisDistributionNormalizer_%requiresDistribution())                                                     &
+         & call Error_Report(                                                                                                  &
+         &                   'the `outputAnalysisDistributionNormalizer` requires a distribution, but a cross-correlation'//   &
+         &                   ' accumulates only a covariance matrix'//char(10)//                                               &
+         &                   displayGreen()//'   HELP:'//displayReset()//' use a normalizer which acts on the covariance'//    &
+         &                   ' alone, such as `identity`.'//                                                                   &
+         &                   {introspection:location}                                                                          &
+         &                  )
     ! Count bins.
     self%binCount     =size(binCenter,kind=c_size_t)
     self%binCountTotal=self%binCount+2*bufferCount
