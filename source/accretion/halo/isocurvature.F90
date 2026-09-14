@@ -491,14 +491,14 @@ contains
        self%initialized=.true.
     end if
     ! Evaluate the relative baryon fraction (eqn. 9 of Jessop et al.; 2026; arXiv:2512.02127)/
-    fraction=+  1.0d0                                                                     &
-         &   +(                                                                           &
-         &     +1.0d0                                                                     &
-         &     -self%fractionBaryonsUniversal                                             &
-         &    )                                                                           &
-         &   *self%criticalOverdensity_%value      (    basic%time         () ,node=node) &
-         &   /self%linearGrowth_       %value      (    basic%time         ()           ) &
-         &   *self%correlation         %interpolate(log(      massSmoothing  )         )
+    fraction=+  1.0d0                                                                               &
+         &   +(                                                                                     &
+         &     +1.0d0                                                                               &
+         &     -self%fractionBaryonsUniversal                                                       &
+         &    )                                                                                     &
+         &   *self%criticalOverdensity_%value      (basic%time(),mass=    massSmoothing ,node=node) &
+         &   /self%linearGrowth_       %value      (basic%time()                                  ) &
+         &   *self%correlation         %interpolate(                  log(massSmoothing)          )
     return
 
   contains

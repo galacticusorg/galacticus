@@ -337,7 +337,7 @@ contains
                   &                         +self                          %variance                                                              &
                   &                         -                               variance                                                              &
                   &                        )                                                                                                      &
-                  &                   +      self%criticalOverdensity_      %value  (time                  =self%time                           )
+                  &                   +      self%criticalOverdensity_      %value  (time=self%time,mass=self%massEnvironment)
           end if
           call node%hostTree%properties%set(self%propertyName,self%overdensityPrevious)
        end if
