@@ -137,7 +137,7 @@ contains
     basic => node%basic()
     ! Compute the shape parameter.
     peakHeight=+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass(),node=node) &
-         &     /self%cosmologicalMassVariance_%rootVariance(time=basic%time(),mass=basic%mass())
+         &     /self%cosmologicalMassVariance_%rootVariance(time=basic%time(),mass=basic%mass()          )
     if (peakHeight < peakHeightMaximum) then
        brown2021Shape=+8.520d-4      &
             &         *peakHeight**4 &

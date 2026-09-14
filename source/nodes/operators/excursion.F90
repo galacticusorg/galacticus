@@ -155,15 +155,15 @@ contains
     countNodes                =  1
     basic                     => nodeWork%basic()
     overdensities(countNodes) =  +self      %criticalOverdensity_     %value       (time=basic%time       (),mass=basic%mass(),node=nodeWork)    &
-            &                    /self      %linearGrowth_            %value       (time=basic%time       ()                  )
-    variances    (countNodes) =  +self      %cosmologicalMassVariance_%rootVariance(time=self %timePresent  ,mass=basic%mass())**2
+            &                    /self      %linearGrowth_            %value       (time=basic%time       ()                                )
+    variances    (countNodes) =  +self      %cosmologicalMassVariance_%rootVariance(time=self %timePresent  ,mass=basic%mass()              )**2
     do while (nodeWork%isPrimaryProgenitor())
        countNodes                =   countNodes+1
        nodeWork                  =>  nodeWork                            %parent
-       basic                     =>  nodeWork                            %basic       (                                          )
+       basic                     =>  nodeWork                            %basic       (                                                        )
        overdensities(countNodes) =  +self      %criticalOverdensity_     %value       (time=basic%time       (),mass=basic%mass(),node=nodeWork)    &
-            &                       /self      %linearGrowth_            %value       (time=basic%time       ()                  )
-       variances    (countNodes) =  +self      %cosmologicalMassVariance_%rootVariance(time=self %timePresent  ,mass=basic%mass())**2
+            &                       /self      %linearGrowth_            %value       (time=basic%time       ()                                )
+       variances    (countNodes) =  +self      %cosmologicalMassVariance_%rootVariance(time=self %timePresent  ,mass=basic%mass()              )**2
     end do
     basic => node%basic()
     call basic%floatRank1MetaPropertySet(self%excursionOverdensityID,overdensities)

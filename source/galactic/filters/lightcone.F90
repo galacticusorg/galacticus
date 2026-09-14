@@ -94,7 +94,7 @@ contains
     select type (geometryLightcone_)
     class is (geometryLightconeNull)
        message=displayMagenta()//"WARNING:"//displayReset()//" the `galacticFilterLightcone` class is in use with a null lightcone geometry"        //char(10)// &
-            &  displayGreen()//"    HELP:"//displayReset()//" a null lightcone has zero solid angle, so no galaxy ever lies within it and this"     //char(10)// &
+            &  displayGreen()//"   HELP:"//displayReset()//" a null lightcone has zero solid angle, so no galaxy ever lies within it and this"     //char(10)// &
             &                                               "          filter will therefore reject every galaxy. If that is not what you intended,"//char(10)// &
             &                                               "          set a non-null `geometryLightcone`."
        call displayMessage(message)

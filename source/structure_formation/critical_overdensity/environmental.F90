@@ -262,17 +262,19 @@ contains
     use :: ISO_Varying_String, only : varying_string, assignment(=) , operator(//)
     implicit none
     class(criticalOverdensityEnvironmental), intent(inout) :: self
-    type (varying_string                  )                :: message
 
     !$omp critical (criticalOverdensityEnvironmentalWarnNoNode)
     if (.not.self%warnedNoNode) then
-       message=displayMagenta()//"WARNING:"//displayReset()//" the `criticalOverdensityEnvironmental` class was asked for a value with no node"//char(10)// &
-            &  displayGreen()//"    HELP:"//displayReset()//" the environmental overdensity is a property of a node, so where no node is"      //char(10)// &
-            &                                               "          available the mean environment - a linear overdensity of zero - is"     //char(10)// &
-            &                                               "          assumed. The value returned is then that of the wrapped"                //char(10)// &
-            &                                               "          `criticalOverdensity` class, unmodified: those parts of your model are" //char(10)// &
-            &                                               "          using an environment-independent threshold for collapse."
-       call displayMessage(message)
+       block
+         type(varying_string) :: message
+         message=displayMagenta()//"WARNING:"//displayReset()//" the `criticalOverdensityEnvironmental` class was asked for a value with no node"//char(10)// &
+              &  displayGreen  ()//"   HELP:"//displayReset()//" the environmental overdensity is a property of a node, so where no node is"     //char(10)// &
+              &                                                "          available the mean environment - a linear overdensity of zero - is"    //char(10)// &
+              &                                                "          assumed. The value returned is then that of the wrapped"               //char(10)// &
+              &                                                "          `criticalOverdensity` class, unmodified: those parts of your model are"//char(10)// &
+              &                                                "          using an environment-independent threshold for collapse."
+         call displayMessage(message)
+       end block
        self%warnedNoNode=.true.
     end if
     !$omp end critical (criticalOverdensityEnvironmentalWarnNoNode)

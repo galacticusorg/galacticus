@@ -206,7 +206,7 @@ contains
     select type (geometryLightcone_)
     class is (geometryLightconeNull)
        message=displayMagenta()//"WARNING:"//displayReset()//" the `nodePropertyExtractorLightcone` class is in use with a null lightcone geometry" //char(10)// &
-            &  displayGreen()//"    HELP:"//displayReset()//" a null lightcone has zero solid angle, so no node ever lies within it and this"       //char(10)// &
+            &  displayGreen()//"   HELP:"//displayReset()//" a null lightcone has zero solid angle, so no node ever lies within it and this"       //char(10)// &
             &                                               "          extractor will therefore report unphysical values for every node. If that is"//char(10)// &
             &                                               "          not what you intended, set a non-null `geometryLightcone`."
        call displayMessage(message)
