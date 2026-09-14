@@ -2321,6 +2321,8 @@
           <xs:enumeration value="friendsOfFriends"/>
           <xs:enumeration value="null"/>
           <xs:enumeration value="powerLaw"/>
+          <xs:enumeration value="summation"/>
+          <xs:enumeration value="treeConstruction"/>
           <xs:enumeration value="trenti2010"/>
          </xs:restriction>
         </xs:simpleType>
