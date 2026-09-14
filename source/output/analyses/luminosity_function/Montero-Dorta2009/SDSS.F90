@@ -64,6 +64,7 @@ contains
     class           (cosmologyFunctionsClass                             ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                                    ), pointer                     :: outputTimes_
     class           (gravitationalLensingClass                           ), pointer                     :: gravitationalLensing_
+    class           (dustPropertiesClass                                 ), pointer                     :: dustProperties_
     double precision                                                      , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
     integer                                                                                             :: covarianceBinomialBinsPerDecade
     double precision                                                                                    :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
@@ -174,19 +175,21 @@ contains
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
     <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
+    <objectBuilder class="dustProperties"       name="dustProperties_"       source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisLuminosityFunctionMonteroDorta2009SDSS(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band)
+    self=outputAnalysisLuminosityFunctionMonteroDorta2009SDSS(cosmologyFunctions_,gravitationalLensing_,outputTimes_,dustProperties_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"  />
     <objectDestructor name="outputTimes_"         />
     <objectDestructor name="gravitationalLensing_"/>
+    <objectDestructor name="dustProperties_"      />
     !!]
     return
   end function luminosityFunctionMonteroDorta2009SDSSConstructorParameters
 
-  function luminosityFunctionMonteroDorta2009SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band) result (self)
+  function luminosityFunctionMonteroDorta2009SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,dustProperties_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band) result (self)
     !!{RST
     Constructor for the :galacticus-class:`outputAnalysisLuminosityFunctionMonteroDorta2009SDSS` output analysis class for internal use.
     !!}
@@ -204,6 +207,7 @@ contains
     class           (cosmologyFunctionsClass                             ), intent(in   ), target       :: cosmologyFunctions_
     class           (outputTimesClass                                    ), intent(inout), target       :: outputTimes_
     class           (gravitationalLensingClass                           ), intent(in   ), target       :: gravitationalLensing_
+    class           (dustPropertiesClass                                 ), intent(in   ), target       :: dustProperties_
     double precision                                                      , intent(in   )               :: randomErrorMinimum                                  , randomErrorMaximum                  , &
          &                                                                                                 sizeSourceLensing
     double precision                                                      , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                    , systematicErrorPolynomialCoefficient
@@ -333,6 +337,7 @@ contains
          &                                               outputAnalysisPropertyOperator_                                                                                               , &
          &                                               outputAnalysisDistributionOperator_                                                                                           , &
          &                                               outputTimes_                                                                                                                  , &
+         &                                               dustProperties_                                                                                                               , &
          &                                               covarianceBinomialBinsPerDecade                                                                                               , &
          &                                               covarianceBinomialMassHaloMinimum                                                                                             , &
          &                                               covarianceBinomialMassHaloMaximum                                                                                             , &

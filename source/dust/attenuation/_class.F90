@@ -51,19 +51,15 @@ module Dust_Attenuations
   than in an implementation file, because each implementation is generated into its own submodule and so cannot see
   module-level declarations made by its siblings.
   !!}
-  use :: Dust_Attenuation_Descriptors, only : decompositionRequest, emissionDescriptor
-  use :: Galactic_Structure_Options  , only : componentTypeAll    , enumerationComponentTypeType
+  use :: Dust_Attenuation_Descriptors, only : decompositionRequest  , emissionDescriptor
+  use :: Dust_Properties             , only : componentGasProperties, densitySurfaceGasDepthOpticalVUnitMilkyWay, dustPropertiesClass
+  use :: Galactic_Structure_Options  , only : componentTypeAll      , enumerationComponentTypeType
   use :: Galacticus_Nodes            , only : treeNode
   private
   ! Made public so that it survives into the object file: it is called only from the submodules into which the
   ! implementations of this class are generated, never from this module itself, and a private procedure with no
   ! caller in its own module can be discarded before those submodules are linked against it.
-  public :: componentGasProperties, radiusSpheroidRelative
-
-  ! Metallicity of the local interstellar medium, by mass. Dust-to-gas ratios are scaled relative to this value, on
-  ! the assumption that the dust-to-metals ratio is universal. Declared here, rather than in an implementation file,
-  ! because implementations are generated into sibling submodules which can see this module but not each other.
-  double precision, parameter, public :: metallicityISMLocal=2.0d-2
+  public :: radiusSpheroidRelative
 
   !![
   <functionClass docformat="rst">
@@ -139,65 +135,6 @@ module Dust_Attenuations
 
 contains
 
-  subroutine componentGasProperties(node,componentType,massGas,radius,metallicity)
-    !!{RST
-    Return the gas mass (:math:`M_\odot`), scale radius (Mpc), and gas-phase metallicity (linear, by mass) of the
-    given component of the given ``node``.
-
-    Attenuators which scale the dust content with the gas content of a component all need these three quantities, so
-    the extraction lives here rather than in any one implementation: each implementation of this class is generated
-    into its own submodule, and while a submodule can see its parent module it can not see its siblings.
-
-    A component with no gas or no size returns zero for all three, which callers should treat as containing no dust.
-    !!}
-    use :: Abundances_Structure      , only : abundances       , metallicityTypeLinearByMass
-    use :: Error                     , only : Error_Report
-    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeNuclearStarCluster, componentTypeSpheroid
-    use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentNSC               , nodeComponentSpheroid
-    implicit none
-    type            (treeNode                    ), intent(inout), target  :: node
-    type            (enumerationComponentTypeType), intent(in   )          :: componentType
-    double precision                              , intent(  out)          :: massGas           , radius, &
-         &                                                                    metallicity
-    class           (nodeComponentDisk           )               , pointer :: disk
-    class           (nodeComponentSpheroid       )               , pointer :: spheroid
-    class           (nodeComponentNSC            )               , pointer :: nuclearStarCluster
-    type            (abundances                  )                         :: abundancesGas
-
-    select case (componentType%ID)
-    case (componentTypeDisk              %ID)
-       disk               => node              %disk         ()
-       massGas            =  disk              %massGas      ()
-       radius             =  disk              %radius       ()
-       abundancesGas      =  disk              %abundancesGas()
-    case (componentTypeSpheroid          %ID)
-       spheroid           => node              %spheroid     ()
-       massGas            =  spheroid          %massGas      ()
-       radius             =  spheroid          %radius       ()
-       abundancesGas      =  spheroid          %abundancesGas()
-    case (componentTypeNuclearStarCluster%ID)
-       nuclearStarCluster => node              %NSC          ()
-       massGas            =  nuclearStarCluster%massGas      ()
-       radius             =  nuclearStarCluster%radius       ()
-       abundancesGas      =  nuclearStarCluster%abundancesGas()
-    case default
-       massGas            =  0.0d0
-       radius             =  0.0d0
-       metallicity        =  0.0d0
-       call Error_Report('component can not host dust'//{introspection:location})
-       return
-    end select
-    if (massGas <= 0.0d0 .or. radius <= 0.0d0) then
-       massGas    =0.0d0
-       radius     =0.0d0
-       metallicity=0.0d0
-       return
-    end if
-    call abundancesGas%massToMassFraction(massGas)
-    metallicity=abundancesGas%metallicity(metallicityTypeLinearByMass)
-    return
-  end subroutine componentGasProperties
-
   double precision function radiusSpheroidRelative(node) result(radiusSpheroid)
     !!{RST
     Return the half-mass radius of the spheroid, in units of the disk scale length.
@@ -222,9 +159,8 @@ contains
     A galaxy with no disk has no scale to measure the spheroid against, and no dust either, so the value is
     immaterial: zero is returned, which callers clamp into the tabulated range.
 
-    This lives here, alongside ``componentGasProperties``, rather than in either atlas: each implementation of
-    this class is generated into its own submodule, and while a submodule can see its parent module it can not see
-    its siblings.
+    This lives here rather than in either atlas: each implementation of this class is generated into its own
+    submodule, and while a submodule can see its parent module it can not see its siblings.
     !!}
     use :: Error                     , only : Error_Report
     use :: Galactic_Structure_Options, only : componentTypeSpheroid, massTypeStellar

@@ -61,9 +61,10 @@
    Two quantities are supplied per galaxy rather than tabulated:
 
    * The optical depth, obtained from a :galacticus-class:`dustAttenuationScreen` object through its
-     ``depthOpticalV`` method. Delegating this keeps the Milky Way calibration of
-     :galacticus-class:`dustAttenuationScreenSurfaceDensityMetals` as the single home of that normalization, and
-     lets a fixed depth be substituted for testing. It is *always* evaluated for the disk, whichever component is
+     ``depthOpticalV`` method. Delegating this keeps the normalization of the dust content in one place---a
+     :galacticus-class:`dustAttenuationScreenSurfaceDensityMetals` takes it from the same
+     :galacticus-class:`dustPropertiesClass` object as every other attenuator---and lets a fixed depth be substituted
+     for testing. It is *always* evaluated for the disk, whichever component is
      being attenuated: in this model the dust lies in the disk and a spheroid is reddened by the disk's dust, so
      asking for a spheroid's own optical depth would compute a surface density of a component holding no dust here.
 
