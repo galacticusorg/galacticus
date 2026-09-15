@@ -498,12 +498,11 @@
   <starFormationRateSurfaceDensityDisks value="blitz2006">
     <assumeMonotonicSurfaceDensity value="false"/>
     <heightToRadialScaleDisk value="0.137"/>
-    <pressureCharacteristic value="4.54"/>
+    <pressureCharacteristic value="3.5e4"/>
     <pressureExponent value="0.92"/>
     <starFormationFrequencyNormalization value="1.432e-09"/>
     <surfaceDensityCritical value="200.0"/>
     <surfaceDensityExponent value="0.4"/>
-    <useTabulation value="true"/>
     <velocityDispersionDiskGas value="10.0"/>
   </starFormationRateSurfaceDensityDisks>
   <stellarFeedback value="standard">
