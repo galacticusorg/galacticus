@@ -134,7 +134,7 @@ contains
     <inputParameter docformat="rst">
       <name>cW1</name>
       <source>parameters</source>
-      <defaultValue>0.0d0</defaultValue>
+      <defaultValue>1.0d0</defaultValue>
       <description>
       The parameter :math:`c_\mathrm{W,1}` in the generalized ETHOS power spectrum window function.
       </description>
@@ -142,7 +142,7 @@ contains
     <inputParameter docformat="rst">
       <name>beta1</name>
       <source>parameters</source>
-      <defaultValue>0.0d0</defaultValue>
+      <defaultValue>1.0d0</defaultValue>
       <description>
       The parameter :math:`\beta_1` in the generalized ETHOS power spectrum window function.
       </description>
