@@ -32,7 +32,7 @@ An implementation of the hot halo mass distribution class for :math:`\beta`-prof
 
    .. math::
 
-      \rho_\mathrm{hot halo}(r) \propto \left[ r^2 + r_\mathrm{core}^2 \right]^{3\beta/2},
+      \rho_\mathrm{hot halo}(r) \propto \left[ 1 + (r/r_\mathrm{core})^2 \right]^{-3\beta/2},
 
    where the core radius, :math:`r_\mathrm{core}`, is set using the selected cored profile core radius method (see :galacticus-class:`hotHaloMassDistributionCoreRadius`). The value of :math:`\beta` is specified by the ``[beta]`` parameter. The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, :math:`r_\mathrm{hot, outer}`.
    </description>
