@@ -189,7 +189,7 @@ program Test_Initial_Mass_Functions
   ! expressions used here.
   call Unit_Tests_Begin_Group('Chabrier (2001) shape')
   do i=1,size(massChabrier)
-     phiChabrier   (i)=imfChabrier2001%phi             (massChabrier     (i)                       )
+     phiChabrier   (i)=imfChabrier2001%phi             (massChabrier     (i)                     )
   end do
   do i=1,size(massChabrierLower)
      numberChabrier(i)=imfChabrier2001%numberCumulative(massChabrierLower(i),massChabrierUpper(i))
@@ -197,17 +197,17 @@ program Test_Initial_Mass_Functions
   call Assert('initial mass function'        ,phiChabrier              ,phiChabrierReference   ,relTol=1.0d-6)
   call Assert('cumulative number'            ,numberChabrier           ,numberChabrierReference,relTol=1.0d-6)
   ! Continuity and normalization away from the default transition mass. Requiring the log-normal and power-law branches to join
-  ! continuously at the transition mass M_t fixes the coefficient of the power-law branch to exp(...)/M_t^(1+alpha), and the
+  ! continuously at the transition mass M_t fixes the coefficient of the power-law branch to exp(...)/M_t^(1+α), and the
   ! mass integral used to normalize the initial mass function is computed with exactly that coefficient. Both assertions below
   ! therefore hold for any M_t.
   !
   ! These were added because they did not: the coefficient used when *evaluating* the power-law branch omitted the exponent,
   ! reading exp(...)/M_t. The two agree only at M_t = 1 M☉, which is the default, so nothing shipped was affected - but for any
-  ! other transition mass the branches were discontinuous by a factor M_t^alpha, and, because the normalization had been
+  ! other transition mass the branches were discontinuous by a factor M_t^α, and, because the normalization had been
   ! computed with the other coefficient, the initial mass function was not normalized to unit mass at all: the total came to
   ! 3.77 at M_t = 0.5 M☉ and 0.62 at M_t = 2 M☉. The normalization group above cannot detect this, as it exercises only the
   ! default transition mass.
-  imfChabrier2001Shifted=initialMassFunctionChabrier2001(                                                    &
+  imfChabrier2001Shifted=initialMassFunctionChabrier2001(                                                  &
        &                                                 massLower         =imfChabrier2001%massMinimum(), &
        &                                                 massTransition    =massTransitionShifted        , &
        &                                                 massUpper         =imfChabrier2001%massMaximum(), &

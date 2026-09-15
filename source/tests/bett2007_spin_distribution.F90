@@ -63,46 +63,46 @@ program Test_Bett2007_Spin_Distribution
   function and elementary operations, with no tabulation, interpolation or physical constants involved, so the only
   difference expected is in the evaluation of :math:`\Gamma(\alpha)` itself.
   !!}
-  use            :: Cosmology_Functions        , only : cosmologyFunctions                 , cosmologyFunctionsClass
-  use            :: Dark_Matter_Halo_Scales    , only : darkMatterHaloScale                , darkMatterHaloScaleClass
+  use            :: Cosmology_Functions        , only : cosmologyFunctions                     , cosmologyFunctionsClass
+  use            :: Dark_Matter_Halo_Scales    , only : darkMatterHaloScale                    , darkMatterHaloScaleClass
   use            :: Dark_Matter_Halo_Spins     , only : Dark_Matter_Halo_Angular_Momentum_Scale
   use            :: Halo_Spin_Distributions    , only : haloSpinDistributionBett2007
-  use            :: Display                    , only : displayVerbositySet                , verbosityLevelStandard
+  use            :: Display                    , only : displayVerbositySet                    , verbosityLevelStandard
   use            :: Error                      , only : Error_Handler_Register
   use            :: Events_Hooks               , only : eventsHooksInitialize
   use            :: Functions_Global_Utilities , only : Functions_Global_Set
-  use            :: Galacticus_Nodes           , only : nodeClassHierarchyInitialize       , nodeComponentBasic               , &
-  &                                                     nodeComponentDarkMatterProfile     , nodeComponentSpin                , &
+  use            :: Galacticus_Nodes           , only : nodeClassHierarchyInitialize           , nodeComponentBasic               , &
+  &                                                     nodeComponentDarkMatterProfile         , nodeComponentSpin                , &
   &                                                     treeNode
-  use            :: ISO_Varying_String         , only : assignment(=)                      , varying_string
+  use            :: ISO_Varying_String         , only : assignment(=)                          , varying_string
   use            :: Input_Parameters           , only : inputParameters
-  use            :: Node_Components            , only : Node_Components_Initialize         , Node_Components_Thread_Initialize, &
-  &                                                     Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use            :: Unit_Tests                 , only : Assert                             , Unit_Tests_Begin_Group           , &
-  &                                                     Unit_Tests_End_Group               , Unit_Tests_Finish
+  use            :: Node_Components            , only : Node_Components_Initialize             , Node_Components_Thread_Initialize, &
+  &                                                     Node_Components_Thread_Uninitialize    , Node_Components_Uninitialize
+  use            :: Unit_Tests                 , only : Assert                                 , Unit_Tests_Begin_Group           , &
+  &                                                     Unit_Tests_End_Group                   , Unit_Tests_Finish
   implicit none
-  class           (darkMatterHaloScaleClass    ), pointer                 :: darkMatterHaloScale_
-  type            (haloSpinDistributionBett2007)                          :: distributionDefault  , distributionAlternate
-  type            (varying_string              )                          :: parameterFile
-  type            (inputParameters             )                          :: parameters
+  class           (darkMatterHaloScaleClass    ), pointer                        :: darkMatterHaloScale_
+  type            (haloSpinDistributionBett2007)                                 :: distributionDefault  , distributionAlternate
+  type            (varying_string              )                                 :: parameterFile
+  type            (inputParameters             )                                 :: parameters
   ! The halo for which the distribution is evaluated. Its mass and epoch are arbitrary: the distribution depends on the node
   ! only through the dimensionless spin, which the test sets directly.
-  double precision                              , parameter               :: massHalo             =1.0000000000d+12
-  double precision                              , parameter               :: timeHalo             =1.3800000000d+01
+  double precision                              , parameter                      :: massHalo                      =1.0000000000d+12
+  double precision                              , parameter                      :: timeHalo                      =1.3800000000d+01
   ! Parameters of the distribution. The first pair are the class defaults, which are those fit by Bett et al. (2007). The
-  ! second pair are chosen so that the closed forms are exact: alpha=3 gives a normalization of 27/2 and a mean of lambda_0.
-  double precision                              , parameter               :: lambda0Default       =4.3260000000d-02, alphaDefault  =2.5090000000d+00
-  double precision                              , parameter               :: lambda0Alternate     =3.5000000000d-02, alphaAlternate=3.0000000000d+00
+  ! second pair are chosen so that the closed forms are exact: α=3 gives a normalization of 27/2 and a mean of λ₀.
+  double precision                              , parameter                      :: lambda0Default                =4.3260000000d-02, alphaDefault  =2.5090000000d+00
+  double precision                              , parameter                      :: lambda0Alternate              =3.5000000000d-02, alphaAlternate=3.0000000000d+00
   ! Spins at which the distribution is evaluated, and the reference values.
-  integer                                       , parameter               :: countSpinsDefault    =6
-  double precision                              , dimension(countSpinsDefault) :: spinDefault      =[5.0000000000d-03,1.0000000000d-02,2.0000000000d-02,4.3260000000d-02,8.0000000000d-02,1.5000000000d-01]
-  double precision                              , dimension(countSpinsDefault) :: distributionDefaultReference=[2.2945273727d+00,7.1812981274d+00,1.6375854294d+01,1.6898306259d+01,3.7914642223d+00,3.7878648339d-02]
-  double precision                              , dimension(countSpinsDefault) :: distributionDefaultComputed
-  integer                                       , parameter               :: countSpinsAlternate  =3
-  double precision                              , dimension(countSpinsAlternate) :: spinAlternate  =[1.0000000000d-02,3.5000000000d-02,1.0000000000d-01]
+  integer                                       , parameter                      :: countSpinsDefault             =6
+  double precision                              , dimension(countSpinsDefault  ) :: spinDefault                   =[5.0000000000d-03,1.0000000000d-02,2.0000000000d-02,4.3260000000d-02,8.0000000000d-02,1.5000000000d-01]
+  double precision                              , dimension(countSpinsDefault  ) :: distributionDefaultReference  =[2.2945273727d+00,7.1812981274d+00,1.6375854294d+01,1.6898306259d+01,3.7914642223d+00,3.7878648339d-02]
+  double precision                              , dimension(countSpinsDefault  ) :: distributionDefaultComputed
+  integer                                       , parameter                      :: countSpinsAlternate           =3
+  double precision                              , dimension(countSpinsAlternate) :: spinAlternate                 =[1.0000000000d-02,3.5000000000d-02,1.0000000000d-01]
   double precision                              , dimension(countSpinsAlternate) :: distributionAlternateReference=[1.3362177065d+01,1.9203583513d+01,5.9649321065d-01]
   double precision                              , dimension(countSpinsAlternate) :: distributionAlternateComputed
-  integer                                                                 :: i
+  integer                                                                        :: i
 
   ! Establish error handlers, so that errors reported by the GSL are trapped rather than aborting.
   call Error_Handler_Register()
@@ -133,8 +133,8 @@ program Test_Bett2007_Spin_Distribution
   end do
 
   call Unit_Tests_Begin_Group("Distribution")
-  call Assert("Bett et al. (2007) parameters"      ,distributionDefaultComputed  ,distributionDefaultReference  ,relTol=1.0d-6)
-  call Assert("alpha = 3, where N = 27/2 is exact" ,distributionAlternateComputed,distributionAlternateReference,relTol=1.0d-6)
+  call Assert("Bett et al. (2007) parameters" ,distributionDefaultComputed  ,distributionDefaultReference  ,relTol=1.0d-6)
+  call Assert("α = 3, where N = 27/2 is exact",distributionAlternateComputed,distributionAlternateReference,relTol=1.0d-6)
   call Unit_Tests_End_Group()
 
   ! End unit tests.
