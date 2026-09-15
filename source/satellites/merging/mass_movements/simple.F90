@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a merger mass movements class which uses a simple calculation.
   !!}
@@ -28,10 +30,10 @@
    <description>
    A merger mass movements class which implements mass movements according to:
 
-   * If :math:`M_\mathrm{satellite} &gt; f_\mathrm{major} M_\mathrm{central}` then all mass from both satellite and central galaxies moves to the spheroid :term:`component` of the central galaxy;
-   * Otherwise: Gas from the satellite moves to the :term:`component` of the central specified by the ``[destinationGasMinorMerger]`` parameter (either "``disk``" or "``spheroid``"), stars from the satellite moves to the spheroid of the central and mass in the central does not move.
+   * If :math:`\min(M_\mathrm{satellite},M_\mathrm{central}) \ge f_\mathrm{major} \max(M_\mathrm{satellite},M_\mathrm{central})` then all mass from both satellite and central galaxies moves to the spheroid :term:`component` of the central galaxy;
+   * Otherwise: gas and stars from the satellite move to the :term:`component`\ s of the central specified by the ``[destinationGasMinorMerger]`` and ``[destinationStarsMinorMerger]`` parameters respectively (each either "``disk``", "``spheroid``", or "``dominant``"---the latter meaning whichever of the disk and spheroid of the more massive galaxy is the more massive), and mass in the central does not move.
 
-   Here, :math:`f_\mathrm{major}=`\ ``[massRatioMajorMerger]`` is the mass ratio above which a merger is considered to be "major".
+   Here, :math:`f_\mathrm{major}=`\ ``[massRatioMajorMerger]`` is the mass ratio above which a merger is considered to be "major". Note that the masses used in this criterion are the total galactic masses (gas plus stars, in both disk and spheroid) of the two galaxies.
    </description>
   </mergerMassMovements>
   !!]

@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameter file used by unit tests which need nodes with only basic and dark matter profile components active (e.g.
+     tests.mass_definitions_output_times.exe). -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="75fe8b2def913b997756b92093f11415fbea05d7" time="2026-09-15T00:00:00"/>
+
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+</parameters>

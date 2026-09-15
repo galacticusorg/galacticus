@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of the :cite:t:`efstathiou_stability_1982` model for galactic disk bar instability.
   !!}
@@ -28,9 +30,9 @@
 
    .. math::
 
-      \epsilon \left( \equiv {V_\mathrm{peak} \over \sqrt{\G M_\mathrm{disk}/r_\mathrm{disk}}} \right) &lt; \epsilon_\mathrm{c},
+      \epsilon \left( \equiv {V_\mathrm{peak} \over \sqrt{\G M_\mathrm{disk}/r_\mathrm{disk}}} \right) &gt; \epsilon_\mathrm{c},
 
-   for stability, where :math:`V_\mathrm{peak}` is the peak velocity in the rotation curve\ [#]_, :math:`M_\mathrm{disk}` is the mass of the disk and :math:`r_\mathrm{disk}` is its scale length (assuming an exponential disk). The value of :math:`\epsilon_\mathrm{c}` is linearly interpolated in the disk gas fraction between values for purely gaseous and stellar disks as specified by ``[stabilityThresholdStellar]`` and ``[stabilityThresholdGaseous]`` respectively. For disks which are judged to be unstable, the timescale for bar formation is estimated to be
+   for stability, where :math:`V_\mathrm{peak}` is the peak velocity in the rotation curve\ [#]_, :math:`M_\mathrm{disk}` is the mass of the disk and :math:`r_\mathrm{disk}` is its scale length (assuming an exponential disk). The value of :math:`\epsilon_\mathrm{c}` is linearly interpolated in the disk gas fraction between values for purely stellar and gaseous disks as specified by ``[stabilityThresholdStellar]`` and ``[stabilityThresholdGaseous]`` respectively. For disks which are judged to be unstable, the timescale for bar formation is estimated to be
 
    .. math::
 

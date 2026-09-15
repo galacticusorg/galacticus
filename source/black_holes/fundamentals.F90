@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements fundamental properties of black holes.
 !!}
@@ -385,12 +387,20 @@ contains
 
   double precision function Black_Hole_Metric_A_Factor_Spin(spinBlackHole,radius)
     !!{RST
-    Returns the :math:`\mathcal{A}` factor appearing in the Kerr metric for spin ``spinBlackHole``.
+    Returns the :math:`\mathcal{A}` factor appearing in the Kerr metric for spin ``spinBlackHole`` at (dimensionless) radius
+    ``radius``:
+
+    .. math::
+
+       \mathcal{A} = 1 + j^2/r^2 + 2 j^2/r^3,
+
+    as given by :cite:t:`popham_advection-dominated_1998`. Note that eqn. (A15) of :cite:t:`benson_maximum_2009` contains a typographical
+    error, giving :math:`j/r^2` in place of :math:`j^2/r^2` in the second term.
     !!}
     implicit none
     double precision, intent(in   ) :: spinBlackHole, radius
 
-    Black_Hole_Metric_A_Factor_Spin=1.0d0+spinBlackHole/radius**2+2.0d0*spinBlackHole**2/radius**3
+    Black_Hole_Metric_A_Factor_Spin=1.0d0+spinBlackHole**2/radius**2+2.0d0*spinBlackHole**2/radius**3
     return
   end function Black_Hole_Metric_A_Factor_Spin
 

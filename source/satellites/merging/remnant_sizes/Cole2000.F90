@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a merger remnant size class which uses the :cite:t:`cole_hierarchical_2000` algorithm.
   !!}
@@ -36,6 +38,8 @@
       \frac{M_1 M_2}{r_1+r_2},
 
    where :math:`M_1` and :math:`M_2` are the baryonic masses of the components of the merging galaxies that will end up in the spheroid :term:`component` of the remnant\ [#]_ and :math:`r_1` and :math:`r_2` are the half mass radii of those same components of the merging galaxies\ [#]_, :math:`r_\mathrm{new}` is the half mass radius of the spheroidal :term:`component` of the remnant galaxy and :math:`c` is a constant which depends on the distribution of the mass. For a Hernquist spheroid :math:`c=0.40` can be found by numerical integration while for a exponential disk :math:`c=0.49`. For simplicity a value of :math:`c=0.5` is adopted for all components. The parameter :math:`f_\mathrm{orbit}=`\ ``energyOrbital`` depends on the orbital parameters of the galaxy pair. For example, a value of :math:`f_\mathrm{orbit} = 1` corresponds to point mass galaxies in circular orbits about their center of mass.
+
+   Following :cite:t:`cole_hierarchical_2000`, the masses :math:`M_1` and :math:`M_2` appearing in this expression also include the contribution of dark matter, taken to be twice the dark matter mass within the half mass radius (:math:`r_1` or :math:`r_2`) of each galaxy. The circular velocity of the remnant, :math:`V_\mathrm{new}`, is computed from the baryonic mass alone.
 
    A subtlety arises because the above expression accounts for only the baryonic mass of material which becomes part of the spheroid :term:`component` of the remnant. In reality, there are additional terms in the energy equation due to the interaction of this material with any dark matter mass in each galaxy and any baryonic mass of each galaxy which does not become part of the spheroid :term:`component` of the remnant. To account for this additional matter, an effective boost factor, :math:`f_\mathrm{boost}`, to the specific angular momentum of each :term:`component` of each merging galaxy is computed:
 

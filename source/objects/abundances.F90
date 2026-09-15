@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which defines the abundances structure used for describing elemental abundances in Galacticus.
 !!}
@@ -857,7 +859,7 @@ contains
     implicit none
     class(abundances), intent(in   ) :: self
 
-    Abundances_Helium_Mass_Fraction=min(                                              &
+    Abundances_Helium_Mass_Fraction=max(                                              &
          &                              +self%metallicityValue                        &
          &                              /     metallicitySolar                        &
          &                              *(+heliumByMassSolar-heliumByMassPrimordial)  &
