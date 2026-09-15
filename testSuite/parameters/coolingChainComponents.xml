@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameter file used by tests.cooling_chain.exe, which validates the chain of calculations leading to the rate at which gas
+     cools out of a hot halo against independently computed reference values (galacticusDevTools/coolingChain.py).
+
+     The virial density contrast is pinned to a *fixed* value of 200 relative to the *mean* matter density. The default is
+     `sphericalCollapseClsnlssMttrCsmlgclCnstnt`, which would make the virial radius depend on the spherical collapse solver;
+     that solver has its own tests, and including it here would mean this test could fail for reasons unconnected to cooling.
+     With a fixed contrast the virial radius is analytic, so the reference values can be computed in closed form.
+
+     Each class is declared once, at the top level. Object builders walk up the parameter tree from the scope in which they are
+     invoked, so the hot halo component and the cooling classes find these declarations and share a single instance of each.
+
+     Every value below other than the density contrast is equal to the class default, and is stated explicitly only to document
+     what the reference calculation assumes.
+  -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="75fe8b2def913b997756b92093f11415fbea05d7" time="2026-09-15T00:00:00"/>
+
+  <!-- Cosmology. Planck 2018 values. Note that `cosmologyFunctionsMatterLambda` includes no radiation term in its expansion
+       rate, so the reference calculation excludes radiation also. -->
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="67.36"  />
+    <OmegaMatter     value="0.3153" />
+    <OmegaDarkEnergy value="0.6847" />
+    <OmegaBaryon     value="0.0493" />
+    <temperatureCMB  value="2.72548"/>
+  </cosmologyParameters>
+  <cosmologyFunctions value="matterLambda"/>
+
+  <!-- A fixed virial density contrast of 200 relative to the mean matter density; see the note above. -->
+  <virialDensityContrast value="fixed">
+    <densityContrastValue value="200.0"/>
+    <densityType          value="mean" />
+  </virialDensityContrast>
+  <darkMatterHaloScale value="virialDensityContrastDefinition"/>
+
+  <!-- Node components. Only the basic and hot halo components are needed. No chemicals are tracked, so the cooling radius
+       class's requirement that the hot halo "chemicals" property be gettable is satisfied trivially. -->
+  <componentBasic   value="standard"/>
+  <componentHotHalo value="standard">
+    <hotHaloMassDistribution value="betaProfile">
+      <beta value="0.666666666666666667"/>
+      <hotHaloMassDistributionCoreRadius value="virialFraction">
+        <coreRadiusOverVirialRadius value="0.3"/>
+      </hotHaloMassDistributionCoreRadius>
+    </hotHaloMassDistribution>
+    <hotHaloTemperatureProfile value="virial"/>
+  </componentHotHalo>
+
+  <!-- The cooling chain. -->
+  <coolingFunction value="atomicCIECloudy"/>
+  <chemicalState   value="atomicCIECloudy"/>
+  <coolingTime     value="simple">
+    <degreesOfFreedom value="3.0"/>
+  </coolingTime>
+  <coolingTimeAvailable value="whiteFrenk1991">
+    <ageFactor value="0.0"/>
+  </coolingTimeAvailable>
+  <coolingRadius       value="simple"       />
+  <coolingInfallRadius value="coolingRadius"/>
+  <coolingRate value="whiteFrenk1991">
+    <velocityCutOff value="1.0e4"/>
+  </coolingRate>
+</parameters>

@@ -1264,6 +1264,7 @@ jobs:
                       tests.star_formation_feedback_physics.exe,
                       tests.mergers_instabilities_physics.exe,
                       tests.mass_definitions_output_times.exe,
+                      tests.cooling_chain.exe,
                       tests.bug745815.exe,
                       tests.gaunt_factors.exe,
                       tests.cooling_functions.exe,
