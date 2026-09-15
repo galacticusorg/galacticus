@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameter file used by unit tests which need nodes with only basic, disk, and spheroid components active (e.g.
+     tests.star_formation_feedback_physics.exe, tests.mergers_instabilities_physics.exe). -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="75fe8b2def913b997756b92093f11415fbea05d7" time="2026-09-11T00:00:00"/>
+
+  <componentBasic             value="standard"/>
+  <componentDisk              value="standard"/>
+  <componentSpheroid          value="standard"/>
+  <componentBlackHole         value="null"    />
+  <componentDarkMatterProfile value="null"    />
+  <componentHotHalo           value="null"    />
+  <componentSatellite         value="null"    />
+  <componentSpin              value="null"    />
+</parameters>
