@@ -73,6 +73,7 @@ models, following the revised spherical collapse model of :cite:t:`montandon_dec
       is made to match the :math:`M_\mathrm{200m}` definition. This introduces a systematic offset in the
       mass (and hence in the abundance at fixed mass) when comparing directly to their results.
    </description>
+   <forwards object="massFunction_"/>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionDecayingDarkMatter

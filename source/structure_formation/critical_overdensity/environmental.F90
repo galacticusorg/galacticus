@@ -28,6 +28,7 @@ Implements an environmental critical overdensity class.
    <description>
    The critical overdensity for collapse is computed by taking the value from another critical overdensity class and multiplying it by an environment-dependent factor, allowing the collapse threshold to vary with local density environment. The environmental dependence is controlled by the ``[a]`` parameter.
    </description>
+   <forwards object="criticalOverdensity_"/>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityEnvironmental

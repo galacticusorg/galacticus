@@ -52,6 +52,11 @@ dark matter (DDM) of :cite:t:`montandon_decaying_2026`.
       ``cosmologicalMassVariance``/``transferFunction`` --- combining it with a suppressed
       (DDM/:term:`WDM`) transfer function would double-count the small-scale suppression.
    </description>
+   <requires method="value"                argument="mass"/>
+   <requires method="gradientTime"         argument="mass"/>
+   <requires method="gradientMass"         argument="mass"/>
+   <requires method="timeOfCollapse"       argument="mass"/>
+   <forwards object="criticalOverdensity_"                />
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityDecayingDarkMatter

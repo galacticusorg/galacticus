@@ -32,6 +32,7 @@ Implements a dark matter halo mass function class which modifies another mass fu
    <description>
    The halo mass function is computed by modifying another mass function to account for cosmic variance in a simulation cube.
    </description>
+   <forwards object="massFunction_"/>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionSimulationVariance

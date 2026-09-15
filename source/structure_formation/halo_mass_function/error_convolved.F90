@@ -28,6 +28,7 @@ Implements a dark matter halo mass function class which modifies another mass fu
    <description>
    The halo mass function is computed by convolving another halo mass function with a mass dependent error. Specifically, the mass function is convolved with a Gaussian random error distribution with width computed using the given ``nbodyHaloMassError`` object.
    </description>
+   <forwards object="massFunctionIntrinsic"/>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionErrorConvolved

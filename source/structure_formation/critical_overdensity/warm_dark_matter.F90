@@ -50,6 +50,9 @@ Implements a critical overdensity for collapse the :term:`WDM` modifier of :cite
 
    and :math:`g_\mathrm{X}` and :math:`m_\mathrm{X}` are the effective number of degrees of freedom and the mass of the warm dark matter particle respectively. This fitting function has been found the fit the numerical results of :cite:t:`barkana_constraints_2001` well.
    </description>
+   <requires method="value"          argument="mass"/>
+   <requires method="gradientMass"   argument="mass"/>
+   <requires method="timeOfCollapse" argument="mass"/>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityBarkana2001WDM

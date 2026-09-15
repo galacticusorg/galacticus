@@ -49,6 +49,9 @@
 
    The best-fit parameters :math:`a_i` are :math:`\{a_1,a_2,a_3,a_4,a_5,a_6\}=\{3.4,1.0,1.8,0.5,1.7,0.9\}`.
    </description>
+   <requires method="value"          argument="mass"/>
+   <requires method="gradientMass"   argument="mass"/>
+   <requires method="timeOfCollapse" argument="mass"/>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityMarsh2016FDM

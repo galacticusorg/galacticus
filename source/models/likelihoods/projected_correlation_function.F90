@@ -153,14 +153,14 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="powerSpectrum"                name="powerSpectrum_"                source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
-    <objectBuilder class="surveyGeometry"               name="surveyGeometry_"               source="parameters"/>
-    <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
-    <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
-    <objectBuilder class="darkMatterHaloBias"           name="darkMatterHaloBias_"           source="parameters"/>
-    <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
+    <objectBuilder class="powerSpectrum"                name="powerSpectrum_"                source="parameters"                              />
+    <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"                              />
+    <objectBuilder class="surveyGeometry"               name="surveyGeometry_"               source="parameters"                              />
+    <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"                              />
+    <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters" withholds="differential:node"/>
+    <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"                              />
+    <objectBuilder class="darkMatterHaloBias"           name="darkMatterHaloBias_"           source="parameters"                              />
+    <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"                              />
     !!]
     self=posteriorSampleLikelihoodProjectedCorrelationFunction(massHaloMinimum,massHaloMaximum,lineOfSightDepth,halfIntegral,char(fileName),powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_)
     !![
