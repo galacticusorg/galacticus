@@ -81,10 +81,10 @@ module Dust_Emission_Spectra
     </description>
     <type>double precision, dimension(size(wavelengthsMinimum))</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   ), dimension(:) :: wavelengthsMinimum, wavelengthsMaximum, &amp;
-     &amp;                                                     wavelengthsHeating, luminositiesAbsorbed</argument>
+    <argument>double precision, intent(in   ), dimension(:) :: wavelengthsMinimum, wavelengthsMaximum, wavelengthsHeating, luminositiesAbsorbed</argument>
     <argument>double precision, intent(in   )               :: massDust          , time                </argument>
     <code>
+     !$GLC attributes unused :: wavelengthsHeating
      dustEmissionSpectrumLuminosityIntegrated=dustEmissionLuminosityIntegratedSampled(self,wavelengthsMinimum,wavelengthsMaximum,sum(luminositiesAbsorbed),massDust,time)
     </code>
    </method>
