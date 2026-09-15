@@ -47,6 +47,7 @@ from Galacticus.Build.SourceTree.Parse.Visibilities          import update_visib
 from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import (
     class_dependencies,
 )
+from Galacticus.Build.Capabilities                           import parse_requires
 from Galacticus.Build.SourceTree.Process.SourceIntrospection import location
 from Galacticus.Build.FileChanges                            import update as file_changes_update
 
@@ -324,6 +325,107 @@ def _build_object_type_method(directive, non_abstract_classes, methods):
         'pass':        'yes',
         'modules':     'ISO_Varying_String',
         'argument':    ['logical, intent(in   ), optional :: short'],
+        'code':        code,
+    }
+
+
+def _build_requires_method(directive, classes, methods, loc_expr):
+    """Populate `methods['requires']`, which reports whether an object can only
+    answer `method` when given its optional `argument`.
+
+    The answer is assembled from the `<requires>` and `<forwards>` elements of
+    each implementation's directive (see `Galacticus.Build.Capabilities`): an
+    implementation requires what it declares, what the implementations it
+    extends declare, and whatever the objects it forwards to require. Asking
+    about a pair which is not an optional argument of one of the class' methods
+    is an error, so that a misspelled query can not silently answer false.
+    """
+    directive_name = directive['name']
+    result         = directive_name + 'Requires'
+
+    # The optional arguments of the class' own methods - the only arguments an
+    # implementation can require and a consumer can withhold.
+    optional = {}
+    for method_name, method in methods.items():
+        if method_name in _SHIM_FRAMEWORK_METHODS or method_name == 'destructor':
+            continue
+        for argument in as_array(method.get('argument') or []):
+            declaration = parse_declaration(argument)
+            if declaration is None or 'optional' not in (declaration.get('attributes') or []):
+                continue
+            optional.setdefault(method_name, []).extend(declaration.get('variableNames') or [])
+
+    # Each implementation's own declarations, checked against those arguments.
+    declared = {}
+    for type_name, record in classes.items():
+        try:
+            requires, forwards = parse_requires(record)
+        except ValueError as error:
+            raise RuntimeError(
+                f"process_function_class: implementation '{type_name}': {error}")
+        for method_name, argument in requires:
+            if argument not in optional.get(method_name, []):
+                raise RuntimeError(
+                    f"process_function_class: implementation '{type_name}' requires "
+                    f"'{method_name}:{argument}', but '{argument}' is not an optional "
+                    f"argument of a '{method_name}' method of class '{directive_name}'")
+        declared[type_name] = (requires, forwards)
+
+    def inherited(type_name):
+        """Merge the declarations of `type_name` and of the implementations it extends."""
+        requires, forwards, seen = [], [], set()
+        while type_name in declared and type_name not in seen:
+            seen.add(type_name)
+            requires += [pair for pair in declared[type_name][0] if pair not in requires]
+            forwards += [name for name in declared[type_name][1] if name not in forwards]
+            type_name = classes[type_name].get('extends')
+        return requires, forwards
+
+    def case_list(pairs, indent):
+        return (', &\n' + indent + '& ').join(f"'{pair}'" for pair in pairs)
+
+    code  = "select case (method//':'//argument)\n"
+    valid = sorted(f"{method_name}:{argument}" for method_name in optional for argument in optional[method_name])
+    if valid:
+        code += "case (" + case_list(valid, '     ') + ")\n"
+        code += "   ! A recognized method and optional argument.\n"
+    code += (
+        "case default\n"
+        f"   call Error_Report('\"'//method//'\" is not a method of class \"{directive_name}\" "
+        f"with an optional argument \"'//argument//'\"'//{loc_expr})\n"
+        "end select\n"
+        f"{result}=.false.\n"
+    )
+    branches = ''
+    for type_name in sorted(classes):
+        requires, forwards = inherited(type_name)
+        if not requires and not forwards:
+            continue
+        branches += f"class is ({type_name})\n"
+        if requires:
+            branches += (
+                "   select case (method//':'//argument)\n"
+                "   case (" + case_list([f"{m}:{a}" for m, a in requires], '        ') + ")\n"
+                f"      {result}=.true.\n"
+                "   end select\n"
+            )
+        for object_name in forwards:
+            branches += (
+                f"   if (.not.{result} .and. associated(self%{object_name})) "
+                f"{result}=self%{object_name}%requires(method,argument)\n"
+            )
+    if branches:
+        code += "select type (self)\n" + branches + "end select\n"
+    methods['requires'] = {
+        'description': (
+            'Return true if this object can only answer ``method`` when given its optional argument ``argument``. A '
+            'consumer which never supplies that argument should reject such an object when it is built.'
+        ),
+        'type':        'logical',
+        'pass':        'yes',
+        'recursive':   'yes',
+        'modules':     'Error',
+        'argument':    ['character(len=*), intent(in   ) :: method, argument'],
         'code':        code,
     }
 
@@ -4164,6 +4266,8 @@ def process_function_class(tree, options):
             directive, non_abstract_classes, classes, methods, tree,
             state_storables)
         _build_object_type_method(directive, non_abstract_classes, methods)
+        _build_requires_method(
+            directive, classes, methods, location(node, node.get('line', 0)))
         _build_allowed_parameters_method(
             directive, classes_ordered, methods)
         _build_assignment_method(

@@ -17,6 +17,9 @@
       <xs:attribute name="copy"                        />
       <xs:attribute name="parameterName"               />
       <xs:attribute name="threadPrivate"               />
+      <!-- withholds="method:argument ..." lists optional arguments of the built object's methods which this consumer never
+           supplies. An object which requires one is rejected when built (see python/Galacticus/Build/Capabilities.py). -->
+      <xs:attribute name="withholds"                   />
       <!-- docformat="rst" marks the description as reStructuredText. -->
       <xs:attribute name="docformat"                   />
     </xs:complexType>
