@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of an ADAF accretion disk.
   !!}
@@ -95,10 +97,15 @@
 
    .. math::
 
-      \alpha(j)=0.015+0.02 j^4 &amp; \hbox{ if  } g=\exp(\omega\tau) \hbox{ and } E=E_\mathrm{ISCO}, \\
+      \alpha(j)=0.015+0.02 j^4 &amp; \hbox{ if } g=\exp(\omega\tau) \hbox{ and } E=E_\mathrm{ISCO}, \\
       \alpha(j)=0.025+0.08 j^4 &amp; \hbox{ if } g=1+\omega\tau \hbox{ and } E=E_\mathrm{ISCO}, \\
       \alpha(j)=0.010+0.00 j^4 &amp; \hbox{ if } g=\exp(\omega\tau) \hbox{ and } E=1, \\
       \alpha(j)=0.025+0.02 j^4 &amp; \hbox{ if } g=1+\omega\tau \hbox{ and } E=1.
+
+   These fitting functions for :math:`\alpha(j)` were recalibrated to better match the spin-up functions found in numerical
+   simulations, and so differ from those given by :cite:t:`benson_maximum_2009` (their eqn. 8). Additionally, the Kerr metric factor
+   :math:`\mathcal{A}=1+j^2/r^2+2j^2/r^3` is used here---eqn. (A15) of :cite:t:`benson_maximum_2009` contains a typographical
+   error, giving :math:`j/r^2` in place of :math:`j^2/r^2`.
    </description>
   </accretionDisks>
   !!]
