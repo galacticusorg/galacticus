@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a scaling spherical mass distribution class.
   !!}
@@ -615,7 +617,7 @@ contains
        if (mass <= 0.0d0) then
           radius=+0.0d0
        else
-          radius=+self%massDistribution_%radiusEnclosingMass(mass          =mass          *self%factorScalingMass)
+          radius=+self%massDistribution_%radiusEnclosingMass(mass          =mass          /self%factorScalingMass)
        end if
     else
        radius=+0.0d0
