@@ -44,13 +44,24 @@ program Test_Black_Hole_Physics
   !!}
   use :: Accretion_Disks                , only : accretionDisksShakuraSunyaev
   use :: Black_Hole_Binary_Mergers      , only : blackHoleBinaryMergerRezzolla2008
-  use :: Black_Hole_Fundamentals        , only : Black_Hole_Eddington_Accretion_Rate , Black_Hole_ISCO_Radius                , Black_Hole_ISCO_Specific_Angular_Momentum, Black_Hole_ISCO_Specific_Energy, &
-          &                                      Black_Hole_Frame_Dragging_Frequency , orbitPrograde                         , unitsGravitational
-  use :: Bondi_Hoyle_Lyttleton_Accretion, only : Bondi_Hoyle_Lyttleton_Accretion_Rate, Bondi_Hoyle_Lyttleton_Accretion_Radius
-  use :: Display                        , only : displayVerbositySet                 , verbosityLevelStandard
+  use :: Black_Hole_Fundamentals        , only : Black_Hole_Eddington_Accretion_Rate      , &
+  &                                              Black_Hole_Frame_Dragging_Frequency      , &
+  &                                              Black_Hole_ISCO_Radius                   , &
+  &                                              Black_Hole_ISCO_Specific_Angular_Momentum, &
+  &                                              Black_Hole_ISCO_Specific_Energy          , &
+  &                                              orbitPrograde                            , &
+  &                                              unitsGravitational
+  use :: Bondi_Hoyle_Lyttleton_Accretion, only : Bondi_Hoyle_Lyttleton_Accretion_Radius   , &
+  &                                              Bondi_Hoyle_Lyttleton_Accretion_Rate
+  use :: Display                        , only : displayVerbositySet                      , &
+  &                                              verbosityLevelStandard
   use :: Galacticus_Nodes               , only : nodeComponentBlackHoleStandard
-  use :: Ideal_Gases_Thermodynamics     , only : Ideal_Gas_Jeans_Length              , Ideal_Gas_Sound_Speed
-  use :: Unit_Tests                     , only : Assert                              , Unit_Tests_Begin_Group                , Unit_Tests_End_Group                     , Unit_Tests_Finish
+  use :: Ideal_Gases_Thermodynamics     , only : Ideal_Gas_Jeans_Length                   , &
+  &                                              Ideal_Gas_Sound_Speed
+  use :: Unit_Tests                     , only : Assert                                   , &
+  &                                              Unit_Tests_Begin_Group                   , &
+  &                                              Unit_Tests_End_Group                     , &
+  &                                              Unit_Tests_Finish
   implicit none
   ! Kerr ISCO properties (prograde orbits, gravitational units) from Bardeen, Press & Teukolsky (1972). The first six spins are
   ! evaluated using the closed-form expressions in Galacticus, the final two using its near-extremal series.
@@ -76,31 +87,32 @@ program Test_Black_Hole_Physics
        &                                                                                           1.1114457519d-1 , 2.2746396856d-2                                       &
        &                                                                                          ]
   ! Rezzolla et al. (2008) remnant spins for aligned spins.
-  double precision                                   , dimension(8) :: massA                     =[1.0d0,1.0d0,1.0d0,1.0d0,0.5d0,1.0d0,1.0d0,3.0d0]                      , &
-       &                                                               massB                     =[1.0d0,1.0d0,1.0d0,0.5d0,1.0d0,0.1d0,1.0d-6,1.0d0]                     , &
-       &                                                               spinA                     =[0.0d0,0.5d0,0.9d0,0.0d0,0.7d0,0.8d0,0.6d0,0.99d0]                     , &
-       &                                                               spinB                     =[0.0d0,0.5d0,0.9d0,0.7d0,0.0d0,0.3d0,0.9d0,0.99d0]
+  double precision                                   , dimension(8) :: massA                =[1.0d0,1.0d0,1.0d0,1.0d0,0.5d0,1.0d0,1.0d0,3.0d0]                    , &
+       &                                                               massB                =[1.0d0,1.0d0,1.0d0,0.5d0,1.0d0,0.1d0,1.0d-6,1.0d0]                   , &
+       &                                                               spinA                =[0.0d0,0.5d0,0.9d0,0.0d0,0.7d0,0.8d0,0.6d0,0.99d0]                   , &
+       &                                                               spinB                =[0.0d0,0.5d0,0.9d0,0.7d0,0.0d0,0.3d0,0.9d0,0.99d0]
   double precision                                   , dimension(8) :: spinMergerReference       =[                                                                        &
        &                                                                                           6.8691602878d-1 , 8.3110352878d-1 , 9.3484352878d-1 , 6.7827300528d-1 , &
        &                                                                                           6.7827300528d-1 , 8.7376377797d-1 , 6.0000180605d-1 , 9.9793994464d-1   &
        &                                                                                          ]
   ! Bondi-Hoyle-Lyttleton accretion (Edgar 2004) onto a 10⁸M☉ black hole.
-  double precision                                   , dimension(4) :: temperatureBondi          =[1.0d2 ,1.0d2 ,1.0d7 ,1.0d7 ]                                          , &
-       &                                                               densityBondi              =[1.0d18,1.0d18,1.0d15,1.0d15]                                          , &
-       &                                                               velocityBondi             =[0.0d0 ,5.0d1 ,0.0d0 ,0.0d0 ]
-  double precision                                   , dimension(4) :: rateBondiReference        =[                                                                        &
-       &                                                                                           6.7078381708d+14, 1.8991969905d+10, 2.1212046796d+04, 6.1962782916d+09  &
-       &                                                                                          ]
+  double precision                                   , dimension(4) :: temperatureBondi     =[1.0d2,1.0d2,1.0d7,1.0d7]                                            , &
+       &                                                               densityBondi         =[1.0d18,1.0d18,1.0d15,1.0d15]                                        , &
+       &                                                               velocityBondi        =[0.0d0,5.0d1,0.0d0,0.0d0]
+  double precision                                   , dimension(4) :: rateBondiReference   =[6.7078381708d+14,1.8991969905d+10,2.1212046796d+04,6.1962782916d+09]
   ! Meier (2001) thin disk jet power for a 10⁹M☉ black hole accreting at 10⁸M☉/Gyr.
-  double precision                                   , dimension(5) :: spinJet                   =[0.00d0,0.50d0,0.80d0,0.90d0,0.99d0]
+  double precision                                   , dimension(5) :: spinJet              =[0.00d0,0.50d0,0.80d0,0.90d0,0.99d0]
   double precision                                   , dimension(5) :: powerJetReference         =[                                                                        &
        &                                                                                           1.9276168747d+13, 1.2791545693d+14, 3.9816621869d+14, 4.2887547845d+14, &
        &                                                                                           4.5746762679d+14                                                        &
        &                                                                                          ]
-  double precision                                   , dimension(8) :: radiusISCO           , energyISCO, &
-       &                                                               angularMomentumISCO  , spinMerger, &
+  double precision                                   , dimension(8) :: radiusISCO                                                                                 , &
+       &                                                               energyISCO                                                                                 , &
+       &                                                               angularMomentumISCO                                                                        , &
+       &                                                               spinMerger                                                                                 , &
        &                                                               massMerger
-  double precision                                   , dimension(6) :: efficiencyRadiative  , spinUp
+  double precision                                   , dimension(6) :: efficiencyRadiative                                                                        , &
+       &                                                               spinUp
   double precision                                   , dimension(4) :: rateBondi
   double precision                                   , dimension(5) :: powerJet
   type            (nodeComponentBlackHoleStandard   )               :: blackHole

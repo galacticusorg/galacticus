@@ -42,40 +42,57 @@ program Test_Star_Formation_Feedback_Physics
     :math:`10^{-6}` relative tolerance of the numerical integration, and the difference in :math:`\mathrm{G}` in the truncated
     case.
   !!}
-  use :: Display                                  , only : displayVerbositySet                                 , verbosityLevelStandard
+  use :: Display                                  , only : displayVerbositySet                                 , &
+  &                                                        verbosityLevelStandard
   use :: Events_Hooks                             , only : eventsHooksInitialize
   use :: Functions_Global_Utilities               , only : Functions_Global_Set
-  use :: Galacticus_Nodes                         , only : nodeClassHierarchyInitialize                        , nodeComponentBasic                , nodeComponentDisk                  , nodeComponentSpheroid       , &
-          &                                                treeNode
-  use :: ISO_Varying_String                       , only : assignment(=)                                       , varying_string
+  use :: Galacticus_Nodes                         , only : nodeClassHierarchyInitialize                        , &
+  &                                                        nodeComponentBasic                                  , &
+  &                                                        nodeComponentDisk                                   , &
+  &                                                        nodeComponentSpheroid                               , &
+  &                                                        treeNode
+  use :: ISO_Varying_String                       , only : assignment(=)                                       , &
+  &                                                        varying_string
   use :: Input_Parameters                         , only : inputParameters
-  use :: Node_Components                          , only : Node_Components_Initialize                          , Node_Components_Thread_Initialize , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Node_Components                          , only : Node_Components_Initialize                          , &
+  &                                                        Node_Components_Thread_Initialize                   , &
+  &                                                        Node_Components_Thread_Uninitialize                 , &
+  &                                                        Node_Components_Uninitialize
   use :: Star_Formation_Rate_Surface_Density_Disks, only : starFormationRateSurfaceDensityDisksKennicuttSchmidt
   use :: Star_Formation_Rates_Disks               , only : starFormationRateDisksIntgrtdSurfaceDensity
   use :: Star_Formation_Timescales                , only : starFormationTimescaleDynamicalTime
-  use :: Stellar_Feedback_Outflows                , only : stellarFeedbackOutflowsPowerLaw                     , stellarFeedbackOutflowsRateLimit
-  use :: Unit_Tests                               , only : Assert                                              , Unit_Tests_Begin_Group            , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Stellar_Feedback_Outflows                , only : stellarFeedbackOutflowsPowerLaw                     , &
+  &                                                        stellarFeedbackOutflowsRateLimit
+  use :: Unit_Tests                               , only : Assert                                              , &
+  &                                                        Unit_Tests_Begin_Group                              , &
+  &                                                        Unit_Tests_End_Group                                , &
+  &                                                        Unit_Tests_Finish
   implicit none
   type            (treeNode                                            ), pointer      :: node
   class           (nodeComponentBasic                                  ), pointer      :: basic
   class           (nodeComponentDisk                                   ), pointer      :: disk
   class           (nodeComponentSpheroid                               ), pointer      :: spheroid
-  type            (starFormationRateSurfaceDensityDisksKennicuttSchmidt)               :: starFormationRateSurfaceDensityDisksTruncated_  , starFormationRateSurfaceDensityDisksUntruncated_
-  type            (starFormationRateDisksIntgrtdSurfaceDensity         )               :: starFormationRateDisksTruncated_                , starFormationRateDisksUntruncated_
+  type            (starFormationRateSurfaceDensityDisksKennicuttSchmidt)               :: starFormationRateSurfaceDensityDisksTruncated_                            , &
+       &                                                                                  starFormationRateSurfaceDensityDisksUntruncated_
+  type            (starFormationRateDisksIntgrtdSurfaceDensity         )               :: starFormationRateDisksTruncated_                                          , &
+       &                                                                                  starFormationRateDisksUntruncated_
   type            (starFormationTimescaleDynamicalTime                 )               :: starFormationTimescale_
   type            (stellarFeedbackOutflowsPowerLaw                     )               :: stellarFeedbackOutflowsPowerLaw_
   type            (stellarFeedbackOutflowsRateLimit                    )               :: stellarFeedbackOutflowsRateLimit_
   type            (varying_string                                      )               :: parameterFile
   type            (inputParameters                                     )               :: parameters
   ! Properties of the test disk (metal-free gas, so that the hydrogen mass fraction is the primordial value).
-  double precision                                                      , parameter    :: massGas                                   =1.0d10, radiusDisk                                 =3.0d-3, &
-       &                                                                                  velocityDisk                              =1.5d02
+  double precision                                                      , parameter    :: massGas                                         =1.0d10                   , &
+       &                                                                                  radiusDisk                                      =3.0d-3                   , &
+       &                                                                                  velocityDisk                                    =1.5d02
   ! Radii (in units of the disk scale length) at which to test star formation rate surface densities.
-  double precision                                                      , dimension(4) :: radiusDimensionless                       =[0.5d0,1.0d0,3.0d0,6.0d0]
+  double precision                                                      , dimension(4) :: radiusDimensionless                             =[0.5d0,1.0d0,3.0d0,6.0d0]
   double precision                                                      , dimension(4) :: rateSurfaceDensityTruncatedReference      =[6.8570850400d+13,3.4051276577d+13,2.0706602611d+12,1.2213488275d+05], &
        &                                                                                  rateSurfaceDensityUntruncatedReference    =[6.8570850400d+13,3.4051276577d+13,2.0706602611d+12,3.1050745015d+10]
-  double precision                                                      , dimension(4) :: rateSurfaceDensityTruncated                                          , rateSurfaceDensityUntruncated
-  double precision                                                                     :: rateOutflowEjective                                                  , rateOutflowExpulsive
+  double precision                                                      , dimension(4) :: rateSurfaceDensityTruncated                                               , &
+       &                                                                                  rateSurfaceDensityUntruncated
+  double precision                                                                     :: rateOutflowEjective                                                       , &
+       &                                                                                  rateOutflowExpulsive
   integer                                                                              :: i
 
   ! Set verbosity level.
