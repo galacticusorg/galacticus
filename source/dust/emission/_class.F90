@@ -39,6 +39,7 @@ module Dust_Emission_Spectra
   !!}
   implicit none
   private
+  public :: dustEmissionIntegralPowerLaw
 
   !![
   <functionClass docformat="rst">
@@ -66,5 +67,37 @@ module Dust_Emission_Spectra
    </method>
   </functionClass>
   !!]
+
+contains
+
+  double precision function dustEmissionIntegralPowerLaw(wavelength,luminosityLogarithmic) result(integral)
+    !!{RST
+    Return :math:`\int L_\nu\,\mathrm{d}\nu` for a spectrum given as :math:`\ln \nu L_\nu` at ``wavelength`` (in Å),
+    and interpolated as a power law between them---as tabulated spectra of dust emission are.
+
+    With :math:`x = \ln \nu`, a power law in :math:`L_\nu` is also a power law in :math:`F = \nu L_\nu`, and
+    :math:`\int L_\nu\,\mathrm{d}\nu = \int F\,\mathrm{d}x`. Over each interval that is the width in :math:`x` times
+    the logarithmic mean of :math:`F` at its ends, :math:`(F_2-F_1)/(\ln F_2-\ln F_1)`, which tends to :math:`F_1` as
+    the ends become equal.
+    !!}
+    implicit none
+    double precision, intent(in   ), dimension(:) :: wavelength            , luminosityLogarithmic
+    ! Below this difference in the logarithm, the logarithmic mean is evaluated by its series, avoiding cancellation.
+    double precision, parameter                   :: differenceSmall=1.0d-6
+    double precision                              :: difference            , meanLogarithmic
+    integer                                       :: i
+
+    integral=0.0d0
+    do i=1,size(wavelength)-1
+       difference=luminosityLogarithmic(i+1)-luminosityLogarithmic(i)
+       if (abs(difference) < differenceSmall) then
+          meanLogarithmic= exp(luminosityLogarithmic(i  ))*(1.0d0+difference/2.0d0)
+       else
+          meanLogarithmic=(exp(luminosityLogarithmic(i+1))-exp(luminosityLogarithmic(i)))/difference
+       end if
+       integral=integral+meanLogarithmic*log(wavelength(i+1)/wavelength(i))
+    end do
+    return
+  end function dustEmissionIntegralPowerLaw
 
 end module Dust_Emission_Spectra
