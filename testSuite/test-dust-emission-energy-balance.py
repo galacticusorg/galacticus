@@ -76,9 +76,19 @@ def columnValues(nodes, name, fallback):
     return nodes[fallback + "ColumnValues"][:]
 
 
-def heatingGrid(nodes, length):
-    """Return the wavelength grid of the heating spectra, which all share one grid in this test."""
-    grids = [nodes[name][:] for name in nodes.keys() if "StellarSED" in name and name.endswith("ColumnValues")]
+def heatingGrid(nodes, name, length):
+    """Return the wavelength grid of an absorbed spectrum which has no column values of its own.
+
+    The outputter writes column values only for the first property on a grid, so they are taken from another absorbed
+    phase of the same child spectrum if it has them, and otherwise from the stellar spectra, which all share one grid in
+    this test.
+    """
+    prefix = name.split(":dustAbsorbed:")[0] + ":dustAbsorbed:"
+    grids  = [nodes[other][:] for other in nodes.keys() if other.startswith(prefix) and other.endswith("ColumnValues")]
+    grids  = [grid for grid in grids if grid.size == length]
+    if grids:
+        return grids[0]
+    grids = [nodes[other][:] for other in nodes.keys() if "StellarSED" in other and other.endswith("ColumnValues")]
     grids = [grid for grid in grids if grid.size == length]
     if not grids or any(not np.array_equal(grid, grids[0]) for grid in grids):
         print("FAILED: the heating spectra do not share a single wavelength grid, which this test assumes")
@@ -102,7 +112,7 @@ def absorbedLuminosities(nodes, attenuator):
         units = float(nodes[name].attrs["units"]["unitsInSI"])
         if data.ndim == 2:
             # An absorbed spectrum, L_ν: integrate over frequency by the trapezoidal rule.
-            wavelengths = nodes[name + "ColumnValues"][:] if name + "ColumnValues" in nodes else heatingGrid(nodes, data.shape[1])
+            wavelengths = nodes[name + "ColumnValues"][:] if name + "ColumnValues" in nodes else heatingGrid(nodes, name, data.shape[1])
             frequencies = SPEED_OF_LIGHT / wavelengths
             luminosity  = np.sum(0.5 * (data[:, 1:] + data[:, :-1]) * np.abs(frequencies[:-1] - frequencies[1:]), axis=1)
         else:
