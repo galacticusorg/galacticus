@@ -3,7 +3,8 @@
 
 Dust must re-emit exactly the luminosity it absorbs. For each of several attenuators, the luminosity absorbed by each
 phase of dust is extracted by a `dustAttenuation` extractor (`outputAbsorbed`), and the thermal emission of the dust by
-a `SEDDustEmission` extractor heated by the same light. The absorbed luminosity is integrated here, independently of
+a `SEDDustEmission` extractor heated by the same light. One attenuator is paired with two emission extractors: one using
+modified blackbodies, and one using the template spectra of Dale & Helou (2002) and Draine & Li (2007). The absorbed luminosity is integrated here, independently of
 the emission extractor, and compared with the integral of the emitted spectrum, in total and phase by phase. Heating by
 the cosmic microwave background is switched off, since with it the dust also re-emits energy absorbed from the CMB.
 
@@ -34,11 +35,15 @@ LUMINOSITY_SOLAR = 3.845e26
 RESOLUTION       = 50.0
 FACTOR           = (1.0 + np.sqrt(1.0 + 4.0 * RESOLUTION**2)) / 2.0 / RESOLUTION
 
-ATTENUATORS = {
-    "charlotFall2000"           : ("birthCloud", "screenSurfaceDensityMetals"),
-    "screenSurfaceDensityMetals": ("screenSurfaceDensityMetals",),
-    "atlasFerrara2000"          : ("atlasFerrara2000",),
-}
+# Each case gives the attenuator, the suffix appended to the name of its emission extractor, and the phases of dust.
+CASES = (
+    ("charlotFall2000"           , ""          , ("birthCloud", "screenSurfaceDensityMetals")),
+    ("charlotFall2000"           , ":templates", ("birthCloud", "screenSurfaceDensityMetals")),
+    ("screenSurfaceDensityMetals", ""          , ("screenSurfaceDensityMetals",)              ),
+    ("atlasFerrara2000"          , ""          , ("atlasFerrara2000",)                        ),
+)
+# Every emission extractor is on the same grid of wavelengths, whose values are written only for the first.
+GRID_FIRST = "dustEmissionSED:charlotFall2000"
 
 # This script runs with the working directory set to testSuite/, while the model is run from the repository root.
 parameterFile = "testSuite/parameters/dustEmissionEnergyBalance.xml"
@@ -117,13 +122,13 @@ with h5py.File(outputPath, "r") as f:
     for outputName, expansionFactor in sorted(expansionFactors.items()):
         redshiftLabel = f"z={1.0 / expansionFactor - 1.0:.1f}"
         nodes = f["Outputs"][outputName]["nodeData"]
-        for attenuator, phases in ATTENUATORS.items():
-            label = f"{attenuator} at {redshiftLabel}"
+        for attenuator, suffix, phases in CASES:
+            label = f"{attenuator}{suffix} at {redshiftLabel}"
             try:
                 absorbed = absorbedLuminosities(nodes, attenuator)
-                total    = f"dustEmissionSED:{attenuator}"
-                emitted  = emittedLuminosity   (nodes, total, total)
-                emittedPhases = {phase: emittedLuminosity(nodes, f"{total}:{phase}", total) for phase in phases}
+                total    = f"dustEmissionSED:{attenuator}{suffix}"
+                emitted  = emittedLuminosity   (nodes, total, GRID_FIRST)
+                emittedPhases = {phase: emittedLuminosity(nodes, f"{total}:{phase}", GRID_FIRST) for phase in phases}
             except KeyError as e:
                 print(f"FAILED: {label}: expected dataset or attribute missing from the output: {e}")
                 sys.exit(0)

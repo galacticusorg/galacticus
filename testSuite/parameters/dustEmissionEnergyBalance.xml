@@ -403,6 +403,46 @@
         </nodePropertyExtractor>
       </nodePropertyExtractor>
     </nodePropertyExtractor>
+    <!-- Thermal emission from the same dust, described by template spectra: those of Dale & Helou (2002) for the birth
+         clouds, and those of Draine & Li (2007), heated as energy balance requires, for the diffuse interstellar medium.
+         The templates are truncated sharply at the ends of their tabulations, which the output grid spans. -->
+    <nodePropertyExtractor value="SEDDustEmission">
+      <frame value="rest"/>
+      <wavelengthMinimum value="1.0e4"/>
+      <wavelengthMaximum value="1.0e8"/>
+      <resolution value="50.0"/>
+      <outputPhases value="true"/>
+      <appendSuffix value="templates"/>
+      <dustAttenuation value="charlotFall2000">
+        <wavelengthReference value="5500.0"/>
+      </dustAttenuation>
+      <dustEmissionSpectrum value="daleHelou2002">
+        <alpha value="1.5"/>
+      </dustEmissionSpectrum>
+      <dustEmissionSpectrum value="draineLi2007"/>
+      <nodePropertyExtractor value="multi">
+        <nodePropertyExtractor value="SED">
+          <component value="disk"/>
+          <frame value="rest"/>
+          <wavelengthMinimum value="8.0e2"/>
+          <wavelengthMaximum value="4.0e4"/>
+          <resolution value="50.0"/>
+          <toleranceRelative value="1.0e-2"/>
+        </nodePropertyExtractor>
+        <nodePropertyExtractor value="SED">
+          <component value="spheroid"/>
+          <frame value="rest"/>
+          <wavelengthMinimum value="8.0e2"/>
+          <wavelengthMaximum value="4.0e4"/>
+          <resolution value="50.0"/>
+          <toleranceRelative value="1.0e-2"/>
+        </nodePropertyExtractor>
+        <nodePropertyExtractor value="luminosityEmissionLine">
+          <component value="all"/>
+          <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727"/>
+        </nodePropertyExtractor>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
     <!-- Luminosity absorbed by each phase of the screenSurfaceDensityMetals attenuator. -->
     <nodePropertyExtractor value="dustAttenuation">
       <outputUnattenuated value="false"/>

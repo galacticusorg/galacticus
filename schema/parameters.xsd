@@ -1012,6 +1012,8 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="blackBodyModified"/>
+          <xs:enumeration value="daleHelou2002"/>
+          <xs:enumeration value="draineLi2007"/>
           <xs:enumeration value="sum"/>
          </xs:restriction>
         </xs:simpleType>
@@ -4643,6 +4645,31 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="quiescent"/>
           <xs:enumeration value="starForming"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="grainModel">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="largeMagellanicCloud00"/>
+          <xs:enumeration value="largeMagellanicCloud05"/>
+          <xs:enumeration value="largeMagellanicCloud10"/>
+          <xs:enumeration value="milkyWay00"/>
+          <xs:enumeration value="milkyWay10"/>
+          <xs:enumeration value="milkyWay20"/>
+          <xs:enumeration value="milkyWay30"/>
+          <xs:enumeration value="milkyWay40"/>
+          <xs:enumeration value="milkyWay50"/>
+          <xs:enumeration value="milkyWay60"/>
+          <xs:enumeration value="smallMagellanicCloud"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
