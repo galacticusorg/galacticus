@@ -29,6 +29,11 @@
   use :: Dust_Properties               , only : dustPropertiesClass
   use :: Stellar_Luminosities_Structure, only : enumerationFrameType
 
+  ! The grid of wavelength (in Å) on which absorbed light is accumulated for the emission spectra: intervals of width 0.01
+  ! in ln λ, comparable to the absorbed-photon bins of tabulated PAH emission, spanning any wavelength of heating light.
+  double precision, parameter :: sedDustEmissionWavelengthHeatingGridMinimum=1.0d+1, sedDustEmissionWavelengthHeatingGridMaximum=1.0d8, &
+       &                         sedDustEmissionWidthHeatingGrid            =1.0d-2
+
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSEDDustEmission" docformat="rst">
    <description>
@@ -59,8 +64,10 @@
    balance. One ``[dustEmissionSpectrum]`` must be given for each phase, in the order of the phases, and each re-emits
    the luminosity its phase absorbs.
 
-   Within each wavelength bin the emission is averaged over the resolution element as by
-   :galacticus-class:`nodePropertyExtractorSED`. In the ``observed`` frame the wavelengths are observed-frame
+   The light absorbed by each phase is accumulated as a spectrum, in intervals 0.01 wide in :math:`\ln\lambda`, which is
+   passed to that phase's spectrum, since emission from the smallest grains depends on its shape as well as its total.
+   Each spectrum integrates its emission over every resolution element, which gives the mean over the element as
+   defined by :galacticus-class:`nodePropertyExtractorSED`. In the ``observed`` frame the wavelengths are observed-frame
    wavelengths, the emission is evaluated at the corresponding rest-frame wavelengths, and :math:`L_\nu` is not
    rescaled, again as by :galacticus-class:`nodePropertyExtractorSED`.
 
@@ -88,18 +95,16 @@
      double precision                                                        :: wavelengthMinimum                 , wavelengthMaximum       , &
           &                                                                     resolution                        , factorWavelength        , &
           &                                                                     wavelengthHeatingMinimum          , wavelengthHeatingMaximum
-     ! The fraction of the dust mass heated by each phase; the quadrature rule used to average absorption over orientation;
-     ! and the quadrature rule, on the unit interval in the logarithm of wavelength, used to average over a resolution
-     ! element.
+     ! The fraction of the dust mass heated by each phase, and the quadrature rule used to average absorption over
+     ! orientation.
      double precision                            , allocatable, dimension(:) :: fractionsMassPhase                , cosineInclination       , &
-          &                                                                     weight                            , abscissaeBin            , &
-          &                                                                     weightsBin
+          &                                                                     weight
    contains
      !![
      <methods docformat="rst">
-       <method method="wavelengths" description="Return the wavelengths, in Å, of the centers of the bins of the spectrum, in the frame in which it is computed."/>
-       <method method="countBins"   description="Return the number of bins in the spectrum."                                                                         />
-       <method method="countElements" description="Return the number of properties emitted."                                                                         />
+       <method method="wavelengths"   description="Return the wavelengths, in Å, of the centers of the bins of the spectrum, in the frame in which it is computed."/>
+       <method method="countBins"     description="Return the number of bins in the spectrum."                                                                     />
+       <method method="countElements" description="Return the number of properties emitted."                                                                       />
      </methods>
      !!]
      final     ::                       sedDustEmissionDestructor
@@ -123,10 +128,6 @@
      module procedure sedDustEmissionConstructorParameters
      module procedure sedDustEmissionConstructorInternal
   end interface nodePropertyExtractorSEDDustEmission
-
-  ! Order of the Gauss-Legendre rule used to average the emission over a resolution element. The emission of dust varies
-  ! smoothly on the scale of a resolution element, so a low order suffices.
-  integer, parameter :: sedDustEmissionOrderBin=8
 
 contains
 
@@ -362,7 +363,6 @@ contains
     ! `nodePropertyExtractorSED`.
     self%factorWavelength=(1.0d0+sqrt(1.0d0+4.0d0*self%resolution**2))/2.0d0/self%resolution
     call gaussLegendreRule(self%orderInclinationAverage,self%cosineInclination,self%weight    )
-    call gaussLegendreRule(sedDustEmissionOrderBin     ,self%abscissaeBin     ,self%weightsBin)
     ! One emission spectrum is needed for each phase of dust, and one mass fraction.
     countSpectra          =  0
     dustEmissionSpectrum_ => self%dustEmissionSpectra
@@ -553,57 +553,83 @@ contains
     type            (multiCounter                        ), intent(inout) , optional    :: instance
     type            (multiExtractorList                  ), pointer                     :: extractor_           , extractorSingle
     type            (dustEmissionSpectrumList            ), pointer                     :: dustEmissionSpectrum_
-    double precision                                      , dimension(:,:), allocatable :: absorbed
-    double precision                                      , dimension(:  ), allocatable :: luminosityAbsorbed   , wavelengthsChild , &
-         &                                                                                 frequenciesChild     , unitsChild       , &
-         &                                                                                 wavelengthsOutput    , wavelengthsSample, &
-         &                                                                                 luminositySample     , luminosityBin
-    integer                                                                             :: countPhases          , countBins        , &
-         &                                                                                 countSamples         , i                , &
+    double precision                                      , dimension(:,:), allocatable :: absorbed             , luminosityHeating
+    double precision                                      , dimension(:  ), allocatable :: luminosityAbsorbed   , wavelengthsChild  , &
+         &                                                                                 frequenciesChild     , unitsChild        , &
+         &                                                                                 wavelengthsOutput    , wavelengthsElement, &
+         &                                                                                 wavelengthsMinimum   , wavelengthsMaximum, &
+         &                                                                                 wavelengthsHeating   , luminosityBin
+    integer                                                                             :: countPhases          , countBins         , &
+         &                                                                                 countHeating         , i                 , &
          &                                                                                 j                    , k
-    double precision                                                                    :: massDust             , expansionFactor  , &
-         &                                                                                 normalizationBin
+    double precision                                                                    :: massDust             , expansionFactor
     !$GLC attributes unused :: instance
 
     countPhases =self%dustAttenuation_%countPhases()
     countBins   =self%countBins                   ()
-    countSamples=size(self%abscissaeBin)
-    allocate(sed               (countBins,self%countElements()))
-    allocate(luminosityAbsorbed(countPhases                   ))
-    sed               =0.0d0
-    luminosityAbsorbed=0.0d0
-    ! Find the luminosity absorbed by each phase of dust, summed over all children, in L☉.
+    allocate(sed(countBins,self%countElements()))
+    sed=0.0d0
+    ! The intervals of wavelength on which the absorbed light is accumulated, uniformly spaced in ln λ and spanning any
+    ! wavelength of heating light. The spectrum of the absorbed light, not only its total, is passed to the emission
+    ! spectra, since emission from the smallest grains depends on it.
+    countHeating=int(log(sedDustEmissionWavelengthHeatingGridMaximum/sedDustEmissionWavelengthHeatingGridMinimum)/sedDustEmissionWidthHeatingGrid)+1
+    allocate(wavelengthsHeating(countHeating+1          ))
+    allocate(luminosityHeating (countHeating,countPhases))
+    do i=1,countHeating+1
+       wavelengthsHeating(i)=sedDustEmissionWavelengthHeatingGridMinimum*exp(dble(i-1)*sedDustEmissionWidthHeatingGrid)
+    end do
+    luminosityHeating=0.0d0
+    ! Find the luminosity absorbed by each phase of dust in each interval, summed over all children, in L☉.
     call sedDustEmissionChildren(self,extractor_,extractorSingle)
        do while (associated(extractor_))
-          call dustAbsorbedLuminosities(self%dustAttenuation_,extractor_%extractor_,node,time,absorbed=absorbed,cosineInclination=self%cosineInclination,weight=self%weight)
+          call dustAbsorbedLuminosities(self%dustAttenuation_,extractor_%extractor_,node,time,absorbed=absorbed,wavelengths=wavelengthsElement,cosineInclination=self%cosineInclination,weight=self%weight)
           select type (child => extractor_%extractor_)
           class is (nodePropertyExtractorSED   )
-             ! Integrate the absorbed spectrum, L_ν in L☉ Hz⁻¹, over frequency by the trapezoidal rule.
+             ! Integrate the absorbed spectrum, L_ν in L☉ Hz⁻¹, over frequency by the trapezoidal rule, spreading the
+             ! luminosity of each step uniformly in ln λ across the intervals it spans.
              wavelengthsChild=child%wavelengths(time)
              frequenciesChild=speedLight*metersToAngstroms/wavelengthsChild
              do k=1,countPhases
                 do j=2,size(frequenciesChild)
-                   luminosityAbsorbed(k)=+luminosityAbsorbed(k)                          &
-                        &                +0.5d0                                          &
-                        &                *(absorbed(j,k)+absorbed(j-1,k))                &
-                        &                *abs(frequenciesChild(j-1)-frequenciesChild(j))
+                   call sedDustEmissionDeposit(                                                 &
+                        &                      wavelengthsHeating                             , &
+                        &                      luminosityHeating(:,k)                         , &
+                        &                      wavelengthsChild(j-1)                          , &
+                        &                      wavelengthsChild(j  )                          , &
+                        &                      +0.5d0                                           &
+                        &                      *(absorbed(j,k)+absorbed(j-1,k))                 &
+                        &                      *abs(frequenciesChild(j-1)-frequenciesChild(j))  &
+                        &                     )
                 end do
              end do
           class is (nodePropertyExtractorScalar)
-             ! Convert the absorbed luminosity to L☉.
+             ! Convert the absorbed luminosity to L☉, and place it at its wavelength.
              do k=1,countPhases
-                luminosityAbsorbed(k)=+luminosityAbsorbed(  k) &
-                     &                +absorbed          (1,k) &
-                     &                *child%unitsInSI   (   ) &
-                     &                /luminositySolar
+                call sedDustEmissionDeposit(                        &
+                     &                      wavelengthsHeating    , &
+                     &                      luminosityHeating(:,k), &
+                     &                      wavelengthsElement(1) , &
+                     &                      wavelengthsElement(1) , &
+                     &                      +absorbed(1,k)          &
+                     &                      *child%unitsInSI()      &
+                     &                      /luminositySolar        &
+                     &                     )
              end do
           class is (nodePropertyExtractorTuple )
-             ! Convert each absorbed luminosity to L☉.
+             ! Convert each absorbed luminosity to L☉, and place it at its wavelength.
              unitsChild=child%unitsInSI(time)
              do k=1,countPhases
-                luminosityAbsorbed(k)=+luminosityAbsorbed(k)         &
-                     &                +sum(absorbed(:,k)*unitsChild) &
-                     &                /luminositySolar
+                do j=1,size(absorbed,dim=1)
+                   call sedDustEmissionDeposit(                        &
+                        &                      wavelengthsHeating    , &
+                        &                      luminosityHeating(:,k), &
+                        &                      wavelengthsElement(j) , &
+                        &                      wavelengthsElement(j) , &
+                        &                      +absorbed  (j,k)        &
+                        &                      *unitsChild(j  )        &
+                        &                      /luminositySolar        &
+                        &                     )
+                end do
              end do
           class default
              call Error_Report('unsupported child extractor'//{introspection:location})
@@ -611,14 +637,15 @@ contains
           extractor_ => extractor_%next
        end do
     if (associated(extractorSingle)) deallocate(extractorSingle)
+    allocate(luminosityAbsorbed(countPhases))
+    luminosityAbsorbed=sum(luminosityHeating,dim=1)
     ! Nothing more to do if no light is absorbed.
     if (all(luminosityAbsorbed <= 0.0d0)) return
     ! The dust mass of the galaxy, summed over its components.
     massDust=+self%dustProperties_%massDust(node,componentTypeDisk              ) &
          &   +self%dustProperties_%massDust(node,componentTypeSpheroid          ) &
          &   +self%dustProperties_%massDust(node,componentTypeNuclearStarCluster)
-    ! Find the rest-frame wavelengths at which to evaluate the emission: the abscissae of the quadrature rule within each
-    ! resolution element, uniformly spaced in the logarithm of wavelength between its extremes.
+    ! Rest-frame wavelengths are observed-frame wavelengths times the expansion factor.
     select case (self%frame%ID)
     case (frameRest    %ID)
        expansionFactor=1.0d0
@@ -628,44 +655,73 @@ contains
        expansionFactor=1.0d0
        call Error_Report('unknown frame'//{introspection:location})
     end select
-    wavelengthsOutput=self%wavelengths()
-    allocate(wavelengthsSample(countBins*countSamples))
-    do i=1,countBins
-       do j=1,countSamples
-          wavelengthsSample((i-1)*countSamples+j)=+expansionFactor                                           &
-               &                                  *wavelengthsOutput(i)                                      &
-               &                                  *self%factorWavelength**(2.0d0*self%abscissaeBin(j)-1.0d0)
-       end do
-    end do
-    ! The mean of L_ν over a resolution element, as defined by `nodePropertyExtractorSED`, is
-    ! (f-1/f)⁻¹ ∫ L_ν dλ/λ, with the integral taken between the extremes of the element, a range of 2 ln f in ln λ.
-    normalizationBin=+2.0d0                         &
-         &           *log(self%factorWavelength)    &
-         &           /(                             &
-         &             +      self%factorWavelength &
-         &             -1.0d0/self%factorWavelength &
-         &            )
-    allocate(luminosityBin(countBins))
+    ! The rest-frame extremes of each resolution element.
+    wavelengthsOutput =self%wavelengths()
+    wavelengthsMinimum=expansionFactor*wavelengthsOutput/self%factorWavelength
+    wavelengthsMaximum=expansionFactor*wavelengthsOutput*self%factorWavelength
     k                     =  0
     dustEmissionSpectrum_ => self%dustEmissionSpectra
     do while (associated(dustEmissionSpectrum_))
        k               =k+1
-       luminositySample=dustEmissionSpectrum_%dustEmissionSpectrum_%luminosity(                                     &
-            &                                                                  wavelengthsSample                  , &
-            &                                                                  luminosityAbsorbed(k)              , &
-            &                                                                  self%fractionsMassPhase(k)*massDust, &
-            &                                                                  time                                 &
-            &                                                                 )
-       do i=1,countBins
-          luminosityBin(i)=+normalizationBin                                                           &
-               &           *sum(self%weightsBin*luminositySample((i-1)*countSamples+1:i*countSamples))
-       end do
+       ! The mean of L_ν over a resolution element, as defined by `nodePropertyExtractorSED`, is
+       ! (f-1/f)⁻¹ ∫ L_ν dλ/λ, with the integral taken between the extremes of the element.
+       luminosityBin=+dustEmissionSpectrum_%dustEmissionSpectrum_%luminosityIntegrated(                                     &
+            &                                                                          wavelengthsMinimum                 , &
+            &                                                                          wavelengthsMaximum                 , &
+            &                                                                          wavelengthsHeating                 , &
+            &                                                                          luminosityHeating(:,k)             , &
+            &                                                                          self%fractionsMassPhase(k)*massDust, &
+            &                                                                          time                                 &
+            &                                                                         )                                     &
+            &        /(                                                                                                     &
+            &          +      self%factorWavelength                                                                         &
+            &          -1.0d0/self%factorWavelength                                                                         &
+            &         )
        sed(:,1)=sed(:,1)+luminosityBin
        if (self%outputPhases) sed(:,1+k)=luminosityBin
        dustEmissionSpectrum_ => dustEmissionSpectrum_%next
     end do
     return
   end function sedDustEmissionExtract
+
+  subroutine sedDustEmissionDeposit(wavelengthsHeating,luminosityHeating,wavelengthMinimum,wavelengthMaximum,luminosity)
+    !!{RST
+    Add ``luminosity`` to ``luminosityHeating``, spread uniformly in :math:`\ln\lambda` from ``wavelengthMinimum`` to
+    ``wavelengthMaximum`` across the intervals bounded by ``wavelengthsHeating``, which are uniformly spaced in
+    :math:`\ln\lambda`. Wavelengths outside the intervals are moved to the nearest end, so that all of the luminosity is
+    added, and a range of zero width adds it all to the interval containing it.
+    !!}
+    implicit none
+    double precision, intent(in   ), dimension(:) :: wavelengthsHeating
+    double precision, intent(inout), dimension(:) :: luminosityHeating
+    double precision, intent(in   )               :: wavelengthMinimum , wavelengthMaximum, &
+         &                                           luminosity
+    double precision                              :: wavelengthLower   , wavelengthUpper  , &
+         &                                           widthGrid         , widthLogarithmic , &
+         &                                           overlap
+    integer                                       :: i                 , indexLower       , &
+         &                                           indexUpper        , countIntervals
+
+    if (luminosity == 0.0d0) return
+    countIntervals =size(luminosityHeating)
+    widthGrid      =log(wavelengthsHeating(2)/wavelengthsHeating(1))
+    wavelengthLower=max(min(wavelengthMinimum,wavelengthMaximum),wavelengthsHeating(1               ))
+    wavelengthUpper=min(max(wavelengthMinimum,wavelengthMaximum),wavelengthsHeating(countIntervals+1))
+    wavelengthLower=min(wavelengthLower,wavelengthsHeating(countIntervals+1))
+    wavelengthUpper=max(wavelengthUpper,wavelengthsHeating(1               ))
+    indexLower     =max(1,min(countIntervals,int(log(wavelengthLower/wavelengthsHeating(1))/widthGrid)+1))
+    indexUpper     =max(1,min(countIntervals,int(log(wavelengthUpper/wavelengthsHeating(1))/widthGrid)+1))
+    if (wavelengthUpper <= wavelengthLower .or. indexLower == indexUpper) then
+       luminosityHeating(indexLower)=luminosityHeating(indexLower)+luminosity
+       return
+    end if
+    widthLogarithmic=log(wavelengthUpper/wavelengthLower)
+    do i=indexLower,indexUpper
+       overlap=log(min(wavelengthUpper,wavelengthsHeating(i+1))/max(wavelengthLower,wavelengthsHeating(i)))
+       if (overlap > 0.0d0) luminosityHeating(i)=luminosityHeating(i)+luminosity*overlap/widthLogarithmic
+    end do
+    return
+  end subroutine sedDustEmissionDeposit
 
   subroutine sedDustEmissionNames(self,names,time)
     !!{RST

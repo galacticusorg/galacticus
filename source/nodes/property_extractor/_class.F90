@@ -184,14 +184,16 @@ module Node_Property_Extractors
 
 contains
 
-  subroutine dustAbsorbedLuminosities(dustAttenuation_,extractor_,node,time,attenuated,absorbed,cosineInclination,weight)
+  subroutine dustAbsorbedLuminosities(dustAttenuation_,extractor_,node,time,attenuated,absorbed,wavelengths,cosineInclination,weight)
     !!{RST
     Decompose the luminosity of ``extractor_`` into parcels of emission, and recompose from those parcels the luminosity
     transmitted through the dust of ``dustAttenuation_`` (``attenuated``, with one value per output element of the
     extractor), and the luminosity absorbed by each phase of that dust (``absorbed``, whose first index runs over output
     elements and second over phases). Absorption is averaged over orientation, where the attenuator depends on it, with
     the quadrature rule given by ``cosineInclination`` and ``weight``, which must be supplied if ``absorbed`` is
-    requested.
+    requested. If ``wavelengths`` is present (which requires ``absorbed``), it is set to the rest-frame wavelength (in Å) of
+    each output element, the mean over the parcels contributing to it, or :math:`-1` for an element to which none
+    contribute.
 
     Both the dust attenuation and the dust emission property extractors form their luminosities through this routine,
     so that the luminosity one reports as absorbed is exactly the luminosity the other re-emits. It is a module
@@ -206,10 +208,12 @@ contains
     double precision                            , intent(in   )                                        :: time
     double precision                            , intent(inout), optional, allocatable, dimension(:  ) :: attenuated
     double precision                            , intent(inout), optional, allocatable, dimension(:,:) :: absorbed
+    double precision                            , intent(inout), optional, allocatable, dimension(:  ) :: wavelengths
     double precision                            , intent(in   ), optional             , dimension(:  ) :: cosineInclination, weight
     type            (luminosityDecomposition   )                                                       :: decomposition
     double precision                            , allocatable                         , dimension(:  ) :: transmission     , valuesPhase
     double precision                            , allocatable                         , dimension(:,:) :: fractions
+    integer                                     , allocatable                         , dimension(:  ) :: countsParcels
     integer                                                                                            :: i                , k          , &
          &                                                                                                countPhases
 
@@ -249,6 +253,24 @@ contains
           absorbed(:,k)=valuesPhase
        end do
        if (.not.allocated(absorbed)) allocate(absorbed(0,0))
+    end if
+    ! The wavelength of each output element, the mean over the parcels contributing to it.
+    if (present(wavelengths)) then
+       if (.not.present(absorbed)) call Error_Report('wavelengths of output elements are available only with absorbed luminosities'//{introspection:location})
+       if (allocated(wavelengths)) deallocate(wavelengths)
+       allocate(wavelengths  (size(absorbed,dim=1)))
+       allocate(countsParcels(size(absorbed,dim=1)))
+       wavelengths  =0.0d0
+       countsParcels=0
+       do i=1,decomposition%countTerms()
+          wavelengths  (decomposition%elementIndex(i))=wavelengths  (decomposition%elementIndex(i))+decomposition%descriptors(i)%wavelength
+          countsParcels(decomposition%elementIndex(i))=countsParcels(decomposition%elementIndex(i))+1
+       end do
+       where (countsParcels > 0)
+          wavelengths=wavelengths/dble(countsParcels)
+       elsewhere
+          wavelengths=-1.0d0
+       end where
     end if
     return
   end subroutine dustAbsorbedLuminosities
