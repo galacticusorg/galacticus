@@ -37,6 +37,9 @@ program Test_Initial_Mass_Functions
   implicit none
   class           (initialMassFunctionClass               ), pointer      :: imf
   type            (initialMassFunctionChabrier2001        ), target       :: imfChabrier2001
+  ! A second Chabrier (2001) initial mass function, identical to the first but with the transition between the log-normal and
+  ! power-law branches moved away from its default of 1 M☉, used to measure the continuity of the branches at that transition.
+  type            (initialMassFunctionChabrier2001        ), target       :: imfChabrier2001Shifted
   type            (initialMassFunctionPiecewisePowerLaw   ), target       :: imfPiecewisePowerLaw
   type            (initialMassFunctionSalpeter1955        ), target       :: imfSalpeter1955
   type            (initialMassFunctionBPASS               ), target       :: imfBPASS
@@ -68,6 +71,20 @@ program Test_Initial_Mass_Functions
        &                                                                                                  7.581754850034585d-4,                     &
        &                                                                                                  1.204761370427590d-3                      &
        &                                                                                                 ]
+  ! Masses at which the Chabrier (2001) initial mass function is evaluated, spanning both branches, and the values of the
+  ! initial mass function there, computed independently by `chabrier2001IMF.py`.
+  double precision                                      , dimension(8) :: massChabrier                  =[1.5000000000d-01,3.0000000000d-01,5.0000000000d-01,8.0000000000d-01,1.5000000000d+00,5.0000000000d+00,2.0000000000d+01,1.0000000000d+02]
+  double precision                                      , dimension(8) :: phiChabrierReference          =[5.1331586852d+00,1.9636241594d+00,8.5624117148d-01,3.6415207035d-01,9.2614484754d-02,5.8084171733d-03,2.3950788779d-04,5.9113790861d-06]
+  double precision                                      , dimension(8) :: phiChabrier
+  ! Mass ranges over which the cumulative number of stars formed per unit mass is evaluated, and the reference values.
+  double precision                                      , dimension(4) :: massChabrierLower             =[1.0000000000d-01,1.0000000000d+00,8.0000000000d+00,1.0000000000d-01]
+  double precision                                      , dimension(4) :: massChabrierUpper             =[1.0000000000d+00,8.0000000000d+00,1.2500000000d+02,1.2500000000d+02]
+  double precision                                      , dimension(4) :: numberChabrierReference       =[1.2873108407d+00,1.6890157242d-01,1.1786082627d-02,1.4679984958d+00]
+  double precision                                      , dimension(4) :: numberChabrier
+  ! A transition mass away from the default, used to check that the two branches join continuously and that the initial mass
+  ! function remains normalized to unit mass there.
+  double precision                                      , parameter    :: massTransitionShifted         =2.0000000000d+00
+  double precision                                                     :: continuityRatio                                     , massInInitialMassFunctionShifted
   double precision                                                     :: massInInitialMassFunction                           , numberTypeIaSNe   , &
        &                                                                  massInitialMinimum                                  , massInitialMaximum
   integer                                                              :: i
@@ -162,6 +179,53 @@ program Test_Initial_Mass_Functions
        &                                            imf%massMaximum()  &
        &                                           )
   call Assert('Scalo (1986)'                 ,massInInitialMassFunction,1.0d0,relTol=1.0d-6)
+  call Unit_Tests_End_Group()
+  ! Shape of the Chabrier (2001) initial mass function. The normalization group above integrates each initial mass function
+  ! between its own mass limits and requires unit total mass. That is a self-consistency check: it is satisfied by any shape
+  ! which the constructor happens to normalize, and so cannot detect an incorrect functional form. The assertions below instead
+  ! compare the initial mass function itself, and its cumulative number, against values computed independently by the
+  ! `chabrier2001IMF.py` script in the galacticusDevTools repository, which derives the normalization of each branch in closed
+  ! form (the log-normal branch via error functions, the power-law branch analytically) rather than transcribing the
+  ! expressions used here.
+  call Unit_Tests_Begin_Group('Chabrier (2001) shape')
+  do i=1,size(massChabrier)
+     phiChabrier   (i)=imfChabrier2001%phi             (massChabrier     (i)                       )
+  end do
+  do i=1,size(massChabrierLower)
+     numberChabrier(i)=imfChabrier2001%numberCumulative(massChabrierLower(i),massChabrierUpper(i))
+  end do
+  call Assert('initial mass function'        ,phiChabrier              ,phiChabrierReference   ,relTol=1.0d-6)
+  call Assert('cumulative number'            ,numberChabrier           ,numberChabrierReference,relTol=1.0d-6)
+  ! Continuity and normalization away from the default transition mass. Requiring the log-normal and power-law branches to join
+  ! continuously at the transition mass M_t fixes the coefficient of the power-law branch to exp(...)/M_t^(1+alpha), and the
+  ! mass integral used to normalize the initial mass function is computed with exactly that coefficient. Both assertions below
+  ! therefore hold for any M_t.
+  !
+  ! These were added because they did not: the coefficient used when *evaluating* the power-law branch omitted the exponent,
+  ! reading exp(...)/M_t. The two agree only at M_t = 1 M☉, which is the default, so nothing shipped was affected - but for any
+  ! other transition mass the branches were discontinuous by a factor M_t^alpha, and, because the normalization had been
+  ! computed with the other coefficient, the initial mass function was not normalized to unit mass at all: the total came to
+  ! 3.77 at M_t = 0.5 M☉ and 0.62 at M_t = 2 M☉. The normalization group above cannot detect this, as it exercises only the
+  ! default transition mass.
+  imfChabrier2001Shifted=initialMassFunctionChabrier2001(                                                    &
+       &                                                 massLower         =imfChabrier2001%massMinimum(), &
+       &                                                 massTransition    =massTransitionShifted        , &
+       &                                                 massUpper         =imfChabrier2001%massMaximum(), &
+       &                                                 exponent          =-2.3d0                       , &
+       &                                                 massCharacteristic= 0.08d0                      , &
+       &                                                 sigma             = 0.69d0                        &
+       &                                                )
+  continuityRatio=+imfChabrier2001Shifted%phi(massTransitionShifted*(1.0d0+1.0d-12)) &
+       &          /imfChabrier2001Shifted%phi(massTransitionShifted*(1.0d0-1.0d-12))
+  call Assert('branches join continuously at a shifted transition mass',continuityRatio,1.0d0,relTol=1.0d-6)
+  imf                             => imfChabrier2001Shifted
+  call integrator_%toleranceSet(1.0d-7,1.0d-7)
+  call integrator_%integrandSet(initialMassFunctionIntegrand)
+  massInInitialMassFunctionShifted=  integrator_%evaluate(                   &
+       &                                                  imf%massMinimum(), &
+       &                                                  imf%massMaximum()  &
+       &                                                 )
+  call Assert('unit mass at a shifted transition mass'               ,massInInitialMassFunctionShifted,1.0d0,relTol=1.0d-6)
   call Unit_Tests_End_Group()
   call Unit_Tests_Begin_Group('Type Ia SNe')
   call Unit_Tests_Begin_Group('Nagashima et al. (2005)')
