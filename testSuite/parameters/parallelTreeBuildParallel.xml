@@ -75,7 +75,7 @@
     <massRatioCount value="30" />
     <massRatioMaximum value="2.0e+0" />
     <massRatioMinimum value="1.0e-5" />
-    <nameGroupOutput value="conditionalMassFunction" />
+    <outputGroupName value="conditionalMassFunction" />
     <redshiftsParent value="0.0 0.0" />
     <redshiftsProgenitor value="0.5 1.0" />
   </mergerTreeOperator>

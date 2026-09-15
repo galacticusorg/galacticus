@@ -34,7 +34,8 @@
      !!}
      private
    contains
-     procedure :: normalize => log10ToLogNormalize
+     procedure :: normalize            => log10ToLogNormalize
+     procedure :: requiresDistribution => log10ToLogRequiresDistribution
   end type outputAnalysisDistributionNormalizerLog10ToLog
 
   interface outputAnalysisDistributionNormalizerLog10ToLog
@@ -77,3 +78,15 @@ contains
     if (present(covariance  )) covariance  =covariance  /log(10.0d0)**2
     return
   end subroutine log10ToLogNormalize
+
+  logical function log10ToLogRequiresDistribution(self) result(requiresDistribution)
+    !!{RST
+    This normalizer operates on the distribution itself, so requires it to be supplied.
+    !!}
+    implicit none
+    class(outputAnalysisDistributionNormalizerLog10ToLog), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    requiresDistribution=.true.
+    return
+  end function log10ToLogRequiresDistribution

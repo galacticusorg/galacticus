@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo profile concentrations using the :cite:t:`diemer_universal_2014` algorithm.
   !!}
@@ -25,6 +27,7 @@
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParametersClass
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
+  use :: Kind_Numbers              , only : kind_int8
   use :: Power_Spectra             , only : powerSpectrumClass
   use :: Virial_Density_Contrast   , only : virialDensityContrastFixed
 
@@ -66,6 +69,7 @@
           &                                                      alpha                                     , beta        , &
           &                                                      timePrevious                              , massPrevious, &
           &                                                      concentrationMeanPrevious
+     integer         (kind_int8                    )          :: uniqueIDPrevious
    contains
      final     ::                                   diemerKravtsov2014Destructor
      procedure :: concentration                  => diemerKravtsov2014Concentration
@@ -218,6 +222,7 @@ contains
     self%timePrevious             =-1.0d0
     self%massPrevious             =-1.0d0
     self%concentrationMeanPrevious=-1.0d0
+    self%uniqueIDPrevious         =-1_kind_int8
     allocate(     darkMatterHaloScaleDefinition_  )
     allocate(self%virialDensityContrastDefinition_)
     allocate(self%darkMatterProfileDMODefinition_ )
@@ -311,46 +316,52 @@ contains
          &                                                                                        concentrationMinimum, peakHeightMinimum
 
     basic => node%basic()
-    if     (                                   &
-         &   basic%mass() /= self%massPrevious &
-         &  .or.                               &
-         &   basic%time() /= self%timePrevious &
+    ! Note that the node itself forms part of the key here: the critical overdensity below is passed the node, and so may be
+    ! environment-dependent, in which case two nodes of identical mass and time can have different peak heights. That is common
+    ! in N-body merger trees, where masses are whole numbers of particles and times are shared snapshot times.
+    if     (                                           &
+         &   basic%mass    () /= self%massPrevious     &
+         &  .or.                                       &
+         &   basic%time    () /= self%timePrevious     &
+         &  .or.                                       &
+         &   node %uniqueID() /= self%uniqueIDPrevious &
          & ) then
-        radiusHaloLagrangian         =+cubeRoot(                                                                         &
-            &                                  +3.0d0                                                                    &
-            &                                  *basic%mass()                                                             &
-            &                                  /4.0d0                                                                    &
-            &                                  /Pi                                                                       &
-            &                                  /self%cosmologyParameters_%densityCritical()                              &
-            &                                  /self%cosmologyParameters_%OmegaMatter    ()                              &
+        radiusHaloLagrangian         =+cubeRoot(                                                                                   &
+            &                                  +3.0d0                                                                              &
+            &                                  *basic%mass()                                                                       &
+            &                                  /4.0d0                                                                              &
+            &                                  /Pi                                                                                 &
+            &                                  /self%cosmologyParameters_%densityCritical()                                        &
+            &                                  /self%cosmologyParameters_%OmegaMatter    ()                                        &
             &                                 )
-       peakHeight                    =+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass())  &
-            &                         /self%cosmologicalMassVariance_%rootVariance(time=basic%time(),mass=basic%mass())
-       wavenumber                    =+self%kappa                                                                        &
-            &                         *2.0d0                                                                             &
-            &                         *Pi                                                                                &
+       peakHeight                    =+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass(),node=node)  &
+            &                         /self%cosmologicalMassVariance_%rootVariance(time=basic%time(),mass=basic%mass()          )
+       wavenumber                    =+self%kappa                                                                                  &
+            &                         *2.0d0                                                                                       &
+            &                         *Pi                                                                                          &
             &                         /radiusHaloLagrangian
        powerSpectrumSlope            =+self%powerSpectrum_%powerLogarithmicDerivative(wavenumber,basic%time())
-       concentrationMinimum          =+max(                                                                              &
-            &                              +self%phi0                                                                    &
-            &                              +self%phi1                                                                    &
-            &                              *powerSpectrumSlope                                                         , &
-            &                              +2.0d0                                                                        &
+       concentrationMinimum          =+max(                                                                                        &
+            &                              +self%phi0                                                                              &
+            &                              +self%phi1                                                                              &
+            &                              *powerSpectrumSlope                                                                   , &
+            &                              +2.0d0                                                                                  &
             &                             )
-       peakHeightMinimum             =+max(                                                                              &
-            &                              +self%eta0                                                                    &
-            &                              +self%eta1                                                                    &
-            &                              *powerSpectrumSlope                                                         , &
-            &                              +1.0d0                                                                        &
+       peakHeightMinimum             =+max(                                                                                        &
+            &                              +self%eta0                                                                              &
+            &                              +self%eta1                                                                              &
+            &                              *powerSpectrumSlope                                                                   , &
+            &                              +1.0d0                                                                                  &
             &                             )
-       self%concentrationMeanPrevious=+0.5d0                                                                             &
-            &                         *concentrationMinimum                                                              &
-            &                         *(                                                                                 &
-            &                           +(peakHeight/peakHeightMinimum)**(-self%alpha)                                   &
-            &                           +(peakHeight/peakHeightMinimum)**(+self%beta )                                   &
+       self%concentrationMeanPrevious=+0.5d0                                                                                       &
+            &                         *concentrationMinimum                                                                        &
+            &                         *(                                                                                           &
+            &                           +(peakHeight/peakHeightMinimum)**(-self%alpha)                                             &
+            &                           +(peakHeight/peakHeightMinimum)**(+self%beta )                                             &
             &                          )
-       self%massPrevious             = basic%mass()
-       self%timePrevious             = basic%time()
+       self%massPrevious             = basic%mass    ()
+       self%timePrevious             = basic%time    ()
+       self%uniqueIDPrevious         = node %uniqueID()
     end if
     diemerKravtsov2014ConcentrationMean=self%concentrationMeanPrevious
     return

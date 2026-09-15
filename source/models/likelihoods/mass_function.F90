@@ -160,9 +160,9 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    <objectBuilder class="haloMassFunction"   name="haloMassFunction_"   source="parameters"/>
-    <objectBuilder class="surveyGeometry"     name="surveyGeometry_"     source="parameters"/>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"                              />
+    <objectBuilder class="haloMassFunction"   name="haloMassFunction_"   source="parameters" withholds="differential:node"/>
+    <objectBuilder class="surveyGeometry"     name="surveyGeometry_"     source="parameters"                              />
     !!]
     self=posteriorSampleLikelihoodMassFunction(massHaloMinimum,massHaloMaximum,redshiftMinimum,redshiftMaximum,useSurveyLimits,char(massFunctionFileName),modelSurfaceBrightness,surfaceBrightnessLimit,cosmologyFunctions_,haloMassFunction_,surveyGeometry_)
     !![

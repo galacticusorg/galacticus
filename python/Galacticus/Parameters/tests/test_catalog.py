@@ -580,3 +580,47 @@ def test_code_fingerprint_is_stable_and_specific():
     from Galacticus.Parameters.catalog import _code_fingerprint
     assert _code_fingerprint() == _code_fingerprint()
     assert len(_code_fingerprint()) == 64      # sha256 hex
+
+
+# ---------------------------------------------------------------------------
+# Capability markers: `<requires>` / `<forwards>` and `withholds`
+# ---------------------------------------------------------------------------
+
+def test_harvest_records_capability_markers(tmp_path):
+    """`<requires>` and `<forwards>` on the registration, and `withholds` on an
+    objectBuilder, are recorded for the validator's capability check."""
+    source_root = tmp_path / "source"
+    (source_root / "my").mkdir(parents=True)
+    impl = source_root / "my" / "impl.F90"
+    impl.write_text(_SNIPPET.replace(
+        '<description>A synthetic implementation for testing.</description>\n',
+        '<description>A synthetic implementation for testing.</description>\n'
+        '       <requires method="value" argument="node"/>\n'
+        '       <requires method="rate"  argument="node"/>\n'
+        '       <forwards object="cosmologyFunctions_"/>\n'
+    ).replace(
+        'name="cosmologyFunctions_" source="parameters"/>',
+        'name="cosmologyFunctions_" source="parameters" withholds="distance:mass, time:mass"/>'
+    ))
+
+    entry = harvest_file(str(impl), {"myClass"}, str(source_root))[0]
+    assert entry['requires'] == [{'method': 'value', 'argument': 'node'},
+                                 {'method': 'rate',  'argument': 'node'}]
+    assert entry['forwards'] == ['cosmologyFunctions_']
+    objects = {o['parameterName']: o for o in entry['objects']}
+    assert objects['cosmologyFunctions']['withholds'] == [
+        {'method': 'distance', 'argument': 'mass'},
+        {'method': 'time',     'argument': 'mass'},
+    ]
+
+
+def test_harvest_without_capability_markers(tmp_path):
+    source_root = tmp_path / "source"
+    (source_root / "my").mkdir(parents=True)
+    impl = source_root / "my" / "impl.F90"
+    impl.write_text(_SNIPPET)
+
+    entry = harvest_file(str(impl), {"myClass"}, str(source_root))[0]
+    assert entry['requires'] == []
+    assert entry['forwards'] == []
+    assert all(o['withholds'] == [] for o in entry['objects'])

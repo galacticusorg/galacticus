@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that collects and stores the (infimum of the) excursion corresponding to the mass accretion history for each node.
   !!}
@@ -152,16 +154,16 @@ contains
     nodeWork                  => node
     countNodes                =  1
     basic                     => nodeWork%basic()
-    overdensities(countNodes) =  +self      %criticalOverdensity_     %value       (time=basic%time       (),mass=basic%mass())    &
-            &                    /self      %linearGrowth_            %value       (time=basic%time       ()                  )
-    variances    (countNodes) =  +self      %cosmologicalMassVariance_%rootVariance(time=self %timePresent  ,mass=basic%mass())**2
+    overdensities(countNodes) =  +self      %criticalOverdensity_     %value       (time=basic%time       (),mass=basic%mass(),node=nodeWork)    &
+            &                    /self      %linearGrowth_            %value       (time=basic%time       ()                                )
+    variances    (countNodes) =  +self      %cosmologicalMassVariance_%rootVariance(time=self %timePresent  ,mass=basic%mass()              )**2
     do while (nodeWork%isPrimaryProgenitor())
        countNodes                =   countNodes+1
        nodeWork                  =>  nodeWork                            %parent
-       basic                     =>  nodeWork                            %basic       (                                          )
-       overdensities(countNodes) =  +self      %criticalOverdensity_     %value       (time=basic%time       (),mass=basic%mass())    &
-            &                       /self      %linearGrowth_            %value       (time=basic%time       ()                  )
-       variances    (countNodes) =  +self      %cosmologicalMassVariance_%rootVariance(time=self %timePresent  ,mass=basic%mass())**2
+       basic                     =>  nodeWork                            %basic       (                                                        )
+       overdensities(countNodes) =  +self      %criticalOverdensity_     %value       (time=basic%time       (),mass=basic%mass(),node=nodeWork)    &
+            &                       /self      %linearGrowth_            %value       (time=basic%time       ()                                )
+       variances    (countNodes) =  +self      %cosmologicalMassVariance_%rootVariance(time=self %timePresent  ,mass=basic%mass()              )**2
     end do
     basic => node%basic()
     call basic%floatRank1MetaPropertySet(self%excursionOverdensityID,overdensities)

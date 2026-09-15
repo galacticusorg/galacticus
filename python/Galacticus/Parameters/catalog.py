@@ -34,6 +34,7 @@ import re
 from collections import Counter
 
 from Galacticus.Build import FileChanges
+from Galacticus.Build.Capabilities import parse_requires, parse_withholds
 from Galacticus.Build.Directives import extract_directives
 from Galacticus.Build.ParallelScan import scan as parallel_scan
 from Galacticus.Build.ScanCache import file_identifier, load_cache
@@ -55,6 +56,7 @@ _CACHE_CODE_KEY   = '__code__'
 # working on the catalog itself silently yields results computed by the previous
 # version of the code, and `--check` would answer with them.
 _CACHE_CODE_MODULES = (
+    'Galacticus.Build.Capabilities',
     'Galacticus.Build.Directives',
     'Galacticus.Build.SourceTree',
     'Galacticus.Parameters',
@@ -418,6 +420,11 @@ def _harvest_parameters(scope_node, declaration_lookup, source_elements,
                 'source':        source,
                 'sourceElement': source_elements.get(source),
                 'repeatable':    _scalar(directive.get('copy')) is not None,
+                # Optional arguments of this object's methods which the
+                # implementation never supplies (see `Galacticus.Build.Capabilities`).
+                'withholds':     [{'method': method, 'argument': argument}
+                                  for method, argument in
+                                  parse_withholds(_scalar(directive.get('withholds')))],
             })
 
     # Drop ambiguous enumeration links: when one variable name is shared by
@@ -472,6 +479,7 @@ def harvest_file(path, base_names, source_root):
         parameters, objects = _harvest_parameters(
             scope, _declaration_lookup(constructor),
             _resolve_source_elements(scope), _enumeration_links(scope))
+        requires, forwards = parse_requires(registration['directive'])
         entries.append({
             'type':            implementation_type,
             'functionClass':   base,
@@ -488,6 +496,12 @@ def harvest_file(path, base_names, source_root):
             # Names read directly in hand-written constructor code (not via
             # directives); accepted in addition to `parameters`/`objects`.
             'directNames':     _direct_parameter_names(scope),
+            # Optional method arguments this implementation can not do without,
+            # and the objects whose requirements it inherits by passing its own
+            # arguments on to them (see `Galacticus.Build.Capabilities`).
+            'requires':        [{'method': method, 'argument': argument}
+                                for method, argument in requires],
+            'forwards':        forwards,
         })
     return entries
 

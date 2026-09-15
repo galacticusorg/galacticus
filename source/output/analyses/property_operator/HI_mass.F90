@@ -37,8 +37,9 @@ Implements a conversion of ISM mass to HI mass analysis property operator class.
      private
      class(outputAnalysisMolecularRatioClass), pointer :: outputAnalysisMolecularRatio_ => null()
    contains
-     final     ::            hiMassDestructor
-     procedure :: operate => hiMassOperate
+     final     ::                    hiMassDestructor
+     procedure :: operate         => hiMassOperate
+     procedure :: isNodeDependent => hiMassIsNodeDependent
   end type outputAnalysisPropertyOperatorHIMass
 
   interface outputAnalysisPropertyOperatorHIMass
@@ -129,3 +130,14 @@ contains
     return
   end function hiMassOperate
 
+  logical function hiMassIsNodeDependent(self) result(isNodeDependent)
+    !!{RST
+    This operator requires a node, from which it draws the random scatter in the molecular ratio.
+    !!}
+    implicit none
+    class(outputAnalysisPropertyOperatorHIMass), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isNodeDependent=.true.
+    return
+  end function hiMassIsNodeDependent

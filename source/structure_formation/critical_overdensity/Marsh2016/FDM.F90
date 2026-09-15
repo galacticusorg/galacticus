@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a critical overdensity for collapse using the :term:`FDM` modifier of :cite:t:`marsh_warmandfuzzy_2016`.
   !!}
@@ -47,6 +49,9 @@
 
    The best-fit parameters :math:`a_i` are :math:`\{a_1,a_2,a_3,a_4,a_5,a_6\}=\{3.4,1.0,1.8,0.5,1.7,0.9\}`.
    </description>
+   <requires method="value"          argument="mass"/>
+   <requires method="gradientMass"   argument="mass"/>
+   <requires method="timeOfCollapse" argument="mass"/>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityMarsh2016FDM
@@ -292,7 +297,7 @@ contains
           marsh2016FDMValue=self%interpolator_%interpolate(massScaleFree)
        end if
     end if
-    marsh2016FDMValue=marsh2016FDMValue*self%criticalOverdensityCDM%value(time,expansionFactor,collapsing,mass)
+    marsh2016FDMValue=marsh2016FDMValue*self%criticalOverdensityCDM%value(time,expansionFactor,collapsing,mass,node)
     return
   end function marsh2016FDMValue
 
@@ -308,9 +313,9 @@ contains
     type            (treeNode                       ), intent(inout), optional :: node
     !$GLC attributes unused :: node
 
-    marsh2016FDMGradientTime=+self                       %value       (time,expansionFactor,collapsing,mass) &
-         &                   *self%criticalOverdensityCDM%gradientTime(time,expansionFactor,collapsing,mass) &
-         &                   /self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass)
+    marsh2016FDMGradientTime=+self                       %value       (time,expansionFactor,collapsing,mass,node) &
+         &                   *self%criticalOverdensityCDM%gradientTime(time,expansionFactor,collapsing,mass,node) &
+         &                   /self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass,node)
     return
   end function marsh2016FDMGradientTime
 
@@ -405,11 +410,11 @@ contains
        end if
     end if
     ! Include gradient from CDM critical overdensity.
-    marsh2016FDMGradientMass=+marsh2016FDMGradientMass                                                       &
-         &                   *self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass) &
-         &                   +self                       %value       (time,expansionFactor,collapsing,mass) &
-         &                   /self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass) &
-         &                   *self%criticalOverdensityCDM%gradientMass(time,expansionFactor,collapsing,mass)
+    marsh2016FDMGradientMass=+marsh2016FDMGradientMass                                                            &
+         &                   *self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass,node) &
+         &                   +self                       %value       (time,expansionFactor,collapsing,mass,node) &
+         &                   /self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass,node) &
+         &                   *self%criticalOverdensityCDM%gradientMass(time,expansionFactor,collapsing,mass,node)
     return
   end function marsh2016FDMGradientMass
 

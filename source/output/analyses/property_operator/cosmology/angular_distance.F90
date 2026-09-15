@@ -40,8 +40,9 @@ Implements a cosmological angular distance corrector analysis property operator 
      class           (outputTimesClass       ), pointer                   :: outputTimes_            => null()
      double precision                         , allocatable, dimension(:) :: correctionFactor
    contains
-     final     ::            csmlgyAngularDistanceDestructor
-     procedure :: operate => csmlgyAngularDistanceOperate
+     final     ::                      csmlgyAngularDistanceDestructor
+     procedure :: operate           => csmlgyAngularDistanceOperate
+     procedure :: isOutputDependent => csmlgyAngularDistanceIsOutputDependent
   end type outputAnalysisPropertyOperatorCosmologyAngularDistance
 
   interface outputAnalysisPropertyOperatorCosmologyAngularDistance
@@ -173,3 +174,15 @@ contains
          &                       *self%correctionFactor(outputIndex)
     return
   end function csmlgyAngularDistanceOperate
+
+  logical function csmlgyAngularDistanceIsOutputDependent(self) result(isOutputDependent)
+    !!{RST
+    This operator requires an output index, which sets the epoch of the angular distance correction.
+    !!}
+    implicit none
+    class(outputAnalysisPropertyOperatorCosmologyAngularDistance), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isOutputDependent=.true.
+    return
+  end function csmlgyAngularDistanceIsOutputDependent

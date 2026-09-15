@@ -49,6 +49,31 @@ module Output_Analysis_Property_Operators
     <argument>type            (enumerationOutputAnalysisPropertyTypeType), intent(inout), optional :: propertyType </argument>
     <argument>integer         (c_size_t                                 ), intent(in   ), optional :: outputIndex  </argument>
    </method>
+   <method name="isNodeDependent" >
+    <description>
+    Return true if this operator requires the ``node`` argument of the ``operate`` method. Consumers which have no node
+    to supply---the ``unoperator`` of an analysis, for example, which transforms bin centers after the model has run---must
+    reject such an operator rather than call it.
+    </description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+     outputAnalysisPropertyOperatorIsNodeDependent=.false.
+    </code>
+   </method>
+   <method name="isOutputDependent" >
+    <description>
+    Return true if this operator requires the ``outputIndex`` argument of the ``operate`` method. See
+    ``isNodeDependent`` for why consumers need to know.
+    </description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+     outputAnalysisPropertyOperatorIsOutputDependent=.false.
+    </code>
+   </method>
   </functionClass>
   !!]
 

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a critical overdensity for collapse the :term:`WDM` modifier of :cite:t:`barkana_constraints_2001`.
 !!}
@@ -48,6 +50,9 @@ Implements a critical overdensity for collapse the :term:`WDM` modifier of :cite
 
    and :math:`g_\mathrm{X}` and :math:`m_\mathrm{X}` are the effective number of degrees of freedom and the mass of the warm dark matter particle respectively. This fitting function has been found the fit the numerical results of :cite:t:`barkana_constraints_2001` well.
    </description>
+   <requires method="value"          argument="mass"/>
+   <requires method="gradientMass"   argument="mass"/>
+   <requires method="timeOfCollapse" argument="mass"/>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityBarkana2001WDM
@@ -313,7 +318,7 @@ contains
           barkana2001WDMValue=exp(self%interpolator_%interpolate(massScaleFree))
        end if
     end if
-    barkana2001WDMValue=barkana2001WDMValue*self%criticalOverdensityCDM%value(time,expansionFactor,collapsing,mass)
+    barkana2001WDMValue=barkana2001WDMValue*self%criticalOverdensityCDM%value(time,expansionFactor,collapsing,mass,node)
     return
   end function barkana2001WDMValue
 
@@ -329,9 +334,9 @@ contains
     type            (treeNode                         ), intent(inout), optional :: node
     !$GLC attributes unused :: node
 
-    barkana2001WDMGradientTime=+self                       %value       (time,expansionFactor,collapsing,mass) &
-         &                     *self%criticalOverdensityCDM%gradientTime(time,expansionFactor,collapsing,mass) &
-         &                     /self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass)
+    barkana2001WDMGradientTime=+self                       %value       (time,expansionFactor,collapsing,mass,node) &
+         &                     *self%criticalOverdensityCDM%gradientTime(time,expansionFactor,collapsing,mass,node) &
+         &                     /self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass,node)
     return
   end function barkana2001WDMGradientTime
 
@@ -426,21 +431,21 @@ contains
        if      (massScaleFree > self%deltaTableMass(self%deltaTableCount)) then
           barkana2001WDMGradientMass=+0.0d0
        else if (massScaleFree < self%deltaTableMass(                   1)) then
-          barkana2001WDMGradientMass=+smallMassLogarithmicSlope                                                     &
-               &                     *self%value(time,expansionFactor,collapsing,mass)                              &
+          barkana2001WDMGradientMass=+smallMassLogarithmicSlope                                                         &
+               &                     *self               %value    (time,expansionFactor,collapsing,mass         ,node) &
                &                     /mass
        else
-          barkana2001WDMGradientMass=+self%interpolator_%derivative(                                massScaleFree) &
-               &                     *self               %value    (time,expansionFactor,collapsing,mass         ) &
+          barkana2001WDMGradientMass=+self%interpolator_%derivative(                                massScaleFree     ) &
+               &                     *self               %value    (time,expansionFactor,collapsing,mass         ,node) &
                &                     /                                                              mass
        end if
     end if
     ! Include gradient from CDM critical overdensity.
-    barkana2001WDMGradientMass=+barkana2001WDMGradientMass                                                     &
-         &                     *self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass) &
-         &                     +self                       %value       (time,expansionFactor,collapsing,mass) &
-         &                     /self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass) &
-         &                     *self%criticalOverdensityCDM%gradientMass(time,expansionFactor,collapsing,mass)
+    barkana2001WDMGradientMass=+barkana2001WDMGradientMass                                                          &
+         &                     *self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass,node) &
+         &                     +self                       %value       (time,expansionFactor,collapsing,mass,node) &
+         &                     /self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass,node) &
+         &                     *self%criticalOverdensityCDM%gradientMass(time,expansionFactor,collapsing,mass,node)
     return
   end function barkana2001WDMGradientMass
 

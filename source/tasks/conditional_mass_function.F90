@@ -227,11 +227,11 @@ contains
        read (text,*) massHalo
     end if
     !![
-    <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
-    <objectBuilder class="conditionalMassFunction"    name="conditionalMassFunction_"    source="parameters"/>
-    <objectBuilder class="surveyGeometry"             name="surveyGeometry_"             source="parameters"/>
-    <objectBuilder class="massFunctionIncompleteness" name="massFunctionIncompleteness_" source="parameters"/>
-    <objectBuilder class="haloMassFunction"           name="haloMassFunction_"           source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"                              />
+    <objectBuilder class="conditionalMassFunction"    name="conditionalMassFunction_"    source="parameters"                              />
+    <objectBuilder class="surveyGeometry"             name="surveyGeometry_"             source="parameters"                              />
+    <objectBuilder class="massFunctionIncompleteness" name="massFunctionIncompleteness_" source="parameters"                              />
+    <objectBuilder class="haloMassFunction"           name="haloMassFunction_"           source="parameters" withholds="differential:node"/>
     !!]
     ! Compute the time corresponding to the specified redshift.
     timeMinimum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))

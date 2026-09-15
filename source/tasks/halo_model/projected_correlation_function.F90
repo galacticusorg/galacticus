@@ -194,15 +194,15 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="conditionalMassFunction"      name="conditionalMassFunction_"      source="parameters"/>
-    <objectBuilder class="powerSpectrum"                name="powerSpectrum_"                source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
-    <objectBuilder class="surveyGeometry"               name="surveyGeometry_"               source="parameters"/>
-    <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
-    <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
-    <objectBuilder class="darkMatterHaloBias"           name="darkMatterHaloBias_"           source="parameters"/>
-    <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
+    <objectBuilder class="conditionalMassFunction"      name="conditionalMassFunction_"      source="parameters"                              />
+    <objectBuilder class="powerSpectrum"                name="powerSpectrum_"                source="parameters"                              />
+    <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"                              />
+    <objectBuilder class="surveyGeometry"               name="surveyGeometry_"               source="parameters"                              />
+    <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"                              />
+    <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters" withholds="differential:node"/>
+    <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"                              />
+    <objectBuilder class="darkMatterHaloBias"           name="darkMatterHaloBias_"           source="parameters"                              />
+    <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"                              />
     !!]
     self=taskHaloModelProjectedCorrelationFunction(separationMinimum,separationMaximum,countSeparations,massMinimum,massMaximum,massHaloMinimum,massHaloMaximum,depthLineOfSight,halfIntegral,outputGroup,conditionalMassFunction_,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,parametersRoot)
     !![

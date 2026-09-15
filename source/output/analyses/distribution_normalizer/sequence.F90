@@ -42,8 +42,9 @@
      private
      type(normalizerList), pointer :: normalizers => null()
   contains
-     final     ::              sequenceDestructor
-     procedure :: normalize => sequenceNormalize
+     final     ::                         sequenceDestructor
+     procedure :: normalize            => sequenceNormalize
+     procedure :: requiresDistribution => sequenceRequiresDistribution
   end type outputAnalysisDistributionNormalizerSequence
 
   interface outputAnalysisDistributionNormalizerSequence
@@ -147,3 +148,21 @@ contains
     end do
     return
   end subroutine sequenceNormalize
+
+  logical function sequenceRequiresDistribution(self) result(requiresDistribution)
+    !!{RST
+    Return true if any normalizer in the sequence reports `requiresDistribution`.
+    !!}
+    implicit none
+    class(outputAnalysisDistributionNormalizerSequence), intent(inout) :: self
+    type (normalizerList                              ), pointer       :: normalizer_
+
+    ! The sequence depends on whatever any of its members depends on.
+    requiresDistribution =  .false.
+    normalizer_          => self%normalizers
+    do while (associated(normalizer_))
+       if (normalizer_%normalizer_%requiresDistribution()) requiresDistribution=.true.
+       normalizer_ => normalizer_%next
+    end do
+    return
+  end function sequenceRequiresDistribution
