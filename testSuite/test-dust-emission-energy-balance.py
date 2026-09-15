@@ -4,7 +4,8 @@
 Dust must re-emit exactly the luminosity it absorbs. For each of several attenuators, the luminosity absorbed by each
 phase of dust is extracted by a `dustAttenuation` extractor (`outputAbsorbed`), and the thermal emission of the dust by
 a `SEDDustEmission` extractor heated by the same light. One attenuator is paired with two emission extractors: one using
-modified blackbodies, and one using the template spectra of Dale & Helou (2002) and Draine & Li (2007). The absorbed luminosity is integrated here, independently of
+modified blackbodies, one using the template spectra of Dale & Helou (2002) and Draine & Li (2007), and one with
+PAH emission (Richie & Hensley 2026) heated by the spectrum of the absorbed light. The absorbed luminosity is integrated here, independently of
 the emission extractor, and compared with the integral of the emitted spectrum, in total and phase by phase. Heating by
 the cosmic microwave background is switched off, since with it the dust also re-emits energy absorbed from the CMB.
 
@@ -39,6 +40,7 @@ FACTOR           = (1.0 + np.sqrt(1.0 + 4.0 * RESOLUTION**2)) / 2.0 / RESOLUTION
 CASES = (
     ("charlotFall2000"           , ""          , ("birthCloud", "screenSurfaceDensityMetals")),
     ("charlotFall2000"           , ":templates", ("birthCloud", "screenSurfaceDensityMetals")),
+    ("charlotFall2000"           , ":PAH"      , ("birthCloud", "screenSurfaceDensityMetals")),
     ("screenSurfaceDensityMetals", ""          , ("screenSurfaceDensityMetals",)              ),
     ("atlasFerrara2000"          , ""          , ("atlasFerrara2000",)                        ),
 )
