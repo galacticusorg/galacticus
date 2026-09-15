@@ -30,13 +30,13 @@
 
       \Delta_\mathrm{iso} = {3 \over 2 \pi b^3},
 
-   where :math:`b=`\ ``[virialDensityContrastFoFLinkingLength]`` is the dimensionless linking length of the algorithm (i.e. the linking length in units of the mean interparticle spacing). The virial density contrast is then given by:
+   where :math:`b=`\ ``[linkingLength]`` is the dimensionless linking length of the algorithm (i.e. the linking length in units of the mean interparticle spacing). The virial density contrast is then given by:
 
    .. math::
 
       \Delta_\mathrm{vir} = {\bar{\rho}_\mathrm{vir} \over \rho(r_\mathrm{vir})} \Delta_\mathrm{iso},
 
-   where :math:`\bar{\rho}_\mathrm{vir}` is the mean density inside the virial radius and :math:`\rho(r_\mathrm{vir})` is the density at the virial radius. The ratio :math:`\bar{\rho}_\mathrm{vir} / \rho(r_\mathrm{vir})` is specified via the parameter ``[virialDensityContrastFoFDensityRatio]``. Its default value of :math:`4.688` is appropriate for an :term:`NFW` halo of concentration :math:`c=6.88` which is the concentration found by :cite:t:`prada_halo_2011` for halos with :math:`\sigma=1.686` which is the approximate critical overdensity for collapse).
+   where :math:`\bar{\rho}_\mathrm{vir}` is the mean density inside the virial radius and :math:`\rho(r_\mathrm{vir})` is the density at the virial radius. The ratio :math:`\bar{\rho}_\mathrm{vir} / \rho(r_\mathrm{vir})` is specified via the parameter ``[densityRatio]``. Its default value of :math:`4.688` is appropriate for an :term:`NFW` halo of concentration :math:`c=6.88` which is the concentration found by :cite:t:`prada_halo_2011` for halos with :math:`\sigma=1.686` which is the approximate critical overdensity for collapse).
    </description>
   </virialDensityContrast>
   !!]

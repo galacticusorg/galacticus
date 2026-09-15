@@ -66,7 +66,7 @@
       <mass value="1.0"/>
       <massType value="unknown"/>
       <scaleHeight value="0.137"/>
-      <scaleRadius value="1.0"/>
+      <radiusScale value="1.0"/>
     </massDistributionDisk>
     <diskNegativeAngularMomentumAllowed value="true"/>
     <inactiveLuminositiesStellar value="false"/>

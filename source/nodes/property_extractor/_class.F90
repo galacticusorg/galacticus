@@ -148,7 +148,7 @@ module Node_Property_Extractors
 
     The default implementation simply sums each parcel into the output element which it contributes to, which is
     correct for any output that is linear in luminosity. Extractors whose output is not linear in luminosity---
-    magnitudes, colours, or ratios, for example---must override this method.
+    magnitudes, colors, or ratios, for example---must override this method.
     </description>
     <type>void</type>
     <pass>yes</pass>

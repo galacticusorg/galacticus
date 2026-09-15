@@ -314,7 +314,7 @@ def test_generic_placeholder_statement_is_never_wrapped():
     assert 'IO_HDF5_Read_Attribute_{Type\u00a6label}_1D_Array_Allocatable' in generic[0], generic[0]
 
 
-def test_oversized_declaration_does_not_pad_its_neighbours():
+def test_oversized_declaration_does_not_pad_its_neighbors():
     """A declaration left verbatim takes no part in sizing the columns — one
     huge data table used to pad every declaration beside it out to its width."""
     values = ', '.join(f'{n}.0d0' for n in range(60))

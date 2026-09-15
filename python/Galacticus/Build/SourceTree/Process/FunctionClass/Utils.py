@@ -16,7 +16,7 @@ def _walk_forward(node):
     Unlike `walk_tree(subtree)`, this walk does not stop at the end of the
     starting node's subtree — it continues through siblings and
     up-then-siblings all the way through the rest of the whole tree.  We
-    materialise this by starting at the top of the tree, collecting every
+    materialize this by starting at the top of the tree, collecting every
     node into a list, and iterating from the given node's position onward.
     """
     root = node

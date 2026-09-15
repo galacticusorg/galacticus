@@ -207,8 +207,8 @@ contains
     use :: Output_Times                          , only : outputTimesClass
     use :: Statistics_NBody_Halo_Mass_Errors     , only : nbodyHaloMassErrorClass
     use :: String_Handling                       , only : operator(//)
-    use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
-    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
+    use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPolynomial
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystematicPolynomial
     use :: Geometry_Surveys                      , only : surveyGeometryFullSky
     use :: Galactic_Filters                      , only : filterList                                         , galacticFilterAll            , galacticFilterClass       , galacticFilterHaloNotIsolated  , &
           &                                               galacticFilterHighPass                             , galacticFilterNot            , galacticFilterNull        , galacticFilterStarFormationRate, &
@@ -243,8 +243,8 @@ contains
     type            (surveyGeometryFullSky                              )               , pointer      :: surveyGeometry_
     type            (cosmologyParametersSimple                          )               , pointer      :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                     )               , pointer      :: cosmologyFunctionsData
-    type            (outputAnalysisPropertyOperatorSystmtcPolynomial    )               , pointer      :: outputAnalysisPropertyOperator_                  , outputAnalysisWeightPropertyOperator_
-    type            (outputAnalysisDistributionOperatorRandomErrorPlynml)               , pointer      :: outputAnalysisDistributionOperator_
+    type            (outputAnalysisPropertyOperatorSystematicPolynomial    )               , pointer      :: outputAnalysisPropertyOperator_                  , outputAnalysisWeightPropertyOperator_
+    type            (outputAnalysisDistributionOperatorRandomErrorPolynomial)               , pointer      :: outputAnalysisDistributionOperator_
     double precision                                                     , parameter                   :: errorPolynomialZeroPoint                  =11.0d0
     double precision                                                     , parameter                   :: errorPolynomialZeroPointWeight            = 0.0d0
     double precision                                                                                   :: redshiftMinimum                                  , redshiftMaximum                        , &
@@ -395,19 +395,19 @@ contains
     !! Systematic error model.
     allocate(outputAnalysisPropertyOperator_    )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperator_"       constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient                )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperator_"       constructor="outputAnalysisPropertyOperatorSystematicPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient                )"/>
     !!]
     !! Systematic error model.
     allocate(outputAnalysisWeightPropertyOperator_    )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperator_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorPolynomialZeroPoint,weightSystematicErrorPolynomialCoefficient          )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperator_" constructor="outputAnalysisPropertyOperatorSystematicPolynomial(errorPolynomialZeroPoint,weightSystematicErrorPolynomialCoefficient          )"/>
     !!]
     ! Build a random error distribution operator.
     allocate(outputAnalysisDistributionOperator_)
     !![
     <referenceConstruct object="outputAnalysisDistributionOperator_">
      <constructor>
-      outputAnalysisDistributionOperatorRandomErrorPlynml(                                  &amp;
+      outputAnalysisDistributionOperatorRandomErrorPolynomial(                                  &amp;
         &amp;                                             randomErrorMinimum              , &amp;
         &amp;                                             randomErrorMaximum              , &amp;
         &amp;                                             errorPolynomialZeroPoint        , &amp;

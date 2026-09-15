@@ -15,7 +15,7 @@ issue #695 refactor will replace:
     node-operator tree (which reaches the recursive virial-density-contrast via
     the dark-matter halo scale),
   * a stateStore round-trip of the shim -- enabled by ``stateFileRoot``,
-  * serialisation of the shim's descriptor into the output file's parameters.
+  * serialization of the shim's descriptor into the output file's parameters.
 
 It asserts the model:
 
@@ -87,14 +87,14 @@ if not failed:
         failed = True
 
 # Confirm the output carries a parameters descriptor (the shim's descriptor was
-# serialised without re-entering the cycle).
+# serialized without re-entering the cycle).
 if not failed:
     try:
         import h5py
         with h5py.File(outputFile, "r") as f:
             if "Parameters" not in f:
                 print("FAILED: output file has no 'Parameters' group "
-                      "(descriptor serialisation failed)")
+                      "(descriptor serialization failed)")
                 failed = True
     except ImportError:
         print("WARNING: h5py not available; skipping descriptor check")

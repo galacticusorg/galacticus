@@ -38,7 +38,7 @@ indexShift      = parameters.findall("./nodeOperator/nodeOperator[@value='indexS
 null            = parameters.findall("./nodeOperator/nodeOperator[@value='null']")
 blackHolesWinds = parameters.findall("./nodeOperator/nodeOperator[@value='blackHolesWinds']")
 feedbackOld     = parameters.findall("./nodeOperator/nodeOperator[@value='stellarFeedbackSpheroids']/stellarFeedbackOutflows/stellarFeedbackOutflows[@value='powerLaw']")
-feedbackNew     = parameters.findall("./nodeOperator/nodeOperator[@value='stellarFeedbackSpheroids']/stellarFeedbackOutflows/stellarFeedbackOutflows[@value='vlctyMxSclng']")
+feedbackNew     = parameters.findall("./nodeOperator/nodeOperator[@value='stellarFeedbackSpheroids']/stellarFeedbackOutflows/stellarFeedbackOutflows[@value='velocityMaximumScaling']")
 stability       = parameters.findall("./nodeOperator/nodeOperator[@value='barInstability']/galacticDynamicsBarInstability/stabilityThresholdGaseous")
 lastHost        = parameters.findall("./nodeOperator/nodeOperator[@value='indexLastHost']")
 branchTip       = parameters.findall("./nodeOperator/nodeOperator[@value='indexBranchTip']")
@@ -66,7 +66,7 @@ if len(feedbackOld    ) != 0:
     print('`<stellarFeedbackOutflows value="powerLaw">` is present')
     status="FAILED"
 if len(feedbackNew    ) != 1:
-    print('`<stellarFeedbackOutflows value="vlctyMxSclng">` is not present')
+    print('`<stellarFeedbackOutflows value="velocityMaximumScaling">` is not present')
     status="FAILED"
 if len(timescale      ) != 1:
     print('`<timescaleMinimum>` is not present')

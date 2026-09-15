@@ -35,7 +35,7 @@ rotationCurve = nodes['rotationCurve'][:]
     
 # Check for excessively large rotation velocities.
 if np.any(rotationCurve.flatten() > 30.0):
-    print("FAIL: caustics detected")
+    print("FAILED: caustics detected")
 else:
     print("SUCCESS: no caustics detected")
     

@@ -7,8 +7,8 @@
 
   <!-- Specify tasks to perform -->
   <task value="haloMassFunction">
-    <haloMassMinimum value="1.0e12"/>
-    <haloMassMaximum value="1.0e15"/>
+    <massHaloMinimum value="1.0e12"/>
+    <massHaloMaximum value="1.0e15"/>
     <pointsPerDecade value="4"/>
     <includeMassAccretionRate value="true"/>
     <includeSplashbackRadius value="true"/>

@@ -2,7 +2,7 @@
 
 Network-free: `_download` is replaced by a copy out of a locally built fixture
 "release", so the component selection logic, the ``--no-tools`` choice and its
-persistence, the choice between an artefact's current and legacy form, and the
+persistence, the choice between an artifact's current and legacy form, and the
 parameter-catalog download/generate fallback are all exercised against real
 archives on disk.
 """
@@ -213,7 +213,7 @@ def test_bad_catalog_checksum_falls_back_to_generating_one(install, fetched,
                                                            monkeypatch):
     monkeypatch.setattr(download, "load_checksums",
                         lambda tag, log=print: {"parameters.catalog.json": "0" * 64})
-    # A mismatch is fatal for artefacts which get executed; the catalog is data,
+    # A mismatch is fatal for artifacts which get executed; the catalog is data,
     # and a local build of it is equivalent, so the install continues.
     done = download.provision(install, log=_quiet)
     assert "parameter catalog" in done
@@ -226,7 +226,7 @@ def test_malformed_catalog_falls_back_to_generating_one(install, fetched, releas
     assert _catalog(install) == {"source": "generated"}
 
 
-# --- choosing between an artefact's current and legacy form ----------------
+# --- choosing between an artifact's current and legacy form ----------------
 
 def _checksums(*assets):
     """A release asset listing, with digests no test verifies against."""
@@ -299,7 +299,7 @@ def test_an_explicit_datasets_ref_bypasses_the_snapshot(install, fetched,
 
 def test_a_failed_catalog_download_does_not_abort_the_install(install, fetched,
                                                               monkeypatch):
-    """The catalog is the one artefact provisioning can rebuild itself, so a
+    """The catalog is the one artifact provisioning can rebuild itself, so a
     transfer failure has to fall back to generating it -- not discard the
     components which already downloaded."""
     real = download._download
@@ -315,3 +315,52 @@ def test_a_failed_catalog_download_does_not_abort_the_install(install, fetched,
     assert (install.exec_path / "parameters" / "quickTest.xml").is_file()
     assert (install.tools_path / "camb").is_file()
     assert _catalog(install) == {"source": "generated"}
+
+
+# --- a platform whose builds have been retired -----------------------------
+
+@pytest.fixture
+def retired_install(install):
+    """The same install, for a platform Galacticus no longer builds."""
+    return install._replace(
+        assets=install.assets._replace(retired="No more of those."))
+
+
+def test_a_retired_platform_installs_from_a_release_which_carries_its_binary(
+        retired_install, fetched, monkeypatch):
+    """Retirement must not break the releases cut while the platform was still
+    built: they publish its binary, and have to stay installable."""
+    monkeypatch.setattr(download, "load_checksums",
+                        lambda tag, log=print: _checksums("Galacticus.exe"))
+    monkeypatch.setattr(download, "_verify", lambda *a, **k: None)
+    assert "exec" in download.provision(retired_install, log=_quiet)
+
+
+def test_a_retired_platform_is_refused_by_a_release_which_carries_no_binary(
+        retired_install, fetched, monkeypatch):
+    monkeypatch.setattr(download, "load_checksums",
+                        lambda tag, log=print: _checksums("tools.tar.zst"))
+    with pytest.raises(platforms.UnsupportedPlatform) as raised:
+        download.provision(retired_install, log=_quiet)
+    # The reason, not a bare download failure.
+    assert "No more of those." in str(raised.value)
+    assert not fetched
+
+
+def test_a_release_publishing_no_checksums_predates_every_retirement(
+        retired_install, fetched, monkeypatch):
+    """Such a release has no manifest to consult, and is old enough that the
+    binary is there; the default `load_checksums` stub already returns None."""
+    monkeypatch.setattr(download, "_verify", lambda *a, **k: None)
+    assert "exec" in download.provision(retired_install, log=_quiet)
+
+
+def test_a_retired_platform_already_installed_keeps_working(
+        retired_install, fetched, monkeypatch):
+    """The check gates the download of the executable, so an install provisioned
+    while the binary was still published is never refused afterwards."""
+    monkeypatch.setattr(download, "_verify", lambda *a, **k: None)
+    download.provision(retired_install, log=_quiet)
+    monkeypatch.setattr(download, "load_checksums",
+                        lambda tag, log=print: _checksums("tools.tar.zst"))
+    assert download.provision(retired_install, log=_quiet) == []

@@ -114,7 +114,7 @@ contains
     use :: Numerical_Comparison                  , only : Values_Agree
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
-    use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRndmErrNbodyMass
+    use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorNbodyMass
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10           , outputAnalysisPropertyOperatorLog10
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
     use :: Output_Times                          , only : outputTimesClass
@@ -138,7 +138,7 @@ contains
     type            (galacticFilterHaloIsolated                        ), pointer                       :: galacticFilterHaloIsolated_
     type            (galacticFilterAll                                 ), pointer                       :: galacticFilterAll_
     type            (filterList                                        ), pointer                       :: filters_
-    type            (outputAnalysisDistributionOperatorRndmErrNbodyMass), pointer                       :: outputAnalysisDistributionOperator_
+    type            (outputAnalysisDistributionOperatorRandomErrorNbodyMass), pointer                       :: outputAnalysisDistributionOperator_
     type            (outputAnalysisWeightOperatorIdentity              ), pointer                       :: outputAnalysisWeightOperator_
     type            (outputAnalysisPropertyOperatorLog10               ), pointer                       :: outputAnalysisPropertyOperator_              , outputAnalysisWeightPropertyOperator_
     type            (outputAnalysisPropertyOperatorAntiLog10           ), pointer                       :: outputAnalysisPropertyUnoperator_
@@ -177,7 +177,7 @@ contains
     galacticFilterAll_                       =  galacticFilterAll          (              filters_)
     ! Build N-body mass error distribution operator.
     allocate(outputAnalysisDistributionOperator_    )
-    outputAnalysisDistributionOperator_    =  outputAnalysisDistributionOperatorRndmErrNbodyMass(nbodyHaloMassError_                                                                                                           )
+    outputAnalysisDistributionOperator_    =  outputAnalysisDistributionOperatorRandomErrorNbodyMass(nbodyHaloMassError_                                                                                                           )
     ! Build identity weight operator.
     allocate(outputAnalysisWeightOperator_          )
     outputAnalysisWeightOperator_          =  outputAnalysisWeightOperatorIdentity              (                                                                                                                              )

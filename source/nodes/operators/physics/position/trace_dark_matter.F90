@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that sets the positions of subhalos to trace the dark matter component of their host halo.
   !!}
@@ -49,6 +51,7 @@
        <method method="assignPosition" description="Assign a position to a node such that it traces the dark matter of its host."/>
      </methods>
      !!]
+     final     ::                   positionTraceDarkMatterDestructor
      procedure :: nodeInitialize => positionTraceDarkMatterNodeInitialize
      procedure :: nodesMerge     => positionTraceDarkMatterNodesMerge
      procedure :: autoHook       => positionTraceDarkMatterAutoHook

@@ -70,14 +70,14 @@ contains
       <name>rangeLower</name>
       <source>parameters</source>
       <description>
-      Lower integration limit for the nbodyMass distribution weight operator.
+      Lower integration limit for the ``nbodyMass`` distribution weight operator.
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>rangeUpper</name>
       <source>parameters</source>
       <description>
-      Upper integration limit for the nbodyMass distribution weight operator.
+      Upper integration limit for the ``nbodyMass`` distribution weight operator.
       </description>
     </inputParameter>
     <objectBuilder class="nodePropertyExtractor"           name="nodePropertyExtractor_"           source="parameters"/>

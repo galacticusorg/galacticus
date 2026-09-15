@@ -32,7 +32,7 @@ a scan should be marked `+` in the Makefile:
   recipes, so an unmarked recipe finds them closed and gets no pool (reported
   here as simply having no jobserver, leaving the caller's own `-j` policy);
 * with `fifo:` the path is in `MAKEFLAGS` regardless, so an unmarked recipe can
-  still reach the pool. Honouring it is the conservative outcome either way --
+  still reach the pool. Honoring it is the conservative outcome either way --
   we only ever take tokens that are genuinely free, and always give them back --
   but `+` is what the manual requires and the only portable way to get the
   descriptors.

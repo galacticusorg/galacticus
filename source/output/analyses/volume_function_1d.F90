@@ -117,7 +117,7 @@ Implements a generic 1D volume function (i.e. number density of objects binned b
        <method description="Return the results of the volume function operator." method="results"           />
        <method description="Finalize the analysis of this function."             method="finalizeAnalysis"  />
        <method description="Activate/deactivate reporting."                      method="setReporting"      />
-       <method description="Write the log-likelihood of this analysis to the output group. Child classes that compute their own log-likelihood should override this to avoid evaluating the parent-class logLikelihood method." method="logLikelihoodWrite"/>
+       <method description="Write the log-likelihood of this analysis to the output group. Child classes that compute their own log-likelihood should override this to avoid evaluating the parent-class ``logLikelihood`` method." method="logLikelihoodWrite"/>
        <method description="Write class-specific metadata to the analysis output group. The default implementation does nothing; child classes may override it to add further attributes or datasets." method="metadataWrite"/>
      </methods>
      !!]
@@ -559,7 +559,7 @@ contains
     <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyQuantity, propertyIsComoving, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionQuantity, distributionIsComoving, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *nodePropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, binWidth"/>
     !!]
 
-    ! Initialise the bundled target-data fields.  An explicit `targetData_` must be of the
+    ! Initialize the bundled target-data fields.  An explicit `targetData_` must be of the
     ! concrete `outputAnalysisTargetDataStandard` type (the only impl in the project today);
     ! without one we default-construct, matching the per-arg defaults the previous signature
     ! exposed.
@@ -912,7 +912,7 @@ contains
 
   subroutine volumeFunction1DLogLikelihoodWrite(self,analysisGroup)
     !!{RST
-    Write the log-likelihood of this analysis to the output group. This default implementation writes the log-likelihood returned by the :galacticus-class:`outputAnalysisVolumeFunction1D`  logLikelihood method whenever a target dataset is available. Child classes that compute their own log-likelihood (and which may not, e.g., initialize the covariance matrix used by the default  logLikelihood method) should override this method so that the parent-class  logLikelihood is never evaluated.
+    Write the log-likelihood of this analysis to the output group. This default implementation writes the log-likelihood returned by the :galacticus-class:`outputAnalysisVolumeFunction1D`  ``logLikelihood`` method whenever a target dataset is available. Child classes that compute their own log-likelihood (and which may not, e.g., initialize the covariance matrix used by the default  ``logLikelihood`` method) should override this method so that the parent-class  ``logLikelihood`` is never evaluated.
     !!}
     use :: IO_HDF5, only : hdf5File, hdf5Group
     implicit none

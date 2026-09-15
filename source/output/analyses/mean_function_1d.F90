@@ -549,7 +549,7 @@ contains
     <constructorAssign variables="binWidth, bufferCount, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, label, comment, propertyLabel, propertyComment, propertyUnits, propertyQuantity, propertyIsComoving, propertyUnitsInSI, meanLabel, meanComment, meanUnits, meanQuantity, meanIsComoving, meanUnitsInSI, *nodePropertyExtractor_, *outputAnalysisWeightPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisWeightPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *galacticFilter_, *outputTimes_"/>
     !!]
 
-    ! Initialise the bundled target-data fields.  An explicit `targetData_`
+    ! Initialize the bundled target-data fields.  An explicit `targetData_`
     ! must be of the concrete `outputAnalysisTargetDataStandard` type (the
     ! only impl in the project today); without one we default-construct,
     ! matching the per-arg defaults the previous signature exposed.

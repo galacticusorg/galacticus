@@ -335,7 +335,7 @@ program Test_Mass_Distributions
   allocate(massDistributionBetaProfile :: massDistribution_)
   select type (massDistribution_)
   type is (massDistributionBetaProfile)
-     massDistribution_=massDistributionBetaProfile(beta=2.0d0/3.0d0,coreRadius=3.8492316686261747d-002,mass=182582297.19568533d0,outerRadius=0.12829569846196026d0)
+     massDistribution_=massDistributionBetaProfile(beta=2.0d0/3.0d0,radiusCore=3.8492316686261747d-002,mass=182582297.19568533d0,radiusOuter=0.12829569846196026d0)
   end select
   select type (massDistribution_)
   class is (massDistributionSpherical)
@@ -583,7 +583,7 @@ program Test_Mass_Distributions
   end select
   select type (massDistribution_ => massDistributions%next%massDistribution_)
   type is (massDistributionExponentialDisk)
-     massDistribution_=massDistributionExponentialDisk(mass=5.7d10,scaleRadius=2.9d-3,scaleHeight=0.3d-3,componentType=componentTypeDisk    )
+     massDistribution_=massDistributionExponentialDisk(mass=5.7d10,radiusScale=2.9d-3,scaleHeight=0.3d-3,componentType=componentTypeDisk    )
   end select
   allocate(massDistributionComposite :: massDistribution_)
   select type (massDistribution_)
@@ -715,7 +715,7 @@ program Test_Mass_Distributions
      end select
      select type (massDistribution_ => massDistributions%next%massDistribution_)
      type is (massDistributionExponentialDisk)
-        massDistribution_=massDistributionExponentialDisk(mass=5.7d10,scaleRadius=2.9d-3,scaleHeight=0.3d-3,componentType=componentTypeDisk    )
+        massDistribution_=massDistributionExponentialDisk(mass=5.7d10,radiusScale=2.9d-3,scaleHeight=0.3d-3,componentType=componentTypeDisk    )
      end select
      allocate(massDistributionComposite :: massDistribution_)
      select type (massDistribution_)
@@ -758,7 +758,7 @@ program Test_Mass_Distributions
   allocate(massDistributionNFW :: massDistributionDMO)
   select type (massDistributionDMO)
   type is (massDistributionNFW)
-     massDistributionDMO=massDistributionNFW(scaleLength=30.0d-3,virialRadius=300.0d-3,mass=1.0d12,dimensionless=.false.)
+     massDistributionDMO=massDistributionNFW(scaleLength=30.0d-3,radiusVirial=300.0d-3,mass=1.0d12,dimensionless=.false.)
   end select
   allocate(massDistributionPatejLoeb2015 :: massDistribution_)
   select type (massDistribution_)
@@ -1122,13 +1122,13 @@ program Test_Mass_Distributions
     ! small-argument series expansion below a half-radius of 1e-3, the cached factor used at exactly one scale radius, and the
     ! point-mass approximation beyond `radiusMaximum`=30 scale radii. r=4 gives a half-radius of 2, inside the seed range;
     ! r=28 gives 14, outside it, and so forces a genuine extension.
-    diskExtended         =massDistributionExponentialDisk(scaleRadius=1.0d0,mass=1.0d0)
+    diskExtended         =massDistributionExponentialDisk(radiusScale=1.0d0,mass=1.0d0)
     velocityProbe        =diskExtended%rotationCurve( 4.0d0)
     velocityFar          =diskExtended%rotationCurve(28.0d0)
     velocityAfterExtension=diskExtended%rotationCurve( 4.0d0)
     call Assert("exponential disk: extension preserves a tabulated rotation curve",velocityAfterExtension == velocityProbe,.true.)
     ! A disk driven straight to the wider range must agree bit-for-bit with one which reached it by extension.
-    diskDirect           =massDistributionExponentialDisk(scaleRadius=1.0d0,mass=1.0d0)
+    diskDirect           =massDistributionExponentialDisk(radiusScale=1.0d0,mass=1.0d0)
     velocityDirect       =diskDirect  %rotationCurve(28.0d0)
     call Assert("exponential disk: rotation curve is independent of the order of requests",velocityDirect == velocityFar,.true.)
     call Assert("exponential disk: probe value is independent of the order of requests",diskDirect%rotationCurve(4.0d0) == velocityProbe,.true.)

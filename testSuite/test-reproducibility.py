@@ -162,15 +162,16 @@ for test in tests:
                 elif "expression" in assertion:
                     values = evaluate_expression(assertion["expression"], nodeData, gravitationalConstant)
                 else:
-                    raise ValueError("assertion gives no property or expression to test")
+                    print(f"FAILED: assertion '{assertion['name']}' of reproducibility test '{test['name']}' gives no property or expression to test")
+                    sys.exit(0)
 
                 difference   = np.abs(values - assertion["values"])
                 allowedError = assertion["toleranceRelative"] * np.abs(values)
                 if np.all(difference < allowedError):
                     print(f"SUCCESS: assertion '{assertion['name']}' of reproducibility test '{test['name']}' passed")
                 else:
-                    print(f"FAIL: assertion '{assertion['name']}' of reproducibility test '{test['name']}' failed")
+                    print(f"FAILED: assertion '{assertion['name']}' of reproducibility test '{test['name']}' failed")
                     for i in range(len(difference)):
                         print(f"\t{values[i]}\t{assertion['values'][i]}\t{difference[i]}\t{allowedError[i]}")
     else:
-        print(f"FAIL: reproducibility test '{test['name']}' model failed to run")
+        print(f"FAILED: reproducibility test '{test['name']}' model failed to run")

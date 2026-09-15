@@ -28,7 +28,7 @@
   !![
   <massDistribution name="massDistributionCloudOverdensities" docformat="rst">
    <description>
-   A mass distribution class that overlays a population of randomly placed, constant-density spherical clouds on top of an underlying smooth mass distribution. Cloud properties are set by ``[radius]``, ``[densityContrast]``, and ``[volumeFillingFactor]``, with inter-cloud gas characterized by ``[densityContrastIntercloud]``.
+   A mass distribution class that overlays a population of randomly placed, constant-density spherical clouds on top of an underlying smooth mass distribution. Cloud properties are set by ``[radius]``, ``[densityContrast]``, and ``[volumeFillingFactor]``. The density of the inter-cloud gas is not specified directly: it follows from the requirement that the addition of the clouds leave the mean density of the underlying distribution unchanged.
    </description>
   </massDistribution>
   !!]

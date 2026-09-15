@@ -21,7 +21,7 @@ Stage 2 adds:
 * **Reference validation** -- every ``idRef`` must resolve to an element with a
   matching ``id`` and the SAME tag.  References are VALIDATED but NEVER
   dereferenced/inlined: Galacticus keeps them as runtime pointers to a single
-  shared object, so inlining would create separate copies and change behaviour.
+  shared object, so inlining would create separate copies and change behavior.
 * **Conditionals** -- ``active="[path] ==|!= value"`` are evaluated (string
   comparison, fixed-point over dependency chains, with idRef dereferencing during
   path resolution, mirroring ``inputParametersEvaluateConditionals``) and

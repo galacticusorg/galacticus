@@ -182,6 +182,13 @@ jobs:
       - name: Check no LaTeX remains inside converted docstrings
         run: |
           python3 scripts/doc/convertDocstringsToRST.py --check-residual source
+      # Docstrings and manuals name parameters, classes, implementations, and
+      # bibliography keys in prose. Nothing in the documentation build checks
+      # that those names still exist, so a parameter rename silently leaves the
+      # prose which mentions it pointing at a name the user cannot find.
+      - name: Check documentation names things which exist
+        run: |
+          python3 scripts/aux/docBlockAudit.py --check
   # Contributor markers must record names only. Everything after the label in a
   # `!+` marker is parsed as a comma-separated list of contributors, so a
   # description of what was contributed (by a person or by an AI tool - that
@@ -201,6 +208,23 @@ jobs:
       - name: Check contributor markers record names only
         run: |
           python3 scripts/doc/extractContributors.py --check $GITHUB_WORKSPACE
+  # Test outcome markers. Every `testSuite/test-*.py` and `testSuite/validate-*.py` script signals its outcome by printing
+  # a `FAILED:`, `SUCCESS:` or `SKIPPED:` marker and exiting zero. The harnesses judge a test by scanning its log for
+  # `FAIL`, so a script with no marker at all, or one whose passing output contains `FAIL`, is silently mis-reported.
+  #
+  # Unlike the source formatters this check is blocking: the suite is fully compliant, so any report is a new drift rather
+  # than a pre-existing one.
+  Validate-Test-Markers:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Check test scripts against the outcome-marker convention
+        run: |
+          python3 scripts/aux/auditTestMarkers.py --check
   # Fortran static analysis
   Fortran-Static-Analysis:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
@@ -367,9 +391,16 @@ jobs:
             fi
           done
           exit $status
-  # Spell-check the reStructuredText documentation (advisory — does not fail the
-  # build). Builds the docs with sphinxcontrib-spelling and posts any possible
-  # misspellings as a PR comment; add legitimate technical terms to aux/words.dict.
+  # Spell-check the reStructuredText documentation.  Fails the build on any
+  # misspelling, and still reports them in the job summary and as a PR comment so
+  # they can be read without opening the log.
+  #
+  # If a flagged word is legitimate — a technical term, or a proper name — add it
+  # to aux/words.dict.  If it is a code identifier appearing in prose, mark it up
+  # as a reStructuredText literal (``likeThis``) instead: that renders it as code
+  # and excludes it from the check, and keeps the dictionary for words.  British
+  # spellings must be corrected, never added to the dictionary; whitelisting them
+  # is what allowed them to accumulate previously.
   Spell-Check-RST:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
@@ -379,6 +410,11 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # Full history: `spelling_ignore_contributor_names` in docs/conf.py reads
+          # the contributor names from the git log, so a shallow clone would leave
+          # them unrecognised and flag every one of them.
+          fetch-depth: 0
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -392,16 +428,28 @@ jobs:
       - name: Install tools
         run: |
           sudo apt -y update
-          sudo apt install -y enchant-2 aspell aspell-en poppler-utils
+          # pandoc is required by nbsphinx to convert the tutorial notebooks; without
+          # it the documentation build aborts on the first notebook.  Kept in step
+          # with the list in .readthedocs.yaml.
+          sudo apt install -y enchant-2 aspell aspell-en poppler-utils pandoc
           pip install -r docs/requirements.txt sphinxcontrib-spelling pyenchant
       - name: Build documentation and spell-check
         run: |
           PYTHONPATH=$GITHUB_WORKSPACE/python python scripts/doc/extractDocsRST.py source docs
-          SPHINX_SPELLING=1 python -m sphinx -b spelling docs docs/_spelling || true
+          # The spelling builder exits non-zero when it finds a misspelling, so its
+          # status is recorded rather than acted on here: the reporting steps below
+          # need to run first.  A non-zero status with no `.spelling` output means
+          # the documentation build itself failed, which is fatal immediately.
+          SPHINX_SPELLING=1 python -m sphinx -b spelling docs docs/_spelling && sphinxStatus=0 || sphinxStatus=$?
+          if [ "$sphinxStatus" -ne 0 ] && ! find docs/_spelling -name '*.spelling' -size +0 | grep -q .; then
+            echo "Documentation build failed (sphinx exited $sphinxStatus) with no spelling output."
+            exit "$sphinxStatus"
+          fi
           if find docs/_spelling -name '*.spelling' -size +0 | grep -q .; then
             {
-              printf '<details><summary>RST spell-check (advisory) — possible misspellings (click to expand)</summary>\n\n'
-              printf 'Add any legitimate technical terms to `aux/words.dict`.\n\n```\n'
+              printf '<details><summary>RST spell-check — misspellings (click to expand)</summary>\n\n'
+              printf 'Correct the spelling, mark a code identifier up as ``likeThis``, or — for a\n'
+              printf 'genuine technical term or proper name — add it to `aux/words.dict`.\n\n```\n'
               cat $(find docs/_spelling -name '*.spelling') | sort -u
               printf '```\n\n</details>\n'
             } > warnings.md
@@ -421,3 +469,8 @@ jobs:
         uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3
         with:
           file-path: warnings.md
+      - name: Fail if any misspellings were found
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          echo "Documentation spell-check failed; see the job summary for the flagged words."
+          exit 1

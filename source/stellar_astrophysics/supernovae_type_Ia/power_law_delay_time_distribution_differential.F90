@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a supernovae type Ia class with a power-law delay time distribution.
   !!}
@@ -38,6 +40,7 @@
           &              normalization
    contains    
      procedure :: numberDifferential => powerLawDTDDifferentialNumberDifferential
+     procedure :: timeDelayMinimum   => powerLawDTDDifferentialTimeDelayMinimum
   end type supernovaeTypeIaPowerLawDTDDifferential
 
   interface supernovaeTypeIaPowerLawDTDDifferential

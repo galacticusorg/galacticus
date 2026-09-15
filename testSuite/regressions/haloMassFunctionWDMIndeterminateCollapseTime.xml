@@ -8,7 +8,7 @@
 
   <!-- Specify tasks to perform -->
   <task value="haloMassFunction">
-    <haloMassMinimum value="1.0e7"/>    
+    <massHaloMinimum value="1.0e7"/>    
   </task>
 
   <!-- Component selection -->

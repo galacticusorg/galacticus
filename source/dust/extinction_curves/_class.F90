@@ -42,7 +42,7 @@ module Dust_Extinction_Curves
   Note that the normalization is only approximate for the empirically fit curves. Each published fit anchors its
   :math:`V`-band normalization at its own nominal wavelength---:cite:t:`cardelli_relationship_1989` at
   :math:`x=1.82\,\mu\mathrm{m}^{-1}`, i.e. :math:`0.5495\,\mu\mathrm{m}`---which differs slightly from the
-  :math:`5504.6\,`Å effective wavelength of the Buser :math:`V` filter that Galacticus uses, and the fitting functions
+  :math:`5504.6\,\text{Å}` effective wavelength of the Buser :math:`V` filter that Galacticus uses, and the fitting functions
   do not evaluate to exactly unity even there. The residual is a few parts in a thousand (0.14% for
   :cite:t:`calzetti_dust_2000`, 0.21% for :cite:t:`cardelli_relationship_1989`). The curves are deliberately *not*
   renormalized to remove it, both because doing so would depart from the published fits and because it would change

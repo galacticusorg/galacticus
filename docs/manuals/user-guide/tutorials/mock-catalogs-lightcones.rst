@@ -14,31 +14,27 @@ that you have merger trees from a cosmological simulation available in
 Galacticus' merger tree file format.
 
 Each such merger tree file can then be run through Galacticus in the
-usual way (see the tutorial on :doc:`Using N-body Merger Trees <nbody-merger-trees>`). Outputs should be requested at every snapshot (up to the largest redshift to be considered), and
-the ``lightcone`` filter should be used to cause only those
-galaxies which intersect the lightcone to be output—for example:
+usual way (see the tutorial on :doc:`Using N-body Merger Trees <nbody-merger-trees>`). For example:
 
 .. code-block:: xml
 
-   <!-- Set output redshifts to the snapshots in the Millennium Simulation. -->
-   <outputRedshifts value=
-      "0.0000 0.0199 0.0414 0.0645 0.0893 0.1159 0.1444 0.1749 0.2075 0.2425
-       0.2798 0.3197 0.3623 0.4079 0.4566 0.5086 0.5642 0.6236 0.6871 0.7550
-       0.8277 0.9055 0.9887 1.0779 1.1734 1.2758 1.3857 1.5036 1.6303 1.7663
-       1.9126 2.0700 2.2395 2.4220 2.6189 2.8312 3.0604 3.3081 3.5759 3.8657
-       4.1795 4.5196 4.8884 5.2888 5.7239 6.1968"
-   />
-
-   <!-- Add a lightcone filter with the required geometry -->
-   <mergerTreeOutput>
-     <galacticFilter value="lightcone"/>
-   </mergerTreeOutput>
-
-   <!-- Switch on output of lightcone data -->
-   <outputLightconeData value="true"/>
+   <!-- Set output redshifts to the minimum and maximum for which the lightcone is to be constructed. -->
+   <outputTimes value="list">
+      <redshifts value="0.0000 6.1968"/>
+   </outputTimes>
 
    <!-- Prune away trees not appearing in the lightcone -->
-   <mergerTreeOperator value="pruneLightcone"/>
+   <mergerTreeOperator value="pruneLightcone">
+     <splitTrees value="true"/>
+   </mergerTreeOperator>
+
+   <!-- Set up the new lightcone output using an outputter passed to the lightcone-crossing merger tree evolution timestepper -->
+   <mergerTreeEvolveTimestep value="lightconeCrossing">
+     <mergerTreeOutputter value="standard">
+      <outputsGroupName value="Lightcone"/>
+     </mergerTreeOutputter>
+   </mergerTreeEvolveTimestep>
+   <mergerTreeOutputter value="null"/>
 
    <!-- Specify lightcone geometry -->
    <geometryLightcone value="square">
@@ -60,12 +56,24 @@ galaxies which intersect the lightcone to be output—for example:
      />
    </geometryLightcone>
 
-In the above, ``outputLightconeData=true`` causes lightcone coordinate information (i.e. the position
-and velocity of each galaxy in a coordinate system with axes aligned
-along the line of sight of the lightcone and parallel to the two edges
-of the square field of view, along with the redshift) to be output (see the documentation on the ``lightcone`` `nodePropertyExtractor <https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/index.html>`_), and is set to ``pruneLightcone`` to
+   <!-- Position interpolation -->
+   <nodeOperator value="positionInterpolated">
+     <wrapPeriodic value="false"/> <!-- Do not wrap interpolated positions back into the box - this is not needed as we replicate the box. -->
+     <lengthBox    value="=[geometryLightcone/lengthReplication]*(([cosmologyParameters/HubbleConstant]/100.0)^[geometryLightcone/lengthHubbleExponent])*([geometryLightcone/lengthUnitsInSI]/3.08567758e+22)"/>
+   </nodeOperator>
+
+In the above,
+:galacticus-class:`mergerTreeEvolveTimestepLightconeCrossing` causes
+galaxies to be output at the time at which they cross the
+lightcone - this can be combined with any other timesteppers to control
+evolution. Note that for this to work, fully time-dependent positions
+must be available for galaxies. Typically this is achieved by using the
+:galacticus-class:`nodeOperatorPositionInterpolated` operator as shown
+above (which should be incorporated into the list of all
+``nodeOperator``\ s used in the model).
+
+We use :galacticus-class:`mergerTreeOperatorPruneLightcone` to
 cause any merger trees which have no nodes within the lightcone volume
 to be pruned away (as there is no need to process them). Finally, the
-``geometryLightcone`` parameter describes the geometry of
-the lightcone to be used—see `the documentation <https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/index.html>`_ for
-details.
+:galacticus-class:`geometryLightcone` parameter describes the geometry of
+the lightcone to be used.

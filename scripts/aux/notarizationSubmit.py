@@ -6,9 +6,7 @@ import subprocess
 import sys
 
 files = [
-    "Galacticus_MacOS.zip",
     "Galacticus_MacOS-M1.zip",
-    "toolsMacOS.zip",
     "toolsMacOSM1.zip"
 ]
 for required in ("APPLE_ID", "APPLE_TEAM_ID", "APPLE_APP_SPECIFIC_PASSWORD"):

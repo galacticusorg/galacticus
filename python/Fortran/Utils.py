@@ -549,7 +549,7 @@ def extract_variables(variable_list, keep_qualifiers=False, lower_case=True, rem
               file=sys.stderr)
         return []
 
-    # Strip initialisation/association suffixes (e.g. "x=1.0" → "x") unless keeping qualifiers.
+    # Strip initialization/association suffixes (e.g. "x=1.0" → "x") unless keeping qualifiers.
     if not keep_qualifiers:
         variable_list = re.sub(r'=[^,]*(,|$)', r'\1', variable_list)
 

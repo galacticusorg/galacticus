@@ -5,7 +5,7 @@ Andrew Benson (ported to Python 2026)
 
 import re
 
-# Recognises a `kind=foo` or just plain `foo` inside a type spec.
+# Recognizes a `kind=foo` or just plain `foo` inside a type spec.
 _KIND_RE = re.compile(r'\s*(?:kind\s*=\s*)?([a-zA-Z0-9_]+)')
 
 
