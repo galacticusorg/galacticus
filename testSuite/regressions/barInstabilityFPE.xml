@@ -263,7 +263,7 @@
     <surfaceDensityCritical value="200.0"/>
     <surfaceDensityExponent value="0.4"/>
     <starFormationFrequencyNormalization value="5.25e-10"/>
-    <pressureCharacteristic value="4.54"/>
+    <pressureCharacteristic value="3.5e4"/>
     <pressureExponent value="0.92"/>
     
   </starFormationRateSurfaceDensityDisks>
