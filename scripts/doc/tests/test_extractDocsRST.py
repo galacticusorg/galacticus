@@ -95,11 +95,13 @@ module Test_Methods
    <method name="radiusStripped" >
     <description>Return the stripping radius.</description>
     <type>double precision</type>
+    <pass>yes</pass>
     <argument>type(treeNode), intent(inout), target :: node</argument>
    </method>
    <method name="reset" >
     <description>Reset the object.</description>
     <type>void</type>
+    <pass>yes</pass>
    </method>
   </functionClass>
   !!]
