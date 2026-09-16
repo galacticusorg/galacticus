@@ -82,7 +82,7 @@ program Test_Galactic_Structure_Equilibrium
   ! the largest known difference between the two calculations, so the tolerance below is set a few times above it rather than
   ! tuned to whatever the comparison happens to give. The two solver tolerances which would otherwise dominate it are tightened
   ! in the parameter file; see the note there.
-  double precision                             , parameter :: toleranceRelative      =1.0d-4
+  double precision                              , parameter :: toleranceRelative       =1.0d-4
   class           (cosmologyFunctionsClass     ), pointer   :: cosmologyFunctions_
   class           (darkMatterHaloScaleClass    ), pointer   :: darkMatterHaloScale_
   class           (galacticStructureSolverClass), pointer   :: galacticStructureSolver_
@@ -94,8 +94,8 @@ program Test_Galactic_Structure_Equilibrium
   type            (inputParameters             )            :: parameters
   character       (len=128                     )            :: message
   integer                                                   :: iModel
-  double precision                                          :: radiusVirial         , time                    , &
-       &                                                       differenceDisk       , differenceSpheroid      , &
+  double precision                                          :: radiusVirial                  , time              , &
+       &                                                       differenceDisk                , differenceSpheroid, &
        &                                                       differenceMaximum
 
   ! Set verbosity level, and register the error handler so that failures in the numerical libraries are reported rather than
