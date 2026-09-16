@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements a stellar vs halo mass relation analysis class.
   !!}
@@ -757,28 +759,14 @@ contains
     !!{RST
     Implement a ``stellarVsHaloMassRelation`` output analysis finalization.
     !!}
-    use :: Output_HDF5, only : outputFile
-    use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5File  , hdf5Group
+    use :: Output_Analysis_Utilities, only : Output_Analysis_Log_Likelihood_Write
     implicit none
     class(outputAnalysisStellarVsHaloMassRelation), intent(inout)           :: self
     type (varying_string                         ), intent(in   ), optional :: groupName
-    type (hdf5Group                              )               , target   :: analysesGroup, subGroup
-    type (hdf5Group                              )               , pointer  :: inGroup
-    type (hdf5Group                              )                          :: analysisGroup
 
     call self%outputAnalysis_%finalize(groupName)
     ! Overwrite the log-likelihood - this allows us to handle cases where the model is zero everywhere.
-    !$ call hdf5Access%set()
-    analysesGroup =  outputFile   %openGroup('analyses'     )
-    inGroup       => analysesGroup
-    if (present(groupName)) then
-       subGroup   =  analysesGroup%openGroup(char(groupName))
-       inGroup    => subGroup
-    end if
-    analysisGroup=inGroup%openGroup(char(self%analysisLabel))
-    call    analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
-    !$ call hdf5Access%unset()
+    call Output_Analysis_Log_Likelihood_Write(self%analysisLabel,self%logLikelihood(),groupName)
     return
   end subroutine stellarVsHaloMassRelationFinalize
 
@@ -786,96 +774,24 @@ contains
     !!{RST
     Return the log-likelihood of a ``stellarVsHaloMassRelation`` output analysis.
     !!}
-    use :: Error                       , only : Error_Report
-    use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector
-    use :: Numerical_Constants_Math    , only : Pi
-    use :: Interface_GSL               , only : GSL_Success
-    use :: Models_Likelihoods_Constants, only : logImprobable
+    use :: Output_Analysis_Utilities, only : Output_Analysis_Log_Likelihood_Relation
     implicit none
     class           (outputAnalysisStellarVsHaloMassRelation), intent(inout)                 :: self
-    double precision                                         , parameter                     :: massStellarLogarithmicTiny              =1.0d-3
-    double precision                                         , allocatable  , dimension(:,:) :: massStellarLogarithmicCovarianceCombined       , massStellarLogarithmicCovarianceCombinedSelected, &
-         &                                                                                      massStellarLogarithmicCovariance               , massStellarLogarithmicCovarianceTarget
-    double precision                                         , allocatable  , dimension(:  ) :: massStellarLogarithmicDifference               , massStellarLogarithmicDifferenceSelected        , &
-         &                                                                                      massStellarLogarithmic                         , massStellarLogarithmicTarget
-    integer         (c_size_t                               ), allocatable  , dimension(:  ) :: likelihoodBins
-    type            (vector                                 )                                :: residual
-    type            (matrix                                 )                                :: covariance
-    integer                                                                                  :: i                                              , j                                               , &
-         &                                                                                      status
+    double precision                                         , parameter                     :: massStellarLogarithmicTiny      =1.0d-3
+    double precision                                         , allocatable  , dimension(:,:) :: massStellarLogarithmicCovariance
+    double precision                                         , allocatable  , dimension(:  ) :: massStellarLogarithmic
 
     select type (outputAnalysis_ => self%outputAnalysis_)
     class is (outputAnalysisMeanFunction1D   )
-       ! Retrieve the results of the analysis.
+       ! Retrieve the results of the analysis and compute the log-likelihood.
        call outputAnalysis_%results(   meanValue=massStellarLogarithmic,   meanCovariance=massStellarLogarithmicCovariance)
-       allocate(massStellarLogarithmicTarget          ,source=self%massStellarLogarithmicTarget          )
-       allocate(massStellarLogarithmicCovarianceTarget,source=self%massStellarLogarithmicCovarianceTarget)
+       logLikelihood=Output_Analysis_Log_Likelihood_Relation(massStellarLogarithmic,massStellarLogarithmicCovariance,self%massStellarLogarithmicTarget,self%massStellarLogarithmicCovarianceTarget,self%likelihoodBins,self%likelihoodBinsAutomatic,massStellarLogarithmicTiny,self%likelihoodNormalize)
     class is (outputAnalysisScatterFunction1D)
-       ! Retrieve the results of the analysis.
+       ! Retrieve the results of the analysis and compute the log-likelihood.
        call outputAnalysis_%results(scatterValue=massStellarLogarithmic,scatterCovariance=massStellarLogarithmicCovariance)
-       allocate(massStellarLogarithmicTarget          ,source=self%massStellarScatterTarget              )
-       allocate(massStellarLogarithmicCovarianceTarget,source=self%massStellarScatterCovarianceTarget    )
+       logLikelihood=Output_Analysis_Log_Likelihood_Relation(massStellarLogarithmic,massStellarLogarithmicCovariance,self%massStellarScatterTarget,self%massStellarScatterCovarianceTarget,self%likelihoodBins,self%likelihoodBinsAutomatic,massStellarLogarithmicTiny,self%likelihoodNormalize)
     class default
        logLikelihood=+outputAnalysis_%logLikelihood()
-       return
     end select
-    ! Determine which bins to use in the likelihood analysis.
-    if (self%likelihoodBinsAutomatic) then
-       j=0
-       do i=1,size(massStellarLogarithmic)
-          if (massStellarLogarithmic(i) /= 0.0d0) j=j+1
-       end do
-       allocate(likelihoodBins(j))
-       j=0
-       do i=1,size(massStellarLogarithmic)
-          if (massStellarLogarithmic(i) /= 0.0d0) then
-             j=j+1
-             likelihoodBins(j)=i
-          end if
-       end do
-    else
-       allocate(likelihoodBins,source=self%likelihoodBins)
-    end if
-    if     (                                                                                                             &
-         &   (size(likelihoodBins) == 0 .and. any(massStellarLogarithmic                 <= massStellarLogarithmicTiny)) &
-         &  .or.                                                                                                         &
-         &                                    any(massStellarLogarithmic(likelihoodBins) <= massStellarLogarithmicTiny)  &
-         & ) then
-       ! If any active bins contain zero galaxies, judge this model to be improbable.
-       logLikelihood=                     logImprobable
-    else
-       ! Compute difference with the target dataset.
-       allocate(massStellarLogarithmicDifference        ,mold=massStellarLogarithmic          )
-       allocate(massStellarLogarithmicCovarianceCombined,mold=massStellarLogarithmicCovariance)
-       massStellarLogarithmicDifference        =+massStellarLogarithmic          -massStellarLogarithmicTarget
-       massStellarLogarithmicCovarianceCombined=+massStellarLogarithmicCovariance+massStellarLogarithmicCovarianceTarget
-       ! Construct a reduced set of bins.
-       if (size(likelihoodBins) > 0) then
-          allocate(massStellarLogarithmicDifferenceSelected        (size(likelihoodBins)                     ))
-          allocate(massStellarLogarithmicCovarianceCombinedSelected(size(likelihoodBins),size(likelihoodBins)))
-          do i=1,size(likelihoodBins)
-             massStellarLogarithmicDifferenceSelected           (i  )=massStellarLogarithmicDifference        (likelihoodBins(i)                  )
-             do j=1,size(likelihoodBins)
-                massStellarLogarithmicCovarianceCombinedSelected(i,j)=massStellarLogarithmicCovarianceCombined(likelihoodBins(i),likelihoodBins(j))
-             end do
-          end do
-       else
-          allocate(massStellarLogarithmicDifferenceSelected        ,source=massStellarLogarithmicDifference        )
-          allocate(massStellarLogarithmicCovarianceCombinedSelected,source=massStellarLogarithmicCovarianceCombined)
-       end if
-       ! Construct residual vector and covariance matrix.
-       residual  =vector(massStellarLogarithmicDifferenceSelected        )
-       covariance=matrix(massStellarLogarithmicCovarianceCombinedSelected)
-       ! Compute the log-likelihood.
-       logLikelihood=-0.5d0*covariance%covarianceProduct(residual,status)
-       if (status == GSL_Success) then
-          if (self%likelihoodNormalize)                                                                  &
-               & logLikelihood=+logLikelihood                                                            &
-               &               -0.5d0*covariance%logarithmicDeterminant()                                &
-               &               -0.5d0*dble(size(massStellarLogarithmicDifferenceSelected))*log(2.0d0*Pi)
-       else
-          logLikelihood       =+logImprobable
-       end if
-    end if
     return
   end function stellarVsHaloMassRelationLogLikelihood
