@@ -43,8 +43,8 @@ module Star_Formation_Rate_Surface_Density_Disks
     <type>double precision, allocatable, dimension(:,:)</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>type            (treeNode), intent(inout), target                    :: node                           </argument>
-    <argument>double precision          , intent(in   )                            :: radiusInner       , radiusOuter</argument>
+    <argument>type            (treeNode), intent(inout), target :: node                    </argument>
+    <argument>double precision          , intent(in   )         :: radiusInner, radiusOuter</argument>
     <code>
      !$GLC attributes unused :: self, node
      allocate(starFormationRateSurfaceDensityDisksIntervals(2,1))

@@ -98,37 +98,37 @@ program Test_Dust_Extinction_Curves
   ! switch on - and are chosen to be round numbers in wavelength so that the inverse wavelength each implementation forms
   ! lands unambiguously inside a segment, well away from the boundaries at x = 1.1, 3.3 and 5.9 inverse microns where the
   ! fits are not continuous.
-  integer                                                       , parameter    :: countCardelli        =15
-  double precision                                              , dimension(15):: wavelengthsCardelli       =[                         &
+  integer                                                       , parameter     :: countCardelli        =15
+  double precision                                              , dimension(15) :: wavelengthsCardelli       =[                         &
        & 25000.0000000000d0, 12500.0000000000d0, 9500.0000000000d0, 6000.0000000000d0, &
        & 5494.5054945055d0, 4000.0000000000d0, 3200.0000000000d0, 2900.0000000000d0, &
        & 2600.0000000000d0, 2200.0000000000d0, 2000.0000000000d0, 1750.0000000000d0, &
        & 1600.0000000000d0, 1450.0000000000d0, 1300.0000000000d0                      &
        & ]
-  double precision                                              , dimension(15):: referenceCardelliRvLow    =[                         &
+  double precision                                              , dimension(15) :: referenceCardelliRvLow    =[                         &
        & 8.3073484241425d-02, 2.5358334068783d-01, 3.9446714362315d-01, 8.9357143790337d-01, &
        & 1.0000000000000d+00, 1.5803706982943d+00, 1.9261800136736d+00, 2.1817442883611d+00, &
        & 2.5660532081040d+00, 3.9023690927890d+00, 3.5389317757080d+00, 3.1393714902309d+00, &
        & 3.2386661686185d+00, 3.5184236535874d+00, 4.0910367677343d+00                       &
        & ]
-  double precision                                              , dimension(15):: referenceCardelliRvStandard=[                        &
+  double precision                                              , dimension(15) :: referenceCardelliRvStandard=[                        &
        & 9.2405527625374d-02, 2.8206957499417d-01, 4.3877953200373d-01, 9.0671395295145d-01, &
        & 1.0000000000000d+00, 1.4645557029426d+00, 1.7045521975984d+00, 1.8766891571007d+00, &
        & 2.1535190746534d+00, 3.1517016669804d+00, 2.8425264357868d+00, 2.5072937126630d+00, &
        & 2.5604303991280d+00, 2.7404632065187d+00, 3.1270159735524d+00                       &
        & ]
-  double precision                                              , dimension(15):: referenceCardelliRvHigh   =[                         &
+  double precision                                              , dimension(15) :: referenceCardelliRvHigh   =[                         &
        & 1.0718126298329d-01, 3.2717277931255d-01, 5.0894081360630d-01, 9.2752293511092d-01, &
        & 1.0000000000000d+00, 1.2811819603024d+00, 1.3536414888126d+00, 1.3936851992718d+00, &
        & 1.5003400300232d+00, 1.9631449094501d+00, 1.7398846475784d+00, 1.5065038981806d+00, &
        & 1.4865570974347d+00, 1.5086924986598d+00, 1.6006497160978d+00                       &
        & ]
   type            (dustExtinctionCurveCardelli1989              )               :: curveCardelliRvLow   , curveCardelliRvHigh
-  double precision                                              , dimension(15):: valuesCardelli
-  double precision                                                             :: new
-  double precision                                                             :: excessBump           , excessWing
-  integer                                                                      :: i
-  character       (len=32                                      )               :: label
+  double precision                                              , dimension(15) :: valuesCardelli
+  double precision                                                              :: new
+  double precision                                                              :: excessBump           , excessWing
+  integer                                                                       :: i
+  character       (len=32                                      )                :: label
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
