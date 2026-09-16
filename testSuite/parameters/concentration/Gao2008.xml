@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameters for the Gao et al. (2008) concentration unit test                        -->
+<!-- (source/tests/concentration/Gao2008.F90). The test builds the concentration class   -->
+<!-- and the cosmology directly; only a basic component is needed here.                  -->
+
+<parameters>
+  <formatVersion>2</formatVersion>
+
+  <!-- Component selection -->
+  <componentBasic value="standard"/>
+
+</parameters>
