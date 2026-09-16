@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameter file used by tests.satellite_orbit_rates.exe, which validates the two rates driving satellite orbital evolution
+     against independently computed reference values (galacticusDevTools/satelliteOrbitRates.py).
+
+     Every class is declared here rather than constructed in the test program. The satellite classes reach the host and satellite
+     mass distributions through the node, and the node builds its `darkMatterProfile` through an `<objectBuilder>` reading these
+     parameters, so objects constructed in the test would not be the ones the rates actually see.
+
+     Each class is declared once, at the top level. Object builders walk up the parameter tree from the scope in which they are
+     invoked, so every class below shares a single instance.
+
+     The virial density contrast is pinned to a *fixed* value of 200 relative to the *mean* matter density, so that both virial
+     radii are analytic and this test does not also exercise the spherical collapse solver, which has its own tests.
+
+     `darkMatterProfile` is `darkMatterOnly`, so the halo is a plain NFW profile with no adiabatic contraction. The reference
+     calculation assumes an uncontracted host and satellite; contraction is verified separately by
+     tests.galactic_structure_equilibrium.exe.
+
+     Two values are stated explicitly although they are class defaults, because the reference calculation assumes them:
+     `efficiencyCentrifugal` in the King (1962) tidal radius, and `useDynamicalTimeScale` in the Zentner et al. (2005) rate. The
+     Coulomb logarithm and the stripping efficiency are stated because they scale the two rates directly.
+
+     `applyPreInfall` is false, so the King (1962) radius is evaluated only for nodes which are satellites - which is what the
+     test constructs. With it true the radius would be computed for isolated nodes too, by a different branch of that routine.
+  -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="e967ff808b085316768b270d45d1950941bf5d49" time="2026-09-16T00:00:00"/>
+
+  <!-- Cosmology. Planck 2018 values, matching the reference calculation. -->
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="67.36"  />
+    <OmegaMatter     value="0.3153" />
+    <OmegaDarkEnergy value="0.6847" />
+    <OmegaBaryon     value="0.0493" />
+    <temperatureCMB  value="2.72548"/>
+  </cosmologyParameters>
+  <cosmologyFunctions value="matterLambda"/>
+
+  <!-- A fixed virial density contrast of 200 relative to the mean matter density; see the note above. -->
+  <virialDensityContrast value="fixed">
+    <densityContrastValue value="200.0"/>
+    <densityType          value="mean" />
+  </virialDensityContrast>
+  <darkMatterHaloScale value="virialDensityContrastDefinition"/>
+
+  <!-- Uncontracted NFW halos for both the host and the satellite. -->
+  <darkMatterProfileDMO value="NFW"           />
+  <darkMatterProfile    value="darkMatterOnly"/>
+
+  <!-- The tidal field of the host, from which the King (1962) tidal radius is built. -->
+  <satelliteTidalField value="standard"/>
+  <satelliteTidalStrippingRadius value="king1962">
+    <efficiencyCentrifugal value="1.0"  />
+    <applyPreInfall        value="false"/>
+  </satelliteTidalStrippingRadius>
+
+  <!-- The two rates under test. -->
+  <satelliteDynamicalFriction value="chandrasekhar1943">
+    <logarithmCoulomb value="2.0"/>
+  </satelliteDynamicalFriction>
+  <satelliteTidalStripping value="zentner2005">
+    <efficiency            value="2.5" />
+    <useDynamicalTimeScale value="true"/>
+  </satelliteTidalStripping>
+
+  <!-- Node components. The `orbiting` satellite component is the one carrying position, velocity and bound mass. -->
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+  <componentSatellite         value="orbiting"/>
+  <componentBlackHole         value="null"    />
+  <componentDisk              value="null"    />
+  <componentHotHalo           value="null"    />
+  <componentSpheroid          value="null"    />
+  <componentSpin              value="null"    />
+
+  <hotHaloMassDistribution value="null"/>
+  <mergerRemnantSize       value="null"/>
+</parameters>
