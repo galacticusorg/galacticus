@@ -155,28 +155,35 @@ module Histories
      procedure :: nonStaticSizeOf => History_Long_Integer_Non_Static_Size_Of
   end type longIntegerHistory
 
+  !![
+  <generic identifier="Type">
+   <instance label=""              type="history"            typeName="history           " intrinsic="double precision                " zero="0.0d0"       format="e22.16"/>
+   <instance label="Long_Integer_" type="longIntegerHistory" typeName="longIntegerHistory" intrinsic="integer         (kind=kind_int8)" zero="0_kind_int8" format="i16"   />
+  </generic>
+  !!]
+
   ! A null history object.
   type            (history)           , public :: nullHistory
 
   ! Labels for targets when adding to histories.
-  integer                  , parameter, public :: historyData               =1
-  integer                  , parameter, public :: historyRates              =2
-  integer                  , parameter, public :: historyScales             =3
+  integer                  , parameter, public :: historyData  =1
+  integer                  , parameter, public :: historyRates =2
+  integer                  , parameter, public :: historyScales=3
 
 contains
 
-  subroutine History_Create(history_,historyCount,timesCount,timeBegin,timeEnd,rangeType)
+  subroutine History_{Type¦label}Create(history_,historyCount,timesCount,timeBegin,timeEnd,rangeType)
     !!{RST
     Create a history object.
     !!}
     use :: Error            , only : Error_Report
-    use :: Numerical_Ranges , only : Make_Range         , rangeTypeLogarithmic, rangeTypeUndefined
+    use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic, rangeTypeUndefined
     implicit none
-    class           (history), intent(inout)           :: history_
-    integer                  , intent(in   )           :: historyCount   , timesCount
-    double precision         , intent(in   ), optional :: timeBegin      , timeEnd
-    integer                  , intent(in   ), optional :: rangeType
-    integer                                            :: rangeTypeActual
+    class           ({Type¦typeName}), intent(inout)           :: history_
+    integer                          , intent(in   )           :: historyCount   , timesCount
+    double precision                 , intent(in   ), optional :: timeBegin      , timeEnd
+    integer                          , intent(in   ), optional :: rangeType
+    integer                                                    :: rangeTypeActual
 
     if (allocated(history_%time)) then
        call Error_Report('this history appears to have been created already'//{introspection:location})
@@ -197,267 +204,348 @@ contains
              history_%rangeType=rangeTypeUndefined
              history_%time=0.0d0
           end if
-          if (historyCount > 0) history_%data=0.0d0
+          if (historyCount > 0) history_%data={Type¦zero}
        end if
     end if
     return
-  end subroutine History_Create
+  end subroutine History_{Type¦label}Create
 
-  subroutine History_Destroy(history_)
+  subroutine History_{Type¦label}Destroy(history_)
     !!{RST
     Destroy a history.
     !!}
     implicit none
-    class  (history), intent(inout) :: history_
+    class  ({Type¦typeName}), intent(inout) :: history_
 
     if (allocated(history_%time)) then
        deallocate(history_%time)
        if (allocated(history_%data)) deallocate(history_%data)
     end if
     return
-  end subroutine History_Destroy
+  end subroutine History_{Type¦label}Destroy
 
-  subroutine History_Long_Integer_Create(history_,historyCount,timesCount,timeBegin,timeEnd,rangeType)
+  subroutine History_{Type¦label}Builder(self,historyDefinition)
     !!{RST
-    Create a history object.
+    Build a ``{Type¦type}`` object from the given XML ``historyDefinition``.
+    !!}
+    use :: FoX_DOM, only : node
+    use :: Error  , only : Error_Report
+    implicit none
+    class({Type¦typeName}), intent(inout) :: self
+    type (node           ), pointer       :: historyDefinition
+    !$GLC attributes unused :: self, historyDefinition
+
+    call Error_Report('building of history objects is not yet supported'//{introspection:location})
+    return
+  end subroutine History_{Type¦label}Builder
+
+  subroutine History_{Type¦label}Dump(self,verbosityLevel)
+    !!{RST
+    Dumps a history object.
+    !!}
+    use :: Display           , only : displayMessage, enumerationVerbosityLevelType
+    use :: ISO_Varying_String, only : assignment(=) , operator(//)                 , varying_string
+    implicit none
+    class    ({Type¦typeName}              ), intent(in   ) :: self
+    type     (enumerationVerbosityLevelType), intent(in   ) :: verbosityLevel
+    integer                                                 :: i             , j
+    type     (varying_string               )                :: message
+    character(len=22                       )                :: label
+
+    if (allocated(self%time)) then
+       do i=1,size(self%time)
+          write (label,'(i3)') i
+          message="("//trim(label)//") "
+          write (label,'(e22.16)') self%time(i)
+          message=message//label//" :"
+          do j=1,size(self%data,dim=2)
+             write (label,'({Type¦format})') self%data(i,j)
+             message=message//" "//label
+          end do
+          call displayMessage(message,verbosityLevel)
+       end do
+    end if
+    return
+  end subroutine History_{Type¦label}Dump
+
+  subroutine History_{Type¦label}Dump_Raw(self,fileHandle)
+    !!{RST
+    Dumps a history object in binary.
+    !!}
+    implicit none
+    class  ({Type¦typeName}), intent(in   ) :: self
+    integer                 , intent(in   ) :: fileHandle
+
+    write (fileHandle) self%rangeType
+    write (fileHandle) allocated(self%time)
+    if (allocated(self%time)) then
+       write (fileHandle) shape(self%data)
+       write (fileHandle) self%time
+       write (fileHandle) self%data
+    end if
+    return
+  end subroutine History_{Type¦label}Dump_Raw
+
+  subroutine History_{Type¦label}Read_Raw(self,fileHandle)
+    !!{RST
+    Read a history object in binary.
+    !!}
+    implicit none
+    class  ({Type¦typeName}), intent(inout) :: self
+    integer                 , intent(in   ) :: fileHandle
+    logical                                 :: isAllocated
+    integer                 , dimension(2)  :: historyShape
+
+    read (fileHandle) self%rangeType
+    read (fileHandle) isAllocated
+    if (isAllocated) then
+       read (fileHandle) historyShape
+       allocate(self%time(historyShape(1)                ))
+       allocate(self%data(historyShape(1),historyShape(2)))
+       read (fileHandle) self%time
+       read (fileHandle) self%data
+    end if
+    return
+  end subroutine History_{Type¦label}Read_Raw
+
+  subroutine History_{Type¦label}Reset(history_)
+    !!{RST
+    Reset a history by zeroing all elements, but leaving the structure (and times) intact.
+    !!}
+    implicit none
+    class({Type¦typeName}), intent(inout) :: history_
+
+    if (allocated(history_%time)) history_%data={Type¦zero}
+    return
+  end subroutine History_{Type¦label}Reset
+
+  subroutine History_{Type¦label}Clone(self,historyToClone)
+    !!{RST
+    Clone a ``{Type¦type}`` object.
+    !!}
+    implicit none
+    class({Type¦typeName}), intent(inout) :: self
+    type ({Type¦typeName}), intent(in   ) :: historyToClone
+
+    if (allocated(self%time)) deallocate(self%time)
+    if (allocated(self%data)) deallocate(self%data)
+    if (allocated(historyToClone%time)) then
+       allocate(self%time(size(historyToClone%time)))
+       self%time=historyToClone%time
+    end if
+    if (allocated(historyToClone%data)) then
+       allocate(self%data,mold=historyToClone%data)
+       self%data=historyToClone%data
+    end if
+    self%rangeType=historyToClone%rangeType
+    return
+  end subroutine History_{Type¦label}Clone
+
+  logical function History_{Type¦label}Exists(history_)
+    !!{RST
+    Returns true if the history has been created.
+    !!}
+    implicit none
+    class({Type¦typeName}), intent(in   ) :: history_
+
+    History_{Type¦label}Exists=allocated(history_%time)
+    return
+  end function History_{Type¦label}Exists
+
+  subroutine History_{Type¦label}Trim(history_,currentTime,minimumPointsToRemove)
+    !!{RST
+    Removes outdated information from "future histories" (i.e. histories that store data for future reference). Removes all but one entry prior to the given ``currentTime`` (this allows for interpolation of the history to the current time). Optionally, the remove is done only if it will remove more than ``minimumPointsToRemove`` entries (since the removal can be slow this allows for some optimization).
+    !!}
+    use            :: Error            , only : Error_Report
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
+    implicit none
+    class           ({Type¦typeName}), intent(inout)           :: history_
+    double precision                 , intent(in   )           :: currentTime
+    integer                          , intent(in   ), optional :: minimumPointsToRemove
+    type            ({Type¦typeName})                          :: temporaryHistory
+    integer                                                    :: currentPointCount    , historyCount               , &
+         &                                                        iTrim                , minimumPointsToRemoveActual, &
+         &                                                        newPointCount
+
+    ! Return if no history exists.
+    if (.not.allocated(history_%time)) return
+
+    ! Find points to remove.
+    currentPointCount=size(history_%time)
+
+    ! Return is nothing to trim.
+    if (currentPointCount == 0) return
+
+    ! Decide on the minimum number of points that we will remove.
+    if (present(minimumPointsToRemove)) then
+       if (minimumPointsToRemove < 1) call Error_Report('minimum number of points to remove must be >= 1'//{introspection:location})
+       minimumPointsToRemoveActual=minimumPointsToRemove
+    else
+       minimumPointsToRemoveActual=1
+    end if
+
+    ! Find how much we can trim. Never trim the final two point as they might be needed to extrapolate beyond the end of the
+    ! future history. Having found a point which exceeds the current time, pull back two points, so that we leave one point prior
+    ! to the current time.
+    iTrim=1
+    do while (history_%time(iTrim) < currentTime .and. iTrim <= currentPointCount-2)
+       iTrim=iTrim+1
+    end do
+    iTrim=iTrim-2
+
+    ! Check if there are enough removable points to warrant actually doing the removal.
+    if (iTrim >= minimumPointsToRemoveActual) then
+       ! Move current history to temporary storage.
+       call Move_Alloc(history_%time  ,temporaryHistory%time  )
+       call Move_Alloc(history_%data  ,temporaryHistory%data  )
+       ! Reallocate the history arrays.
+       newPointCount=currentPointCount-iTrim
+       historyCount =size(temporaryHistory%data,dim=2)
+       allocate(history_%time(newPointCount             ))
+       allocate(history_%data(newPointCount,historyCount))
+       ! Copy the data back into the new arrays.
+       history_%time(:  )=temporaryHistory%time(iTrim+1:currentPointCount  )
+       history_%data(:,:)=temporaryHistory%data(iTrim+1:currentPointCount,:)
+       ! Deallocate the temporary arrays.
+       deallocate(temporaryHistory%time  )
+       deallocate(temporaryHistory%data  )
+    end if
+    return
+  end subroutine History_{Type¦label}Trim
+
+  subroutine History_{Type¦label}Trim_Forward(self,time,removedHistory)
+    !!{RST
+    Removes all points in a history after the given ``time``. Optionally, the removed history can be returned as ``removedHistory``.
+    !!}
+    use            :: Arrays_Search    , only : searchArray
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
+    implicit none
+    class           ({Type¦typeName}), intent(inout)           :: self
+    double precision                 , intent(in   )           :: time
+    type            ({Type¦typeName}), intent(inout), optional :: removedHistory
+    type            ({Type¦typeName})                          :: temporaryHistory
+    integer         (c_size_t       )                          :: trimAt          , trimCount
+
+    ! Ensure the removed history to be returned is initialized.
+    if (present(removedHistory).and.allocated(removedHistory%time)) then
+       deallocate(removedHistory%time)
+       deallocate(removedHistory%data)
+    end if
+    ! Return if no history exists or if the final time is prior to the trim time.
+    if (.not.allocated(self%time).or.self%time(size(self%time)) <= time) return
+    ! Find where to trim and number of trimmed points.
+    trimAt   =searchArray(self%time,time)+1
+    trimCount=size(self%time)-trimAt+1
+    ! Transfer data to a temporary history.
+    call Move_Alloc(self%time,temporaryHistory%time)
+    call Move_Alloc(self%data,temporaryHistory%data)
+    ! Reallocate history to trimmed size and populate.
+    if (trimAt > 1) then
+       allocate(self%time(trimAt-1                                  ))
+       allocate(self%data(trimAt-1,size(temporaryHistory%data,dim=2)))
+       self%time=temporaryHistory%time(1:trimAt-1  )
+       self%data=temporaryHistory%data(1:trimAt-1,:)
+    end if
+    ! If the trimmed history is to be returned, allocate the arrays and populate.
+    if (present(removedHistory)) then
+       allocate(removedHistory%time(trimCount                                  ))
+       allocate(removedHistory%data(trimCount,size(temporaryHistory%data,dim=2)))
+       removedHistory%time=temporaryHistory%time(trimAt:trimAt+trimCount-1  )
+       removedHistory%data=temporaryHistory%data(trimAt:trimAt+trimCount-1,:)
+    end if
+    ! Clean up temporary history.
+    deallocate(temporaryHistory%time)
+    deallocate(temporaryHistory%data)
+    return
+  end subroutine History_{Type¦label}Trim_Forward
+
+  subroutine History_{Type¦label}Append_History(self,append)
+    !!{RST
+    Append a history onto the end of a ``{Type¦type}`` object.
     !!}
     use :: Error            , only : Error_Report
-    use :: Numerical_Ranges , only : Make_Range         , rangeTypeLogarithmic, rangeTypeUndefined
     implicit none
-    class           (longIntegerHistory), intent(inout)           :: history_
-    integer                             , intent(in   )           :: historyCount   , timesCount
-    double precision                    , intent(in   ), optional :: timeBegin      , timeEnd
-    integer                             , intent(in   ), optional :: rangeType
-    integer                                                       :: rangeTypeActual
+    class           ({Type¦typeName}), intent(inout)                 :: self
+    type            ({Type¦typeName}), intent(in   )                 :: append
+    double precision                 , allocatable  , dimension(:  ) :: timeTmp
+    {Type¦intrinsic}                 , allocatable  , dimension(:,:) :: dataTmp
 
-    if (allocated(history_%time)) then
-       call Error_Report('this history appears to have been created already'//{introspection:location})
+    if (.not.allocated(self%time)) then
+       ! No pre-existing history - simply copy the history to append.
+       self%time=append%time
+       self%data=append%data
     else
-       allocate(history_%time  (timesCount             ))
-       allocate(history_%data  (timesCount,historyCount))
-       if (timesCount > 0) then
-          if (present(timeBegin)) then
-             if (.not.present(timeEnd)) call Error_Report('an end time must be given if a begin time is given'//{introspection:location})
-             if (present(rangeType)) then
-                rangeTypeActual=rangeType
-             else
-                rangeTypeActual=rangeTypeLogarithmic
-             end if
-             history_%time     =Make_Range(timeBegin,timeEnd,timesCount,rangeTypeActual)
-             history_%rangeType=rangeTypeActual
-          else
-             history_%rangeType=rangeTypeUndefined
-             history_%time=0.0d0
-          end if
-          if (historyCount > 0) history_%data=0_kind_int8
-       end if
+       ! A history already exists. Validate the provided append history.
+       if (append%time(1) <= self%time(size(self%time))) call Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
+       if (size(self%data,dim=2) /= size(append%data,dim=2)) call Error_Report('histories have different cardinalities'//{introspection:location})
+       ! Do the append.
+       allocate(timeTmp(size(self%time)+size(append%time)                      ))
+       allocate(dataTmp(size(self%time)+size(append%time),size(self%data,dim=2)))
+       timeTmp(                1:size(self%time)                    )=self  %time
+       timeTmp(size(self%time)+1:size(self%time)+size(append%time)  )=append%time
+       dataTmp(                1:size(self%time)                  ,:)=self  %data
+       dataTmp(size(self%time)+1:size(self%time)+size(append%time),:)=append%data
+       deallocate     (        self%time)
+       deallocate     (        self%data)
+       call move_alloc(timeTmp,self%time)
+       call move_alloc(dataTmp,self%data)
     end if
     return
-  end subroutine History_Long_Integer_Create
+  end subroutine History_{Type¦label}Append_History
 
-  subroutine History_Long_Integer_Destroy(history_)
+  subroutine History_{Type¦label}Append_Epoch(self,time,append)
     !!{RST
-    Destroy a history.
+    Append a history onto the end of a ``{Type¦type}`` object.
     !!}
+    use :: Error            , only : Error_Report
     implicit none
-    class  (longIntegerHistory), intent(inout) :: history_
+    class           ({Type¦typeName}), intent(inout)                 :: self
+    double precision                 , intent(in   )                 :: time
+    {Type¦intrinsic}                 , intent(in   ), dimension(:  ) :: append
+    double precision                 , allocatable  , dimension(:  ) :: timeTmp
+    {Type¦intrinsic}                 , allocatable  , dimension(:,:) :: dataTmp
 
-    if (allocated(history_%time)) then
-       deallocate(history_%time)
-       if (allocated(history_%data)) deallocate(history_%data)
+    if (.not.allocated(self%time)) then
+       ! No pre-existing history - simply copy the history to append.
+       allocate(self%time(1              ))
+       allocate(self%data(1,size(append)))
+       self%time(1  )=time
+       self%data(1,:)=append
+    else
+       ! A history already exists. Validate the provided append history.
+       if (time <= self%time(size(self%time))) call Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
+       if (size(self%data,dim=2) /= size(append)) call Error_Report('histories have different cardinalities'//{introspection:location})
+       ! Do the append.
+       allocate(timeTmp(size(self%time)+1                      ))
+       allocate(dataTmp(size(self%time)+1,size(self%data,dim=2)))
+       timeTmp(                1:size(self%time)    )=self   %time
+       timeTmp(size(self%time)+1                    )=        time
+       dataTmp(                1:size(self%time)  ,:)=self   %data
+       dataTmp(size(self%time)+1                  ,:)=        append
+       deallocate     (        self%time)
+       deallocate     (        self%data)
+       call move_alloc(timeTmp,self%time)
+       call move_alloc(dataTmp,self%data)
     end if
     return
-  end subroutine History_Long_Integer_Destroy
+  end subroutine History_{Type¦label}Append_Epoch
 
-  subroutine History_Builder(self,historyDefinition)
+  function History_{Type¦label}Non_Static_Size_Of(self)
     !!{RST
-    Build a ``history`` object from the given XML ``historyDefinition``.
+    Return the size of any non-static components of the object.
     !!}
-    use :: FoX_DOM, only : node
-    use :: Error  , only : Error_Report
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
-    class(history), intent(inout) :: self
-    type (node   ), pointer       :: historyDefinition
-    !$GLC attributes unused :: self, historyDefinition
-
-    call Error_Report('building of history objects is not yet supported'//{introspection:location})
-    return
-  end subroutine History_Builder
-
-  subroutine History_Long_Integer_Builder(self,historyDefinition)
-    !!{RST
-    Build a ``longIntegerHistory`` object from the given XML ``historyDefinition``.
-    !!}
-    use :: FoX_DOM, only : node
-    use :: Error  , only : Error_Report
-    implicit none
-    class(longIntegerHistory), intent(inout) :: self
-    type (node              ), pointer       :: historyDefinition
-    !$GLC attributes unused :: self, historyDefinition
-
-    call Error_Report('building of history objects is not yet supported'//{introspection:location})
-    return
-  end subroutine History_Long_Integer_Builder
-
-  subroutine History_Dump(self,verbosityLevel)
-    !!{RST
-    Dumps a history object.
-    !!}
-    use :: Display           , only : displayMessage, enumerationVerbosityLevelType
-    use :: ISO_Varying_String, only : assignment(=) , operator(//)                 , varying_string
-    implicit none
-    class    (history                      ), intent(in   ) :: self
-    type     (enumerationVerbosityLevelType), intent(in   ) :: verbosityLevel
-    integer                                                 :: i             , j
-    type     (varying_string               )                :: message
-    character(len=22                       )                :: label
+    integer(c_size_t       )                :: History_{Type¦label}Non_Static_Size_Of
+    class  ({Type¦typeName}), intent(in   ) :: self
 
     if (allocated(self%time)) then
-       do i=1,size(self%time)
-          write (label,'(i3)') i
-          message="("//trim(label)//") "
-          write (label,'(e22.16)') self%time(i)
-          message=message//label//" :"
-          do j=1,size(self%data,dim=2)
-             write (label,'(e22.16)') self%data(i,j)
-             message=message//" "//label
-          end do
-          call displayMessage(message,verbosityLevel)
-       end do
+       History_{Type¦label}Non_Static_Size_Of=sizeof(self%time)+sizeof(self%data)
+    else
+       History_{Type¦label}Non_Static_Size_Of=0_c_size_t
     end if
     return
-  end subroutine History_Dump
-
-  subroutine History_Dump_Raw(self,fileHandle)
-    !!{RST
-    Dumps a history object in binary.
-    !!}
-    implicit none
-    class  (history), intent(in   ) :: self
-    integer         , intent(in   ) :: fileHandle
-
-    write (fileHandle) self%rangeType
-    write (fileHandle) allocated(self%time)
-    if (allocated(self%time)) then
-       write (fileHandle) shape(self%data)
-       write (fileHandle) self%time
-       write (fileHandle) self%data
-    end if
-    return
-  end subroutine History_Dump_Raw
-
-  subroutine History_Read_Raw(self,fileHandle)
-    !!{RST
-    Read a history object in binary.
-    !!}
-    implicit none
-    class  (history), intent(inout) :: self
-    integer         , intent(in   ) :: fileHandle
-    logical                         :: isAllocated
-    integer         , dimension(2)  :: historyShape
-
-    read (fileHandle) self%rangeType
-    read (fileHandle) isAllocated
-    if (isAllocated) then
-       read (fileHandle) historyShape
-       allocate(self%time(historyShape(1)                ))
-       allocate(self%data(historyShape(1),historyShape(2)))
-       read (fileHandle) self%time
-       read (fileHandle) self%data
-    end if
-    return
-  end subroutine History_Read_Raw
-
-  subroutine History_Reset(history_)
-    !!{RST
-    Reset a history by zeroing all elements, but leaving the structure (and times) intact.
-    !!}
-    implicit none
-    class(history), intent(inout) :: history_
-
-    if (allocated(history_%time)) history_%data=0.0d0
-    return
-  end subroutine History_Reset
-
-  subroutine History_Long_Integer_Dump(self,verbosityLevel)
-    !!{RST
-    Dumps a history object.
-    !!}
-    use :: Display           , only : displayMessage, enumerationVerbosityLevelType
-    use :: ISO_Varying_String, only : assignment(=) , operator(//)                 , varying_string
-    implicit none
-    class    (longIntegerHistory           ), intent(in   ) :: self
-    type     (enumerationVerbosityLevelType), intent(in   ) :: verbosityLevel
-    integer                                                 :: i             , j
-    type     (varying_string               )                :: message
-    character(len=22                       )                :: label
-
-    if (allocated(self%time)) then
-       do i=1,size(self%time)
-          write (label,'(i3)') i
-          message="("//trim(label)//") "
-          write (label,'(e22.16)') self%time(i)
-          message=message//label//" :"
-          do j=1,size(self%data,dim=2)
-             write (label,'(i16)') self%data(i,j)
-             message=message//" "//label
-          end do
-          call displayMessage(message,verbosityLevel)
-       end do
-    end if
-    return
-  end subroutine History_Long_Integer_Dump
-
-  subroutine History_Long_Integer_Dump_Raw(self,fileHandle)
-    !!{RST
-    Dumps a history object in binary.
-    !!}
-    implicit none
-    class  (longIntegerHistory), intent(in   ) :: self
-    integer                    , intent(in   ) :: fileHandle
-
-    write (fileHandle) self%rangeType
-    write (fileHandle) allocated(self%time)
-    if (allocated(self%time)) then
-       write (fileHandle) shape(self%data)
-       write (fileHandle) self%time
-       write (fileHandle) self%data
-    end if
-    return
-  end subroutine History_Long_Integer_Dump_Raw
-
-  subroutine History_Long_Integer_Read_Raw(self,fileHandle)
-    !!{RST
-    Read a history object in binary.
-    !!}
-    implicit none
-    class  (longIntegerHistory), intent(inout) :: self
-    integer                    , intent(in   ) :: fileHandle
-    logical                                    :: isAllocated
-    integer                    , dimension(2)  :: historyShape
-
-    read (fileHandle) self%rangeType
-    read (fileHandle) isAllocated
-    if (isAllocated) then
-       read (fileHandle) historyShape
-       allocate(self%time(historyShape(1)                ))
-       allocate(self%data(historyShape(1),historyShape(2)))
-       read (fileHandle) self%time
-       read (fileHandle) self%data
-    end if
-    return
-  end subroutine History_Long_Integer_Read_Raw
-
-  subroutine History_Long_Integer_Reset(history_)
-    !!{RST
-    Reset a history by zeroing all elements, but leaving the structure (and times) intact.
-    !!}
-    implicit none
-    class(longIntegerHistory), intent(inout) :: history_
-
-    if (allocated(history_%time)) history_%data=0_kind_int8
-    return
-  end subroutine History_Long_Integer_Reset
+  end function History_{Type¦label}Non_Static_Size_Of
 
   subroutine History_Set_To_Unity(history_)
     !!{RST
@@ -469,72 +557,6 @@ contains
     if (allocated(history_%time)) history_%data=1.0d0
     return
   end subroutine History_Set_To_Unity
-
-  logical function History_Exists(history_)
-    !!{RST
-    Returns true if the history has been created.
-    !!}
-    implicit none
-    class(history), intent(in   ) :: history_
-
-    History_Exists=allocated(history_%time)
-    return
-  end function History_Exists
-
-  subroutine History_Clone(self,historyToClone)
-    !!{RST
-    Clone a history object.
-    !!}
-    implicit none
-    class(history), intent(inout) :: self
-    type (history), intent(in   ) :: historyToClone
-
-    if (allocated(self%time)) deallocate(self%time)
-    if (allocated(self%data)) deallocate(self%data)
-    if (allocated(historyToClone%time)) then
-       allocate(self%time(size(historyToClone%time)))
-       self%time=historyToClone%time
-    end if
-    if (allocated(historyToClone%data)) then
-       allocate(self%data,mold=historyToClone%data)
-       self%data=historyToClone%data
-    end if
-    self%rangeType=historyToClone%rangeType
-    return
-  end subroutine History_Clone
-
-  logical function History_Long_Integer_Exists(history_)
-    !!{RST
-    Returns true if the history has been created.
-    !!}
-    implicit none
-    class(longIntegerHistory), intent(in   ) :: history_
-
-    History_Long_Integer_Exists=allocated(history_%time)
-    return
-  end function History_Long_Integer_Exists
-
-  subroutine History_Long_Integer_Clone(self,historyToClone)
-    !!{RST
-    Clone a ``longIntegerHistory`` object.
-    !!}
-    implicit none
-    class(longIntegerHistory), intent(inout) :: self
-    type (longIntegerHistory), intent(in   ) :: historyToClone
-
-    if (allocated(self%time)) deallocate(self%time)
-    if (allocated(self%data)) deallocate(self%data)
-    if (allocated(historyToClone%time)) then
-       allocate(self%time(size(historyToClone%time)))
-       self%time=historyToClone%time
-    end if
-    if (allocated(historyToClone%data)) then
-       allocate(self%data,mold=historyToClone%data)
-       self%data=historyToClone%data
-    end if
-    self%rangeType=historyToClone%rangeType
-    return
-  end subroutine History_Long_Integer_Clone
 
   logical function History_Is_Zero(self)
     !!{RST
@@ -649,362 +671,6 @@ contains
     if (allocated(self%data)) historyArray(:)=reshape(self%data,shape(historyArray))
     return
   end subroutine History_Serialize
-
-  subroutine History_Trim(history_,currentTime,minimumPointsToRemove)
-    !!{RST
-    Removes outdated information from "future histories" (i.e. histories that store data for future reference). Removes all but one entry prior to the given ``currentTime`` (this allows for interpolation of the history to the current time). Optionally, the remove is done only if it will remove more than ``minimumPointsToRemove`` entries (since the removal can be slow this allows for some optimization).
-    !!}
-    use            :: Error            , only : Error_Report
-    use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    implicit none
-    class           (history), intent(inout)           :: history_
-    double precision         , intent(in   )           :: currentTime
-    integer                  , intent(in   ), optional :: minimumPointsToRemove
-    type            (history)                          :: temporaryHistory
-    integer                                            :: currentPointCount    , historyCount               , &
-         &                                                iTrim                , minimumPointsToRemoveActual, &
-         &                                                newPointCount
-
-    ! Return if no history exists.
-    if (.not.allocated(history_%time)) return
-
-    ! Find points to remove.
-    currentPointCount=size(history_%time)
-
-    ! Return is nothing to trim.
-    if (currentPointCount == 0) return
-
-    ! Decide on the minimum number of points that we will remove.
-    if (present(minimumPointsToRemove)) then
-       if (minimumPointsToRemove < 1) call Error_Report('minimum number of points to remove must be >= 1'//{introspection:location})
-       minimumPointsToRemoveActual=minimumPointsToRemove
-    else
-       minimumPointsToRemoveActual=1
-    end if
-
-    ! Find how much we can trim. Never trim the final two point as they might be needed to extrapolate beyond the end of the
-    ! future history. Having found a point which exceeds the current time, pull back two points, so that we leave one point prior
-    ! to the current time.
-    iTrim=1
-    do while (history_%time(iTrim) < currentTime .and. iTrim <= currentPointCount-2)
-       iTrim=iTrim+1
-    end do
-    iTrim=iTrim-2
-
-    ! Check if there are enough removable points to warrant actually doing the removal.
-    if (iTrim >= minimumPointsToRemoveActual) then
-       ! Move current history to temporary storage.
-       call Move_Alloc(history_%time  ,temporaryHistory%time  )
-       call Move_Alloc(history_%data  ,temporaryHistory%data  )
-       ! Reallocate the history arrays.
-       newPointCount=currentPointCount-iTrim
-       historyCount =size(temporaryHistory%data,dim=2)
-       allocate(history_%time(newPointCount             ))
-       allocate(history_%data(newPointCount,historyCount))
-       ! Copy the data back into the new arrays.
-       history_%time(:  )=temporaryHistory%time(iTrim+1:currentPointCount  )
-       history_%data(:,:)=temporaryHistory%data(iTrim+1:currentPointCount,:)
-       ! Deallocate the temporary arrays.
-       deallocate(temporaryHistory%time  )
-       deallocate(temporaryHistory%data  )
-    end if
-    return
-  end subroutine History_Trim
-
-  subroutine History_Trim_Forward(self,time,removedHistory)
-    !!{RST
-    Removes all points in a history after the given ``time``. Optionally, the removed history can be returned as ``removedHistory``.
-    !!}
-    use            :: Arrays_Search    , only : searchArray
-    use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    implicit none
-    class           (history ), intent(inout)           :: self
-    double precision          , intent(in   )           :: time
-    type            (history ), intent(inout), optional :: removedHistory
-    type            (history )                          :: temporaryHistory
-    integer         (c_size_t)                          :: trimAt          , trimCount
-
-    ! Ensure the removed history to be returned is initialized.
-    if (present(removedHistory).and.allocated(removedHistory%time)) then
-       deallocate(removedHistory%time)
-       deallocate(removedHistory%data)
-    end if
-    ! Return if no history exists or if the final time is prior to the trim time.
-    if (.not.allocated(self%time).or.self%time(size(self%time)) <= time) return
-    ! Find where to trim and number of trimmed points.
-    trimAt   =searchArray(self%time,time)+1
-    trimCount=size(self%time)-trimAt+1
-    ! Transfer data to a temporary history.
-    call Move_Alloc(self%time,temporaryHistory%time)
-    call Move_Alloc(self%data,temporaryHistory%data)
-    ! Reallocate history to trimmed size and populate.
-    if (trimAt > 1) then
-       allocate(self%time(trimAt-1                                  ))
-       allocate(self%data(trimAt-1,size(temporaryHistory%data,dim=2)))
-       self%time=temporaryHistory%time(1:trimAt-1  )
-       self%data=temporaryHistory%data(1:trimAt-1,:)
-    end if
-    ! If the trimmed history is to be returned, allocate the arrays and populate.
-    if (present(removedHistory)) then
-       allocate(removedHistory%time(trimCount                                  ))
-       allocate(removedHistory%data(trimCount,size(temporaryHistory%data,dim=2)))
-       removedHistory%time=temporaryHistory%time(trimAt:trimAt+trimCount-1  )
-       removedHistory%data=temporaryHistory%data(trimAt:trimAt+trimCount-1,:)
-    end if
-    ! Clean up temporary history.
-    deallocate(temporaryHistory%time)
-    deallocate(temporaryHistory%data)
-    return
-  end subroutine History_Trim_Forward
-
-  subroutine History_Long_Integer_Trim(history_,currentTime,minimumPointsToRemove)
-    !!{RST
-    Removes outdated information from "future histories" (i.e. histories that store data for future reference). Removes all but one entry prior to the given ``currentTime`` (this allows for interpolation of the history to the current time). Optionally, the remove is done only if it will remove more than ``minimumPointsToRemove`` entries (since the removal can be slow this allows for some optimization).
-    !!}
-    use            :: Error            , only : Error_Report
-    use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    implicit none
-    class           (longIntegerHistory), intent(inout)           :: history_
-    double precision                    , intent(in   )           :: currentTime
-    integer                             , intent(in   ), optional :: minimumPointsToRemove
-    type            (longIntegerHistory)                          :: temporaryHistory
-    integer                                                       :: currentPointCount    , historyCount               , &
-         &                                                           iTrim                , minimumPointsToRemoveActual, &
-         &                                                           newPointCount
-
-    ! Return if no history exists.
-    if (.not.allocated(history_%time)) return
-
-    ! Find points to remove.
-    currentPointCount=size(history_%time)
-
-    ! Return is nothing to trim.
-    if (currentPointCount == 0) return
-
-    ! Decide on the minimum number of points that we will remove.
-    if (present(minimumPointsToRemove)) then
-       if (minimumPointsToRemove < 1) call Error_Report('minimum number of points to remove must be >= 1'//{introspection:location})
-       minimumPointsToRemoveActual=minimumPointsToRemove
-    else
-       minimumPointsToRemoveActual=1
-    end if
-
-    ! Find how much we can trim. Never trim the final two point as they might be needed to extrapolate beyond the end of the
-    ! future history. Having found a point which exceeds the current time, pull back two points, so that we leave one point prior
-    ! to the current time.
-    iTrim=1
-    do while (history_%time(iTrim) < currentTime .and. iTrim <= currentPointCount-2)
-       iTrim=iTrim+1
-    end do
-    iTrim=iTrim-2
-
-    ! Check if there are enough removable points to warrant actually doing the removal.
-    if (iTrim >= minimumPointsToRemoveActual) then
-       ! Move current history to temporary storage.
-       call Move_Alloc(history_%time  ,temporaryHistory%time  )
-       call Move_Alloc(history_%data  ,temporaryHistory%data  )
-       ! Reallocate the history arrays.
-       newPointCount=currentPointCount-iTrim
-       historyCount =size(temporaryHistory%data,dim=2)
-       allocate(history_%time(newPointCount             ))
-       allocate(history_%data(newPointCount,historyCount))
-       ! Copy the data back into the new arrays.
-       history_%time(:  )=temporaryHistory%time(iTrim+1:currentPointCount  )
-       history_%data(:,:)=temporaryHistory%data(iTrim+1:currentPointCount,:)
-       ! Deallocate the temporary arrays.
-       deallocate(temporaryHistory%time  )
-       deallocate(temporaryHistory%data  )
-    end if
-    return
-  end subroutine History_Long_Integer_Trim
-
-  subroutine History_Long_Integer_Trim_Forward(self,time,removedHistory)
-    !!{RST
-    Removes all points in a history after the given ``time``. Optionally, the removed history can be returned as ``removedHistory``.
-    !!}
-    use            :: Arrays_Search    , only : searchArray
-    use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    implicit none
-    class           (longIntegerHistory), intent(inout)           :: self
-    double precision                    , intent(in   )           :: time
-    type            (longIntegerHistory), intent(inout), optional :: removedHistory
-    type            (longIntegerHistory)                          :: temporaryHistory
-    integer         (c_size_t          )                          :: trimAt          , trimCount
-
-    ! Ensure the removed history to be returned is initialized.
-    if (present(removedHistory).and.allocated(removedHistory%time)) then
-       deallocate(removedHistory%time)
-       deallocate(removedHistory%data)
-    end if
-    ! Return if no history exists or if the final time is prior to the trim time.
-    if (.not.allocated(self%time).or.self%time(size(self%time)) <= time) return
-    ! Find where to trim and number of trimmed points.
-    trimAt   =searchArray(self%time,time)+1
-    trimCount=size(self%time)-trimAt+1
-    ! Transfer data to a temporary history.
-    call Move_Alloc(self%time,temporaryHistory%time)
-    call Move_Alloc(self%data,temporaryHistory%data)
-    ! Reallocate history to trimmed size and populate.
-    if (trimAt > 1) then
-       allocate(self%time(trimAt-1                                  ))
-       allocate(self%data(trimAt-1,size(temporaryHistory%data,dim=2)))
-       self%time=temporaryHistory%time(1:trimAt-1  )
-       self%data=temporaryHistory%data(1:trimAt-1,:)
-    end if
-    ! If the trimmed history is to be returned, allocate the arrays and populate.
-    if (present(removedHistory)) then
-       allocate(removedHistory%time(trimCount                                  ))
-       allocate(removedHistory%data(trimCount,size(temporaryHistory%data,dim=2)))
-       removedHistory%time=temporaryHistory%time(trimAt:trimAt+trimCount-1  )
-       removedHistory%data=temporaryHistory%data(trimAt:trimAt+trimCount-1,:)
-    end if
-    ! Clean up temporary history.
-    deallocate(temporaryHistory%time)
-    deallocate(temporaryHistory%data)
-    return
-  end subroutine History_Long_Integer_Trim_Forward
-
-  subroutine History_Long_Integer_Append_History(self,append)
-    !!{RST
-    Append a history to a long integer history.
-    !!}
-    use :: Error            , only : Error_Report
-    implicit none
-    class           (longIntegerHistory), intent(inout)                 :: self
-    type            (longIntegerHistory), intent(in   )                 :: append
-    double precision                    , allocatable  , dimension(:  ) :: timeTmp
-    integer         (kind=kind_int8    ), allocatable  , dimension(:,:) :: dataTmp
-
-    if (.not.allocated(self%time)) then
-       ! No pre-existing history - simply copy the history to append.
-       self%time=append%time
-       self%data=append%data
-    else
-       ! A history already exists. Validate the provided append history.
-       if (append%time(1) <= self%time(size(self%time))) call Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
-       if (size(self%data,dim=2) /= size(append%data,dim=2)) call Error_Report('histories have different cardinalities'//{introspection:location})
-       ! Do the append.
-       allocate(timeTmp(size(self%time)+size(append%time)                      ))
-       allocate(dataTmp(size(self%time)+size(append%time),size(self%data,dim=2)))
-       timeTmp(                1:size(self%time)                    )=self  %time
-       timeTmp(size(self%time)+1:size(self%time)+size(append%time)  )=append%time
-       dataTmp(                1:size(self%time)                  ,:)=self  %data
-       dataTmp(size(self%time)+1:size(self%time)+size(append%time),:)=append%data
-       deallocate     (        self%time)
-       deallocate     (        self%data)
-       call move_alloc(timeTmp,self%time)
-       call move_alloc(dataTmp,self%data)
-    end if
-    return
-  end subroutine History_Long_Integer_Append_History
-
-  subroutine History_Long_Integer_Append_Epoch(self,time,append)
-    !!{RST
-    Append a history to a long integer history.
-    !!}
-    use :: Error            , only : Error_Report
-    implicit none
-    class           (longIntegerHistory), intent(inout)                 :: self
-    double precision                    , intent(in   )                 :: time
-    integer         (kind=kind_int8    ), intent(in   ), dimension(:  ) :: append
-    double precision                    , allocatable  , dimension(:  ) :: timeTmp
-    integer         (kind=kind_int8    ), allocatable  , dimension(:,:) :: dataTmp
-
-    if (.not.allocated(self%time)) then
-       ! No pre-existing history - simply copy the history to append.
-       allocate(self%time(1              ))
-       allocate(self%data(1,size(append)))
-       self%time(1  )=time
-       self%data(1,:)=append
-    else
-       ! A history already exists. Validate the provided append history.
-       if (time <= self%time(size(self%time))) call Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
-       if (size(self%data,dim=2) /= size(append)) call Error_Report('histories have different cardinalities'//{introspection:location})
-       ! Do the append.
-       allocate(timeTmp(size(self%time)+1                      ))
-       allocate(dataTmp(size(self%time)+1,size(self%data,dim=2)))
-       timeTmp(                1:size(self%time)    )=self   %time
-       timeTmp(size(self%time)+1                    )=        time
-       dataTmp(                1:size(self%time)  ,:)=self   %data
-       dataTmp(size(self%time)+1                  ,:)=        append
-       deallocate     (        self%time)
-       deallocate     (        self%data)
-       call move_alloc(timeTmp,self%time)
-       call move_alloc(dataTmp,self%data)
-    end if
-    return
-  end subroutine History_Long_Integer_Append_Epoch
-
-  subroutine History_Append_History(self,append)
-    !!{RST
-    Append a history to a long integer history.
-    !!}
-    use :: Error            , only : Error_Report
-    implicit none
-    class           (history), intent(inout)                 :: self
-    type            (history), intent(in   )                 :: append
-    double precision         , allocatable  , dimension(:  ) :: timeTmp
-    double precision         , allocatable  , dimension(:,:) :: dataTmp
-
-    if (.not.allocated(self%time)) then
-       ! No pre-existing history - simply copy the history to append.
-       self%time=append%time
-       self%data=append%data
-    else
-       ! A history already exists. Validate the provided append history.
-       if (append%time(1) <= self%time(size(self%time))) call Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
-       if (size(self%data,dim=2) /= size(append%data,dim=2)) call Error_Report('histories have different cardinalities'//{introspection:location})
-       ! Do do the append.
-       allocate(timeTmp(size(self%time)+size(append%time)                      ))
-       allocate(dataTmp(size(self%time)+size(append%time),size(self%data,dim=2)))
-       timeTmp(                1:size(self%time)                    )=self  %time
-       timeTmp(size(self%time)+1:size(self%time)+size(append%time)  )=append%time
-       dataTmp(                1:size(self%time)                  ,:)=self  %data
-       dataTmp(size(self%time)+1:size(self%time)+size(append%time),:)=append%data
-       deallocate     (        self%time)
-       deallocate     (        self%data)
-       call move_alloc(timeTmp,self%time)
-       call move_alloc(dataTmp,self%data)
-    end if
-    return
-  end subroutine History_Append_History
-
-  subroutine History_Append_Epoch(self,time,append)
-    !!{RST
-    Append a history to a long integer history.
-    !!}
-    use :: Error            , only : Error_Report
-    implicit none
-    class           (history), intent(inout)                 :: self
-    double precision         , intent(in   )                 :: time
-    double precision         , intent(in   ), dimension(:  ) :: append
-    double precision         , allocatable  , dimension(:  ) :: timeTmp
-    double precision         , allocatable  , dimension(:,:) :: dataTmp
-
-    if (.not.allocated(self%time)) then
-       ! No pre-existing history - simply copy the history to append.
-       allocate(self%time(1              ))
-       allocate(self%data(1,size(append)))
-       self%time(1  )=time
-       self%data(1,:)=append
-    else
-       ! A history already exists. Validate the provided append data.
-       if (time <= self%time(size(self%time))) call Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
-       if (size(self%data,dim=2) /= size(append)) call Error_Report('histories have different cardinalities'//{introspection:location})
-       ! Do the append.
-       allocate(timeTmp(size(self%time)+1                      ))
-       allocate(dataTmp(size(self%time)+1,size(self%data,dim=2)))
-       timeTmp(                1:size(self%time)    )=self   %time
-       timeTmp(size(self%time)+1                    )=        time
-       dataTmp(                1:size(self%time)  ,:)=self   %data
-       dataTmp(size(self%time)+1                  ,:)=        append
-       deallocate     (        self%time)
-       deallocate     (        self%data)
-       call move_alloc(timeTmp,self%time)
-       call move_alloc(dataTmp,self%data)
-    end if
-    return
-  end subroutine History_Append_Epoch
 
    subroutine History_Interpolated_Increment(history_,addHistory)
      !!{RST
@@ -1443,39 +1109,5 @@ contains
     end select
     return
   end subroutine History_Timesteps
-
-  function History_Non_Static_Size_Of(self)
-    !!{RST
-    Return the size of any non-static components of the object.
-    !!}
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
-    implicit none
-    integer(c_size_t)                :: History_Non_Static_Size_Of
-    class  (history ), intent(in   ) :: self
-
-    if (allocated(self%time)) then
-       History_Non_Static_Size_Of=sizeof(self%time)+sizeof(self%data)
-    else
-       History_Non_Static_Size_Of=0_c_size_t
-    end if
-    return
-  end function History_Non_Static_Size_Of
-
-  function History_Long_Integer_Non_Static_Size_Of(self)
-    !!{RST
-    Return the size of any non-static components of the object.
-    !!}
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
-    implicit none
-    integer(c_size_t          )                :: History_Long_Integer_Non_Static_Size_Of
-    class  (longIntegerHistory), intent(in   ) :: self
-
-    if (allocated(self%time)) then
-       History_Long_Integer_Non_Static_Size_Of=sizeof(self%time)+sizeof(self%data)
-    else
-       History_Long_Integer_Non_Static_Size_Of=0_c_size_t
-    end if
-    return
-  end function History_Long_Integer_Non_Static_Size_Of
 
 end module Histories
