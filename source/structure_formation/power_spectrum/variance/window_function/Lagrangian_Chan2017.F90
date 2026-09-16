@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Provides a power spectrum window function class that implements the Lagrangian filter of :cite:t:`chan_effective_2017`.
   !!}
@@ -116,49 +118,22 @@ contains
     !!{RST
     Smooth-:math:`k` space power spectrum window function proposed in :cite:t:`leo_new_2018`. spectrum.
     !!}
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Power_Spectrum_Window_Function_Utilities, only : Window_Function_Radius_Lagrangian, Window_Function_Top_Hat
     implicit none
     class           (powerSpectrumWindowFunctionLagrangianChan2017), intent(inout) :: self
-    double precision                                               , intent(in   ) :: smoothingMass          , wavenumber, &
+    double precision                                               , intent(in   ) :: smoothingMass   , wavenumber   , &
          &                                                                            time
-    double precision                                               , parameter     :: xSeriesMaximum  =1.0d-3
-    double precision                                                               :: radiusLagrangian       , x          , &
-         &                                                                            xSquared               , valueTopHat, &
-         &                                                                            valueGaussian
+    double precision                                                               :: radiusLagrangian, x            , &
+         &                                                                            valueTopHat     , valueGaussian
     !$GLC attributes unused :: time
 
-    radiusLagrangian=+(                                             &
-         &             +3.0d0                                       &
-         &             /4.0d0                                       &
-         &             /Pi                                          &
-         &             *smoothingMass                               &
-         &             /self%cosmologyParameters_%OmegaMatter    () &
-         &             /self%cosmologyParameters_%densityCritical() &
-         &            )**(1.0d0/3.0d0)
-    x               =+wavenumber                                    &
+    radiusLagrangian=Window_Function_Radius_Lagrangian(smoothingMass,self%cosmologyParameters_)
+    x               =+wavenumber       &
          &           *radiusLagrangian
     if (x <= 0.0d0) then
        lagrangianChan2017Value=+0.0d0
     else
-       if (x <= xSeriesMaximum) then
-          ! Use a series expansion of the window function for small x.
-          xSquared   =+x**2
-          valueTopHat=+1.0d0                        &
-               &      +xSquared*(  -1.0d0/   10.0d0 &
-               &      +xSquared* ( +1.0d0/  280.0d0 &
-               &      +xSquared*  (-1.0d0/15120.0d0 &
-               &                  )                 &
-               &                 )                  &
-               &                )
-       else
-          valueTopHat=+3.0d0       &
-               &      *(           &
-               &        +sin(x)    &
-               &        -    x     &
-               &        *cos(x)    &
-               &       )           &
-               &      /      x **3
-       end if
+       valueTopHat=Window_Function_Top_Hat(x)
        valueGaussian          =+exp(            &
             &                       -0.5d0      &
             &                       *(          &
