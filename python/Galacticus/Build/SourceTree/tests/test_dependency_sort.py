@@ -5,7 +5,7 @@ pattern verbatim — for `X.after = Y` it pushed `dependencies[Y] += [X]`.
 But Perl's `Sort::Topo` had a docstring/algorithm mismatch: the
 docstring said `dependencies[X] = [Y]` meant "X depends on Y" (Y first),
 while the actual algorithm emitted X *first*.  The two opposites
-cancelled out so Perl callers got the right answer.
+canceled out so Perl callers got the right answer.
 
 Our Python `Sort.Topo` wraps `graphlib.TopologicalSorter`, which
 matches the *standard* "X depends on Y → Y first" convention with no

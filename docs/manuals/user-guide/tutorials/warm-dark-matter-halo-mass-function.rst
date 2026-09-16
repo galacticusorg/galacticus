@@ -23,7 +23,7 @@ You can look at the entire parameter file for this tutorial `here <https://raw.g
 
    <!-- Specify tasks to perform -->
    <task value="haloMassFunction">
-     <haloMassMinimum value="1.0e7"/>
+     <massHaloMinimum value="1.0e7"/>
    </task>
 
 The only difference with respect to the CDM case here is that we specify the minimum halo mass at which to compute the halo mass function. By default a minimum mass of :math:`10^{10}\mathrm{M}_\odot` is used, but here we want to go to lower masses to see the effects of warm dark matter.

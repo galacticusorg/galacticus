@@ -36,7 +36,7 @@ program Tests_Spherical_Collapse_Dark_Energy_EdS
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
-  use :: Spherical_Collapse_Solvers          , only : cllsnlssMttrDarkEnergyFixedAtTurnaround
+  use :: Spherical_Collapse_Solvers          , only : collisionlessMatterDarkEnergyFixedAtTurnaround
   use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999
   use :: Unit_Tests                          , only : Assert                                                   , Unit_Tests_Begin_Group               , Unit_Tests_End_Group, Unit_Tests_Finish
   use :: Virial_Density_Contrast             , only : virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy
@@ -176,7 +176,7 @@ program Tests_Spherical_Collapse_Dark_Energy_EdS
    <constructor>
     virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy(                                                                                  &amp;
      &amp;                                                    cosmologyFunctions_                     =cosmologyFunctions_                    , &amp;
-     &amp;                                                    energyFixedAt                           =cllsnlssMttrDarkEnergyFixedAtTurnaround, &amp;
+     &amp;                                                    energyFixedAt                           =collisionlessMatterDarkEnergyFixedAtTurnaround, &amp;
      &amp;                                                    tableStore                              =.true.                                   &amp;
      &amp;                                                   )
    </constructor>

@@ -78,7 +78,7 @@ else:
     print(f"FAILED: a zero exponent changes the metals produced by a fractional {difference:.2e}, so the "
           "decorator is not transparent when it should be")
 
-# A negative exponent must enhance the rate, because the modelled galaxy spends its early life below Solar
+# A negative exponent must enhance the rate, because the modeled galaxy spends its early life below Solar
 # metallicity where the scaling exceeds unity. The enhancement applies to the Type Ia contribution only, which
 # is a minority of the metals, so the total must rise by a modest amount rather than by the full scaling factor.
 ratio = models["metallicity"]["metals"]/models["undecorated"]["metals"]

@@ -26,7 +26,7 @@ with open("outputs/test-allowed-parameters.log") as log:
 disallowed = sorted(set(disallowed))
 
 # Check against expectations.
-status = "success" if ":".join(disallowed) == "scaleCutOff" else "FAILURE"
-if status == "FAILURE":
+status = "SUCCESS" if ":".join(disallowed) == "scaleCutOff" else "FAILED"
+if status == "FAILED":
     print("  -> unrecognized parameters: " + ", ".join(disallowed))
-print("Test allowed parameters functionality: " + status)
+print(status + ": allowed parameters functionality")

@@ -22,7 +22,7 @@ from List.ExtraUtils  import as_array
 def _elem_to_python(elem):
     """Recursively convert an ElementTree element to a Python dict/str.
 
-    Replicates XML::Simple's XMLin default behaviour (no ForceArray):
+    Replicates XML::Simple's XMLin default behavior (no ForceArray):
       - Element with no children and only text  → str
       - Element with children                   → dict
       - Multiple sibling elements with same tag → list

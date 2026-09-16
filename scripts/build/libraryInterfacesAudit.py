@@ -526,7 +526,7 @@ def classify_method_return(ret_type, all_fcs, registered,
     return set(), [f"unsupported return type ({ret})"]
 
 
-# Categorise a blocker reason for the in-scope vs deferred split in the
+# Categorize a blocker reason for the in-scope vs deferred split in the
 # method report.  "Out-of-scope" tracks the team decision to defer
 # `type(treeNode)`, the other internal derived types, and non-fc class
 # hierarchies; everything else (kind aliases, deferred-shape return

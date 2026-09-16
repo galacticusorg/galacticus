@@ -11,17 +11,30 @@ run a model, the launcher downloads the pre-built executable, the run-time
 ``datasets``, and the pre-built ``tools`` for your platform, and sets the
 required environment variables for you — so there is nothing else to configure.
 
-Pre-built binaries are available for Linux (x86-64), macOS (Intel x86-64), and
-macOS (Apple Silicon). On Windows the launcher runs the Linux binary through
-WSL 2 and can set that up for you — see :ref:`pip-windows`. On other platforms
-there is no pre-built binary; build :doc:`from source <source-linux>` instead.
+Pre-built binaries are available for Linux (x86-64) and macOS (Apple Silicon).
+On Windows the launcher runs the Linux binary through WSL 2 and can set that up
+for you — see :ref:`pip-windows`. On other platforms there is no pre-built
+binary; build :doc:`from source <source-linux>` instead.
 
 .. note::
 
-   The pre-built macOS binaries are compiled on a recent macOS and will only run
+   The pre-built macOS binary is compiled on a recent macOS and will only run
    on that version or newer. The launcher checks this before running: if your
    macOS is too old it stops with a clear message (rather than a cryptic
    ``dyld`` error) telling you to upgrade macOS or build from source.
+
+.. note::
+
+   **macOS Intel (x86-64) is no longer built.** GitHub Actions is retiring its
+   Intel macOS runners, and Homebrew no longer publishes pre-built packages for
+   that platform, so releases after ``v0.9.12`` carry no macOS Intel binary.
+   Releases up to and including ``v0.9.12`` still do, and an install already made
+   from one of them keeps working, so on an Intel Mac either pin that version::
+
+      pip install 'galacticus==0.9.12'
+
+   or build :doc:`from source <source-macos>`. Asking a newer release for an
+   Intel binary stops with a message saying so rather than failing to download.
 
 Running a model
 ---------------

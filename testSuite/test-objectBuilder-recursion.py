@@ -52,7 +52,7 @@ for label, parameterFile, expected in cases:
     output     = process.stdout or ""
     returnCode = process.returncode
 
-    # A segmentation fault (the unguarded behaviour) reports 139 via the shell
+    # A segmentation fault (the unguarded behavior) reports 139 via the shell
     # (128 + SIGSEGV), or a negative signal number if not run through a shell.
     if returnCode == 139 or returnCode < 0:
         print(f"FAILED: {label}: model crashed (return code {returnCode}) "

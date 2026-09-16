@@ -783,7 +783,7 @@ def test_parse_directives():
 
     # `parse_code` runs `Comment_Embedded` over the source content, so every
     # body line of an `!![ … !!]` block (or `!!{ … !!}` LaTeX block) is
-    # prefixed with `!< ` to make the serialised output compilable Fortran
+    # prefixed with `!< ` to make the serialized output compilable Fortran
     # — the compiler choked on the raw `<foo .../>` text otherwise.  The
     # `!![` / `!!]` markers themselves stay as they were because they are
     # already valid Fortran comments (they start with `!!`).
@@ -4314,7 +4314,7 @@ def test_functionclass_process_hook_is_no_op_when_no_directive():
 
 def test_functionclass_process_hook_marks_class_nodes():
     print("\n=== Testing process_function_class early pass marks <class> directive nodes ===")
-    # Synthesise a tree with a node of type 'myFoo' whose parent is a
+    # Synthesize a tree with a node of type 'myFoo' whose parent is a
     # module, AND make sure `myFooClass` is registered as a functionClass
     # in stateStorables.xml.  The hook's early pass should flip the
     # directive's `processed` flag without requiring a <functionClass>
@@ -4842,7 +4842,7 @@ def test_functionclass_build_descriptor_methods():
                  "hashedDescriptor references per-class MD5 symbol <name>5")
     assert_equal(
         'testFooHashedDescriptor=Hash_MD5(descriptorString)' in h_code, True,
-        "hashedDescriptor finalises via Hash_MD5 assignment")
+        "hashedDescriptor finalizes via Hash_MD5 assignment")
     assert_equal(methods['hashedDescriptor']['type'], 'type(varying_string)',
                  "hashedDescriptor returns a varying_string")
 
@@ -4981,12 +4981,12 @@ def main():
     print(f"Results: {PASS_COUNT} passed, {FAIL_COUNT} failed")
     print("=" * 70)
 
-    # Always exit with status 0 - failure is signaled by "FAIL" in the output above.
+    # Always exit with status 0 - failure is signaled by "FAILED" in the output above.
     if FAIL_COUNT > 0:
-        print("FAIL: Some tests failed")
+        print("FAILED: some Python utility tests failed")
         sys.exit(0)
     else:
-        print("PASS: All tests passed")
+        print("SUCCESS: all Python utility tests passed")
         sys.exit(0)
 
 

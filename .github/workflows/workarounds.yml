@@ -5,6 +5,10 @@ on:
     - cron: '08 08 * * *'
 permissions:
   contents: read
+  # Required so that the checker can query the state of the issues referenced by
+  # the `issue` attribute of `<workaround>` directives (a workaround whose issue
+  # has been closed is no longer considered "staged for removal").
+  issues: read
 jobs:
   Check-Workarounds:
     runs-on: ubuntu-latest
@@ -26,6 +30,8 @@ jobs:
           sudo apt -y update
           sudo apt install -y curl
       - name: Check for workaround fixes
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH

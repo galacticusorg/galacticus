@@ -1084,7 +1084,7 @@ contains
     type            (varying_string          )                              :: descriptorString          , values
     integer                                                                 :: i
     !![
-    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845" docformat="rst">
+    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=102845" docformat="rst">
       <description>
       Memory leak possibly due to OpenMP parallelism, or some failing of gfortran.
       </description>
@@ -1150,7 +1150,7 @@ contains
     call descriptor%destroy()
     descriptorString=descriptorString//":sourceDigest{"//String_C_To_Fortran(nodePropertyExtractorSED5)//"}"
     !![
-    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845" docformat="rst">
+    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=102845" docformat="rst">
      <description>
      Memory leak possibly due to OpenMP parallelism, or some failing of gfortran.
      </description>

@@ -107,7 +107,7 @@ Once the prerequisites in Section :galacticus-ref:`pythonInterface:build:pythonp
 
    import galacticus
 
-Importing the module automatically loads ``libgalacticus.so`` via ``ctypes`` and calls the internal Galacticus initialisation routine ``libGalacticusInitL``, which sets up event hooks and the HDF5 access lock.
+Importing the module automatically loads ``libgalacticus.so`` via ``ctypes`` and calls the internal Galacticus initialization routine ``libGalacticusInitL``, which sets up event hooks and the HDF5 access lock.
 
 .. _manual-sec-pythonInterface-usage-classes:
 

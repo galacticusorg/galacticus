@@ -384,7 +384,7 @@ contains
        self%system%gsl=gsl_odeiv2_system_init(self%dim,c_funloc(derivativesWrapper),c_null_funptr                 )
     end if
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
@@ -410,7 +410,7 @@ contains
        self%driver%gsl=gsl_odeiv2_driver_alloc_y_new      (self%system%gsl,self%gsl_odeiv2_step_type,hStart_,toleranceAbsolute_,toleranceRelative_                                         )
     end if
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>

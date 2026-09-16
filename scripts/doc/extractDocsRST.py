@@ -187,8 +187,12 @@ def _extract_type_methods(text: str) -> list[dict]:
                 continue
             description = _attr(attrs, 'description')
             if description is None:
+                # Not stripped here: stripping removes the first line's
+                # indentation but not that of the lines following it, so
+                # `_desc_to_rst` could no longer find the common margin, and a
+                # multi-paragraph description would render as a block quote.
                 dm = _DESC_RE.search(inner)
-                description = dm.group(1).strip() if dm else None
+                description = dm.group(1) if dm else None
             out.append({
                 'name':        name,
                 'description': description,
@@ -392,7 +396,8 @@ def scan_source(source_dir: str):
       type-bound methods declared in that file's ``<methods>`` block(s).
     * ``modules``: ``[{name, file, description, classRef}, …]`` — one per
       documented module (``classRef`` links class modules to their page).
-    * ``workarounds``: ``[{type, pr, url, description, seeAlso, file}, …]``.
+    * ``workarounds``: ``[{type, pr, url, issue, description, seeAlso, file},
+      …]``.
     * ``components``: ``{class: [{name, description, isDefault, extends,
       properties, file}, …]}`` — the node component implementations.
     """
@@ -477,6 +482,9 @@ def scan_source(source_dir: str):
                         'type':        _attr(wattrs, 'type'),
                         'pr':          _attr(wattrs, 'PR'),
                         'url':         _attr(wattrs, 'url'),
+                        # Our own issue tracking removal of the workaround, if
+                        # one has been opened (see the workaroundChecker).
+                        'issue':       _attr(wattrs, 'issue'),
                         'description': wdesc.group(1),
                         'seeAlso':     [{'type': _attr(s, 'type'),
                                          'pr':   _attr(s, 'PR'),
@@ -560,6 +568,10 @@ def scan_source(source_dir: str):
         key = (w.get('type'), w.get('pr'),
                ' '.join((w.get('description') or '').split()))
         entry = deduped.setdefault(key, {**w, 'seeAlso': []})
+        # Only one of a set of identical occurrences need carry the ``issue``
+        # attribute, so keep the first one found rather than the first entry's.
+        if not entry.get('issue') and w.get('issue'):
+            entry['issue'] = w['issue']
         have = {(s.get('type'), s.get('pr'), s.get('url'))
                 for s in entry['seeAlso']}
         for s in w.get('seeAlso') or []:
@@ -614,9 +626,14 @@ def _parameter_facets(p: dict) -> list[str]:
 
 def render_parameter(p: dict, glsmap: dict) -> str:
     name = p.get('name', '')
-    desc = _desc_to_rst(p.get('description'), glsmap)
-    # Parameter descriptions are short; collapse to a single logical line.
-    desc = re.sub(r'\s*\n\s*', ' ', desc).strip()
+    # Emitted as written, not collapsed onto one line - as for method
+    # descriptions (see `render_method`).  Most parameter descriptions are a
+    # single paragraph, but some carry several, or a definition list of the
+    # allowed values, which collapsing folded into one run-on paragraph.
+    desc = _desc_to_rst(p.get('description'), glsmap).strip()
+    # Notes appended below start a paragraph of their own where the description
+    # has several, rather than running on from whatever block ends it.
+    separator = '\n\n' if '\n\n' in desc else ' '
     head = f'``[{name}]``'
     facets = _parameter_facets(p)
     if facets:
@@ -634,10 +651,14 @@ def render_parameter(p: dict, glsmap: dict) -> str:
         if source:
             if not source.endswith('.'):
                 source += '.'
-            desc = (desc + ' ' if desc else '') + f'*Default from:* {source}'
+            desc = (desc + separator if desc else '') + f'*Default from:* {source}'
     if p.get('inheritedFrom'):
-        desc = (desc + ' ' if desc else '') + f'*(inherited from* ``{p["inheritedFrom"]}``\\ *)*'
-    return f'* {head} — {desc}' if desc else f'* {head}'
+        desc = (desc + separator if desc else '') + f'*(inherited from* ``{p["inheritedFrom"]}``\\ *)*'
+    if not desc:
+        return f'* {head}'
+    # Continuation lines are indented to align with the text of the bullet, so
+    # that they remain part of it.
+    return f'* {head} — ' + textwrap.indent(desc, '  ').lstrip(' ')
 
 
 def _implementation_parameters(impl: dict, params_by_file: dict,
@@ -679,9 +700,12 @@ def render_method(meth: dict, glsmap: dict) -> list[str]:
         signature += f' → {return_type}'
 
     # The description is already RST (converted in the source); unescape the XML
-    # entities, as for <description> elements.
-    description = re.sub(r'\s*\n\s*', ' ',
-                         _desc_to_rst(meth.get('description'), glsmap)).strip()
+    # entities, as for <description> elements.  Emitted as written, not
+    # collapsed onto one line - as for module headers (see `render_modules`).
+    # Collapsing folded any block directive (a ``code-block``, say) into the
+    # surrounding prose as literal text.  The body is the definition of a
+    # definition list, so it is indented as a whole below.
+    description = _desc_to_rst(meth.get('description'), glsmap).strip()
     body = description or '—'
     arguments = []
     for argument in meth.get('arguments') or []:
@@ -857,8 +881,9 @@ def render_enumerations(enumerations: list[dict], glsmap: dict) -> str:
         if name_counts[en['name']] > 1:
             title += f' ({en.get("module") or "?"})'
         out.append(_heading(title, '-'))
-        desc = re.sub(r'\s*\n\s*', ' ',
-                      _desc_to_rst(en.get('description'), glsmap)).strip()
+        # Emitted as written, not collapsed onto one line, so that a description
+        # of several paragraphs keeps them (see `render_method`).
+        desc = _desc_to_rst(en.get('description'), glsmap).strip()
         if desc:
             out.append(desc + '\n')
         entries = en.get('entries') or []
@@ -902,6 +927,16 @@ def render_modules(modules: list[dict]) -> str:
     return '\n'.join(out) + '\n'
 
 
+def _issue_link(issue: str) -> str:
+    """Render an ``issue`` attribute (a bare number, or a full URL) as a link."""
+    issue = html.unescape(issue)
+    if re.fullmatch(r'#?\d+', issue):
+        number = issue.lstrip('#')
+        return (f'`issue #{number} '
+                f'<https://github.com/galacticusorg/galacticus/issues/{number}>`_')
+    return f'`issue <{issue}>`_'
+
+
 def render_workarounds(workarounds: list[dict], glsmap: dict) -> str:
     """A developer reference of the compiler workarounds documented in source."""
     def link(typ, pr, url):
@@ -919,6 +954,10 @@ def render_workarounds(workarounds: list[dict], glsmap: dict) -> str:
         for s in w.get('seeAlso') or []:
             body += ('\n\nSee also: '
                      + link(s.get('type'), s.get('pr'), s.get('url')) + '.')
+        issue = w.get('issue')
+        if issue:
+            body += ('\n\nRemoval of this workaround is tracked by '
+                     + _issue_link(issue) + '.')
         out.append(link(w.get('type'), w.get('pr'), w.get('url')))
         out.append(textwrap.indent(body, '   '))
         out.append('')

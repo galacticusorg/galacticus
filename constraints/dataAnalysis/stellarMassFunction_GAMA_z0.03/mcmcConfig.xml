@@ -12,8 +12,8 @@
     <emulateOutliers>true</emulateOutliers>
     <simulatorLikelihood>
       <type>massFunction</type>
-      <haloMassMinimum>1.0e6</haloMassMinimum>
-      <haloMassMaximum>1.0e15</haloMassMaximum>
+      <massHaloMinimum>1.0e6</massHaloMinimum>
+      <massHaloMaximum>1.0e15</massHaloMaximum>
       <redshiftMinimum>0.00</redshiftMinimum>
       <redshiftMaximum>0.06</redshiftMaximum>
       <useSurveyLimits>true</useSurveyLimits>

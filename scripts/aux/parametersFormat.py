@@ -491,7 +491,7 @@ def _member_rank(group, tag):
 
 
 def _process_parameters(parameters):
-    """Reorganise one <parameters> element in-place."""
+    """Reorganize one <parameters> element in-place."""
     new_groups = {}
 
     # Snapshot the current value-bearing child elements.

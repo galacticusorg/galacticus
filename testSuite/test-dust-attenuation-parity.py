@@ -269,6 +269,7 @@ with h5py.File(outputPath, "r") as f:
         atlasDisk       = nodes["diskStellarSED:inoue2014:dustAttenuated:atlasFerrara2000"][:]
         atlasSpheroid   = nodes["spheroidStellarSED:inoue2014:dustAttenuated:atlasFerrara2000"][:]
         atlasAveraged   = nodes["diskStellarSED:inoue2014:dustAttenuated:inclinationAveraged"][:]
+        atlasEdgeOn     = nodes["diskStellarSED:inoue2014:dustAttenuated:atlasFerrara2000:edgeOn"][:]
     except KeyError as e:
         print(f"FAILED: expected atlas dataset missing from the output: {e}")
         sys.exit(0)
@@ -282,11 +283,13 @@ if not emittingDisk.any() or not emittingSpheroid.any():
 transmissionDisk     = atlasDisk    [emittingDisk    ] / sedDiskRaw    [emittingDisk    ]
 transmissionSpheroid = atlasSpheroid[emittingSpheroid] / sedSpheroidRaw[emittingSpheroid]
 transmissionAveraged = atlasAveraged[emittingDisk    ] / sedDiskRaw    [emittingDisk    ]
+transmissionEdgeOn   = atlasEdgeOn  [emittingDisk    ] / sedDiskRaw    [emittingDisk    ]
 
 # Transmission must be positive and finite. It is not bounded above by unity: this is a directional transmission, and
 # scattering can put more light into a line of sight than the dust takes out of it, which the tabulation shows at low
 # optical depth and low inclination. The bound here is loose enough to admit that but tight enough to catch a misread.
-for name, values in (("disk", transmissionDisk), ("spheroid", transmissionSpheroid), ("averaged", transmissionAveraged)):
+for name, values in (("disk", transmissionDisk), ("spheroid", transmissionSpheroid), ("averaged", transmissionAveraged),
+                     ("edge-on", transmissionEdgeOn)):
     if not bool(np.all(np.isfinite(values))) or values.min() <= 0.0 or values.max() > 1.1:
         print(f"FAILED: atlas {name} transmission is not in a physical range: "
               f"[{values.min():.3e},{values.max():.3e}]")
@@ -302,5 +305,16 @@ if not bool(np.all(transmissionAveraged <= transmissionDisk + TOLERANCE)):
     sys.exit(0)
 print(f"SUCCESS: averaging over orientation transmits less than at 30 degrees, "
       f"{transmissionAveraged.mean():.4f} against {transmissionDisk.mean():.4f}")
+
+# The edge-on extractor shares its attenuator class and its component with the 30 degree one, so it exists at all
+# only because `appendSuffix` distinguishes the two names. Dust in a disk removes more light from an edge-on line of
+# sight than from a more face-on one, so it must transmit least of the three, which pins the inclination axis of the
+# table against a value rather than only bracketing it.
+if not bool(np.all(transmissionEdgeOn <= transmissionAveraged + TOLERANCE)):
+    worst = float(np.nanmax(transmissionEdgeOn - transmissionAveraged))
+    print(f"FAILED: the edge-on atlas transmits more than the orientation average, by up to {worst:.3e}")
+    sys.exit(0)
+print(f"SUCCESS: transmission falls from 30 degrees to the orientation average to edge-on, "
+      f"{transmissionDisk.mean():.4f} > {transmissionAveraged.mean():.4f} > {transmissionEdgeOn.mean():.4f}")
 
 sys.exit(0)

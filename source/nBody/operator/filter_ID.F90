@@ -24,7 +24,7 @@ Implements an N-body data operator which filters particles by ID.
   !![
   <nbodyOperator name="nbodyOperatorFilterID" docformat="rst">
    <description>
-   An N-body data operator which retains only the subset of particles whose unique IDs match a specified list, enabling targeted analysis of individual halos or particle subsets. The IDs to retain can be specified directly via ``[IDs]`` or loaded from a file using ``[fileName]``.
+   An N-body data operator which retains only the subset of particles whose unique IDs match a specified list, enabling targeted analysis of individual halos or particle subsets. The IDs to retain can be specified directly via ``[idSelection]`` or loaded from a file using ``[idSelectionFileName]``.
    </description>
   </nbodyOperator>
   !!]

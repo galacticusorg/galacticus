@@ -14,20 +14,27 @@ status = subprocess.run(
     shell=True
 )
 if status.returncode == 0:
-    print("PASSED: migration of parameter file")
+    print("SUCCESS: migration of parameter file")
 else:
     print("FAILED: migration of parameter file")
+    sys.exit(0)
 
 # Parse the migrated parameter file.
 tree       = ET.parse("outputs/parameterMigrated.xml")
 root       = tree.getroot()
 
 # Check expected state.
+failures      = 0
 nodeOperators = root.findall(".//nodeOperator/nodeOperator")
 if nodeOperators:
     firstOperator = nodeOperators[0]
     if firstOperator.find("massDestructionAbsolute") is None and "massDestructionAbsolute" not in firstOperator.attrib:
         print("FAILED: missing parameter 'massDestructionAbsolute'")
+        failures += 1
 
 if root.find(".//spheroidVerySimpleTrackLuminosities") is not None:
     print("FAILED: unremoved parameter 'spheroidVerySimpleTrackLuminosities'")
+    failures += 1
+
+if failures == 0:
+    print("SUCCESS: migrated parameter file has the expected content")

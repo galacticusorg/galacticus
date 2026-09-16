@@ -31,7 +31,7 @@ Implements an excursion set first crossing statistics class using the algorithm 
     <description>
     An excursion set first crossing statistics class using the algorithm of :cite:t:`benson_dark_2012`, but using a midpoint method to perform the integrations :cite:p:`du_substructure_2017`, and with a `Brownian bridge &lt;https://en.wikipedia.org/wiki/Brownian_bridge&gt;`_ constraint.
 
-    Specifically, the trajectories are constrained to pass through a point :math:`(S_2,\delta_2)` (specified by the parameter ``[varianceConstrained]`` and ``[criticalOverdensityConstrained]``, or equivalently by the parameters ``[massConstrained]`` and ``[timeConstrained]``---note that :math:`(S_2,\delta_2)` here follow the convention in excursion set literature that :math:`S_2` is the variance evaluated at the present day, while :math:`\delta_2` the the critical overdensity for collapse divided by the linear growth factor), and, of course, always pass through the initial point :math:`(S_1,\delta_1)` corresponding to the current halo.
+    Specifically, the trajectories are constrained to pass through a point :math:`(S_2,\delta_2)` (specified by the parameter ``[varianceConstrained]`` and ``[criticalOverdensityConstrained]``, or equivalently by the parameters ``[massConstrained]`` and ``[redshiftConstrained]``---note that :math:`(S_2,\delta_2)` here follow the convention in excursion set literature that :math:`S_2` is the variance evaluated at the present day, while :math:`\delta_2` the the critical overdensity for collapse divided by the linear growth factor), and, of course, always pass through the initial point :math:`(S_1,\delta_1)` corresponding to the current halo.
 
     For a Brownian bridge the distribution of :math:`\delta` at some :math:`S` (where :math:`S_1 \le S \le S_2`), :math:`P_0(\delta|S)`, is given by a normal distribution with mean
 
@@ -209,7 +209,7 @@ contains
        varianceConstrained           =0.0d0
        timeConstrained               =0.0d0
        massConstrained               =0.0d0
-       call Error_Report('must provide either [criticalOverdensityConstrained] and [varianceConstrained], or [timeConstrained] and [massConstrained]'//{introspection:location})
+       call Error_Report('must provide either [criticalOverdensityConstrained] and [varianceConstrained], or [redshiftConstrained] and [massConstrained]'//{introspection:location})
     end if
     self%criticalOverdensityConstrained=criticalOverdensityConstrained
     self%varianceConstrained           =varianceConstrained

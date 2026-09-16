@@ -24,9 +24,9 @@ Implements a gravitational lensing output analysis distribution operator class.
   use :: Gravitational_Lensing, only : gravitationalLensingClass
   use :: Output_Times         , only : outputTimesClass
 
-  type :: grvtnlLnsngTransferMatrix
+  type :: gravitationalLensingTransferMatrix
      double precision, allocatable, dimension(:,:) :: matrix
-  end type grvtnlLnsngTransferMatrix
+  end type gravitationalLensingTransferMatrix
 
   !![
   <enumeration docformat="rst">
@@ -43,35 +43,35 @@ Implements a gravitational lensing output analysis distribution operator class.
   !!]
 
   !![
-  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorGrvtnlLnsng" docformat="rst">
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorGravitationalLensing" docformat="rst">
    <description>
    Applies gravitational lensing magnification to a specified galaxy property (luminosity or size) during output analysis, convolving with the lensing magnification distribution computed for a characteristic source size set by ``sizeSource``.
    </description>
   </outputAnalysisDistributionOperator>
   !!]
-  type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorGrvtnlLnsng
+  type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorGravitationalLensing
      !!{RST
      A gravitational lensing output distribution operator class.
      !!}
      private
      class           (gravitationalLensingClass    ), pointer                   :: gravitationalLensing_ => null()
      class           (outputTimesClass             ), pointer                   :: outputTimes_          => null()
-     type            (grvtnlLnsngTransferMatrix    ), allocatable, dimension(:) :: transfer_
+     type            (gravitationalLensingTransferMatrix    ), allocatable, dimension(:) :: transfer_
      type            (enumerationLensedPropertyType)                            :: lensedProperty
      double precision                                                           :: sizeSource
    contains
-     final     ::                        grvtnlLnsngDestructor
-     procedure :: operateScalar       => grvtnlLnsngOperateScalar
-     procedure :: operateDistribution => grvtnlLnsngOperateDistribution
-  end type outputAnalysisDistributionOperatorGrvtnlLnsng
+     final     ::                        gravitationalLensingDestructor
+     procedure :: operateScalar       => gravitationalLensingOperateScalar
+     procedure :: operateDistribution => gravitationalLensingOperateDistribution
+  end type outputAnalysisDistributionOperatorGravitationalLensing
 
-  interface outputAnalysisDistributionOperatorGrvtnlLnsng
+  interface outputAnalysisDistributionOperatorGravitationalLensing
      !!{RST
-     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorGrvtnlLnsng` output analysis distribution operator class.
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorGravitationalLensing` output analysis distribution operator class.
      !!}
-     module procedure grvtnlLnsngConstructorParameters
-     module procedure grvtnlLnsngConstructorInternal
-  end interface outputAnalysisDistributionOperatorGrvtnlLnsng
+     module procedure gravitationalLensingConstructorParameters
+     module procedure gravitationalLensingConstructorInternal
+  end interface outputAnalysisDistributionOperatorGravitationalLensing
 
   ! Module scope lensing object used in parallel evaluation of the lensing matrix.
   integer(c_size_t                 )          :: k_
@@ -80,13 +80,13 @@ Implements a gravitational lensing output analysis distribution operator class.
 
 contains
 
-  function grvtnlLnsngConstructorParameters(parameters) result(self)
+  function gravitationalLensingConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorGrvtnlLnsng` output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorGravitationalLensing` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (outputAnalysisDistributionOperatorGrvtnlLnsng)                :: self
+    type            (outputAnalysisDistributionOperatorGravitationalLensing)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
     class           (gravitationalLensingClass                    ), pointer       :: gravitationalLensing_
     class           (outputTimesClass                             ), pointer       :: outputTimes_
@@ -114,23 +114,23 @@ contains
     <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
     !!]
     ! Construct the object.
-    self=outputAnalysisDistributionOperatorGrvtnlLnsng(gravitationalLensing_,outputTimes_,sizeSource,enumerationLensedPropertyEncode(char(lensedProperty),includesPrefix=.false.))
+    self=outputAnalysisDistributionOperatorGravitationalLensing(gravitationalLensing_,outputTimes_,sizeSource,enumerationLensedPropertyEncode(char(lensedProperty),includesPrefix=.false.))
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="gravitationalLensing_"/>
     <objectDestructor name="outputTimes_"         />
     !!]
     return
-  end function grvtnlLnsngConstructorParameters
+  end function gravitationalLensingConstructorParameters
 
-  function grvtnlLnsngConstructorInternal(gravitationalLensing_,outputTimes_,sizeSource,lensedProperty) result(self)
+  function gravitationalLensingConstructorInternal(gravitationalLensing_,outputTimes_,sizeSource,lensedProperty) result(self)
     !!{RST
-    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorGrvtnlLnsng` output analysis distribution operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorGravitationalLensing` output analysis distribution operator class.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Error        , only : Error_Report
     implicit none
-    type            (outputAnalysisDistributionOperatorGrvtnlLnsng)                          :: self
+    type            (outputAnalysisDistributionOperatorGravitationalLensing)                          :: self
     class           (gravitationalLensingClass                    ), intent(in   ), target   :: gravitationalLensing_
     class           (outputTimesClass                             ), intent(in   ), target   :: outputTimes_
     type            (enumerationLensedPropertyType                ), intent(in   ), optional :: lensedProperty
@@ -145,29 +145,29 @@ contains
     ! Allocate transfer matrices for all outputs.
     allocate(self%transfer_(self%outputTimes_%count()))
     return
-  end function grvtnlLnsngConstructorInternal
+  end function gravitationalLensingConstructorInternal
 
-  subroutine grvtnlLnsngDestructor(self)
+  subroutine gravitationalLensingDestructor(self)
     !!{RST
-    Destructor for the :galacticus-class:`outputAnalysisDistributionOperatorGrvtnlLnsng` output analysis distribution operator class.
+    Destructor for the :galacticus-class:`outputAnalysisDistributionOperatorGravitationalLensing` output analysis distribution operator class.
     !!}
     implicit none
-    type(outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout) :: self
+    type(outputAnalysisDistributionOperatorGravitationalLensing), intent(inout) :: self
 
     !![
     <objectDestructor name="self%gravitationalLensing_"/>
     <objectDestructor name="self%outputTimes_"         />
     !!]
     return
-  end subroutine grvtnlLnsngDestructor
+  end subroutine gravitationalLensingDestructor
 
-  function grvtnlLnsngOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node) result(distributionNew)
+  function gravitationalLensingOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node) result(distributionNew)
     !!{RST
     Implement a gravitational lensing output analysis distribution operator.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class           (outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout)                                        :: self
+    class           (outputAnalysisDistributionOperatorGravitationalLensing), intent(inout)                                        :: self
     double precision                                               , intent(in   )                                        :: propertyValue
     type            (enumerationOutputAnalysisPropertyTypeType    ), intent(in   )                                        :: propertyType
     double precision                                               , intent(in   ), dimension(:)                          :: propertyValueMinimum, propertyValueMaximum
@@ -179,15 +179,15 @@ contains
     distributionNew=0.0d0
     call Error_Report('not implemented'//{introspection:location})
     return
-  end function grvtnlLnsngOperateScalar
+  end function gravitationalLensingOperateScalar
 
-  function grvtnlLnsngOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node) result(distributionNew)
+  function gravitationalLensingOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node) result(distributionNew)
     !!{RST
     Implement a gravitational lensing output analysis distribution operator.
     !!}
     use :: Numerical_Integration, only : integrator
     implicit none
-    class           (outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout)                                        :: self
+    class           (outputAnalysisDistributionOperatorGravitationalLensing), intent(inout)                                        :: self
     double precision                                               , intent(in   ), dimension(:)                          :: distribution
     type            (enumerationOutputAnalysisPropertyTypeType    ), intent(in   )                                        :: propertyType
     double precision                                               , intent(in   ), dimension(:)                          :: propertyValueMinimum , propertyValueMaximum
@@ -304,4 +304,4 @@ contains
       return
     end function magnificationCDFIntegrand
 
-  end function grvtnlLnsngOperateDistribution
+  end function gravitationalLensingOperateDistribution

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <detectionMassMinimumParticleCount value="=[haloMassFunctionParameters/massMinimumParticleCountSymphony]" ignoreWarnings="true"/>
+  <detectionEfficiencyAtMassMinimum  value="=[haloMassFunctionParameters/efficiencyAtMassMinimumSymphony]"  ignoreWarnings="true"/>
+  <detectionExponentMass             value="=[haloMassFunctionParameters/exponentMassDetectionSymphony]"     ignoreWarnings="true"/>
+  <detectionExponentRedshift         value="=[haloMassFunctionParameters/exponentRedshiftDetectionSymphony]" ignoreWarnings="true"/>
+  <isolationBias         value="=[haloMassFunctionParameters/isolationBiasSymphonyLMC]"         ignoreWarnings="true"/>
+  <isolationBiasExponent value="=[haloMassFunctionParameters/isolationBiasExponentSymphonyLMC]" ignoreWarnings="true"/>
+</parameters>

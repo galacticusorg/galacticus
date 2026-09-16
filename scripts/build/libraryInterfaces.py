@@ -63,7 +63,7 @@ def main():
     exec_path = os.environ['GALACTICUS_EXEC_PATH']
 
     # Scan source/ for the derived-type hierarchy so the pipeline can
-    # recognise `class(<intermediate>)` constructor args whose parent
+    # recognize `class(<intermediate>)` constructor args whose parent
     # chain reaches a registered functionClass.  Built once, read by
     # _unsupported_arg and passed into assign_c_types via the global.
     global _CLASS_HIERARCHY
@@ -314,7 +314,7 @@ def _process_implementations(func_class, directive_locations, state_storables,
                 # interface's children.  The Galacticus convention names
                 # constructors `<short>Constructor<Variant>` where Variant
                 # is `Parameters` (XML-driven) or `Internal[Suffix]`; we
-                # want only the Internal flavour.  Some classes (the merger
+                # want only the Internal flavor.  Some classes (the merger
                 # tree walkers, for example) use the shorter `<short>Internal`
                 # form without a `Constructor` infix.  Accepting either
                 # `endswith('internal')` or `'constructorinternal' in name`
@@ -618,7 +618,7 @@ def interfaces_constructors(code, python, func_class, lib_function_classes,
         # Process argument list
         arg_list = impl.get('arguments', [])
         # Pull the impl's libraryClasses.xml overrides (if any) into
-        # assign_c_types so it can recognise `value="null"` directives
+        # assign_c_types so it can recognize `value="null"` directives
         # and drop the matching args from both wrappers before the
         # Python/Fortran emitters see them.
         impl_conf = func_class.get(impl['name'])
@@ -1133,7 +1133,7 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
         # appended at the end of the signature; the Python call passes them
         # in this same order, so ctypes/bind(c) stay aligned.  Mirrors the
         # single-slot dynamic-array *return* path (the _DYNAMIC_ARRAY_RETURN
-        # branch), generalised to N per-argument outputs.
+        # branch), generalized to N per-argument outputs.
         # Pointer write-back args: after the inner call, write the local
         # Fortran pointer's (possibly repointed) target address back
         # through the by-reference c_ptr handle — c_null_ptr when the
@@ -1443,7 +1443,7 @@ end {procedure} {method_name_c}
                 + f'    c_lib.{method_name_c}({",".join(py_call_args)})\n'
                 # `from_address` over the save buffer; reshape in
                 # column-major order to match the Fortran-side
-                # (size1, size2) layout; `.copy()` materialises a fresh
+                # (size1, size2) layout; `.copy()` materializes a fresh
                 # numpy-owned array so the caller's reference survives
                 # subsequent calls to the same method.
                 + f'    return np.ctypeslib.as_array(\n'
@@ -1479,7 +1479,7 @@ end {procedure} {method_name_c}
                 + f'    _glcSize_    = c_size_t()\n'
                 + f'    c_lib.{method_name_c}({",".join(py_call_args)})\n'
                 # `from_address` builds a numpy array view over the
-                # save buffer's bytes; `.copy()` materialises a fresh
+                # save buffer's bytes; `.copy()` materializes a fresh
                 # numpy-owned array so the caller's reference survives
                 # subsequent calls to the same method.
                 + f'    return np.ctypeslib.as_array(\n'

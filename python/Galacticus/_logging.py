@@ -15,7 +15,7 @@ Convention used across the build pipeline:
   drive the library code call :func:`configure_default` once at startup.
   Without that call, Python's root logger sits at ``WARNING`` and every
   ``logger.info`` from the library is silently dropped -- preserving the
-  current visible-by-default behaviour requires this one-line opt-in at
+  current visible-by-default behavior requires this one-line opt-in at
   the entry point.
 
 * Tests need not configure anything.  Pytest's ``caplog`` fixture captures

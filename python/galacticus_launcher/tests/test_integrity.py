@@ -1,10 +1,10 @@
-"""Unit tests for the integrity checks applied to downloaded artefacts.
+"""Unit tests for the integrity checks applied to downloaded artifacts.
 
 Network-free: the published checksums and the archives are constructed locally.
 
 These cover the two properties which stand between a bad download and code being executed on the user's machine:
 
-* an artefact whose content does not match the checksum published by its release is rejected, and removed rather than left on
+* an artifact whose content does not match the checksum published by its release is rejected, and removed rather than left on
   disk where a later run might use it; and
 * unpacking an archive can not write outside the directory it is being unpacked into.
 """
@@ -24,7 +24,7 @@ from galacticus_launcher import download
 
 # --- checksum verification -------------------------------------------------
 
-def _write(path, content=b"pretend artefact"):
+def _write(path, content=b"pretend artifact"):
     path.write_bytes(content)
     return hashlib.sha256(content).hexdigest()
 
@@ -41,7 +41,7 @@ def test_mismatched_checksum_is_fatal_and_removes_the_file(tmp_path):
     _write(target)
     with pytest.raises(RuntimeError, match="checksum mismatch"):
         download._verify(target, "Galacticus.exe", {"Galacticus.exe": "0" * 64}, log=lambda message: None)
-    assert not target.exists(), "an artefact which failed verification must not be left on disk"
+    assert not target.exists(), "an artifact which failed verification must not be left on disk"
 
 
 def test_release_without_checksums_still_provisions(tmp_path):

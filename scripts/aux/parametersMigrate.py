@@ -1419,7 +1419,7 @@ def johnson2021_mass_function_slope(input_doc, parameters, is_grid):
     """Preserve the Johnson2021 unresolved-accretion mass-function slope across its default change.
     `massFunctionSlopeLogarithmic` was a compiled constant (-1.8) and is now an input parameter whose
     default changed to -1.9 (unifying it with Vitvitska2002 and matching Benson 2019). A file predating
-    this change implicitly used -1.8, so pin that value to preserve its behaviour."""
+    this change implicitly used -1.8, so pin that value to preserve its behavior."""
     nodes = parameters.xpath(".//darkMatterProfileScaleRadius[@value='johnson2021']")
     if len(nodes) <= 0:
         return
@@ -1437,9 +1437,9 @@ def johnson2021_mass_function_slope(input_doc, parameters, is_grid):
 
 def vitvitska_subresolution_method_enum(input_doc, parameters, is_grid):
     """Convert the boolean `useOriginalSubresolutionMethod` to the `subresolutionAngularMomentumMethod`
-    enumeration, preserving the original behaviour. The default variance method changed to the new,
+    enumeration, preserving the original behavior. The default variance method changed to the new,
     physically-convergent `resolutionScaled` method, so a file predating this change must be pinned to
-    its former behaviour: the old boolean's `true`/`false` map to `original`/`massScaled` respectively.
+    its former behavior: the old boolean's `true`/`false` map to `original`/`massScaled` respectively.
     (The earlier `vitvitska_subresolution_method` migration ensures the boolean is present, so any file
     reaching here that used the model has it set explicitly.)
 

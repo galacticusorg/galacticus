@@ -1,4 +1,4 @@
-"""Tests for check 5 of scripts/aux/staticAnalyzer.py.
+"""Tests for checks 5 and 6 of scripts/aux/staticAnalyzer.py.
 
 Check 5 requires that an `Error_Report` call whose message is built from a
 string literal appends `{introspection:location}`, so that a fatal error says
@@ -11,6 +11,14 @@ usable on this source tree:
     continuation lines are escaped as `&amp;`; a call spread over several such
     lines must still be joined before the check is applied, or a call which does
     append the location is reported as though it did not.
+
+Check 6 requires that a `<name>Destructor` is bound with `final ::` and that a
+`<name>ConstructorInternal` is named by a `module procedure` line. An unbound
+procedure of either kind compiles but is never reached, so the destructor's
+objects leak and the constructor's reference counting is skipped. The check is
+deliberately file-local: these names are reused across the source tree (there
+are nine `summationDestructor`s), so a tree-wide search finds a binding in some
+other file and reports nothing.
 """
 
 import os
@@ -159,3 +167,131 @@ def test_location_only_in_a_trailing_comment_is_still_reported(tmp_path):
 """)
     assert status == 1
     assert 'introspection:location' in output
+
+
+# ── Check 6: destructors and internal constructors defined but never bound ────
+
+_DESTRUCTOR = """
+  type :: testType
+   contains
+%s     procedure :: value => testValue
+  end type testType
+
+contains
+
+  subroutine testDestructor(self)
+    implicit none
+    type(testType), intent(inout) :: self
+
+    self%%count=0
+    return
+  end subroutine testDestructor
+"""
+
+
+def test_unbound_destructor_is_reported(tmp_path):
+    status, output = _analyze(tmp_path, _DESTRUCTOR % "")
+    assert status == 1
+    assert "'testDestructor'" in output
+    assert 'final ::' in output
+
+
+def test_bound_destructor_is_not_reported(tmp_path):
+    status, output = _analyze(
+        tmp_path, _DESTRUCTOR % "     final     ::          testDestructor\n")
+    assert status == 0, output
+    assert output == ""
+
+
+def test_destructor_bound_alongside_others_is_not_reported(tmp_path):
+    """`final ::` accepts a comma-separated list of names."""
+    status, output = _analyze(
+        tmp_path,
+        _DESTRUCTOR % "     final     :: otherDestructor, testDestructor\n")
+    assert status == 0, output
+
+
+_CONSTRUCTOR = """
+  interface testType
+%s  end interface testType
+
+contains
+
+  function testConstructorInternal(mass) result(self)
+    implicit none
+    type            (testType)                :: self
+    double precision          , intent(in   ) :: mass
+
+    self%%mass=mass
+    return
+  end function testConstructorInternal
+"""
+
+
+def test_unlisted_internal_constructor_is_reported(tmp_path):
+    status, output = _analyze(tmp_path, _CONSTRUCTOR % "")
+    assert status == 1
+    assert "'testConstructorInternal'" in output
+    assert 'module procedure' in output
+
+
+def test_listed_internal_constructor_is_not_reported(tmp_path):
+    status, output = _analyze(
+        tmp_path,
+        _CONSTRUCTOR % "     module procedure testConstructorInternal\n")
+    assert status == 0, output
+
+
+def test_a_procedure_which_is_neither_is_not_reported(tmp_path):
+    """Only the two named patterns are checked; ordinary procedures are not."""
+    status, output = _analyze(tmp_path, """
+  subroutine testSomethingElse(self)
+    implicit none
+    type(testType), intent(inout) :: self
+
+    self%count=0
+    return
+  end subroutine testSomethingElse
+""")
+    assert status == 0, output
+
+
+def test_prefixed_definitions_are_checked(tmp_path):
+    """`elemental`, `impure elemental` and `recursive` precede the keyword."""
+    for prefix in ('elemental ', 'impure elemental ', 'pure ', 'recursive '):
+        status, output = _analyze(tmp_path, """
+  type :: testType
+   contains
+     procedure :: value => testValue
+  end type testType
+
+contains
+
+  %ssubroutine testDestructor(self)
+    implicit none
+    type(testType), intent(inout) :: self
+
+    self%%count=0
+    return
+  end subroutine testDestructor
+""" % prefix)
+        assert status == 1, prefix
+        assert "'testDestructor'" in output, prefix
+
+    status, output = _analyze(tmp_path, """
+  interface testType
+  end interface testType
+
+contains
+
+  recursive function testConstructorInternal(mass) result(self)
+    implicit none
+    type            (testType)                :: self
+    double precision          , intent(in   ) :: mass
+
+    self%mass=mass
+    return
+  end function testConstructorInternal
+""")
+    assert status == 1
+    assert "'testConstructorInternal'" in output

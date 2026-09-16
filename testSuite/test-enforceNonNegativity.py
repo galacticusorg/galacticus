@@ -74,13 +74,13 @@ for variation in ( "ODETol0.1", "ODETol0.01", "ODETol0.001", "ODETol0.0001", "OD
     # Test for negative values if enforcing.
     if enforcing == "true":
         if np.any(massGasSpheroid           < 0.0):
-            testStatus = "FAIL: negative gas mass detected"
+            testStatus = "FAILED: negative gas mass detected"
         if np.any(massStellarSpheroid       < 0.0):
-            testStatus = "FAIL: negative stellar mass detected"
+            testStatus = "FAILED: negative stellar mass detected"
         if np.any(massMetalsGasSpheroid     < 0.0):
-            testStatus = "FAIL: negative gas metal mass detected"
+            testStatus = "FAILED: negative gas metal mass detected"
         if np.any(massMetalsStellarSpheroid < 0.0):
-            testStatus = "FAIL: negative stellar metal mass detected"
+            testStatus = "FAILED: negative stellar metal mass detected"
     
     # Evaluate analytic solutions (Cole et al.; 2000; https://ui.adsabs.harvard.edu/abs/2000MNRAS.319..168C; equations B2-B8).
     timescaleStarFormationEffective   = timescaleStarFormation/(1.0-recycledFraction+massLoading)

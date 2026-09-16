@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements comparisons of values.
 !!}
@@ -27,7 +29,7 @@ module Numerical_Comparison
   !!}
   implicit none
   private
-  public :: Values_Differ, Values_Agree, Values_Less_Than
+  public :: Values_Differ, Values_Agree
 
   interface Values_Differ
      module procedure Values_Differ_Real
@@ -41,10 +43,6 @@ module Numerical_Comparison
      module procedure Values_Agree_Double_Complex
   end interface Values_Agree
 
-  interface Values_Less_Than
-     module procedure Values_Less_Than_Double
-  end interface Values_Less_Than
-  
 contains
 
   elemental logical function Values_Differ_Real(value1,value2,absTol,relTol)
@@ -185,33 +183,5 @@ contains
     end if
     return
   end function Values_Agree_Double_Complex
-
-  logical function Values_Less_Than_Double(value1,value2,absTol,relTol)
-    !!{RST
-    Returns true if ``value1`` is significantly less than ``value2``, with tolerance ``absTol`` in absolute terms, or ``relTol`` in relative terms.
-    !!}
-    implicit none
-    double precision, intent(in   )           :: value1         , value2
-    double precision, intent(in   ), optional :: absTol         , relTol
-    logical                                   :: lessThanAbsolutely, lessThanRelatively
-
-    if (value1 >= value2) then
-       Values_Less_Than_Double=.false.
-    else
-       if (present(absTol)) then
-          lessThanAbsolutely=(value2-value1 >= absTol)
-       else
-          lessThanAbsolutely=.true.
-       end if
-       if (present(relTol)) then
-          lessThanRelatively=(value2-value1 >= 0.5d0*abs(value1+value2)*relTol)
-       else
-          lessThanRelatively=.true.
-       end if
-       Values_Less_Than_Double=    (present(absTol).and.lessThanAbsolutely) &
-            &                  .or.(present(relTol).and.lessThanRelatively)
-    end if
-    return
-  end function Values_Less_Than_Double
 
 end module Numerical_Comparison

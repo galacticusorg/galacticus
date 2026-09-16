@@ -503,16 +503,49 @@
   <emissionLineLuminositySystematics1 value="-0.00098878419875252"/>
   <ratioEarlyType value="0.719247501103713"/>
 
+  <!-- Emission line calculations. The Halpha luminosity function analyses compute line luminosities by convolving
+       the star formation history with tabulated Cloudy models of HII regions, so a star formation history must be
+       stored, and must resolve the young, ionizing populations in time and in metallicity. These are the calibrated
+       choices of `parameters/reference/emissionLines.xml`; the metallicity boundaries match those of the tabulation
+       used. -->
+  <starFormationHistory value="adaptive">
+    <timeStepMinimum       value="1.25893e-4"/>
+    <countTimeStepsMaximum value="200"       />
+    <metallicityBoundaries value="
+				  0.00531914893617 0.010638297872340 0.021276595744680 0.067282503407837
+				  0.21276595744680 0.300896502632573 0.425531914893617 0.490000000000000
+				  0.58000000000000 0.672825034078379 0.750000000000000 0.900000000000000
+				  1.06382978723404 1.200000000000000 1.350000000000000 1.500000000000000
+				  1.68206258519595 1.950000000000000 2.200000000000000 2.450000000000000
+				  2.65957446808511
+				  "/>
+  </starFormationHistory>
+  <hiiRegionEscapeFraction value="fixed">
+    <escapeFraction value="0.10"/>
+    <ageLimit       value="0.01"/>
+  </hiiRegionEscapeFraction>
+  <hiiRegionMassFunction value="rosolowsky2021">
+    <exponent    value="-1.8e0"/>
+    <massMinimum value="+1.0e4"/>
+    <massMaximum value="+1.0e8"/>
+  </hiiRegionMassFunction>
+  <hiiRegionDensityDistribution value="logNormal">
+    <densityHydrogenReference value="3.0e2"/>
+    <densityHydrogenMinimum   value="1.0e1"/>
+    <densityHydrogenMaximum   value="4.0e2"/>
+    <sigma                    value="1.8e0"/>
+  </hiiRegionDensityDistribution>
+
   <!-- Luminosity calculations -->
-  <luminosityFilter value="         SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g         SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r         SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g         SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r         Lyc             Lyc             Lyc             Lyc             Lyc              Lyc             Lyc             Lyc         HeliumContinuum HeliumContinuum HeliumContinuum HeliumContinuum HeliumContinuum  HeliumContinuum HeliumContinuum HeliumContinuum         OxygenContinuum OxygenContinuum OxygenContinuum OxygenContinuum OxygenContinuum  OxygenContinuum OxygenContinuum OxygenContinuum        Buser_V         "/>
+  <luminosityFilter value="SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_g   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   SDSS_r   Buser_V"/>
   
-  <luminosityType value="         observed observed observed observed observed observed observed observed observed observed observed         observed observed observed observed observed observed observed observed observed observed observed         observed observed observed observed observed observed observed observed observed observed observed         observed observed observed observed observed observed observed observed observed observed observed         rest     rest     rest     rest     rest     rest     rest     rest         rest     rest     rest     rest     rest     rest     rest     rest         rest     rest     rest     rest     rest     rest     rest     rest        rest         "/>
+  <luminosityType value="observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed observed rest   "/>
   
-  <luminosityRedshift value="         0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24         0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24         0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24         0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24         0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20         0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20         0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20        0.00         "/>
+  <luminosityRedshift value="0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24     0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24     0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24     0.02     0.04     0.06     0.08     0.10     0.12     0.14     0.16     0.18     0.20     0.24     0.00   "/>
 
   
-  <luminosityBandRedshift value="         0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10         0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10         0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10         0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10         0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20         0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20         0.02     0.04     0.06     0.08     0.10     0.40     0.86     2.20        0.00         "/>
-  <luminosityPostprocessSet value="         default  default  default  default  default  default  default  default  default  default  default         default  default  default  default  default  default  default  default  default  default  default         recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent         recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent         default  default  default  default  default  default  default  default         default  default  default  default  default  default  default  default         default  default  default  default  default  default  default  default        default         "/>
+  <luminosityBandRedshift value="0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.10     0.00   "/>
+  <luminosityPostprocessSet value="default  default  default  default  default  default  default  default  default  default  default  default  default  default  default  default  default  default  default  default  default  default  recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   recent   default"/>
   <stellarPopulationSpectraPostprocessorBuilder value="lookup">
     <names value="default recent"/>
     <stellarPopulationSpectraPostprocessor value="inoue2014"/>

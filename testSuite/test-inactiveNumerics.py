@@ -14,7 +14,8 @@ subprocess.run("mkdir -p outputs/", shell=True)
 # Run the model.
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/inactiveNumerics.xml", shell=True)
 if status.returncode != 0:
-    print("FAIL: inactiveNumerics model failed to run")
+    print("FAILED: inactiveNumerics model failed to run")
+    sys.exit(0)
 
 # Check that luminosities are non-zero.
 nonZeroLuminosities = False
@@ -31,4 +32,4 @@ with h5py.File("outputs/inactiveNumerics.hdf5", "r") as model:
 if nonZeroLuminosities:
     print("SUCCESS: non-zero luminosities are present")
 else:
-    print("FAIL: all luminosities are zero")
+    print("FAILED: all luminosities are zero")

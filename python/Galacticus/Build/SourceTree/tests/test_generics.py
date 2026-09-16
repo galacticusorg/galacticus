@@ -110,7 +110,7 @@ def test_task_suffix_directives_also_preserved():
 
 
 def test_mixed_tree_strips_only_code_generating_directives():
-    """Sanity-check the integrated behaviour: a root with one
+    """Sanity-check the integrated behavior: a root with one
     `<methods>` and one `<optionalArgument>` directive sees only the
     latter blanked."""
     methods_node = _directive_node(

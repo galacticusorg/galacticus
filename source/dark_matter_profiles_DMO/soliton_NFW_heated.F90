@@ -484,7 +484,7 @@ contains
 	    <constructor>
               massDistributionNFW(                                             &amp;
                &amp;              mass         =basic%mass                 (), &amp;
-               &amp;              virialRadius =      radiusVirial           , &amp;
+               &amp;              radiusVirial =      radiusVirial           , &amp;
                &amp;              scaleLength  =      radiusScale            , &amp;
                &amp;              componentType=      componentTypeDarkHalo  , &amp;
                &amp;              massType     =      massTypeDark             &amp;
