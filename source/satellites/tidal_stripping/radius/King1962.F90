@@ -170,7 +170,6 @@ contains
     class           (nodeComponentSatellite               ), pointer               :: satellite
     class           (massDistributionClass                ), pointer               :: massDistribution_             , massDistributionDark
     double precision                                       , dimension(3  )        :: position                      , velocity
-    double precision                                       , parameter             :: radiusZero             =0.0d+0
     double precision                                       , parameter             :: radiusTidalTinyFraction=1.0d-6
     double precision                                                               :: massSatellite                 , frequencyAngular    , &
          &                                                                            radius                        , tidalFieldRadial    , &
@@ -233,11 +232,7 @@ contains
     ! If the tidal force is stretching (not compressing), compute the tidal radius.
     massDistribution_ => node%massDistribution()
     tidalPull         =  self%efficiencyCentrifugal*frequencyAngular**2-tidalFieldRadial
-    if     (                                                             &
-         &   tidalPull                                          >  0.0d0 &
-         &  .and.                                                        &
-         &   massDistribution_%massEnclosedBySphere(radiusZero) >= 0.0d0 &
-         & ) then
+    if (tidalPull > 0.0d0) then
        ! Find the tidal density.
        densityTidal=+tidalPull                         &
             &       /(kilo*gigaYear/megaParsec)    **2 &
