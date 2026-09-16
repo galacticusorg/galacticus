@@ -267,8 +267,8 @@ contains
     else
        integrandYieldElement=+0.0d0
     end if
-    integrandYieldElement   =+integrandYieldElement                                                                            &
-         &                   +initialMassFunction_%phi  (massInitial                                                         ) &
+    integrandYieldElement   =+integrandYieldElement                                                                                 &
+         &                   +initialMassFunction_%phi  (massInitial                                                              ) &
          &                   *supernovaeTypeIa_   %yield(initialMassFunction_,massInitial,ageNode,metallicityNode,atomIndexElement)
     return
   end function integrandYieldElement
