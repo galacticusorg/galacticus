@@ -65,7 +65,12 @@ with tempfile.TemporaryDirectory() as scratch:
         client.execute()
     except Exception as exception:  # noqa: BLE001 -- report any failure of the notebook
         print(f"FAILED: the dust emission tutorial notebook did not execute: {type(exception).__name__}")
-        print(str(exception)[:4000])
+        # Report the end of the message as well as its start: the cause of a failure is at the end of a traceback, and a
+        # notebook traceback is easily long enough to be truncated away.
+        message = str(exception)
+        if len(message) > 6000:
+            message = message[:2000] + "\n[...]\n" + message[-4000:]
+        print(message)
         sys.exit(0)
 print("SUCCESS: the dust emission tutorial notebook executed")
 sys.exit(0)
