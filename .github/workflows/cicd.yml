@@ -1275,6 +1275,7 @@ jobs:
                       tests.dark_matter_profiles.exe,
                       tests.dark_matter_profiles.projected.exe,
                       tests.dark_matter_profiles.adiabaticGnedin2004.exe,
+                      tests.galactic_structure_equilibrium.exe,
                       tests.dark_matter_profiles.heated.exe,
                       tests.dark_matter_halo_radius_enclosing_mass.exe,
                       tests.dark_matter_profiles.tidal_tracks.exe,
