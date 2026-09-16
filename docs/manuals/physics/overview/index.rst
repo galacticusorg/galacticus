@@ -55,6 +55,7 @@ Galacticus' evolver engine works by applying a set of `nodeOperatorClass <https:
 .. toctree::
    :maxdepth: 1
 
+   run-pipeline
    structure-formation
    merger-tree-building
    galaxy
@@ -65,3 +66,10 @@ Galacticus' evolver engine works by applying a set of `nodeOperatorClass <https:
    outflows
    black-holes
    subhalo-evolution
+   stellar-populations-and-dust
+   alternative-dark-matter
+   intergalactic-medium
+   output
+   analyses
+   parameter-estimation
+   nbody-analysis

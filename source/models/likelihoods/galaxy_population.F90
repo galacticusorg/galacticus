@@ -27,7 +27,7 @@
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodGalaxyPopulation" docformat="rst">
    <description>
-   A posterior sampling likelihood class which evaluates the likelihood of Galacticus galaxy formation model outputs against observational constraints, supporting parallelized model evaluation across MPI process groups. The number of collaborative MPI groups is set by ``[countCollaborativeGroups]``, with analysis storage controlled by ``[storeResults]``.
+   A posterior sampling likelihood class which evaluates the likelihood of Galacticus galaxy formation model outputs against observational constraints, supporting parallelized model evaluation across MPI process groups. The number of collaborative MPI groups is set by ``[countCollaborativeGroups]``, with analysis storage controlled by ``[outputAnalyses]``.
    </description>
   </posteriorSampleLikelihood>
   !!]
@@ -232,7 +232,7 @@ contains
     allocate(self%parametersModel)
     self%parametersModel%parametersModel => parametersModel
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>

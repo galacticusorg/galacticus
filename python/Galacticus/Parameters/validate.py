@@ -102,10 +102,17 @@ class _Index:
         self.implementations = catalog['implementations']
         self.enumerations = catalog.get('enumerations', {})
         self.base_names = set(self.function_classes)
-        # (base, label) -> implementation type name.
+        # (base, label) -> implementation type name.  An implementation whose
+        # Fortran name had to be abbreviated may also carry a readable `alias`;
+        # both select it, so both must resolve here.  Registering only the
+        # label would leave a file using the alias with no schema, silently
+        # skipping every check on that element's sub-parameters.
         self.type_by_base_label = {}
         for type_name, impl in self.implementations.items():
-            self.type_by_base_label[(impl['functionClass'], impl['label'])] = type_name
+            for label in (impl['label'], impl.get('alias')):
+                if label:
+                    self.type_by_base_label[
+                        (impl['functionClass'], label)] = type_name
         self._schema_cache = {}
 
     def labels_for(self, base):
@@ -332,7 +339,7 @@ def validate_parameters(root, catalog):
 
             # 6. Anything else inside a functionClass scope is an unknown
             #    parameter name.  (At the root scope we do not flag -- globals
-            #    and meta parameters legitimately live there.)  Honour
+            #    and meta parameters legitimately live there.)  Honor
             #    `ignoreWarnings="true"`, Galacticus's own opt-out for
             #    deliberately-unusual parameters (input_parameters.F90).
             if schema is not None and child.get('ignoreWarnings') != 'true':
@@ -551,7 +558,7 @@ def _expand_xincludes(element, base_dir, findings, label, seen, depth=0):
 # NOTE: expression/conditional `[path]` references are intentionally NOT checked.
 # The bracket mini-language supports defaults (`[path|0.0]`, so an unresolved
 # path is legal), printf-style formats (`[%4.4d|path]`), and relative paths --
-# which makes path-resolution checking low-value (defaults legalise misses) and
+# which makes path-resolution checking low-value (defaults legalize misses) and
 # error-prone; left for a future expression-aware resolver if needed.
 
 

@@ -84,8 +84,8 @@
     <massParticle value="4.02830e05" />
   </simulation>
   <task value="haloMassFunction">
-    <haloMassMaximum value=" 1.122018454e16" />
-    <haloMassMinimum value=" 1.122018454e06" />
+    <massHaloMaximum value=" 1.122018454e16" />
+    <massHaloMinimum value=" 1.122018454e06" />
     <includeMassAccretionRate value="false" />
     <includeUnevolvedSubhaloMassFunction value="false" />
     <pointsPerDecade value="10.0" />

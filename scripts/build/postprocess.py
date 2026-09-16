@@ -74,7 +74,7 @@ try:
         # generated line of identifier+whitespace characters never produces
         # a `function`/`subroutine` match.  The argument-list capture isn't
         # read anywhere downstream, so dropping
-        # it is purely a simplification, not a behaviour change.  Each
+        # it is purely a simplification, not a behavior change.  Each
         # alternation has its trailing `\s+` folded inside the group so
         # `(?:opt\s+)*` cannot fight with a separate `\s*` for the same
         # whitespace, and the type-spec is `?` (one or zero) rather than

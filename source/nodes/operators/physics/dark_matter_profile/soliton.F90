@@ -20,7 +20,7 @@
   !+    Contributions to this file made by: Yu Zhao
 
   !!{RST
-  Implements a node operator class that evaluates the :term:`FDM` solitonic core–halo relation, following Equation (15) of :cite:t:`chan_diversity_2022`. The core mass is initialized to this relation, and subsequently evolved differentially following the time deriative of this equation (thereby allowing other contributions to the evolution of the core mass to be applied).
+  Implements a node operator class that evaluates the :term:`FDM` solitonic core–halo relation, following Equation (15) of :cite:t:`chan_diversity_2022`. The core mass is initialized to this relation, and subsequently evolved differentially following the time derivative of this equation (thereby allowing other contributions to the evolution of the core mass to be applied).
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
@@ -32,7 +32,7 @@
   !![
   <nodeOperator name="nodeOperatorDarkMatterProfileSoliton" docformat="rst">
    <description>
-   A node operator class that evaluates the :term:`FDM` solitonic core–halo relation, following Equation (15) of :cite:t:`chan_diversity_2022`. The core mass is initialized to this relation, and subsequently evolved differentially following the time deriative of this equation (thereby allowing other contributions to the evolution of the core mass to be applied).
+   A node operator class that evaluates the :term:`FDM` solitonic core–halo relation, following Equation (15) of :cite:t:`chan_diversity_2022`. The core mass is initialized to this relation, and subsequently evolved differentially following the time derivative of this equation (thereby allowing other contributions to the evolution of the core mass to be applied).
    </description>
   </nodeOperator>
   !!]

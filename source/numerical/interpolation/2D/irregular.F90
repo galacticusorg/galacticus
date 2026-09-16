@@ -44,7 +44,7 @@ module Numerical_Interpolation_2D_Irregular
      integer                                     :: nTriangles = 0
      integer                                     :: nBorder    = 0
      integer         , allocatable, dimension(:) :: ipt, ipl
-     ! ── closest-neighbour indices: ipc(nNeighbors*nData) ─────────────────────
+     ! ── closest-neighbor indices: ipc(nNeighbors*nData) ──────────────────────
      integer         , allocatable, dimension(:) :: ipc
      ! ── partial derivatives: pd(5*nData) = ZX,ZY,ZXX,ZXY,ZYY per point ──────
      double precision, allocatable, dimension(:) :: pd
@@ -57,7 +57,7 @@ module Numerical_Interpolation_2D_Irregular
      double precision, allocatable, dimension(:) :: triBounds   ! (4*nTriangles) xmn,xmx,ymn,ymx
      ! ── inter-call cache (replaces module-level itpv/itipv) ──────────────────
      integer                                     :: lastTriangle = 0
-     ! ── initialisation flag ───────────────────────────────────────────────────
+     ! ── initialization flag ───────────────────────────────────────────────────
      logical                                     :: initialized = .false.
   end type interpolator2DIrregular
 
@@ -75,7 +75,7 @@ contains
   function Interpolate_2D_Irregular_Array(dataX,dataY,dataZ,interpolateX,interpolateY,workspace,numberComputePoints,reset, &
        dataStatic) result(zi)
     !!{RST
-    Perform interpolation on a set of points irregularly spaced on a 2D surface. On ``reset=.true.`` (or the first call) the triangulation, closest-neighbour indices, partial derivatives, and 9-section lookup grid are all rebuilt from scratch. On subsequent calls (``reset=.false.``) the triangulation and closest-neighbour indices are reused but the partial derivatives are re-estimated, which correctly handles the case where the ``dataZ`` values change between calls while the ``dataX`` and ``dataY`` positions do not.
+    Perform interpolation on a set of points irregularly spaced on a 2D surface. On ``reset=.true.`` (or the first call) the triangulation, closest-neighbor indices, partial derivatives, and 9-section lookup grid are all rebuilt from scratch. On subsequent calls (``reset=.false.``) the triangulation and closest-neighbor indices are reused but the partial derivatives are re-estimated, which correctly handles the case where the ``dataZ`` values change between calls while the ``dataX`` and ``dataY`` positions do not.
 
     Re-estimating the derivatives costs :math:`\mathcal{O}(N n_\mathrm{neighbors}^2)` for :math:`N` tabulated points and so dominates the cost wherever a large table is interpolated repeatedly. A caller which knows that none of its data change between calls---because they were read once from a file, say---may pass ``dataStatic=.true.``, whereupon the workspace is reused as it stands and the cost per call becomes independent of the size of the table. Note that each set of data then needs its own workspace, since sharing one between several sets would leave it describing whichever was passed most recently.
 
@@ -108,18 +108,18 @@ contains
        dataStaticActual=.false.
     end if
 
-    ! Decide how many neighbours to use for partial derivative estimation.
+    ! Decide how many neighbors to use for partial derivative estimation.
     if (present(numberComputePoints)) workspace%nNeighbors = numberComputePoints
 
     if      (resetActual .or. .not. workspace%initialized) then
        call initializeWorkspace(workspace, dataX, dataY, dataZ)
     else if (size(dataX) /= workspace%nData                 ) then
-       ! The number of data points has changed, so the triangulation and closest-neighbour indices no longer
+       ! The number of data points has changed, so the triangulation and closest-neighbor indices no longer
        ! describe them and everything must be rebuilt. Reusing them here would leave the cached indices out of
        ! bounds.
        call initializeWorkspace(workspace, dataX, dataY, dataZ)
     else if (.not. dataStaticActual                         ) then
-       ! Reuse triangulation and closest-neighbour indices; re-estimate partial derivatives in case the Z values
+       ! Reuse triangulation and closest-neighbor indices; re-estimate partial derivatives in case the Z values
        ! have changed since the previous call.
        workspace%zData = dataZ
        call estimateDerivatives(workspace%nData, workspace%xData     , workspace%yData, &
@@ -159,7 +159,7 @@ contains
 
   subroutine initializeWorkspace(ws, xd, yd, zd)
     !!{RST
-    Build triangulation, find closest neighbours, estimate derivatives, and build the 9-section lookup grid.
+    Build triangulation, find closest neighbors, estimate derivatives, and build the 9-section lookup grid.
     !!}
     implicit none
     type            (interpolator2DIrregular), intent(inout) :: ws
@@ -543,12 +543,12 @@ contains
   end function triangleSwapCheck
 
   ! ════════════════════════════════════════════════════════════════════════════
-  ! Phase 3: closest neighbours + partial derivatives
+  ! Phase 3: closest neighbors + partial derivatives
   ! ════════════════════════════════════════════════════════════════════════════
 
   subroutine findClosestNeighbors(ndp, xd, yd, ncp, ipc)
     !!{RST
-    For each of the ``ndp`` data points, select the ``ncp`` closest neighbours, ensuring they are not all collinear.  Output is stored in ``ipc(ncp*ndp)``, with the ``ncp`` neighbours of point ``ip1`` at indices ``(ip1-1)*ncp+1 .. ip1*ncp``.  On error ``ipc(1)`` is set to 0. Port of ``idcldp`` from the original BIVAR package :cite:p:`akima_algorithm_1978`.
+    For each of the ``ndp`` data points, select the ``ncp`` closest neighbors, ensuring they are not all collinear.  Output is stored in ``ipc(ncp*ndp)``, with the ``ncp`` neighbors of point ``ip1`` at indices ``(ip1-1)*ncp+1 .. ip1*ncp``.  On error ``ipc(1)`` is set to 0. Port of ``idcldp`` from the original BIVAR package :cite:p:`akima_algorithm_1978`.
     !!}
     implicit none
     integer                       , intent(in ) :: ndp, ncp
@@ -573,7 +573,7 @@ contains
     do ip1 = 1, ndp
        x1 = xd(ip1);  y1 = yd(ip1)
 
-       ! ── Collect the first ncp distinct neighbours ──────────────────────────
+       ! ── Collect the first ncp distinct neighbors ───────────────────────────
        j1    = 0
        dsqmx = 0.0d0
        jmx   = 1
@@ -616,7 +616,7 @@ contains
        end do
 
        if (j3 > ncp) then
-          ! All ncp neighbours are collinear — search for closest non-collinear point.
+          ! All ncp neighbors are collinear — search for closest non-collinear point.
           nclpt = 0
           dsqmn = 0
           do ip3 = 1, ndp
@@ -645,7 +645,7 @@ contains
           ipc0(jmx) = ip3mn
        end if
 
-       ! ── Store the ncp neighbours for point ip1 ────────────────────────────
+       ! ── Store the ncp neighbors for point ip1 ─────────────────────────────
        j1 = (ip1-1)*ncp
        do j2 = 1, ncp
           j1      = j1 + 1
@@ -656,7 +656,7 @@ contains
 
   subroutine estimateDerivatives(ndp, xd, yd, zd, ncp, ipc, pd)
     !!{RST
-    Estimate first- and second-order partial derivatives at each data point using the ``ncp`` closest neighbours.  Output ``pd(5*ndp)`` stores ZX, ZY, ZXX, ZXY, ZYY for point ``ip0`` at indices ``5*ip0-4 .. 5*ip0``. Port of ``idpdrv`` from the original BIVAR package :cite:p:`akima_algorithm_1978`.
+    Estimate first- and second-order partial derivatives at each data point using the ``ncp`` closest neighbors.  Output ``pd(5*ndp)`` stores ZX, ZY, ZXX, ZXY, ZYY for point ``ip0`` at indices ``5*ip0-4 .. 5*ip0``. Port of ``idpdrv`` from the original BIVAR package :cite:p:`akima_algorithm_1978`.
     !!}
     implicit none
     integer                       , intent(in ) :: ndp, ncp
@@ -745,7 +745,7 @@ contains
 
   subroutine buildSectionGrid(ws)
     !!{RST
-    Build the 9-section spatial lookup grid over the triangulation stored in ``ws``. On return ``ws%xs1``, ``ws%xs2``, ``ws%ys1``, ``ws%ys2``, ``ws%ntsc``, ``ws%sectionData``, and ``ws%triBounds`` are populated and ``ws%gridReady`` is set to ``.true.``. Port of the initialisation block of ``idlctn`` from the original BIVAR package :cite:p:`akima_algorithm_1978`.
+    Build the 9-section spatial lookup grid over the triangulation stored in ``ws``. On return ``ws%xs1``, ``ws%xs2``, ``ws%ys1``, ``ws%ys2``, ``ws%ntsc``, ``ws%sectionData``, and ``ws%triBounds`` are populated and ``ws%gridReady`` is set to ``.true.``. Port of the initialization block of ``idlctn`` from the original BIVAR package :cite:p:`akima_algorithm_1978`.
     !!}
     implicit none
     type            (interpolator2DIrregular), intent(inout) :: ws
@@ -960,7 +960,7 @@ contains
        Quadratic extrapolation perpendicular to the segment, 5th-degree along it.
 
     Exterior corner ``(il1/=il2)``
-       2nd-degree Taylor expansion centred on the shared corner vertex.
+       2nd-degree Taylor expansion centered on the shared corner vertex.
 
     Port of ``idptip`` from the original BIVAR package :cite:p:`akima_algorithm_1978`. Coefficient caching (the original ``itpv`` flag) is omitted since in Galacticus usage the cache was never effective.
     !!}

@@ -22,7 +22,7 @@
   !![
   <radiativeTransferOutputter name="radiativeTransferOutputterSpectrum" docformat="rst">
    <description>
-   A radiative transfer outputter class that records wavelength-binned spectra of both the total emitted and emergent photon luminosities, allowing comparison of intrinsic and attenuated radiation. The wavelength range and resolution are set by ``[wavelengthMinimum]``, ``[wavelengthMaximum]``, and ``[wavelengthsPerDecade]``.
+   A radiative transfer outputter class that records wavelength-binned spectra of both the total emitted and emergent photon luminosities, allowing comparison of intrinsic and attenuated radiation. The wavelength range and resolution are set by ``[wavelengthMinimum]``, ``[wavelengthMaximum]``, and ``[wavelengthCountPerDecade]``.
    </description>
   </radiativeTransferOutputter>
   !!]

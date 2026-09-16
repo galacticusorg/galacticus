@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which wraps the `ANN <http://www.cs.umd.edu/~mount/ANN/>`_ (Approximate Nearest Neighbor) library.
 !!}
@@ -30,7 +32,7 @@ module Nearest_Neighbors
   !!}
   use, intrinsic :: ISO_C_Binding, only : C_Null_Ptr, c_ptr, c_int, c_double
   private
-  public :: nearestNeighbors, nearestNeighborsClose
+  public :: nearestNeighbors
 
   type :: nearestNeighbors
      !!{RST
@@ -107,15 +109,6 @@ module Nearest_Neighbors
        type(c_ptr), intent(in   ), value :: ANN
      end subroutine nearestNeighborsDestructorC
   end interface
-
-  interface
-     subroutine nearestNeighborsCloseC() bind(c,name='nearestNeighborsCloseC')
-       !!{RST
-       Template for a C function that closes the ANN library.
-       !!}
-       import
-     end subroutine nearestNeighborsCloseC
-  end interface
 #endif
 
 contains
@@ -146,7 +139,7 @@ contains
     Destroys a nearest neighbor search object.
     !!}
 #ifdef ANNAVAIL
-    use, intrinsic :: ISO_C_Binding, only : c_associated
+    use, intrinsic :: ISO_C_Binding, only : c_associated, C_Null_Ptr
 #else
     use            :: Error        , only : Error_Report
 #endif
@@ -154,30 +147,18 @@ contains
     type(nearestNeighbors), intent(inout) :: self
 
 #ifdef ANNAVAIL
-    if (c_associated(self%ANNkd_tree)) call nearestNeighborsDestructorC(self%ANNkd_tree)
+    ! Nullify after destroying, so that the guard above makes a second
+    ! finalization of the same object a no-op rather than a double free.
+    if (c_associated(self%ANNkd_tree)) then
+       call nearestNeighborsDestructorC(self%ANNkd_tree)
+       self%ANNkd_tree=C_Null_Ptr
+    end if
 #else
     !$GLC attributes unused :: self
     call Error_Report('ANN library is required but was not found'//{introspection:location})
 #endif
     return
   end subroutine nearestNeighborsDestructor
-
-  subroutine nearestNeighborsClose()
-    !!{RST
-    Closes the ANN (Approximate Nearest Neighbor) library.
-    !!}
-#ifndef ANNAVAIL
-    use :: Error, only : Error_Report
-#endif
-    implicit none
-
-#ifdef ANNAVAIL
-    call nearestNeighborsCloseC()
-#else
-    call Error_Report('ANN library is required but was not found'//{introspection:location})
-#endif
-    return
-  end subroutine nearestNeighborsClose
 
   subroutine nearestNeighborsSearch(self,point,neighborCount,tolerance,neighborIndex,neighborDistance)
     !!{RST

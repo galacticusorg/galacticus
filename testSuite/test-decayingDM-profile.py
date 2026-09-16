@@ -43,7 +43,7 @@ for modelName in ( "CDM", "massLossFalse", "gamma0.0", "gamma0.5" ):
     nodes                = model['Outputs/Output1/nodeData']
     densities[modelName] = nodes['densityProfile'][:][0][0]
     if not math.isclose(densities[modelName],densitiesTarget[modelName],rel_tol=1e-2):
-        print("FAIL: density mismatch for model '"+modelName+"': "+str(densities[modelName])+" vs. "+str(densitiesTarget[modelName]))
+        print("FAILED: density mismatch for model '"+modelName+"': "+str(densities[modelName])+" vs. "+str(densitiesTarget[modelName]))
         failed = True
         
 # No failures occurred, therefore, success.

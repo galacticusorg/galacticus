@@ -236,7 +236,7 @@ def _expand_top_down(node, generic_re, identifier, instances, tree_name):
         if not _has_generic_ancestor(node, generic_re):
             _expand_content_lines(node, identifier, instances, generic_re)
 
-    # Recurse into children.  Materialise the child list first because each
+    # Recurse into children.  Materialize the child list first because each
     # child may rewrite the parent's child chain via replace_node above.
     children_list = []
     child = node.get('firstChild')
@@ -306,10 +306,10 @@ def _expand_subtree(sub_node, identifier, instances, tree_name):
         # check `directive.get('processed')` and skip — so re-running them is
         # safe.  Mirrors `_insert_parsed(..., run_process_tree=True)`.
         # `instrument=False`: the original tree was already source-introspection-
-        # instrumented when first parsed, so its serialised form already
+        # instrumented when first parsed, so its serialized form already
         # contains `{introspection:location:NNN}` tags.  Re-instrumenting
         # would re-tag those, replacing baked-in line numbers with the line
-        # number of the position they happen to land on in the synthesised
+        # number of the position they happen to land on in the synthesized
         # text.
         reparsed = parse_code(serialize(copied), name=tree_name, instrument=False)
         process_tree(reparsed)

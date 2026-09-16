@@ -216,7 +216,7 @@ contains
 	 <constructor>
            massDistributionNFW(                                                                                  &amp;
             &amp;              mass         =basic            %mass                                      (    ), &amp;
-            &amp;              virialRadius =self             %darkMatterHaloScale_%radiusVirial         (node), &amp;
+            &amp;              radiusVirial =self             %darkMatterHaloScale_%radiusVirial         (node), &amp;
             &amp;              scaleLength  =darkMatterProfile%scale                                     (    ), &amp;
             &amp;              componentType=                                       componentTypeDarkHalo      , &amp;
             &amp;              massType     =                                       massTypeDark                 &amp;

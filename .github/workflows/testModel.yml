@@ -184,6 +184,18 @@ jobs:
           fi
           ! grep -q -e FAIL -e "ODE integration failed" test.log
       - uses: qoomon/actions--context@e12e182be797e3476990faf801dd1b87f107f91c # v5
+      - name: "Report skipped tests"
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          cd ${{ inputs.runPath }}
+          # A test that could not meet a prerequisite (too few MPI processes, a non-debugging build, a missing executable)
+          # prints a line beginning "SKIPPED" and exits successfully. Without this step such a test is reported as a pass,
+          # so a misconfigured runner would silently stop testing anything.
+          if grep -q '^SKIPPED' test.log; then
+           echo "# :warning: Test skipped: ${{ inputs.file }} :warning:" >> $GITHUB_STEP_SUMMARY
+           echo ":information_source: Job log can be found [here](${GITHUB_JOB_URL})" >> $GITHUB_STEP_SUMMARY
+           grep '^SKIPPED' test.log >> $GITHUB_STEP_SUMMARY
+          fi
       - name: "Check for unrecognized parameters"
         if: ${{ format('{0}',inputs.expectUnrecognized) == '0' }}
         run: |

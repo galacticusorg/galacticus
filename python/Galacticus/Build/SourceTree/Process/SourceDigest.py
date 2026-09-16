@@ -257,7 +257,7 @@ def ensure_file_digest(source_file_name, suffix, build_path, *, use_locks,
     per-file digests — which are shared across every type's composite and
     dominate a cold run's cost — can be pre-computed in parallel: each
     source file has exactly ONE writer per build, so no intra-run lock is
-    needed. The `flock` (taken when `use_locks`) still serialises concurrent
+    needed. The `flock` (taken when `use_locks`) still serializes concurrent
     *external* builds sharing a build directory, exactly as before.
     """
     if source_file_name in _digests:
@@ -369,7 +369,7 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
         layout their sidecars have under `$BUILDPATH`).
     use_locks : bool, default True
         If True, take an exclusive flock on each `<file>.md5*.lock` sidecar
-        to serialise concurrent builds.
+        to serialize concurrent builds.
     include_files_excluded : list of str or None
         Names of `include` files that `read_file` should NOT follow.
     report : bool, default False

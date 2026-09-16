@@ -35,13 +35,13 @@
 
       f_\mathrm{cold}=(1+r^{1/\delta})^{-1},
 
-   where :math:`\delta=`\ ``[accretionColdModeShockStabilityTransitionWidth]``, :math:`r = \epsilon_\mathrm{crit}/\epsilon`, and
+   where :math:`\delta=`\ ``[widthTransitionStabilityShock]``, :math:`r = \epsilon_\mathrm{crit}/\epsilon`, and
 
    .. math::
 
       \epsilon = r_\mathrm{s} \Lambda / \rho_\mathrm{s} v_\mathrm{s}^3,
 
-   where :math:`r_\mathrm{s}` is the accretion shock radius, :math:`\Lambda` is the post-shock cooling function, :math:`\rho_\mathrm{s}` is the pre-shock density, :math:`v_\mathrm{s}` is the pre-shock velocity, and :math:`\epsilon_\mathrm{crit}=`\ ``[accretionColdModeShockStabilityThreshold]``. The pre-shock radius is set equal to the halo virial radius, the pre-shock velocity is set equal to the halo virial velocity, while the pre-shock density is given by
+   where :math:`r_\mathrm{s}` is the accretion shock radius, :math:`\Lambda` is the post-shock cooling function, :math:`\rho_\mathrm{s}` is the pre-shock density, :math:`v_\mathrm{s}` is the pre-shock velocity, and :math:`\epsilon_\mathrm{crit}=`\ ``[thresholdStabilityShock]``. The pre-shock radius is set equal to the halo virial radius, the pre-shock velocity is set equal to the halo virial velocity, while the pre-shock density is given by
 
    .. math::
 

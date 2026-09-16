@@ -106,7 +106,7 @@ def test_lmap_remaps_preprocessed_lines_to_original():
 
     # Simulate a process hook: inject three generated lines ahead of the
     # first code node inside subroutine bar (source tag ends in '()', the
-    # auto-generated marker postprocess.py recognises).
+    # auto-generated marker postprocess.py recognizes).
     bar = [n for n in walk_tree(tree) if n.get('name') == 'bar'][0]
     generated = _make_code_node("call generated_1()\ncall generated_2()\n"
                                 "call generated_3()\n", 'Test.hook()', 1)

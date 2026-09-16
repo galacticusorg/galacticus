@@ -84,8 +84,8 @@ for model in dataTarget.keys():
     positionX           = nodes['positionOrbitalX'                   ][:]
     positionY           = nodes['positionOrbitalY'                   ][:]
     positionZ           = nodes['positionOrbitalZ'                   ][:]
-    velocityMaximum     = nodes['darkMatterProfileDMOvelocityMaximum'][:]
-    velocityPeak        = nodes['darkMatterProfileDMOvelocityPeak'   ][:]
+    velocityMaximum     = nodes['darkMatterProfileDMOVelocityMaximum'][:]
+    velocityPeak        = nodes['darkMatterProfileDMOVelocityPeak'   ][:]
     weight              = nodes['nodeSubsamplingWeight'              ][:]
     # Compute orbital radii (and convert to kpc).
     positionR           = np.sqrt(positionX**2+positionY**2+positionZ**2)*kilo

@@ -387,3 +387,109 @@ end module Test_Indented
     *_head, _enums, modules, _components, _workarounds = \
         extractDocsRST.scan_source(str(tmp_path))
     assert modules[0]["description"] == "First line.\n\nSecond paragraph."
+
+
+# Method, parameter and enumeration descriptions are emitted as written rather
+# than collapsed onto a single line: collapsing folded any block structure - a
+# `code-block`, a definition or bullet list, or simply a second paragraph - into
+# one run-on paragraph, where a directive rendered as literal `.. code-block::`
+# text (issue #1474).
+def test_method_description_structure_survives_rendering():
+    method = {
+        "name":        "timeEvolveTo",
+        "type":        "double precision",
+        "arguments":   [],
+        "description": """
+    Return the time.
+
+    .. code-block:: none
+
+         subroutine timestepTask(self)
+         end subroutine timestepTask
+
+    Trailing paragraph.
+    """,
+    }
+    _signature, body, _blank = extractDocsRST.render_method(method, {})
+    # Paragraph breaks are preserved, and the directive stands alone on its own
+    # line, indented as the definition of the definition list whose term is the
+    # method signature...
+    assert body.startswith("   Return the time.\n\n")
+    assert "\n   .. code-block:: none\n\n" in body
+    # ...and the literal block it introduces keeps its indentation relative to it.
+    assert "\n        subroutine timestepTask(self)\n" in body
+    assert body.endswith("\n\n   Trailing paragraph.")
+
+
+def test_type_method_description_is_dedented_to_its_own_margin(tmp_path):
+    # Stripping a `<description>` element before dedenting it removes the first
+    # line's indentation but not that of the lines which follow, so no common
+    # margin is found and everything after the first line renders as a block
+    # quote.
+    (tmp_path / "typeMethod.F90").write_text("""\
+module Test_Type_Method
+  type :: exampleType
+   contains
+     !![
+     <methods docformat="rst">
+       <method method="replicants">
+        <description>
+        Performs various actions:
+
+        ``actionCount``
+           returns the count.
+        </description>
+       </method>
+     </methods>
+     !!]
+  end type exampleType
+end module Test_Type_Method
+""")
+    _fam, _impl, _params, methods_by_file, *_rest = \
+        extractDocsRST.scan_source(str(tmp_path))
+    (method,) = methods_by_file[str(tmp_path / "typeMethod.F90")]
+    _signature, body, _blank = extractDocsRST.render_method(method, {})
+    assert body == ("   Performs various actions:\n\n"
+                    "   ``actionCount``\n"
+                    "      returns the count.")
+
+
+def test_parameter_description_structure_survives_rendering():
+    parameter = {
+        "name":          "likelihoodBins",
+        "defaultSource": "A citation.",
+        "description":   """
+      Controls which bins are used:
+
+      * *not present*: all bins;
+      * ``auto``: only populated bins.
+      """,
+    }
+    rendered = extractDocsRST.render_parameter(parameter, {})
+    # Continuation lines are indented to remain part of the bullet, and the
+    # default source, which would otherwise run on from the nested list,
+    # becomes a paragraph of its own.
+    assert rendered == ("* ``[likelihoodBins]`` — Controls which bins are used:\n\n"
+                        "  * *not present*: all bins;\n"
+                        "  * ``auto``: only populated bins.\n\n"
+                        "  *Default from:* A citation.")
+
+
+def test_single_paragraph_parameter_description_keeps_notes_inline():
+    parameter = {
+        "name":          "ratio",
+        "defaultSource": "A citation.",
+        "description":   "\n      A ratio\n      of two things.\n      ",
+    }
+    rendered = extractDocsRST.render_parameter(parameter, {})
+    assert rendered == ("* ``[ratio]`` — A ratio\n"
+                        "  of two things. *Default from:* A citation.")
+
+
+def test_enumeration_description_paragraphs_survive_rendering():
+    enumeration = {"name":        "status",
+                   "description": "\n  First paragraph.\n\n  Second paragraph.\n  ",
+                   "entries":     [],
+                   "module":      "Test_Status"}
+    rendered = extractDocsRST.render_enumerations([enumeration], {})
+    assert "\nFirst paragraph.\n\nSecond paragraph.\n" in rendered

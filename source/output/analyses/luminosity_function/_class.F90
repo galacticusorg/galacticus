@@ -279,7 +279,7 @@ contains
           &                                                 outputAnalysisPropertyOperatorSequence      , propertyOperatorList
     use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Utilities               , only : Output_Analysis_Output_Weight_Survey_Volume
-    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorCsmlgyVolume
+    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorCosmologyVolume
     implicit none
     type            (outputAnalysisLuminosityFunction                )                                          :: self
     type            (varying_string                                  ), intent(in   )                           :: label                                                 , comment
@@ -309,7 +309,7 @@ contains
     type            (outputAnalysisPropertyOperatorIdentity          )               , pointer                  :: outputAnalysisPropertyOperatorIdentity_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc )               , pointer                  :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorSequence          )               , pointer                  :: outputAnalysisPropertyOperatorSequence_
-    type            (outputAnalysisWeightOperatorCsmlgyVolume        )               , pointer                  :: outputAnalysisWeightOperator_
+    type            (outputAnalysisWeightOperatorCosmologyVolume        )               , pointer                  :: outputAnalysisWeightOperator_
     type            (outputAnalysisDistributionNormalizerBinWidth    )               , pointer                  :: outputAnalysisDistributionNormalizer_
     type            (propertyOperatorList                            )               , pointer                  :: propertyOperatorSequence
     double precision                                                  , allocatable            , dimension(:,:) :: outputWeight
@@ -351,7 +351,7 @@ contains
     extractorSpheroid%extractor_ => nodePropertyExtractorSpheroid_
     extractorSpheroid%next       => null()
     !![
-    <referenceConstruct object="nodePropertyExtractorAttenuated_" constructor="nodePropertyExtractorDustAttenuation(dustAttenuation_,.false.,.true.,.true.,var_str('luminosityStellar'),extractors)"/>
+    <referenceConstruct object="nodePropertyExtractorAttenuated_" constructor="nodePropertyExtractorDustAttenuation(dustAttenuation_,.false.,.true.,.true.,var_str('luminosityStellar'),var_str('none'),extractors)"/>
     <referenceConstruct object="nodePropertyExtractor_"           constructor="nodePropertyExtractorScalarizer     (1,1,nodePropertyExtractorAttenuated_)"/>
     !!]
     ! Prepend magnitude and cosmological luminosity distance property operators.
@@ -391,7 +391,7 @@ contains
     ! Create a cosmological volume correction weight operator.
     allocate(outputAnalysisWeightOperator_)
     !![
-    <referenceConstruct object="outputAnalysisWeightOperator_" constructor="outputAnalysisWeightOperatorCsmlgyVolume(cosmologyFunctions_,cosmologyFunctionsData,surveyGeometry_)"/>
+    <referenceConstruct object="outputAnalysisWeightOperator_" constructor="outputAnalysisWeightOperatorCosmologyVolume(cosmologyFunctions_,cosmologyFunctionsData,surveyGeometry_)"/>
     !!]
     ! Create a bin width distribution normalizer.
     allocate(outputAnalysisDistributionNormalizer_)

@@ -137,7 +137,7 @@ def resolve(version=None):
     """Resolve the active install per the documented order above.
 
     Never performs I/O beyond ``stat`` checks; for a managed install it returns
-    the *intended* layout whether or not the artefacts have been downloaded yet
+    the *intended* layout whether or not the artifacts have been downloaded yet
     (callers provision via :mod:`galacticus_launcher.download`).
     """
     # 1. GALACTICUS_HOME -- an explicit build/clone tree.

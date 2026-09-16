@@ -140,7 +140,7 @@ contains
       <name>massMinimum</name>
       <source>parameters</source>
       <description>
-      The minimum mass halo for which to compute mergingHaloOrbitDistribution properties.
+      The minimum mass halo for which to compute ``mergingHaloOrbitDistribution`` properties.
       </description>
       <type>real</type>
       <cardinality>0..1</cardinality>
@@ -149,7 +149,7 @@ contains
       <name>massMaximum</name>
       <source>parameters</source>
       <description>
-      The maximum mass halo for which to compute mergingHaloOrbitDistribution properties.
+      The maximum mass halo for which to compute ``mergingHaloOrbitDistribution`` properties.
       </description>
       <type>real</type>
       <cardinality>0..1</cardinality>
@@ -158,7 +158,7 @@ contains
       <name>countMassesPerDecade</name>
       <source>parameters</source>
       <description>
-      The number of points per decade of mass for which to compute mergingHaloOrbitDistribution properties.
+      The number of points per decade of mass for which to compute ``mergingHaloOrbitDistribution`` properties.
       </description>
       <type>real</type>
       <cardinality>0..1</cardinality>

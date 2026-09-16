@@ -902,7 +902,10 @@ contains
     double precision                                                   , dimension(2  ) :: hRadius
     integer         (c_size_t                          ), allocatable  , dimension(:  ) :: iParameters , jParameters
     double precision                                    , allocatable  , dimension(:,:) :: hParameters
-    integer         (c_size_t                          )                                :: iRadius     , jRadius
+    integer         (c_size_t                          )                                :: iRadius     , jRadius     , &
+         &                                                                                 i
+    integer         (c_size_t                          )               , dimension(3  ) :: indices
+    double precision                                                                    :: term
     type            (multiCounter                      )                                :: counter
 
     ! Compute interpolating factors. Along each axis the position of the value is found as its coordinate on the absolute
@@ -939,92 +942,30 @@ contains
     iParameters     =min(max(iParameters,1_c_size_t),tabulation%countParameters-1_c_size_t)
     hRadius    (1  )=1.0d0-hRadius    (2  )
     hParameters(1,:)=1.0d0-hParameters(2,:)
-    ! Perform the interpolation.
+    ! Perform the interpolation. The table is always of rank 4, with the trailing dimensions of extent 1 where the
+    ! corresponding parameter is unused, so padding the vector of parameter indices with 1 in those dimensions makes the sum
+    ! below correct at every rank without a rank-by-rank case. Three tabulated parameters is therefore the hard maximum.
+    if (size(parameters) > 3) call Error_Report('rank not supported'//{introspection:location})
+    ! The corners of the interpolating hypercube in the parameters form the outer loop - with `multiCounter` incrementing its
+    ! first dimension fastest - and the pair of radial nodes the inner one, and within each term the weights are multiplied in
+    ! one at a time in axis order. Both orders matter: floating point addition and multiplication are not associative, so
+    ! changing either would perturb the interpolated value in its last bits, which is precisely the sequence dependence that
+    ! this tabulation exists to remove.
     interpolated=0.0d0
+    indices     =1_c_size_t
     counter     =multiCounter(spread(2_c_size_t,1,size(parameters)))
-    select case(size(parameters))
-    case (0)
-          do jRadius=1,2
-             interpolated=+interpolated                                                 &
-                  &       +tabulation %table(                                           &
-                  &                          iRadius       +jRadius       -1_c_size_t,  &
-                  &                                                        1_c_size_t,  &
-                  &                                                        1_c_size_t,  &
-                  &                                                        1_c_size_t   &
-                  &                         )                                           &
-                  &       *hRadius          (                                           &
-                  &                                         jRadius                     &
-                  &                         )
+    do while (counter%increment())
+       jParameters                    =counter%states()
+       indices    (1:size(parameters))=iParameters+jParameters-1_c_size_t
+       do jRadius=1,2
+          term        =+tabulation%table(iRadius+jRadius-1_c_size_t,indices(1),indices(2),indices(3))*hRadius(jRadius)
+          do i=1,size(parameters)
+             term     =+term                          &
+                  &    *hParameters(jParameters(i),i)
           end do
-    case (1)
-       do while (counter%increment())
-          jParameters=counter%states()
-          do jRadius=1,2
-             interpolated=+interpolated                                                 &
-                  &       +tabulation %table(                                           &
-                  &                          iRadius       +jRadius       -1_c_size_t,  &
-                  &                          iParameters(1)+jParameters(1)-1_c_size_t,  &
-                  &                                                        1_c_size_t,  &
-                  &                                                        1_c_size_t   &
-                  &                         )                                           &
-                  &       *hRadius          (                                           &
-                  &                                         jRadius                     &
-                  &                         )                                           &
-                  &       *hParameters      (                                           &
-                  &                                         jParameters(1)           ,1 &
-                  &                         )
-          end do
+          interpolated=+interpolated+term
        end do
-    case (2)
-       do while (counter%increment())
-          jParameters=counter%states()
-          do jRadius=1,2
-             interpolated=+interpolated                                                 &
-                  &       +tabulation %table(                                           &
-                  &                          iRadius       +jRadius       -1_c_size_t,  &
-                  &                          iParameters(1)+jParameters(1)-1_c_size_t,  &
-                  &                          iParameters(2)+jParameters(2)-1_c_size_t,  &
-                  &                                                        1_c_size_t   &
-                  &                         )                                           &
-                  &       *hRadius          (                                           &
-                  &                                         jRadius                     &
-                  &                         )                                           &
-                  &       *hParameters      (                                           &
-                  &                                         jParameters(1)           ,1 &
-                  &                         )                                           &
-                  &       *hParameters      (                                           &
-                  &                                         jParameters(2)           ,2 &
-                  &                         )
-          end do
-       end do
-    case (3)
-       do while (counter%increment())
-          jParameters=counter%states()
-          do jRadius=1,2
-             interpolated=+interpolated                                                 &
-                  &       +tabulation %table(                                           &
-                  &                          iRadius       +jRadius       -1_c_size_t,  &
-                  &                          iParameters(1)+jParameters(1)-1_c_size_t,  &
-                  &                          iParameters(2)+jParameters(2)-1_c_size_t,  &
-                  &                          iParameters(3)+jParameters(3)-1_c_size_t   &
-                  &                         )                                           &
-                  &       *hRadius          (                                           &
-                  &                                         jRadius                     &
-                  &                         )                                           &
-                  &       *hParameters      (                                           &
-                  &                                         jParameters(1)           ,1 &
-                  &                         )                                           &
-                  &       *hParameters      (                                           &
-                  &                                         jParameters(2)           ,2 &
-                  &                         )                                           &
-                  &       *hParameters      (                                           &
-                  &                                         jParameters(3)           ,3 &
-                  &                         )
-          end do
-       end do
-    case default
-       call Error_Report('rank not supported'//{introspection:location})
-    end select
+    end do
     ! If logarithmic interpolation was used, inverse transform now.
     if (tabulation%logTransform) interpolated=+exp(interpolated)
     ! For quantities that are negative, invert the sign.

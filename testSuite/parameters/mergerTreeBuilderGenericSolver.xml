@@ -85,7 +85,7 @@
     <mergeProbability value="0.1"/>
     <branchIntervalStep value="true"/>
   </mergerTreeBuilder>
-  <mergerTreeBranchingProbability value="gnrlzdPrssSchchtr">
+  <mergerTreeBranchingProbability value="generalizedPressSchechter">
     <deltaStepMaximum value="0.1"/>
     <massMinimum value="1.0e7"/>
     <smoothAccretion value="false"/>

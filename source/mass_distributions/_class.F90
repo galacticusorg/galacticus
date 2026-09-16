@@ -87,7 +87,7 @@ module Mass_Distributions
    </method>
    <method name="subset">
       <description>
-      Return the subset of the mass distribution matching the given componentType and ``massType``.
+      Return the subset of the mass distribution matching the given ``componentType`` and ``massType``.
       </description>
       <type>class(massDistributionClass)</type>
       <pass>yes</pass>

@@ -32,7 +32,7 @@ _FORCE_ARRAY = frozenset({"modify", "value", "parameter", "parameters", "require
 def _dict_to_xml_elem(tag: str, data, parent=None, _nested: bool = False):
     """Recursively build an XML element tree from a Python dict/list/string.
 
-    Mirrors XML::Simple XMLout default behaviour:
+    Mirrors XML::Simple XMLout default behavior:
     - Root level (_nested=False): string values  => child text elements.
     - Nested level (_nested=True): string values => XML attributes.
     - dict values always => child elements (recursed with _nested=True).
@@ -67,7 +67,7 @@ def _dict_to_xml_elem(tag: str, data, parent=None, _nested: bool = False):
 
 
 def _xml_out(data: dict, root_name: str = "parameters") -> str:
-    """Serialise *data* as pretty-printed XML with *root_name* as the root tag."""
+    """Serialize *data* as pretty-printed XML with *root_name* as the root tag."""
     root = _dict_to_xml_elem(root_name, data, _nested=False)
     _add_indent(root)
     return '<?xml version="1.0" standalone="yes"?>\n' + ET.tostring(root, encoding="unicode")

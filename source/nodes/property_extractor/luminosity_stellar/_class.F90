@@ -419,7 +419,7 @@ contains
 
     Anything else, a chain whose age window is not sharp, or a requested age boundary which no chain provides, is
     reported as an error rather than approximated: silently splitting a luminosity at the wrong age would produce
-    plausible but wrong colours.
+    plausible but wrong colors.
     !!}
     use :: Dust_Attenuation_Descriptors  , only : emissionSourceStellar
     use :: Error                         , only : Error_Report

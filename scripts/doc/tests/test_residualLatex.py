@@ -159,7 +159,7 @@ def test_latex_interword_space_that_glues_words_is_detected():
 
 def test_interword_space_next_to_inline_markup_is_legitimate():
     r"""Next to inline markup, ``\ `` is the zero-width separator that lets
-    docutils recognise the markup at all; flagging it would be wrong."""
+    docutils recognize the markup at all; flagging it would be wrong."""
     text = ('  !!{RST\n'
             '  In units of cm\\ :math:`^2` g\\ :math:`^{-1}`, plus a\n'
             '  ``literal``\\ s suffix, and a footnote\\ [#]_ marker.\n'

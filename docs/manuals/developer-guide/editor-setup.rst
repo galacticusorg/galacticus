@@ -238,6 +238,6 @@ Galacticus-specific support:
   ``Galacticus: Open Documentation for functionClass``, or the keybinding
   ``Ctrl+K Ctrl+G`` / ``Cmd+K Cmd+G`` while a ``.F90`` file is focused) that opens
   the online documentation for the class defined in the current file. It
-  recognises both a ``functionClass`` base class and a concrete implementation,
+  recognizes both a ``functionClass`` base class and a concrete implementation,
   and deep-links to the family page at the corresponding ``physics-<name>``
   anchor. The base URL is configurable via the ``galacticus.docsBaseUrl`` setting.

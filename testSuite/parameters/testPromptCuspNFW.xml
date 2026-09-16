@@ -441,7 +441,7 @@
     <mergerTreeOperator value="pruneByFilter">
       <preservePrimaryProgenitor value="false"/>
       <pruneAllProgenitors       value="true" />
-      <galacticFilter value="labelled">
+      <galacticFilter value="labeled">
         <label value="promptCuspUnformed"/>
       </galacticFilter>
     </mergerTreeOperator>

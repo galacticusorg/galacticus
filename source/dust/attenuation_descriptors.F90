@@ -31,7 +31,7 @@ module Dust_Attenuation_Descriptors
 
   Dust attenuation is not, in general, a single multiplicative factor applied to a galaxy's total luminosity: it
   depends on the wavelength of the emission, on which component the emission comes from, and---where birth clouds are
-  modelled---on the age of the emitting stellar population. A luminosity-producing object must therefore be able to
+  modeled---on the age of the emitting stellar population. A luminosity-producing object must therefore be able to
   hand over its luminosity *split* along whichever of those axes matter, have each piece attenuated, and then
   recombine the pieces.
 
@@ -63,7 +63,7 @@ module Dust_Attenuation_Descriptors
    Specifies the physical origin of a parcel of emission which is to be attenuated by dust. Dust attenuation models may
    treat these differently---for example, nebular emission arises from H II regions which are embedded in their birth
    clouds and so may be more heavily obscured than the stellar continuum of the same age, while emission from an
-   accretion disk originates at the very centre of the galaxy and so is seen through the full column of the galaxy's
+   accretion disk originates at the very center of the galaxy and so is seen through the full column of the galaxy's
    dust.
    </description>
    <encodeFunction>yes</encodeFunction>

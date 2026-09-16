@@ -75,8 +75,8 @@
    contains
      !![
      <methods docformat="rst">
-       <method description="``integer(c_size_t)(2)`` interpolationIndicesMetallicity [out], ``integer(c_size_t)(2,2)`` interpolationIndicesMass [out], ``integer(c_size_t)(2,2,2)`` interpolationIndicesAge [out], ``double(2)`` interpolationFactorsMetallicity [out], ``double(2,2)`` interpolationFactorsMass [out], ``double(2,2,2)`` interpolationFactorsAge [out], ``logical`` metallicityOutOfRange [out], ``logical`` massOutOfRange [out], ``logical`` ageOutOfRange [out]" method="interpolationCompute" />
-       <method description="``integer(c_size_t)(2)`` interpolationIndicesMetallicity [in], ``integer(c_size_t)(2,2)`` interpolationIndicesMass [in], ``integer(c_size_t)(2,2,2)`` interpolationIndicesAge [in], ``double(2)`` interpolationFactorsMetallicity [in], ``double(2,2)`` interpolationFactorsMass [in], ``double(2,2,2)`` interpolationFactorsAge [in], ``double(:,:,:)`` stellarTracks [in]" method="interpolate" />
+       <method description="Compute the interpolation." method="interpolationCompute" />
+       <method description="Perform the interpolation." method="interpolate" />
        <method method="initialize" description="Initialize stellar data."/>
      </methods>
      !!]
