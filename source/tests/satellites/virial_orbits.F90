@@ -46,6 +46,14 @@ program Test_Satellite_Virial_Orbits
   the Voigt profile, and the bin selection. A second object built from the class defaults is required to agree, which guards those
   defaults.
 
+  For :cite:t:`li_orbital_2020` the total velocity follows the log-normal distribution of their eqn. (1), for which the root mean
+  squared velocity is :math:`\mu_1 \exp(\sigma_1^2)` in closed form, and the cosine of the orbital angle the distribution of their
+  eqn. (2), :math:`p(\cos^2\theta) \propto \exp(\eta \cos^2\theta)`, whose parameter :math:`\eta` is given by their eqn. (3) and
+  is required to be non-negative. The class evaluates :math:`\int_0^1 p(\cos^2\theta) \sqrt{1-\cos^2\theta} \mathrm{d}\cos^2\theta`
+  in closed form; here that integral is instead evaluated numerically, at the class' own :math:`\eta`, and the resulting mean
+  tangential velocity compared with the class'. Both the :math:`\eta > 0` and the clamped :math:`\eta = 0` branches are reached
+  over the range of total velocity integrated.
+
   The samplers themselves are not tested here - the orbits they return are propagated to the virial radius under the default
   density contrast, so their moments are not those of the distributions above.
   !!}
@@ -64,9 +72,10 @@ program Test_Satellite_Virial_Orbits
   use :: Input_Parameters                    , only : inputParameters
   use :: Node_Components                     , only : Node_Components_Initialize                        , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Numerical_Constants_Astronomical    , only : gravitationalConstant_internal
+  use :: Numerical_Integration               , only : integrator
   use :: Unit_Tests                          , only : Assert                                            , Unit_Tests_Begin_Group           , Unit_Tests_End_Group              , Unit_Tests_Finish
   use :: Virial_Density_Contrast             , only : virialDensityContrastBryanNorman1998              , virialDensityContrastClass
-  use :: Virial_Orbits                       , only : virialOrbitBenson2005                             , virialOrbitJiang2014
+  use :: Virial_Orbits                       , only : virialOrbitBenson2005                             , virialOrbitJiang2014             , virialOrbitLi2020                 , virialOrbitClass
   implicit none
   type            (inputParameters                                   )                 :: parameters                       , parametersDefault
   type            (cosmologyParametersSimple                         ), pointer        :: cosmologyParameters_
@@ -80,6 +89,20 @@ program Test_Satellite_Virial_Orbits
   type            (mergerTree                                        )                 :: tree
   type            (treeNode                                          ), pointer        :: hostBenson                       , satelliteBenson
   type            (treeNode                                          ), pointer        :: host                             , satellite
+  class           (virialOrbitClass                                  ), pointer        :: virialOrbit_
+  type            (treeNode                                          ), pointer        :: hostLi                           , satelliteLi
+  type            (integrator                                        )                 :: integratorVelocityTotal          , integratorCosineSquared
+  ! Masses [M☉] of the Li et al. (2020) host and satellite.
+  double precision                                                    , parameter      :: massHostLi                =1.0d13, massSatelliteLi           =1.0d11
+  ! Parameters of the Li et al. (2020) log-normal distribution of total velocity, and the number of half widths at which the
+  ! class truncates it. All are the defaults of that class.
+  double precision                                                    , parameter      :: mu1                       =1.20d0, sigma1                    =0.20d0, &
+       &                                                                                  extentVelocity            =1.00d1
+  ! The root mean squared total velocity of that log-normal distribution, in units of the host virial velocity: μ₁exp(σ₁²). The
+  ! truncation of the integration at ten times the width omits a fraction of order 10⁻²³ of the distribution.
+  double precision                                                    , parameter      :: velocityTotalRootMeanSquaredLiReference=1.2489729290309d+00
+  double precision                                                                     :: massHostLiDefinition             , massSatelliteLiDefinition        , &
+       &                                                                                  etaCurrent                       , velocityTangentialLi
   ! Masses [M☉] of the Benson (2005) host and satellite, and the epoch [Gyr] at which every halo here is placed.
   double precision                                                    , parameter      :: massHostBenson            =1.0d13, massSatelliteBenson       =1.0d11, &
        &                                                                                  time                      =1.38d1
@@ -106,6 +129,9 @@ program Test_Satellite_Virial_Orbits
   !! The Jiang et al. (2015) moments are evaluated by an adaptive integrator at a relative tolerance of 10⁻⁶, and their
   !! normalization by the class' own Voigt cumulative distribution rather than by quadrature of its density.
   double precision                                                    , parameter      :: toleranceJiang            =1.0d-4
+  !! The class evaluates its mean tangential velocity with an adaptive integrator at a relative tolerance of 10⁻³, which sets the
+  !! agreement with the quadrature performed here.
+  double precision                                                    , parameter      :: toleranceLi               =3.0d-3
   !! Relations which follow algebraically from quantities the classes have already returned.
   double precision                                                    , parameter      :: toleranceAlgebraic        =1.0d-9
   double precision                                                    , dimension(3,3) :: velocityTangentialJiang          , velocityTotalRootMeanSquaredJiang, &
@@ -217,7 +243,39 @@ program Test_Satellite_Virial_Orbits
   call Assert('root mean squared total velocity',velocityTotalRootMeanSquaredJiang,velocityTotalRootMeanSquaredJiangReference,relTol=toleranceJiang    )
   call Assert('default parameters are those of Table 2',ratioDefault              ,ratioExplicit                             ,relTol=toleranceAlgebraic)
   call Unit_Tests_End_Group()
+  ! Test the Li et al. (2020) distribution. This class is built from the parameter file, so that the critical overdensity and
+  ! cosmological mass variance objects it needs are built too - they enter only through the peak height, which is an input to the
+  ! physics tested here rather than a part of it.
+  call Unit_Tests_Begin_Group("Li et al. (2020)")
+  !![
+  <objectBuilder class="virialOrbit" name="virialOrbit_" source="parameters"/>
+  !!]
+  call buildNode(hostLi     ,massHostLi     )
+  call buildNode(satelliteLi,massSatelliteLi)
+  select type (li2020_ => virialOrbit_)
+  type is (virialOrbitLi2020)
+     densityContrastDefinition_ => li2020_%densityContrastDefinition()
+     massHostLiDefinition      =Dark_Matter_Profile_Mass_Definition(hostLi     ,densityContrastDefinition_%densityContrast(massHostLi     ,time),radiusHost,velocityHost,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_)
+     massSatelliteLiDefinition =Dark_Matter_Profile_Mass_Definition(satelliteLi,densityContrastDefinition_%densityContrast(massSatelliteLi,time),cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_,virialDensityContrast_=virialDensityContrast_,darkMatterProfileDMO_=darkMatterProfileDMO_)
+     ! The root mean squared total velocity of the log-normal distribution of eqn. (1).
+     call Assert('root mean squared total velocity',li2020_%velocityTotalRootMeanSquared(satelliteLi,hostLi)/velocityHost,velocityTotalRootMeanSquaredLiReference,relTol=toleranceAlgebraic)
+     ! The parameter η of eqn. (3) must be non-negative, and both of its branches must be reached: it is positive close to the
+     ! peak of the Gaussian term, and clamped to zero well away from it.
+     call Assert('η is positive near the peak of eqn. (3)',li2020_%eta(hostLi,massSatelliteLiDefinition,massHostLiDefinition,1.04d0) > 0.0d0,.true. )
+     call Assert('η is clamped to zero away from it'      ,li2020_%eta(hostLi,massSatelliteLiDefinition,massHostLiDefinition,3.00d0)         ,0.0d0 )
+     ! The mean tangential velocity. The class evaluates the integral over cos²θ of eqn. (2) in closed form; here it is evaluated
+     ! numerically instead, at the class' own η, and the two results compared.
+     integratorVelocityTotal=integrator(integrandVelocityTotal,toleranceRelative=1.0d-6)
+     integratorCosineSquared=integrator(integrandCosineSquared,toleranceRelative=1.0d-8)
+     velocityTangentialLi   =integratorVelocityTotal%integrate(0.0d0,mu1*exp(extentVelocity*sigma1))
+     call Assert('mean tangential velocity',li2020_%velocityTangentialMagnitudeMean(satelliteLi,hostLi)/velocityHost,velocityTangentialLi,relTol=toleranceLi)
+  class default
+     call Assert('the virial orbit class built is li2020',.false.,.true.)
+  end select
+  call Unit_Tests_End_Group()
   ! Clean up.
+  call hostLi         %destroy()
+  call satelliteLi    %destroy()
   call hostBenson     %destroy()
   call satelliteBenson%destroy()
   deallocate(benson2005_      )
@@ -230,6 +288,59 @@ program Test_Satellite_Virial_Orbits
   call Unit_Tests_Finish                  ()
 
 contains
+
+  double precision function integrandVelocityTotal(velocityTotal)
+    !!{RST
+    The integrand for the mean tangential velocity of :cite:t:`li_orbital_2020`: the log-normal distribution of total velocity of
+    their eqn. (1), times the total velocity, times the mean of :math:`\sqrt{1-\cos^2\theta}` over the distribution of their
+    eqn. (2) - the last evaluated by quadrature rather than in the closed form the class uses.
+    !!}
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    double precision, intent(in   ) :: velocityTotal
+
+    if (velocityTotal <= 0.0d0) then
+       integrandVelocityTotal=0.0d0
+       return
+    end if
+    select type (li2020_ => virialOrbit_)
+    type is (virialOrbitLi2020)
+       etaCurrent=li2020_%eta(hostLi,massSatelliteLiDefinition,massHostLiDefinition,velocityTotal)
+    class default
+       etaCurrent=0.0d0
+    end select
+    integrandVelocityTotal=+integratorCosineSquared%integrate(0.0d0,1.0d0)      &
+         &                 *velocityTotal                                       &
+         &                 *exp(                                                &
+         &                      -0.5d0                                          &
+         &                      *log(velocityTotal/mu1)**2                      &
+         &                      /            sigma1 **2                         &
+         &                     )                                                &
+         &                 /sqrt(2.0d0*Pi)                                      &
+         &                 /sigma1                                              &
+         &                 /velocityTotal
+    return
+  end function integrandVelocityTotal
+
+  double precision function integrandCosineSquared(cosineSquared)
+    !!{RST
+    The integrand :math:`p(\cos^2\theta)\sqrt{1-\cos^2\theta}` for the distribution of eqn. (2) of :cite:t:`li_orbital_2020`,
+    which for :math:`\eta = 0` is uniform in :math:`\cos^2\theta`.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: cosineSquared
+
+    if (etaCurrent > 0.0d0) then
+       integrandCosineSquared=+     etaCurrent                    &
+            &                 *exp (etaCurrent*cosineSquared)     &
+            &                 /(exp(etaCurrent               )-1.0d0)
+    else
+       integrandCosineSquared=+1.0d0
+    end if
+    integrandCosineSquared   =+integrandCosineSquared             &
+         &                    *sqrt(1.0d0-cosineSquared)
+    return
+  end function integrandCosineSquared
 
   subroutine buildNode(node_,mass_)
     !!{RST

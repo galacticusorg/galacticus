@@ -27,4 +27,27 @@
     <velocityDispersionUseSeriesExpansion value="false"/>
   </darkMatterProfileDMO>
 
+  <!-- The Li et al. (2020) orbit class is built from these parameters, so that its critical overdensity and    -->
+  <!-- cosmological mass variance objects - which enter only through the peak height, an input to the physics   -->
+  <!-- under test rather than part of it - are built too. The Eisenstein & Hu (1999) transfer function is used  -->
+  <!-- because it is analytic, so that the test needs no tabulated data.                                        -->
+  <virialOrbit value="li2020"/>
+  <darkMatterParticle                value="CDM"                                      />
+  <linearGrowth                      value="collisionlessMatter"                      />
+  <criticalOverdensity               value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <powerSpectrumPrimordialTransferred value="simple"                                  />
+  <powerSpectrumWindowFunction       value="topHat"                                   />
+  <powerSpectrumPrimordial           value="powerLaw">
+    <index               value="0.9649"/>
+    <wavenumberReference value="1.0000"/>
+    <running             value="0.0000"/>
+  </powerSpectrumPrimordial>
+  <transferFunction value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed      value="0.000"/>
+  </transferFunction>
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.8111"/>
+  </cosmologicalMassVariance>
+
 </parameters>
