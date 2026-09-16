@@ -473,7 +473,7 @@ contains
     return
   end function krumholz2009MolecularFractionFast
 
-  function krumholz2009Intervals(self,node,radiusInner,radiusOuter,intervalIsAnalytic,integralsAnalytic)
+  function krumholz2009Intervals(self,node,radiusInner,radiusOuter)
     !!{RST
     Returns intervals to use for integrating the :cite:t:`krumholz_star_2009` star formation rate over a galactic disk.
     !!}
@@ -484,8 +484,6 @@ contains
     double precision                                                                 , allocatable, dimension(:,:) :: krumholz2009Intervals
     type            (treeNode                                        ), intent(inout), target                      :: node
     double precision                                                  , intent(in   )                              :: radiusInner                        , radiusOuter
-    logical                                                           , intent(inout), allocatable, dimension(  :) :: intervalIsAnalytic
-    double precision                                                  , intent(inout), allocatable, dimension(  :) :: integralsAnalytic
     class           (massDistributionClass                           ), pointer                                    :: massDistributionGaseous
     double precision                                                                                               :: surfaceDensityGas                  , surfaceDensityGasDimensionless, &
          &                                                                                                            radiusCritical                     , radiusMaximum                 , &
@@ -546,16 +544,12 @@ contains
        if (surfaceDensityGasDimensionlessInner <= 1.0d0) then
           ! The entire disk is below the critical surface density so use a single interval.
           allocate(krumholz2009Intervals(2,1))
-          allocate(intervalIsAnalytic   (  1))
-          intervalIsAnalytic   =.false.
           krumholz2009Intervals=reshape([radiusInner,radiusMaximum],[2,1])
        else
           ! Test the surface density at the maximum radius.
           if (surfaceDensityGasDimensionless >= 1.0d0) then
              ! Entire disk is above the critical surface density threshold so use a single interval.
              allocate(krumholz2009Intervals(2,1))
-             allocate(intervalIsAnalytic   (  1))
-             intervalIsAnalytic   =.false.
              krumholz2009Intervals=reshape([radiusInner,radiusMaximum],[2,1])
           else
              ! The disk transitions the critical surface density - attempt to locate the radius at which this happens and use two
@@ -569,16 +563,12 @@ contains
              end if
              self%radiusCriticalPrevious=radiusCritical
              allocate(krumholz2009Intervals(2,2))
-             allocate(intervalIsAnalytic   (  2))
-             intervalIsAnalytic   =.false.
              krumholz2009Intervals=reshape([radiusInner,radiusCritical,radiusCritical,radiusMaximum],[2,2])
           end if
        end if
     else
        ! Disk surface density can not be assumed to be monotonic - use a single interval.
        allocate(krumholz2009Intervals(2,1))
-       allocate(intervalIsAnalytic   (  1))
-       intervalIsAnalytic   =.false.
        krumholz2009Intervals=reshape([radiusInner,radiusOuter],[2,1])
     end if
     return
