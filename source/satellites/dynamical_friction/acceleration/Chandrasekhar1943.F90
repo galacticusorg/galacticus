@@ -168,8 +168,8 @@ contains
     ! the satellite's bound mass - also a total mass. The default mass distribution is normalized to only the dark matter
     ! fraction of that mass, so the factor saturated at that fraction instead of at unity, suppressing the acceleration of every
     ! satellite by the baryon fraction regardless of how compact it was.
-    massDistribution_             =>  node     %massDistribution(componentTypeDarkMatterOnly,massTypeDark)
-    massDistributionHost_         =>  nodeHost %massDistribution()
+    massDistribution_             =>  node                 %massDistribution     (componentTypeDarkMatterOnly,massTypeDark                               )
+    massDistributionHost_         =>  nodeHost             %massDistribution     (                                                                       )
     chandrasekharIntegral         =   massDistributionHost_%chandrasekharIntegral(massDistributionHost_,massDistribution_,massSatellite,position,velocity)
     chandrasekhar1943Acceleration =  +4.0d0                             &
             &                        *Pi                                &

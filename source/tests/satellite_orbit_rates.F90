@@ -49,24 +49,24 @@ program Test_Satellite_Orbit_Rates
   profile is a state the code never produces, and it would drive the mass outside the tidal radius to zero, making the
   comparison one of zero against zero.
   !!}
-  use :: Display                       , only : displayMessage                   , displayVerbositySet               , verbosityLevelStandard
-  use :: Error                         , only : Error_Handler_Register
-  use :: Events_Hooks                  , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities    , only : Functions_Global_Set
-  use :: Dark_Matter_Halo_Scales       , only : darkMatterHaloScaleClass
-  use :: Galacticus_Nodes              , only : nodeClassHierarchyFinalize       , nodeClassHierarchyInitialize      , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
-       &                                        nodeComponentSatellite           , treeNode
-  use :: Input_Parameters              , only : inputParameters
-  use :: ISO_Varying_String            , only : varying_string                   , assignment(=)                     , var_str
-  use :: Node_Components               , only : Node_Components_Initialize       , Node_Components_Thread_Initialize , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use :: Satellite_Dynamical_Friction  , only : satelliteDynamicalFrictionClass
-  use :: Satellite_Tidal_Stripping     , only : satelliteTidalStrippingClass
+  use :: Display                        , only : displayMessage                    , displayVerbositySet              , verbosityLevelStandard
+  use :: Error                          , only : Error_Handler_Register
+  use :: Events_Hooks                   , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities     , only : Functions_Global_Set
+  use :: Dark_Matter_Halo_Scales        , only : darkMatterHaloScaleClass
+  use :: Galacticus_Nodes               , only : nodeClassHierarchyFinalize        , nodeClassHierarchyInitialize     , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
+       &                                         nodeComponentSatellite            , treeNode
+  use :: Input_Parameters               , only : inputParameters
+  use :: ISO_Varying_String             , only : varying_string                    , assignment(=)                    , var_str
+  use :: Node_Components                , only : Node_Components_Initialize        , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Satellite_Dynamical_Friction   , only : satelliteDynamicalFrictionClass
+  use :: Satellite_Tidal_Stripping      , only : satelliteTidalStrippingClass
   use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusClass
-  use :: Unit_Tests                    , only : Assert                           , Unit_Tests_Begin_Group            , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Unit_Tests                     , only : Assert                            , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
   ! The host halo, shared by every configuration.
-  double precision, parameter :: massHost               =1.0d12, concentrationHost=10.0d0
-  double precision, parameter :: timeNode               =13.8d0
+  double precision, parameter :: massHost           =1.0d12, concentrationHost=10.0d0
+  double precision, parameter :: timeNode           =13.8d0
   ! The reference configurations and rates, emitted by `satelliteOrbitRates.py --fortran`.
   integer         , parameter :: countConfigurations=14
   double precision, dimension(countConfigurations), parameter :: radius                 =[ 6.218943119192954d-02, 6.218943119192954d-02, 6.218943119192954d-02, 1.554735779798238d-01, 1.554735779798238d-01, 1.554735779798238d-01, 3.109471559596477d-01, 3.109471559596477d-01, 3.109471559596477d-01, 1.554735779798238d-01, 1.554735779798238d-01, 1.554735779798238d-01, 1.554735779798238d-01, 3.109471559596477d-02]
@@ -97,24 +97,25 @@ program Test_Satellite_Orbit_Rates
   ! The dynamical friction acceleration does not go through that root finder. Its floor is the quadrature of the isotropic
   ! Jeans integral giving the host velocity dispersion, and it is held to a tighter tolerance so that the assertion keeps its
   ! teeth. Measured here: 6.7 x 10^-5.
-  double precision, parameter :: toleranceAcceleration  =5.0d-4, toleranceTidal=2.0d-3, toleranceRateMassLoss=5.0d-3
-  class           (darkMatterHaloScaleClass          ), pointer :: darkMatterHaloScale_
-  class           (satelliteDynamicalFrictionClass   ), pointer :: satelliteDynamicalFriction_
-  class           (satelliteTidalStrippingClass      ), pointer :: satelliteTidalStripping_
-  class           (satelliteTidalStrippingRadiusClass), pointer :: satelliteTidalStrippingRadius_
-  type            (treeNode                          ), pointer :: nodeHost                          , nodeSatellite
-  class           (nodeComponentBasic                ), pointer :: basicHost                         , basicSatellite
-  class           (nodeComponentDarkMatterProfile    ), pointer :: profileHost                       , profileSatellite
-  class           (nodeComponentSatellite            ), pointer :: satellite
-  type            (inputParameters                   )          :: parameters
-  character       (len=128                           )          :: message
-  integer                                                       :: iConfiguration
-  double precision                                              :: radiusVirialHost                  , radiusVirialSatellite      , &
-       &                                                           differenceMaximum                 , differenceAccelerationX    , &
-       &                                                           differenceAccelerationY           , differenceRadiusTidal      , &
-       &                                                           differenceRateMassLoss            , radiusTidal                , &
-       &                                                           rateMassLoss
-  double precision                                , dimension(3) :: acceleration
+  double precision                                    , parameter    :: toleranceAcceleration         =5.0d-4, toleranceTidal         =2.0d-3, &
+       &                                                                toleranceRateMassLoss         =5.0d-3
+  class           (darkMatterHaloScaleClass          ), pointer      :: darkMatterHaloScale_
+  class           (satelliteDynamicalFrictionClass   ), pointer      :: satelliteDynamicalFriction_
+  class           (satelliteTidalStrippingClass      ), pointer      :: satelliteTidalStripping_
+  class           (satelliteTidalStrippingRadiusClass), pointer      :: satelliteTidalStrippingRadius_
+  type            (treeNode                          ), pointer      :: nodeHost                             , nodeSatellite
+  class           (nodeComponentBasic                ), pointer      :: basicHost                            , basicSatellite
+  class           (nodeComponentDarkMatterProfile    ), pointer      :: profileHost                          , profileSatellite
+  class           (nodeComponentSatellite            ), pointer      :: satellite
+  type            (inputParameters                   )               :: parameters
+  character       (len=128                           )               :: message
+  integer                                                            :: iConfiguration
+  double precision                                                   :: radiusVirialHost                     , radiusVirialSatellite         , &
+       &                                                                differenceMaximum                    , differenceAccelerationX       , &
+       &                                                                differenceAccelerationY              , differenceRadiusTidal         , &
+       &                                                                differenceRateMassLoss               , radiusTidal                   , &
+       &                                                                rateMassLoss
+  double precision                                    , dimension(3) :: acceleration
 
   call displayVerbositySet              (verbosityLevelStandard)
   call Error_Handler_Register           (                      )
@@ -135,8 +136,8 @@ program Test_Satellite_Orbit_Rates
   do iConfiguration=1,countConfigurations
      ! Build a fresh host and satellite for every configuration. A node memoizes the mass distributions built from its
      ! components, so reusing one and resetting its properties would leave the previous configuration's distribution in place.
-     nodeHost         => treeNode                  (                 )
-     nodeSatellite    => treeNode                  (                 )
+     nodeHost         => treeNode                       (                 )
+     nodeSatellite    => treeNode                       (                 )
      basicHost        => nodeHost     %basic            (autoCreate=.true.)
      profileHost      => nodeHost     %darkMatterProfile(autoCreate=.true.)
      basicSatellite   => nodeSatellite%basic            (autoCreate=.true.)
@@ -155,7 +156,7 @@ program Test_Satellite_Orbit_Rates
      call profileSatellite%scaleSet(radiusVirialSatellite/concentrationSatellite(iConfiguration))
      ! Place the satellite. The orbit lies in the x-y plane, with the radial direction along x.
      call satellite%boundMassSet(massSatellite(iConfiguration))
-     call satellite%positionSet ([radius        (iConfiguration),0.0d0                            ,0.0d0])
+     call satellite%positionSet ([radius        (iConfiguration),0.0d0                             ,0.0d0])
      call satellite%velocitySet ([velocityRadial(iConfiguration),velocityTangential(iConfiguration),0.0d0])
      ! Evaluate the rates.
      acceleration=satelliteDynamicalFriction_   %acceleration (nodeSatellite)

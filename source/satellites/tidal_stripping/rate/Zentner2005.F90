@@ -161,10 +161,10 @@ contains
     use :: Galactic_Structure_Options      , only : componentTypeDarkMatterOnly, massTypeDark
     use :: Galacticus_Nodes                , only : nodeComponentSatellite     , treeNode
     use :: Mass_Distributions              , only : massDistributionClass
-    use :: Numerical_Constants_Astronomical, only : gigaYear              , megaParsec    , gravitationalConstant_internal
+    use :: Numerical_Constants_Astronomical, only : gigaYear                   , megaParsec    , gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
-    use :: Vectors                         , only : Vector_Magnitude      , Vector_Product
+    use :: Vectors                         , only : Vector_Magnitude           , Vector_Product
     implicit none
     class           (satelliteTidalStrippingZentner2005), intent(inout)  :: self
     type            (treeNode                          ), intent(inout)  :: node
@@ -219,9 +219,9 @@ contains
     ! distribution is normalized to only the dark matter fraction of that mass. Subtracting the latter from the former left a
     ! satellite whose tidal radius reached its virial radius with a mass "outside" that radius equal to the baryon fraction of
     ! its bound mass, and so losing mass although nothing was stripping it.
-    massDistribution_      => node%massDistribution(componentTypeDarkMatterOnly,massTypeDark)
-    radiusTidal            =          self             %satelliteTidalStrippingRadius_%radius              (node       )
-    massEnclosedTidalRadius=max(0.0d0,massDistribution_                               %massEnclosedBySphere(radiusTidal))
+    massDistribution_      =>           node                                            %massDistribution    (componentTypeDarkMatterOnly,massTypeDark)
+    radiusTidal            =            self             %satelliteTidalStrippingRadius_%radius              (node                                    )
+    massEnclosedTidalRadius=  max(0.0d0,massDistribution_                               %massEnclosedBySphere(radiusTidal                             ))
     !![
     <objectDestructor name="massDistribution_"/>
     !!]
