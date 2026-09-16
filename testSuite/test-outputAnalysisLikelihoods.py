@@ -17,6 +17,10 @@ import xml.etree.ElementTree as ET
 import h5py
 import numpy as np
 
+# Paths below are relative to the root of the Galacticus source tree, so work from there: this test is run
+# both from that root and, by `test-all.py` and the CI workflows, from the `testSuite` directory.
+os.chdir(os.environ.get('GALACTICUS_EXEC_PATH', os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')))
+
 # Judged improbable by Galacticus (see `logImprobable` in `source/models/likelihoods/constants.F90`).
 logImprobable  = -1.0e-16*np.finfo(np.float64).max
 # Model values at or below these thresholds (log₁₀ mass, and log₁₀ radius in Mpc) indicate empty bins.
