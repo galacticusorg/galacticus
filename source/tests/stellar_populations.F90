@@ -21,11 +21,13 @@
 Contains a program to test stellar populations.
 !!}
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 program Test_Stellar_Populations
   !!{RST
   Tests of stellar populations.
   !!}
-  use :: Abundances_Structure                      , only : abundances
+  use :: Abundances_Structure                      , only : abundances                             , Abundances_Atomic_Index, Abundances_Names    , Abundances_Property_Count
   use :: Display                                   , only : displayVerbositySet                    , verbosityLevelWorking
   use :: Events_Hooks                              , only : eventsHooksInitialize
   use :: Functions_Global_Utilities                , only : Functions_Global_Set
@@ -71,9 +73,18 @@ program Test_Stellar_Populations
   type            (integratorCompositeGaussKronrod1D       )            :: integrator_
   double precision                                                     :: recycledFractionTabulated      , recycledFractionIntegrated, &
        &                                                                  yieldTabulated                 , yieldIntegrated
-  
+  ! Per-element yields. `atomIndexElement` is the atomic index of the element currently being integrated, and is read by
+  ! `integrandYieldElement` below; it mirrors the module-scope `indexElement_` that the class' own integrand uses.
+  integer                                                              :: atomIndexElement               , iElement
+  double precision                                                     :: yieldElementTabulated          , yieldElementIntegrated    , &
+       &                                                                  yieldElementSum
+  type            (varying_string                         )            :: nameElement                    , parameterFile
+
   call displayVerbositySet(verbosityLevelWorking)
-  parameters=inputParameters()
+  ! The parameter file declares only `elementsToTrack`; `Abundances_Initialize` reads it during
+  ! `Node_Components_Initialize` below. Everything else is left at its default, as it was before the file existed.
+  parameterFile='testSuite/parameters/stellarPopulationElementYields.xml'
+  parameters=inputParameters(parameterFile)
   call Functions_Global_Set        (          )
   call eventsHooksInitialize       (          )
   call nodeClassHierarchyInitialize(parameters)
@@ -170,6 +181,34 @@ program Test_Stellar_Populations
   call Assert('recycled fraction at a grid node',recycledFractionIntegrated,recycledFractionTabulated,relTol=1.0d-3)
   call Assert('metal yield at a grid node'      ,yieldIntegrated           ,yieldTabulated           ,relTol=1.0d-3)
   call Unit_Tests_End_Group  ()
+  ! Per-element yields. `stellarPopulationStandard` builds one table per tracked element, none of which the assertions above
+  ! touch - they exercise only the total metal yield, which is entry 1 of the abundances structure and the default when
+  ! `elementIndex` is omitted. The elements are entries 2 and above, and reach the stellar data through a different path: for
+  ! the total, `massYield` interpolates the metal yield table and the Type Ia class returns its total yield, while for an
+  ! element both are indexed by *atomic* index, `massYield` interpolating a per-element table which is defined over a
+  ! narrower range of initial mass and metallicity than the metal one.
+  !
+  ! Each element is assembled the same way as the total above, from the same definition, and compared at the same grid node
+  ! and to the same tolerance. The assembly being checked is the part that differs: that the element requested is the element
+  ! integrated, and that the Type Ia term is again included at every mass rather than only for evolved stars. As above, the
+  ! tabulated stellar data is shared by both sides and is not what is under test.
+  call Unit_Tests_Begin_Group("Per-element yields, assembled independently")
+  yieldElementSum=0.0d0
+  do iElement=2,Abundances_Property_Count()
+     nameElement          =Abundances_Names      (iElement)
+     atomIndexElement     =Abundances_Atomic_Index(iElement)
+     yieldElementTabulated=stellarPopulation_%rateYield(abundancesNode,ageMinimum=0.0d0,ageMaximum=ageNode,elementIndex=iElement)*ageNode
+     call integrator_%toleranceSet(1.0d-4,1.0d-5)
+     call integrator_%integrandSet(integrandYieldElement)
+     yieldElementIntegrated=integrator_%evaluate(initialMassFunction_%massMinimum(),initialMassFunction_%massMaximum())
+     call Assert(char(nameElement)//' yield at a grid node',yieldElementIntegrated,yieldElementTabulated,relTol=1.0d-3)
+     yieldElementSum=yieldElementSum+yieldElementTabulated
+  end do
+  ! The elements tracked are a subset of the metals, so their yields must sum to less than the total metal yield. This would
+  ! not hold if an element index were mapped to the total by mistake - the failure mode that the comparisons above, each of
+  ! which would then be consistently wrong on both sides, could not detect.
+  call Assert('tracked element yields sum to less than the total metal yield',yieldElementSum < yieldTabulated,.true.)
+  call Unit_Tests_End_Group  ()
   call Unit_Tests_Finish     ()
 
 contains
@@ -211,6 +250,28 @@ contains
          &            *supernovaeTypeIa_   %yield(initialMassFunction_,massInitial,ageNode,metallicityNode)
     return
   end function integrandYield
+
+  double precision function integrandYieldElement(massInitial)
+    !!{RST
+    Integrand giving the mass of the element with atomic index ``atomIndexElement`` returned to the interstellar medium per
+    unit mass formed. This is the counterpart of ``integrandYield`` for a single element: the isolated-star yield is again
+    taken only from stars which have evolved off of the main sequence, and the Type Ia supernova contribution again at every
+    mass, but both are now requested for a specific atom.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: massInitial
+
+    if (stellarAstrophysics_%lifetime(massInitial,metallicityNode) < ageNode) then
+       integrandYieldElement=+initialMassFunction_%phi      (massInitial                                 ) &
+            &                *stellarAstrophysics_%massYield(massInitial,metallicityNode,atomIndexElement)
+    else
+       integrandYieldElement=+0.0d0
+    end if
+    integrandYieldElement   =+integrandYieldElement                                                                            &
+         &                   +initialMassFunction_%phi  (massInitial                                                         ) &
+         &                   *supernovaeTypeIa_   %yield(initialMassFunction_,massInitial,ageNode,metallicityNode,atomIndexElement)
+    return
+  end function integrandYieldElement
 
 end program Test_Stellar_Populations
 
