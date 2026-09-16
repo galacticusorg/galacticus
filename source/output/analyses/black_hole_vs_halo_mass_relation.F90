@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements a black hole vs halo mass relation analysis class.
   !!}
@@ -304,7 +306,7 @@ contains
     type            (enumerationFixedDensityTypeType                )                                :: densityType
     type            (outputAnalysisTargetDataStandard               )                                :: outputAnalysisTargetData_
     !![
-    <constructorAssign variables="fileNameTarget, redshiftInterval, likelihoodBins, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *outputTimes_"/>
+    <constructorAssign variables="fileNameTarget, redshiftInterval, likelihoodBins, likelihoodBinsAutomatic, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *outputTimes_"/>
     !!]
 
     ! Open the target data file and read basic information.
