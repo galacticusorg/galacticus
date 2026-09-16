@@ -42,9 +42,12 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ${{ github.workspace }}/datasets/dynamic
-          key: ${{ hashFiles(format('{0}',inputs.file)) }}-${{ github.run_id }}
+          # This workflow has no `file` input; the model profiled is testSuite/parameters/benchmark_<name>.xml, so the
+          # key namespaces the cache by that model and hashes it. See the comment in testModel.yml.
+          key: profile-${{ inputs.name }}-${{ hashFiles(format('testSuite/parameters/benchmark_{0}.xml',inputs.name)) }}-${{ github.run_id }}
           restore-keys: |
-            profile-${{ hashFiles(format('{0}',inputs.name)) }}
+            profile-${{ inputs.name }}-${{ hashFiles(format('testSuite/parameters/benchmark_{0}.xml',inputs.name)) }}-
+            profile-${{ inputs.name }}-
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
