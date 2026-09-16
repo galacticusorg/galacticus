@@ -74,21 +74,30 @@ program Test_Satellite_Orbit_Rates
   double precision, dimension(countConfigurations), parameter :: velocityTangential     =[ 1.176117339465141d+02, 5.880586697325706d+01, 2.352234678930283d+01, 1.176117339465141d+02, 5.880586697325706d+01, 2.352234678930283d+01, 1.176117339465141d+02, 5.880586697325706d+01, 2.352234678930283d+01, 5.880586697325706d+01, 5.880586697325706d+01, 5.880586697325706d+01, 5.880586697325706d+01, 5.880586697325706d+01]
   double precision, dimension(countConfigurations), parameter :: massSatellite          =[ 1.000000000000000d+10, 1.000000000000000d+10, 1.000000000000000d+10, 1.000000000000000d+10, 1.000000000000000d+10, 1.000000000000000d+10, 1.000000000000000d+10, 1.000000000000000d+10, 1.000000000000000d+10, 1.000000000000000d+10, 1.000000000000000d+10, 1.000000000000000d+09, 1.000000000000000d+11, 1.000000000000000d+11]
   double precision, dimension(countConfigurations), parameter :: concentrationSatellite =[ 1.500000000000000d+01, 1.500000000000000d+01, 1.500000000000000d+01, 1.500000000000000d+01, 1.500000000000000d+01, 1.500000000000000d+01, 1.500000000000000d+01, 1.500000000000000d+01, 1.500000000000000d+01, 5.000000000000000d+00, 3.000000000000000d+01, 1.500000000000000d+01, 1.500000000000000d+01, 1.500000000000000d+01]
-  double precision, dimension(countConfigurations), parameter :: accelerationXReference =[-0.000000000000000d+00, 6.941045793774317d+00, 1.020892119919564d+01,-0.000000000000000d+00, 1.214489492257159d+00, 1.677253745658934d+00,-0.000000000000000d+00, 2.562005033353899d-01, 3.246185578498261d-01, 1.214489492257159d+00, 1.214489492257159d+00, 1.214489492257159d-01, 1.061260005836924d+01, 1.054147536860189d+02]
-  double precision, dimension(countConfigurations), parameter :: accelerationYReference =[-1.043354265273890d+01,-6.941045793774317d+00,-2.268649155376810d+00,-1.672708177997145d+00,-1.214489492257159d+00,-3.727230545908742d-01,-3.136121117902790d-01,-2.562005033353899d-01,-7.213745729996136d-02,-1.214489492257159d+00,-1.214489492257159d+00,-1.214489492257159d-01,-1.061260005836924d+01,-1.054147536860189d+02]
+  double precision, dimension(countConfigurations), parameter :: accelerationXReference =[-0.000000000000000d+00, 8.227487739763317d+00, 1.210102576731724d+01,-0.000000000000000d+00, 1.214489492257159d+00, 1.677253745658934d+00,-0.000000000000000d+00, 2.562005033353899d-01, 3.246185578498261d-01, 1.214489492257159d+00, 1.214489492257159d+00, 1.214489492257159d-01, 1.214489492257159d+01, 1.249521497639164d+02]
+  double precision, dimension(countConfigurations), parameter :: accelerationYReference =[-1.236727818950592d+01,-8.227487739763317d+00,-2.689116837181610d+00,-1.672708177997145d+00,-1.214489492257159d+00,-3.727230545908742d-01,-3.136121117902790d-01,-2.562005033353899d-01,-7.213745729996136d-02,-1.214489492257159d+00,-1.214489492257159d+00,-1.214489492257159d-01,-1.214489492257159d+01,-1.249521497639164d+02]
   double precision, dimension(countConfigurations), parameter :: radiusTidalReference   =[ 1.104123197924320d-02, 1.350429546012691d-02, 1.454231114437747d-02, 2.458983649053660d-02, 2.892694227370823d-02, 3.066739554481213d-02, 4.540098877351536d-02, 5.367071859024051d-02, 5.710513523656589d-02, 2.551288381211287d-02, 3.014988927732068d-02, 1.342669722482055d-02, 6.232120791102678d-02, 1.737763807376192d-02]
-  double precision, dimension(countConfigurations), parameter :: rateMassLossReference  =[-3.438301694033363d+10,-2.604342537371658d+10,-2.339944633483455d+10,-1.004330954839684d+10,-7.453271658260852d+09,-6.659708601440663d+09,-2.836535818497482d+09,-1.825269219277469d+09,-1.521109807878932d+09,-1.005653482859150d+10,-6.356417833091201d+09,-7.453271658260853d+08,-7.453271658260852d+10,-5.113991533958358d+11]
+  double precision, dimension(countConfigurations), parameter :: rateMassLossReference  =[-3.518323768396382d+10,-2.615997176117954d+10,-2.331310955015278d+10,-9.123778069701977d+09,-6.441304614718612d+09,-5.628203204272208d+09,-1.810087941830191d+09,-8.498977712976755d+08,-5.691448590360527d+08,-9.800858222280577d+09,-5.025796852263382d+09,-6.441304614718614d+08,-6.441304614718614d+10,-5.343634066009216d+11]
   ! The assertion tolerances, justified rather than tuned, and different for the two rates because their floors differ.
   !
   ! The tidal radius is found by the root finder in `radiusEnclosingDensityNumerical`, whose relative tolerance is 10^-3, so
   ! nothing downstream of it can agree better than that; 2 x 10^-3 is allowed, following the same reasoning as the King (1962)
-  ! test in PR #1499. The mass loss rate is built on that radius and inherits it, amplified, because the mass outside the tidal
-  ! radius is a difference of two comparable masses. Measured here: 2.1 x 10^-4 for the radius and 6.2 x 10^-4 for the rate.
+  ! test in PR #1499. Measured here: 2.1 x 10^-4.
+  !
+  ! The mass loss rate is built on that radius and inherits its error *amplified*, because the mass outside the tidal radius,
+  ! `boundMass - M(<r_tidal)`, is a difference of two comparable masses. The amplification is largest where the satellite is
+  ! least stripped - at an orbital radius of one host virial radius the tidal radius approaches the satellite's own virial
+  ! radius and the difference becomes small - and reaches a factor of about 8.5 across this grid, turning a radius difference of
+  ! 1.9 x 10^-4 into 1.6 x 10^-3. With the solver's own 10^-3 that bounds the rate at roughly 8.5 x 10^-3; 5 x 10^-3 is allowed,
+  ! which keeps a factor of three over the largest value measured.
+  !
+  ! Note that this sensitivity is a consequence of correcting the mass normalization: while `massOuter` carried a spurious
+  ! floor of the baryon fraction of the bound mass it was never small, and so was never delicate.
   !
   ! The dynamical friction acceleration does not go through that root finder. Its floor is the quadrature of the isotropic
   ! Jeans integral giving the host velocity dispersion, and it is held to a tighter tolerance so that the assertion keeps its
   ! teeth. Measured here: 6.7 x 10^-5.
-  double precision, parameter :: toleranceAcceleration  =5.0d-4, toleranceTidal=2.0d-3
+  double precision, parameter :: toleranceAcceleration  =5.0d-4, toleranceTidal=2.0d-3, toleranceRateMassLoss=5.0d-3
   class           (darkMatterHaloScaleClass          ), pointer :: darkMatterHaloScale_
   class           (satelliteDynamicalFrictionClass   ), pointer :: satelliteDynamicalFriction_
   class           (satelliteTidalStrippingClass      ), pointer :: satelliteTidalStripping_
@@ -172,7 +181,7 @@ program Test_Satellite_Orbit_Rates
      write (message,'(a,i0)') 'tidal radius, configuration ',iConfiguration
      call Assert(trim(message),radiusTidal    ,radiusTidalReference  (iConfiguration),relTol=toleranceTidal)
      write (message,'(a,i0)') 'tidal mass loss rate, configuration ',iConfiguration
-     call Assert(trim(message),rateMassLoss   ,rateMassLossReference (iConfiguration),relTol=toleranceTidal)
+     call Assert(trim(message),rateMassLoss   ,rateMassLossReference (iConfiguration),relTol=toleranceRateMassLoss)
      ! Detach before destroying, so that the host does not attempt to destroy the satellite a second time.
      nodeHost     %firstSatellite => null()
      nodeSatellite%parent         => null()

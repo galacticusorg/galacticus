@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+ Contributions to this file made by:  Anthony Pullen, Andrew Benson.
+  !+ Contributions to this file made by:  Anthony Pullen, Andrew Benson, Claude.
 
   !!{RST
   Implementation of a satellite dynamical friction class which uses the model of :cite:t:`chandrasekhar_dynamical_1943`.
@@ -138,7 +138,7 @@ contains
     !!}
     use :: Coordinates                     , only : coordinateCartesian      , assignment(=)
     use :: Error_Functions                 , only : Error_Function
-    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian, componentTypeDarkHalo         , massTypeDark
+    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian, componentTypeDarkHalo         , componentTypeDarkMatterOnly, massTypeDark
     use :: Galacticus_Nodes                , only : nodeComponentSatellite   , nodeComponentBasic            , treeNode
     use :: Mass_Distributions              , only : massDistributionClass
     use :: Numerical_Constants_Astronomical, only : gigaYear                 , gravitationalConstant_internal, megaParsec
@@ -163,7 +163,12 @@ contains
     massSatellite                 =   satellite%boundMass       ()
     position                      =   satellite%position        ()
     velocity                      =   satellite%velocity        ()
-    massDistribution_             =>  node     %massDistribution()
+    ! Use the dark-matter-only mass distribution, which is normalized to the node's basic mass. This distribution supplies the
+    ! enclosed mass in the extended-mass suppression factor of the Chandrasekhar integral, min(1,M(<r)/M), whose denominator is
+    ! the satellite's bound mass - also a total mass. The default mass distribution is normalized to only the dark matter
+    ! fraction of that mass, so the factor saturated at that fraction instead of at unity, suppressing the acceleration of every
+    ! satellite by the baryon fraction regardless of how compact it was.
+    massDistribution_             =>  node     %massDistribution(componentTypeDarkMatterOnly,massTypeDark)
     massDistributionHost_         =>  nodeHost %massDistribution()
     chandrasekharIntegral         =   massDistributionHost_%chandrasekharIntegral(massDistributionHost_,massDistribution_,massSatellite,position,velocity)
     chandrasekhar1943Acceleration =  +4.0d0                             &
