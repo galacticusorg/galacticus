@@ -1511,6 +1511,7 @@ jobs:
                 test-stellar-properties-LimongiChieffi2018.py,
                 test-stellar-properties-Sukhbold2016.py,
                 test-tidalTracks.py,
+                test-satellite-orbit-evolution.py,
                 test-transferFunctionHalfModeSlope.py,
                 test-galacticStructureStateDeallocateBug.py,
                 test-inactiveNumerics.py,
