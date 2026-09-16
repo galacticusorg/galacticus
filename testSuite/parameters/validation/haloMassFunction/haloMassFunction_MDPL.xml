@@ -45,6 +45,10 @@
           <p value="=[haloMassFunctionParameters/p]"/>
           <q value="=[haloMassFunctionParameters/q]"/>
           <normalization value="=[haloMassFunctionParameters/normalization]"/>
+          <!-- These parameters were fit without the redshift dependence of the Bhattacharya et al. (2011) normalization and -->
+          <!-- `a` parameter, so those exponents are set to zero here.                                                       -->
+          <exponentRedshiftA             value="0.0"/>
+          <exponentRedshiftNormalization value="0.0"/>
         </haloMassFunction>
       </haloMassFunction>
     </haloMassFunction>

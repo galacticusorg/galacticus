@@ -1240,6 +1240,7 @@ jobs:
                       tests.linear_growth.dark_energy.exe,
                       tests.linear_growth.baryons.EdS.exe,
                       tests.halo_mass_function.Tinker.exe,
+                      tests.halo_mass_function.Bhattacharya2011.exe,
                       tests.halo_mass_function.Reed2007.exe,
                       tests.halo_mass_function.environment_averaged.exe,
                       tests.comoving_distance.exe,

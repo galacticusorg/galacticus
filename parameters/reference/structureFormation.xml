@@ -26,6 +26,10 @@
     <c             value=" 1.0103625879299312" />
     <p             value="-0.39553795893448074"/>
     <q             value=" 0.34829916929729166"/>
+    <!-- These parameters were fit without the redshift dependence of the Bhattacharya et al. (2011) normalization and -->
+    <!-- `a` parameter, so those exponents are set to zero here.                                                       -->
+    <exponentRedshiftA             value="0.0"/>
+    <exponentRedshiftNormalization value="0.0"/>
     <!-- Provide the mass function with its own cosmological mass variance and window function, consistent with that used in the
          above paper. Since other aspects of our model are not yet calibrated to this new window function we use it only here (so
          that it does not influence halo merger rates, concentrations, etc.). -->
