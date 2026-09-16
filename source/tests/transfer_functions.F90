@@ -34,11 +34,15 @@ program Tests_Transfer_Functions
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
   use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group          , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Dark_Matter_Particles               , only : darkMatterParticleWDMThermal
+  use :: Transfer_Functions                  , only : transferFunctionBode2001                , enumerationScaleCutOffModelEncode
+  use :: Numerical_Constants_Math            , only : Pi
+  use :: Cosmology_Parameters                , only : hubbleUnitsLittleH
   use :: Transfer_Functions                  , only : transferFunctionAccelerator             , transferFunctionEnvelope
   implicit none
   type            (cosmologyParametersSimple               )                                             :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda          )                                             :: cosmologyFunctions_
-  type            (transferFunctionEisensteinHu1999        )                                             :: transferFunctionEisensteinHu1999_               , transferFunctionEisensteinHu1999Massless_
+  type            (transferFunctionEisensteinHu1999        )                                             :: transferFunctionEisensteinHu1999_                , transferFunctionEisensteinHu1999Massless_
   type            (transferFunctionEisensteinHu1998        )                                             :: transferFunctionEisensteinHu1998_
   type            (transferFunctionCAMB                    )                                             :: transferFunctionCAMB_
   type            (darkMatterParticleCDM                   )                                             :: darkMatterParticle_
@@ -49,23 +53,41 @@ program Tests_Transfer_Functions
   integer                                                   , parameter                                  :: wavenumberCount                          =1000
   double precision                                          , parameter                                  :: wavenumberMinimum                        =1.0d-3
   double precision                                          , parameter                                  :: wavenumberMaximum                        =1.0d+2
-  double precision                                                     , dimension(wavenumberCount     ) :: transferFunctionLogarithmicDerivativeEH99       , transferFunctionLogarithmicDerivativeFiniteDifferenceEH99, &
-       &                                                                                                    transferFunctionLogarithmicDerivativeEH98       , transferFunctionLogarithmicDerivativeFiniteDifferenceEH98, &
-       &                                                                                                    powerSpectrumLogarithmicDerivativeEH98          , powerSpectrumLogarithmicDerivativeFiniteDifferenceEH98   , &
-       &                                                                                                    transferFunctionValueEisensteinHu1999           , transferFunctionValueCAMB                                , &
+  double precision                                                     , dimension(wavenumberCount     ) :: transferFunctionLogarithmicDerivativeEH99        , transferFunctionLogarithmicDerivativeFiniteDifferenceEH99, &
+       &                                                                                                    transferFunctionLogarithmicDerivativeEH98        , transferFunctionLogarithmicDerivativeFiniteDifferenceEH98, &
+       &                                                                                                    powerSpectrumLogarithmicDerivativeEH98           , powerSpectrumLogarithmicDerivativeFiniteDifferenceEH98   , &
+       &                                                                                                    transferFunctionValueEisensteinHu1999            , transferFunctionValueCAMB                                , &
        &                                                                                                    wavenumbers
-  double precision                                                     , dimension(                   2) :: wavenumber                                      , powerSpectrumValueEH98_                                  , &
-       &                                                                                                    transferFunctionValueEH98_                      , transferFunctionValueEH99_
-  double precision :: timeNow
-  integer                                                                                                :: i                                               , j
+  double precision                                                     , dimension(                   2) :: wavenumber                                       , powerSpectrumValueEH98_                                  , &
+       &                                                                                                    transferFunctionValueEH98_                       , transferFunctionValueEH99_
+  double precision                                                                                       :: timeNow
+  integer                                                                                                :: i                                                , j
   ! Objects and workspace used to check that the tabulations built by the accelerator and envelope transfer functions do not
   ! depend on the order in which wavenumbers are requested of them.
-  type            (transferFunctionAccelerator             )                                             :: transferFunctionAcceleratorAscending_           , transferFunctionAcceleratorDescending_
-  type            (transferFunctionEnvelope                )                                             :: transferFunctionEnvelopeAscending_              , transferFunctionEnvelopeDescending_
+  type            (transferFunctionAccelerator             )                                             :: transferFunctionAcceleratorAscending_            , transferFunctionAcceleratorDescending_
+  type            (transferFunctionEnvelope                )                                             :: transferFunctionEnvelopeAscending_               , transferFunctionEnvelopeDescending_
   integer                                                   , parameter                                  :: wavenumberOrderCount                     =5
   double precision                                          , parameter, dimension(wavenumberOrderCount) :: wavenumbersOrder                         =[1.0d-2,1.0d-1,1.0d0,1.0d1,1.0d2]
-  double precision                                                     , dimension(wavenumberOrderCount) :: acceleratorAscending                            , acceleratorDescending                                   , &
-       &                                                                                                    envelopeAscending                               , envelopeDescending
+  double precision                                                     , dimension(wavenumberOrderCount) :: acceleratorAscending                             , acceleratorDescending                                   , &
+       &                                                                                                    envelopeAscending                                , envelopeDescending
+  ! Objects and workspace for the Bode et al. (2001) warm dark matter modifier.
+  type            (darkMatterParticleWDMThermal            )                                             :: darkMatterParticleWDM_                           , darkMatterParticleWDMHeavy_
+  type            (transferFunctionBode2001                )                                             :: transferFunctionBode2001_                        , transferFunctionBode2001Heavy_
+  ! Parameters of the modifier. These are the defaults of the class.
+  double precision                                          , parameter                                  :: epsilonBode                              =0.359d0, etaBode                                  =3.81d0, &
+       &                                                                                                    nuBode                                   =1.10d0
+  ! Warm dark matter particle masses [keV] and effective degrees of freedom. The reference values against which the cut-off
+  ! scale is scaled are those of the class.
+  double precision                                          , parameter                                  :: massWDM                                  =3.0d0  , massWDMHeavy                             =6.0d0 , &
+       &                                                                                                    degreesOfFreedomWDM                      =1.5d0  , degreesOfFreedomReferenceBode            =1.5d0 , &
+       &                                                                                                    massReferenceBode                        =1.0d0
+  integer                                                   , parameter                                  :: wavenumberCountBode                      =6
+  double precision                                          , parameter, dimension(wavenumberCountBode)  :: wavenumbersBode                          =[1.0d-2,1.0d-1,1.0d0,5.0d0,1.0d1,5.0d1]
+  double precision                                                     , dimension(wavenumberCountBode)  :: suppressionClass                                , suppressionExpected
+  double precision                                                                                       :: scaleCutOffExpected                             , wavenumberHalfModeExpected                              , &
+       &                                                                                                    massHalfModeExpected                            , densityMatter                                           , &
+       &                                                                                                    scaleCutOffExpectedHeavy                        , wavenumberHalfModeExpectedHeavy                         , &
+       &                                                                                                    massHalfModeExpectedHeavy
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -189,6 +211,106 @@ program Tests_Transfer_Functions
      envelopeDescending   (i)=transferFunctionEnvelopeDescending_   %value(wavenumbersOrder(i))
   end do
   call Assert('envelope T(k) is independent of the order in which wavenumbers are requested',envelopeAscending,envelopeDescending,absTol=0.0d0)
+  ! The warm dark matter modifier of Bode et al. (2001). The class applies
+  !
+  !   T(k) -> T(k) [1 + (ε k R_c)^(2 ν)]^(-η/ν),
+  !
+  ! to a cold dark matter transfer function, with the cut-off scale R_c set here by equation (4) of Barkana et al. (2001) - the
+  ! default - carrying the factor 0.932 which moves it to the epoch of matter-radiation equality. Both are written out
+  ! independently below, so this checks the modifier, the cut-off scale, and the exponents together.
+  call Unit_Tests_Begin_Group("Bode et al. (2001) warm dark matter modifier")
+  darkMatterParticleWDM_       =darkMatterParticleWDMThermal(mass=massWDM     ,degreesOfFreedomEffective=degreesOfFreedomWDM,cosmologyParameters_=cosmologyParameters_)
+  darkMatterParticleWDMHeavy_  =darkMatterParticleWDMThermal(mass=massWDMHeavy,degreesOfFreedomEffective=degreesOfFreedomWDM,cosmologyParameters_=cosmologyParameters_)
+  transferFunctionBode2001_    =transferFunctionBode2001(                                                                                              &
+       &                                                 transferFunctionCDM =transferFunctionEisensteinHu1998_                                      , &
+       &                                                 scaleCutOffModel    =enumerationScaleCutOffModelEncode('barkana2001',includesPrefix=.false.), &
+       &                                                 epsilon             =epsilonBode                                                            , &
+       &                                                 eta                 =etaBode                                                                , &
+       &                                                 nu                  =nuBode                                                                 , &
+       &                                                 time                =timeNow                                                                , &
+       &                                                 cosmologyParameters_=cosmologyParameters_                                                   , &
+       &                                                 darkMatterParticle_ =darkMatterParticleWDM_                                                 , &
+       &                                                 cosmologyFunctions_ =cosmologyFunctions_                                                      &
+       &                                                )
+  transferFunctionBode2001Heavy_=transferFunctionBode2001(                                                                                             &
+       &                                                 transferFunctionCDM =transferFunctionEisensteinHu1998_                                      , &
+       &                                                 scaleCutOffModel    =enumerationScaleCutOffModelEncode('barkana2001',includesPrefix=.false.), &
+       &                                                 epsilon             =epsilonBode                                                            , &
+       &                                                 eta                 =etaBode                                                                , &
+       &                                                 nu                  =nuBode                                                                 , &
+       &                                                 time                =timeNow                                                                , &
+       &                                                 cosmologyParameters_=cosmologyParameters_                                                   , &
+       &                                                 darkMatterParticle_ =darkMatterParticleWDMHeavy_                                            , &
+       &                                                 cosmologyFunctions_ =cosmologyFunctions_                                                      &
+       &                                                )
+  ! Equation (4) of Barkana et al. (2001), with the 0.932 prefactor.
+  scaleCutOffExpected          =+0.932d0                                                             &
+       &                        *0.201d0                                                             &
+       &                        *(                                                                   &
+       &                          +(                                                                 &
+       &                            +cosmologyParameters_%OmegaMatter   (                  )         &
+       &                            -cosmologyParameters_%OmegaBaryon   (                  )         &
+       &                           )                                                                 &
+       &                          *  cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2      &
+       &                          /0.15d0                                                            &
+       &                         )                                                          **0.15d0 &
+       &                        /(degreesOfFreedomWDM/degreesOfFreedomReferenceBode)        **0.29d0 &
+       &                        /(massWDM            /massReferenceBode            )        **1.15d0
+  scaleCutOffExpectedHeavy     =+scaleCutOffExpected            &
+       &                        *(massWDM/massWDMHeavy)**1.15d0
+  ! The suppression of the transfer function relative to the cold dark matter one.
+  do i=1,wavenumberCountBode
+     suppressionClass   (i)=+transferFunctionBode2001_        %value(wavenumbersBode(i)) &
+          &                 /transferFunctionEisensteinHu1998_%value(wavenumbersBode(i))
+     suppressionExpected(i)=+1.0d0                                                                    &
+          &                 /(                                                                        &
+          &                   +1.0d0                                                                  &
+          &                   +(epsilonBode*wavenumbersBode(i)*scaleCutOffExpected)**(2.0d0  *nuBode) &
+          &                  )                                                     **(etaBode/nuBode)
+  end do
+  call Assert('suppression of T(k)',suppressionClass,suppressionExpected,relTol=1.0d-9)
+  ! The half-mode mass. The wavenumber at which the suppression is a factor of two follows in closed form from the modifier, and
+  ! the mass from the convention R = lambda/2 = pi/k.
+  densityMatter                 =+cosmologyParameters_%OmegaMatter    () &
+       &                         *cosmologyParameters_%densityCritical()
+  wavenumberHalfModeExpected    =+(                                       &
+       &                           +2.0d0**(+nuBode/etaBode)              &
+       &                           -1.0d0                                 &
+       &                          )      **(+0.5d0 /nuBode )              &
+       &                         /epsilonBode                             &
+       &                         /scaleCutOffExpected
+  massHalfModeExpected          =+4.0d0                                   &
+       &                         *Pi                                      &
+       &                         /3.0d0                                   &
+       &                         *densityMatter                           &
+       &                         *(Pi/wavenumberHalfModeExpected)**3
+  wavenumberHalfModeExpectedHeavy=+(                                      &
+       &                           +2.0d0**(+nuBode/etaBode)              &
+       &                           -1.0d0                                 &
+       &                          )      **(+0.5d0 /nuBode )              &
+       &                         /epsilonBode                             &
+       &                         /scaleCutOffExpectedHeavy
+  massHalfModeExpectedHeavy     =+4.0d0                                   &
+       &                         *Pi                                      &
+       &                         /3.0d0                                   &
+       &                         *densityMatter                           &
+       &                         *(Pi/wavenumberHalfModeExpectedHeavy)**3
+  call Assert('half-mode mass'                  ,transferFunctionBode2001_     %halfModeMass(),massHalfModeExpected     ,relTol=1.0d-9)
+  call Assert('half-mode mass, heavier particle',transferFunctionBode2001Heavy_%halfModeMass(),massHalfModeExpectedHeavy,relTol=1.0d-9)
+  ! The transfer function must indeed be suppressed by precisely a factor of two at the half-mode wavenumber, which ties the mass
+  ! above to the definition it is meant to express.
+  call Assert('T(k) is suppressed by two at the half-mode wavenumber'                                            &
+       &     ,+transferFunctionBode2001_        %value(transferFunctionBode2001_%wavenumberAtSuppression(2.0d0)) &
+       &      /transferFunctionEisensteinHu1998_%value(transferFunctionBode2001_%wavenumberAtSuppression(2.0d0)) &
+       &     ,0.5d0,relTol=1.0d-9)
+  ! Limits: the modifier leaves large scales untouched, suppresses monotonically, and gives a lower half-mode mass for a heavier
+  ! particle - the cut-off scale going as m^-1.15, so the mass as m^-3.45.
+  call Assert('T(k) is unmodified on large scales',suppressionClass(1),1.0d0,relTol=1.0d-6)
+  call Assert('suppression is monotonic'          ,all(suppressionClass(2:wavenumberCountBode) < suppressionClass(1:wavenumberCountBode-1)),.true.)
+  call Assert('a heavier particle has a lower half-mode mass',transferFunctionBode2001Heavy_%halfModeMass() < transferFunctionBode2001_%halfModeMass(),.true.)
+  call Assert('half-mode mass scales as m^-3.45'  ,transferFunctionBode2001_%halfModeMass()/transferFunctionBode2001Heavy_%halfModeMass(),(massWDMHeavy/massWDM)**(3.0d0*1.15d0),relTol=1.0d-9)
+  call Unit_Tests_End_Group()
+
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
