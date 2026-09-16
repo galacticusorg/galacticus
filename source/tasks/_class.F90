@@ -32,7 +32,7 @@ module Tasks
    <name>task</name>
    <descriptiveName>Tasks</descriptiveName>
    <description>
-   Class providing general top-level tasks to be performed by Galacticus\---the primary unit of computation that the code executes when run. Each task implementation defines a self-contained operation, such as evolving a forest of merger trees to produce a galaxy catalogue, running a Bayesian parameter estimation, performing N-body analysis, or executing a radiative transfer calculation. The ``perform`` method carries out the task and optionally returns an exit status, while ``requiresOutputFile`` indicates whether HDF5 output should be opened beforehand.
+   Class providing general top-level tasks to be performed by Galacticus\---the primary unit of computation that the code executes when run. Each task implementation defines a self-contained operation, such as evolving a forest of merger trees to produce a galaxy catalog, running a Bayesian parameter estimation, performing N-body analysis, or executing a radiative transfer calculation. The ``perform`` method carries out the task and optionally returns an exit status, while ``requiresOutputFile`` indicates whether HDF5 output should be opened beforehand.
    </description>
    <default>evolveForests</default>
    <method name="perform" >

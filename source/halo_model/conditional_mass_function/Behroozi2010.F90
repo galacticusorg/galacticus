@@ -79,37 +79,37 @@ Implements a class for the conditional mass functions using the :cite:t:`behrooz
         - Galacticus name
       * - :math:`\alpha_\mathrm{sat}`
         - 1.0
-        - ``[conditionalStellarMassFunctionBehrooziAlphaSatellite]``
+        - ``[alphaSatellite]``
       * - :math:`\log_{10} M_1`
         - 12.520
-        - ``[conditionalStellarMassFunctionBehrooziLog10M1]``
+        - ``[log10M1]``
       * - :math:`\log_{10} M_{\star,0}`
         - 10.916
-        - ``[conditionalStellarMassFunctionBehrooziLog10Mstar0]``
+        - ``[log10Mstar0]``
       * - :math:`\beta`
         - 0.457
-        - ``[conditionalStellarMassFunctionBehrooziBeta]``
+        - ``[beta]``
       * - :math:`\delta`
         - 0.5666
-        - ``[conditionalStellarMassFunctionBehrooziDelta]``
+        - ``[delta]``
       * - :math:`\gamma`
         - 1.53
-        - ``[conditionalStellarMassFunctionBehrooziGamma]``
+        - ``[gamma]``
       * - :math:`\sigma_{\log M_\star}`
         - 0.206
-        - ``[conditionalStellarMassFunctionBehrooziSigmaLogMstar]``
+        - ``[sigmaLogMstar]``
       * - :math:`B_\mathrm{cut}`
         - 1.47
-        - ``[conditionalStellarMassFunctionBehrooziBCut]``
+        - ``[BCut]``
       * - :math:`B_\mathrm{sat}`
         - 10.62
-        - ``[conditionalStellarMassFunctionBehrooziBSatellite]``
+        - ``[BSatellite]``
       * - :math:`\beta_\mathrm{cut}`
         - :math:`-`\ 0.13
-        - ``[conditionalStellarMassFunctionBehrooziBetaCut]``
+        - ``[betaCut]``
       * - :math:`\beta_\mathrm{sat}`
         - 0.859
-        - ``[conditionalStellarMassFunctionBehrooziBetaSatellite]``
+        - ``[betaSatellite]``
    </description>
   </conditionalMassFunction>
   !!]

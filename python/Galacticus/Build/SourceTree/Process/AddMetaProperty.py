@@ -33,7 +33,7 @@ def process_add_meta_property(tree, options):
         directive.setdefault('isEvolvable', 'no')
         directive.setdefault('isCreator',   'no')
 
-        # Directive values arrive as strings from XML parsing; normalise
+        # Directive values arrive as strings from XML parsing; normalize
         # `rank` for the numeric comparisons below.
         try:
             rank = int(directive['rank'])

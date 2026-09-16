@@ -33,7 +33,7 @@
   use :: Power_Spectra             , only : powerSpectrum               , powerSpectrumClass
 
   !![
-  <posteriorSampleLikelihood name="posteriorSampleLikelihoodPrjctdCorrelationFunction" docformat="rst">
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodProjectedCorrelationFunction" docformat="rst">
    <description>
    The likelihood is computed as
 
@@ -57,7 +57,7 @@
    <runTimeFileDependencies paths="fileName"/>
   </posteriorSampleLikelihood>
   !!]
-  type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodPrjctdCorrelationFunction
+  type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodProjectedCorrelationFunction
      !!{RST
      Implementation of a posterior sampling likelihood class which implements a likelihood for projected correlation functions.
      !!}
@@ -70,7 +70,7 @@
      class           (darkMatterProfileDMOClass        ), pointer                     :: darkMatterProfileDMO_                => null()
      class           (darkMatterHaloBiasClass          ), pointer                     :: darkMatterHaloBias_                  => null()
      class           (darkMatterProfileScaleRadiusClass), pointer                     :: darkMatterProfileScaleRadius_        => null()
-     double precision                                                                 :: haloMassMinimum                               , haloMassMaximum             , &
+     double precision                                                                 :: massHaloMinimum                               , massHaloMaximum             , &
           &                                                                              lineOfSightDepth
      logical                                                                          :: halfIntegral
      double precision                                   , dimension(:  ), allocatable :: separation                                    , massMaximum                 , &
@@ -84,25 +84,25 @@
      final     ::                    projectedCorrelationFunctionDestructor
      procedure :: evaluate        => projectedCorrelationFunctionEvaluate
      procedure :: functionChanged => projectedCorrelationFunctionFunctionChanged
-  end type posteriorSampleLikelihoodPrjctdCorrelationFunction
+  end type posteriorSampleLikelihoodProjectedCorrelationFunction
 
-  interface posteriorSampleLikelihoodPrjctdCorrelationFunction
+  interface posteriorSampleLikelihoodProjectedCorrelationFunction
      !!{RST
-     Constructors for the :galacticus-class:`posteriorSampleLikelihoodPrjctdCorrelationFunction` posterior sampling likelihood class.
+     Constructors for the :galacticus-class:`posteriorSampleLikelihoodProjectedCorrelationFunction` posterior sampling likelihood class.
      !!}
      module procedure projectedCorrelationFunctionConstructorParameters
      module procedure projectedCorrelationFunctionConstructorInternal
-  end interface posteriorSampleLikelihoodPrjctdCorrelationFunction
+  end interface posteriorSampleLikelihoodProjectedCorrelationFunction
 
 contains
 
   function projectedCorrelationFunctionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`posteriorSampleLikelihoodPrjctdCorrelationFunction` posterior sampling likelihood class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodProjectedCorrelationFunction` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (posteriorSampleLikelihoodPrjctdCorrelationFunction)                :: self
+    type            (posteriorSampleLikelihoodProjectedCorrelationFunction)                :: self
     type            (inputParameters                                   ), intent(inout) :: parameters
     class           (powerSpectrumClass                                ), pointer       :: powerSpectrum_
     class           (cosmologyFunctionsClass                           ), pointer       :: cosmologyFunctions_
@@ -112,21 +112,21 @@ contains
     class           (darkMatterProfileDMOClass                         ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterHaloBiasClass                           ), pointer       :: darkMatterHaloBias_
     class           (darkMatterProfileScaleRadiusClass                 ), pointer       :: darkMatterProfileScaleRadius_
-    double precision                                                                    :: haloMassMinimum    , haloMassMaximum, &
+    double precision                                                                    :: massHaloMinimum              , massHaloMaximum, &
          &                                                                                 lineOfSightDepth
     logical                                                                             :: halfIntegral
     type            (varying_string                                    )                :: fileName
 
     !![
     <inputParameter docformat="rst">
-      <name>haloMassMinimum</name>
+      <name>massHaloMinimum</name>
       <description>
       The minimum halo mass over which to integrate.
       </description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter docformat="rst">
-      <name>haloMassMaximum</name>
+      <name>massHaloMaximum</name>
       <description>
       The maximum halo mass over which to integrate.
       </description>
@@ -162,7 +162,7 @@ contains
     <objectBuilder class="darkMatterHaloBias"           name="darkMatterHaloBias_"           source="parameters"/>
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     !!]
-    self=posteriorSampleLikelihoodPrjctdCorrelationFunction(haloMassMinimum,haloMassMaximum,lineOfSightDepth,halfIntegral,char(fileName),powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_)
+    self=posteriorSampleLikelihoodProjectedCorrelationFunction(massHaloMinimum,massHaloMaximum,lineOfSightDepth,halfIntegral,char(fileName),powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="powerSpectrum_"               />
@@ -177,9 +177,9 @@ contains
     return
   end function projectedCorrelationFunctionConstructorParameters
 
-  function projectedCorrelationFunctionConstructorInternal(haloMassMinimum,haloMassMaximum,lineOfSightDepth,halfIntegral,fileName,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_) result(self)
+  function projectedCorrelationFunctionConstructorInternal(massHaloMinimum,massHaloMaximum,lineOfSightDepth,halfIntegral,fileName,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`posteriorSampleLikelihoodPrjctdCorrelationFunction` posterior sampling likelihood class.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodProjectedCorrelationFunction` posterior sampling likelihood class.
     !!}
     use :: Input_Paths      , only : inputPath    , pathTypeDataStatic
     use :: HDF5_Access      , only : hdf5Access
@@ -187,8 +187,8 @@ contains
     use :: Linear_Algebra   , only : assignment(=)
     use :: ISO_Varying_String, only : operator(//)
     implicit none
-    type            (posteriorSampleLikelihoodPrjctdCorrelationFunction)                        :: self
-    double precision                                                    , intent(in   )         :: haloMassMinimum    , haloMassMaximum, &
+    type            (posteriorSampleLikelihoodProjectedCorrelationFunction)                        :: self
+    double precision                                                    , intent(in   )         :: massHaloMinimum    , massHaloMaximum, &
          &                                                                                         lineOfSightDepth
     logical                                                             , intent(in   )         :: halfIntegral
     character       (len=*                                             ), intent(in   )         :: fileName
@@ -202,7 +202,7 @@ contains
     class           (darkMatterProfileScaleRadiusClass                 ), intent(in   ), target :: darkMatterProfileScaleRadius_
     type            (hdf5File                                          )                        :: file
     !![
-    <constructorAssign variables="haloMassMinimum, haloMassMaximum, lineOfSightDepth, halfIntegral, fileName, *powerSpectrum_, *cosmologyFunctions_, *surveyGeometry_, *darkMatterHaloScale_, *haloMassFunction_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *darkMatterProfileScaleRadius_"/>
+    <constructorAssign variables="massHaloMinimum, massHaloMaximum, lineOfSightDepth, halfIntegral, fileName, *powerSpectrum_, *cosmologyFunctions_, *surveyGeometry_, *darkMatterHaloScale_, *haloMassFunction_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *darkMatterProfileScaleRadius_"/>
     !!]
 
     ! Read the projected correlation function file.
@@ -229,10 +229,10 @@ contains
 
   subroutine projectedCorrelationFunctionDestructor(self)
     !!{RST
-    Destructor for the :galacticus-class:`posteriorSampleLikelihoodPrjctdCorrelationFunction` posterior sampling likelihood class.
+    Destructor for the :galacticus-class:`posteriorSampleLikelihoodProjectedCorrelationFunction` posterior sampling likelihood class.
     !!}
     implicit none
-    type(posteriorSampleLikelihoodPrjctdCorrelationFunction), intent(inout) :: self
+    type(posteriorSampleLikelihoodProjectedCorrelationFunction), intent(inout) :: self
 
     !![
     <objectDestructor name="self%powerSpectrum_"               />
@@ -259,7 +259,7 @@ contains
     use :: Posterior_Sampling_Convergence   , only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State         , only : posteriorSampleStateClass
     implicit none
-    class           (posteriorSampleLikelihoodPrjctdCorrelationFunction), intent(inout), target       :: self
+    class           (posteriorSampleLikelihoodProjectedCorrelationFunction), intent(inout), target       :: self
     class           (posteriorSampleStateClass                         ), intent(inout)               :: simulationState
     type            (modelParameterList                                ), intent(inout), dimension(:) :: modelParametersActive_  , modelParametersInactive_
     class           (posteriorSampleConvergenceClass                   ), intent(inout)               :: simulationConvergence
@@ -317,8 +317,8 @@ contains
             &                                self%separation                        , &
             &                                self%massMinimum                  (  i), &
             &                                self%massMaximum                  (  i), &
-            &                                self%haloMassMinimum                   , &
-            &                                self%haloMassMaximum                   , &
+            &                                self%massHaloMinimum                   , &
+            &                                self%massHaloMaximum                   , &
             &                                self%lineOfSightDepth                  , &
             &                                self%halfIntegral                      , &
             &                                self%projectedCorrelationFunction (:,i)  &
@@ -344,7 +344,7 @@ contains
     Respond to possible changes in the likelihood function.
     !!}
     implicit none
-    class(posteriorSampleLikelihoodPrjctdCorrelationFunction), intent(inout) :: self
+    class(posteriorSampleLikelihoodProjectedCorrelationFunction), intent(inout) :: self
     !$GLC attributes unused :: self
 
     return

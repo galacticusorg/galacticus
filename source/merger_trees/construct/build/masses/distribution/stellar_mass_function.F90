@@ -26,7 +26,7 @@
   use :: Meta_Tree_Compute_Times   , only : metaTreeProcessingTime , metaTreeProcessingTimeClass
 
   !![
-  <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionStllrMssFnctn" docformat="rst">
+  <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionStellarMassFunction" docformat="rst">
    <description>
    A merger tree build mass distribution class designed to minimize variance in the model stellar mass function.
 
@@ -246,7 +246,7 @@
    </description>
   </mergerTreeBuildMassDistribution>
   !!]
-  type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionStllrMssFnctn
+  type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionStellarMassFunction
      !!{RST
      Implementation of merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.
      !!}
@@ -261,25 +261,25 @@
    contains
      final     ::           stellarMassFunctionDestructor
      procedure :: sample => stellarMassFunctionSample
-  end type mergerTreeBuildMassDistributionStllrMssFnctn
+  end type mergerTreeBuildMassDistributionStellarMassFunction
 
-  interface mergerTreeBuildMassDistributionStllrMssFnctn
+  interface mergerTreeBuildMassDistributionStellarMassFunction
      !!{RST
-     Constructors for the :galacticus-class:`mergerTreeBuildMassDistributionStllrMssFnctn` merger tree halo mass function sampling class.
+     Constructors for the :galacticus-class:`mergerTreeBuildMassDistributionStellarMassFunction` merger tree halo mass function sampling class.
      !!}
      module procedure stellarMassFunctionConstructorParameters
      module procedure stellarMassFunctionConstructorInternal
-  end interface mergerTreeBuildMassDistributionStllrMssFnctn
+  end interface mergerTreeBuildMassDistributionStellarMassFunction
 
 contains
 
   function stellarMassFunctionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`mergerTreeBuildMassDistributionStllrMssFnctn` merger tree halo mass function sampling class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`mergerTreeBuildMassDistributionStellarMassFunction` merger tree halo mass function sampling class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (mergerTreeBuildMassDistributionStllrMssFnctn)                :: self
+    type            (mergerTreeBuildMassDistributionStellarMassFunction)                :: self
     type            (inputParameters                             ), intent(inout) :: parameters
     class           (haloMassFunctionClass                       ), pointer       :: haloMassFunction_
     class           (conditionalMassFunctionClass                ), pointer       :: conditionalMassFunction_
@@ -350,7 +350,7 @@ contains
     <objectBuilder class="conditionalMassFunction" name="conditionalMassFunction_" source="parameters"/>
     <objectBuilder class="metaTreeProcessingTime"  name="metaTreeProcessingTime_"  source="parameters"/>
     !!]
-    self=mergerTreeBuildMassDistributionStllrMssFnctn(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_,conditionalMassFunction_,metaTreeProcessingTime_)
+    self=mergerTreeBuildMassDistributionStellarMassFunction(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_,conditionalMassFunction_,metaTreeProcessingTime_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="haloMassFunction_"       />
@@ -362,10 +362,10 @@ contains
 
   function stellarMassFunctionConstructorInternal(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_,conditionalMassFunction_,metaTreeProcessingTime_) result(self)
     !!{RST
-    Internal constructor for the :galacticus-class:`mergerTreeBuildMassDistributionStllrMssFnctn` merger tree halo mass function sampling class.
+    Internal constructor for the :galacticus-class:`mergerTreeBuildMassDistributionStellarMassFunction` merger tree halo mass function sampling class.
     !!}
    implicit none
-    type            (mergerTreeBuildMassDistributionStllrMssFnctn)                        :: self
+    type            (mergerTreeBuildMassDistributionStellarMassFunction)                        :: self
     class           (haloMassFunctionClass                       ), intent(in   ), target :: haloMassFunction_
     class           (conditionalMassFunctionClass                ), intent(in   ), target :: conditionalMassFunction_
     class           (metaTreeProcessingTimeClass                 ), intent(in   ), target :: metaTreeProcessingTime_
@@ -382,10 +382,10 @@ contains
 
   subroutine stellarMassFunctionDestructor(self)
     !!{RST
-    Destructor for the :galacticus-class:`mergerTreeBuildMassDistributionStllrMssFnctn` merger tree halo mass function sampling class.
+    Destructor for the :galacticus-class:`mergerTreeBuildMassDistributionStellarMassFunction` merger tree halo mass function sampling class.
     !!}
     implicit none
-    type(mergerTreeBuildMassDistributionStllrMssFnctn), intent(inout) :: self
+    type(mergerTreeBuildMassDistributionStellarMassFunction), intent(inout) :: self
 
     !![
     <objectDestructor name="self%haloMassFunction_"       />
@@ -401,7 +401,7 @@ contains
     !!}
     use :: Numerical_Integration, only : integrator
     implicit none
-    class           (mergerTreeBuildMassDistributionStllrMssFnctn), intent(inout) :: self
+    class           (mergerTreeBuildMassDistributionStellarMassFunction), intent(inout) :: self
     double precision                                              , intent(in   ) :: mass                               , massMaximum                 , &
          &                                                                           massMinimum                        , time
     double precision                                              , parameter     :: toleranceAbsolute           =1.0d-3, toleranceRelative    =1.0d-2

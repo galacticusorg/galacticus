@@ -27,7 +27,7 @@ module Interfaces_Cloudy
   !!}
 
   !![
-  <workaround type="gfortran" PR="94463" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94463" docformat="rst">
+  <workaround type="gfortran" PR="94463" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=94463" docformat="rst">
   <description>
   Failure of name mangling on module read.
   </description>

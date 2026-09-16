@@ -3,7 +3,7 @@
 `stateStorables.xml` is read back through `xml_to_dict()` and arrives in
 any of five different shapes depending on which writer produced it
 (XML::Simple ForceArray vs KeyAttr vs current Python writer; single vs
-multiple entries).  These functions normalise all five shapes to a
+multiple entries).  These functions normalize all five shapes to a
 consistent list-of-dicts representation; pinning that down with tests
 is high-leverage because the function-class generation loop iterates
 over their output.
@@ -85,10 +85,10 @@ def test_entries_force_array_wrapper_with_single_dict():
     assert out == [{'name': 'solo', 'module': 'M'}]
 
 
-def test_entries_keyAttr_mapping_synthesises_name_from_key():
+def test_entries_keyAttr_mapping_synthesizes_name_from_key():
     """XML::Simple KeyAttr=>['name'] writer: `{'X': {'module': 'M_X'}}`.
     The class name lives in the *key*, not in a `name` field; the helper
-    must synthesise `name` from the key."""
+    must synthesize `name` from the key."""
     state = {'functionClasses': {
         'classA': {'module': 'M_A'},
         'classB': {'module': 'M_B'},
@@ -101,7 +101,7 @@ def test_entries_keyAttr_mapping_synthesises_name_from_key():
 
 def test_entries_keyAttr_does_not_overwrite_explicit_name():
     """If the inner dict already has a `name` field, it must take precedence
-    over the synthesised key (the explicit name is what callers wrote)."""
+    over the synthesized key (the explicit name is what callers wrote)."""
     state = {'functionClasses': {
         'keyName': {'name': 'explicitName', 'module': 'M'},
     }}

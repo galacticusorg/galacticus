@@ -14,7 +14,7 @@ subprocess.run("mkdir -p outputs/", shell=True)
 # Run the model.
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/thinDiskAGNSED.xml", shell=True)
 if status.returncode != 0:
-    print("FAIL: AGN SED model failed to run")
+    print("FAILED: AGN SED model failed to run")
     sys.exit(0)
 
 # Read the spectra and associated black hole data.
@@ -67,4 +67,4 @@ ratio = luminositySED/luminosityBolometric[selection]
 if np.allclose(ratio,1.0,rtol=0.0,atol=0.03):
     print("SUCCESS: AGN SEDs integrate to bolometric luminosity")
 else:
-    print("FAIL: AGN SEDs do not integrate to bolometric luminosity")
+    print("FAILED: AGN SEDs do not integrate to bolometric luminosity")

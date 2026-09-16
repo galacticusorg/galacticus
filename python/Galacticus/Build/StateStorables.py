@@ -23,7 +23,7 @@ from __future__ import annotations
 # entry dicts.  Legacy writers produced (and consumed) the attribute-keyed
 # shape `{'functionClasses': {'X': {'module': ...}, ...}}`,
 # so most callers in the codebase still test `isinstance(fc, dict)` first
-# and then look for a `functionClass` wrapper key.  Centralise the shape-
+# and then look for a `functionClass` wrapper key.  Centralize the shape-
 # bridging here so every reader handles the actual on-disk format.
 
 __all__ = [
@@ -63,7 +63,7 @@ def function_class_entries(state_storables: dict | None) -> list[dict]:
         # Single ``<functionClasses>`` element with ``<name>`` child.
         if 'name' in fc:
             return [fc]
-        # KeyAttr-keyed mapping: synthesise entry dicts from {key: rest}.
+        # KeyAttr-keyed mapping: synthesize entry dicts from {key: rest}.
         out = []
         for key, value in fc.items():
             if isinstance(value, dict):

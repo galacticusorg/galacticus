@@ -24,7 +24,7 @@
   !![
   <kinematicsDistribution name="kinematicsDistributionIsothermal" docformat="rst">
    <description>
-   An isothermal kinematic distribution class for collisional gas components in which all particles share a single uniform temperature. The 1D velocity dispersion is derived from the gas temperature ``[temperature]`` and mean atomic mass ``[massAtomicMean]``, appropriate for modelling thermally supported gas in hydrostatic equilibrium.
+   An isothermal kinematic distribution class for collisional gas components in which all particles share a single uniform temperature. The 1D velocity dispersion is derived from the gas temperature ``[temperature]`` and mean atomic mass ``[massAtomicMean]``, appropriate for modeling thermally supported gas in hydrostatic equilibrium.
    </description>
   </kinematicsDistribution>
   !!]

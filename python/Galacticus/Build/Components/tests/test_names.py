@@ -53,13 +53,13 @@ def test_class_type_body_returns_static_label():
     assert "name='nodeComponent:spin'" in desc['content']
 
 
-def test_class_type_lowercase_name_is_capitalised_in_type_name():
+def test_class_type_lowercase_name_is_capitalized_in_type_name():
     """The class name appears in two cases: original-case in the body label,
-    capitalised in the Fortran type identifier."""
+    capitalized in the Fortran type identifier."""
     build = {}
     Class_Type(build, {'name': 'darkMatter'})
     desc = build['types']['nodeComponentDarkMatter']['boundFunctions'][0]['descriptor']
-    assert desc['name'] == 'nodeComponentDarkMatterType'  # capitalised D
+    assert desc['name'] == 'nodeComponentDarkMatterType'  # capitalized D
     assert "name='nodeComponent:darkMatter'" in desc['content']  # original case
 
 
@@ -94,7 +94,7 @@ def test_class_type_uses_modern_string_module():
 
 def test_implementation_type_creates_per_implementation_type():
     """Implementation type names concatenate `<Class><Member>` with both
-    capitalised."""
+    capitalized."""
     build = {}
     Implementation_Type(
         build,

@@ -30,7 +30,7 @@ program Test_Stellar_Populations_Luminosities
   use :: Cosmology_Parameters                      , only : cosmologyParametersSimple
   use :: Display                                   , only : displayVerbositySet                           , verbosityLevelWorking
   use :: Events_Hooks                              , only : eventsHooksInitialize
-  use :: File_Utilities                            , only : File_Exists                                   , Directory_Make
+  use :: File_Utilities                            , only : Directory_Make
   use :: Input_Paths                               , only : inputPath                                     , pathTypeDataDynamic                      , pathTypeDataStatic
   use :: ISO_Varying_String                        , only : char                                          , operator(//)                             , var_str             , varying_string   , &
        &                                                    assignment(=)
@@ -47,7 +47,6 @@ program Test_Stellar_Populations_Luminosities
   use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionChabrier2001
   use :: Supernovae_Population_III                 , only : supernovaePopulationIIIHegerWoosley2002
   use :: Supernovae_Type_Ia                        , only : supernovaeTypeIaNagashima2005
-  use :: System_Download                           , only : download
   use :: Unit_Tests                                , only : Assert                                        , Unit_Tests_Begin_Group                   , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (inputParameters                               ), target        :: parameters
@@ -70,10 +69,9 @@ program Test_Stellar_Populations_Luminosities
   type            (cosmologyParametersSimple                     )                :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                )                :: cosmologyFunctions_
   type            (stellarPopulationBroadBandLuminositiesStandard)                :: stellarPopulationBroadBandLuminosities_
-  type            (varying_string                                )                :: fileName                                       , fileNameBruzualCharlot                     , &
-       &                                                                             fileNameCompilation                            , fileNameTracks                             , &
-       &                                                                             fileNameSpectra                                , pathStore                                  , &
-       &                                                                             filterName
+  type            (varying_string                                )                :: fileNameBruzualCharlot                         , fileNameCompilation                        , &
+       &                                                                             fileNameTracks                                 , fileNameSpectra                            , &
+       &                                                                             pathStore                                      , filterName
   character       (len=1024                                      )                :: line
   integer                                                                         :: bc2003                                         , i                                          , &
        &                                                                             status
@@ -85,15 +83,7 @@ program Test_Stellar_Populations_Luminosities
   parameters=inputParameters()
   call eventsHooksInitialize()
   call displayVerbositySet  (verbosityLevelWorking)
-  ! Ensure that we have the required stellar population spectra file.
-  fileName              =inputPath(pathTypeDataDynamic)//'stellarPopulations/SSP_Spectra_BC2003_lowResolution_imfSalpeter.hdf5'
   fileNameBruzualCharlot=inputPath(pathTypeDataStatic )//"stellarPopulations/bc2003_lr_m72_salp_ssp.magnitude_F121.txt"
-  call Directory_Make(fileName)
-  if (.not.File_Exists(fileName))                                                                          &
-       & call download(                                                                                    &
-       &               "https://drive.google.com/uc?export=download&id=1DI52tMO4PEN-eGk79-0w2BHu9yaEcFMp", &
-       &               char(fileName)                                                                      &
-       &              )
   ! Begin parsing the Bruzual & Charlot model file.
   open(newunit=bc2003,file=char(fileNameBruzualCharlot),status='old',form='formatted',iostat=status)
   do i=1,6
@@ -117,6 +107,7 @@ program Test_Stellar_Populations_Luminosities
   fileNameTracks     =inputPath(pathTypeDataStatic )//'stellarAstrophysics/Stellar_Tracks_Padova.hdf5'
   fileNameSpectra    =inputPath(pathTypeDataStatic )//'stellarPopulations/SSP_Spectra_BC2003_lowResolution_imfSalpeter.hdf5'
   pathStore          =inputPath(pathTypeDataDynamic)//'stellarPopulations'
+  call Directory_Make(pathStore)
   ! Construct cosmology and stellar populations.
   cosmologyParameters_                   =cosmologyParametersSimple                     (                                                                 &
        &                                                                                 OmegaMatter                          =OmegaMatter              , &

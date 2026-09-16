@@ -141,7 +141,7 @@
     <redshiftMaximum value="30"/>
     <branchIntervalStep value="false"/>
   </mergerTreeBuilder>
-  <mergerTreeBranchingProbability value="gnrlzdPrssSchchtr">
+  <mergerTreeBranchingProbability value="generalizedPressSchechter">
     <massMinimum value="1.0e6"/>
   </mergerTreeBranchingProbability>
   <mergerTreeBranchingProbabilityModifier value="parkinson2008">

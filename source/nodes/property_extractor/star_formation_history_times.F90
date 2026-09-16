@@ -27,7 +27,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorStarFormationHistoryTimes" docformat="rst">
     <description>
-    A property extractor that returns the lookback-time bin boundaries (in Gyr) used to tabulate the star formation history for a specified galaxy ``component`` (disk, spheroid, or nuclearStarCluster). These time values define the age axis of the star formation history grid and are needed to reconstruct the full star formation history from the mass array returned by :galacticus-class:`nodePropertyExtractorStarFormationHistoryMass`. The number of returned times depends on the specific :galacticus-class:`starFormationHistoryClass` implementation.
+    A property extractor that returns the lookback-time bin boundaries (in Gyr) used to tabulate the star formation history for a specified galaxy ``component`` (disk, spheroid, or ``nuclearStarCluster``). These time values define the age axis of the star formation history grid and are needed to reconstruct the full star formation history from the mass array returned by :galacticus-class:`nodePropertyExtractorStarFormationHistoryMass`. The number of returned times depends on the specific :galacticus-class:`starFormationHistoryClass` implementation.
     </description>
   </nodePropertyExtractor>
   !!]

@@ -21,7 +21,7 @@ def parse_declaration(line):
     Returns
     -------
     dict or None
-        None if the line is not a recognised variable declaration.
+        None if the line is not a recognized variable declaration.
         Otherwise a dict with keys:
           'intrinsic'     : str   — e.g. 'integer', 'real', 'double precision', …
           'type'          : str or None — kind/type spec (parentheses stripped)
@@ -723,7 +723,7 @@ def _emit_verbatim(declaration, indent):
       fields would collapse a carefully wrapped table onto one enormous line.
 
     Such declarations are also kept out of the column-width calculation, so
-    that they cannot pad their neighbours out to their own width.
+    that they cannot pad their neighbors out to their own width.
     """
     if declaration.get('rawText') is None:
         return False
@@ -823,7 +823,7 @@ def format_declarations(group):
                 continue
             # `!$` is an OpenMP sentinel, not a comment: such a line *is* a
             # declaration and sits at the base indent, while its unconditional
-            # neighbours are padded three columns past it.  Skipping it here
+            # neighbors are padded three columns past it.  Skipping it here
             # would leave only the padded lines to measure, and the block would
             # march three columns right on every pass.
             if stripped.startswith('!') and not stripped.startswith('!$'):

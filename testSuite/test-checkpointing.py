@@ -53,7 +53,7 @@ for i in range(len(noChk["nodeIndex"])):
     massCheckpoints   = chk["basicMass"][match[0]]
     agrees            = abs(massNoCheckpoints - massCheckpoints) < toleranceRelative * massNoCheckpoints
     if not agrees:
-        status_str = "FAIL"
-        print(f"\t({i}) {massNoCheckpoints} == {massCheckpoints} ? : FAILURE")
+        status_str = "FAILED"
+        print(f"\t({i}) {massNoCheckpoints} == {massCheckpoints} ? : mismatch")
 
 print(f"{status_str}: resume from checkpoint file")

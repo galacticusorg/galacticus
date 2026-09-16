@@ -1,7 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Runs the Halpha luminosity function analyses, which reach the dust attenuation framework through the chain
-     scalarizer -> dustAttenuation(outputSumOnly) -> Panuzzo2003. The dust model is given explicitly and is the one
-     equivalent to the retired `depthOpticalISMCoefficient` these analyses used to carry themselves. -->
+     scalarizer -> dustAttenuation(outputSumOnly) -> luminosityEmissionLine (one child per line). The dust model is
+     given explicitly and is the one equivalent to the retired `depthOpticalISMCoefficient` these analyses used to
+     carry themselves. -->
 
 <parameters>
   <formatVersion>2</formatVersion>
@@ -311,31 +312,49 @@
     <redshifts value="0.00 0.02 0.04 0.06 0.08 0.10"/>
   </outputTimes>
 
-  <!-- A star formation history is stored so that the young stellar populations which ionize the gas are resolved in
-       time; the default is to store none. -->
+  <!-- Limit timesteps to the times at which the star formation history is tabulated, so that it is recorded
+       accurately. The `standard` default does not include this criterion. -->
+  <mergerTreeEvolveTimestep value="multi">
+    <mergerTreeEvolveTimestep value="standard"            />
+    <mergerTreeEvolveTimestep value="starFormationHistory"/>
+  </mergerTreeEvolveTimestep>
+
+  <!-- The emission line luminosities are computed by convolving the star formation history with tabulated Cloudy
+       models of HII regions, so a star formation history must be stored (the default is to store none) and must
+       resolve the young, ionizing populations in time and in metallicity. The metallicity boundaries match those of
+       the tabulation used below. -->
   <starFormationHistory value="adaptive">
-    <timeStepMinimum       value="2.0e-3"/>
-    <countTimeStepsMaximum value="16"    />
-    <countMetallicities    value="4"     />
+    <timeStepMinimum       value="1.0e-3"/>
+    <countTimeStepsMaximum value="32"    />
+    <metallicityBoundaries value="
+				  0.00531915 0.01063830 0.02127660 0.06728250 0.21276596 0.30089650
+				  0.42553191 0.67282503 1.06382979 1.68206259 2.65957447
+				  "/>
   </starFormationHistory>
 
-  <!-- Each luminosity is tracked twice: once unrestricted, once restricted to populations younger than the birth
-       cloud lifetime. Differencing the two isolates the light of old stars. -->
-  <!-- The Panuzzo (2003) emission line calculation needs the hydrogen, helium, and oxygen ionizing continuum
-       luminosities at every output for which the analysis has non-zero weight. -->
-  <luminosityFilter         value="Lyc     Lyc     Lyc     Lyc     Lyc     HeliumContinuum HeliumContinuum HeliumContinuum HeliumContinuum HeliumContinuum OxygenContinuum OxygenContinuum OxygenContinuum OxygenContinuum OxygenContinuum"/>
-  <luminosityType           value="rest    rest    rest    rest    rest    rest            rest            rest            rest            rest            rest            rest            rest            rest            rest           "/>
-  <luminosityRedshift       value="0.02    0.04    0.06    0.08    0.10    0.02            0.04            0.06            0.08            0.10            0.02            0.04            0.06            0.08            0.10           "/>
-  <luminosityPostprocessSet value="default default default default default default         default         default         default         default         default         default         default         default         default        "/>
-
-  <stellarPopulationSpectraPostprocessorBuilder value="lookup">
-    <names value="default"/>
-    <stellarPopulationSpectraPostprocessor value="identity"/>
-  </stellarPopulationSpectraPostprocessorBuilder>
+  <!-- The population of HII regions which the emission line calculation integrates over. These are the calibrated
+       choices of `parameters/reference/emissionLines.xml`. -->
+  <hiiRegionEscapeFraction value="fixed">
+    <escapeFraction value="0.10"/>
+    <ageLimit       value="0.01"/>
+  </hiiRegionEscapeFraction>
+  <hiiRegionMassFunction value="rosolowsky2021">
+    <exponent    value="-1.8e0"/>
+    <massMinimum value="+1.0e4"/>
+    <massMaximum value="+1.0e8"/>
+  </hiiRegionMassFunction>
+  <hiiRegionDensityDistribution value="logNormal">
+    <densityHydrogenReference value="3.0e2"/>
+    <densityHydrogenMinimum   value="1.0e1"/>
+    <densityHydrogenMaximum   value="4.0e2"/>
+    <sigma                    value="1.8e0"/>
+  </hiiRegionDensityDistribution>
 
   <!-- Halpha luminosity function analyses. The `dustAttenuation` object supplied here is what the analyses now use
        in place of the `depthOpticalISMCoefficient` they previously carried: `screenSurfaceDensityMetals` computes the
-       same optical depth from the same surface density of metals. -->
+       same optical depth from the same surface density of metals. It is a diffuse ISM screen: the tabulation of line
+       luminosities already includes the dust within the HII region, so a birth cloud component here would count that
+       dust twice. -->
   <!-- These tests are about dust, not lensing. The default lensing model needs to construct magnification
        distributions, which is slow and requires resources not present in every environment, so disable it as
        the bundled constrained model does. -->

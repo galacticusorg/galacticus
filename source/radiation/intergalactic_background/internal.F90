@@ -35,7 +35,7 @@
   !![
   <radiationField name="radiationFieldIntergalacticBackgroundInternal" docformat="rst">
    <description>
-   A radiation field class that computes the intergalactic background radiation field internally, tracking the buildup of ultraviolet and infrared photons from stellar and other sources across cosmic time. The wavelength grid is controlled by ``[wavelengthsPerDecade]``, ``[wavelengthMinimum]``, and ``[wavelengthMaximum]``, while the time resolution is set by ``[timesPerDecade]``.
+   A radiation field class that computes the intergalactic background radiation field internally, tracking the buildup of ultraviolet and infrared photons from stellar and other sources across cosmic time. The wavelength grid is controlled by ``[wavelengthCountPerDecade]``, ``[wavelengthMinimum]``, and ``[wavelengthMaximum]``, while the time resolution is set by ``[timeCountPerDecade]``.
    </description>
    <deepCopy>
      <ignore variables="accretionDiskSpectra_"/>

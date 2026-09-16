@@ -254,8 +254,8 @@ contains
     extractorSpheroidU%extractor_ => nodePropertyExtractorSpheroidU_
     extractorSpheroidU%next       => null()
     !![
-    <referenceConstruct object="nodePropertyExtractorAttenuatedR_" constructor="nodePropertyExtractorDustAttenuation(dustAttenuation_,.false.,.true.,.true.,var_str('luminosityStellarR'),extractorsR)"/>
-    <referenceConstruct object="nodePropertyExtractorAttenuatedU_" constructor="nodePropertyExtractorDustAttenuation(dustAttenuation_,.false.,.true.,.true.,var_str('luminosityStellarU'),extractorsU)"/>
+    <referenceConstruct object="nodePropertyExtractorAttenuatedR_" constructor="nodePropertyExtractorDustAttenuation(dustAttenuation_,.false.,.true.,.true.,var_str('luminosityStellarR'),var_str('none'),extractorsR)"/>
+    <referenceConstruct object="nodePropertyExtractorAttenuatedU_" constructor="nodePropertyExtractorDustAttenuation(dustAttenuation_,.false.,.true.,.true.,var_str('luminosityStellarU'),var_str('none'),extractorsU)"/>
     <referenceConstruct object="nodePropertyExtractorBandR_"       constructor="nodePropertyExtractorScalarizer     (1,1,nodePropertyExtractorAttenuatedR_)"/>
     <referenceConstruct object="nodePropertyExtractorBandU_"       constructor="nodePropertyExtractorScalarizer     (1,1,nodePropertyExtractorAttenuatedU_)"/>
     !!]

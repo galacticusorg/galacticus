@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   use :: Black_Hole_Binary_Separations, only : blackHoleBinarySeparationGrowthRateClass
 
   !![
@@ -33,6 +35,7 @@
      private
      class(blackHoleBinarySeparationGrowthRateClass), pointer :: blackHoleBinarySeparationGrowthRate_ => null()
    contains
+     final     ::                 radiusBlackHolesDestructor
      procedure :: elementCount => radiusBlackHolesElementCount
      procedure :: extract      => radiusBlackHolesExtract
      procedure :: names        => radiusBlackHolesNames
@@ -46,6 +49,7 @@
      Constructors for the :galacticus-class:`nodePropertyExtractorRadiusBlackHoles` property extractor class.
      !!}
     module procedure radiusBlackHolesConstructorParameters
+    module procedure radiusBlackHolesConstructorInternal
   end interface nodePropertyExtractorRadiusBlackHoles
 
 contains

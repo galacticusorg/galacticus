@@ -8,8 +8,8 @@
   <!-- Task -->
   <task value="multi">
     <task value="haloMassFunction"  >
-      <haloMassMinimum value="1.0e05"/>
-      <haloMassMaximum value="1.0e12"/>
+      <massHaloMinimum value="1.0e05"/>
+      <massHaloMaximum value="1.0e12"/>
       <pointsPerDecade value="10"    />
     </task>
     <task value="evolveForests"/>

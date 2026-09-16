@@ -94,8 +94,8 @@ def test_default_functions_fills_in_rateFunction():
     assert prop['rateFunction'] == 'DarkMatterStandardMassRate'
 
 
-def test_default_functions_synthesises_get_and_set():
-    """Missing `getFunction` and `setFunction` get a synthesised content + build flag."""
+def test_default_functions_synthesizes_get_and_set():
+    """Missing `getFunction` and `setFunction` get a synthesized content + build flag."""
     build = _build('darkMatter', 'standard', [
         {'name': 'mass'},
     ])
@@ -107,7 +107,7 @@ def test_default_functions_synthesises_get_and_set():
 
 def test_default_functions_promotes_string_to_dict_with_build_false():
     """A user-supplied string `getFunction` becomes a dict with `build=False`
-    (signalling the build system not to emit a body)."""
+    (signaling the build system not to emit a body)."""
     build = _build('darkMatter', 'standard', [
         {'name': 'mass', 'getFunction': 'myCustomGet'},
     ])

@@ -24,13 +24,13 @@
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
   !![
-  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRndmErrNbodyMass" docformat="rst">
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorNbodyMass" docformat="rst">
    <description>
    Applies random measurement errors to :math:`\log_{10}` N-body halo masses, modeling the scatter introduced by halo mass estimation from N-body simulations to enable fair comparison between model and observed mass functions.
    </description>
   </outputAnalysisDistributionOperator>
   !!]
-  type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRndmErrNbodyMass
+  type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRandomErrorNbodyMass
      !!{RST
      A random error output distribution operator class providing errors in :math:`\log_{10}` of N-body halo mass.
      !!}
@@ -39,32 +39,32 @@
    contains
      final     ::                 randomErrorNbodyMassDestructor
      procedure :: rootVariance => randomErrorNbodyMassRootVariance
-  end type outputAnalysisDistributionOperatorRndmErrNbodyMass
+  end type outputAnalysisDistributionOperatorRandomErrorNbodyMass
 
-  interface outputAnalysisDistributionOperatorRndmErrNbodyMass
+  interface outputAnalysisDistributionOperatorRandomErrorNbodyMass
      !!{RST
-     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorRndmErrNbodyMass` output analysis distribution operator class.
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorNbodyMass` output analysis distribution operator class.
      !!}
      module procedure randomErrorNbodyMassConstructorParameters
      module procedure randomErrorNbodyMassConstructorInternal
-  end interface outputAnalysisDistributionOperatorRndmErrNbodyMass
+  end interface outputAnalysisDistributionOperatorRandomErrorNbodyMass
 
 contains
 
   function randomErrorNbodyMassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRndmErrNbodyMass` output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorNbodyMass` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (outputAnalysisDistributionOperatorRndmErrNbodyMass)                :: self
+    type            (outputAnalysisDistributionOperatorRandomErrorNbodyMass)                :: self
     type            (inputParameters                                   ), intent(inout) :: parameters
     class           (nbodyHaloMassErrorClass                           ), pointer       :: nbodyHaloMassError_
 
     !![
     <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
     !!]
-    self=outputAnalysisDistributionOperatorRndmErrNbodyMass(nbodyHaloMassError_)
+    self=outputAnalysisDistributionOperatorRandomErrorNbodyMass(nbodyHaloMassError_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="nbodyHaloMassError_"/>
@@ -74,10 +74,10 @@ contains
 
   function randomErrorNbodyMassConstructorInternal(nbodyHaloMassError_) result(self)
     !!{RST
-    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRndmErrNbodyMass` output analysis distribution operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorNbodyMass` output analysis distribution operator class.
     !!}
     implicit none
-    type (outputAnalysisDistributionOperatorRndmErrNbodyMass)                        :: self
+    type (outputAnalysisDistributionOperatorRandomErrorNbodyMass)                        :: self
     class(nbodyHaloMassErrorClass                           ), intent(in   ), target :: nbodyHaloMassError_
     !![
     <constructorAssign variables="*nbodyHaloMassError_"/>
@@ -88,10 +88,10 @@ contains
 
   subroutine randomErrorNbodyMassDestructor(self)
     !!{RST
-    Destructor for the :galacticus-class:`outputAnalysisDistributionOperatorRndmErrNbodyMass` output analysis distribution operator class.
+    Destructor for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorNbodyMass` output analysis distribution operator class.
     !!}
     implicit none
-    type(outputAnalysisDistributionOperatorRndmErrNbodyMass), intent(inout) :: self
+    type(outputAnalysisDistributionOperatorRandomErrorNbodyMass), intent(inout) :: self
 
     !![
     <objectDestructor name="self%nbodyHaloMassError_" />
@@ -104,7 +104,7 @@ contains
     Computes errors on :math:`\log_{10}(`\ halo masses\ :math:`)` for N-body halos.
     !!}
     implicit none
-    class           (outputAnalysisDistributionOperatorRndmErrNbodyMass), intent(inout) :: self
+    class           (outputAnalysisDistributionOperatorRandomErrorNbodyMass), intent(inout) :: self
     double precision                                                    , intent(in   ) :: propertyValue
     type            (treeNode                                          ), intent(inout) :: node
     !$GLC attributes unused :: propertyValue

@@ -62,8 +62,8 @@ for massFunctionType in massFunctionTypes:
     # Construct a parameter file for Galacticus.
     parameters = ET.parse('parameters/haloMassFunctionsBase.xml')
     ET.SubElement  (parameters.getroot(),'haloMassFunction'       ).set('value',                                 massFunctionType['method']             )
-    parameters.find('./task/haloMassMinimum'                      ).set('value',str(mass[ 0]                                                           ))
-    parameters.find('./task/haloMassMaximum'                      ).set('value',str(mass[-1]                                                           ))
+    parameters.find('./task/massHaloMinimum'                      ).set('value',str(mass[ 0]                                                           ))
+    parameters.find('./task/massHaloMaximum'                      ).set('value',str(mass[-1]                                                           ))
     parameters.find('./task/pointsPerDecade'                      ).set('value',str(1.0/parametersHMFCalc['dlog10m']                                   ))
     parameters.find('./cosmologyParameters/temperatureCMB'        ).set('value',str(    parametersHMFCalc['t_cmb'  ]                                   ))
     parameters.find('./cosmologyParameters/OmegaMatter'           ).set('value',str(    parametersHMFCalc['omegam' ]                                   ))
@@ -121,5 +121,5 @@ for massFunctionType in massFunctionTypes:
     if differenceFractionlMaximum > 1.0e-3:
         print("FAILED: [" +massFunctionType['label']+"] mass function differs")
     else:
-        print("success: ["+massFunctionType['label']+"] mass functions agree")
+        print("SUCCESS: ["+massFunctionType['label']+"] mass functions agree")
 

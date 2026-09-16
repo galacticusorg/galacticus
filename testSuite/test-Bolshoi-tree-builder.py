@@ -29,7 +29,12 @@ if validator:
         print("FAILED: IRATE-format file generated from Bolshoi merger tree did not validate")
         sys.exit(0)
 else:
-    print("SKIP: iratevalidate is not installed - validation of IRATE-format file will be skipped")
+    print("iratevalidate is not installed - validation of the IRATE-format file will be skipped")
 
 # Run Galacticus on file in Galacticus format.
-subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/bolshoiTestTreesGLC.xml", shell=True)
+status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/bolshoiTestTreesGLC.xml", shell=True)
+if status.returncode != 0:
+    print("FAILED: failed to run Galacticus on the Galacticus-format Bolshoi merger tree file")
+    sys.exit(0)
+
+print("SUCCESS: Bolshoi merger tree file build")

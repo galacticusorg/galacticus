@@ -1245,8 +1245,11 @@ def outputSSP(grid,args):
     for lineLabel in lineList:
         lineName    = lineList[lineLabel]
         datasetLine = lineGroup.create_dataset(lineName,data=np.transpose(grid['lineData'][lineName]['luminosity']))
-        datasetLine.attrs['description'] = "Energy radiated by a unit area of cloud into 4 π sr."
-        writeUnitsAttribute(datasetLine       , unitsIntensity , description="erg cm\u00af\u00b2 s\u00af\u00b9" , quantity="erg cm\u00af\u00b2 s\u00af\u00b9" )
+        # The source is normalized by its ionizing photon rate, `q(h)`, and the cloud placed at an absolute radius, so Cloudy
+        # reports the total line luminosity---not the intensity per unit area of cloud that it reports for the AGN models,
+        # which are normalized by an ionization parameter instead.
+        datasetLine.attrs['description'] = "Luminosity of the line."
+        writeUnitsAttribute(datasetLine       , joulesPerErg   , description="erg s\u00af\u00b9"             , quantity="erg s\u00af\u00b9"             )
         datasetLine.attrs['wavelength' ] = grid['lineData'][lineName]['wavelength']
 
 def outputAGN(grid,args):
@@ -1385,7 +1388,7 @@ one                           = 1.0000000000000e+00
 hecto                         = 1.0000000000000e+02
 mega                          = 1.0000000000000e+06
 joulesPerErg                  = 1.0000000000000e-07
-secondsPerGyr                 = 3.1557600000000e-16
+secondsPerGyr                 = 3.1557600000000e+16
 unitsIntensity                = joulesPerErg*hecto**2
 
 # Define the set of α-elements (i.e. those whose most abundant isotopes are built from integer numbers of α-particles). These are

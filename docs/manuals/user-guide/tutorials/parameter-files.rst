@@ -505,7 +505,7 @@ Sometimes it can be useful to "reuse" an entire section of parameters elsewhere 
        <cosmologicalMassVariance idRef="myCMV"/>
      <mergerTreeBranchingProbabilityUnconstrained/>
 
-     <mergerTreeBranchingProbabilityConstrained value="gnrlzdPrssSchchtr">
+     <mergerTreeBranchingProbabilityConstrained value="generalizedPressSchechter">
        <cosmologicalMassVariance idRef="myCMV"/>
      <mergerTreeBranchingProbabilityConstrained/>
 
@@ -592,7 +592,7 @@ An example change file can be found `here <https://raw.githubusercontent.com/gal
 
      <!-- Replace a parameter -->
      <change type="replace" path="nodeOperator/nodeOperator[@value='stellarFeedbackSpheroids']/stellarFeedbackOutflows/stellarFeedbackOutflows">
-       <stellarFeedbackOutflows value="vlctyMxSclng">
+       <stellarFeedbackOutflows value="velocityMaximumScaling">
          <fraction value="0.015"/>
          <exponentVelocity value="3.5"/>
        </stellarFeedbackOutflows>

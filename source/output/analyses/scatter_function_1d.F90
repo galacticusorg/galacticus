@@ -507,7 +507,7 @@ contains
     <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyQuantity, propertyIsComoving, propertyUnitsInSI, scatterLabel, scatterComment, scatterUnits, scatterQuantity, scatterIsComoving, scatterUnitsInSI, *nodePropertyExtractor_, *outputAnalysisWeightPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisWeightPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *galacticFilter_, *outputTimes_, bufferCount, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum"/>
     !!]
 
-    ! Initialise the bundled target-data fields.  An explicit `targetData_` must be of the
+    ! Initialize the bundled target-data fields.  An explicit `targetData_` must be of the
     ! concrete `outputAnalysisTargetDataStandard` type (the only impl in the project today);
     ! without one we default-construct, matching the per-arg defaults the previous signature
     ! exposed.

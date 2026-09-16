@@ -3,7 +3,7 @@
 Galacticus is a Fortran/C++ code, but its pre-built static binaries plus the
 ``datasets`` repository and run-time ``tools`` are all published as GitHub
 release assets.  This package turns ``pip install galacticus`` into a working
-model run: it downloads the right artefacts for the host platform into a
+model run: it downloads the right artifacts for the host platform into a
 per-user location, sets the environment variables the binary reads
 (``GALACTICUS_EXEC_PATH``, ``GALACTICUS_DATA_PATH``, ``GALACTICUS_TOOLS_PATH``,
 ``GALACTICUS_DYNAMIC_DATA_PATH``), and dispatches parameter files to the

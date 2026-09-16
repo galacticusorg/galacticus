@@ -12,7 +12,7 @@ itself is small — it owns three things:
      `build['components']`, keyed by `<class><name>`.
   3. `generate` — run the phased hook pipeline (preValidate, default,
      gather, scatter, postValidate, content, types, interfaces,
-     functions), then serialise the accumulated derived types,
+     functions), then serialize the accumulated derived types,
      interfaces, module-scope variables, and functions into the
      Fortran source held on `build['content']`.
 
@@ -176,7 +176,7 @@ _PHASES = (
 
 
 def generate_output(build):
-    """Run the phased hook pipeline and serialise the result.
+    """Run the phased hook pipeline and serialize the result.
 
     Each phase calls every hook registered under that phase, iterating
     owner keys in `sorted()` order.  Output is appended to
@@ -243,7 +243,7 @@ def generate_output(build):
 
 
 # ---------------------------------------------------------------------------
-# Serialisers
+# Serializers
 # ---------------------------------------------------------------------------
 
 def derived_types_serialize(build):

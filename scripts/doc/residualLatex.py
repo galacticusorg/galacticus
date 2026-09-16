@@ -167,7 +167,7 @@ _ESCAPE_RE = re.compile(r'\\([_%&#])')
 # space and deletes it, so the words render glued together ("e.g.foo") — the
 # one piece of residue that silently corrupts prose rather than showing up as
 # visible markup.  It is legitimate, and common, immediately next to inline
-# markup, where it is the zero-width separator that lets docutils recognise the
+# markup, where it is the zero-width separator that lets docutils recognize the
 # markup at all (``literal``\ s, cm\ :math:`^2`).
 _CONTROL_SPACE_RE = re.compile(r'(?<!\\)\\ ')
 _MARKUP_START_RE = re.compile(r'(?:``|:[A-Za-z][A-Za-z:\-]*:`|`|\[[#*][^\]]*\]_|'
@@ -239,7 +239,7 @@ def scan_text(text: str, path: str = '<text>'):
         for m in _ESCAPE_RE.finditer(masked):
             add(m.start(), f'escape:{m.group(1)}')
         # Adjacency is judged on the *unmasked* body: masking replaces inline
-        # markup with spaces, which would hide exactly the neighbours that make
+        # markup with spaces, which would hide exactly the neighbors that make
         # a ``\ `` legitimate.
         for m in _CONTROL_SPACE_RE.finditer(masked):
             if body[:m.start()].endswith('`'):

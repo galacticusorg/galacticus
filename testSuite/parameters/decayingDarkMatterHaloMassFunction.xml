@@ -18,8 +18,8 @@
 
   <!-- Specify tasks to perform -->
   <task value="haloMassFunction">
-    <haloMassMinimum value="1.0e13"/>
-    <haloMassMaximum value="1.0e16"/>
+    <massHaloMinimum value="1.0e13"/>
+    <massHaloMaximum value="1.0e16"/>
     <pointsPerDecade value="10"/>
     <includeMassAccretionRate value="false"/>
     <errorsAreFatal value="false"/>
