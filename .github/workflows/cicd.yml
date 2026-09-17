@@ -1282,6 +1282,7 @@ jobs:
                       tests.satellites.tidal_stripping.radius.soliton_limited.exe,
                       tests.satellites.tidal_stripping.radius.King1962.exe,
                       tests.star_formation.molecular_fractions.exe,
+                      tests.satellites.virial_orbits.exe,
                       tests.decaying_dark_matter.exe,
                       tests.decaying_dark_matter_spherical_collapse.exe,
                       tests.spectra.postprocess.Inoue2014.exe,
