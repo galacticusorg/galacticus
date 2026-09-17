@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements a node operator class that triggers merging of satellites based on their orbital radius.
   !!}
@@ -61,7 +63,7 @@
 
   ! Sub-module-scope pointer to self used in callback function.
   class(nodeOperatorSatelliteMergingRadiusTrigger), pointer :: self_
-  !$omp threadprivate(self)
+  !$omp threadprivate(self_)
   
 contains
 
