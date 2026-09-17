@@ -59,7 +59,14 @@
   <componentBlackHole         value="null"    />
   <componentDisk              value="null"    />
   <componentHotHalo           value="null"    />
-  <componentSpheroid          value="null"    />
+  <!-- A Hernquist stellar spheroid, given a mass and radius directly by the test in the configurations which have one. It
+       contributes to the satellite's *total* mass distribution, from which the circular velocity at the half-mass radius is
+       taken, and so to the orbital frequency entering the adiabatic correction. -->
+  <componentSpheroid value="standard">
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
+  </componentSpheroid>
   <componentSpin              value="null"    />
 
   <hotHaloMassDistribution value="null"/>
