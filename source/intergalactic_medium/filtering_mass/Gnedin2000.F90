@@ -27,7 +27,7 @@
   use :: Linear_Growth             , only : linearGrowth            , linearGrowthClass
   use :: Tables                    , only : table                   , table1D
 
-  public :: gnedin2000ODEs
+  public :: gnedin2000ODEs, gnedin2000rLSS
 
   !![
   <intergalacticMediumFilteringMass name="intergalacticMediumFilteringMassGnedin2000" docformat="rst">
@@ -611,8 +611,12 @@ contains
     rLSSCoefficient1=1.0d-4*(-1.99d0*(omegaMatter**2)+2.41d0*omegaMatter+0.21d0)
     rLSSCoefficient2=1.0d-3*(+6.37d0*(omegaMatter**2)-6.99d0*omegaMatter-1.76d0)
     rLSSCoefficient3=1.0d-2*(-1.83d0*(omegaMatter**2)+2.40d0*omegaMatter-0.54d0)
-    ! Note that the coefficients for the different exponents of expansion factor are reversed from that given in Naoz &
-    ! Barkana. Without this change the fit for rLSS does not work.
+    ! Note that the coefficients of the two inverse powers of expansion factor are exchanged relative to the equation given by
+    ! :cite:t:`naoz_formation_2007`. This is deliberate, and it is their equation which is in error: as written here the fit
+    ! reproduces their figure precisely, whereas following their equation does not match that figure and gives |r_LSS| > 1 at
+    ! high redshift - which is unphysical here, since the ODE system uses (1+r_LSS) as a factor multiplying the pressure term,
+    ! and so would have it change sign. `tests.intergalactic_medium.filtering_mass.Gnedin2000` pins this, so that a future
+    ! "correction" back to the published ordering cannot pass silently.
     gnedin2000rLSS  =+rLSSCoefficient1/expansionFactor**1.5d0 &
          &           +rLSSCoefficient2/expansionFactor        &
          &           +rLSSCoefficient3
