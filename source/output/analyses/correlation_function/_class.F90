@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
 !!{RST
 Implements a generic two-point correlation function output analysis class.
 !!}
@@ -1376,7 +1378,7 @@ contains
        ! Compute the log-likelihood.
        correlationFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct     (residual,status) &
             &                           -0.5d0*covariance%logarithmicDeterminant(               ) &
-            &                           -0.5d0*dble(self%binCount)*log(2.0d0*Pi)
+            &                           -0.5d0*dble(self%binCount*self%massCount)*log(2.0d0*Pi)
        if (status /= GSL_Success) correlationFunctionLogLikelihood=logImprobable
     else
        correlationFunctionLogLikelihood=0.0d0

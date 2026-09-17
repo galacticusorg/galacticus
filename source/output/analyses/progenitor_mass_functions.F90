@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements a concentration distribution output analysis class for dark matter halo progenitor mass functions.
   !!}
@@ -1242,7 +1244,7 @@ contains
                 if (self%likelihoodNormalize)                                                         &
                      & progenitorMassFunctionLogLikelihood=+progenitorMassFunctionLogLikelihood       &
                      &                                     -0.5d0*covariance%logarithmicDeterminant() &
-                     &                                     -0.5d0*dble(self%binCount)                 &
+                     &                                     -0.5d0*dble(size(functionValueDifference)) &
                      &                                     *log(2.0d0*Pi)
              else
                 progenitorMassFunctionLogLikelihood=logImprobable
