@@ -1547,6 +1547,25 @@ In many situations, some module in Galacticus might want to perform a calculatio
 
 To address this problem, Galacticus provides a mechanism to generate a unique descriptor for a given object. This descriptor encodes the parameter used to construct the object, and recursively includes the parameters used to construct any other object which is composited. A long-form (human readable) descriptor is returned by the ``descriptor`` method associated with all ``functionClass`` objects. Additionally, the ``hashedDescriptor`` method will return an MD5 hash of the descriptor, which will be unique (up to collisions) and can be used to identify the object both internally and, for example, when used as a suffix to file names. If the optional ``includeSourceDigest`` argument is set to true in the ``hashedDescriptor`` method then the hashed descriptor will include a hash of the source code of the object (and all composited objects) such that the descriptor will change should the source code be changed.
 
+Piecewise Approximations and Their Boundaries
+---------------------------------------------
+
+Many closed-form results in Galacticus are evaluated piecewise: a series expansion at small argument, a full expression in between, and sometimes a second series at large argument. The series exist because the full expression loses accuracy at the extremes, usually to cancellation between terms which are individually far larger than their sum. This is a sound pattern, but the boundaries between the branches must be chosen by *measuring* where the branches cross, not by eye.
+
+Three cases found in 2026 illustrate what goes wrong otherwise. In :galacticus-class:`massDistributionBurkert` the enclosed mass switched to its series below :math:`10^{-4} r_\mathrm{s}`, but the exact expression is already wrong by :math:`6\times 10^{-5}` there, because its terms are of order :math:`R` while their sum is of order :math:`R^3`; the band from :math:`10^{-4}` to :math:`10^{-2} r_\mathrm{s}` was served accurately by neither branch. In :galacticus-class:`massDistributionCuspNFW` a simplified solution was used out to :math:`10^{-3} r_\mathrm{s}`, where it is wrong by :math:`1.2\times 10^{-3}` and the full solution is accurate to :math:`10^{-9}`. In :galacticus-class:`kinematicsDistributionZhao1996` the large-radius series took over at :math:`100 r_\mathrm{s}`, by which point the full solution had degraded to :math:`3\times 10^{-7}` while the series it replaced was accurate to :math:`8\times 10^{-10}`.
+
+In each case the boundary sat well past the point at which the other branch had become the better of the two, and in each case the error was invisible to the existing tests, which compared the profile against its own numerical integrals and so shared the same expressions.
+
+When adding or reviewing such a branch:
+
+* Evaluate both branches against an independent reference across the region where either might be used, and place the boundary where their errors are comparable. The reference must not be the branches themselves.
+
+* Record the measured accuracy of each branch at the boundary in a comment, so that the choice can be checked later without repeating the analysis.
+
+* Do not build the reference by comparing one branch against the other. A full expression which has lost six digits to cancellation will make a perfectly good series look broken, and vice versa.
+
+* Test at radii, temperatures or energies which fall *inside* each branch and at the boundaries themselves. A test which samples only the middle of the range cannot see any of this.
+
 .. _manual-sec-Optimization:
 
 Optimization
