@@ -2589,6 +2589,7 @@
           <xs:enumeration value="ICMXRayTemperature"/>
           <xs:enumeration value="SED"/>
           <xs:enumeration value="SEDAGN"/>
+          <xs:enumeration value="SEDDustEmission"/>
           <xs:enumeration value="SIDMParametric"/>
           <xs:enumeration value="adiabaticRatioOrbitalDisk"/>
           <xs:enumeration value="agesStellarMassWeighted"/>
