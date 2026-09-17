@@ -350,7 +350,12 @@ contains
     implicit none
     class           (massDistributionCuspNFW), intent(inout), target :: self
     double precision                         , intent(in   )         :: radius
-    double precision                         , parameter             :: fractionSmall  =1.0d-3
+    double precision                         , parameter             :: fractionSmall          =1.0d-3
+    ! The simplified solution below drops the (1+r/r_s)⁻² factor of the density, so its error grows in proportion to the radius -
+    ! reaching 1.2×10⁻³ at r/r_s = 10⁻³. It is needed only at radii small enough that the alternatives lose accuracy to
+    ! cancellation, which is far below that: this threshold minimizes the largest error over the whole range, reducing it from
+    ! 6.7×10⁻⁴ to 2.6×10⁻⁵, and to below 10⁻⁸ for the cusp amplitudes y ≳ 0.05 found in practice.
+    double precision                         , parameter             :: fractionSmallSimplified=1.0d-5
     double precision                                                 :: radiusScaleFree
 
     radiusScaleFree=+     radius      &
@@ -372,7 +377,7 @@ contains
             &   *(+1.0d0-4.0d0*self%y**2)       &
             &   /              self%y**2        &
             & )
-    else if (radiusScaleFree < fractionSmall) then
+    else if (radiusScaleFree < fractionSmallSimplified) then
        ! Use a simplified solution (approximating ρ = ρ₀ √(r+y²)/r^{3/2}) for small radii r ≪ 1.
        mass  =+Pi                                                        &
             & *self%densityNormalization                                 &
