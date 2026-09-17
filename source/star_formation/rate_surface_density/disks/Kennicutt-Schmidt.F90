@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a the Kennicutt-Schmidt star formation rate surface density for galactic disks.
   !!}
@@ -105,7 +107,7 @@ contains
       </defaultSource>
       <defaultValue>0.147d0</defaultValue>
       <description>
-      The normalization of the Kennicutt-Schmidt star formation law [:math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`\ pc\ :math:`^{-2}`].
+      The normalization of the Kennicutt-Schmidt star formation law [:math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`\ pc\ :math:`^{-2}`]. The default value is that of :cite:t:`kennicutt_global_1998` (his eqn. 4; :math:`2.5\times 10^{-4}\,\mathrm{M}_\odot\,\hbox{yr}^{-1}\,\hbox{kpc}^{-2}`, equivalent to :math:`0.25\,\mathrm{M}_\odot\,\hbox{Gyr}^{-1}\,\hbox{pc}^{-2}`), divided by a factor of :math:`1.7` to convert from the Salpeter :term:`IMF` assumed by :cite:author:`kennicutt_global_1998` to a Chabrier :term:`IMF`.
       </description>
       <source>parameters</source>
     </inputParameter>
