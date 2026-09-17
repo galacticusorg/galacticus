@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameter file used by tests.satellite_tidal_heating_rate.exe, which validates the Gnedin, Hernquist & Ostriker (1999)
+     satellite tidal heating rate against independently computed reference values
+     (galacticusDevTools/satelliteTidalHeatingRate.py).
+
+     Every class is declared here rather than constructed in the test program. The heating rate reaches the host and satellite
+     mass distributions through the node, and the node builds its `darkMatterProfile` through an `<objectBuilder>` reading these
+     parameters, so objects constructed in the test would not be the ones the rate actually sees.
+
+     The virial density contrast is pinned to a *fixed* value of 200 relative to the *mean* matter density, so that both virial
+     radii are analytic and this test does not also exercise the spherical collapse solver, which has its own tests.
+
+     `darkMatterProfile` is `darkMatterOnly`, so both halos are plain, unheated NFW profiles. The heating rate reads the
+     satellite's half-mass radius from its mass distribution; with a heated profile that radius would itself depend on the
+     accumulated heating, and the response of the profile to heating is verified separately by
+     tests.dark_matter_profiles.heated.exe.
+
+     `epsilon` and `gamma` are stated although they are class defaults, because the reference calculation assumes them.
+  -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="4cc2edf4715c993c393e6d3a59cc13eaca16661c" time="2026-09-17T00:00:00"/>
+
+  <!-- Cosmology. Planck 2018 values, matching the reference calculation. -->
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="67.36"  />
+    <OmegaMatter     value="0.3153" />
+    <OmegaDarkEnergy value="0.6847" />
+    <OmegaBaryon     value="0.0493" />
+    <temperatureCMB  value="2.72548"/>
+  </cosmologyParameters>
+  <cosmologyFunctions value="matterLambda"/>
+
+  <!-- A fixed virial density contrast of 200 relative to the mean matter density; see the note above. -->
+  <virialDensityContrast value="fixed">
+    <densityContrastValue value="200.0"/>
+    <densityType          value="mean" />
+  </virialDensityContrast>
+  <darkMatterHaloScale value="virialDensityContrastDefinition"/>
+
+  <!-- Uncontracted, unheated NFW halos for both the host and the satellite. -->
+  <darkMatterProfileDMO value="NFW"           />
+  <darkMatterProfile    value="darkMatterOnly"/>
+
+  <!-- The tidal field of the host, evaluated at the satellite's actual position. -->
+  <satelliteTidalField value="standard"/>
+
+  <!-- The rate under test. -->
+  <satelliteTidalHeatingRate value="gnedin1999">
+    <epsilon value="3.0"/>
+    <gamma   value="2.5"/>
+  </satelliteTidalHeatingRate>
+
+  <!-- Node components. The `orbiting` satellite component is the one carrying position, velocity, bound mass and the
+       path-integrated tidal tensor. -->
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+  <componentSatellite         value="orbiting"/>
+  <componentBlackHole         value="null"    />
+  <componentDisk              value="null"    />
+  <componentHotHalo           value="null"    />
+  <componentSpheroid          value="null"    />
+  <componentSpin              value="null"    />
+
+  <hotHaloMassDistribution value="null"/>
+  <mergerRemnantSize       value="null"/>
+</parameters>
