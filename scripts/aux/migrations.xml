@@ -453,6 +453,10 @@
     </translation>
   </migration>
 
+  <migration commit="93b7a61e6990a21676d122050b0bda6c53ffde6e">
+    <translation function="dust_properties"/>
+  </migration>
+
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
   <default parameter="componentDisk"                  value="standard"        />

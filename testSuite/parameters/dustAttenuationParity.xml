@@ -462,7 +462,7 @@
       <outputSum value="false"/>
       <dustAttenuation value="sequence">
         <dustAttenuation value="birthCloud">
-          <coefficient value="0.0"/>
+          <densitySurfaceGas value="0.0"/>
           <timescale value="2.0e-3"/>
           <dustExtinctionCurve value="powerLaw">
             <exponent value="0.7"/>
@@ -660,6 +660,127 @@
       </dustAttenuation>
       <nodePropertyExtractor value="SED">
         <component value="spheroid"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <!-- Dust properties checks: pairs which must agree to round-off. A screen's `coefficient` and the dust-to-metals
+         ratio of its `dustProperties` object enter its optical depth identically, so doubling either must give the
+         same result; this checks that the ratio actually reaches the optical depth. -->
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <appendSuffix value="coefficientDoubled"/>
+      <dustAttenuation value="screenSurfaceDensityMetals">
+        <coefficient value="2.0"/>
+        <dustExtinctionCurve value="powerLaw">
+          <exponent value="0.7"/>
+          <wavelengthReference value="5500.0"/>
+        </dustExtinctionCurve>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <appendSuffix value="dustToMetalsRatioDoubled"/>
+      <dustAttenuation value="screenSurfaceDensityMetals">
+        <coefficient value="1.0"/>
+        <dustProperties value="simple">
+          <dustToMetalsRatio value="0.88"/>
+        </dustProperties>
+        <dustExtinctionCurve value="powerLaw">
+          <exponent value="0.7"/>
+          <wavelengthReference value="5500.0"/>
+        </dustExtinctionCurve>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <!-- Likewise for a birth cloud: its column of gas and the dust-to-metals ratio enter its optical depth identically. -->
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <appendSuffix value="densitySurfaceGasDoubled"/>
+      <dustAttenuation value="birthCloud">
+        <densitySurfaceGas value="20.0"/>
+        <dustExtinctionCurve value="powerLaw">
+          <exponent value="0.7"/>
+          <wavelengthReference value="5500.0"/>
+        </dustExtinctionCurve>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <appendSuffix value="dustToMetalsRatioDoubled"/>
+      <dustAttenuation value="birthCloud">
+        <densitySurfaceGas value="10.0"/>
+        <dustProperties value="simple">
+          <dustToMetalsRatio value="0.88"/>
+        </dustProperties>
+        <dustExtinctionCurve value="powerLaw">
+          <exponent value="0.7"/>
+          <wavelengthReference value="5500.0"/>
+        </dustExtinctionCurve>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <!-- `charlotFall2000` must be exactly the sequence of a default birth cloud and a screen: this checks that it
+         scales the birth cloud column correctly and hands both members its dust properties. -->
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <appendSuffix value="explicit"/>
+      <dustAttenuation value="sequence">
+        <dustAttenuation value="birthCloud">
+          <timescale value="1.0e-2"/>
+          <dustExtinctionCurve value="powerLaw">
+          <exponent value="0.7"/>
+          <wavelengthReference value="5500.0"/>
+        </dustExtinctionCurve>
+        </dustAttenuation>
+        <dustAttenuation value="screenSurfaceDensityMetals">
+          <coefficient value="1.0"/>
+          <dustExtinctionCurve value="powerLaw">
+          <exponent value="0.7"/>
+          <wavelengthReference value="5500.0"/>
+        </dustExtinctionCurve>
+        </dustAttenuation>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
         <frame value="rest"/>
         <wavelengthMinimum value="3.0e3"/>
         <wavelengthMaximum value="9.0e3"/>

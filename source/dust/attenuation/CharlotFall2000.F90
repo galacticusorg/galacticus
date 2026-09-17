@@ -46,7 +46,9 @@
       &lt;/dustAttenuation&gt;
 
    and is provided because that is the combination users most often want and because it pins the canonical parameter
-   values of the model in one place. Anything expressible here is expressible with
+   values of the model in one place. Both components take the mass of their dust from the same
+   :galacticus-class:`dustPropertiesClass` object, so that changing the dust-to-metals ratio changes the optical depth
+   of birth clouds and diffuse medium alike. Anything expressible here is expressible with
    :galacticus-class:`dustAttenuationSequence`; use that directly to vary the extinction curve of either component
    independently, or to build a model with more than two components.
    </description>
@@ -57,14 +59,16 @@
      The two-component dust attenuation model of :cite:t:`charlot_simple_2000`.
      !!}
      private
-     type            (dustAttenuationBirthCloud                ) :: birthCloud_
-     type            (dustAttenuationScreenSurfaceDensityMetals) :: screenISM_
+     type            (dustAttenuationBirthCloud                )          :: birthCloud_
+     type            (dustAttenuationScreenSurfaceDensityMetals)          :: screenISM_
+     class           (dustPropertiesClass                      ), pointer :: dustProperties_       => null()
      ! Retained so that the object can describe itself back into a parameter file; the physics is carried entirely by
      ! the two component attenuators above.
-     double precision                                            :: coefficientBirthCloud, coefficientISM, &
-          &                                                         timescale            , exponent_     , &
-          &                                                         wavelengthReference
+     double precision                                                     :: coefficientBirthCloud          , coefficientISM, &
+          &                                                                  timescale                      , exponent_     , &
+          &                                                                  wavelengthReference
    contains
+     final     ::                 charlotFall2000Destructor
      procedure :: transmission => charlotFall2000Transmission
      procedure :: request      => charlotFall2000Request
   end type dustAttenuationCharlotFall2000
@@ -88,6 +92,7 @@ contains
     implicit none
     type            (dustAttenuationCharlotFall2000)                :: self
     type            (inputParameters               ), intent(inout) :: parameters
+    class           (dustPropertiesClass           ), pointer       :: dustProperties_
     double precision                                                :: coefficientBirthCloud, coefficientISM, &
          &                                                             timescale            , exponent_     , &
          &                                                             wavelengthReference
@@ -97,7 +102,9 @@ contains
       <name>coefficientBirthCloud</name>
       <defaultValue>1.0d0</defaultValue>
       <description>
-      The :math:`V`-band optical depth of a birth cloud of local interstellar medium metallicity.
+      A dimensionless multiplicative coefficient applied to the gas column of birth clouds, in units of the column for
+      which a cloud of local interstellar medium metallicity has unit :math:`V`-band optical depth with the default dust
+      properties. With those defaults it is therefore the :math:`V`-band optical depth of such a cloud.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -106,7 +113,7 @@ contains
       <defaultValue>1.0d0</defaultValue>
       <description>
       A dimensionless multiplicative coefficient applied to the :math:`V`-band optical depth of the diffuse
-      interstellar medium.
+      interstellar medium, representing the effects of geometry. It does not change the mass of dust.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -138,27 +145,30 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
+    <objectBuilder class="dustProperties" name="dustProperties_" source="parameters"/>
     !!]
-    self=dustAttenuationCharlotFall2000(coefficientBirthCloud,coefficientISM,timescale,exponent_,wavelengthReference)
+    self=dustAttenuationCharlotFall2000(coefficientBirthCloud,coefficientISM,timescale,exponent_,wavelengthReference,dustProperties_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="dustProperties_"/>
     !!]
     return
   end function charlotFall2000ConstructorParameters
 
-  function charlotFall2000ConstructorInternal(coefficientBirthCloud,coefficientISM,timescale,exponent_,wavelengthReference) result(self)
+  function charlotFall2000ConstructorInternal(coefficientBirthCloud,coefficientISM,timescale,exponent_,wavelengthReference,dustProperties_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`dustAttenuationCharlotFall2000` dust attenuation class. Both
     components are given their own power-law extinction curve of the same exponent.
     !!}
     implicit none
-    type            (dustAttenuationCharlotFall2000)                :: self
-    double precision                                , intent(in   ) :: coefficientBirthCloud, coefficientISM, &
-         &                                                             timescale            , exponent_     , &
-         &                                                             wavelengthReference
-    class(dustExtinctionCurveClass), pointer :: curvePowerLaw
+    type            (dustAttenuationCharlotFall2000)                        :: self
+    double precision                                , intent(in   )         :: coefficientBirthCloud, coefficientISM, &
+         &                                                                     timescale            , exponent_     , &
+         &                                                                     wavelengthReference
+    class           (dustPropertiesClass           ), intent(in   ), target :: dustProperties_
+    class           (dustExtinctionCurveClass      ), pointer               :: curvePowerLaw
     !![
-    <constructorAssign variables="coefficientBirthCloud, coefficientISM, timescale, exponent_, wavelengthReference"/>
+    <constructorAssign variables="coefficientBirthCloud, coefficientISM, timescale, exponent_, wavelengthReference, *dustProperties_"/>
     !!]
 
     ! The curve is shared by both components, so it must be a reference-counted heap object rather than a local: each
@@ -171,13 +181,26 @@ contains
        curvePowerLaw=dustExtinctionCurvePowerLaw(exponent_,wavelengthReference)
     end select
     call curvePowerLaw%referenceCountReset()
-    self%birthCloud_=dustAttenuationBirthCloud                (coefficientBirthCloud,timescale,curvePowerLaw)
-    self%screenISM_ =dustAttenuationScreenSurfaceDensityMetals(coefficientISM                 ,curvePowerLaw)
+    self%birthCloud_=dustAttenuationBirthCloud                (coefficientBirthCloud*densitySurfaceGasDepthOpticalVUnitMilkyWay,timescale,curvePowerLaw,dustProperties_)
+    self%screenISM_ =dustAttenuationScreenSurfaceDensityMetals(coefficientISM                                                   ,curvePowerLaw,dustProperties_)
     !![
     <objectDestructor name="curvePowerLaw"/>
     !!]
     return
   end function charlotFall2000ConstructorInternal
+
+  subroutine charlotFall2000Destructor(self)
+    !!{RST
+    Destructor for the :galacticus-class:`dustAttenuationCharlotFall2000` dust attenuation class.
+    !!}
+    implicit none
+    type(dustAttenuationCharlotFall2000), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%dustProperties_"/>
+    !!]
+    return
+  end subroutine charlotFall2000Destructor
 
   function charlotFall2000Transmission(self,node,descriptors,inclination) result(transmission)
     !!{RST
