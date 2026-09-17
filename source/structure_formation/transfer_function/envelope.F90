@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements a transfer function envelope class which computes a transfer function that is a monotonically-decreasing (as a function of wavenumber) envelope to another transfer function.
   !!}
@@ -299,15 +301,15 @@ contains
     !!{RST
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a given fraction relative to a :term:`CDM` transfer function
     !!}
-    use :: Error                   , only : Error_Report             , errorStatusSuccess           , errorStatusFail
-    use :: Numerical_Constants_Math, only : Pi
-    use :: Root_Finder             , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Error                      , only : Error_Report                          , errorStatusSuccess           , errorStatusFail
+    use :: Root_Finder                , only : rangeExpandMultiplicative             , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Transfer_Function_Utilities, only : Transfer_Function_Mass_From_Wavenumber
     implicit none
     class           (transferFunctionEnvelope), intent(inout), target   :: self
     double precision                          , intent(in   )           :: fraction
     integer                                   , intent(  out), optional :: status
     type            (rootFinder              )                          :: finder
-    double precision                                                    :: wavenumberFractionMode, matterDensity
+    double precision                                                    :: wavenumberFractionMode
 
     if (associated(self%transferFunctionReference)) then
        ! There is no analytic solution for the fraction-mode mass so we resort to numerical root finding.
@@ -323,18 +325,9 @@ contains
        call envelopeTabulate(self,wavenumberLogarithmic=0.0d0)
        self%modeMassSolving    =.true.
        wavenumberFractionMode  = finder%find(rootGuess=1.0d0)
-       matterDensity           =+self%cosmologyParameters_%OmegaMatter    () &
-            &                   *self%cosmologyParameters_%densityCritical()
        ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
        ! R = λ/2 = π/k [see Eq.(9) of Schneider et al. (2012; http://adsabs.harvard.edu/abs/2012MNRAS.424..684S)].
-       envelopeFractionModeMass=+4.0d0                    &
-            &                   *Pi                       &
-            &                   /3.0d0                    &
-            &                   *matterDensity            &
-            &                   *(                        &
-            &                     +Pi                     &
-            &                     /wavenumberFractionMode &
-            &                    )**3
+       envelopeFractionModeMass=Transfer_Function_Mass_From_Wavenumber(wavenumberFractionMode,self%cosmologyParameters_)
        self%modeMassSolving    =.false.
        if (present(status)) status=errorStatusSuccess
     else

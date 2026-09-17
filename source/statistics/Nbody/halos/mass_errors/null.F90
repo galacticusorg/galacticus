@@ -65,14 +65,15 @@ contains
     return
   end function nullConstructorParameters
 
-  double precision function nullErrorFractional(self,node)
+  double precision function nullErrorFractional(self,node,nodeReference)
     !!{RST
     Return the fractional error on the mass of an N-body halo.
     !!}
     implicit none
-    class(nbodyHaloMassErrorNull), intent(inout) :: self
-    type (treeNode              ), intent(inout) :: node
-    !$GLC attributes unused :: self, node
+    class(nbodyHaloMassErrorNull), intent(inout)           :: self
+    type (treeNode              ), intent(inout)           :: node
+    type (treeNode              ), intent(inout), optional :: nodeReference
+    !$GLC attributes unused :: self, node, nodeReference
 
     nullErrorFractional=0.0d0
     return

@@ -24,7 +24,7 @@ _state_storables_loaded = False
 # Define the directory where schemas are stored
 EXEC_PATH = os.environ.get('GALACTICUS_EXEC_PATH')
 if EXEC_PATH:
-    SCHEMAS_DIR = os.path.abspath(os.path.join(EXEC_PATH,"/schemas"))
+    SCHEMAS_DIR = os.path.abspath(os.path.join(EXEC_PATH, 'schema'))
 else:
     SCHEMAS_DIR = None
 

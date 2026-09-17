@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements a galaxy size vs stellar mass relation analysis class.
   !!}
@@ -804,29 +806,14 @@ contains
     !!{RST
     Implement a ``sizeVsStellarMassRelation`` output analysis finalization.
     !!}
-    use :: Output_HDF5, only : outputFile
-    use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5File  , hdf5Group
+    use :: Output_Analysis_Utilities, only : Output_Analysis_Log_Likelihood_Write
     implicit none
     class(outputAnalysisSizeVsStellarMassRelation), intent(inout)           :: self
     type (varying_string                         ), intent(in   ), optional :: groupName
-    type (hdf5Group                              )               , target   :: analysesGroup, subGroup
-    type (hdf5Group                              )               , pointer  :: inGroup
-    type (hdf5Group                              )                          :: analysisGroup
 
     call self%outputAnalysis_%finalize(groupName)
     ! Overwrite the log-likelihood - this allows us to handle cases where the model is zero everywhere.
-    !$ call hdf5Access%set()
-    analysesGroup =  outputFile   %openGroup('analyses'     )
-    inGroup       => analysesGroup
-    if (present(groupName)) then
-       subGroup   =  analysesGroup%openGroup(char(groupName))
-       inGroup    => subGroup
-    end if
-    analysisGroup=inGroup%openGroup(char(self%analysisLabel))
-    call analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
-    call analysisGroup%writeAttribute(self%selection      ,'selection'    )
-    !$ call hdf5Access%unset()
+    call Output_Analysis_Log_Likelihood_Write(self%analysisLabel,self%logLikelihood(),groupName,selection=self%selection)
     return
   end subroutine sizeVsStellarMassRelationFinalize
 
@@ -834,96 +821,24 @@ contains
     !!{RST
     Return the log-likelihood of a ``sizeVsStellarMassRelation`` output analysis.
     !!}
-    use :: Error                       , only : Error_Report
-    use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector
-    use :: Numerical_Constants_Math    , only : Pi
-    use :: Interface_GSL               , only : GSL_Success
-    use :: Models_Likelihoods_Constants, only : logImprobable
+    use :: Output_Analysis_Utilities, only : Output_Analysis_Log_Likelihood_Relation
     implicit none
     class           (outputAnalysisSizeVsStellarMassRelation), intent(inout)                 :: self
-    double precision                                         , parameter                     :: radiusEffectiveLogarithmicTiny              =-6.0d0
-    double precision                                         , allocatable  , dimension(:,:) :: radiusEffectiveLogarithmicCovarianceCombined       , radiusEffectiveLogarithmicCovarianceCombinedSelected, &
-         &                                                                                      radiusEffectiveLogarithmicCovariance               , radiusEffectiveLogarithmicCovarianceTarget
-    double precision                                         , allocatable  , dimension(:  ) :: radiusEffectiveLogarithmicDifference               , radiusEffectiveLogarithmicDifferenceSelected        , &
-         &                                                                                      radiusEffectiveLogarithmic                         , radiusEffectiveLogarithmicTarget
-    integer         (c_size_t                               ), allocatable  , dimension(:  ) :: likelihoodBins
-    type            (vector                                 )                                :: residual
-    type            (matrix                                 )                                :: covariance
-    integer                                                                                  :: i                                                  , j                                                   , &
-         &                                                                                      status
+    double precision                                         , parameter                     :: radiusEffectiveLogarithmicTiny      =-6.0d0
+    double precision                                         , allocatable  , dimension(:,:) :: radiusEffectiveLogarithmicCovariance
+    double precision                                         , allocatable  , dimension(:  ) :: radiusEffectiveLogarithmic
 
     select type (outputAnalysis_ => self%outputAnalysis_)
     class is (outputAnalysisMeanFunction1D   )
-       ! Retrieve the results of the analysis.
+       ! Retrieve the results of the analysis and compute the log-likelihood.
        call outputAnalysis_%results(   meanValue=radiusEffectiveLogarithmic,   meanCovariance=radiusEffectiveLogarithmicCovariance)
-       allocate(radiusEffectiveLogarithmicTarget          ,source=self%radiusEffectiveLogarithmicTarget          )
-       allocate(radiusEffectiveLogarithmicCovarianceTarget,source=self%radiusEffectiveLogarithmicCovarianceTarget)
+       logLikelihood=Output_Analysis_Log_Likelihood_Relation(radiusEffectiveLogarithmic,radiusEffectiveLogarithmicCovariance,self%radiusEffectiveLogarithmicTarget,self%radiusEffectiveLogarithmicCovarianceTarget,self%likelihoodBins,self%likelihoodBinsAutomatic,radiusEffectiveLogarithmicTiny,self%likelihoodNormalize)
     class is (outputAnalysisScatterFunction1D)
-       ! Retrieve the results of the analysis.
+       ! Retrieve the results of the analysis and compute the log-likelihood.
        call outputAnalysis_%results(scatterValue=radiusEffectiveLogarithmic,scatterCovariance=radiusEffectiveLogarithmicCovariance)
-       allocate(radiusEffectiveLogarithmicTarget          ,source=self%radiusEffectiveScatterTarget              )
-       allocate(radiusEffectiveLogarithmicCovarianceTarget,source=self%radiusEffectiveScatterCovarianceTarget    )
+       logLikelihood=Output_Analysis_Log_Likelihood_Relation(radiusEffectiveLogarithmic,radiusEffectiveLogarithmicCovariance,self%radiusEffectiveScatterTarget,self%radiusEffectiveScatterCovarianceTarget,self%likelihoodBins,self%likelihoodBinsAutomatic,radiusEffectiveLogarithmicTiny,self%likelihoodNormalize)
     class default
        logLikelihood=+outputAnalysis_%logLikelihood()
-       return
     end select
-    ! Determine which bins to use in the likelihood analysis.
-    if (self%likelihoodBinsAutomatic) then
-       j=0
-       do i=1,size(radiusEffectiveLogarithmic)
-          if (radiusEffectiveLogarithmic(i) /= 0.0d0) j=j+1
-       end do
-       allocate(likelihoodBins(j))
-       j=0
-       do i=1,size(radiusEffectiveLogarithmic)
-          if (radiusEffectiveLogarithmic(i) /= 0.0d0) then
-             j=j+1
-             likelihoodBins(j)=i
-          end if
-       end do
-    else
-       allocate(likelihoodBins,source=self%likelihoodBins)
-    end if
-    if     (                                                                                                                     &
-         &   (size(likelihoodBins) == 0 .and. any(radiusEffectiveLogarithmic                 <= radiusEffectiveLogarithmicTiny)) &
-         &  .or.                                                                                                                 &
-         &                                    any(radiusEffectiveLogarithmic(likelihoodBins) <= radiusEffectiveLogarithmicTiny)  &
-         & ) then
-       ! If any active bins contain zero galaxies, judge this model to be improbable.
-       logLikelihood=                     logImprobable
-    else
-       ! Compute difference with the target dataset.
-       allocate(radiusEffectiveLogarithmicDifference        ,mold=radiusEffectiveLogarithmic          )
-       allocate(radiusEffectiveLogarithmicCovarianceCombined,mold=radiusEffectiveLogarithmicCovariance)
-       radiusEffectiveLogarithmicDifference        =+radiusEffectiveLogarithmic          -radiusEffectiveLogarithmicTarget
-       radiusEffectiveLogarithmicCovarianceCombined=+radiusEffectiveLogarithmicCovariance+radiusEffectiveLogarithmicCovarianceTarget
-       ! Construct a reduced set of bins.
-       if (size(likelihoodBins) > 0) then
-          allocate(radiusEffectiveLogarithmicDifferenceSelected        (size(likelihoodBins)                     ))
-          allocate(radiusEffectiveLogarithmicCovarianceCombinedSelected(size(likelihoodBins),size(likelihoodBins)))
-          do i=1,size(likelihoodBins)
-             radiusEffectiveLogarithmicDifferenceSelected           (i  )=radiusEffectiveLogarithmicDifference        (likelihoodBins(i)                  )
-             do j=1,size(likelihoodBins)
-                radiusEffectiveLogarithmicCovarianceCombinedSelected(i,j)=radiusEffectiveLogarithmicCovarianceCombined(likelihoodBins(i),likelihoodBins(j))
-             end do
-          end do
-       else
-          allocate(radiusEffectiveLogarithmicDifferenceSelected        ,source=radiusEffectiveLogarithmicDifference        )
-          allocate(radiusEffectiveLogarithmicCovarianceCombinedSelected,source=radiusEffectiveLogarithmicCovarianceCombined)
-       end if
-       ! Construct residual vector and covariance matrix.
-       residual  =vector(radiusEffectiveLogarithmicDifferenceSelected        )
-       covariance=matrix(radiusEffectiveLogarithmicCovarianceCombinedSelected)
-       ! Compute the log-likelihood.
-       logLikelihood=-0.5d0*covariance%covarianceProduct(residual,status)
-       if (status == GSL_Success) then
-          if (self%likelihoodNormalize)                                                                      &
-               & logLikelihood=+logLikelihood                                                                &
-               &               -0.5d0*covariance%logarithmicDeterminant()                                    &
-               &               -0.5d0*dble(size(radiusEffectiveLogarithmicDifferenceSelected))*log(2.0d0*Pi)
-       else
-          logLikelihood       =+logImprobable
-       end if
-    end if
     return
   end function sizeVsStellarMassRelationLogLikelihood

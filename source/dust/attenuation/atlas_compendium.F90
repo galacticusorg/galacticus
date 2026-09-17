@@ -199,11 +199,28 @@
         \tau_\mathrm{V} = \kappa_\mathrm{V} \, f_\mathrm{dust:metals} \, \Sigma_\mathrm{Z},
 
      with :math:`\kappa_\mathrm{V}` the :math:`V`-band opacity per unit mass of dust used in the radiative transfer
-     calculation, :math:`f_\mathrm{dust:metals}` the dust-to-metals ratio (``dustToMetalsRatio``), and
-     :math:`\Sigma_\mathrm{Z} = Z M_\mathrm{gas} / 2 \pi r_\mathrm{d}^2` the central surface density of gas-phase
-     metals of the disk. Using the opacity which produced the table is what makes the optical depth mean the same
-     thing to the model as it does to the tabulation; a screen calibrated to the Milky Way, as
-     :galacticus-class:`dustAttenuationScreenSurfaceDensityMetals` is, need not agree with it.
+     calculation, :math:`f_\mathrm{dust:metals}` the dust-to-metals ratio of the disk supplied by a
+     :galacticus-class:`dustPropertiesClass` object, and :math:`\Sigma_\mathrm{Z} = Z M_\mathrm{gas} / 2 \pi
+     r_\mathrm{d}^2` the central surface density of gas-phase metals of the disk. Using the opacity which produced the
+     table is what makes the optical depth mean the same thing to the model as it does to the tabulation.
+
+     The ``dustProperties`` object must therefore have the opacity of the tabulation, and an error is reported at
+     construction if its ``opacityExtinctionV`` differs from it by more than one part in a million: only then is the
+     dust which attenuates the galaxy's light the same dust whose mass any emission calculation uses. The default
+     :galacticus-class:`dustPropertiesSimple` has the opacity which reproduces the Milky Way calibration of
+     :cite:t:`savage_observed_1979`, which differs from that of the grain models used to compute the compendium, so
+     this attenuator will normally need a ``dustProperties`` object of its own. Placing one inside its parameter
+     block leaves every other attenuator unchanged:
+
+     .. code-block:: xml
+
+        &lt;dustAttenuation value="atlasCompendium"&gt;
+          &lt;fileName value="Ferrara1999_MW_hz1.0_Attenuations.hdf5"/&gt;
+          &lt;dustProperties value="simple"&gt;
+            &lt;dustToMetalsRatio  value="0.44"         /&gt;
+            &lt;opacityExtinctionV value="32148.5640546"/&gt;
+          &lt;/dustProperties&gt;
+        &lt;/dustAttenuation&gt;
 
      As in :galacticus-class:`dustAttenuationAtlasFerrara2000`, the optical depth is *always* that of the disk,
      whichever component is being attenuated: the dust lies in the disk, and a spheroid is reddened by the disk's
@@ -242,9 +259,10 @@
      !!}
      private
      class           (galacticInclinationClass                ), pointer                         :: galacticInclination_          => null()
+     class           (dustPropertiesClass                     ), pointer                         :: dustProperties_               => null()
      type            (varying_string                          )                                  :: fileName                                , url
      type            (enumerationCompendiumSpheroidProfileType)                                  :: spheroidProfile
-     double precision                                                                            :: dustToMetalsRatio                       , opacity                         , &
+     double precision                                                                            :: opacity                                 , &
           &                                                                                         radiusSpheroidHalfMassToScale           , wavelengthMinimum               , &
           &                                                                                         wavelengthMaximum                       , opticalDepthMaximum             , &
           &                                                                                         radiusSpheroidMinimum                   , radiusSpheroidMaximum
@@ -270,10 +288,11 @@
      type            (interpolator                            )                                  :: interpolatorWavelength                  , interpolatorInclination         , &
           &                                                                                         interpolatorDepthOptical                , interpolatorRadiusSpheroid
    contains
-     final     ::                      atlasCompendiumDestructor
-     procedure :: transmission      => atlasCompendiumTransmission
-     procedure :: request           => atlasCompendiumRequest
-     procedure :: supportsComponent => atlasCompendiumSupportsComponent
+     final     ::                           atlasCompendiumDestructor
+     procedure :: transmission           => atlasCompendiumTransmission
+     procedure :: request                => atlasCompendiumRequest
+     procedure :: supportsComponent      => atlasCompendiumSupportsComponent
+     procedure :: isOrientationDependent => atlasCompendiumIsOrientationDependent
   end type dustAttenuationAtlasCompendium
 
   interface dustAttenuationAtlasCompendium
@@ -297,11 +316,12 @@ contains
     type            (dustAttenuationAtlasCompendium)                :: self
     type            (inputParameters               ), intent(inout) :: parameters
     class           (galacticInclinationClass      ), pointer       :: galacticInclination_
-    type            (varying_string                )                :: fileName               , url, &
+    class           (dustPropertiesClass           ), pointer       :: dustProperties_
+    type            (varying_string                )                :: fileName               , url                  , &
          &                                                             spheroidProfile
-    double precision                                                :: dustToMetalsRatio      , wavelengthMinimum    , &
-         &                                                             wavelengthMaximum      , opticalDepthMaximum  , &
-         &                                                             radiusSpheroidMinimum  , radiusSpheroidMaximum
+    double precision                                                :: wavelengthMinimum      , wavelengthMaximum    , &
+         &                                                             radiusSpheroidMinimum  , radiusSpheroidMaximum, &
+         &                                                             opticalDepthMaximum
     logical                                                         :: extrapolateOpticalDepth
 
     !![
@@ -322,16 +342,6 @@ contains
       The URL from which to download ``fileName`` if it is not already present and is not one of the published
       tabulations, whose locations this class already knows. If ``none``, such a file must be supplied by other
       means.
-      </description>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter docformat="rst">
-      <name>dustToMetalsRatio</name>
-      <defaultValue>0.44d0</defaultValue>
-      <defaultSource>Approximately correct for the Milky Way (e.g. :cite:t:`popping_dust_2017`).</defaultSource>
-      <description>
-      The fraction of the mass of metals which is in dust, used with the opacity of the tabulation to convert a
-      surface density of metals into an optical depth.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -406,16 +416,18 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="galacticInclination" name="galacticInclination_" source="parameters"/>
+    <objectBuilder class="dustProperties"      name="dustProperties_"      source="parameters"/>
     !!]
-    self=dustAttenuationAtlasCompendium(fileName,url,dustToMetalsRatio,wavelengthMinimum,wavelengthMaximum,opticalDepthMaximum,radiusSpheroidMinimum,radiusSpheroidMaximum,extrapolateOpticalDepth,enumerationCompendiumSpheroidProfileEncode(char(spheroidProfile),includesPrefix=.false.),galacticInclination_)
+    self=dustAttenuationAtlasCompendium(fileName,url,wavelengthMinimum,wavelengthMaximum,opticalDepthMaximum,radiusSpheroidMinimum,radiusSpheroidMaximum,extrapolateOpticalDepth,enumerationCompendiumSpheroidProfileEncode(char(spheroidProfile),includesPrefix=.false.),galacticInclination_,dustProperties_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="galacticInclination_"/>
+    <objectDestructor name="dustProperties_"     />
     !!]
     return
   end function atlasCompendiumConstructorParameters
 
-  function atlasCompendiumConstructorInternal(fileName,url,dustToMetalsRatio,wavelengthMinimum,wavelengthMaximum,opticalDepthMaximum,radiusSpheroidMinimum,radiusSpheroidMaximum,extrapolateOpticalDepth,spheroidProfile,galacticInclination_) result(self)
+  function atlasCompendiumConstructorInternal(fileName,url,wavelengthMinimum,wavelengthMaximum,opticalDepthMaximum,radiusSpheroidMinimum,radiusSpheroidMaximum,extrapolateOpticalDepth,spheroidProfile,galacticInclination_,dustProperties_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`dustAttenuationAtlasCompendium` dust attenuation class. The
     tabulation is located---downloading it if necessary---read once, here, and interpolators built over it.
@@ -434,37 +446,41 @@ contains
     use            :: Table_Labels      , only : extrapolationTypeFix
     implicit none
     type            (dustAttenuationAtlasCompendium          )                                  :: self
-    type            (varying_string                          ), intent(in   )                   :: fileName                    , url
-    double precision                                          , intent(in   )                   :: dustToMetalsRatio           , wavelengthMinimum   , &
-         &                                                                                         wavelengthMaximum           , opticalDepthMaximum , &
-         &                                                                                         radiusSpheroidMinimum       , radiusSpheroidMaximum
+    type            (varying_string                          ), intent(in   )                   :: fileName                           , url
+    double precision                                          , intent(in   )                   :: wavelengthMinimum                  , wavelengthMaximum               , &
+         &                                                                                         radiusSpheroidMinimum              , radiusSpheroidMaximum           , &
+         &                                                                                         opticalDepthMaximum
     logical                                                   , intent(in   )                   :: extrapolateOpticalDepth
     type            (enumerationCompendiumSpheroidProfileType), intent(in   )                   :: spheroidProfile
     class           (galacticInclinationClass                ), intent(in   ), target           :: galacticInclination_
+    class           (dustPropertiesClass                     ), intent(in   ), target           :: dustProperties_
+    ! Relative tolerance on agreement between the opacity of the dust properties object and that of the tabulation.
+    double precision                                          , parameter                       :: toleranceOpacityRelative    =1.0d-6
+    character       (len=24                                  )                                  :: labelOpacityTabulation             , labelOpacityDust
     type            (hdf5File                                )                                  :: file
     type            (lockDescriptor                          )                                  :: lock
-    type            (varying_string                          )                                  :: pathFile                    , pathDirectory
-    integer                                                                                     :: status                      , known                           , &
+    type            (varying_string                          )                                  :: pathFile                           , pathDirectory
+    integer                                                                                     :: status                             , known                           , &
          &                                                                                         i
     integer         (c_size_t                                )                                  :: sizeFile
-    integer         (hsize_t                                 )              , dimension(3     ) :: beginDisk                   , countDisk           , &
-         &                                                                                         beginExtrapolationDisk      , countExtrapolationDisk
-    integer         (hsize_t                                 )              , dimension(4     ) :: beginSpheroid               , countSpheroid       , &
-         &                                                                                         beginExtrapolationSpheroid  , countExtrapolationSpheroid
+    integer         (hsize_t                                 )              , dimension(3     ) :: beginDisk                          , countDisk                       , &
+         &                                                                                         beginExtrapolationDisk             , countExtrapolationDisk
+    integer         (hsize_t                                 )              , dimension(4     ) :: beginSpheroid                      , countSpheroid                   , &
+         &                                                                                         beginExtrapolationSpheroid         , countExtrapolationSpheroid
     type            (compendiumTable                         ), allocatable, dimension(:      ) :: compendiumTablesTemporary
     type            (varying_string                          )                                  :: tableKey
     character       (len=256                                 )                                  :: labelTable
-    integer                                                                                     :: indexWavelengthBegin        , indexWavelengthEnd  , &
-         &                                                                                         indexDepthOpticalBegin      , indexDepthOpticalEnd, &
-         &                                                                                         indexRadiusSpheroidBegin    , indexRadiusSpheroidEnd
+    integer                                                                                     :: indexWavelengthBegin               , indexWavelengthEnd              , &
+         &                                                                                         indexDepthOpticalBegin             , indexDepthOpticalEnd            , &
+         &                                                                                         indexRadiusSpheroidBegin           , indexRadiusSpheroidEnd
     double precision                                          , allocatable, dimension(:      ) :: depthOptical
-    double precision                                          , allocatable, dimension(:,:,:  ) :: extrapolationDisk           , transmissionDisk
-    double precision                                          , allocatable, dimension(:,:,:,:) :: extrapolationSpheroid       , transmissionSpheroid
-    type            (interpolator                            )             , dimension(3      ) :: interpolatorsDisk           , interpolatorsSpheroidExtrapolate
+    double precision                                          , allocatable, dimension(:,:,:  ) :: extrapolationDisk                  , transmissionDisk
+    double precision                                          , allocatable, dimension(:,:,:,:) :: extrapolationSpheroid              , transmissionSpheroid
+    type            (interpolator                            )             , dimension(3      ) :: interpolatorsDisk                  , interpolatorsSpheroidExtrapolate
     type            (interpolator                            )             , dimension(4      ) :: interpolatorsSpheroid
     type            (interpolator                            )             , dimension(2      ) :: interpolatorsDiskExtrapolate
     !![
-    <constructorAssign variables="fileName, url, dustToMetalsRatio, wavelengthMinimum, wavelengthMaximum, opticalDepthMaximum, radiusSpheroidMinimum, radiusSpheroidMaximum, extrapolateOpticalDepth, spheroidProfile, *galacticInclination_"/>
+    <constructorAssign variables="fileName, url, wavelengthMinimum, wavelengthMaximum, opticalDepthMaximum, radiusSpheroidMinimum, radiusSpheroidMaximum, extrapolateOpticalDepth, spheroidProfile, *galacticInclination_, *dustProperties_"/>
     !!]
 
     ! An inclination must be available, either per galaxy or imposed by an attenuator averaging over orientation.
@@ -579,6 +595,20 @@ contains
     call file%readDataset  ('extrapolationCoefficientsDisk'    ,     extrapolationDisk    ,readBegin=beginExtrapolationDisk    ,readCount=countExtrapolationDisk    )
     call file%readDataset  ('extrapolationCoefficientsSpheroid',     extrapolationSpheroid,readBegin=beginExtrapolationSpheroid,readCount=countExtrapolationSpheroid)
     !$ call hdf5Access%unset()
+    ! The optical depth of a galaxy is computed from the tabulation's own opacity, while the mass of its dust---and so
+    ! any emission from that dust---follows from the dust properties object. The two describe the same dust only if
+    ! that object has the tabulation's opacity, so insist on it.
+    if (abs(self%dustProperties_%opacityExtinctionV()-self%opacity) > toleranceOpacityRelative*self%opacity) then
+       write (labelOpacityTabulation,'(es24.15e2)') self                %opacity
+       write (labelOpacityDust      ,'(es24.15e2)') self%dustProperties_%opacityExtinctionV()
+       call Error_Report(                                                                                                     &
+            &            'the `dustProperties` object has a V-band extinction opacity of '//trim(adjustl(labelOpacityDust))// &
+            &            ' cm²/g, but `'//self%fileName//'` was computed with dust of opacity '                            // &
+            &            trim(adjustl(labelOpacityTabulation))//' cm²/g - give this attenuator a `dustProperties` object'  // &
+            &            ' of its own, with `opacityExtinctionV` set to the latter'                                        // &
+            &            {introspection:location}                                                                             &
+            &           )
+    end if
     ! Trim the axes to match what was read.
     self%wavelength    =self%wavelength    (indexWavelengthBegin    :indexWavelengthEnd    )
     self%radiusSpheroid=self%radiusSpheroid(indexRadiusSpheroidBegin:indexRadiusSpheroidEnd)
@@ -599,11 +629,11 @@ contains
     ! than assume it, since a tabulation which disagreed would be telling us something about itself.
     self%depthOpticalZeroTabulated=depthOptical(1) <= 0.0d0
     if (self%depthOpticalZeroTabulated) then
-       if     (any(transmissionDisk    (1,:,:  ) /= 1.0d0))                                                                            &
+       if     (any(transmissionDisk    (1,:,:  ) /= 1.0d0))                                                                                       &
             & call Error_Report('`attenuationDisk` is not unity at zero optical depth'                                //{introspection:location})
-       if     (any(transmissionSpheroid(:,1,:,:) /= 1.0d0))                                                                            &
+       if     (any(transmissionSpheroid(:,1,:,:) /= 1.0d0))                                                                                       &
             & call Error_Report('`attenuationSpheroid` is not unity at zero optical depth'                            //{introspection:location})
-       if     (size(depthOptical) < 3)                                                                                                 &
+       if     (size(depthOptical) < 3)                                                                                                            &
             & call Error_Report('the optical depth axis is too short to interpolate in once its zero entry is dropped'//{introspection:location})
        self%depthOptical=depthOptical(2:)
     else
@@ -744,6 +774,7 @@ contains
 
     !![
     <objectDestructor name="self%galacticInclination_"/>
+    <objectDestructor name="self%dustProperties_"     />
     !!]
     return
   end subroutine atlasCompendiumDestructor
@@ -787,8 +818,8 @@ contains
          &                 *megaParsec     &
          &                 *hecto          &
          &                )**2
-    depthOpticalV       =+self%opacity           &
-         &               *self%dustToMetalsRatio &
+    depthOpticalV       =+self                %opacity                                   &
+         &               *self%dustProperties_%dustToMetalsRatio(node,componentTypeDisk) &
          &               *densitySurfaceMetals
     return
   end function atlasCompendiumDepthOpticalV
@@ -997,3 +1028,15 @@ contains
          &              componentType == componentTypeSpheroid
     return
   end function atlasCompendiumSupportsComponent
+
+  logical function atlasCompendiumIsOrientationDependent(self) result(isOrientationDependent)
+    !!{RST
+    Return true: the transmission of a radiative transfer atlas depends on the inclination at which the galaxy is seen.
+    !!}
+    implicit none
+    class(dustAttenuationAtlasCompendium), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isOrientationDependent=.true.
+    return
+  end function atlasCompendiumIsOrientationDependent

@@ -12,4 +12,16 @@
     </nodeOperator>
   </nodeOperator>
 
+  <!-- Dust attenuators predating the `dustProperties` class: the birth cloud coefficient becomes a column of gas, and the
+       compendium's dust-to-metals ratio moves into a `dustProperties` object of its own. -->
+  <dustAttenuation value="sequence">
+    <dustAttenuation value="birthCloud">
+      <coefficient value="0.5"/>
+    </dustAttenuation>
+    <dustAttenuation value="atlasCompendium">
+      <fileName          value="Ferrara1999_MW_hz1.0_Attenuations.hdf5"/>
+      <dustToMetalsRatio value="0.3"/>
+    </dustAttenuation>
+  </dustAttenuation>
+
 <componentHotHalo value="standard"/></parameters>

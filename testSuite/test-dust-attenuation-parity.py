@@ -134,6 +134,36 @@ if branch > TOLERANCE:
     sys.exit(0)
 print(f"SUCCESS: age-resolved and age-independent decompositions agree to {branch:.3e}")
 
+# Dust properties. Each pair reaches the same optical depth by a different route, so must agree to round-off: a
+# screen's geometric coefficient against the dust-to-metals ratio of its dust properties object; a birth cloud's column
+# of gas against that same ratio; and `charlotFall2000` against the explicit sequence it stands for.
+with h5py.File(outputPath, "r") as f:
+    nodes = f["Outputs/Output1/nodeData"]
+    try:
+        pairs = {
+            "screen coefficient vs dust-to-metals ratio":
+                (nodes["diskStellarSED:inoue2014:dustAttenuated:screenSurfaceDensityMetals:coefficientDoubled"      ][:],
+                 nodes["diskStellarSED:inoue2014:dustAttenuated:screenSurfaceDensityMetals:dustToMetalsRatioDoubled"][:]),
+            "birth cloud column vs dust-to-metals ratio":
+                (nodes["diskStellarSED:inoue2014:dustAttenuated:birthCloud:densitySurfaceGasDoubled"                ][:],
+                 nodes["diskStellarSED:inoue2014:dustAttenuated:birthCloud:dustToMetalsRatioDoubled"                ][:]),
+            "charlotFall2000 vs explicit sequence":
+                (sedDisk,
+                 nodes["diskStellarSED:inoue2014:dustAttenuated:sequence:explicit"                                  ][:]),
+        }
+    except KeyError as e:
+        print(f"FAILED: expected dust properties dataset missing from the output: {e}")
+        sys.exit(0)
+for label, (first, second) in pairs.items():
+    if not bool(np.any(first[emitting] < sedRaw[emitting] * (1.0 - 1.0e-6))):
+        print(f"FAILED: {label}: no light is attenuated, so nothing is being tested")
+        sys.exit(0)
+    difference = float(np.nanmax(np.abs(first[emitting] - second[emitting]) / sedRaw[emitting]))
+    if difference > TOLERANCE:
+        print(f"FAILED: {label} disagree by {difference:.3e}")
+        sys.exit(0)
+    print(f"SUCCESS: {label} agree to {difference:.3e}")
+
 # Summing over children must be exact, as for the broad-band case.
 differenceSED = float(np.nanmax(np.abs(sedTotal - (sedDisk + sedSpheroid))))
 if differenceSED > 0.0:
@@ -316,5 +346,71 @@ if not bool(np.all(transmissionEdgeOn <= transmissionAveraged + TOLERANCE)):
     sys.exit(0)
 print(f"SUCCESS: transmission falls from 30 degrees to the orientation average to edge-on, "
       f"{transmissionDisk.mean():.4f} > {transmissionAveraged.mean():.4f} > {transmissionEdgeOn.mean():.4f}")
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Absorbed luminosity. Light which does not reach the observer is absorbed by some phase of dust, so for an attenuator
+# independent of orientation the attenuated luminosity and the luminosity absorbed by each phase must sum to the
+# unattenuated luminosity. For an orientation-dependent atlas the absorption is averaged over orientation, and must sum
+# with the orientation-averaged attenuated luminosity instead.
+# ---------------------------------------------------------------------------------------------------------------------
+def conservation(label, raw, attenuated, absorbed):
+    emittingHere = raw > 0.0
+    if not emittingHere.any():
+        print(f"FAILED: {label}: nothing is emitted, so energy conservation is not being tested")
+        sys.exit(0)
+    total = attenuated + sum(absorbed)
+    worst = float(np.nanmax(np.abs(total[emittingHere] - raw[emittingHere]) / raw[emittingHere]))
+    if worst > TOLERANCE:
+        print(f"FAILED: {label}: attenuated plus absorbed luminosity differs from the unattenuated by {worst:.3e}")
+        sys.exit(0)
+    if any(bool(np.any(phase < 0.0)) for phase in absorbed):
+        print(f"FAILED: {label}: a phase of dust absorbs a negative luminosity")
+        sys.exit(0)
+    print(f"SUCCESS: {label}: attenuated plus absorbed luminosity equals the unattenuated, to {worst:.3e}")
+
+with h5py.File(outputPath, "r") as f:
+    nodes = f["Outputs/Output1/nodeData"]
+    try:
+        phasesCF2000 = ("birthCloud", "screenSurfaceDensityMetals")
+        for component in ("disk", "spheroid"):
+            name = f"luminosityStellar:SDSS_r:rest:{component}"
+            conservation(f"{component} broad-band luminosity, charlotFall2000",
+                         nodes[name][:], nodes[f"{name}:dustAttenuated:charlotFall2000"][:],
+                         [nodes[f"{name}:dustAbsorbed:charlotFall2000:{phase}"][:] for phase in phasesCF2000])
+        sedAbsorbed = [nodes[f"diskStellarSED:inoue2014:dustAbsorbed:charlotFall2000:{phase}"][:] for phase in phasesCF2000]
+        conservation("disk spectrum, charlotFall2000", sedRaw, sedDisk, sedAbsorbed)
+        for line in lineWavelengths:
+            name = f"luminosityEmissionLineTotal:{line}"
+            conservation(f"{line} luminosity, charlotFall2000", lineRaw[line], lineAttenuated[line],
+                         [nodes[f"{name}:dustAbsorbed:charlotFall2000:{phase}"][:] for phase in phasesCF2000])
+        sequenceBirthCloud = nodes["diskStellarSED:inoue2014:dustAbsorbed:sequence:birthCloud"                ][:]
+        sequenceScreen     = nodes["diskStellarSED:inoue2014:dustAbsorbed:sequence:screenSurfaceDensityMetals"][:]
+        atlasAbsorbed      = nodes["diskStellarSED:inoue2014:dustAbsorbed:atlasFerrara2000:absorption:atlasFerrara2000"][:]
+        mixedAt30          = nodes["diskStellarSED:inoue2014:dustAttenuated:mixedSlab:absorption"                     ][:]
+        mixedAbsorbed      = nodes["diskStellarSED:inoue2014:dustAbsorbed:mixedSlab:absorption:mixedSlab"             ][:]
+        mixedAveraged      = nodes["diskStellarSED:inoue2014:dustAttenuated:inclinationAveraged:mixedSlab"            ][:]
+    except KeyError as e:
+        print(f"FAILED: expected absorbed luminosity dataset missing from the output: {e}")
+        sys.exit(0)
+
+# The phases of a birth cloud absorb when, and only when, the cloud has dust: the sequence's birth cloud has zero column.
+if bool(np.any(sequenceBirthCloud != 0.0)):
+    print(f"FAILED: a birth cloud of zero column absorbs a luminosity of up to {float(np.max(sequenceBirthCloud)):.3e}")
+    sys.exit(0)
+if not bool(np.any(sedAbsorbed[1] > 0.0)):
+    print("FAILED: the diffuse interstellar medium absorbs nothing, so absorption is not being tested")
+    sys.exit(0)
+print("SUCCESS: a birth cloud of zero column absorbs nothing, while the diffuse medium absorbs")
+conservation("disk spectrum, sequence with an empty birth cloud", sedRaw, sedSequence, [sequenceBirthCloud, sequenceScreen])
+conservation("disk spectrum, atlas averaged over orientation", sedDiskRaw, atlasAveraged, [atlasAbsorbed])
+conservation("disk spectrum, mixed slab atlas averaged over orientation", sedDiskRaw, mixedAveraged, [mixedAbsorbed])
+
+# Averaging the mixed slab over orientation only changes it if the imposed inclinations reach the atlas it wraps.
+change = float(np.nanmax(np.abs(mixedAveraged[emittingDisk] - mixedAt30[emittingDisk]) / sedDiskRaw[emittingDisk]))
+if change < 1.0e-3:
+    print(f"FAILED: averaging a mixed slab atlas over orientation changes it by only {change:.3e}, so the inclination is not forwarded")
+    sys.exit(0)
+print(f"SUCCESS: a mixed slab forwards the inclination to the atlas it wraps (orientation average differs by up to {change:.3e})")
 
 sys.exit(0)

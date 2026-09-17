@@ -4,9 +4,9 @@
 Used by CI (the Python-Interface job) to keep the committed tutorials green
 against each freshly built library, and usable locally after a rebuild:
 
-    python3 tutorials/executeNotebooks.py
+    python3 tutorials/library/executeNotebooks.py
 
-Each notebook is executed with the working directory set to `tutorials/`
+Each notebook is executed with the working directory set to `tutorials/library/`
 (exactly how a user runs them — the setup cell resolves the library
 relative to that) and rewritten in place with its fresh outputs.
 """

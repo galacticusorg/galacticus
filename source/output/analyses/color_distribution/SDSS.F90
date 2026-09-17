@@ -24,6 +24,7 @@ Implements a color distribution output analysis class for SDSS data.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: Dust_Properties    , only : dustPropertiesClass
 
   !![
   <outputAnalysis name="outputAnalysisColorDistributionSDSS" docformat="rst">
@@ -39,6 +40,7 @@ Implements a color distribution output analysis class for SDSS data.
      private
      integer                                   :: distributionNumber
      class  (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
+     class  (dustPropertiesClass    ), pointer :: dustProperties_     => null()
    contains
      final :: colorDistributionSDSSDestructor
   end type outputAnalysisColorDistributionSDSS
@@ -63,6 +65,7 @@ contains
     type            (inputParameters                    ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass            ), pointer       :: cosmologyFunctions_
     class           (outputTimesClass                   ), pointer       :: outputTimes_
+    class           (dustPropertiesClass                ), pointer       :: dustProperties_
     integer                                                              :: distributionNumber
 
     !![
@@ -77,17 +80,19 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
+    <objectBuilder class="dustProperties"     name="dustProperties_"     source="parameters"/>
     !!]
-    self=outputAnalysisColorDistributionSDSS(distributionNumber,cosmologyFunctions_,outputTimes_)
+    self=outputAnalysisColorDistributionSDSS(distributionNumber,cosmologyFunctions_,outputTimes_,dustProperties_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
     <objectDestructor name="outputTimes_"       />
+    <objectDestructor name="dustProperties_"    />
     !!]
     return
   end function colorDistributionSDSSConstructorParameters
 
-  function colorDistributionSDSSConstructorInternal(distributionNumber,cosmologyFunctions_,outputTimes_) result(self)
+  function colorDistributionSDSSConstructorInternal(distributionNumber,cosmologyFunctions_,outputTimes_,dustProperties_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`outputAnalysisColorDistributionSDSS` output analysis class.
     !!}
@@ -119,6 +124,7 @@ contains
     integer                                                                          , intent(in   )  :: distributionNumber
     class           (cosmologyFunctionsClass                           ), target     , intent(in   )  :: cosmologyFunctions_
     class           (outputTimesClass                                  ), target     , intent(inout)  :: outputTimes_
+    class           (dustPropertiesClass                               ), target     , intent(in   )  :: dustProperties_
     type            (cosmologyParametersSimple                         ), pointer                     :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                    ), pointer                     :: cosmologyFunctionsData
     type            (nodePropertyExtractorRatio                        ), pointer                     :: nodePropertyExtractorRatio_
@@ -161,7 +167,7 @@ contains
     type            (varying_string                                    )                              :: description
     type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
-    <constructorAssign variables="distributionNumber, *cosmologyFunctions_"/>
+    <constructorAssign variables="distributionNumber, *cosmologyFunctions_, *dustProperties_"/>
     !!]
 
     ! Validate input.
@@ -235,7 +241,7 @@ contains
     allocate(nodePropertyExtractorAttenuatedU_)
     allocate(nodePropertyExtractorBandU_      )
     !![
-    <referenceConstruct object="dustAttenuation_"                constructor="dustAttenuationCharlotFall2000       (1.0d0,1.0d0,1.0d-2,0.7d0,wavelengthVBand)"/>
+    <referenceConstruct object="dustAttenuation_"                constructor="dustAttenuationCharlotFall2000       (1.0d0,1.0d0,1.0d-2,0.7d0,wavelengthVBand,dustProperties_)"/>
     <referenceConstruct object="nodePropertyExtractorDiskR_"     constructor="nodePropertyExtractorLuminosityStellar('SDSS_r','observed',componentTypeDisk    ,outputTimes_,redshiftBand=redshiftBand,postprocessChains=postprocessChains,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
     <referenceConstruct object="nodePropertyExtractorSpheroidR_" constructor="nodePropertyExtractorLuminosityStellar('SDSS_r','observed',componentTypeSpheroid,outputTimes_,redshiftBand=redshiftBand,postprocessChains=postprocessChains,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
     <referenceConstruct object="nodePropertyExtractorDiskU_"     constructor="nodePropertyExtractorLuminosityStellar('SDSS_u','observed',componentTypeDisk    ,outputTimes_,redshiftBand=redshiftBand,postprocessChains=postprocessChains,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
@@ -410,7 +416,8 @@ contains
     type(outputAnalysisColorDistributionSDSS), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    <objectDestructor name="self%dustProperties_"    />
     !!]
     return
   end subroutine colorDistributionSDSSDestructor

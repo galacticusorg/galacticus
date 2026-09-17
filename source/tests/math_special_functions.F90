@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a program to test mathematical special functions.
 !!}
@@ -39,6 +41,7 @@ program Test_Math_Special_Functions
           &                               Inverse_Gamma_Function_Incomplete, Inverse_Gamma_Function_Incomplete_Complementary, Digamma_Function
   use :: Hypergeometric_Functions, only : Hypergeometric_1F1               , Hypergeometric_2F1                             , Hypergeometric_pFq                     , Hypergeometric_pFq_Regularized
   use :: Polylogarithms          , only : Polylogarithm_2                  , Polylogarithm_3
+  use :: Zeta_Functions          , only : Zeta_Function
   use :: Numerical_Constants_Math, only : Pi
   use :: Error                   , only : Error_Handler_Register
   use :: Unit_Tests              , only : Assert                           , Unit_Tests_Begin_Group                         , Unit_Tests_End_Group                   , Unit_Tests_Finish
@@ -844,6 +847,15 @@ program Test_Math_Special_Functions
        &             ]                                                                                      , &
        &      relTol=1.0d-9,absTol=5.0d-9)
   
+  ! Test the Riemann zeta function against its closed forms at even integers, ζ(2)=π²/6, ζ(4)=π⁴/90, and ζ(6)=π⁶/945,
+  ! and against Apéry's constant, ζ(3).
+  call Assert(                                                                                       &
+       &      "Riemann zeta function, ζ(2), ζ(4), ζ(6), ζ(3)"                                      , &
+       &      [Zeta_Function(2.0d0),Zeta_Function(4.0d0),Zeta_Function(6.0d0),Zeta_Function(3.0d0)], &
+       &      [Pi**2/6.0d0         ,Pi**4/90.0d0        ,Pi**6/945.0d0       ,1.2020569031595943d0], &
+       &      relTol=1.0d-12                                                                         &
+       &      )
+
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()

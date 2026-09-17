@@ -335,6 +335,7 @@
 
   <nodePropertyExtractor value="multi">
     <nodePropertyExtractor value="dustAttenuation">
+      <outputAbsorbed value="true"/>
       <outputUnattenuated value="true"/>
       <outputSum value="true"/>
       <sumName value="luminosityTotal"/>
@@ -392,6 +393,7 @@
       </nodePropertyExtractor>
     </nodePropertyExtractor>
     <nodePropertyExtractor value="dustAttenuation">
+      <outputAbsorbed value="true"/>
       <outputUnattenuated value="true"/>
       <outputSum value="true"/>
       <sumName value="sedTotal"/>
@@ -458,11 +460,12 @@
       </nodePropertyExtractor>
     </nodePropertyExtractor>
     <nodePropertyExtractor value="dustAttenuation">
+      <outputAbsorbed value="true"/>
       <outputUnattenuated value="false"/>
       <outputSum value="false"/>
       <dustAttenuation value="sequence">
         <dustAttenuation value="birthCloud">
-          <coefficient value="0.0"/>
+          <densitySurfaceGas value="0.0"/>
           <timescale value="2.0e-3"/>
           <dustExtinctionCurve value="powerLaw">
             <exponent value="0.7"/>
@@ -491,6 +494,7 @@
          single output element after attenuation. A multi-line extractor also exercises a child emitting several
          elements, which is the case in which the rank of a summed property could disagree with its shape. -->
     <nodePropertyExtractor value="dustAttenuation">
+      <outputAbsorbed value="true"/>
       <outputUnattenuated value="true"/>
       <outputSum value="false"/>
       <dustAttenuation value="charlotFall2000">
@@ -660,6 +664,221 @@
       </dustAttenuation>
       <nodePropertyExtractor value="SED">
         <component value="spheroid"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <!-- Dust properties checks: pairs which must agree to round-off. A screen's `coefficient` and the dust-to-metals
+         ratio of its `dustProperties` object enter its optical depth identically, so doubling either must give the
+         same result; this checks that the ratio actually reaches the optical depth. -->
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <appendSuffix value="coefficientDoubled"/>
+      <dustAttenuation value="screenSurfaceDensityMetals">
+        <coefficient value="2.0"/>
+        <dustExtinctionCurve value="powerLaw">
+          <exponent value="0.7"/>
+          <wavelengthReference value="5500.0"/>
+        </dustExtinctionCurve>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <appendSuffix value="dustToMetalsRatioDoubled"/>
+      <dustAttenuation value="screenSurfaceDensityMetals">
+        <coefficient value="1.0"/>
+        <dustProperties value="simple">
+          <dustToMetalsRatio value="0.88"/>
+        </dustProperties>
+        <dustExtinctionCurve value="powerLaw">
+          <exponent value="0.7"/>
+          <wavelengthReference value="5500.0"/>
+        </dustExtinctionCurve>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <!-- Likewise for a birth cloud: its column of gas and the dust-to-metals ratio enter its optical depth identically. -->
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <appendSuffix value="densitySurfaceGasDoubled"/>
+      <dustAttenuation value="birthCloud">
+        <densitySurfaceGas value="20.0"/>
+        <dustExtinctionCurve value="powerLaw">
+          <exponent value="0.7"/>
+          <wavelengthReference value="5500.0"/>
+        </dustExtinctionCurve>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <appendSuffix value="dustToMetalsRatioDoubled"/>
+      <dustAttenuation value="birthCloud">
+        <densitySurfaceGas value="10.0"/>
+        <dustProperties value="simple">
+          <dustToMetalsRatio value="0.88"/>
+        </dustProperties>
+        <dustExtinctionCurve value="powerLaw">
+          <exponent value="0.7"/>
+          <wavelengthReference value="5500.0"/>
+        </dustExtinctionCurve>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <!-- `charlotFall2000` must be exactly the sequence of a default birth cloud and a screen: this checks that it
+         scales the birth cloud column correctly and hands both members its dust properties. -->
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <appendSuffix value="explicit"/>
+      <dustAttenuation value="sequence">
+        <dustAttenuation value="birthCloud">
+          <timescale value="1.0e-2"/>
+          <dustExtinctionCurve value="powerLaw">
+          <exponent value="0.7"/>
+          <wavelengthReference value="5500.0"/>
+        </dustExtinctionCurve>
+        </dustAttenuation>
+        <dustAttenuation value="screenSurfaceDensityMetals">
+          <coefficient value="1.0"/>
+          <dustExtinctionCurve value="powerLaw">
+          <exponent value="0.7"/>
+          <wavelengthReference value="5500.0"/>
+        </dustExtinctionCurve>
+        </dustAttenuation>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <!-- Absorbed luminosity from orientation-dependent attenuators. The atlas at 30 degrees, emitting its absorption,
+         which is averaged over orientation with the same quadrature as the `inclinationAveraged` atlas above, so the
+         two must sum to the unattenuated spectrum. The mixed slab pair checks that `mixedSlab` forwards an imposed
+         inclination: averaged over orientation it must differ from its value at 30 degrees. -->
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <appendSuffix value="absorption"/>
+      <outputAbsorbed value="true"/>
+      <dustAttenuation value="atlasFerrara2000">
+        <dust value="milkyWay"/>
+        <heightRatio value="1.0"/>
+        <galacticInclination value="fixed">
+          <inclination value="30.0"/>
+        </galacticInclination>
+        <dustAttenuation value="screenFixed">
+          <depthOpticalV value="2.0"/>
+          <dustExtinctionCurve value="powerLaw">
+            <exponent value="0.7"/>
+            <wavelengthReference value="5500.0"/>
+          </dustExtinctionCurve>
+        </dustAttenuation>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <appendSuffix value="absorption"/>
+      <outputAbsorbed value="true"/>
+      <dustAttenuation value="mixedSlab">
+        <dustAttenuation value="atlasFerrara2000">
+          <dust value="milkyWay"/>
+          <heightRatio value="1.0"/>
+          <galacticInclination value="fixed">
+            <inclination value="30.0"/>
+          </galacticInclination>
+          <dustAttenuation value="screenFixed">
+            <depthOpticalV value="2.0"/>
+            <dustExtinctionCurve value="powerLaw">
+              <exponent value="0.7"/>
+              <wavelengthReference value="5500.0"/>
+            </dustExtinctionCurve>
+          </dustAttenuation>
+        </dustAttenuation>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="3.0e3"/>
+        <wavelengthMaximum value="9.0e3"/>
+        <resolution value="20.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <appendSuffix value="mixedSlab"/>
+      <dustAttenuation value="inclinationAveraged">
+        <order value="8"/>
+        <dustAttenuation value="mixedSlab">
+          <dustAttenuation value="atlasFerrara2000">
+            <dust value="milkyWay"/>
+            <heightRatio value="1.0"/>
+            <galacticInclination value="fixed">
+              <inclination value="30.0"/>
+            </galacticInclination>
+            <dustAttenuation value="screenFixed">
+              <depthOpticalV value="2.0"/>
+              <dustExtinctionCurve value="powerLaw">
+                <exponent value="0.7"/>
+                <wavelengthReference value="5500.0"/>
+              </dustExtinctionCurve>
+            </dustAttenuation>
+          </dustAttenuation>
+        </dustAttenuation>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
         <frame value="rest"/>
         <wavelengthMinimum value="3.0e3"/>
         <wavelengthMaximum value="9.0e3"/>

@@ -89,9 +89,15 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ${{ github.workspace }}/datasets/dynamic
-          key: ${{ hashFiles(format('{0}',inputs.file)) }}-${{ github.run_id }}
+          # The key namespaces the cache by the test being run, so that each caching job keeps its own cache. The test
+          # file is hashed both as given (callers passing a path relative to the repository root, e.g. an XML file) and
+          # anywhere in the tree (callers passing just a file name, e.g. a script in testSuite/), so that a change to
+          # the test starts a new cache. The run ID makes the key unique to this run, so that each run saves the data
+          # it generated; the restore keys then find the most recent cache for this test.
+          key: dynamic-${{ inputs.file }}-${{ hashFiles(inputs.file, format('**/{0}',inputs.file)) }}-${{ github.run_id }}
           restore-keys: |
-            ${{ hashFiles(format('{0}',inputs.file)) }}
+            dynamic-${{ inputs.file }}-${{ hashFiles(inputs.file, format('**/{0}',inputs.file)) }}-
+            dynamic-${{ inputs.file }}-
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV

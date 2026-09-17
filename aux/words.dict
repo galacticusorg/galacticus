@@ -33,6 +33,7 @@
 ψ
 ω
 Å
+μm
 0ᵗʰ
 1ˢᵗ
 2ⁿᵈ
@@ -402,6 +403,7 @@ detectability
 deterministically
 dex
 dielectronic
+differenced
 differencing
 differentially
 differentiating
@@ -542,6 +544,7 @@ lightcone
 lightcones
 logarithmically
 lognormal
+longward
 lookback
 luiz
 luminosities
@@ -1080,6 +1083,7 @@ genericity
 Geweke
 granularities
 gravothermal
+greybody
 greyer
 Helly
 Homebrew
@@ -1192,3 +1196,9 @@ XIncludes
 Δlog
 λᵣ
 numpy
+PAHs
+synchrotron
+astrodust
+HII
+Balmer
+Helou

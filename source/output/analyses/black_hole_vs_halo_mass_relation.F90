@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements a black hole vs halo mass relation analysis class.
   !!}
@@ -304,7 +306,7 @@ contains
     type            (enumerationFixedDensityTypeType                )                                :: densityType
     type            (outputAnalysisTargetDataStandard               )                                :: outputAnalysisTargetData_
     !![
-    <constructorAssign variables="fileNameTarget, redshiftInterval, likelihoodBins, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *outputTimes_"/>
+    <constructorAssign variables="fileNameTarget, redshiftInterval, likelihoodBins, likelihoodBinsAutomatic, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *outputTimes_"/>
     !!]
 
     ! Open the target data file and read basic information.
@@ -756,28 +758,14 @@ contains
     !!{RST
     Implement a ``blackHoleVsHaloMassRelation`` output analysis finalization.
     !!}
-    use :: Output_HDF5, only : outputFile
-    use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5File  , hdf5Group
+    use :: Output_Analysis_Utilities, only : Output_Analysis_Log_Likelihood_Write
     implicit none
     class(outputAnalysisBlackHoleVsHaloMassRelation), intent(inout)           :: self
     type (varying_string                           ), intent(in   ), optional :: groupName
-    type (hdf5Group                                )               , target   :: analysesGroup, subGroup
-    type (hdf5Group                                )               , pointer  :: inGroup
-    type (hdf5Group                                )                          :: analysisGroup
 
     call self%outputAnalysis_%finalize(groupName)
     ! Overwrite the log-likelihood - this allows us to handle cases where the model is zero everywhere.
-    !$ call hdf5Access%set()
-    analysesGroup =  outputFile   %openGroup('analyses'     )
-    inGroup       => analysesGroup
-    if (present(groupName)) then
-       subGroup   =  analysesGroup%openGroup(char(groupName))
-       inGroup    => subGroup
-    end if
-    analysisGroup=inGroup%openGroup(char(self%analysisLabel))
-    call analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
-    !$ call hdf5Access%unset()
+    call Output_Analysis_Log_Likelihood_Write(self%analysisLabel,self%logLikelihood(),groupName)
     return
   end subroutine blackHoleVsHaloMassRelationFinalize
 
@@ -785,96 +773,24 @@ contains
     !!{RST
     Return the log-likelihood of a ``blackHoleVsHaloMassRelation`` output analysis.
     !!}
-    use :: Error                       , only : Error_Report
-    use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector
-    use :: Numerical_Constants_Math    , only : Pi
-    use :: Interface_GSL               , only : GSL_Success
-    use :: Models_Likelihoods_Constants, only : logImprobable
+    use :: Output_Analysis_Utilities, only : Output_Analysis_Log_Likelihood_Relation
     implicit none
     class           (outputAnalysisBlackHoleVsHaloMassRelation), intent(inout)                 :: self
-    double precision                                           , parameter                     :: massBlackHoleLogarithmicTiny              =1.0d-3
-    double precision                                           , allocatable  , dimension(:,:) :: massBlackHoleLogarithmicCovarianceCombined       , massBlackHoleLogarithmicCovarianceCombinedSelected, &
-         &                                                                                        massBlackHoleLogarithmicCovariance               , massBlackHoleLogarithmicCovarianceTarget
-    double precision                                           , allocatable  , dimension(:  ) :: massBlackHoleLogarithmicDifference               , massBlackHoleLogarithmicDifferenceSelected        , &
-         &                                                                                        massBlackHoleLogarithmic                         , massBlackHoleLogarithmicTarget
-    integer         (c_size_t                                 ), allocatable  , dimension(:  ) :: likelihoodBins
-    type            (vector                                   )                                :: residual
-    type            (matrix                                   )                                :: covariance
-    integer                                                                                    :: i                                                , j                                                 , &
-         &                                                                                        status
+    double precision                                           , parameter                     :: massBlackHoleLogarithmicTiny      =1.0d-3
+    double precision                                           , allocatable  , dimension(:,:) :: massBlackHoleLogarithmicCovariance
+    double precision                                           , allocatable  , dimension(:  ) :: massBlackHoleLogarithmic
 
     select type (outputAnalysis_ => self%outputAnalysis_)
     class is (outputAnalysisMeanFunction1D   )
-       ! Retrieve the results of the analysis.
+       ! Retrieve the results of the analysis and compute the log-likelihood.
        call outputAnalysis_%results(   meanValue=massBlackHoleLogarithmic,   meanCovariance=massBlackHoleLogarithmicCovariance)
-       allocate(massBlackHoleLogarithmicTarget          ,source=self%massBlackHoleLogarithmicTarget          )
-       allocate(massBlackHoleLogarithmicCovarianceTarget,source=self%massBlackHoleLogarithmicCovarianceTarget)
+       logLikelihood=Output_Analysis_Log_Likelihood_Relation(massBlackHoleLogarithmic,massBlackHoleLogarithmicCovariance,self%massBlackHoleLogarithmicTarget,self%massBlackHoleLogarithmicCovarianceTarget,self%likelihoodBins,self%likelihoodBinsAutomatic,massBlackHoleLogarithmicTiny,self%likelihoodNormalize)
     class is (outputAnalysisScatterFunction1D)
-       ! Retrieve the results of the analysis.
+       ! Retrieve the results of the analysis and compute the log-likelihood.
        call outputAnalysis_%results(scatterValue=massBlackHoleLogarithmic,scatterCovariance=massBlackHoleLogarithmicCovariance)
-       allocate(massBlackHoleLogarithmicTarget          ,source=self%massBlackHoleScatterTarget              )
-       allocate(massBlackHoleLogarithmicCovarianceTarget,source=self%massBlackHoleScatterCovarianceTarget    )
+       logLikelihood=Output_Analysis_Log_Likelihood_Relation(massBlackHoleLogarithmic,massBlackHoleLogarithmicCovariance,self%massBlackHoleScatterTarget,self%massBlackHoleScatterCovarianceTarget,self%likelihoodBins,self%likelihoodBinsAutomatic,massBlackHoleLogarithmicTiny,self%likelihoodNormalize)
     class default
        logLikelihood=+outputAnalysis_%logLikelihood()
-       return
     end select
-    ! Determine which bins to use in the likelihood analysis.
-    if (self%likelihoodBinsAutomatic) then
-       j=0
-       do i=1,size(massBlackHoleLogarithmic)
-          if (massBlackHoleLogarithmic(i) /= 0.0d0) j=j+1
-       end do
-       allocate(likelihoodBins(j))
-       j=0
-       do i=1,size(massBlackHoleLogarithmic)
-          if (massBlackHoleLogarithmic(i) /= 0.0d0) then
-             j=j+1
-             likelihoodBins(j)=i
-          end if
-       end do
-    else
-       allocate(likelihoodBins,source=self%likelihoodBins)
-    end if
-    if     (                                                                                                                 &
-         &   (size(likelihoodBins) == 0 .and. any(massBlackHoleLogarithmic                 <= massBlackHoleLogarithmicTiny)) &
-         &  .or.                                                                                                             &
-         &                                    any(massBlackHoleLogarithmic(likelihoodBins) <= massBlackHoleLogarithmicTiny)  &
-         & ) then
-       ! If any active bins contain zero galaxies, judge this model to be improbable.
-       logLikelihood=                     logImprobable
-    else
-       ! Compute difference with the target dataset.
-       allocate(massBlackHoleLogarithmicDifference        ,mold=massBlackHoleLogarithmic          )
-       allocate(massBlackHoleLogarithmicCovarianceCombined,mold=massBlackHoleLogarithmicCovariance)
-       massBlackHoleLogarithmicDifference        =+massBlackHoleLogarithmic          -massBlackHoleLogarithmicTarget
-       massBlackHoleLogarithmicCovarianceCombined=+massBlackHoleLogarithmicCovariance+massBlackHoleLogarithmicCovarianceTarget
-       ! Construct a reduced set of bins.
-       if (size(likelihoodBins) > 0) then
-          allocate(massBlackHoleLogarithmicDifferenceSelected        (size(likelihoodBins)                     ))
-          allocate(massBlackHoleLogarithmicCovarianceCombinedSelected(size(likelihoodBins),size(likelihoodBins)))
-          do i=1,size(likelihoodBins)
-             massBlackHoleLogarithmicDifferenceSelected           (i  )=massBlackHoleLogarithmicDifference        (likelihoodBins(i)                  )
-             do j=1,size(likelihoodBins)
-                massBlackHoleLogarithmicCovarianceCombinedSelected(i,j)=massBlackHoleLogarithmicCovarianceCombined(likelihoodBins(i),likelihoodBins(j))
-             end do
-          end do
-       else
-          allocate(massBlackHoleLogarithmicDifferenceSelected        ,source=massBlackHoleLogarithmicDifference        )
-          allocate(massBlackHoleLogarithmicCovarianceCombinedSelected,source=massBlackHoleLogarithmicCovarianceCombined)
-       end if
-       ! Construct residual vector and covariance matrix.
-       residual  =vector(massBlackHoleLogarithmicDifferenceSelected        )
-       covariance=matrix(massBlackHoleLogarithmicCovarianceCombinedSelected)
-       ! Compute the log-likelihood.
-       logLikelihood=-0.5d0*covariance%covarianceProduct(residual,status)
-       if (status == GSL_Success) then
-          if (self%likelihoodNormalize)                                                                    &
-               & logLikelihood=+logLikelihood                                                              &
-               &               -0.5d0*covariance%logarithmicDeterminant()                                  &
-               &               -0.5d0*dble(size(massBlackHoleLogarithmicDifferenceSelected))*log(2.0d0*Pi)
-       else
-          logLikelihood       =+logImprobable
-       end if
-    end if
     return
   end function blackHoleVsHaloMassRelationLogLikelihood

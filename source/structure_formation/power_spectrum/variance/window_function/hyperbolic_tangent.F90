@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Xiaolong Du
+!+    Contributions to this file made by: Xiaolong Du, Claude.
 
   !!{RST
   Implements a hyperbolic tangent power spectrum window function class.
@@ -131,7 +131,7 @@ contains
     !!{RST
     Hyperbolic tangent window function used in computing the variance of the power spectrum.
     !!}
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Power_Spectrum_Window_Function_Utilities, only : Window_Function_Radius_Lagrangian
     implicit none
     class           (powerSpectrumWindowFunctionHyperbolicTangent), intent(inout) :: self
     double precision                                              , intent(in   ) :: smoothingMass, wavenumber, &
@@ -139,14 +139,7 @@ contains
     double precision                                                              :: radius
     !$GLC attributes unused :: time
 
-    radius =+(                                             &
-         &    +3.0d0                                       &
-         &    /4.0d0                                       &
-         &    /Pi                                          &
-         &    *smoothingMass                               &
-         &    /self%cosmologyParameters_%OmegaMatter    () &
-         &    /self%cosmologyParameters_%densityCritical() &
-         &   )**(1.0d0/3.0d0)
+    radius =Window_Function_Radius_Lagrangian(smoothingMass,self%cosmologyParameters_)
     if (wavenumber <= 0.0d0) then
        hyperbolicTangentValue=+0.0d0
     else
