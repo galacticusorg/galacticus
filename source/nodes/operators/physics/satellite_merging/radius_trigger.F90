@@ -24,7 +24,6 @@
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  use :: Kepler_Orbits          , only : keplerOrbitCount
 
   !![
   <nodeOperator name="nodeOperatorSatelliteMergingRadiusTrigger" docformat="rst">
@@ -33,24 +32,16 @@
     </description>
   </nodeOperator>
   !!]
-  type, extends(nodeOperatorClass) :: nodeOperatorSatelliteMergingRadiusTrigger
+  type, extends(nodeOperatorSatelliteMergingRadius) :: nodeOperatorSatelliteMergingRadiusTrigger
      !!{RST
      A node operator class that triggers merging of satellites based on their orbital radius.
      !!}
      private
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_                            => null()
-     double precision                                    :: radiusVirialFraction                                     , radiusHalfMassFraction
-     logical                                             :: recordMergedSubhaloProperties                            , recordFirstLevelOnly
-     integer                                             :: mergedSubhaloIDs             (keplerOrbitCount)          , nodeHierarchyLevelMaximumID
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     double precision                                    :: radiusVirialFraction          , radiusHalfMassFraction
    contains
-     !![
-     <methods docformat="rst">
-       <method description="Compute the radius at which the satellite will be merged." method="radiusMerge" />
-     </methods>
-     !!]
-     final     ::                          satelliteMergingRadiusTriggerDestructor
-     procedure :: differentialEvolution => satelliteMergingRadiusTriggerDifferentialEvolution
-     procedure :: radiusMerge           => satelliteMergingRadiusTriggerRadiusMerge
+     final     ::                satelliteMergingRadiusTriggerDestructor
+     procedure :: radiusMerge => satelliteMergingRadiusTriggerRadiusMerge
   end type nodeOperatorSatelliteMergingRadiusTrigger
   
   interface nodeOperatorSatelliteMergingRadiusTrigger
@@ -61,9 +52,6 @@
      module procedure satelliteMergingRadiusTriggerConstructorInternal
   end interface nodeOperatorSatelliteMergingRadiusTrigger
 
-  ! Sub-module-scope pointer to self used in callback function.
-  class(nodeOperatorSatelliteMergingRadiusTrigger), pointer :: self_
-  !$omp threadprivate(self_)
   
 contains
 
@@ -126,8 +114,6 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`nodeOperatorSatelliteMergingRadiusTrigger` node operator class.
     !!}
-    use :: Kepler_Orbits, only : keplerOrbitTimeInitial     , keplerOrbitMassSatellite, keplerOrbitMassHost, keplerOrbitRadius, &
-         &                       keplerOrbitRadiusPericenter, keplerOrbitTimeCurrent
     implicit none
     type            (nodeOperatorSatelliteMergingRadiusTrigger)                        :: self
     double precision                                           , intent(in   )         :: radiusVirialFraction         , radiusHalfMassFraction
@@ -137,17 +123,7 @@ contains
     <constructorAssign variables="radiusHalfMassFraction, radiusVirialFraction, recordMergedSubhaloProperties, recordFirstLevelOnly, *darkMatterHaloScale_"/>
     !!]
     
-    if (recordMergedSubhaloProperties) then
-       !![
-       <addMetaProperty component="basic" name="mergedSubhaloTimeCurrent"                     id="self%mergedSubhaloIDs(keplerOrbitTimeCurrent     %ID)" rank="1" isCreator="yes"/>
-       <addMetaProperty component="basic" name="mergedSubhaloTimeInitial"                     id="self%mergedSubhaloIDs(keplerOrbitTimeInitial     %ID)" rank="1" isCreator="yes"/>
-       <addMetaProperty component="basic" name="mergedSubhaloMassSatellite"                   id="self%mergedSubhaloIDs(keplerOrbitMassSatellite   %ID)" rank="1" isCreator="yes"/>
-       <addMetaProperty component="basic" name="mergedSubhaloMassHost"                        id="self%mergedSubhaloIDs(keplerOrbitMassHost        %ID)" rank="1" isCreator="yes"/>
-       <addMetaProperty component="basic" name="mergedSubhaloRadius"                          id="self%mergedSubhaloIDs(keplerOrbitRadius          %ID)" rank="1" isCreator="yes"/>
-       <addMetaProperty component="basic" name="mergedSubhaloRadiusPericenter"                id="self%mergedSubhaloIDs(keplerOrbitRadiusPericenter%ID)" rank="1" isCreator="yes"/>
-       <addMetaProperty component="basic" name="nodeHierarchyLevelMaximum"     type="integer" id="self%nodeHierarchyLevelMaximumID"                               isCreator="no" />
-       !!]
-    end if
+    call self%recordingInitialize()
     return
   end function satelliteMergingRadiusTriggerConstructorInternal
   
@@ -163,114 +139,6 @@ contains
     !!]
     return
   end subroutine satelliteMergingRadiusTriggerDestructor
-  
-  subroutine satelliteMergingRadiusTriggerDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{RST
-    Trigger merging of a satellite halo based on its orbital radius.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite
-    use :: Vectors         , only : Vector_Magnitude
-    implicit none
-    class           (nodeOperatorSatelliteMergingRadiusTrigger), intent(inout), target  :: self
-    type            (treeNode                                 ), intent(inout), target  :: node
-    logical                                                    , intent(inout)          :: interrupt
-    procedure       (interruptTask                            ), intent(inout), pointer :: functionInterrupt
-    integer                                                    , intent(in   )          :: propertyType
-    class           (nodeComponentSatellite                   )               , pointer :: satellite
-    double precision                                           , dimension(3)           :: position
-    double precision                                                                    :: radius
-    !$GLC attributes unused :: propertyType
-    
-    if (.not.node%isSatellite()) return
-    satellite => node     %satellite(        )
-    position  =  satellite%position (        )
-    radius    =  Vector_Magnitude   (position)
-    ! Test for merging.
-    if     (                                 &
-         &   radius > 0.0d0                  &
-         &  .and.                            &
-         &   radius < self%radiusMerge(node) &
-         & ) then
-       ! Merging criterion met - trigger an interrupt.
-       interrupt         =  .true.
-       functionInterrupt => mergerTrigger
-       self_             => self
-    end if
-    return
-  end subroutine satelliteMergingRadiusTriggerDifferentialEvolution
-
-  subroutine mergerTrigger(node,timeEnd)
-    !!{RST
-    Trigger a merger of the satellite by setting the time until merging to zero.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite     , nodeComponentBasic    , treeNode
-    use :: Kepler_Orbits   , only : keplerOrbit                , keplerOrbitTimeInitial, keplerOrbitMassSatellite, keplerOrbitMassHost, &
-         &                          keplerOrbitRadiusPericenter, keplerOrbitRadius     , keplerOrbitTimeCurrent
-    implicit none
-    type            (treeNode              ), intent(inout), target      :: node
-    double precision                        , intent(in   ), optional    :: timeEnd
-    type            (treeNode              )               , pointer     :: nodeHost
-    class           (nodeComponentBasic    )               , pointer     :: basic          , basicHost
-    class           (nodeComponentSatellite)               , pointer     :: satellite
-    double precision                        , dimension(:) , allocatable :: propertyCurrent, propertyNew
-    double precision                                                     :: property
-    type            (keplerOrbit           )                             :: orbit
-    integer                                                              :: i              , ID
-    !$GLC attributes unused :: timeEnd
-
-    ! Set the time of merging to the current time.
-    basic     => node%basic    ()
-    satellite => node%satellite()
-    call satellite%timeOfMergingSet(basic%time())
-    ! Record properties of the merging subhalo if necessary.
-    if (self_%recordMergedSubhaloProperties) then
-       ! Find the node to merge with.
-       nodeHost  => node    %mergesWith()
-       basicHost => nodeHost%basic     ()
-       ! Only record if we are recording mergers from all levels of the hierarchy, or if this is a first level subhalo relative to the host.
-       if     (                                                                             &
-            &   .not.self_%recordFirstLevelOnly                                             &
-            &  .or.                                                                         &
-            &    basic    %integerRank0MetaPropertyGet(self_%nodeHierarchyLevelMaximumID)   &
-            &   ==                                                                          &
-            &    basicHost%integerRank0MetaPropertyGet(self_%nodeHierarchyLevelMaximumID)+1 &
-            & ) then
-          ! Get the virial orbit of the halo about to merge.
-          orbit=satellite%virialOrbit()
-          ! Append the orbit data.
-          do i=1,6
-             select case (i)
-             case (1)
-                ID      =keplerOrbitTimeInitial     %ID
-                property=basic%timeLastIsolated()
-             case (2)
-                ID      =keplerOrbitTimeCurrent     %ID
-                property=basic%time            ()
-             case (3)
-                ID      =keplerOrbitMassSatellite   %ID
-                property=orbit%massSatellite   ()
-             case (4)
-                ID      =keplerOrbitMassHost        %ID
-                property=orbit%massHost        ()
-             case (5)
-                ID      =keplerOrbitRadius          %ID
-                property=orbit%radius          ()
-             case (6)
-                ID      =keplerOrbitRadiusPericenter%ID
-                property=orbit%radiusPericenter()
-             end select
-             propertyCurrent=basicHost%floatRank1MetaPropertyGet(self_%mergedSubhaloIDs(ID))
-             allocate(propertyNew(size(propertyCurrent)+1_c_size_t))
-             propertyNew(1_c_size_t:size(propertyCurrent))=propertyCurrent(:)
-             propertyNew(size(propertyNew))=property
-             call basicHost%floatRank1MetaPropertySet(self_%mergedSubhaloIDs(ID),propertyNew)
-             deallocate(propertyCurrent)
-             deallocate(propertyNew    )
-          end do
-       end if
-    end if
-    return
-  end subroutine mergerTrigger
 
   double precision function satelliteMergingRadiusTriggerRadiusMerge(self,node)
     !!{RST
