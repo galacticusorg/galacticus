@@ -25,6 +25,7 @@ Implements a luminosity function output analysis class.
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
   use :: Geometry_Surveys   , only : surveyGeometryClass
+  use :: Dust_Properties    , only : dustPropertiesClass
 
   !![
   <outputAnalysis name="outputAnalysisLuminosityFunction" docformat="rst">
@@ -40,6 +41,7 @@ Implements a luminosity function output analysis class.
      private
      class           (surveyGeometryClass    ), pointer                   :: surveyGeometry_     => null()
      class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null(), cosmologyFunctionsData => null()
+     class           (dustPropertiesClass    ), pointer                   :: dustProperties_     => null()
      double precision                         , allocatable, dimension(:) :: magnitudesAbsolute
    contains
      final :: luminosityFunctionDestructor
@@ -70,6 +72,7 @@ contains
     class           (cosmologyFunctionsClass                ), pointer                     :: cosmologyFunctions_                , cosmologyFunctionsData
     class           (outputAnalysisDistributionOperatorClass), pointer                     :: outputAnalysisDistributionOperator_
     class           (outputAnalysisPropertyOperatorClass    ), pointer                     :: outputAnalysisPropertyOperator_
+    class           (dustPropertiesClass                    ), pointer                     :: dustProperties_
     double precision                                         , dimension(:  ), allocatable :: magnitudesAbsolute                 , functionValueTarget              , &
          &                                                                                    functionCovarianceTarget1D
     double precision                                         , dimension(:,:), allocatable :: functionCovarianceTarget
@@ -184,8 +187,9 @@ contains
     <objectBuilder class="outputAnalysisDistributionOperator" name="outputAnalysisDistributionOperator_" source="parameters"            />
     <objectBuilder class="surveyGeometry"                     name="surveyGeometry_"                     source="parameters"            />
     <objectBuilder class="outputTimes"                        name="outputTimes_"                        source="parameters"            />
+    <objectBuilder class="dustProperties"                     name="dustProperties_"                     source="parameters"            />
     <conditionalCall>
-     <call>self=outputAnalysisLuminosityFunction(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,char(filterName),char(filterType),redshiftBand{conditions})</call>
+     <call>self=outputAnalysisLuminosityFunction(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,dustProperties_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,char(filterName),char(filterType),redshiftBand{conditions})</call>
      <argument name="targetLabel"              value="targetLabel"              parameterPresent="parameters"/>
      <argument name="functionValueTarget"      value="functionValueTarget"      parameterPresent="parameters"/>
      <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"/>
@@ -198,11 +202,12 @@ contains
     <objectDestructor name="outputAnalysisDistributionOperator_"/>
     <objectDestructor name="surveyGeometry_"                    />
     <objectDestructor name="outputTimes_"                       />
+    <objectDestructor name="dustProperties_"                    />
     !!]
     return
   end function luminosityFunctionConstructorParameters
 
-  function luminosityFunctionConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand) result (self)
+  function luminosityFunctionConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,dustProperties_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand) result (self)
     !!{RST
     Constructor for the :galacticus-class:`outputAnalysisLuminosityFunction` output analysis class which reads bin information from a standard format file.
     !!}
@@ -218,6 +223,7 @@ contains
     class           (cosmologyFunctionsClass                ), intent(in   ) , target      :: cosmologyFunctions_                , cosmologyFunctionsData
     class           (outputAnalysisPropertyOperatorClass    ), intent(inout) , target      :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass), intent(in   ) , target      :: outputAnalysisDistributionOperator_
+    class           (dustPropertiesClass                    ), intent(in   ) , target      :: dustProperties_
     character       (len=*                                  ), intent(in   )               :: filterName                         , filterType
     double precision                                         , intent(in   ) , optional    :: redshiftBand
     double precision                                         , dimension(:  ), allocatable :: magnitudesAbsolute                 , functionValueTarget              , &
@@ -250,7 +256,7 @@ contains
     ! Construct the object.
     !![
     <conditionalCall>
-     <call>self=outputAnalysisLuminosityFunction(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand{conditions})</call>
+     <call>self=outputAnalysisLuminosityFunction(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,dustProperties_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand{conditions})</call>
      <argument name="targetLabel"              value="targetLabel"              condition="haveTarget"/>
      <argument name="functionValueTarget"      value="functionValueTarget"      condition="haveTarget"/>
      <argument name="functionCovarianceTarget" value="functionCovarianceTarget" condition="haveTarget"/>
@@ -259,7 +265,7 @@ contains
     return
   end function luminosityFunctionConstructorFile
 
-  function luminosityFunctionConstructorInternal(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
+  function luminosityFunctionConstructorInternal(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,dustProperties_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !!{RST
     Constructor for the :galacticus-class:`outputAnalysisLuminosityFunction` output analysis class which takes a parameter set as input.
     !!}
@@ -290,6 +296,7 @@ contains
     class           (cosmologyFunctionsClass                         ), intent(in   ), target                   :: cosmologyFunctions_                                   , cosmologyFunctionsData
     class           (outputAnalysisPropertyOperatorClass             ), intent(inout), target                   :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass         ), intent(in   ), target                   :: outputAnalysisDistributionOperator_
+    class           (dustPropertiesClass                             ), intent(in   ), target                   :: dustProperties_
     integer                                                           , intent(in   )                           :: covarianceBinomialBinsPerDecade
     double precision                                                  , intent(in   )                           :: covarianceBinomialMassHaloMinimum                     , covarianceBinomialMassHaloMaximum
     character       (len=*                                           ), intent(in   )                           :: filterName                                            , filterType
@@ -318,7 +325,7 @@ contains
     integer         (c_size_t                                        )                                          :: iBin                                                  , bufferCount
     type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
-    <constructorAssign variables="magnitudesAbsolute, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
+    <constructorAssign variables="magnitudesAbsolute, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *dustProperties_"/>
     !!]
 
     ! Compute weights that apply to each output redshift.
@@ -340,7 +347,7 @@ contains
     allocate(nodePropertyExtractorAttenuated_)
     allocate(nodePropertyExtractor_          )
     !![
-    <referenceConstruct object="dustAttenuation_"               constructor="dustAttenuationCharlotFall2000        (1.0d0,1.0d0,1.0d-2,0.7d0,wavelengthVBand)"/>
+    <referenceConstruct object="dustAttenuation_"               constructor="dustAttenuationCharlotFall2000        (1.0d0,1.0d0,1.0d-2,0.7d0,wavelengthVBand,dustProperties_)"/>
     <referenceConstruct object="nodePropertyExtractorDisk_"     constructor="nodePropertyExtractorLuminosityStellar (filterName,filterType,componentTypeDisk    ,outputTimes_,redshiftBand=redshiftBand,postprocessChains=postprocessChains,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
     <referenceConstruct object="nodePropertyExtractorSpheroid_" constructor="nodePropertyExtractorLuminosityStellar (filterName,filterType,componentTypeSpheroid,outputTimes_,redshiftBand=redshiftBand,postprocessChains=postprocessChains,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
     !!]
@@ -480,6 +487,7 @@ contains
     <objectDestructor name="self%surveyGeometry_"       />
     <objectDestructor name="self%cosmologyFunctions_"   />
     <objectDestructor name="self%cosmologyFunctionsData"/>
+    <objectDestructor name="self%dustProperties_"       />
     !!]
     return
   end subroutine luminosityFunctionDestructor

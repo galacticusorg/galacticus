@@ -42,6 +42,13 @@
 
    A screen is the simplest possible geometry. It attenuates all of the light it is applied to equally, and---unlike a
    mixed distribution of dust and stars---has no upper limit to the attenuation it can produce.
+
+   When the absorbed luminosity is needed---to be re-emitted by dust---one minus the transmission is counted as absorbed.
+   That is the standard interpretation of an *effective* attenuation law, such as the power law of
+   :cite:t:`charlot_simple_2000` or the curve of :cite:t:`calzetti_dust_2000`, whose transmission already allows on
+   average for light scattered back into the line of sight. It over-estimates the absorbed energy if the screen is given
+   the extinction curve of the grains themselves (that of :cite:t:`cardelli_relationship_1989`, say), since that counts
+   light which is merely scattered as absorbed.
    </description>
   </dustAttenuation>
   !!]
