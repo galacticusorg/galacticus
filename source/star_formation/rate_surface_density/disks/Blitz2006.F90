@@ -506,7 +506,7 @@ contains
     return
   end subroutine blitz2006ComputeFactors
 
-  function blitz2006Intervals(self,node,radiusInner,radiusOuter,intervalIsAnalytic,integralsAnalytic)
+  function blitz2006Intervals(self,node,radiusInner,radiusOuter)
     !!{RST
     Returns intervals to use for integrating the :cite:t:`krumholz_star_2009` star formation rate over a galactic disk.
     !!}
@@ -517,8 +517,6 @@ contains
     double precision                                                              , allocatable, dimension(:,:) :: blitz2006Intervals
     type            (treeNode                                     ), intent(inout), target                      :: node
     double precision                                               , intent(in   )                              :: radiusInner                             , radiusOuter
-    logical                                                        , intent(inout), allocatable, dimension(  :) :: intervalIsAnalytic
-    double precision                                               , intent(inout), allocatable, dimension(  :) :: integralsAnalytic
     class           (massDistributionClass                        ), pointer                                    :: massDistributionGaseous                 , massDistributionStellar
     double precision                                               , parameter                                  :: factorBoostStellarCoefficientTiny=1.0d-6
     double precision                                                                                            :: rootValueInner                          , rootValueOuter               , &
@@ -564,8 +562,6 @@ contains
           if (thresholdCondition) then
              ! The entire disk is below the pressure threshold so use a single interval.
              allocate(blitz2006Intervals(2,1))
-             allocate(intervalIsAnalytic(  1))
-             intervalIsAnalytic =.false.
              blitz2006Intervals =reshape([radiusInner,radiusOuter],[2,1])
              self%radiusCritical=-huge(0.0d0)
           else
@@ -574,8 +570,6 @@ contains
              if (rootValueOuter >= 0.0d0) then
                 ! Entire disk is above the pressure threshold so use a single interval.
                 allocate(blitz2006Intervals(2,1))
-                allocate(intervalIsAnalytic(  1))
-                intervalIsAnalytic =.false.
                 blitz2006Intervals =reshape([radiusInner,radiusOuter],[2,1])
                 self%radiusCritical=radiusOuter
              else
@@ -629,8 +623,6 @@ contains
                 end if
                 self%radiusCriticalPrevious=self%radiusCritical
                 allocate(blitz2006Intervals(2,2))
-                allocate(intervalIsAnalytic(  2))
-                intervalIsAnalytic=.false.
                 blitz2006Intervals=reshape([radiusInner,self%radiusCritical,self%radiusCritical,radiusOuter],[2,2])
              end if
           end if
@@ -638,8 +630,6 @@ contains
     else
        ! Disk pressure can not be assumed to be monotonic - use a single interval.
        allocate(blitz2006Intervals(2,1))
-       allocate(intervalIsAnalytic(  1))
-       intervalIsAnalytic=.false.
        blitz2006Intervals=reshape([radiusInner,radiusOuter],[2,1])
        self%radiusCritical=radiusInner
     end if

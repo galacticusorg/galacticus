@@ -32,7 +32,7 @@
   !![
   <virialOrbit name="virialOrbitBenson2005" docformat="rst">
    <description>
-   A virial orbits class which selects orbital parameters randomly from the distribution given by :cite:t:`benson_orbital_2005`. If the virial density contrast definition differs from that used by :cite:t:`benson_orbital_2005` then the orbit is assigned based on :cite:t:`benson_orbital_2005`'s definition and then propagated to the virial radius relevant to the current definition of density contrast.
+   A virial orbits class which selects orbital parameters randomly from the distribution given by :cite:t:`benson_orbital_2005`. Only the :math:`z=0` fit of their Table 2 is used - the distribution is taken to be independent of redshift - although that paper also gives fits at :math:`z=0.5` and :math:`z=1`. If the virial density contrast definition differs from that used by :cite:t:`benson_orbital_2005` then the orbit is assigned based on :cite:t:`benson_orbital_2005`'s definition and then propagated to the virial radius relevant to the current definition of density contrast.
    </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_"/>
