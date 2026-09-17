@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameter file used by tests.stellar_populations.exe.
+
+     Its only purpose is to declare the elements whose yields are tracked individually. `Abundances_Initialize` is a
+     `nodeComponentInitializationTask`, so it reads `elementsToTrack` from this file when the test calls
+     `Node_Components_Initialize`. Without it `elementsCount` is zero, only the total metal yield exists, and the
+     per-element half of the test has nothing to compare.
+
+     Carbon, oxygen and iron are chosen because between them they exercise both contributions to a yield. Oxygen and
+     carbon come overwhelmingly from massive stars, and so from the isolated-star term which is restricted to stars
+     that have evolved off the main sequence; iron is dominated by Type Ia supernovae, and so by the term that is
+     deliberately *not* restricted in that way. All three have yields in the Portinari, Chiosi & Bressan (1998) and
+     Heger & Woosley (2002) tables of the standard compilation, and in the Nomoto et al. (1997) Type Ia yields, so no
+     assertion is made against a table of zeros.
+
+     No node components or physics classes are declared. The defaults are what the test used before this file existed,
+     and the assertions on the total metal yield are unchanged by its introduction.
+  -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="2e34ddfee1a8def919213ad4f62e48a3edf35058" time="2026-09-16T00:00:00"/>
+
+  <elementsToTrack value="C O Fe"/>
+</parameters>
