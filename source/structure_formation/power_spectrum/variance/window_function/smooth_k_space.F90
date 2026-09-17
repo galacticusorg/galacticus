@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Omid Sameie.
+!+    Contributions to this file made by: Omid Sameie, Claude.
 
   !!{RST
   Provides a power spectrum window function class that implements the smooth-:math:`k` space filter of :cite:t:`leo_new_2018`.
@@ -125,7 +125,7 @@ contains
     !!{RST
     Smooth-:math:`k` space power spectrum window function proposed in :cite:t:`leo_new_2018`. spectrum.
     !!}
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Power_Spectrum_Window_Function_Utilities, only : Window_Function_Radius_Lagrangian
     implicit none
     class           (powerSpectrumWindowFunctionSmoothKSpace), intent(inout) :: self
     double precision                                         , intent(in   ) :: smoothingMass, wavenumber, &
@@ -133,16 +133,9 @@ contains
     double precision                                                         :: smoothRadius , x
     !$GLC attributes unused :: time
 
-    smoothRadius=+(                                             &
-         &         +3.0d0                                       &
-         &         /4.0d0                                       &
-         &         /Pi                                          &
-         &         *smoothingMass                               &
-         &         /self%cosmologyParameters_%OmegaMatter    () &
-         &         /self%cosmologyParameters_%densityCritical() &
-         &        )**(1.0d0/3.0d0)                              &
+    smoothRadius=+Window_Function_Radius_Lagrangian(smoothingMass,self%cosmologyParameters_) &
          &        /self%normalization
-    x           =+wavenumber                                    &
+    x           =+wavenumber   &
          &       *smoothRadius
     if (x <= 0.0d0) then
        smoothKSpaceValue=+0.0d0

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   An implementation of virial orbits using the :cite:t:`jiang_orbital_2014` orbital parameter distribution.
   !!}
@@ -734,34 +736,13 @@ contains
     !!{RST
     Return the mean magnitude of the angular momentum.
     !!}
-    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
+    use :: Galacticus_Nodes      , only : treeNode
+    use :: Virial_Orbit_Utilities, only : Virial_Orbit_Angular_Momentum_Magnitude_Mean, Virial_Orbit_Density_Contrast
     implicit none
-    class           (virialOrbitJiang2014), intent(inout) :: self
-    type            (treeNode            ), intent(inout) :: node        , host
-    class           (nodeComponentBasic  ), pointer       :: basic       , basicHost
-    double precision                                      :: massHost    , radiusHost, &
-         &                                                   velocityHost
+    class(virialOrbitJiang2014), intent(inout) :: self
+    type (treeNode            ), intent(inout) :: node, host
 
-    basic                                 =>  node%basic()
-    basicHost                             =>  host%basic()
-    massHost                              =  Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
-         &                                                                                              host                                                                                                , &
-         &                                                                                              self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()), &
-         &                                                                                              radiusHost                                                                                          , &
-         &                                                                                              velocityHost                                                                                        , &
-         &                                                                       cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
-         &                                                                       cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
-         &                                                                       virialDensityContrast_=self%virialDensityContrast_                                                                         , &
-         &                                                                       darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                            &
-         &                                                                      )
-    jiang2014AngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
-         &                                   *radiusHost                                      &
-         &                                   /(                                               & ! Account for reduced mass.
-         &                                     +1.0d0                                         &
-         &                                     +basic    %mass()                              &
-         &                                     /basicHost%mass()                              &
-         &                                    )
+    jiang2014AngularMomentumMagnitudeMean=Virial_Orbit_Angular_Momentum_Magnitude_Mean(node,host,self%velocityTangentialMagnitudeMean(node,host),Virial_Orbit_Density_Contrast(host,self%virialDensityContrastDefinition_),self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrast_,self%darkMatterProfileDMO_)
     return
   end function jiang2014AngularMomentumMagnitudeMean
 
@@ -832,38 +813,13 @@ contains
     !!{RST
     Return the mean energy of the orbits.
     !!}
-    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Numerical_Constants_Astronomical    , only : gravitationalConstant_internal
+    use :: Galacticus_Nodes      , only : treeNode
+    use :: Virial_Orbit_Utilities, only : Virial_Orbit_Density_Contrast, Virial_Orbit_Energy_Mean
     implicit none
-    class           (virialOrbitJiang2014), intent(inout) :: self
-    type            (treeNode            ), intent(inout) :: node        , host
-    class           (nodeComponentBasic  ), pointer       :: basic       , basicHost
-    double precision                                      :: massHost    , radiusHost, &
-         &                                                   velocityHost
+    class(virialOrbitJiang2014), intent(inout) :: self
+    type (treeNode            ), intent(inout) :: node, host
 
-    basic               =>  node%basic()
-    basicHost           =>  host%basic()
-    massHost            =   Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
-         &                                                                             host                                                                                                , &
-         &                                                                             self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()), &
-         &                                                                             radiusHost                                                                                          , &
-         &                                                                             velocityHost                                                                                        , &
-         &                                                      cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
-         &                                                      cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
-         &                                                      virialDensityContrast_=self%virialDensityContrast_                                                                         , &
-         &                                                      darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                            &
-         &                                                     )
-    jiang2014EnergyMean =  +0.5d0                                           &
-         &                 *self%velocityTotalRootMeanSquared(node,host)**2 &
-         &                 /(                                               & ! Account for reduced mass.
-         &                   +1.0d0                                         &
-         &                   +basic    %mass()                              &
-         &                   /basicHost%mass()                              &
-         &                  )                                               &
-         &                 -gravitationalConstant_internal                  &
-         &                 *massHost                                        &
-         &                 /radiusHost
+    jiang2014EnergyMean=Virial_Orbit_Energy_Mean(node,host,self%velocityTotalRootMeanSquared(node,host),Virial_Orbit_Density_Contrast(host,self%virialDensityContrastDefinition_),self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrast_,self%darkMatterProfileDMO_)
     return
   end function jiang2014EnergyMean
 

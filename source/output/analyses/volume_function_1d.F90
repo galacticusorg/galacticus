@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
 !!{RST
 Implements a generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output analysis class.
 !!}
@@ -1031,18 +1033,13 @@ contains
     !!{RST
     Return the log-likelihood of a volumeFunction1D output analysis.
     !!}
-    use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector
-    use :: Numerical_Constants_Math    , only : Pi
-    use :: Models_Likelihoods_Constants, only : logImprobable
     use :: Error                       , only : Error_Report
-    use :: Interface_GSL               , only : GSL_Success
+    use :: Models_Likelihoods_Constants, only : logImprobable
+    use :: Output_Analysis_Utilities   , only : Output_Analysis_Log_Likelihood_Normal
     implicit none
     class           (outputAnalysisVolumeFunction1D), intent(inout)                 :: self
     double precision                                , allocatable  , dimension(:,:) :: functionCovarianceCombined
     double precision                                , allocatable  , dimension(:  ) :: functionValueDifference
-    type            (vector                        )                                :: residual
-    type            (matrix                        )                                :: covariance
-    integer                                                                         :: status
 
     ! Check for existence of a target distribution.
     if (self%targetData_%hasTarget()) then
@@ -1060,19 +1057,8 @@ contains
                &                     -self%targetData_%valueTarget
           functionCovarianceCombined=+self%functionCovariance              &
                &                     +self%targetData_%covarianceTarget
-          residual                  = vector(functionValueDifference   )
-          covariance                = matrix(functionCovarianceCombined)
           ! Compute the log-likelihood.
-          volumeFunction1DLogLikelihood          =-0.5d0*covariance%covarianceProduct(residual,status)
-          if (status == GSL_Success) then
-             if (self%likelihoodNormalize)                                                   &
-                  & volumeFunction1DLogLikelihood=+volumeFunction1DLogLikelihood             &
-                  &                               -0.5d0*covariance%logarithmicDeterminant() &
-                  &                               -0.5d0*dble(self%binCount)                 &
-                  &                               *log(2.0d0*Pi)
-          else
-             volumeFunction1DLogLikelihood       =+logImprobable
-          end if
+          volumeFunction1DLogLikelihood=Output_Analysis_Log_Likelihood_Normal(functionValueDifference,functionCovarianceCombined,self%likelihoodNormalize)
        end if
     else
        volumeFunction1DLogLikelihood=0.0d0

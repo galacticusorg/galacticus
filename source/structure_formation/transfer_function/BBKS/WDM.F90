@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
 !!{RST
 Implements a transfer function class based on the :term:`WDM` modifier of :cite:t:`bardeen_statistics_1986`.
 !!}
@@ -197,28 +199,19 @@ contains
     !!{RST
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function.
     !!}
-    use :: Error                   , only : errorStatusSuccess
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Error                      , only : errorStatusSuccess
+    use :: Transfer_Function_Utilities, only : Transfer_Function_Mass_From_Wavenumber
     implicit none
     class           (transferFunctionBBKSWDM), intent(inout), target   :: self
     integer                                  , intent(  out), optional :: status
     double precision                         , parameter               :: wavenumberHalfModeScaleFree=sqrt(0.25d0+2.0d0*log(2.0d0))-0.5d0
-    double precision                                                   :: matterDensity                                                  , wavenumberHalfMode
+    double precision                                                   :: wavenumberHalfMode
 
-    wavenumberHalfMode =+wavenumberHalfModeScaleFree                 &
+    wavenumberHalfMode =+wavenumberHalfModeScaleFree &
          &              /self%lengthFreeStreaming
-    matterDensity      =+self%cosmologyParameters_%OmegaMatter    () &
-         &              *self%cosmologyParameters_%densityCritical()
     ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
     ! R = λ/2 = π/k [see Eq.(9) of Schneider et al. (2012; http://adsabs.harvard.edu/abs/2012MNRAS.424..684S)].
-    bbksWDMHalfModeMass=+4.0d0                &
-         &              *Pi                   &
-         &              /3.0d0                &
-         &              *matterDensity        &
-         &              *(                    &
-         &                +Pi                 &
-         &                /wavenumberHalfMode &
-         &              )**3
+    bbksWDMHalfModeMass=Transfer_Function_Mass_From_Wavenumber(wavenumberHalfMode,self%cosmologyParameters_)
     if (present(status)) status=errorStatusSuccess
     return
   end function bbksWDMHalfModeMass
