@@ -1,0 +1,105 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameter file used by tests.galactic_structure_equilibrium.exe, which validates the equilibrium galactic structure solver
+     against independently computed reference values (galacticusDevTools/galacticStructureEquilibrium.py).
+
+     Every class is declared here rather than constructed in the test program. This is not a stylistic choice: the dark matter
+     profile component builds its `darkMatterProfile` through an `<objectBuilder>` reading these parameters, so the contracted
+     profile the node reports through `node%massDistribution(componentTypeDarkHalo,massTypeDark)` - which is the profile the
+     solver actually equilibrates against - can only be set here. Declaring the rest alongside it keeps one source of truth.
+
+     Each class is declared once, at the top level. Object builders walk up the parameter tree from the scope in which they are
+     invoked, so the node components and the solver find these declarations and share a single instance of each.
+
+     The virial density contrast is pinned to a *fixed* value of 200 relative to the *mean* matter density. The default is
+     `sphericalCollapseClsnlssMttrCsmlgclCnstnt`, which would make the virial radius depend on the spherical collapse solver;
+     that solver has its own tests, and including it here would mean this test could fail for reasons unconnected to galactic
+     structure. With a fixed contrast the virial radius is analytic and the reference calculation can compute it in closed form.
+
+     Two tolerances are tightened far below their defaults, because at their defaults they - not the physics - would set the
+     agreement achievable between the two calculations:
+
+       * `solutionTolerance` is the equilibrium solver's convergence measure, the mean of |ln(r_new/r)| over the active
+         components. Its default of 1.0e-2 stops the iteration while the radii are still moving by a per cent.
+       * the contraction's `toleranceRelative` is not a root-finder tolerance at all. It is the fractional radius separation
+         within which a previously computed initial radius is reused as the bracket for a new one, so at its default of 1.0e-2
+         contraction solutions are shared between radii differing by up to a per cent.
+
+     Two defaults are relied upon, and are worth naming because the comparison would be meaningless if either changed. The
+     specific angular momentum each component hands to the solver is a *fraction* of its mean specific angular momentum, and
+     the reference calculation assumes that fraction is one half for both components. Neither is a flat default:
+
+       * the disk's `ratioAngularMomentumSolverRadius` defaults to `radiusStructureSolver` x I_1/I_2, with
+         I_n = int Sigma(R) R^n dR. For an exponential disk I_2/I_1 = 2 R_d, and `radiusStructureSolver` defaults to one scale
+         length, so the ratio is exactly 1/2.
+       * the spheroid's `ratioAngularMomentumScaleRadius` defaults to I_2/I_3 with I_n = int rho(r) r^n dr. For a Hernquist
+         profile I_3 diverges logarithmically, so the code falls back to its documented value of 1/2.
+
+     Both are deliberately left at their defaults rather than pinned here, so that the test exercises those derivations rather
+     than asserting against a number copied past them. If either derivation changes, this test will fail with a radius
+     mismatch - and this comment is where to look first.
+
+     `structureSolverUseCole2000Method` is stated explicitly although false is already the default, because it adds a term to
+     the disk's specific angular momentum which the reference calculation does not apply.
+  -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="59b672b08cc97f69fa250ec125931c9ab4311d4e" time="2026-09-16T00:00:00"/>
+
+  <!-- Cosmology. Planck 2018 values, matching the reference calculation. -->
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="67.36"  />
+    <OmegaMatter     value="0.3153" />
+    <OmegaDarkEnergy value="0.6847" />
+    <OmegaBaryon     value="0.0493" />
+    <temperatureCMB  value="2.72548"/>
+  </cosmologyParameters>
+  <cosmologyFunctions value="matterLambda"/>
+
+  <!-- A fixed virial density contrast of 200 relative to the mean matter density; see the note above. -->
+  <virialDensityContrast value="fixed">
+    <densityContrastValue value="200.0"/>
+    <densityType          value="mean" />
+  </virialDensityContrast>
+  <darkMatterHaloScale value="virialDensityContrastDefinition"/>
+
+  <!-- The uncontracted halo, and its contraction in response to the baryons. A and omega are stated explicitly although they
+       are the class defaults, because the reference calculation assumes them. -->
+  <darkMatterProfileDMO value="NFW"/>
+  <darkMatterProfile value="adiabaticGnedin2004">
+    <A                     value="0.80"  />
+    <omega                 value="0.77"  />
+    <radiusFractionalPivot value="1.00"  />
+    <toleranceRelative     value="1.0e-6"/>
+  </darkMatterProfile>
+
+  <!-- The solver under test. -->
+  <galacticStructureSolver value="equilibrium">
+    <includeBaryonGravity  value="true"  />
+    <solutionTolerance     value="1.0e-9"/>
+    <velocityMaximumFactor value="0.0"   />
+  </galacticStructureSolver>
+
+  <!-- Node components. -->
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+  <componentBlackHole         value="null"    />
+  <componentHotHalo           value="null"    />
+  <componentSatellite         value="null"    />
+  <componentSpin              value="null"    />
+
+  <componentDisk value="standard">
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
+    <structureSolverUseCole2000Method value="false"/>
+  </componentDisk>
+
+  <componentSpheroid value="standard">
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
+  </componentSpheroid>
+
+  <hotHaloMassDistribution value="null"/>
+  <mergerRemnantSize       value="null"/>
+</parameters>
