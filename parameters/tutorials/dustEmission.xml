@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Dust absorption and re-emission tutorial.                                                                         -->
+<!-- A single merger tree forms a Milky Way-mass galaxy, output at redshift one, when it is actively forming stars.  -->
+<!-- Its starlight, emission lines, and AGN are attenuated by the                                                     -->
+<!-- dust model of Charlot & Fall (2000), and the light the dust absorbs is re-emitted in the infrared: by warm dust in -->
+<!-- birth clouds, and by PAHs (Richie & Hensley 2026) and larger grains in the diffuse interstellar medium. The output -->
+<!-- is analyzed in the notebook tutorials/models/01-dust-absorption-and-emission.ipynb.                                -->
+<!-- 15-September-2026                                                                                                 -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
+
+  <!-- Component selection -->
+  <componentBasic value="standard"/>
+  <componentBlackHole value="standard"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="standard">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
+  </componentDisk>
+  <componentHotHalo value="standard">
+    <starveSatellites value="false"/>
+  </componentHotHalo>
+  <componentSatellite value="standard"/>
+  <componentSpheroid value="standard">
+    <ratioAngularMomentumScaleRadius value="0.5"/>
+    <efficiencyEnergeticOutflow value="1.0e-2"/>
+    <toleranceAbsoluteMass value="1.0e-6"/>
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
+  </componentSpheroid>
+  <componentSpin value="scalar"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.2"/>
+    <OmegaMatter value="0.2725"/>
+    <OmegaDarkEnergy value="0.7275"/>
+    <OmegaBaryon value="0.0455"/>
+    <temperatureCMB value="2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <transferFunction value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed value="0.000"/>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.961"/>
+    <wavenumberReference value="1.000"/>
+    <running value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.807"/>
+  </cosmologicalMassVariance>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+  <haloMassFunction value="tinker2008"/>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+  <!-- Merger tree building options -->
+  <mergerTreeSeeds value="random"/>
+  <mergerTreeConstructor value="build"/>
+  <mergerTreeBuilder value="cole2000">
+    <accretionLimit value="0.1"/>
+    <mergeProbability value="0.1"/>
+  </mergerTreeBuilder>
+  <mergerTreeBranchingProbability value="parkinsonColeHelly">
+    <G0 value="+0.57"/>
+    <gamma1 value="+0.38"/>
+    <gamma2 value="-0.01"/>
+    <accuracyFirstOrder value="+0.10"/>
+  </mergerTreeBranchingProbability>
+  <mergerTreeBuildMasses value="fixedMass">
+    <massTree  value="1.0e12"/>
+    <treeCount value="1"     />
+  </mergerTreeBuildMasses>
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMO value="NFW"/>
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
+  <darkMatterProfileConcentration value="gao2008"/>
+  <haloSpinDistribution value="bett2007">
+    <alpha value="2.509"/>
+    <lambda0 value="0.04326"/>
+  </haloSpinDistribution>
+
+  <!-- Halo accretion options -->
+  <accretionHalo value="simple">
+    <redshiftReionization value="10.5"/>
+    <velocitySuppressionReionization value="35.0"/>
+  </accretionHalo>
+
+  <!-- Hot halo gas cooling model options -->
+  <hotHaloMassDistribution value="betaProfile"/>
+  <hotHaloTemperatureProfile value="virial"/>
+  <hotHaloMassDistributionCoreRadius value="virialFraction">
+    <coreRadiusOverVirialRadius value="0.3"/>
+  </hotHaloMassDistributionCoreRadius>
+  <coolingSpecificAngularMomentum value="constantRotation">
+    <sourceAngularMomentumSpecificMean value="hotGas"/>
+    <sourceNormalizationRotation value="hotGas"/>
+  </coolingSpecificAngularMomentum>
+  <hotHaloOutflowReincorporation value="haloDynamicalTime">
+    <multiplier value="5.0"/>
+  </hotHaloOutflowReincorporation>
+  <hotHaloOutflowStripping value="standard">
+     <efficiency value="0.1"/>
+  </hotHaloOutflowStripping>
+  <coolingInfallTorque value="fixed">
+     <fractionLossAngularMomentum value="0.3"/>
+  </coolingInfallTorque>
+  <coolingFunction value="atomicCIECloudy"/>
+  <coolingRadius value="simple"/>
+  <coolingRate value="whiteFrenk1991">
+    <velocityCutOff value="10000"/>
+  </coolingRate>
+  <coolingTime value="simple">
+    <degreesOfFreedom value="3.0"/>
+  </coolingTime>
+  <coolingTimeAvailable value="whiteFrenk1991">
+    <ageFactor value="0"/>
+  </coolingTimeAvailable>
+  <circumgalacticMediumHeating value="AGNFeedback"/>
+  <!-- Hot halo ram pressure stripping options -->
+  <hotHaloRamPressureStripping value="font2008"/>
+  <hotHaloRamPressureForce value="font2008"/>
+  <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
+  <!-- Galactic structure solver options -->
+  <galacticStructureSolver value="equilibrium"/>
+  <darkMatterProfile value="adiabaticGnedin2004">
+    <A value="0.73"/>
+    <omega value="0.7"/>
+  </darkMatterProfile>
+  <!-- Star formation rate options -->
+  <starFormationRateDisks value="intgrtdSurfaceDensity"/>
+  <starFormationRateSurfaceDensityDisks value="krumholz2009">
+    <frequencyStarFormation value="0.385"/>
+    <clumpingFactorMolecularComplex value="5.000"/>
+    <molecularFractionFast value="true"/>
+  </starFormationRateSurfaceDensityDisks>
+  <starFormationRateSpheroids value="timescale">
+    <starFormationTimescale value="dynamicalTime">
+      <efficiency value="0.04"/>
+      <exponentVelocity value="2.0"/>
+      <timescaleMinimum value="0.001"/>
+    </starFormationTimescale>
+  </starFormationRateSpheroids>
+
+  <!-- Stellar populations options -->
+  <stellarPopulationProperties value="instantaneous"/>
+  <stellarPopulationSpectra value="FSPS"/>
+  <stellarPopulationSelector value="fixed"/>
+
+  <initialMassFunction value="chabrier2001"/>
+  <stellarPopulation value="standard">
+    <recycledFraction value="0.46"/>
+    <metalYield value="0.035"/>
+  </stellarPopulation>
+
+  <!-- AGN feedback options -->
+  <blackHoleWind value="ciotti2009">
+    <efficiencyWind value="0.0024"/>
+    <efficiencyWindScalesWithEfficiencyRadiative value="true"/>
+  </blackHoleWind>
+  <blackHoleCGMHeating value="jetPower">
+    <efficiencyRadioMode value="1.0"/>
+  </blackHoleCGMHeating>
+
+  <!-- Accretion disk properties -->
+  <accretionDisks value="switched">
+    <accretionRateThinDiskMaximum value="0.30"/>
+    <accretionRateThinDiskMinimum value="0.01"/>
+    <scaleADAFRadiativeEfficiency value="true"/>
+    <accretionDisksShakuraSunyaev value="shakuraSunyaev"/>
+    <accretionDisksADAF value="ADAF">
+      <efficiencyRadiationType value="thinDisk"/>
+      <adiabaticIndex value="1.444"/>
+      <energyOption value="pureADAF"/>
+      <efficiencyRadiation value="0.01"/>
+      <viscosityOption value="fit"/>
+    </accretionDisksADAF>
+  </accretionDisks>
+
+  <!-- Black hole options -->
+  <blackHoleAccretionRate value="standard">
+    <bondiHoyleAccretionEnhancementSpheroid value="5.0"/>
+    <bondiHoyleAccretionEnhancementHotHalo value="6.0"/>
+    <bondiHoyleAccretionHotModeOnly value="true"/>
+    <bondiHoyleAccretionTemperatureSpheroid value="100.0"/>
+  </blackHoleAccretionRate>
+  <blackHoleBinaryMerger value="rezzolla2008"/>
+
+  <!-- Galaxy merger options -->
+  <virialOrbit value="benson2005"/>
+  <satelliteMergingTimescales value="jiang2008">
+    <timescaleMultiplier value="0.75"/>
+  </satelliteMergingTimescales>
+  <mergerMassMovements value="simple">
+    <destinationGasMinorMerger value="spheroid"/>
+    <massRatioMajorMerger value="0.25"/>
+  </mergerMassMovements>
+  <mergerRemnantSize value="cole2000">
+    <energyOrbital value="1"/>
+  </mergerRemnantSize>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"/>
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Halo spins -->
+    <nodeOperator value="haloAngularMomentumRandom">
+      <factorReset value="2.0"/>
+    </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"/>
+    <!-- Star formation -->
+    <nodeOperator value="starFormationDisks"/>
+    <nodeOperator value="starFormationSpheroids"/>
+    <!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="100.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <!-- Bar instability in galactic disks -->
+    <nodeOperator value="barInstability">
+      <galacticDynamicsBarInstability value="efstathiou1982">
+	<stabilityThresholdGaseous value="0.7"/>
+	<stabilityThresholdStellar value="1.1"/>
+      </galacticDynamicsBarInstability>
+    </nodeOperator>
+    <!-- Black hole physics -->
+    <nodeOperator value="blackHolesSeed">
+      <blackHoleSeeds value="fixed">
+        <mass value="100"/>
+        <spin value="0"/>
+      </blackHoleSeeds>
+    </nodeOperator>
+    <nodeOperator value="blackHolesAccretion"/>
+    <nodeOperator value="blackHolesWinds"/>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
+  </nodeOperator>
+
+  <!-- Numerical tolerances -->
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="0.01"/>
+    <odeToleranceRelative value="0.01"/>
+  </mergerTreeNodeEvolver>
+
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolver>
+
+  <!-- Output options -->
+  <outputFileName value="dustEmissionTutorial.hdf5"/>
+  <outputTimes value="list">
+    <redshifts value="1.0"/>
+  </outputTimes>
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+
+  <!-- Spectra are built by convolving each galaxy's star formation history with stellar population spectra, so the
+       history must be stored. Its time resolution is finer than the lifetime of birth clouds, so that young and old
+       stars are separated cleanly. -->
+  <starFormationHistory value="adaptive">
+    <timeStepMinimum value="2.0e-3"/>
+    <countTimeStepsMaximum value="16"/>
+    <countMetallicities value="4"/>
+  </starFormationHistory>
+
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="massStellar"/>
+    <nodePropertyExtractor value="massBlackHole"/>
+    <nodePropertyExtractor value="starFormationRate">
+      <component value="total"/>
+    </nodePropertyExtractor>
+    <!-- Dust attenuation. For each source of light this outputs the intrinsic (unattenuated) luminosity, the luminosity
+         transmitted through the dust, and the luminosity absorbed by each phase of dust: birth clouds, which surround
+         stars younger than 10 Myr, and the diffuse interstellar medium. -->
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="true"/>
+      <outputSum value="false"/>
+      <outputAbsorbed value="true"/>
+      <dustAttenuation value="charlotFall2000">
+        <wavelengthReference value="5500.0"/>
+      </dustAttenuation>
+      <!-- Starlight from the disk and the spheroid. -->
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="1.0e2"/>
+        <wavelengthMaximum value="1.0e6"/>
+        <resolution value="100.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+      <nodePropertyExtractor value="SED">
+        <component value="spheroid"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="1.0e2"/>
+        <wavelengthMaximum value="1.0e6"/>
+        <resolution value="100.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+      <!-- The continuum of the AGN. -->
+      <nodePropertyExtractor value="SEDAGN">
+        <frame value="rest"/>
+        <wavelengthMinimum value="1.0e2"/>
+        <wavelengthMaximum value="1.0e6"/>
+        <resolution value="100.0"/>
+      </nodePropertyExtractor>
+      <!-- Emission lines from HII regions around young stars, and from the narrow-line region of the AGN. -->
+      <nodePropertyExtractor value="luminosityEmissionLine">
+        <component value="all"/>
+        <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727 oxygenIII5008 nitrogenII6585"/>
+      </nodePropertyExtractor>
+      <nodePropertyExtractor value="luminosityEmissionLineAGN">
+        <cloudyTableFileName value="%DATASTATICPATH%/hiiRegions/emissionLineLuminosities:AGN:dustMetalsRatio0.4:factorMorphology2.0:abundanceAdjustS:0.2.hdf5"/>
+        <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727 oxygenIII5008 nitrogenII6585"/>
+        <densityHydrogen              value="+1.0e3"/>
+        <indexSpectralShortWavelength value="-1.2e0"/>
+        <factorFillingVolume          value="+0.5e0"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <!-- Dust emission. The light absorbed by each phase of dust is re-emitted: in birth clouds by warm dust at a fixed
+         temperature, and in the diffuse medium by PAHs, heated by the spectrum of the light they absorb, and by larger
+         grains, whose temperature is set by energy balance. -->
+    <nodePropertyExtractor value="SEDDustEmission">
+      <frame value="rest"/>
+      <wavelengthMinimum value="1.0e3"/>
+      <wavelengthMaximum value="1.0e8"/>
+      <resolution value="100.0"/>
+      <outputPhases value="true"/>
+      <dustAttenuation value="charlotFall2000">
+        <wavelengthReference value="5500.0"/>
+      </dustAttenuation>
+      <dustEmissionSpectrum value="blackBodyModified">
+        <temperature value="50.0"/>
+      </dustEmissionSpectrum>
+      <dustEmissionSpectrum value="richieHensley2026">
+        <dustEmissionSpectrum value="blackBodyModified"/>
+      </dustEmissionSpectrum>
+      <nodePropertyExtractor value="multi">
+        <!-- Starlight from the disk and the spheroid. -->
+        <nodePropertyExtractor value="SED">
+          <component value="disk"/>
+          <frame value="rest"/>
+          <wavelengthMinimum value="1.0e2"/>
+          <wavelengthMaximum value="1.0e6"/>
+          <resolution value="100.0"/>
+          <toleranceRelative value="1.0e-2"/>
+        </nodePropertyExtractor>
+        <nodePropertyExtractor value="SED">
+          <component value="spheroid"/>
+          <frame value="rest"/>
+          <wavelengthMinimum value="1.0e2"/>
+          <wavelengthMaximum value="1.0e6"/>
+          <resolution value="100.0"/>
+          <toleranceRelative value="1.0e-2"/>
+        </nodePropertyExtractor>
+        <!-- The continuum of the AGN. -->
+        <nodePropertyExtractor value="SEDAGN">
+          <frame value="rest"/>
+          <wavelengthMinimum value="1.0e2"/>
+          <wavelengthMaximum value="1.0e6"/>
+          <resolution value="100.0"/>
+        </nodePropertyExtractor>
+        <!-- Emission lines from HII regions around young stars, and from the narrow-line region of the AGN. -->
+        <nodePropertyExtractor value="luminosityEmissionLine">
+          <component value="all"/>
+          <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727 oxygenIII5008 nitrogenII6585"/>
+        </nodePropertyExtractor>
+        <nodePropertyExtractor value="luminosityEmissionLineAGN">
+          <cloudyTableFileName value="%DATASTATICPATH%/hiiRegions/emissionLineLuminosities:AGN:dustMetalsRatio0.4:factorMorphology2.0:abundanceAdjustS:0.2.hdf5"/>
+          <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727 oxygenIII5008 nitrogenII6585"/>
+          <densityHydrogen              value="+1.0e3"/>
+          <indexSpectralShortWavelength value="-1.2e0"/>
+          <factorFillingVolume          value="+0.5e0"/>
+        </nodePropertyExtractor>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+  </nodePropertyExtractor>
+
+</parameters>

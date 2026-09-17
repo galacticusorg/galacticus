@@ -1195,6 +1195,7 @@ jobs:
                       tests.interpolation.multiD.exe,
                       tests.dust.attenuation_descriptors.exe,
                       tests.dust.extinction_curves.exe,
+                      tests.dust.emission_spectra.exe,
                       tests.make_ranges.exe,
                       tests.tabulations_inverse.exe,
                       tests.cosmology_functions.exe,
@@ -1251,6 +1252,7 @@ jobs:
                       tests.Prada2011_concentration.exe,
                       tests.DiemerKravtsov2014_concentration.exe,
                       tests.concentration.Correa2015.exe,
+                      tests.concentration.Gao2008.exe,
                       tests.concentrations.exe,
                       tests.biases.exe,
                       tests.kepler_orbits.exe,
@@ -1258,6 +1260,7 @@ jobs:
                       tests.sigma.exe,
                       tests.power_spectrum.primordial.exe,
                       tests.power_spectrum.exe,
+                      tests.power_spectrum.window_function_ETHOS.exe,
                       tests.transfer_functions.exe,
                       tests.black_hole_fundamentals.exe,
                       tests.bug745815.exe,
@@ -1275,11 +1278,17 @@ jobs:
                       tests.dark_matter_profiles.generic.exe,
                       tests.dark_matter_profiles.finite_resolution.exe,
                       tests.dark_matter_profiles.Zhao1996.exe,
+                      tests.mass_distributions.Zhao1996_limits.exe,
                       tests.dark_matter_profiles.fuzzy_dark_matter.exe,
                       tests.satellites.tidal_stripping.radius.soliton_limited.exe,
+                      tests.satellites.tidal_stripping.radius.King1962.exe,
+                      tests.star_formation.molecular_fractions.exe,
+                      tests.satellites.virial_orbits.exe,
+                      tests.satellites.virial_orbit_samplers.exe,
                       tests.decaying_dark_matter.exe,
                       tests.decaying_dark_matter_spherical_collapse.exe,
                       tests.spectra.postprocess.Inoue2014.exe,
+                      tests.spectra.postprocess.HII_region_absorption.exe,
                       tests.recombination_computed.exe,
                       tests.recombination_cooling.Hummer.exe,
                       tests.intergalactic_medium_state.exe,
@@ -1466,6 +1475,7 @@ jobs:
                 test-luminosity-function-Halpha.py,
                 test-dust-analyses-SDSS.py,
                 test-outputAnalysisLikelihoods.py,
+                test-dust-emission-energy-balance.py,
                 test-inactive_luminosities.py,
                 test-interoutput-star-formation-rate.py,
                 test-mass-host-maximum.py,
@@ -1541,6 +1551,20 @@ jobs:
       file: ${{ matrix.file }}
       artifact: galacticus-exec
       runPath: ./testSuite
+    secrets: inherit
+  ## The dust absorption and emission tutorial: runs its parameter file, then executes the notebook which analyzes the
+  ## output (reading it with dendros), so that both keep working as Galacticus changes.
+  Tutorial-Dust-Emission:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-tutorial-dust-emission.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      # The first run tabulates stellar population spectra and emission line luminosities for the model's output time
+      # and resolution (tens of minutes); cache them so that later runs take seconds.
+      cacheData: 1
+      install: python3-h5py python3-numpy python3-matplotlib python3-nbformat python3-nbclient python3-ipykernel python3-pip
     secrets: inherit
   ## Inactive-property models run against the debugging (-DDEBUGGING) executable. Only in debugging builds are the
   ## run-time checks that no inactive property value is read during active-property evolution (issue #128) compiled
@@ -1927,7 +1951,7 @@ jobs:
           python3 testSuite/test-Python-interface.py 2>&1 | tee pythonTest.log
           ! grep -q -e FAIL pythonTest.log
       - name: Execute tutorial notebooks
-        # Keeps the committed tutorials (tutorials/*.ipynb) green against
+        # Keeps the committed tutorials (tutorials/library/*.ipynb) green against
         # each freshly built library: every notebook is executed end-to-end
         # (the setup cell resolves the unpacked galacticus/ folder exactly
         # as a binary-distribution user would) and any cell error fails the
@@ -1936,7 +1960,7 @@ jobs:
         run: |
           apt -y install python3-matplotlib python3-nbformat python3-nbclient python3-ipykernel
           cd $GALACTICUS_EXEC_PATH
-          python3 tutorials/executeNotebooks.py
+          python3 tutorials/library/executeNotebooks.py
       - run: echo "This job's status is ${{ job.status }}."
   ## MacOS (Apple Silicon)
   ### Test Codes

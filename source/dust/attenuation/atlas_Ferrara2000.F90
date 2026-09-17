@@ -61,9 +61,10 @@
    Two quantities are supplied per galaxy rather than tabulated:
 
    * The optical depth, obtained from a :galacticus-class:`dustAttenuationScreen` object through its
-     ``depthOpticalV`` method. Delegating this keeps the Milky Way calibration of
-     :galacticus-class:`dustAttenuationScreenSurfaceDensityMetals` as the single home of that normalization, and
-     lets a fixed depth be substituted for testing. It is *always* evaluated for the disk, whichever component is
+     ``depthOpticalV`` method. Delegating this keeps the normalization of the dust content in one place---a
+     :galacticus-class:`dustAttenuationScreenSurfaceDensityMetals` takes it from the same
+     :galacticus-class:`dustPropertiesClass` object as every other attenuator---and lets a fixed depth be substituted
+     for testing. It is *always* evaluated for the disk, whichever component is
      being attenuated: in this model the dust lies in the disk and a spheroid is reddened by the disk's dust, so
      asking for a spheroid's own optical depth would compute a surface density of a component holding no dust here.
 
@@ -116,10 +117,11 @@
      type            (interpolator                   )                                  :: interpolatorWavelength            , interpolatorInclination   , &
           &                                                                                interpolatorDepthOptical          , interpolatorRadiusSpheroid
    contains
-     final     ::                      atlasFerrara2000Destructor
-     procedure :: transmission      => atlasFerrara2000Transmission
-     procedure :: request           => atlasFerrara2000Request
-     procedure :: supportsComponent => atlasFerrara2000SupportsComponent
+     final     ::                           atlasFerrara2000Destructor
+     procedure :: transmission           => atlasFerrara2000Transmission
+     procedure :: request                => atlasFerrara2000Request
+     procedure :: supportsComponent      => atlasFerrara2000SupportsComponent
+     procedure :: isOrientationDependent => atlasFerrara2000IsOrientationDependent
   end type dustAttenuationAtlasFerrara2000
 
   interface dustAttenuationAtlasFerrara2000
@@ -403,3 +405,15 @@ contains
          &              componentType == componentTypeSpheroid
     return
   end function atlasFerrara2000SupportsComponent
+
+  logical function atlasFerrara2000IsOrientationDependent(self) result(isOrientationDependent)
+    !!{RST
+    Return true: the transmission of a radiative transfer atlas depends on the inclination at which the galaxy is seen.
+    !!}
+    implicit none
+    class(dustAttenuationAtlasFerrara2000), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isOrientationDependent=.true.
+    return
+  end function atlasFerrara2000IsOrientationDependent

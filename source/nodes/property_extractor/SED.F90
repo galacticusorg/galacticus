@@ -79,6 +79,8 @@
        <method description="Compute the mean luminosity of the stellar population in the given bin of the star formation history."                       method="luminosityMean"         />
        <method description="Return a hashed descriptor of the object which incorporates the time and metallicity binning of the star formation history." method="historyHashedDescriptor"/>
        <method description="Return an array of the wavelengths at which the SED is computed."                                                            method="wavelengths"            />
+       <method description="Return true if the SED is computed in the rest frame."                                                                       method="isRestFrame"            />
+       <method description="Return the range of wavelengths requested for the SED."                                                                      method="wavelengthRange"        />
      </methods>
      !!]
      final     ::                            sedDestructor
@@ -97,6 +99,8 @@
      procedure :: units                   => sedUnits
      procedure :: supportsAttenuation     => sedSupportsAttenuation
      procedure :: decompose               => sedDecompose
+     procedure :: isRestFrame             => sedIsRestFrame
+     procedure :: wavelengthRange         => sedWavelengthRange
   end type nodePropertyExtractorSED
   
   interface nodePropertyExtractorSED
@@ -1341,3 +1345,28 @@ contains
     end do
     return
   end function sedDecompose
+
+  logical function sedIsRestFrame(self) result(isRestFrame)
+    !!{RST
+    Return true if the SED is computed in the rest frame.
+    !!}
+    use :: Stellar_Luminosities_Structure, only : frameRest
+    implicit none
+    class(nodePropertyExtractorSED), intent(inout) :: self
+
+    isRestFrame=self%frame == frameRest
+    return
+  end function sedIsRestFrame
+
+  subroutine sedWavelengthRange(self,wavelengthMinimum,wavelengthMaximum)
+    !!{RST
+    Return the range of wavelengths, in Å, requested for the SED, in the frame in which it is computed.
+    !!}
+    implicit none
+    class           (nodePropertyExtractorSED), intent(inout) :: self
+    double precision                          , intent(  out) :: wavelengthMinimum, wavelengthMaximum
+
+    wavelengthMinimum=self%wavelengthMinimum
+    wavelengthMaximum=self%wavelengthMaximum
+    return
+  end subroutine sedWavelengthRange

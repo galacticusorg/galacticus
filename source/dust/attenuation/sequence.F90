@@ -33,7 +33,12 @@
    <description>
    A dust attenuation class which applies a sequence of other attenuators, returning the product of their
    transmissions. Because transmission is multiplicative, this is exactly the result of the light passing through each
-   in turn, and---for pure absorption---the order in which they are listed does not matter.
+   in turn, and the order in which they are listed does not change the total transmission.
+
+   The order does matter for absorption. Each member contributes its phases of dust, in the order listed, and the
+   light is taken to pass through them in that order: the first member is where it is emitted. A phase absorbs a
+   fraction of only the light which has survived the phases before it, so list a birth cloud before the diffuse
+   interstellar medium which surrounds it. The sequence depends on orientation if any member does.
 
    The canonical use is to build a two-component model: a :galacticus-class:`dustAttenuationBirthCloud` attenuating
    young populations, followed by a diffuse interstellar medium screen attenuating everything. See
@@ -53,10 +58,14 @@
      private
      type(dustAttenuationList), pointer :: dustAttenuations => null()
    contains
-     final     ::                      sequenceDestructor
-     procedure :: transmission      => sequenceTransmission
-     procedure :: request           => sequenceRequest
-     procedure :: supportsComponent => sequenceSupportsComponent
+     final     ::                           sequenceDestructor
+     procedure :: transmission           => sequenceTransmission
+     procedure :: request                => sequenceRequest
+     procedure :: supportsComponent      => sequenceSupportsComponent
+     procedure :: countPhases            => sequenceCountPhases
+     procedure :: labelPhase             => sequenceLabelPhase
+     procedure :: transmissionPhases     => sequenceTransmissionPhases
+     procedure :: isOrientationDependent => sequenceIsOrientationDependent
   end type dustAttenuationSequence
 
   interface dustAttenuationSequence
@@ -246,3 +255,95 @@ contains
     end do
     return
   end function sequenceSupportsComponent
+
+  integer function sequenceCountPhases(self) result(countPhases)
+    !!{RST
+    Return the number of phases of dust in the sequence: the total over its members.
+    !!}
+    implicit none
+    class(dustAttenuationSequence), intent(inout) :: self
+    type (dustAttenuationList    ), pointer       :: dustAttenuation_
+
+    countPhases      =  0
+    dustAttenuation_ => self%dustAttenuations
+    do while (associated(dustAttenuation_))
+       countPhases      =  countPhases+dustAttenuation_%dustAttenuation_%countPhases()
+       dustAttenuation_ => dustAttenuation_%next
+    end do
+    return
+  end function sequenceCountPhases
+
+  function sequenceLabelPhase(self,indexPhase) result(label)
+    !!{RST
+    Return the label of a phase of dust in the sequence, taken from the member to which the phase belongs.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    type   (varying_string         )                :: label
+    class  (dustAttenuationSequence), intent(inout) :: self
+    integer                         , intent(in   ) :: indexPhase
+    type   (dustAttenuationList    ), pointer       :: dustAttenuation_
+    integer                                         :: offset          , countPhases
+
+    offset           =  0
+    dustAttenuation_ => self%dustAttenuations
+    do while (associated(dustAttenuation_))
+       countPhases=dustAttenuation_%dustAttenuation_%countPhases()
+       if (indexPhase > offset .and. indexPhase <= offset+countPhases) then
+          label=dustAttenuation_%dustAttenuation_%labelPhase(indexPhase-offset)
+          return
+       end if
+       offset           =  offset+countPhases
+       dustAttenuation_ => dustAttenuation_%next
+    end do
+    label=''
+    call Error_Report('phase index out of range'//{introspection:location})
+    return
+  end function sequenceLabelPhase
+
+  function sequenceTransmissionPhases(self,node,descriptors,inclination) result(transmission)
+    !!{RST
+    Return the transmission through each phase of dust in the sequence: the phases of each member in turn. Any
+    ``inclination`` is passed on to each member.
+    !!}
+    implicit none
+    double precision                         , allocatable  , dimension(:,:) :: transmission
+    class           (dustAttenuationSequence), intent(inout)                 :: self
+    type            (treeNode               ), intent(inout), target         :: node
+    type            (emissionDescriptor     ), intent(in   ), dimension(:  ) :: descriptors
+    double precision                         , intent(in   ), optional       :: inclination
+    type            (dustAttenuationList    ), pointer                       :: dustAttenuation_
+    double precision                         , allocatable  , dimension(:,:) :: transmissionMember
+    integer                                                                  :: offset
+
+    allocate(transmission(size(descriptors),self%countPhases()))
+    offset           =  0
+    dustAttenuation_ => self%dustAttenuations
+    do while (associated(dustAttenuation_))
+       transmissionMember                                                =dustAttenuation_%dustAttenuation_%transmissionPhases(node,descriptors,inclination)
+       transmission      (:,offset+1:offset+size(transmissionMember,dim=2))=transmissionMember
+       offset                                                            =offset+size(transmissionMember,dim=2)
+       dustAttenuation_                                                 =>dustAttenuation_%next
+    end do
+    return
+  end function sequenceTransmissionPhases
+
+  logical function sequenceIsOrientationDependent(self) result(isOrientationDependent)
+    !!{RST
+    Return true if any member of the sequence depends on orientation.
+    !!}
+    implicit none
+    class(dustAttenuationSequence), intent(inout) :: self
+    type (dustAttenuationList    ), pointer       :: dustAttenuation_
+
+    isOrientationDependent =  .false.
+    dustAttenuation_       => self%dustAttenuations
+    do while (associated(dustAttenuation_))
+       if (dustAttenuation_%dustAttenuation_%isOrientationDependent()) then
+          isOrientationDependent=.true.
+          return
+       end if
+       dustAttenuation_ => dustAttenuation_%next
+    end do
+    return
+  end function sequenceIsOrientationDependent

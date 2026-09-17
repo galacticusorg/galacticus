@@ -200,17 +200,19 @@ contains
     return
   end subroutine powerLawDestructor
 
-  double precision function powerLawErrorFractional(self,node)
+  double precision function powerLawErrorFractional(self,node,nodeReference)
     !!{RST
     Return the fractional error on the mass of an N-body halo in the power-law error model.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class           (nbodyHaloMassErrorPowerLaw), intent(inout) :: self
-    type            (treeNode                  ), intent(inout) :: node
-    class           (nodeComponentBasic        ), pointer       :: basic
+    class(nbodyHaloMassErrorPowerLaw), intent(inout)           :: self
+    type (treeNode                  ), intent(inout)           :: node
+    type (treeNode                  ), intent(inout), optional :: nodeReference
+    class(nodeComponentBasic        ), pointer                 :: basic
+    !$GLC attributes unused :: nodeReference
 
-    basic                   =>  node%basic        ()
+    basic                   =>  node%basic()
     powerLawErrorFractional =   sqrt(                                     &
          &                           +self%normalizationSquared           &
          &                           *(                                   &

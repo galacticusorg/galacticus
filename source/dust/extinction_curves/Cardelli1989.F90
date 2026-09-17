@@ -32,7 +32,7 @@
    total-to-selective extinction ratio; :math:`R_\mathrm{V}=3.1` is the canonical diffuse interstellar medium value.
 
    The fit spans :math:`0.3\,\mu\mathrm{m}^{-1} \le x &lt; 8\,\mu\mathrm{m}^{-1}`, i.e. :math:`0.125\,\mu\mathrm{m} &lt;
-   \lambda \le 3.33\,\mu\mathrm{m}$. Outside that range this implementation returns zero, i.e. *no* attenuation ---
+   \lambda \le 3.33\,\mu\mathrm{m}`. Outside that range this implementation returns zero, i.e. *no* attenuation ---
    the behavior of the original ``stellarSpectraDustAttenuation`` implementation, retained here for consistency. Use
    ``wavelengthRange`` to detect the boundary.
    </description>

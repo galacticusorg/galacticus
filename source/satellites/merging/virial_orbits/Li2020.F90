@@ -536,10 +536,12 @@ contains
        ! Isotropic case - distribution is uniform in cos²θ.
        distributionFunction=+distributionFunction
     end if
-    ! Transform distribution to (v_r,v_t) coordinates, and make dimensionful.
+    ! Transform distribution to (v_r,v_t) coordinates, and make dimensionful. The Jacobian of that transformation is
+    ! |2 v_r v_t / v³|; the absolute value matters only for an infalling orbit, since the convention of Li et al. (2020) - and
+    ! the grid used by the one task which calls this function - has v_r = v cos(θ) ≥ 0, but the sampler returns v_r < 0.
     distributionFunction=+distributionFunction          &
          &               *2.0d0                         &
-         &               *velocityRadialInternal        &
+         &               *abs(velocityRadialInternal)   &
          &               *velocityTangentialInternal    &
          &               /velocityTotalInternal     **3 &
          &               /velocityHost              **2
