@@ -1012,6 +1012,9 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="blackBodyModified"/>
+          <xs:enumeration value="daleHelou2002"/>
+          <xs:enumeration value="draineLi2007"/>
+          <xs:enumeration value="richieHensley2026"/>
           <xs:enumeration value="sum"/>
          </xs:restriction>
         </xs:simpleType>
@@ -2589,6 +2592,7 @@
           <xs:enumeration value="ICMXRayTemperature"/>
           <xs:enumeration value="SED"/>
           <xs:enumeration value="SEDAGN"/>
+          <xs:enumeration value="SEDDustEmission"/>
           <xs:enumeration value="SIDMParametric"/>
           <xs:enumeration value="adiabaticRatioOrbitalDisk"/>
           <xs:enumeration value="agesStellarMassWeighted"/>
@@ -4648,6 +4652,31 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="grainModel">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="largeMagellanicCloud00"/>
+          <xs:enumeration value="largeMagellanicCloud05"/>
+          <xs:enumeration value="largeMagellanicCloud10"/>
+          <xs:enumeration value="milkyWay00"/>
+          <xs:enumeration value="milkyWay10"/>
+          <xs:enumeration value="milkyWay20"/>
+          <xs:enumeration value="milkyWay30"/>
+          <xs:enumeration value="milkyWay40"/>
+          <xs:enumeration value="milkyWay50"/>
+          <xs:enumeration value="milkyWay60"/>
+          <xs:enumeration value="smallMagellanicCloud"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="intervalType">
    <xs:complexType mixed="true">
     <xs:sequence>
@@ -4658,6 +4687,23 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="absolute"/>
           <xs:enumeration value="dynamical"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="ionizationFunction">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="high"/>
+          <xs:enumeration value="low"/>
+          <xs:enumeration value="standard"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
@@ -5048,6 +5094,23 @@
           <xs:enumeration value="all"/>
           <xs:enumeration value="hosts"/>
           <xs:enumeration value="satellites"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="sizeDistribution">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="large"/>
+          <xs:enumeration value="small"/>
+          <xs:enumeration value="standard"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>

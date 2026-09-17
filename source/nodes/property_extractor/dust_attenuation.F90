@@ -380,9 +380,9 @@ contains
   function dustAttenuationAttenuate(self,extractor_,node,time,instance,absorbed) result(values)
     !!{RST
     Return the attenuated properties of a child extractor: decompose its luminosity into parcels, attenuate each, and
-    let the child recombine them.
+    let the child recombine them. If ``absorbed`` is present, the luminosity absorbed by each phase of dust is also
+    returned. The work is done by ``dustAbsorbedLuminosities``, shared with the dust emission property extractor.
     !!}
-    use :: Error, only : Error_Report
     implicit none
     double precision                                                               , allocatable, dimension(:  ) :: values
     class           (nodePropertyExtractorDustAttenuation), intent(inout)                                        :: self
@@ -391,44 +391,12 @@ contains
     double precision                                      , intent(in   )                                        :: time
     type            (multiCounter                        ), intent(inout), optional                              :: instance
     double precision                                      , intent(inout), optional, allocatable, dimension(:,:) :: absorbed
-    type            (luminosityDecomposition             )                                                       :: decomposition
-    double precision                                                               , allocatable, dimension(:  ) :: transmission , valuesPhase
-    double precision                                                               , allocatable, dimension(:,:) :: fractions
-    integer                                                                                                      :: i            , k          , &
-         &                                                                                                          countPhases
     !$GLC attributes unused :: instance
 
-    decomposition=extractor_%decompose(node,time,self%dustAttenuation_%request())
-    ! The attenuator may refuse the component a parcel came from -- most refuse a luminosity summed over components,
-    ! which can not be attenuated meaningfully. The child's component is not visible until it decomposes, so this is
-    ! checked here rather than at construction.
-    do i=1,decomposition%countTerms()
-       if (.not.self%dustAttenuation_%supportsComponent(decomposition%descriptors(i)%componentType))                &
-            & call Error_Report(                                                                                    &
-            &                   'the dust attenuation model refuses the component of a parcel of emission from "'// &
-            &                   extractor_%objectType()                                                          // &
-            &                   '" - a luminosity summed over components can not be attenuated'                  // &
-            &                   {introspection:location}                                                            &
-            &                  )
-    end do
-    allocate(transmission(decomposition%countTerms()))
-    if (decomposition%countTerms() > 0) transmission=self%dustAttenuation_%transmission(node,decomposition%descriptors)
-    call extractor_%recompose(decomposition,transmission,values)
-    ! The luminosity absorbed by each phase of dust is recomposed from the same parcels as the attenuated luminosity, each
-    ! weighted by the fraction its phase absorbs, averaged over orientation where the attenuator depends on it.
     if (present(absorbed)) then
-       countPhases=self%dustAttenuation_%countPhases()
-       if (allocated(absorbed)) deallocate(absorbed)
-       allocate(absorbed(size(values),countPhases))
-       if (decomposition%countTerms() > 0) then
-          fractions=self%dustAttenuation_%absorbedFractions(node,decomposition%descriptors,self%cosineInclination,self%weight)
-       else
-          allocate(fractions(0,countPhases))
-       end if
-       do k=1,countPhases
-          call extractor_%recompose(decomposition,fractions(:,k),valuesPhase)
-          absorbed(:,k)=valuesPhase
-       end do
+       call dustAbsorbedLuminosities(self%dustAttenuation_,extractor_,node,time,attenuated=values,absorbed=absorbed,cosineInclination=self%cosineInclination,weight=self%weight)
+    else
+       call dustAbsorbedLuminosities(self%dustAttenuation_,extractor_,node,time,attenuated=values                                                                      )
     end if
     return
   end function dustAttenuationAttenuate
@@ -1057,34 +1025,15 @@ contains
 
   function dustAttenuationPhaseLabels(self) result(labels)
     !!{RST
-    Return labels for the phases of dust of the attenuator, made unique: where two phases share a label---two members of
-    a sequence of the same class, say---each such label has the index of its phase appended, so that the absorbed
-    luminosities emitted for them do not collide.
+    Return unique labels for the phases of dust of the attenuator, as given by ``dustPhaseLabels``.
     !!}
-    use :: ISO_Varying_String, only : operator(//), operator(==)
     implicit none
-    type     (varying_string                      ), allocatable  , dimension(:) :: labels
-    class    (nodePropertyExtractorDustAttenuation), intent(inout)               :: self
-    logical                                        , allocatable  , dimension(:) :: duplicated
-    integer                                                                      :: j         , k
-    character(len=16                              )                              :: labelIndex
+    type (varying_string                      ), allocatable  , dimension(:) :: labels
+    class(nodePropertyExtractorDustAttenuation), intent(inout)               :: self
 
-    allocate(labels    (self%dustAttenuation_%countPhases()))
-    allocate(duplicated(size(labels)                       ))
-    do k=1,size(labels)
-       labels(k)=self%dustAttenuation_%labelPhase(k)
-    end do
-    duplicated=.false.
-    do k=1,size(labels)
-       do j=1,size(labels)
-          if (j /= k .and. labels(j) == labels(k)) duplicated(k)=.true.
-       end do
-    end do
-    do k=1,size(labels)
-       if (duplicated(k)) then
-          write (labelIndex,'(i0)') k
-          labels(k)=labels(k)//trim(labelIndex)
-       end if
-    end do
+    ! Allocate explicitly: varying_string has a defined assignment, and an unallocated array is not allocated on
+    ! assignment when a defined assignment is used.
+    allocate(labels(self%dustAttenuation_%countPhases()))
+    labels=dustPhaseLabels(self%dustAttenuation_)
     return
   end function dustAttenuationPhaseLabels
