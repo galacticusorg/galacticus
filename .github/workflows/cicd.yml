@@ -1296,6 +1296,8 @@ jobs:
                       tests.satellites.virial_orbit_samplers.exe,
                       tests.decaying_dark_matter.exe,
                       tests.decaying_dark_matter_spherical_collapse.exe,
+                      tests.chemical.reaction_rates_hydrogen_network.exe,
+                      tests.intergalactic_medium.filtering_mass_Gnedin2000.exe,
                       tests.spectra.postprocess.Inoue2014.exe,
                       tests.spectra.postprocess.HII_region_absorption.exe,
                       tests.recombination_computed.exe,

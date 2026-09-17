@@ -26,6 +26,16 @@
   use :: Atomic_Rates_Recombination_Radiative  , only : atomicRecombinationRateRadiativeClass
   use :: Radiation_Fields                      , only : crossSectionFunctionTemplate
 
+  ! Exported so that the published fits they implement can be checked directly by
+  ! `tests.chemical.reaction_rates_hydrogen_network`.
+  !
+  ! The photo cross-section functions are deliberately *not* exported. Adding any one of them to this statement segfaults
+  ! gfortran 16 in `trans-decl.cc` while generating code for this module - they differ from the functions below in holding
+  ! `save`, `!$omp threadprivate` derived-type interpolation tables, and exporting such a procedure is what triggers it. Their
+  ! fitting formulae were checked against :cite:t:`abel_modeling_1997` by hand instead, and agree exactly.
+  public :: hydrogenNetworkH_Electron_to_Hminus_Photon_RateCoefficient  , hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient, &
+       &    hydrogenNetworkHminus_Electron_to_H_2Electron_RateCoefficient, hydrogenNetworkHminus_Hplus_to_2H_RateCoefficient
+
   !![
   <chemicalReactionRate name="chemicalReactionRateHydrogenNetwork" docformat="rst">
    <description>
@@ -1419,7 +1429,12 @@ contains
     !!{RST
     Compute the cross-section (in units of cm\ :math:`^{2}`) for the reaction :math:`\hbox{H}^- + \gamma \rightarrow \hbox{H} + \hbox{e}^-` using the fitting function given by :cite:t:`shapiro_hydrogen_1987`, renormalized\ [#]_ to match the results of :cite:t:`nascimento_photodetachment_1977`.
 
-    .. [#] It seems unclear what units were used in :cite:t:`shapiro_hydrogen_1987`, hence the recalibration.
+    .. [#] It seems unclear what units were used in :cite:t:`shapiro_hydrogen_1987`, hence the recalibration. The recalibration
+       is corroborated by :cite:t:`abel_modeling_1997`, who give the same fit as :math:`\sigma = 7.928 \times 10^5 (\nu -
+       \nu_\mathrm{th})^{3/2} \nu^{-3}` in terms of *frequency*. Converting that to the photon energy used here multiplies the
+       coefficient by :math:`h^{3/2}`, giving :math:`7.928 \times 10^5 h^{3/2} = 2.108 \times 10^{-16}`, which agrees with the
+       renormalized coefficient below to 1.1%. The two routes to the normalization - matching
+       :cite:t:`nascimento_photodetachment_1977`, and converting the units of the published fit - therefore agree.
     !!}
     use :: Numerical_Constants_Physical, only : plancksConstant         , speedLight
     use :: Numerical_Constants_Units   , only : metersToAngstroms       , electronVolt
