@@ -1287,6 +1287,7 @@ jobs:
                       tests.dark_matter_profiles.finite_resolution.exe,
                       tests.dark_matter_profiles.Zhao1996.exe,
                       tests.mass_distributions.Zhao1996_limits.exe,
+                      tests.mass_distributions.Zhao1996_dispersion.exe,
                       tests.dark_matter_profiles.fuzzy_dark_matter.exe,
                       tests.satellites.tidal_stripping.radius.soliton_limited.exe,
                       tests.satellites.tidal_stripping.radius.King1962.exe,
