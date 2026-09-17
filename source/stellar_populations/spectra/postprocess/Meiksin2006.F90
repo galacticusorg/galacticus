@@ -67,7 +67,7 @@ contains
     Suppress the Lyman continuum in a spectrum.
     !!}
     use :: Factorials                , only : Factorial
-    use :: Gamma_Functions           , only : Gamma_Function_Logarithmic
+    use :: Gamma_Functions           , only : Gamma_Function_Incomplete_Unnormalized
     use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen_atomic
     implicit none
     class           (stellarPopulationSpectraPostprocessorMeiksin2006), intent(inout) :: self
@@ -139,15 +139,22 @@ contains
           ! Add in photoelectric absorption contributions.
           seriesSolutionTermA=0.0d0
           seriesSolutionTermB=0.0d0
+          ! Note that `(-1)**iLine` must be parenthesized: in Fortran `**` binds more tightly than unary minus, so `-1**iLine`
+          ! is `-(1**iLine)`, which is -1 for every iLine rather than alternating in sign. Note also that the two series of
+          ! :cite:t:`meiksin_colour_2006` do not begin at the same term - the first runs from n=0, the second from n=1.
           do iLine=0,9
              nFactorial=Factorial(iLine)
-             seriesSolutionTermA=seriesSolutionTermA+dble(-1**iLine)*(beta-1.0d0)/(dble(iLine)+1.0d0-beta)/nFactorial
-             seriesSolutionTermB=seriesSolutionTermB+dble(-1**iLine)*(beta-1.0d0)*(((1.0d0+redshift)**(gamma+1.0d0-3.0d0 &
+             seriesSolutionTermA=seriesSolutionTermA+dble((-1)**iLine)*(beta-1.0d0)/(dble(iLine)+1.0d0-beta)/nFactorial
+             if (iLine == 0) cycle
+             seriesSolutionTermB=seriesSolutionTermB+dble((-1)**iLine)*(beta-1.0d0)*(((1.0d0+redshift)**(gamma+1.0d0-3.0d0 &
                   &*dble(iLine))*(wavelengthObservedLymanContinuum**(3.0d0*dble(iLine))) -(wavelengthObservedLymanContinuum**(gamma &
                   &+1.0d0))))/(dble(iLine)+1.0d0-beta)/(3.0d0*dble(iLine)-gamma-1.0d0)/nFactorial
           end do
           ! Add contribution due to Lyman-limit systems.
-          opticalDepth=opticalDepth+N0*(exp(Gamma_Function_Logarithmic(2.0d0-beta))-exp(-1.0d0)-seriesSolutionTermA)*(((1.0d0+redshift)**(&
+          ! The Gamma function here is the *incomplete* Γ(2-β,1) of :cite:t:`meiksin_colour_2006`, not the complete Γ(2-β). With
+          ! the incomplete function and the alternating series above, this bracket reduces analytically to Γ(2-β), which is a
+          ! useful check on both.
+          opticalDepth=opticalDepth+N0*(Gamma_Function_Incomplete_Unnormalized(2.0d0-beta,1.0d0)-exp(-1.0d0)-seriesSolutionTermA)*(((1.0d0+redshift)**(&
                &-3.0d0*(beta-1.0d0)+gamma+1.0d0))*(wavelengthObservedLymanContinuum**(3.0d0*(beta-1.0d0)))&
                &-(wavelengthObservedLymanContinuum**(gamma+1.0d0)))/(4.0d0+gamma-3.0d0*beta)-N0*seriesSolutionTermB
           ! Add contribution due to optically thin systems.
