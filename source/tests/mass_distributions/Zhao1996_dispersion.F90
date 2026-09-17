@@ -44,26 +44,27 @@ program Test_Mass_Distributions_Zhao1996_Dispersion
   The dispersion is also checked against the independently-implemented :galacticus-class:`massDistributionNFW` in the
   :math:`\gamma=1` limit, where the two profiles are identical.
   !!}
-  use :: Coordinates             , only : coordinateSpherical           , assignment(=)
-  use :: Display                 , only : displayVerbositySet           , verbosityLevelStandard
-  use :: Events_Hooks            , only : eventsHooksInitialize
-  use :: Mass_Distributions      , only : massDistributionZhao1996      , massDistributionNFW   , kinematicsDistributionClass, &
-       &                                   kinematicsDistributionZhao1996, kinematicsDistributionNFW
+  use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
+  use :: Display                         , only : displayVerbositySet           , verbosityLevelStandard
+  use :: Events_Hooks                    , only : eventsHooksInitialize
+  use :: Mass_Distributions              , only : massDistributionZhao1996      , massDistributionNFW      , kinematicsDistributionClass, &
+       &                                          kinematicsDistributionZhao1996, kinematicsDistributionNFW
   use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
-  use :: Unit_Tests              , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests                      , only : Assert                        , Unit_Tests_Begin_Group   , Unit_Tests_End_Group       , &
+       &                                          Unit_Tests_Finish
   implicit none
   ! These are allocatable, and reallocated for each shape parameter below: assigning a constructor result onto an object which
   ! has already been used double-finalizes its reference-counted components.
   type            (massDistributionZhao1996  ), target , allocatable    :: massDistributionZhao_
   type            (massDistributionNFW       ), target , allocatable    :: massDistributionNFW_
-  class           (kinematicsDistributionClass), pointer                :: kinematicsDistribution_       => null(), kinematicsDistributionNFW_ => null()
+  class           (kinematicsDistributionClass), pointer                :: kinematicsDistribution_ => null(), kinematicsDistributionNFW_ => null()
   type            (coordinateSpherical        )                         :: coordinates
   double precision                             , parameter              :: radiusScale            =2.0d-2, densityNormalization=1.0d15 ! [Mpc], [M☉/Mpc³]
   integer                                      , parameter              :: countShapes            =4     , countRadii          =10
   double precision                             , dimension(countShapes) :: gammas                 =[0.0d0,0.5d0,1.0d0,1.5d0]
   double precision                             , dimension(countRadii ) :: radii                  =[1.00000000000000d-05,1.00000000000000d-04,1.00000000000000d-03,1.00000000000000d-02,1.00000000000000d-01,1.00000000000000d+00,1.00000000000000d+01,1.00000000000000d+02,1.00000000000000d+03,1.00000000000000d+04]
   ! σ²/(Gρ₀r_s²) from the Jeans equation, one row per γ.
-  double precision                             , dimension(countRadii,countShapes) :: dispersionSquaredReference=reshape([                                                                                                                                                                                                              &
+  double precision                             , dimension(countRadii,countShapes) :: dispersionSquaredReference=reshape([                                                                                                                                                                                                                  &
        &                                                                                                                 2.95709806505266d-01,2.95789633807025d-01,2.96586832453910d-01,3.04452563341716d-01,3.73553029987541d-01,6.24428405300340d-01,4.26770200751873d-01,1.06825383224977d-01,1.77929378699372d-02,2.50104389285257d-03, &
        &                                                                                                                 4.78736670332368d-03,1.51378652858839d-02,4.78348244157399d-02,1.50159642036469d-01,4.42508551921485d-01,8.33865255833240d-01,4.82986604119177d-01,1.13522589422858d-01,1.84801669022655d-02,2.57000721519792d-03, &
        &                                                                                                                 6.20952177751750d-04,4.76378179319818d-03,3.32459425452428d-02,1.92781294060178d-01,7.40078984189940d-01,1.17419414595177d+00,5.57687568152596d-01,1.22122095449207d-01,1.93581693328800d-02,2.65805340367372d-03, &
@@ -116,6 +117,6 @@ program Test_Mass_Distributions_Zhao1996_Dispersion
      dispersionSquaredNFW(i)=kinematicsDistributionNFW_%velocityDispersion1D(coordinates,massDistributionNFW_ ,massDistributionNFW_ )**2
   end do
   call Assert('(α,β,γ)=(1,3,1) → the NFW dispersion',dispersionSquared,dispersionSquaredNFW,relTol=tolerance)
-  call Unit_Tests_End_Group  (                       )
-  call Unit_Tests_Finish     (                       )
+  call Unit_Tests_End_Group()
+  call Unit_Tests_Finish   ()
 end program Test_Mass_Distributions_Zhao1996_Dispersion

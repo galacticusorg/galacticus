@@ -33,7 +33,7 @@
   ! gfortran 16 in `trans-decl.cc` while generating code for this module - they differ from the functions below in holding
   ! `save`, `!$omp threadprivate` derived-type interpolation tables, and exporting such a procedure is what triggers it. Their
   ! fitting formulae were checked against :cite:t:`abel_modeling_1997` by hand instead, and agree exactly.
-  public :: hydrogenNetworkH_Electron_to_Hminus_Photon_RateCoefficient  , hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient, &
+  public :: hydrogenNetworkH_Electron_to_Hminus_Photon_RateCoefficient   , hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient, &
        &    hydrogenNetworkHminus_Electron_to_H_2Electron_RateCoefficient, hydrogenNetworkHminus_Hplus_to_2H_RateCoefficient
 
   !![

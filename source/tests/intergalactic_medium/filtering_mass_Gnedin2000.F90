@@ -42,23 +42,23 @@ program Test_Intergalactic_Medium_Filtering_Mass_Gnedin2000
   coefficients of :cite:t:`naoz_formation_2007`, which the test shares; the load-bearing content is the pairing of each
   coefficient with its power of expansion factor, which it does not.
   !!}
-  use :: Display                            , only : displayVerbositySet, verbosityLevelStandard
+  use :: Display                              , only : displayVerbositySet, verbosityLevelStandard
   use :: Intergalactic_Medium_Filtering_Masses, only : gnedin2000rLSS
-  use :: Unit_Tests                         , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish, &
-       &                                             compareLessThan
+  use :: Unit_Tests                           , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish, &
+       &                                               compareLessThan
   implicit none
-  integer                                  , parameter                :: countDensities=3     , countRedshifts=5
-  double precision                         , dimension(countDensities):: densitiesMatter=[2.50000000000000d-01,3.00000000000000d-01,4.00000000000000d-01]
-  double precision                         , dimension(countRedshifts):: redshifts      =[7.00000000000000d+00,2.00000000000000d+01,5.00000000000000d+01,1.00000000000000d+02,1.50000000000000d+02]
+  integer                                  , parameter                                :: countDensities =3, countRedshifts=5
+  double precision                         , dimension(               countDensities) :: densitiesMatter=[2.50000000000000d-01,3.00000000000000d-01,4.00000000000000d-01]
+  double precision                         , dimension(countRedshifts               ) :: redshifts      =[7.00000000000000d+00,2.00000000000000d+01,5.00000000000000d+01,1.00000000000000d+02,1.50000000000000d+02]
   double precision                         , dimension(countRedshifts,countDensities) :: rLSSReference=reshape([                                                                                               &
        &                                                                                                       -2.38617008678272d-02,-5.92185167098079d-02,-1.34059478269306d-01,-2.44743361315984d-01,-3.42376469350414d-01, &
        &                                                                                                       -2.44107190325231d-02,-6.15496119855029d-02,-1.39857693249380d-01,-2.54977027569293d-01,-3.55798117701402d-01, &
        &                                                                                                       -2.50863982016537d-02,-6.47670112943312d-02,-1.47942748566348d-01,-2.69098196827547d-01,-3.74026588811937d-01  &
        &                                                                                                      ],[countRedshifts,countDensities])
-  double precision                         , dimension(countRedshifts):: rLSS
-  double precision                                                    :: rLSSMagnitudeMaximum
-  double precision                         , parameter                :: tolerance      =1.0d-12
-  integer                                                             :: i                    , j
+  double precision                         , dimension(countRedshifts               ) :: rLSS
+  double precision                                                                    :: rLSSMagnitudeMaximum
+  double precision                         , parameter                                :: tolerance           =1.0d-12
+  integer                                                                             :: i                           , j
 
   call displayVerbositySet(verbosityLevelStandard)
   call Unit_Tests_Begin_Group("Gnedin (2000) filtering mass: r_LSS")

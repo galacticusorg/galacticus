@@ -43,15 +43,15 @@ program Test_Chemical_Reaction_Rates_Hydrogen_Network
   while :cite:t:`abel_modeling_1997` fit different data, and :math:`\hbox{H}+\gamma \rightarrow \hbox{H}^++\hbox{e}^-`,
   which is delegated to the photoionization cross-section class rather than fitted here.
   !!}
-  use :: Chemical_Reaction_Rates     , only : hydrogenNetworkH_Electron_to_Hminus_Photon_RateCoefficient  , hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient, &
+  use :: Chemical_Reaction_Rates     , only : hydrogenNetworkH_Electron_to_Hminus_Photon_RateCoefficient   , hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient, &
        &                                      hydrogenNetworkHminus_Electron_to_H_2Electron_RateCoefficient, hydrogenNetworkHminus_Hplus_to_2H_RateCoefficient
-  use :: Display                     , only : displayVerbositySet                                         , verbosityLevelStandard
+  use :: Display                     , only : displayVerbositySet                                          , verbosityLevelStandard
   use :: Numerical_Constants_Physical, only : boltzmannsConstant
   use :: Numerical_Constants_Units   , only : electronVolt
-  use :: Unit_Tests                  , only : Assert                                                      , Unit_Tests_Begin_Group                               , &
-       &                                      Unit_Tests_End_Group                                        , Unit_Tests_Finish
+  use :: Unit_Tests                  , only : Assert                                                       , Unit_Tests_Begin_Group                               , &
+       &                                      Unit_Tests_End_Group                                         , Unit_Tests_Finish
   implicit none
-  integer         , parameter                :: countTemperaturesKelvin=6, countTemperaturesElectronVolts=5
+  integer         , parameter                                 :: countTemperaturesKelvin=6, countTemperaturesElectronVolts=5
   double precision, dimension(countTemperaturesKelvin       ) :: temperaturesKelvin         =[1.00000000000000d+01,1.00000000000000d+02,1.00000000000000d+03,6.00000000000000d+03,1.00000000000000d+04,1.00000000000000d+05]
   double precision, dimension(countTemperaturesKelvin       ) :: rateCoefficientK7Reference =[1.08790814632211d-17,1.06245911999513d-16,8.46744196646279d-16,2.76872355994436d-15,3.53118078441984d-15,6.34047051840884d-15]
   double precision, dimension(countTemperaturesKelvin       ) :: rateCoefficientK16Reference=[2.21359436211787d-07,7.00000000000000d-08,2.21359436211787d-08,9.03696114115064d-09,7.00000000000000d-09,2.21359436211787d-09]
@@ -61,24 +61,24 @@ program Test_Chemical_Reaction_Rates_Hydrogen_Network
   double precision, dimension(countTemperaturesKelvin       ) :: rateCoefficientK7          , rateCoefficientK16
   double precision, dimension(countTemperaturesElectronVolts) :: rateCoefficientK8          , rateCoefficientK14
   ! Both implementations evaluate the same expressions, so they are limited only by the order of the arithmetic.
-  double precision, parameter                                :: tolerance                  =1.0d-9
-  integer                                                    :: i
+  double precision, parameter                                 :: tolerance                  =1.0d-9
+  integer                                                     :: i
 
   call displayVerbositySet(verbosityLevelStandard)
   call Unit_Tests_Begin_Group("Primordial hydrogen network")
   do i=1,countTemperaturesKelvin
-     rateCoefficientK7 (i)=hydrogenNetworkH_Electron_to_Hminus_Photon_RateCoefficient  (temperaturesKelvin(i))
-     rateCoefficientK16(i)=hydrogenNetworkHminus_Hplus_to_2H_RateCoefficient           (temperaturesKelvin(i))
+     rateCoefficientK7 (i)=hydrogenNetworkH_Electron_to_Hminus_Photon_RateCoefficient(temperaturesKelvin(i))
+     rateCoefficientK16(i)=hydrogenNetworkHminus_Hplus_to_2H_RateCoefficient         (temperaturesKelvin(i))
   end do
   do i=1,countTemperaturesElectronVolts
      ! These fits are expressed in electron volts, but the interfaces take Kelvin.
-     rateCoefficientK8 (i)=hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient      (temperaturesElectronVolts(i)*electronVolt/boltzmannsConstant)
+     rateCoefficientK8 (i)=hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient       (temperaturesElectronVolts(i)*electronVolt/boltzmannsConstant)
      rateCoefficientK14(i)=hydrogenNetworkHminus_Electron_to_H_2Electron_RateCoefficient(temperaturesElectronVolts(i)*electronVolt/boltzmannsConstant)
   end do
-  call Assert('k₇  : H + e⁻ → H⁻ + γ'          ,rateCoefficientK7 ,rateCoefficientK7Reference ,relTol=tolerance)
-  call Assert('k₈  : H⁻ + H → H₂ + e⁻'         ,rateCoefficientK8 ,rateCoefficientK8Reference ,relTol=tolerance)
-  call Assert('k₁₄ : H⁻ + e⁻ → H + 2e⁻'        ,rateCoefficientK14,rateCoefficientK14Reference,relTol=tolerance)
-  call Assert('k₁₆ : H⁻ + H⁺ → 2H'             ,rateCoefficientK16,rateCoefficientK16Reference,relTol=tolerance)
+  call Assert('k₇  : H + e⁻ → H⁻ + γ'  ,rateCoefficientK7 ,rateCoefficientK7Reference ,relTol=tolerance)
+  call Assert('k₈  : H⁻ + H → H₂ + e⁻' ,rateCoefficientK8 ,rateCoefficientK8Reference ,relTol=tolerance)
+  call Assert('k₁₄ : H⁻ + e⁻ → H + 2e⁻',rateCoefficientK14,rateCoefficientK14Reference,relTol=tolerance)
+  call Assert('k₁₆ : H⁻ + H⁺ → 2H'     ,rateCoefficientK16,rateCoefficientK16Reference,relTol=tolerance)
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
 end program Test_Chemical_Reaction_Rates_Hydrogen_Network
