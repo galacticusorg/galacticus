@@ -842,13 +842,13 @@ contains
                             rootVarianceEarly=rootVarianceEarly/linearGrowthFactorEarly
                             ! Evaluate the model for the correlation between these two bins.
                             if (massFunction(j,jTime) > 0.0d0) then
-                               peakHeightEffective    =+    (                                                                            &
-                                    &                        +self%criticalOverdensity_%value(self%times(jTime))/linearGrowthFactorEarly &
-                                    &                        -self%criticalOverdensity_%value(self%times(iTime))/linearGrowthFactorLate  &
-                                    &                       )                                                                            &
-                                    &                  /sqrt(                                                                            &
-                                    &                        +rootVarianceEarly**2                                                       &
-                                    &                        -rootVarianceLate **2                                                       &
+                               peakHeightEffective    =+    (                                                                                              &
+                                    &                        +self%criticalOverdensity_%value(self%times(jTime),mass=self%mass(j))/linearGrowthFactorEarly &
+                                    &                        -self%criticalOverdensity_%value(self%times(iTime),mass=self%mass(i))/linearGrowthFactorLate  &
+                                    &                       )                                                                                              &
+                                    &                  /sqrt(                                                                                              &
+                                    &                        +rootVarianceEarly**2                                                                         &
+                                    &                        -rootVarianceLate **2                                                                         &
                                     &                       )
                                fractionMassProgenitors=+0.4d0                                     & ! "Global fit" from Cole et al. (2008; https://ui.adsabs.harvard.edu/abs/2008MNRAS.383..546C).
                                     &                  *    ( peakHeightEffective**0.75d0       ) &

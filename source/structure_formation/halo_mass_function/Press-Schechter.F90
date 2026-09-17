@@ -34,6 +34,9 @@ Implements a :cite:t:`press_formation_1974` dark matter halo mass function class
 
    where :math:`\alpha = \mathrm{d}\ln\sigma/\mathrm{d}\ln M` and :math:`f[S]` is the excursion set barrier first crossing distribution for variance :math:`S(M)=\sigma^2(M)`, computed using the selected :galacticus-class:`excursionSetFirstCrossingClass`.
    </description>
+   <requires method="differential" argument="node"/>
+   <requires method="integrated"   argument="node"/>
+   <requires method="massFraction" argument="node"/>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionPressSchechter

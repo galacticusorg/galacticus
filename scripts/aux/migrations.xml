@@ -474,6 +474,13 @@
     <translation function="dust_properties"/>
   </migration>
 
+  <migration commit="c4fcd080cd8318396aa8a98edbe95def9f970a62">
+    <translation xpath="//mergerTreeOperator[@value='conditionalMF']/nameGroupOutput[@value]">
+      <name new="outputGroupName"/>
+    </translation>
+    <translation function="extended_schmidt_normalization_per_gigayear"/>
+  </migration>
+
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
   <default parameter="componentDisk"                  value="standard"        />

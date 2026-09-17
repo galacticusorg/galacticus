@@ -39,7 +39,7 @@
      class           (darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_       => null()
      class           (outputTimesClass              ), pointer :: outputTimes_               => null()
      double precision                                          :: massMinimum                         , massMaximum
-     integer                                                   :: pointsPerDecade
+     double precision                                          :: pointsPerDecade
      type            (varying_string                )          :: outputGroup
    contains
      final     ::            velocityFieldDestructor
@@ -69,7 +69,7 @@ contains
     class           (darkMatterHaloScaleClass        ), pointer       :: darkMatterHaloScale_
     class           (outputTimesClass                ), pointer       :: outputTimes_
     double precision                                                  :: massMinimum               , massMaximum
-    integer                                                           :: pointsPerDecade
+    double precision                                                  :: pointsPerDecade
     type            (varying_string                  )                :: outputGroup
 
     !![
@@ -91,7 +91,7 @@ contains
     </inputParameter>
     <inputParameter docformat="rst">
       <name>pointsPerDecade</name>
-      <defaultValue>10</defaultValue>
+      <defaultValue>10.0d0</defaultValue>
       <description>
       The number of points per decade of mass at which to tabulate the velocity field.
       </description>
@@ -132,7 +132,7 @@ contains
     class           (cosmologicalVelocityFieldClass), intent(in   ), target :: cosmologicalVelocityField_
     class           (outputTimesClass              ), intent(in   ), target :: outputTimes_
     double precision                                , intent(in   )         :: massMinimum               , massMaximum
-    integer                                         , intent(in   )         :: pointsPerDecade
+    double precision                                , intent(in   )         :: pointsPerDecade
     type            (varying_string                ), intent(in   )         :: outputGroup
     !![
     <constructorAssign variables="massMinimum, massMaximum, pointsPerDecade, outputGroup, *cosmologyFunctions_, *cosmologicalVelocityField_, *darkMatterHaloScale_, *outputTimes_"/>
@@ -198,7 +198,7 @@ contains
     ! Get the requested output redshifts.
     outputCount      =self%outputTimes_%count()
     ! Compute number of tabulation points.
-    massCount=int(log10(self%massMaximum/self%massMinimum)*dble(self%pointsPerDecade))+1
+    massCount=int(log10(self%massMaximum/self%massMinimum)*     self%pointsPerDecade )+1
     ! Allocate arrays for velocity field.
     allocate(epochTime                       (outputCount))
     allocate(epochRedshift                   (outputCount))

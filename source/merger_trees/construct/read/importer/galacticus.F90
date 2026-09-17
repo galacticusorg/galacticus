@@ -166,10 +166,10 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    <objectBuilder class="haloMassFunction"         name="haloMassFunction_"         source="parameters"/>
-    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"                            />
+    <objectBuilder class="haloMassFunction"         name="haloMassFunction_"         source="parameters" withholds="integrated:node"/>
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"                            />
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"                            />
     !!]
     self=mergerTreeImporterGalacticus(fatalMismatches,reweightTrees,validateData,cosmologyFunctions_,haloMassFunction_,cosmologyParameters_,cosmologicalMassVariance_)
     !![

@@ -380,7 +380,7 @@ contains
                &                                    /basicHost%time                             () &
                &                                   )
           ! Compute the merger rate.
-          rateMerging(iHost,iSatellite)=+self%mergerTreeBranchingProbability_%rate                      (massHost+massSatellite,self%criticalOverdensity_%value(self%time),self%time,massSatellite,nodeHost) &
+          rateMerging(iHost,iSatellite)=+self%mergerTreeBranchingProbability_%rate                      (massHost+massSatellite,self%criticalOverdensity_%value(self%time,mass=massHost),self%time,massSatellite,nodeHost) &
                &                        *                                     barrierEffectiveGrowthRate
           ! Iterate over velocities, and compute the distribution functions.
           do iVelocityRadial       =1,countVelocities

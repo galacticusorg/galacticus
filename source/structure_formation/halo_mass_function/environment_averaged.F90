@@ -28,6 +28,7 @@ Implements a dark matter halo mass function class which averages another (presum
    <description>
    The dark matter halo mass function is computed by averaging another, environment-dependent mass function over the probability distribution of large-scale environments, marginalizing over the local density field. This allows environment-dependent mass functions to be used in a mean cosmological context, with optional accounting for unoccupied volume via ``[includeUnoccupiedVolume]``.
    </description>
+   <forwards object="haloMassFunctionUnconditioned_"/>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionEnvironmentAveraged

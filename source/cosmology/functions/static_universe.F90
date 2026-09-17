@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of the cosmological functions class for static universes. Intended for testing purposes.
   !!}
@@ -475,14 +477,14 @@ contains
     ! Convert to comoving distance from whatever was supplied.
     gotComovingDistance=.false.
     comovingDistance   =-1.0d0
-    if (present(distanceModulus)) then
-       comovingDistance  =distanceLuminosity
+    if (present(distanceLuminosity)) then
+       comovingDistance   =distanceLuminosity
        gotComovingDistance=.true.
     else if (present(distanceModulus)) then
-       comovingDistance  =10.0d0**((distanceModulus          -25.0d0)/5.0d0)
+       comovingDistance   =10.0d0**((distanceModulus          -25.0d0)/5.0d0)
        gotComovingDistance=.true.
     else if (present(distanceModulusKCorrected)) then
-       comovingDistance  =10.0d0**((distanceModulusKCorrected-25.0d0)/5.0d0)
+       comovingDistance   =10.0d0**((distanceModulusKCorrected-25.0d0)/5.0d0)
        gotComovingDistance=.true.
     end if
     if (present(redshift)) call Error_Report('zero redshift is undefined in static universe'//{introspection:location})

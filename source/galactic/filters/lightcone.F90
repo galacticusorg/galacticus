@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a galactic filter on lightcone geometry.
 !!}
@@ -76,13 +78,27 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`galacticFilterLightcone` galactic filter class.
     !!}
+    use :: Display            , only : displayGreen         , displayMagenta, displayMessage, displayReset
+    use :: Geometry_Lightcones, only : geometryLightconeNull
+    use :: ISO_Varying_String , only : varying_string       , assignment(=) , operator(//)
     implicit none
     type (galacticFilterLightcone)                        :: self
     class(geometryLightconeClass ), intent(in   ), target :: geometryLightcone_
+    type (varying_string         )                        :: message
     !![
     <constructorAssign variables="*geometryLightcone_"/>
     !!]
 
+    ! Warn if the lightcone geometry is null. This is a valid choice - a null lightcone has zero solid angle, so nothing lies
+    ! within it - but it makes this filter reject every galaxy, which is unlikely to be what was intended.
+    select type (geometryLightcone_)
+    class is (geometryLightconeNull)
+       message=displayMagenta()//"WARNING:"//displayReset()//" the `galacticFilterLightcone` class is in use with a null lightcone geometry"        //char(10)// &
+            &  displayGreen()//"   HELP:"//displayReset()//" a null lightcone has zero solid angle, so no galaxy ever lies within it and this"     //char(10)// &
+            &                                               "          filter will therefore reject every galaxy. If that is not what you intended,"//char(10)// &
+            &                                               "          set a non-null `geometryLightcone`."
+       call displayMessage(message)
+    end select
     return
   end function lightconeConstructorInternal
 

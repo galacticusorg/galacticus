@@ -14,6 +14,7 @@ import xml.etree.ElementTree as ET
 
 from XML.Utils                                      import xml_to_dict
 from Galacticus.Build.StateStorables                import function_class_entries
+from Galacticus.Build.Capabilities                  import parse_withholds
 from Galacticus.Build.SourceTree                    import (
     walk_tree, insert_after_node,
 )
@@ -108,6 +109,25 @@ def _fill_element(elem, data):
 # ---------------------------------------------------------------------------
 # Per-directive handlers
 # ---------------------------------------------------------------------------
+
+def _withholds_checks(directive, parameter_name, loc_expr):
+    """Return code rejecting a just-built object which requires an argument that
+    the consumer building it declares, through `withholds`, it never supplies
+    (see `Galacticus.Build.Capabilities`)."""
+    try:
+        withholds = parse_withholds(directive.get('withholds'))
+    except ValueError as error:
+        raise RuntimeError(f"process_object_builder: {error}")
+    lines = ''
+    for method, argument in withholds:
+        lines += (
+            f"   if ({directive['name']}%requires('{method}','{argument}')) "
+            f"call Error_Report('[{parameter_name}] \"'//char({directive['name']}%objectType(short=.true.))//"
+            f"'\" requires the `{argument}` argument of its `{method}` method, which is never supplied to it here'//"
+            f"{loc_expr})\n"
+        )
+    return lines
+
 
 _SOURCE_TAG = ('Galacticus.Build.SourceTree.Process.ObjectBuilder'
                '.process_object_builder()')
@@ -261,6 +281,12 @@ def _handle_object_builder(node, state_storables, function_classes):
 
     if 'parameterName' in directive and 'default' in directive:
         lines += "   if (parametersDefaultCreated) call parametersDefault%destroy()\n"
+
+    # Reject an object which requires an argument that this consumer never
+    # supplies now, rather than when the method is first called.
+    checks = _withholds_checks(directive, parameter_name, loc_expr)
+    if checks:
+        lines += copy_loop_open + checks + copy_loop_close
 
     insert_after_node(node, [_code_node(lines, _SOURCE_TAG)])
 

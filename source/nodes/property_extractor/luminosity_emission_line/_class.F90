@@ -740,15 +740,16 @@ contains
     !!{RST
     Compute the mean luminosity of the stellar population in each bin of the star formation history.
     !!}
-    use :: Display                , only : displayIndent                   , displayUnindent             , displayCounter        , displayCounterClear, &
-         &                                 verbosityLevelWorking
-    use :: Error                  , only : Error_Report
-    use :: Histories              , only : history
-    use :: Numerical_Integration  , only : integrator
-    use :: Multi_Counters         , only : multiCounter
-    use :: Locks                  , only : ompLock
-    use :: Table_Labels           , only : enumerationExtrapolationTypeType, extrapolationTypeExtrapolate, extrapolationTypeAbort
-    use :: Numerical_Interpolation, only : interpolator
+    use :: Display                 , only : displayIndent                         , displayUnindent             , displayCounter        , displayCounterClear, &
+         &                                  verbosityLevelWorking
+    use :: Error                   , only : Error_Report
+    use :: Histories               , only : history
+    use :: Numerical_Integration   , only : integrator
+    use :: Multi_Counters          , only : multiCounter
+    use :: Locks                   , only : ompLock
+    use :: Table_Labels            , only : enumerationExtrapolationTypeType      , extrapolationTypeExtrapolate, extrapolationTypeAbort
+    use :: Numerical_Interpolation , only : interpolator
+    use :: Star_Formation_Histories, only : starFormationHistoryAgesFixedPerOutput
     implicit none
     double precision                                             , dimension(:,:,:)                            , allocatable :: luminosityMean
     class           (nodePropertyExtractorLuminosityEmissionLine), intent(inout)                                             :: self
@@ -780,8 +781,15 @@ contains
     <optionalArgument name="parallelize" defaultsTo=".false." />
     !!]
     
-    times =self%starFormationHistory_%times (node=node,indexOutput=indexOutput,starFormationHistory=starFormationHistory,allowTruncation=.false.,timeStart=timeStart)
-    masses=self%starFormationHistory_%masses(node=node                        ,starFormationHistory=starFormationHistory,allowTruncation=.false.                    )
+    ! Request the times using whichever of `indexOutput` and `node` applies to the star formation history class in use - the base
+    ! class permits only one of the two to be given. Where ages are fixed per output the tabulation is a function of the output
+    ! alone, while otherwise it must be read from the history of this node.
+    if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixedPerOutput) then
+       times =self%starFormationHistory_%times (indexOutput=indexOutput                                          ,allowTruncation=.false.,timeStart=timeStart)
+    else
+       times =self%starFormationHistory_%times (node       =node       ,starFormationHistory=starFormationHistory,allowTruncation=.false.,timeStart=timeStart)
+    end if
+    masses=self%starFormationHistory_%masses(node=node,starFormationHistory=starFormationHistory,allowTruncation=.false.)
     if (present(times_)) times_=times
     allocate(luminosityMean(self%countLines,size(masses,dim=1),size(masses,dim=2)))
     counter       =-1

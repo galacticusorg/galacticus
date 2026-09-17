@@ -731,8 +731,8 @@ contains
     !!{RST
     Compute the mean luminosity of the stellar population in each bin of the star formation history.
     !!}
-    use :: Abundances_Structure          , only : abundances                   , metallicityTypeLinearByMassSolar, adjustElementsReset
-    use :: Display                       , only : displayIndent                , displayUnindent                 , displayCounter     , displayCounterClear, &
+    use :: Abundances_Structure          , only : abundances                   , metallicityTypeLinearByMassSolar     , adjustElementsReset
+    use :: Display                       , only : displayIndent                , displayUnindent                      , displayCounter     , displayCounterClear, &
          &                                        verbosityLevelWorking        , displayMessage
     use :: Error                         , only : Error_Report                 , errorStatusSuccess
     use :: Histories                     , only : history
@@ -741,7 +741,7 @@ contains
     use :: Multi_Counters                , only : multiCounter
     use :: Locks                         , only : ompLock
     use :: Stellar_Luminosities_Structure, only : frameRest                    , frameObserved
-    use :: Star_Formation_Histories      , only : starFormationHistoryAgesFixed
+    use :: Star_Formation_Histories      , only : starFormationHistoryAgesFixed, starFormationHistoryAgesFixedPerOutput
     use :: Timers                        , only : timer
     implicit none
     double precision                                            , dimension(:,:,:)                            , allocatable :: sedLuminosityMean
@@ -783,8 +783,15 @@ contains
     <optionalArgument name="parallelize" defaultsTo=".false." />
     !!]
 
-    times =self%starFormationHistory_%times (node=node,indexOutput=indexOutput,starFormationHistory=starFormationHistory,allowTruncation=.false.,timeStart=timeStart)
-    masses=self%starFormationHistory_%masses(node=node                        ,starFormationHistory=starFormationHistory,allowTruncation=.false.                    )
+    ! Request the times using whichever of `indexOutput` and `node` applies to the star formation history class in use - the base
+    ! class permits only one of the two to be given. Where ages are fixed per output the tabulation is a function of the output
+    ! alone, while otherwise it must be read from the history of this node.
+    if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixedPerOutput) then
+       times =self%starFormationHistory_%times (indexOutput=indexOutput                                          ,allowTruncation=.false.,timeStart=timeStart)
+    else
+       times =self%starFormationHistory_%times (node       =node       ,starFormationHistory=starFormationHistory,allowTruncation=.false.,timeStart=timeStart)
+    end if
+    masses=self%starFormationHistory_%masses(node=node,starFormationHistory=starFormationHistory,allowTruncation=.false.)
     if (present(times_)) times_=times
     allocate(sedLuminosityMean(self%size(time),size(masses,dim=1),size(masses,dim=2)))
     select case (self%frame%ID)
@@ -1200,13 +1207,14 @@ contains
     under-attenuates young light, by an amount which shrinks as the history's time resolution is refined, and is
     reported once per object so that it can not pass unnoticed.
     !!}
-    use :: Display                       , only : displayMessage       , verbosityLevelWarn
+    use :: Display                       , only : displayMessage                        , verbosityLevelWarn
     use :: Dust_Attenuation_Descriptors  , only : emissionSourceStellar
-    use :: Galactic_Structure_Options    , only : componentTypeDisk    , componentTypeNuclearStarCluster, componentTypeSpheroid
-    use :: Galacticus_Nodes              , only : nodeComponentDisk    , nodeComponentNSC               , nodeComponentSpheroid
+    use :: Galactic_Structure_Options    , only : componentTypeDisk                     , componentTypeNuclearStarCluster, componentTypeSpheroid
+    use :: Galacticus_Nodes              , only : nodeComponentDisk                     , nodeComponentNSC               , nodeComponentSpheroid
     use :: Histories                     , only : history
-    use :: ISO_Varying_String            , only : operator(//)         , var_str
-    use :: Stellar_Luminosities_Structure, only : frameObserved        , frameRest
+    use :: ISO_Varying_String            , only : operator(//)                          , var_str
+    use :: Star_Formation_Histories      , only : starFormationHistoryAgesFixedPerOutput
+    use :: Stellar_Luminosities_Structure, only : frameObserved                         , frameRest
     implicit none
     type            (luminosityDecomposition )                                         :: decomposition
     class           (nodePropertyExtractorSED), intent(inout)                , target  :: self
@@ -1269,8 +1277,15 @@ contains
        sedTemplate  =  self%luminosityMean(time,node,indexTemplate,starFormationHistory)
        sedTemplate_ => sedTemplate
     end if
-    masses=self%starFormationHistory_%masses(node=node                          ,starFormationHistory=starFormationHistory,allowTruncation=.false.                    )
-    times =self%starFormationHistory_%times (node=node,indexOutput=indexTemplate,starFormationHistory=starFormationHistory,allowTruncation=.false.,timeStart=timeStart)
+    masses=self%starFormationHistory_%masses(node=node,starFormationHistory=starFormationHistory,allowTruncation=.false.)
+    ! Request the times using whichever of `indexOutput` and `node` applies to the star formation history class in use - the base
+    ! class permits only one of the two to be given. Where ages are fixed per output the template index *is* the output index, and
+    ! the tabulation is a function of that output alone; otherwise the times must be read from the history of this node.
+    if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixedPerOutput) then
+       times =self%starFormationHistory_%times (indexOutput=indexTemplate                                          ,allowTruncation=.false.,timeStart=timeStart)
+    else
+       times =self%starFormationHistory_%times (node       =node         ,starFormationHistory=starFormationHistory,allowTruncation=.false.,timeStart=timeStart)
+    end if
     countTimes =size(masses,dim=1)
     ! Fetch the wavelengths once: `wavelengths` rebuilds the whole array on each call.
     wavelengths_=self%wavelengths(time)

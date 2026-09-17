@@ -346,9 +346,9 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="haloMassFunction"        name="haloMassFunction_"        source="parameters"/>
-    <objectBuilder class="conditionalMassFunction" name="conditionalMassFunction_" source="parameters"/>
-    <objectBuilder class="metaTreeProcessingTime"  name="metaTreeProcessingTime_"  source="parameters"/>
+    <objectBuilder class="haloMassFunction"        name="haloMassFunction_"        source="parameters" withholds="differential:node"/>
+    <objectBuilder class="conditionalMassFunction" name="conditionalMassFunction_" source="parameters"                              />
+    <objectBuilder class="metaTreeProcessingTime"  name="metaTreeProcessingTime_"  source="parameters"                              />
     !!]
     self=mergerTreeBuildMassDistributionStellarMassFunction(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_,conditionalMassFunction_,metaTreeProcessingTime_)
     !![

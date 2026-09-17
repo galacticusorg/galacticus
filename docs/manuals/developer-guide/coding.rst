@@ -424,6 +424,16 @@ or with explicit bounds:
 
 In the first case, the loop index ``i`` is used as the ``copyInstance`` argument when retrieving the object, allowing the parameter node to hold multiple instances. In the second case, the loop runs from 1 to ``countPostprocessors`` explicitly.
 
+Where the object built is used without some optional argument of one of its methods---because no such value exists where the method is called---list those arguments in a ``withholds`` attribute, as space- or comma-separated ``method:argument`` pairs. For example, a task which integrates over the halo mass function, and so has no node to pass to it, declares:
+
+.. code-block:: none
+
+    !![
+    <objectBuilder class="haloMassFunction" name="haloMassFunction_" source="parameters" withholds="differential:node"/>
+    !!]
+
+An implementation which requires one of those arguments is then rejected as soon as it is built, rather than when the method is first called, and ``scripts/build/parameterValidate.py`` rejects the combination before the model is run. See :ref:`manual-sec-capabilities`.
+
 Object Destructor
 ~~~~~~~~~~~~~~~~~
 
@@ -1145,6 +1155,40 @@ Procedures:
    All required procedures (including constructors and destructors) should be given after a line containing the ``contains`` keyword. Galacticus coding policy is that all procedures associated with an implementation should be prefixed with the implementation name, ``simple`` in this case.
 
 Functionality to store and restore the state (see :ref:`here <manual-sec-restarting>`) of classes built via a ``functionClass`` directive are automatically built. If variables of a given implementation should be restored to a specific state, this can be specified by adding a ``restoreTo`` element to the directive declaring the implementation. The ``restoreTo`` element should specify a comma-separated list of one or more variables to set in its ``variables`` attribute, and the state to which they should be restored in its ``state`` attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a ``exclude`` element---a list of variables to exclude should be given as a comma-separated list in its ``variables`` attribute.
+
+.. _manual-sec-capabilities:
+
+Capabilities
+^^^^^^^^^^^^
+
+Some implementations can only answer a method when given one of its optional arguments. A halo mass function may need a ``node``, for example, or a critical overdensity a ``mass``. Declare this with a ``requires`` element in the directive declaring the implementation, naming the method and the argument:
+
+.. code-block:: none
+
+    !![
+    <haloMassFunction name="haloMassFunctionPressSchechter">
+     <description>...</description>
+     <requires method="differential" argument="node"/>
+     <requires method="integrated"   argument="node"/>
+    </haloMassFunction>
+    !!]
+
+The argument must be an optional argument of that method, or the build fails. A requirement is inherited by implementations which extend the declaring one. It must also be declared for any method whose default implementation calls a method that has the requirement---``integrated`` above, whose default integrates ``differential``.
+
+An implementation which passes the arguments it is given on to another object of the same class, such as a decorator which multiplies a mass function, inherits that object's requirements. Declare this with a ``forwards`` element naming the object's component:
+
+.. code-block:: none
+
+    !![
+    <haloMassFunction name="haloMassFunctionMultiplier">
+     <description>...</description>
+     <forwards object="massFunction_"/>
+    </haloMassFunction>
+    !!]
+
+Omit ``forwards`` for an object which is always given the argument by the implementation itself.
+
+``requires`` and ``forwards`` elements follow all other elements of the directive, with every ``requires`` before any ``forwards``. From them a ``requires(method,argument)`` method is generated for every class. It returns true if the object requires that argument, and it is an error to ask about a pair which is not an optional argument of one of the class' methods. Consumers declare the arguments they never supply through the ``withholds`` attribute of the ``objectBuilder`` directive, which calls this method when the object is built. A consumer which receives an object in any other way can call ``requires`` itself in its constructor. The parameter catalog records all three markers, and ``scripts/build/parameterValidate.py`` reports a ``capability`` error for any parameter file which combines an implementation with a consumer that withholds an argument it requires. The validator follows objects inherited from enclosing parameters, ``idRef`` references, forwarding implementations and class defaults, as ``objectBuilder`` does.
 
 .. _manual-sec-deepCopy:
 

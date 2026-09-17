@@ -56,6 +56,7 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   type            (darkMatterProfileDMOTruncated                                 ), target       :: darkMatterProfileDMOTruncated_
   type            (darkMatterProfileDMOTruncatedExponential                      ), target       :: darkMatterProfileDMOTruncatedExponential_
   type            (darkMatterProfileDMOHeated                                    ), target       :: darkMatterProfileDMOHeated_
+  type            (darkMatterProfileDMOHeated                                    ), target       :: darkMatterProfileDMOHeatedTruncated_
   type            (darkMatterProfileHeatingTidal                                 )               :: darkMatterProfileHeatingTidal_
   type            (cosmologyParametersSimple                                     )               :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                                )               :: cosmologyFunctions_
@@ -64,6 +65,8 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   double precision                                                                , dimension(7) :: radiusOverVirialRadius                    =[0.125d0 , 0.250d0, 0.500d0, 1.000d0, 2.000d0, 4.000d0, 8.000d0]
   double precision                                                                , dimension(7) :: radius                                              , radiusRoot
   double precision                                                                , dimension(7) :: mass
+  double precision                                                                , dimension(7) :: massFractional                            =[0.0625d0, 0.125d0, 0.250d0, 0.500d0, 0.750d0, 0.875d0, 0.9375d0]
+  double precision                                                                , dimension(7) :: radiusFromMass                                      , radiusFromMassFractional
   double precision                                                                , parameter    :: radiusFractionalTruncateMinimum           = 2.00d+00, radiusFractionalTruncateMaximum=8.0d0
   double precision                                                                , parameter    :: time                                      =13.80d+00
   double precision                                                                , parameter    :: massVirial                                = 1.00d+10, concentration                  =8.0d0
@@ -80,7 +83,7 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   logical                                                                         , parameter    :: tolerateEnclosedMassIntegrationFailure    =.false.
   logical                                                                         , parameter    :: tolerateVelocityDispersionFailure         =.false.
   double precision                                                                               :: radiusVirial                                        , radiusScale                           , &
-       &                                                                                            toleranceRelative
+       &                                                                                            toleranceRelative                                   , massTotal
   type            (varying_string                                                )               :: parameterFile
   type            (inputParameters                                               )               :: parameters
   integer                                                                                        :: i                                                  , j
@@ -148,6 +151,8 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   darkMatterProfileHeatingTidal_            =  darkMatterProfileHeatingTidal           (coefficientSecondOrder              ,coefficientSecondOrder         ,coefficientSecondOrder             ,correlationVelocityRadius                      )
   darkMatterProfileDMOHeated_               =  darkMatterProfileDMOHeated              (nonAnalyticSolversFallThrough       ,velocityDispersionApproximate  ,tolerateEnclosedMassIntegrationFailure,tolerateVelocityDispersionFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMONFW_,                  &
        &                                                                                darkMatterProfileHeatingTidal_                                                                                                                          )
+  darkMatterProfileDMOHeatedTruncated_      =  darkMatterProfileDMOHeated              (nonAnalyticSolversFallThrough       ,velocityDispersionApproximate  ,tolerateEnclosedMassIntegrationFailure,tolerateVelocityDispersionFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMOTruncated_,            &
+       &                                                                                darkMatterProfileHeatingTidal_                                                                                                                          )
   ! Set up the node.
   basic     => node%basic                 (autoCreate=.true.)
   satellite => node%satellite             (autoCreate=.true.)
@@ -199,6 +204,26 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
      call Assert('radius enclosing a given mass',radius,radiusRoot,relTol=toleranceRelative)
      call Unit_Tests_End_Group()
   end do
+  ! Test that the radius enclosing a given fractional mass can be found for a heated profile. The heated profile needs the mass
+  ! enclosed within the corresponding radius in the unheated profile - that mass must be computed from the radius, since the
+  ! `mass` argument is optional and is absent when the enclosed mass is instead specified via `massFractional`. A profile of
+  ! finite total mass is needed here, so the heating is applied to the truncated profile.
+  call Unit_Tests_Begin_Group('Heated profile, fractional mass')
+  massDistribution_ => darkMatterProfileDMOTruncated_%get      (node)
+  massTotal         =  massDistribution_             %massTotal(    )
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
+  massDistribution_ => darkMatterProfileDMOHeatedTruncated_%get(node)
+  do j=1,7
+     radiusFromMassFractional(j)=massDistribution_%radiusEnclosingMass(massFractional=massFractional(j)          )
+     radiusFromMass          (j)=massDistribution_%radiusEnclosingMass(mass          =massFractional(j)*massTotal)
+  end do
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
+  call Assert('radius enclosing a given fractional mass',radiusFromMassFractional,radiusFromMass,relTol=1.0d-4)
+  call Unit_Tests_End_Group               ()
   ! End unit tests.
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Finish                  ()

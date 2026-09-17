@@ -239,12 +239,12 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions"      name="cosmologyFunctions_"      source="parameters"/>
-    <objectBuilder class="surveyGeometry"          name="surveyGeometry_"          source="parameters"/>
-    <objectBuilder class="powerSpectrumNonlinear"  name="powerSpectrumNonlinear_"  source="parameters"/>
-    <objectBuilder class="darkMatterHaloBias"      name="darkMatterHaloBias_"      source="parameters"/>
-    <objectBuilder class="conditionalMassFunction" name="conditionalMassFunction_" source="parameters"/>
-    <objectBuilder class="haloMassFunction"        name="haloMassFunction_"        source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"      name="cosmologyFunctions_"      source="parameters"                              />
+    <objectBuilder class="surveyGeometry"          name="surveyGeometry_"          source="parameters"                              />
+    <objectBuilder class="powerSpectrumNonlinear"  name="powerSpectrumNonlinear_"  source="parameters"                              />
+    <objectBuilder class="darkMatterHaloBias"      name="darkMatterHaloBias_"      source="parameters"                              />
+    <objectBuilder class="conditionalMassFunction" name="conditionalMassFunction_" source="parameters"                              />
+    <objectBuilder class="haloMassFunction"        name="haloMassFunction_"        source="parameters" withholds="differential:node"/>
     !!]
     self=taskMassFunctionCovariance(massFunctionFileName,surveyredshiftMinimum, surveyRedshiftMaximum, massMinimum, massMaximum, massHaloMinimum, massHaloMaximum,countMassBins,sizeGridFFT,includePoisson, includeHalo, includeLSS, cosmologyFunctions_,surveyGeometry_,powerSpectrumNonlinear_,darkMatterHaloBias_,conditionalMassFunction_,haloMassFunction_)
     !![

@@ -1616,6 +1616,33 @@ def dust_attenuation_framework(input_doc, parameters, is_grid):
 
 
 
+def extended_schmidt_normalization_per_gigayear(input_doc, parameters, is_grid):
+    """Rescale the extended Schmidt normalization from per year to per Gyr.
+
+    The parameter was given in M☉ yr⁻¹ pc⁻², while the equivalent parameter of
+    `kennicuttSchmidt` was given in M☉ Gyr⁻¹ pc⁻². Both are now per Gyr, so an
+    existing value must be multiplied by the number of years in a Gyr.
+    """
+    for node in parameters.xpath(
+        ".//starFormationRateSurfaceDensityDisks[@value='extendedSchmidt']/normalization[@value]"
+    ):
+        value = node.get("value")
+        try:
+            rescaled = float(value) * 1.0e9
+        except ValueError:
+            # A value which is not a plain number - an expression, say - can not be rescaled here.
+            print(
+                f"   WARNING: can not rescale 'starFormationRateSurfaceDensityDisks[extendedSchmidt]/normalization'"
+                f" value '{value}' from per year to per Gyr - rescale it by 1e9 by hand"
+            )
+            continue
+        print(
+            "   translate special './/starFormationRateSurfaceDensityDisks[@value=\'extendedSchmidt\']"
+            f"/normalization[@value]': {value} --> {rescaled:.6e} (per year --> per Gyr)"
+        )
+        node.set("value", f"{rescaled:.6e}")
+
+
 def dust_properties(input_doc, parameters, is_grid):
     """Special handling for the introduction of the `dustProperties` class.
 
@@ -1669,6 +1696,7 @@ COLUMN_UNIT_OPTICAL_DEPTH = 1.0 / _DEPTH_OPTICAL_PER_SURFACE_DENSITY_METALS / 0.
 
 
 SPECIAL_FUNCTIONS = {
+    "extended_schmidt_normalization_per_gigayear": extended_schmidt_normalization_per_gigayear,
     "dust_properties": dust_properties,
     "dust_attenuation_framework": dust_attenuation_framework,
     "prompt_cusp_require_collapse_before_halo": prompt_cusp_require_collapse_before_halo,

@@ -85,9 +85,9 @@ contains
       <defaultSource>
       :cite:p:`shi_extended_2011`
       </defaultSource>
-      <defaultValue>0.5248d-10</defaultValue>
+      <defaultValue>0.5248d-1</defaultValue>
       <description>
-      The normalization of the extended Schmidt star formation law [:math:`\mathrm{M}_\odot` yr\ :math:`^{-1}`\ pc\ :math:`^{-2}`].
+      The normalization of the extended Schmidt star formation law [:math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`\ pc\ :math:`^{-2}`].
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -125,7 +125,7 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`starFormationRateSurfaceDensityDisksExtendedSchmidt` star formation surface density rate in disks class.
     !!}
-    use :: Numerical_Constants_Prefixes, only : giga, mega
+    use :: Numerical_Constants_Prefixes, only : mega
     implicit none
     type            (starFormationRateSurfaceDensityDisksExtendedSchmidt)                :: self
     double precision                                                     , intent(in   ) :: normalization, exponentGas, &
@@ -138,7 +138,7 @@ contains
     self%factorsComputed=.false.
     ! Renormalize the relation to internal units.
     self%normalization=+self%normalization                    &
-         &             *(mega**2)*giga                        & ! Convert from M☉/pc²/yr to M☉/Mpc²/Gyr
+         &             *(mega**2)                             & ! Convert from M☉/pc²/Gyr to M☉/Mpc²/Gyr
          &             *((1.0d0/mega**2)**self%exponentStars) & ! Unit conversion for stars.
          &             *((1.0d0/mega**2)**self%exponentGas  )   ! Hydrogen fraction and unit conversion for gas.
     return

@@ -28,6 +28,7 @@ Implements a dark matter halo mass function class which accelerates another mass
    <description>
    A dark matter halo mass function class which accelerates another mass function using tabulation.
    </description>
+   <forwards object="haloMassFunction_"/>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionAccelerator

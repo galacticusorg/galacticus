@@ -178,6 +178,21 @@ _FUNCTION_CLASS_SCHEMA = """<?xml version="1.0"?>
          <xs:attribute name="paths" use="required"/>
         </xs:complexType>
        </xs:element>
+       <!-- requires method="..." argument="..." declares that this implementation can only answer the named method
+            when given that optional argument; forwards object="..." declares that it passes the arguments it is given
+            on to the named object, of the same class, and so inherits that object's requirements. See
+            python/Galacticus/Build/Capabilities.py. -->
+       <xs:element name="requires"                     minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+         <xs:attribute name="method"   use="required"/>
+         <xs:attribute name="argument" use="required"/>
+        </xs:complexType>
+       </xs:element>
+       <xs:element name="forwards"                     minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+         <xs:attribute name="object" use="required"/>
+        </xs:complexType>
+       </xs:element>
       </xs:sequence>
       <xs:attribute name="name"      use="required"/>
       <!-- alias="..." gives a readable parameter-file value for an

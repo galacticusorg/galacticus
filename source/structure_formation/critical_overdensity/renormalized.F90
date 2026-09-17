@@ -36,6 +36,7 @@ Implements a critical overdensity class which renormalizes another class based o
 
     The matching scale is given by :math:`M_\mathrm{match}=`\ ``[massMatch]`` if this parameter is present. Otherwise :math:`M_\mathrm{match}=M_*` is used, where :math:`\sigma(M_*)=\delta_\mathrm{crit}`, computed at the present epoch.
     </description>
+    <forwards object="criticalOverdensity_"/>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityRenormalize

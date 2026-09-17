@@ -88,7 +88,7 @@
     <massHaloMinimum value=" 1.122018454e06" />
     <includeMassAccretionRate value="false" />
     <includeUnevolvedSubhaloMassFunction value="false" />
-    <pointsPerDecade value="10.0" />
+    <pointsPerDecade value="10" />
   </task>
   <transferFunction value="CAMB">
     <redshift value="99.0" />
