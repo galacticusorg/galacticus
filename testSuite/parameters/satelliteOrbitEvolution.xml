@@ -1,0 +1,142 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Model used by test-satellite-orbit-evolution.py, which integrates one satellite's orbit and mass loss in a static host
+     potential and compares the trajectory against an independent reference (galacticusDevTools/satelliteOrbitEvolution.py).
+
+     This is the companion to tests.satellite_orbit_rates.exe. That test verifies the two rates pointwise; this one verifies
+     that they are assembled correctly into the orbital differential equations, which a pointwise comparison cannot do.
+
+     The model is stripped to the smallest thing that still exercises the assembly:
+
+       * the host is held at a fixed mass and scale radius by the tree, so the potential is static and the reference does not
+         have to reproduce halo growth;
+       * only three node operators act - the equations of motion, dynamical friction, and tidal mass loss;
+       * `satelliteTidalHeating` is deliberately absent. Tidal heating modifies the satellite's density profile as it is
+         stripped, which the reference would then have to track; excluding it keeps the satellite's profile fixed and makes the
+         comparison one about the orbit rather than about the profile's response;
+       * there is no merging or destruction operator, so the satellite survives the whole run and the trajectory is unbroken.
+
+     The virial density contrast is pinned to a fixed 200 times the mean matter density, so both virial radii are analytic.
+     `darkMatterProfile` is `darkMatterOnly`, so the profiles are plain NFW with no adiabatic contraction.
+  -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="1afe610faf4cbe91dd36fbfab4ccef263f532463" time="2026-09-16T00:00:00"/>
+
+  <!-- Cosmology. Planck 2018 values, matching the reference calculation. -->
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="67.36"  />
+    <OmegaMatter     value="0.3153" />
+    <OmegaDarkEnergy value="0.6847" />
+    <OmegaBaryon     value="0.0493" />
+    <temperatureCMB  value="2.72548"/>
+  </cosmologyParameters>
+  <!-- A static universe, so that the host potential does not evolve cosmologically. The reference integrates the orbit in a
+       fixed potential; with an expanding universe the virial radius and hence the host's mass distribution would drift with
+       time and the reference would have to reproduce that evolution too. -->
+  <cosmologyFunctions value="staticUniverse"/>
+
+  <virialDensityContrast value="fixed">
+    <densityContrastValue value="200.0"/>
+    <densityType          value="mean" />
+  </virialDensityContrast>
+  <darkMatterHaloScale value="virialDensityContrastDefinition"/>
+
+  <darkMatterProfileDMO value="NFW"           />
+  <darkMatterProfile    value="darkMatterOnly"/>
+
+  <!-- Required by the `satelliteOrbit` node operator, which insists on a `virialOrbit` providing angularly-resolved orbits.
+       No orbit is drawn from it here, but only because the tree supplies a `virialOrbit` block for the satellite:
+       `satelliteOrbitNodeTreeInitialize` calls `subhaloOrbitInitialize` for every node which is already a satellite when the
+       tree is initialized, and that would otherwise draw a fresh orbit and discard the tree's position and velocity. Under a
+       static universe such a draw also fails, in the spherical collapse tabulation `benson2005` reaches for. -->
+  <virialOrbit value="isotropic">
+    <virialOrbit value="benson2005"/>
+  </virialOrbit>
+
+  <!-- The satellite physics under test. -->
+  <satelliteTidalField value="standard"/>
+  <satelliteTidalStrippingRadius value="king1962">
+    <efficiencyCentrifugal value="1.0"  />
+    <applyPreInfall        value="false"/>
+  </satelliteTidalStrippingRadius>
+  <satelliteDynamicalFriction value="chandrasekhar1943">
+    <logarithmCoulomb value="2.0"/>
+  </satelliteDynamicalFriction>
+  <satelliteTidalStripping value="zentner2005">
+    <efficiency            value="2.5" />
+    <useDynamicalTimeScale value="true"/>
+  </satelliteTidalStripping>
+
+  <!-- Node components. -->
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+  <componentSatellite         value="orbiting"/>
+  <componentBlackHole         value="null"    />
+  <componentDisk              value="null"    />
+  <componentHotHalo           value="null"    />
+  <componentSpheroid          value="null"    />
+  <componentSpin              value="null"    />
+  <hotHaloMassDistribution    value="null"    />
+  <mergerRemnantSize          value="null"    />
+
+  <!-- The tree: one host, one satellite. -->
+  <mergerTreeConstructor value="fullySpecified">
+    <fileName value="testSuite/parameters/satelliteOrbitEvolutionTree.xml"/>
+  </mergerTreeConstructor>
+
+  <!-- Node evolution. Only the three operators which drive the satellite's orbit and mass. -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch. Without this the node's time never advances and nothing evolves. -->
+    <nodeOperator value="cosmicTime"                       />
+    <!-- DMO evolution and halo concentration, interpolated between tree nodes. -->
+    <nodeOperator value="DMOInterpolate"                   />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- The satellite physics under test: the equations of motion, dynamical friction, and tidal mass loss. -->
+    <nodeOperator value="satelliteOrbit"                   />
+    <nodeOperator value="satelliteDynamicalFriction"       />
+    <nodeOperator value="satelliteTidalMassLoss"           />
+  </nodeOperator>
+
+  <!-- Tight ODE tolerances, so that the comparison measures the equations rather than the integrator's stopping rule. -->
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="1.0e-8"/>
+    <odeToleranceRelative value="1.0e-8"/>
+    <reuseODEStepSize     value="false" />
+  </mergerTreeNodeEvolver>
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute             value="1.00"/>
+    <timestepHostRelative             value="0.00"/>
+    <fractionTimestepSatelliteMinimum value="0.75"/>
+    <backtrackToSatellites            value="true"/>
+  </mergerTreeEvolver>
+
+  <!-- Timestep criteria. The `satellite` criterion is what actually steps the satellite's orbit; without it the satellite's
+       phase-space coordinates are never advanced and its trajectory is frozen at its initial conditions. -->
+  <mergerTreeEvolveTimestep value="multi">
+    <!-- The relative timestep is zero: under a static universe a timestep proportional to the cosmic time raises a floating
+         point exception in `simpleTimeEvolveTo`. The idealized subhalo models set it to zero for the same reason. -->
+    <mergerTreeEvolveTimestep value="simple">
+      <timeStepAbsolute value="1.000"/>
+      <timeStepRelative value="0.000"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="satellite">
+      <timeOffsetMaximumAbsolute value="0.010"/>
+      <timeOffsetMaximumRelative value="0.001"/>
+    </mergerTreeEvolveTimestep>
+  </mergerTreeEvolveTimestep>
+
+  <!-- Output the trajectory. -->
+  <outputTimes value="list">
+    <times value="9.0 10.0 11.0 12.0 13.0 13.8"/>
+  </outputTimes>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"    />
+    <nodePropertyExtractor value="radiusOrbital"  />
+    <nodePropertyExtractor value="positionOrbital"/>
+  </nodePropertyExtractor>
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+  <outputFileName value="testSuite/outputs/satelliteOrbitEvolution.hdf5"/>
+
+</parameters>

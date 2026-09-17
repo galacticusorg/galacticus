@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by:  Anthony Pullen, Andrew Benson, Xiaolong Du.
+!+    Contributions to this file made by:  Anthony Pullen, Andrew Benson, Xiaolong Du, Claude.
 
   !!{RST
   Implementation of a satellite tidal stripping class which follows the model of :cite:t:`zentner_physics_2005`.
@@ -158,12 +158,13 @@ contains
     !!{RST
     Return a mass loss rate for satellites due to tidal stripping using the formulation of :cite:t:`zentner_physics_2005`.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentSatellite, treeNode
+    use :: Galactic_Structure_Options      , only : componentTypeDarkMatterOnly, massTypeDark
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite     , treeNode
     use :: Mass_Distributions              , only : massDistributionClass
-    use :: Numerical_Constants_Astronomical, only : gigaYear              , megaParsec    , gravitationalConstant_internal
+    use :: Numerical_Constants_Astronomical, only : gigaYear                   , megaParsec    , gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
-    use :: Vectors                         , only : Vector_Magnitude      , Vector_Product
+    use :: Vectors                         , only : Vector_Magnitude           , Vector_Product
     implicit none
     class           (satelliteTidalStrippingZentner2005), intent(inout)  :: self
     type            (treeNode                          ), intent(inout)  :: node
@@ -213,9 +214,14 @@ contains
     else
        periodOrbital=+timescaleDynamical
     end if
-    massDistribution_  => node%massDistribution()
-    radiusTidal            =          self             %satelliteTidalStrippingRadius_%radius              (node       )
-    massEnclosedTidalRadius=max(0.0d0,massDistribution_                               %massEnclosedBySphere(radiusTidal))
+    ! Use the dark-matter-only mass distribution, which is normalized to the node's basic mass. The satellite's bound mass is
+    ! also a total mass - `satelliteMassBoundInitializorBasicMass` sets it equal to the basic mass - whereas the default mass
+    ! distribution is normalized to only the dark matter fraction of that mass. Subtracting the latter from the former left a
+    ! satellite whose tidal radius reached its virial radius with a mass "outside" that radius equal to the baryon fraction of
+    ! its bound mass, and so losing mass although nothing was stripping it.
+    massDistribution_      =>           node                                            %massDistribution    (componentTypeDarkMatterOnly,massTypeDark)
+    radiusTidal            =            self             %satelliteTidalStrippingRadius_%radius              (node                                    )
+    massEnclosedTidalRadius=  max(0.0d0,massDistribution_                               %massEnclosedBySphere(radiusTidal                             ))
     !![
     <objectDestructor name="massDistribution_"/>
     !!]

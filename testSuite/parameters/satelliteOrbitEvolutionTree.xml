@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A host halo with a single satellite already on its orbit, used by test-satellite-orbit-evolution.py to integrate one
+     satellite's orbit and mass loss and compare against an independent reference.
+
+     The host (node 1) is held at a fixed mass and promotes to node 2 at the end of the run, so the potential the satellite
+     orbits in does not change. The satellite (node 3) is attached as node 1's `firstSatellite` and starts at the host's virial
+     radius on an infalling orbit.
+
+     The dark matter profile scale radii are stated explicitly rather than computed by a concentration class, so that the host
+     and satellite profiles are exactly the NFW profiles the reference assumes. For a fixed contrast of 200 times the mean
+     matter density with the Planck 2018 parameters in the companion parameter file, the virial radii are 0.310934597 Mpc
+     (10^12 Msun) and 0.0669888281 Mpc (10^10 Msun), giving scale radii of r_vir/10 and r_vir/15.
+  -->
+<tree>
+
+  <!-- The host, at the start of the run. -->
+  <node>
+    <index>1</index>
+    <parent>2</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <firstSatellite>3</firstSatellite>
+    <basic>
+      <time>8.0</time>
+      <timeLastIsolated>8.0</timeLastIsolated>
+      <mass>1.0e12</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.0310934597</scale>
+    </darkMatterProfile>
+  </node>
+
+  <!-- The host, at the end of the run. Same mass, so the potential is static. -->
+  <node>
+    <index>2</index>
+    <parent>-1</parent>
+    <firstChild>1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>13.8</time>
+      <timeLastIsolated>13.8</timeLastIsolated>
+      <mass>1.0e12</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.0310934597</scale>
+    </darkMatterProfile>
+  </node>
+
+  <!-- The satellite, starting at the host's virial radius with a tangential velocity of half the host virial velocity and an
+       equal inward radial velocity. -->
+  <node>
+    <index>3</index>
+    <parent>1</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>8.0</time>
+      <timeLastIsolated>8.0</timeLastIsolated>
+      <mass>1.0e10</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.00446592187</scale>
+    </darkMatterProfile>
+    <satellite>
+      <boundMass>1.0e10</boundMass>
+      <!-- Rank-1 properties are read one element per component: the builder collects every `position` element in order,
+           so three separate elements are required rather than one holding three numbers. -->
+      <position>+0.310934597000000</position>
+      <position>+0.000000000000000</position>
+      <position>+0.000000000000000</position>
+      <velocity>-58.80586697325706</velocity>
+      <velocity>+58.80586697325706</velocity>
+      <velocity>+0.000000000000000</velocity>
+      <!-- The orbit must be supplied here as well. `satelliteOrbitNodeTreeInitialize` calls `subhaloOrbitInitialize` for every
+           node which is already a satellite when the tree is initialized, and that draws an orbit from the `virialOrbit` class
+           unless one is present - which would both discard the position and velocity above and, under a static universe, fail
+           in the spherical collapse tabulation that `benson2005` reaches for. -->
+      <virialOrbit>
+        <radius>0.310934597</radius>
+        <velocityRadial>-58.80586697325706</velocityRadial>
+        <velocityTangential>58.80586697325706</velocityTangential>
+        <massHost>1.0e12</massHost>
+        <massSatellite>1.0e10</massSatellite>
+      </virialOrbit>
+      <tidalHeatingNormalized>0.0</tidalHeatingNormalized>
+      <tidalTensorPathIntegrated>
+        <x00>0.0</x00>
+        <x01>0.0</x01>
+        <x02>0.0</x02>
+        <x11>0.0</x11>
+        <x12>0.0</x12>
+        <x22>0.0</x22>
+      </tidalTensorPathIntegrated>
+      <mergeTime>-1.0</mergeTime>
+      <destructionTime>-1.0</destructionTime>
+    </satellite>
+  </node>
+
+</tree>
