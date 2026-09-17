@@ -44,20 +44,20 @@ program Test_Satellite_Tidal_Heating_Rate
   The satellite's basic mass is not varied: with a fixed virial density contrast the internal orbital frequency, and so the rate,
   is independent of it, and such configurations would repeat another exactly.
   !!}
-  use :: Display                   , only : displayMessage                , displayVerbositySet              , verbosityLevelStandard
+  use :: Display                   , only : displayMessage                , displayVerbositySet                 , verbosityLevelStandard
   use :: Error                     , only : Error_Handler_Register
   use :: Events_Hooks              , only : eventsHooksInitialize
   use :: Functions_Global_Utilities, only : Functions_Global_Set
   use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
-  use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize    , nodeClassHierarchyInitialize     , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
-       &                                    nodeComponentSatellite        , nodeComponentSpheroid            , treeNode
+  use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize    , nodeClassHierarchyInitialize        , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
+       &                                    nodeComponentSatellite        , nodeComponentSpheroid               , treeNode
   use :: Input_Parameters          , only : inputParameters
   use :: ISO_Varying_String        , only : var_str
-  use :: Node_Components           , only : Node_Components_Initialize    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Node_Components           , only : Node_Components_Initialize    , Node_Components_Thread_Initialize   , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Satellite_Tidal_Heating   , only : satelliteTidalHeatingRateClass
   use :: Satellites_Tidal_Fields   , only : satelliteTidalFieldStandard   , satelliteTidalFieldSphericalSymmetry
   use :: Tensors                   , only : tensorRank2Dimension3Symmetric, assignment(=)
-  use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group              , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
   ! The host halo, shared by every configuration.
   double precision, parameter :: massHost           =1.0d12, concentrationHost=10.0d0
@@ -104,27 +104,27 @@ program Test_Satellite_Tidal_Heating_Rate
   ! 5 at the largest x = ωτ in the grid, so that the rate inherits up to about 6 x 10⁻⁵. Measured: 4.7 x 10⁻⁵. 2 x 10⁻⁴ is
   ! allowed. Any error in the form of the rate - a missing factor of 2π in x, off-diagonal elements counted once, a wrong
   ! exponent - changes it by far more.
-  double precision                                , parameter :: toleranceRate           =2.0d-4
+  double precision                                , parameter :: toleranceRate                        =2.0d-4
   ! The tidal tensor is compared element by element, at the same tolerance. Its off-diagonal elements pass through zero as the
   ! satellite's position approaches an axis, so each element is also given an absolute tolerance scaled to the xx element of
   ! its own configuration - without which a vanishing element would be compared relatively against zero.
-  double precision                                , parameter :: toleranceTensor         =2.0d-4, absoluteToleranceTensor=1.0d-12
+  double precision                                , parameter :: toleranceTensor                      =2.0d-4, absoluteToleranceTensor  =1.0d-12
   class           (darkMatterHaloScaleClass      ), pointer   :: darkMatterHaloScale_
   class           (satelliteTidalHeatingRateClass), pointer   :: satelliteTidalHeatingRate_
-  type            (treeNode                      ), pointer   :: nodeHost                  , nodeSatellite
-  class           (nodeComponentBasic            ), pointer   :: basicHost                 , basicSatellite
-  class           (nodeComponentDarkMatterProfile), pointer   :: profileHost               , profileSatellite
+  type            (treeNode                      ), pointer   :: nodeHost                                    , nodeSatellite
+  class           (nodeComponentBasic            ), pointer   :: basicHost                                   , basicSatellite
+  class           (nodeComponentDarkMatterProfile), pointer   :: profileHost                                 , profileSatellite
   class           (nodeComponentSatellite        ), pointer   :: satellite
   class           (nodeComponentSpheroid         ), pointer   :: spheroid
   type            (satelliteTidalFieldStandard         )      :: satelliteTidalFieldStandard_
   type            (satelliteTidalFieldSphericalSymmetry)      :: satelliteTidalFieldSphericalSymmetry_
-  type            (tensorRank2Dimension3Symmetric      )      :: tidalTensorStandard                  , tidalTensorSpherical
+  type            (tensorRank2Dimension3Symmetric      )      :: tidalTensorStandard                         , tidalTensorSpherical
   type            (inputParameters               )            :: parameters
   character       (len=128                       )            :: message
   integer                                                     :: iConfiguration
-  double precision                                            :: radiusVirialHost          , radiusVirialSatellite, &
-       &                                                         differenceMaximum         , differenceRate       , &
-       &                                                         rateHeating               , tidalTensorRadialStandard, &
+  double precision                                            :: radiusVirialHost                            , radiusVirialSatellite           , &
+       &                                                         differenceMaximum                           , differenceRate                  , &
+       &                                                         rateHeating                                 , tidalTensorRadialStandard       , &
        &                                                         tidalTensorRadialSpherical
 
   call displayVerbositySet              (verbosityLevelStandard)
@@ -141,8 +141,8 @@ program Test_Satellite_Tidal_Heating_Rate
   !!]
   ! Both tidal field classes are constructed here rather than declared in the parameter file, so that the two can be compared
   ! with each other: they must agree, since the host is spherically symmetric.
-  satelliteTidalFieldStandard_         =satelliteTidalFieldStandard         (            darkMatterHaloScale_)
-  satelliteTidalFieldSphericalSymmetry_=satelliteTidalFieldSphericalSymmetry(1.0d0      ,darkMatterHaloScale_)
+  satelliteTidalFieldStandard_         =satelliteTidalFieldStandard         (      darkMatterHaloScale_)
+  satelliteTidalFieldSphericalSymmetry_=satelliteTidalFieldSphericalSymmetry(1.0d0,darkMatterHaloScale_)
   call Unit_Tests_Begin_Group("Satellite tidal heating rate")
   differenceMaximum=0.0d0
   do iConfiguration=1,countConfigurations
@@ -164,7 +164,7 @@ program Test_Satellite_Tidal_Heating_Rate
      call basicSatellite%timeSet(timeNode                     )
      radiusVirialHost     =darkMatterHaloScale_%radiusVirial(nodeHost     )
      radiusVirialSatellite=darkMatterHaloScale_%radiusVirial(nodeSatellite)
-     call profileHost     %scaleSet(radiusVirialHost     /concentrationHost                    )
+     call profileHost     %scaleSet(radiusVirialHost     /concentrationHost                     )
      call profileSatellite%scaleSet(radiusVirialSatellite/concentrationSatellite(iConfiguration))
      ! Place the satellite. Only the speed enters the rate, so the velocity is set along the y-axis throughout.
      ! Give the satellite a stellar spheroid where the configuration asks for one, so that the total mass distribution - from
@@ -177,15 +177,15 @@ program Test_Satellite_Tidal_Heating_Rate
      call satellite%boundMassSet                (massBound(iConfiguration))
      call satellite%positionSet                 ([positionX(iConfiguration),positionY(iConfiguration),positionZ(iConfiguration)])
      call satellite%velocitySet                 ([0.0d0                    ,speed    (iConfiguration),0.0d0                    ])
-     call satellite%tidalTensorPathIntegratedSet(                                           &
-          &                                      tensorRank2Dimension3Symmetric(            &
+     call satellite%tidalTensorPathIntegratedSet(                                                                       &
+          &                                      tensorRank2Dimension3Symmetric(                                        &
           &                                                                     tensorPathIntegratedXX(iConfiguration), &
           &                                                                     tensorPathIntegratedXY(iConfiguration), &
           &                                                                     tensorPathIntegratedXZ(iConfiguration), &
           &                                                                     tensorPathIntegratedYY(iConfiguration), &
           &                                                                     tensorPathIntegratedYZ(iConfiguration), &
           &                                                                     tensorPathIntegratedZZ(iConfiguration)  &
-          &                                                                    )            &
+          &                                                                    )                                        &
           &                                     )
      ! Evaluate the rate.
      rateHeating=satelliteTidalHeatingRate_%heatingRate(nodeSatellite)
@@ -209,17 +209,17 @@ program Test_Satellite_Tidal_Heating_Rate
      tidalTensorStandard        =satelliteTidalFieldStandard_         %tidalTensor      (nodeSatellite,nodeHost=nodeHost,includeCentrifugalAcceleration=.false.)
      tidalTensorSpherical       =satelliteTidalFieldSphericalSymmetry_%tidalTensor      (nodeSatellite,nodeHost=nodeHost,includeCentrifugalAcceleration=.false.)
      write (message,'(a,i0)') 'tidal tensor, standard, configuration ',iConfiguration
-     call Assert(trim(message),                                                                                                     &
-          &      [tidalTensorStandard %element(0,0),tidalTensorStandard %element(0,1),tidalTensorStandard %element(0,2),             &
-          &       tidalTensorStandard %element(1,1),tidalTensorStandard %element(1,2),tidalTensorStandard %element(2,2)],            &
-          &      [tidalTensorXXReference(iConfiguration),tidalTensorXYReference(iConfiguration),tidalTensorXZReference(iConfiguration), &
+     call Assert(trim(message),                                                                                                          &
+          &      [tidalTensorStandard %element(0,0),tidalTensorStandard %element(0,1),tidalTensorStandard %element(0,2),                 &
+          &       tidalTensorStandard %element(1,1),tidalTensorStandard %element(1,2),tidalTensorStandard %element(2,2)],                &
+          &      [tidalTensorXXReference(iConfiguration),tidalTensorXYReference(iConfiguration),tidalTensorXZReference(iConfiguration),  &
           &       tidalTensorYYReference(iConfiguration),tidalTensorYZReference(iConfiguration),tidalTensorZZReference(iConfiguration)], &
           &      relTol=toleranceTensor,absTol=absoluteToleranceTensor*abs(tidalTensorXXReference(iConfiguration)))
      write (message,'(a,i0)') 'tidal tensor, spherical symmetry, configuration ',iConfiguration
-     call Assert(trim(message),                                                                                                     &
-          &      [tidalTensorSpherical%element(0,0),tidalTensorSpherical%element(0,1),tidalTensorSpherical%element(0,2),             &
-          &       tidalTensorSpherical%element(1,1),tidalTensorSpherical%element(1,2),tidalTensorSpherical%element(2,2)],            &
-          &      [tidalTensorXXReference(iConfiguration),tidalTensorXYReference(iConfiguration),tidalTensorXZReference(iConfiguration), &
+     call Assert(trim(message),                                                                                                          &
+          &      [tidalTensorSpherical%element(0,0),tidalTensorSpherical%element(0,1),tidalTensorSpherical%element(0,2),                 &
+          &       tidalTensorSpherical%element(1,1),tidalTensorSpherical%element(1,2),tidalTensorSpherical%element(2,2)],                &
+          &      [tidalTensorXXReference(iConfiguration),tidalTensorXYReference(iConfiguration),tidalTensorXZReference(iConfiguration),  &
           &       tidalTensorYYReference(iConfiguration),tidalTensorYZReference(iConfiguration),tidalTensorZZReference(iConfiguration)], &
           &      relTol=toleranceTensor,absTol=absoluteToleranceTensor*abs(tidalTensorXXReference(iConfiguration)))
      ! Repeat with the centrifugal term included. It is built from the angular velocity, ω=r×v/r², and not from the velocity
@@ -227,17 +227,17 @@ program Test_Satellite_Tidal_Heating_Rate
      tidalTensorStandard        =satelliteTidalFieldStandard_         %tidalTensor      (nodeSatellite,nodeHost=nodeHost,includeCentrifugalAcceleration=.true. )
      tidalTensorSpherical       =satelliteTidalFieldSphericalSymmetry_%tidalTensor      (nodeSatellite,nodeHost=nodeHost,includeCentrifugalAcceleration=.true. )
      write (message,'(a,i0)') 'tidal tensor with centrifugal term, standard, configuration ',iConfiguration
-     call Assert(trim(message),                                                                                                     &
-          &      [tidalTensorStandard %element(0,0),tidalTensorStandard %element(0,1),tidalTensorStandard %element(0,2),             &
-          &       tidalTensorStandard %element(1,1),tidalTensorStandard %element(1,2),tidalTensorStandard %element(2,2)],            &
-          &      [tidalTensorCentrifugalXXReference(iConfiguration),tidalTensorCentrifugalXYReference(iConfiguration),tidalTensorCentrifugalXZReference(iConfiguration), &
+     call Assert(trim(message),                                                                                                                                           &
+          &      [tidalTensorStandard %element(0,0),tidalTensorStandard %element(0,1),tidalTensorStandard %element(0,2),                                                  &
+          &       tidalTensorStandard %element(1,1),tidalTensorStandard %element(1,2),tidalTensorStandard %element(2,2)],                                                 &
+          &      [tidalTensorCentrifugalXXReference(iConfiguration),tidalTensorCentrifugalXYReference(iConfiguration),tidalTensorCentrifugalXZReference(iConfiguration),  &
           &       tidalTensorCentrifugalYYReference(iConfiguration),tidalTensorCentrifugalYZReference(iConfiguration),tidalTensorCentrifugalZZReference(iConfiguration)], &
           &      relTol=toleranceTensor,absTol=absoluteToleranceTensor*abs(tidalTensorCentrifugalXXReference(iConfiguration)))
      write (message,'(a,i0)') 'tidal tensor with centrifugal term, spherical symmetry, configuration ',iConfiguration
-     call Assert(trim(message),                                                                                                     &
-          &      [tidalTensorSpherical%element(0,0),tidalTensorSpherical%element(0,1),tidalTensorSpherical%element(0,2),             &
-          &       tidalTensorSpherical%element(1,1),tidalTensorSpherical%element(1,2),tidalTensorSpherical%element(2,2)],            &
-          &      [tidalTensorCentrifugalXXReference(iConfiguration),tidalTensorCentrifugalXYReference(iConfiguration),tidalTensorCentrifugalXZReference(iConfiguration), &
+     call Assert(trim(message),                                                                                                                                           &
+          &      [tidalTensorSpherical%element(0,0),tidalTensorSpherical%element(0,1),tidalTensorSpherical%element(0,2),                                                  &
+          &       tidalTensorSpherical%element(1,1),tidalTensorSpherical%element(1,2),tidalTensorSpherical%element(2,2)],                                                 &
+          &      [tidalTensorCentrifugalXXReference(iConfiguration),tidalTensorCentrifugalXYReference(iConfiguration),tidalTensorCentrifugalXZReference(iConfiguration),  &
           &       tidalTensorCentrifugalYYReference(iConfiguration),tidalTensorCentrifugalYZReference(iConfiguration),tidalTensorCentrifugalZZReference(iConfiguration)], &
           &      relTol=toleranceTensor,absTol=absoluteToleranceTensor*abs(tidalTensorCentrifugalXXReference(iConfiguration)))
      ! The radial component, which is what every caller other than the tidal heating rate uses. With the centrifugal term it
@@ -260,8 +260,8 @@ program Test_Satellite_Tidal_Heating_Rate
   end do
   write (message,'(a,e12.5)') 'largest fractional difference over all configurations: ',differenceMaximum
   call displayMessage(trim(message))
-  call Unit_Tests_End_Group()
-  call Unit_Tests_Finish   ()
+  call Unit_Tests_End_Group               ()
+  call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
   call nodeClassHierarchyFinalize         ()

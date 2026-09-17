@@ -195,7 +195,7 @@ contains
     ! distribution, but the circular velocity there is that of the *total* mass distribution, so that any baryonic component of
     ! the satellite contributes to the orbital frequency. For a dark matter only satellite the two distributions coincide.
     massDistribution_        => node%massDistribution(componentTypeAll,massTypeDark)
-    massDistributionTotal_   => node%massDistribution(                              )
+    massDistributionTotal_   => node%massDistribution(                             )
     basic                    => node%basic()
     massHalfSatellite        =  +0.50d0                                                                                                       &
          &                      *min(                                                                                                         &

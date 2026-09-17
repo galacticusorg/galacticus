@@ -167,7 +167,7 @@ program Test_Cooling_Chain
   ! Build a halo with a hot atmosphere at each test mass and redshift, and evaluate the chain.
   do i=1,countCases
      time    =  cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift(i)))
-     node    => treeNode           (                 )
+     node    => treeNode                   (                 )
      basic   => node               %basic  (autoCreate=.true.)
      hotHalo => node               %hotHalo(autoCreate=.true.)
      call basic%massSet            (massHalo(i))

@@ -176,7 +176,7 @@ contains
     class           (massDistributionClass         ), pointer                         :: massDistribution_
     type            (treeNode                      ), pointer                         :: nodeHost_
     double precision                                , dimension(3)                    :: velocitiesOrbital      , positionsOrbital              , &
-         &                                                                                velocitiesAngular
+         &                                                                               velocitiesAngular
     type            (coordinateCartesian           )                                  :: coordinatesOrbital     , coordinatesOrbitalVelocity
     type            (tensorRank2Dimension3Symmetric)                                  :: accelerationTensor     , velocityAngularTensor
     double precision                                                                  :: radiusOrbital
@@ -225,8 +225,8 @@ contains
     ! built from the angular velocity, not from the velocity itself: the two agree only for a circular orbit.
     if (includeCentrifugalAcceleration_) then
        ! Construct the acceleration tensor.
-       velocitiesAngular=+Vector_Product(positionsOrbital,velocitiesOrbital) &
-            &            /radiusOrbital                                  **2
+       velocitiesAngular=+Vector_Product(positionsOrbital,velocitiesOrbital)    &
+            &            /radiusOrbital                                     **2
        if (present(isSphericallySymmetric) .and. isSphericallySymmetric_) then
           ! In the spherically symmetric case the position has been rotated onto the x-axis, so the angular velocity lies
           ! along the z-axis in that frame, and only its magnitude is needed.
