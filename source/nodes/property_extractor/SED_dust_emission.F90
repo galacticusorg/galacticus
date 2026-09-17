@@ -45,14 +45,16 @@
 
    The dust is heated by the light of the ``[nodePropertyExtractor]``---normally a
    :galacticus-class:`nodePropertyExtractorMulti` holding :galacticus-class:`nodePropertyExtractorSED` extractors for
-   continuum and emission line extractors for lines, although a single extractor may be given directly. Each child is
+   stellar continuum, a :galacticus-class:`nodePropertyExtractorSEDAGN` for the continuum of an AGN, and emission line
+   extractors for lines, although a single extractor may be given directly. Each child is
    decomposed into parcels of emission and attenuated by the ``[dustAttenuation]`` object exactly as by
    :galacticus-class:`nodePropertyExtractorDustAttenuation`, which
    gives the luminosity absorbed by each phase of dust, averaged over orientation where the attenuator depends on it
    (with Gauss-Legendre quadrature of order ``[orderInclinationAverage]``). Absorbed spectra are integrated over
-   frequency on each child's own wavelengths, so each spectral child must be computed in the rest frame, and must span
-   at least ``[wavelengthHeatingMinimum]`` to ``[wavelengthHeatingMaximum]``---by default the Lyman limit to
-   :math:`3\,\mu\hbox{m}`---both of which are checked at construction. The accuracy of the absorbed luminosity follows
+   frequency on each child's own wavelengths, so each spectral child must be computed in the rest frame, and each stellar
+   spectrum must span at least ``[wavelengthHeatingMinimum]`` to ``[wavelengthHeatingMaximum]``---by default the Lyman
+   limit to :math:`3\,\mu\hbox{m}`---both of which are checked at construction. The spectrum of an AGN adds to that
+   light, so is not required to span the range. The accuracy of the absorbed luminosity follows
    that child's resolution. Line luminosities are converted to :math:`L_\odot` using their units. Only the lines a child
    is asked for heat the dust, and nebular continuum is not included.
 
@@ -397,6 +399,10 @@ contains
                &                   ' [wavelengthHeatingMaximum], so that all of the light heating the dust is counted'  // &
                &                   {introspection:location}                                                                &
                &                  )
+       class is (nodePropertyExtractorSEDAGN)
+          ! The spectrum of an AGN adds to the heating light, so need not span the heating range itself.
+          if (.not.child%isRestFrame())                                                                                    &
+               & call Error_Report('spectra heating dust must be computed in the rest frame'//{introspection:location})
        class is (nodePropertyExtractorScalar)
           ! Supported.
        class is (nodePropertyExtractorTuple )
@@ -587,6 +593,23 @@ contains
           class is (nodePropertyExtractorSED   )
              ! Integrate the absorbed spectrum, L_ν in L☉ Hz⁻¹, over frequency by the trapezoidal rule, spreading the
              ! luminosity of each step uniformly in ln λ across the intervals it spans.
+             wavelengthsChild=child%wavelengths(time)
+             frequenciesChild=speedLight*metersToAngstroms/wavelengthsChild
+             do k=1,countPhases
+                do j=2,size(frequenciesChild)
+                   call sedDustEmissionDeposit(                                                 &
+                        &                      wavelengthsHeating                             , &
+                        &                      luminosityHeating(:,k)                         , &
+                        &                      wavelengthsChild(j-1)                          , &
+                        &                      wavelengthsChild(j  )                          , &
+                        &                      +0.5d0                                           &
+                        &                      *(absorbed(j,k)+absorbed(j-1,k))                 &
+                        &                      *abs(frequenciesChild(j-1)-frequenciesChild(j))  &
+                        &                     )
+                end do
+             end do
+          class is (nodePropertyExtractorSEDAGN)
+             ! Integrate the absorbed spectrum of the AGN exactly as for any other spectrum.
              wavelengthsChild=child%wavelengths(time)
              frequenciesChild=speedLight*metersToAngstroms/wavelengthsChild
              do k=1,countPhases

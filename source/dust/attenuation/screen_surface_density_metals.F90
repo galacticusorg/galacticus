@@ -48,6 +48,10 @@
    The surface density is that of an exponential disk or of a spheroid of the same scale radius,
    :math:`\Sigma_\mathrm{Z} = Z M_\mathrm{gas} / 2\pi r^2`, and is taken to be zero for a component with no gas or no
    size.
+
+   Emission from the central black hole---the continuum of its accretion disk, and the lines of its narrow-line
+   region---arises at the center of the galaxy, and so is seen through the dust of both the disk and the spheroid: its
+   optical depth is the sum of theirs.
    </description>
   </dustAttenuation>
   !!]
@@ -141,9 +145,10 @@ contains
     !!{RST
     Return the :math:`V`-band optical depth of a screen scaling with the surface density of metals.
     !!}
-    use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
+    use :: Galactic_Structure_Options      , only : componentTypeBlackHole, componentTypeDisk, componentTypeSpheroid
+    use :: Numerical_Constants_Astronomical, only : massSolar             , megaParsec
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Prefixes    , only : hecto    , kilo
+    use :: Numerical_Constants_Prefixes    , only : hecto                 , kilo
     implicit none
     class           (dustAttenuationScreenSurfaceDensityMetals), intent(inout)         :: self
     type            (treeNode                                 ), intent(inout), target :: node
@@ -152,6 +157,12 @@ contains
          &                                                                                metallicity         ,         &
          &                                                                                densitySurfaceMetals
 
+    ! Emission from the central black hole is seen through the dust of both the disk and the spheroid.
+    if (componentType == componentTypeBlackHole) then
+       depthOpticalV=+self%depthOpticalV(node,componentTypeDisk    ) &
+            &        +self%depthOpticalV(node,componentTypeSpheroid)
+       return
+    end if
     call componentGasProperties(node,componentType,massGas,radius,metallicity)
     ! A component with no gas, or no size, has no dust.
     if (massGas <= 0.0d0 .or. radius <= 0.0d0) then

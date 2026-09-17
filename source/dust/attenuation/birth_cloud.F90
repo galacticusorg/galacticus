@@ -48,7 +48,8 @@
    birth cloud is a local structure, and its column is not set by the global structure of the galaxy.
 
    A parcel of emission whose age is unresolved spans all ages, and is therefore treated as old and left unattenuated
-   rather than being attenuated as though it were entirely young. Combine this class with a
+   rather than being attenuated as though it were entirely young. Emission from the central black hole is not
+   surrounded by birth clouds, and is also left unattenuated. Combine this class with a
    :galacticus-class:`dustAttenuationScreenClass` through :galacticus-class:`dustAttenuationSequence` to obtain the
    full two-component model.
    </description>
@@ -159,9 +160,9 @@ contains
     !!{RST
     Return the transmission through the dust of a stellar birth cloud.
     !!}
-    use :: Galactic_Structure_Options      , only : componentTypeMax, componentTypeMin
-    use :: Numerical_Constants_Astronomical, only : massSolar       , parsec
-    use :: Numerical_Constants_Prefixes    , only : hecto           , kilo
+    use :: Galactic_Structure_Options      , only : componentTypeBlackHole, componentTypeMax, componentTypeMin
+    use :: Numerical_Constants_Astronomical, only : massSolar             , parsec
+    use :: Numerical_Constants_Prefixes    , only : hecto                 , kilo
     implicit none
     class           (dustAttenuationBirthCloud), intent(inout)                                               :: self
     type            (treeNode                 ), intent(inout), target                                       :: node
@@ -180,6 +181,11 @@ contains
        ! Populations older than the birth cloud lifetime have escaped their birth clouds. A parcel whose age is
        ! unresolved spans all ages and so falls here, and is left unattenuated.
        if (descriptors(i)%ageMaximum > self%timescale) then
+          transmission(i)=1.0d0
+          cycle
+       end if
+       ! Emission from the central black hole is not surrounded by birth clouds.
+       if (descriptors(i)%componentType == componentTypeBlackHole) then
           transmission(i)=1.0d0
           cycle
        end if
