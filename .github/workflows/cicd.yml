@@ -1281,6 +1281,7 @@ jobs:
                       tests.decaying_dark_matter.exe,
                       tests.decaying_dark_matter_spherical_collapse.exe,
                       tests.spectra.postprocess.Inoue2014.exe,
+                      tests.spectra.postprocess.HII_region_absorption.exe,
                       tests.recombination_computed.exe,
                       tests.recombination_cooling.Hummer.exe,
                       tests.intergalactic_medium_state.exe,

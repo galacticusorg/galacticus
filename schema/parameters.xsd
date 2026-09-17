@@ -3915,6 +3915,7 @@
        <xs:attribute name="value" use="optional">
         <xs:simpleType>
          <xs:restriction base="xs:string">
+          <xs:enumeration value="HIIRegionAbsorption"/>
           <xs:enumeration value="ageWindow"/>
           <xs:enumeration value="birthCloudsLacey2016"/>
           <xs:enumeration value="identity"/>
