@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameter file used by tests.bett2007_spin_distribution.exe, which validates the halo spin distribution of
+     Bett et al. (2007) against independently computed reference values (galacticusDevTools/bett2007SpinDistribution.py).
+
+     The distribution itself depends only on its own two parameters, but evaluating it requires a node: the class divides the
+     node's angular momentum by the halo's characteristic angular momentum scale to form the dimensionless spin. That scale, on
+     the default (Peebles) path, integrates the energy of the halo's dark matter profile - so the node needs a dark matter
+     profile component with its scale radius set, and the profile and halo scale classes must be wired up here. The cosmology
+     is standard LCDM; none of it is tuned, because the test asserts values of the distribution at given spins, and the spin is
+     set directly by the test rather than being drawn.
+  -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="75fe8b2def913b997756b92093f11415fbea05d7" time="2026-09-15T00:00:00"/>
+
+  <!-- Component selection. Basic, spin and dark matter profile components are needed to form the angular momentum scale. -->
+  <componentBasic             value="standard"/>
+  <componentSpin              value="scalar"  />
+  <componentDarkMatterProfile value="scale"   />
+
+  <!-- Cosmology. -->
+  <cosmologyFunctions  value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="67.36000"/>
+    <OmegaMatter     value=" 0.31530"/>
+    <OmegaDarkEnergy value=" 0.68470"/>
+    <OmegaBaryon     value=" 0.04930"/>
+    <temperatureCMB  value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Halo structure, needed to form the characteristic angular momentum scale. -->
+  <virialDensityContrast          value="fixed">
+    <densityContrastValue value="200.0"/>
+    <densityType          value="mean" />
+  </virialDensityContrast>
+  <darkMatterHaloScale            value="virialDensityContrastDefinition"/>
+  <darkMatterProfileDMO           value="NFW"                           />
+  <darkMatterProfileScaleRadius   value="concentration"                 />
+  <darkMatterProfileConcentration value="fixed">
+    <concentration value="8.0"/>
+  </darkMatterProfileConcentration>
+
+  <!-- The spin distribution under test. The values below are the class defaults, which are those fit by Bett et al. (2007);
+       they are stated explicitly to document what the reference calculation assumes. -->
+  <haloSpinDistribution value="bett2007">
+    <lambda0 value="0.04326"/>
+    <alpha   value="2.509"  />
+  </haloSpinDistribution>
+</parameters>

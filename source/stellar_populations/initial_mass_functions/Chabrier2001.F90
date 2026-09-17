@@ -203,15 +203,15 @@ contains
     normalization                =+self%normalizationLogNormal   &
          &                        +self%normalizationExponential
     self%normalizationLogNormal  =1.0d0/normalization
-    self%normalizationExponential=+exp(                                    &
-         &                              -0.50d0                            &
-         &                              *log10(                            &
-         &                                     +self%massTransition        &
-         &                                     /self%massCharacteristic    &
-         &                                    )                        **2 &
-         &                              /self%sigma                    **2 &
-         &                             )                                   &
-         &                         /self%massTransition                    &
+    self%normalizationExponential=+exp(                                        &
+         &                              -0.50d0                                &
+         &                              *log10(                                &
+         &                                     +self%massTransition            &
+         &                                     /self%massCharacteristic        &
+         &                                    )                        **2     &
+         &                              /self%sigma                    **2     &
+         &                             )                                       &
+         &                         /self%massTransition**(1.0d0+self%exponent) &
          &                         /normalization
     return
   end function chabrier2001ConstructorInternal
