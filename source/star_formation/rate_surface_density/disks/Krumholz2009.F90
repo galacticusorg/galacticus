@@ -36,9 +36,9 @@
 
    .. math::
 
-      \dot{\Sigma}_\star(R) = \nu_\mathrm{SF} f_\mathrm{H_2}(R)\Sigma_\mathrm{HI, disk}(R) \left\{ \begin{array}{ll}
-      (\Sigma_\mathrm{HI}/\Sigma_0)^{-1/3}, &amp; \hbox{ if } \Sigma_\mathrm{HI}/\Sigma_0 \le 1 \\
-      (\Sigma_\mathrm{HI}/\Sigma_0)^{1/3}, &amp; \hbox{ if } \Sigma_\mathrm{HI}/\Sigma_0 &gt; 1 \end{array} \right. ,
+      \dot{\Sigma}_\star(R) = \nu_\mathrm{SF} f_\mathrm{H_2}(R)\Sigma_\mathrm{gas, disk}(R) \left\{ \begin{array}{ll}
+      (\Sigma_\mathrm{gas}/\Sigma_0)^{-0.33}, &amp; \hbox{ if } \Sigma_\mathrm{gas}/\Sigma_0 \le 1 \\
+      (\Sigma_\mathrm{gas}/\Sigma_0)^{0.33}, &amp; \hbox{ if } \Sigma_\mathrm{gas}/\Sigma_0 &gt; 1 \end{array} \right. ,
 
    where :math:`\nu_\mathrm{SF}=`\ ``[frequencyStarFormation]`` is a frequency and :math:`\Sigma_0=85 \mathrm{M}_\odot \hbox{pc}^{-2}`. The molecular fraction is given by
 
@@ -64,7 +64,7 @@
 
       \chi = 0.77 \left[ 1 + 3.1 Z^{\prime 0.365} \right],
 
-   and :math:`\Sigma_\mathrm{comp,0}=c \Sigma_\mathrm{HI}/\mathrm{M}_\odot \hbox{pc}^{-2}` where :math:`c=`\ ``[clumpingFactorMolecularComplex]`` is a density enhancement factor relating the surface density of molecular complexes to the gas density on larger scales. Alternatively, if ``[molecularFractionFast]`` is set to true, the molecular fraction will be computed using the faster (but less accurate at low molecular fraction) formula
+   and :math:`\Sigma_\mathrm{comp,0}=c \Sigma_\mathrm{gas}/\mathrm{M}_\odot \hbox{pc}^{-2}` where :math:`c=`\ ``[clumpingFactorMolecularComplex]`` is a density enhancement factor relating the surface density of molecular complexes to the gas density on larger scales. Following :cite:t:`krumholz_star_2009`, :math:`\Sigma_\mathrm{gas}` is here the *total* gas surface density, including the contribution of helium. Alternatively, if ``[molecularFractionFast]`` is set to true, the molecular fraction will be computed using the faster (but less accurate at low molecular fraction) formula
 
    .. math::
 
@@ -83,8 +83,8 @@
           &                                                    radiusCriticalPrevious            , radiusMaximumPrevious
      type            (abundances         )                  :: abundancesFuelPrevious
      double precision                                       :: chi                               , radiusDisk                    , &
-          &                                                    massGas                           , hydrogenMassFraction          , &
-          &                                                    metallicityRelativeToSolar        , sNormalization                , &
+          &                                                    massGas                           , metallicityRelativeToSolar    , &
+          &                                                    sNormalization                    ,                                 &
           &                                                    sigmaMolecularComplexNormalization, clumpingFactorMolecularComplex, &
           &                                                    frequencyStarFormation            , sTruncation                   , &
           &                                                    surfaceDensityGasTruncation
@@ -331,15 +331,14 @@ contains
        disk            => node%disk   ()
        self%massGas    =  disk%massGas()
        self%radiusDisk =  disk%radius ()
-       ! Find the hydrogen fraction in the disk gas of the fuel supply.
+       ! Convert the abundances of the fuel supply to mass fractions.
        abundancesFuel=disk%abundancesGas()
        call abundancesFuel%massToMassFraction(self%massGas)
-       self%hydrogenMassFraction=abundancesFuel%hydrogenMassFraction()
        ! Get the metallicity in Solar units, and related quantities.
        self%metallicityRelativeToSolar=abundancesFuel%metallicity(metallicityTypeLinearByMassSolar)
        if (self%metallicityRelativeToSolar > 0.0d0) then
           self%chi                               =0.77d0*(1.0d0+3.1d0*self%metallicityRelativeToSolar**0.365d0)
-          self%sigmaMolecularComplexNormalization=self%hydrogenMassFraction*self%clumpingFactorMolecularComplex/mega**2
+          self%sigmaMolecularComplexNormalization=self%clumpingFactorMolecularComplex/mega**2
           self%sNormalization                    =log(1.0d0+0.6d0*self%chi+0.01d0*self%chi**2)/(0.04d0*self%metallicityRelativeToSolar)
           ! Find the gas surface density below which the molecular fraction is negligible. Since s ∝ 1/Σ_gas, the molecular
           ! fraction falls below `molecularFractionTiny` wherever the gas surface density falls below this value.
@@ -453,8 +452,7 @@ contains
     <objectDestructor name="massDistribution_"/>
     !!]
     ! Compute the cloud density factor.
-    surfaceDensityGasDimensionless=+self%hydrogenMassFraction     &
-         &                         *     surfaceDensityGas        &
+    surfaceDensityGasDimensionless=+     surfaceDensityGas        &
          &                         /     surfaceDensityTransition
     return
   end subroutine krumholz2009SurfaceDensityFactors

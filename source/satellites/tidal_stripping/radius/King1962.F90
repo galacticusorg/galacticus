@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by:  Anthony Pullen, Andrew Benson, Xiaolong Du.
+!+    Contributions to this file made by:  Anthony Pullen, Andrew Benson, Xiaolong Du, Claude.
 
   !!{RST
   Implementation of a satellite tidal radius class which follows the method of :cite:t:`king_structure_1962`.
@@ -37,7 +37,7 @@
 
       r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\gamma_\mathrm{c} \omega^2-d^2\Phi/dr^2}\right)^{1/3},
 
-   where :math:`\omega` is the orbital angular velocity of the satellite, :math:`\Phi(r)` is the gravitational potential due to the host, and :math:`\gamma_\mathrm{c}=`\ ``[efficiencyCentrifugal]`` is the a model parameter that controls the efficiency of centrifugal force. The calculation is based on the dark matter only density profile of the satellite---no accounting is made for the baryonic components.
+   where :math:`\omega` is the orbital angular velocity of the satellite, :math:`\Phi(r)` is the gravitational potential due to the host, and :math:`\gamma_\mathrm{c}=`\ ``[efficiencyCentrifugal]`` is a model parameter that controls the efficiency of centrifugal force. The tidal radius is found by solving this equation implicitly, with :math:`M_\mathrm{sat}` the mass of the satellite enclosed within :math:`r_\mathrm{tidal}`, using the total mass distribution of the satellite. Where the tidal field is compressive, such that :math:`\gamma_\mathrm{c} \omega^2-\mathrm{d}^2\Phi/\mathrm{d}r^2 \le 0`, no tidal radius exists; in that case the radius enclosing the bound dark matter mass of the satellite in its dark matter only profile---capped at the virial radius---is returned instead.
    </description>
   </satelliteTidalStrippingRadius>
   !!]
@@ -271,7 +271,7 @@ contains
        ! If the bound mass of the satellite exceeds the original mass (which can happen during failed ODE steps), simply return
        ! the virial radius. Otherwise, solve for the radius enclosing the current bound mass.
        massDistributionDark => node%massDistribution(massType=massTypeDark)
-       if (massSatellite > massDistributionDark%massEnclosedBySphere(self%darkMatterHaloScale_%radiusVirial(node))) then
+       if (massSatellite*self%fractionDarkMatter > massDistributionDark%massEnclosedBySphere(self%darkMatterHaloScale_%radiusVirial(node))) then
           king1962Radius=self                %darkMatterHaloScale_%radiusVirial       (node                                 )
        else
           king1962Radius=massDistributionDark                     %radiusEnclosingMass(massSatellite*self%fractionDarkMatter)

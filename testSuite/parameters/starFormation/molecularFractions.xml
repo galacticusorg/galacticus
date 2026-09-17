@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameters for the molecular fraction star formation rate surface density unit test -->
+<!-- (source/tests/star_formation/molecular_fractions.F90). Only a disk component is     -->
+<!-- needed - the test sets its masses, radius and abundances directly, and builds the   -->
+<!-- star formation rate surface density objects itself.                                 -->
+
+<parameters>
+  <formatVersion>2</formatVersion>
+
+  <!-- Component selection -->
+  <componentBasic     value="standard"      />
+  <componentDisk      value="verySimpleSize">
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
+  </componentDisk>
+  <componentSpheroid  value="null"          />
+  <componentHotHalo   value="null"          />
+  <componentBlackHole value="null"          />
+
+</parameters>

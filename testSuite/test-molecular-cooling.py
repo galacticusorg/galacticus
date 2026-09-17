@@ -60,12 +60,31 @@ for (outputName, output) in outputs.items():
 # balanced in the interval which follows it - the molecular hydrogen mass rises from z=10 to z=8 here, where a slightly earlier
 # switch-on would have it fall. These two values are therefore sensitive to where the tabulation's points fall relative to the
 # step, and were updated when those points were placed on an absolute lattice. The remaining outputs are insensitive to it.
-massesHydrogenMolecularTarget   = np.array([96105.91566116, 237085.66451119, 367555.39620225, 0.            ])
-coolingFunctionsMolecularTarget = np.array([2.76678102e-24, 5.50976858e-24 , 2.50120421e-24 , 0.00000000e+00])
+#
+# The values were updated again when the Blitz & Rosolowsky (2006) star formation rate surface density law, which this model
+# uses, was corrected: its characteristic pressure had been a factor of some 7,700 too small, and its molecular fraction was
+# min(R_mol,1) rather than R_mol/(1+R_mol). That model's disk is consequently far less molecular, its star formation rate lower,
+# and its feedback weaker, which feeds through to the hot halo. The masses fell by 2.0%, 6.4% and 8.4% at z = 12, 10 and 8, and
+# the cooling functions by 0.3%, 3.0% and 7.0%. Restoring the two superseded expressions - with the tabulation of the disk
+# integral still removed - reproduces the previous values exactly, which is what identifies the star formation law rather than
+# the removal of that tabulation as the cause.
+#
+# Repeated builds of the same source give these to about one part in 10^5, so the 1% tolerance below is not tight.
+massesHydrogenMolecularTarget   = np.array([94177.45499300, 221804.24175394, 336649.62031359, 0.            ])
+coolingFunctionsMolecularTarget = np.array([2.75853507e-24, 5.34553994e-24 , 2.32584862e-24 , 0.00000000e+00])
 
 # Report on status.
-status = np.allclose(massesHydrogenMolecular,massesHydrogenMolecularTarget,rtol=1.0e-2,atol=1.0e3) and np.allclose(coolingFunctionsMolecular,coolingFunctionsMolecularTarget,rtol=1.0e-2,atol=1.0e-26)
+massesAgree  = np.isclose(massesHydrogenMolecular  ,massesHydrogenMolecularTarget  ,rtol=1.0e-2,atol=1.0e3 )
+coolingAgree = np.isclose(coolingFunctionsMolecular,coolingFunctionsMolecularTarget,rtol=1.0e-2,atol=1.0e-26)
+status       = np.all(massesAgree) and np.all(coolingAgree)
 if status:
     print("   SUCCESS: H₂ mass and cooling function")
 else:
     print("   FAILED: H₂ mass and cooling function")
+    # Report which outputs disagree, and by how much, so that a failure says whether the model has moved a little or a lot.
+    redshifts = ( 12, 10, 8, 6 )
+    for i in range(4):
+        if not massesAgree[i]:
+            print("     z = {0:2d}: H₂ mass          = {1:18.8f}, expected {2:18.8f} ({3:+7.2f}%)".format(redshifts[i],massesHydrogenMolecular[i],massesHydrogenMolecularTarget[i],100.0*(massesHydrogenMolecular[i]/massesHydrogenMolecularTarget[i]-1.0) if massesHydrogenMolecularTarget[i] != 0.0 else np.nan))
+        if not coolingAgree[i]:
+            print("     z = {0:2d}: cooling function = {1:18.8e}, expected {2:18.8e} ({3:+7.2f}%)".format(redshifts[i],coolingFunctionsMolecular[i],coolingFunctionsMolecularTarget[i],100.0*(coolingFunctionsMolecular[i]/coolingFunctionsMolecularTarget[i]-1.0) if coolingFunctionsMolecularTarget[i] != 0.0 else np.nan))

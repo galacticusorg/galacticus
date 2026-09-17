@@ -453,6 +453,23 @@
     </translation>
   </migration>
 
+  <migration commit="b9c98aa6ed4afa1acd4c62856f53bd91336bc61d">
+    <!-- The `blitz2006` star formation rate surface density class no longer tabulates its disk integrals - the    -->
+    <!-- molecular fraction is now the `R/(1+R)` form of eqn. (21) of Blitz & Rosolowsky (2006), for which the     -->
+    <!-- analytic solutions underlying the tabulation do not exist - so `[useTabulation]` is retired.              -->
+    <translation xpath="//starFormationRateSurfaceDensityDisks[@value='blitz2006']/useTabulation[@value]">
+      <remove/>
+    </translation>
+    <!-- `[pressureCharacteristic]` is the characteristic pressure P_0/k_B in K/cm^3, but its default of 4.54 was  -->
+    <!-- log10(P_0/k_B) for the "Mean" row of Table 2 of Blitz & Rosolowsky (2006), used as though it were linear. -->
+    <!-- Parameter files which set that default explicitly are translated to the linear value; note that this      -->
+    <!-- changes the physics of such models - as intended, since the previous pressure was some 7,700 times too    -->
+    <!-- small - and so they will require recalibration.                                                           -->
+    <translation xpath="//starFormationRateSurfaceDensityDisks[@value='blitz2006']/pressureCharacteristic[@value]">
+      <value old="4.54" new="3.5e4"/>
+    </translation>
+  </migration>
+  
   <migration commit="93b7a61e6990a21676d122050b0bda6c53ffde6e">
     <translation function="dust_properties"/>
   </migration>
