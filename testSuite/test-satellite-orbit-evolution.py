@@ -25,17 +25,23 @@ import numpy as np
 
 # The reference trajectory, from `satelliteOrbitEvolution.py --fortran`.
 timesReference     = [9.000000000000000e+00, 1.000000000000000e+01, 1.100000000000000e+01, 1.200000000000000e+01, 1.300000000000000e+01, 1.380000000000000e+01]
-radiusReference    = [2.361300889537773e-01, 1.320409491683620e-01, 1.053527412091073e-01, 2.105210992536336e-01, 2.906766627885057e-01, 3.331012408675083e-01]
-massBoundReference = [8.902724243817198e+09, 6.401754840820833e+09, 3.083010452477554e+09, 3.083010452477554e+09, 3.083010452477554e+09, 3.083010452477554e+09]
+radiusReference    = [2.361165239294457e-01, 1.320251014767306e-01, 1.053610869560180e-01, 2.105308038564015e-01, 2.906800920711131e-01, 3.330988989093907e-01]
+massBoundReference = [8.902557651909540e+09, 6.401239927633076e+09, 3.082872403659566e+09, 3.082872403659566e+09, 3.082872403659566e+09, 3.082872403659566e+09]
 
 # Tolerances.
 #
-# Both are set from the measured agreement with a factor of a few in hand, not tuned to it. The floor is set by
-# the two integrators, not by the physics: Galacticus evolves with a relative ODE tolerance of 1e-8 accumulated
-# over 5.8 Gyr and through a pericentre passage, while the reference is converged to 2e-8 in radius and 2e-7 in
-# mass (its own `--converge` mode compares tolerances of 1e-11 and 1e-8). Measured differences are 1.9e-4 in
-# radius and 1.2e-4 in bound mass.
-toleranceRadius    = 1.0e-3
+# Both are set from the measured agreement with a factor of a few in hand, not tuned to it. Measured differences
+# are 3.1e-6 in radius and 1.6e-4 in bound mass.
+#
+# Neither floor is the integrators', contrary to what this comment claimed when the test was written: tightening
+# Galacticus' ODE tolerance from 1e-8 to 1e-10, and its satellite timestep criterion tenfold, leaves both
+# differences unchanged to three figures. The radius was limited by the reference recomputing the satellite's
+# initial position rather than reading it from the tree, which differ by 4e-5 because the tree carries the virial
+# radius under `matterLambda` at 13.8 Gyr while this model runs in a static universe; the reference now takes
+# the tree's values verbatim, and the agreement improved fortyfold. What remains in the bound mass is the King
+# (1962) tidal radius, found by `radiusEnclosingDensityNumerical` with a relative tolerance of 1e-3, which
+# nothing downstream of it can beat.
+toleranceRadius    = 1.0e-4
 toleranceMassBound = 1.0e-3
 
 # Run the model.
