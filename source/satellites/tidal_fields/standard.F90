@@ -164,7 +164,8 @@ contains
     !!}
     use :: Coordinates       , only : coordinateCartesian  , assignment(=)
     use :: Mass_Distributions, only : massDistributionClass
-    use :: Tensors           , only : tensorNullR2D3Sym    , assignment(=), operator(*)
+    use :: Tensors           , only : tensorNullR2D3Sym    , tensorIdentityR2D3Sym, assignment(=), operator(*)
+    use :: Vectors           , only : Vector_Outer_Product , Vector_Product
     implicit none
     type            (tensorRank2Dimension3Symmetric)                                  :: tidalTensor
     class           (satelliteTidalFieldStandard   ), intent(inout)                   :: self
@@ -174,10 +175,11 @@ contains
     logical                                         , intent(  out), optional         :: isSphericallySymmetric
     class           (massDistributionClass         ), pointer                         :: massDistribution_
     type            (treeNode                      ), pointer                         :: nodeHost_
-    double precision                                , dimension(3)                    :: velocitiesOrbital
+    double precision                                , dimension(3)                    :: velocitiesOrbital      , positionsOrbital              , &
+         &                                                                                velocitiesAngular
     type            (coordinateCartesian           )                                  :: coordinatesOrbital     , coordinatesOrbitalVelocity
-    type            (tensorRank2Dimension3Symmetric)                                  :: accelerationTensor
-    double precision                                                                  :: radiusOrbital          , velocityOrbital
+    type            (tensorRank2Dimension3Symmetric)                                  :: accelerationTensor     , velocityAngularTensor
+    double precision                                                                  :: radiusOrbital
     logical                                                                           :: isSphericallySymmetric_
     !![
     <optionalArgument name="atPericenter"                   defaultsTo=".false."/>
@@ -191,8 +193,11 @@ contains
        if (present(isSphericallySymmetric)) isSphericallySymmetric=.true.
        return
     end if
-    ! Get required factors.
-    call self%factors(node,nodeHost,atPericenter_,coordinatesOrbital,coordinatesOrbitalVelocity,radiusOrbital,velocityOrbital)
+    ! Get required factors. The position is captured before any rotation onto the x-axis below, since the angular velocity
+    ! needed for the centrifugal term must be built from the position and velocity in the same frame.
+    call self%factors(node,nodeHost,atPericenter_,coordinatesOrbital,coordinatesOrbitalVelocity,radiusOrbital)
+    positionsOrbital =coordinatesOrbital
+    velocitiesOrbital=coordinatesOrbitalVelocity
     ! Construct the tidal tensor.
     if (present(nodeHost)) then
        nodeHost_ => nodeHost
@@ -215,26 +220,22 @@ contains
     !![
     <objectDestructor name="massDistribution_"/>
     !!]
-    ! Add centrifugal term if requested.
+    ! Add centrifugal term if requested. The centrifugal acceleration in the frame co-rotating with the satellite is
+    ! -ω×(ω×r), with angular velocity ω=r×v/r², so its contribution to the tidal tensor is |ω|²δ_ij-ω_iω_j. Note that this is
+    ! built from the angular velocity, not from the velocity itself: the two agree only for a circular orbit.
     if (includeCentrifugalAcceleration_) then
        ! Construct the acceleration tensor.
+       velocitiesAngular=+Vector_Product(positionsOrbital,velocitiesOrbital) &
+            &            /radiusOrbital                                  **2
        if (present(isSphericallySymmetric) .and. isSphericallySymmetric_) then
-          ! In the spherically symmetric case this has the following form.
-          accelerationTensor=+tensorRank2Dimension3Symmetric(1.0d0,0.0d0,0.0d0,0.0d0,0.0d0,1.0d0)    &
-               &             *velocityOrbital                                                    **2 &
-               &             /radiusOrbital                                                      **2
+          ! In the spherically symmetric case the position has been rotated onto the x-axis, so the angular velocity lies
+          ! along the z-axis in that frame, and only its magnitude is needed.
+          accelerationTensor= tensorRank2Dimension3Symmetric(1.0d0,0.0d0,0.0d0,1.0d0,0.0d0,0.0d0) &
+               &             *sum(velocitiesAngular**2)
        else
           ! Use the fully general form.
-          velocitiesOrbital=coordinatesOrbitalVelocity
-          accelerationTensor=tensorRank2Dimension3Symmetric(                                                                                      &
-               &                                            +velocitiesOrbital(2)*velocitiesOrbital(2)+velocitiesOrbital(3)*velocitiesOrbital(3), & ! xx
-               &                                            -velocitiesOrbital(1)*velocitiesOrbital(2)                                          , & ! xy
-               &                                            -velocitiesOrbital(1)*velocitiesOrbital(3)                                          , & ! xz
-               &                                            +velocitiesOrbital(1)*velocitiesOrbital(1)+velocitiesOrbital(3)*velocitiesOrbital(3), & ! yy
-               &                                            -velocitiesOrbital(2)*velocitiesOrbital(3)                                          , & ! yz
-               &                                            +velocitiesOrbital(1)*velocitiesOrbital(1)+velocitiesOrbital(2)*velocitiesOrbital(2)  & ! zz
-               &                                           )                                                                                      &
-               &             /radiusOrbital**2
+          velocityAngularTensor=Vector_Outer_Product (velocitiesAngular,symmetrize=.true.)
+          accelerationTensor   =tensorIdentityR2D3Sym*sum(velocitiesAngular**2)-velocityAngularTensor
        end if
        tidalTensor=+tidalTensor        &
             &      +accelerationTensor
