@@ -39,6 +39,7 @@ module Dust_Emission_Spectra
   !!}
   implicit none
   private
+  public :: dustEmissionIntegralPowerLaw, dustEmissionLuminosityIntegratedSampled
 
   !![
   <functionClass docformat="rst">
@@ -64,7 +65,95 @@ module Dust_Emission_Spectra
     <argument>double precision, intent(in   ), dimension(:) :: wavelengths                       </argument>
     <argument>double precision, intent(in   )               :: luminosityAbsorbed, massDust, time</argument>
    </method>
+   <method name="luminosityIntegrated" >
+    <description>
+    Return :math:`\int L_\nu\,\mathrm{d}\ln\lambda`, in :math:`L_\odot\,\hbox{Hz}^{-1}`, over each of the rest-frame
+    wavelength intervals from ``wavelengthsMinimum`` to ``wavelengthsMaximum`` (in Å), emitted by dust of mass
+    ``massDust`` (in :math:`M_\odot`) at cosmic ``time`` (in Gyr) which absorbs the luminosity
+    ``luminositiesAbsorbed(i)`` (in :math:`L_\odot`) in the interval of wavelength between ``wavelengthsHeating(i)`` and
+    ``wavelengthsHeating(i+1)`` (in Å).
+
+    This is the form in which a spectrum is used to build a spectral energy distribution. It passes the spectrum the
+    shape of the light the dust absorbs, on which emission from the smallest grains depends, and lets a spectrum with
+    structure finer than the output intervals be integrated exactly. The default ignores that shape, finding the
+    spectrum from ``luminosity`` given the total luminosity absorbed, and integrates it by an eight-point
+    Gauss--Legendre rule in :math:`\ln\lambda` over each interval.
+    </description>
+    <type>double precision, dimension(size(wavelengthsMinimum))</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ), dimension(:) :: wavelengthsMinimum, wavelengthsMaximum, wavelengthsHeating, luminositiesAbsorbed</argument>
+    <argument>double precision, intent(in   )               :: massDust          , time                </argument>
+    <code>
+     !$GLC attributes unused :: wavelengthsHeating
+     dustEmissionSpectrumLuminosityIntegrated=dustEmissionLuminosityIntegratedSampled(self,wavelengthsMinimum,wavelengthsMaximum,sum(luminositiesAbsorbed),massDust,time)
+    </code>
+   </method>
   </functionClass>
   !!]
+
+contains
+
+  double precision function dustEmissionIntegralPowerLaw(wavelength,luminosityLogarithmic) result(integral)
+    !!{RST
+    Return :math:`\int L_\nu\,\mathrm{d}\nu` for a spectrum given as :math:`\ln \nu L_\nu` at ``wavelength`` (in Å),
+    and interpolated as a power law between them---as tabulated spectra of dust emission are.
+
+    With :math:`x = \ln \nu`, a power law in :math:`L_\nu` is also a power law in :math:`F = \nu L_\nu`, and
+    :math:`\int L_\nu\,\mathrm{d}\nu = \int F\,\mathrm{d}x`. Over each interval that is the width in :math:`x` times
+    the logarithmic mean of :math:`F` at its ends, :math:`(F_2-F_1)/(\ln F_2-\ln F_1)`, which tends to :math:`F_1` as
+    the ends become equal.
+    !!}
+    implicit none
+    double precision, intent(in   ), dimension(:) :: wavelength            , luminosityLogarithmic
+    ! Below this difference in the logarithm, the logarithmic mean is evaluated by its series, avoiding cancellation.
+    double precision, parameter                   :: differenceSmall=1.0d-6
+    double precision                              :: difference            , meanLogarithmic
+    integer                                       :: i
+
+    integral=0.0d0
+    do i=1,size(wavelength)-1
+       difference=luminosityLogarithmic(i+1)-luminosityLogarithmic(i)
+       if (abs(difference) < differenceSmall) then
+          meanLogarithmic= exp(luminosityLogarithmic(i  ))*(1.0d0+difference/2.0d0)
+       else
+          meanLogarithmic=(exp(luminosityLogarithmic(i+1))-exp(luminosityLogarithmic(i)))/difference
+       end if
+       integral=integral+meanLogarithmic*log(wavelength(i+1)/wavelength(i))
+    end do
+    return
+  end function dustEmissionIntegralPowerLaw
+
+  function dustEmissionLuminosityIntegratedSampled(self,wavelengthsMinimum,wavelengthsMaximum,luminosityAbsorbed,massDust,time) result(integral)
+    !!{RST
+    Return :math:`\int L_\nu\,\mathrm{d}\ln\lambda` over each interval of wavelength from ``wavelengthsMinimum`` to
+    ``wavelengthsMaximum`` (in Å), from the spectrum ``luminosity`` of ``self`` given the total ``luminosityAbsorbed``,
+    by an eight-point Gauss--Legendre rule in :math:`\ln\lambda` over each interval.
+    !!}
+    use :: Dust_Attenuations, only : gaussLegendreRule
+    implicit none
+    class           (dustEmissionSpectrumClass), intent(inout)                                      :: self
+    double precision                           , intent(in   ), dimension(:                       ) :: wavelengthsMinimum  , wavelengthsMaximum
+    double precision                           , intent(in   )                                      :: luminosityAbsorbed  , massDust          , &
+         &                                                                                             time
+    double precision                                          , dimension(size(wavelengthsMinimum)) :: integral
+    integer                                    , parameter                                          :: order             =8
+    double precision                           , allocatable  , dimension(:                       ) :: abscissae           , weights           , &
+         &                                                                                             wavelengths         , luminosities
+    integer                                                                                         :: i
+
+    integral=0.0d0
+    if (luminosityAbsorbed <= 0.0d0 .or. size(wavelengthsMinimum) == 0) return
+    call gaussLegendreRule(order,abscissae,weights)
+    allocate(wavelengths(order*size(wavelengthsMinimum)))
+    do i=1,size(wavelengthsMinimum)
+       wavelengths((i-1)*order+1:i*order)=wavelengthsMinimum(i)*(wavelengthsMaximum(i)/wavelengthsMinimum(i))**abscissae
+    end do
+    luminosities=self%luminosity(wavelengths,luminosityAbsorbed,massDust,time)
+    do i=1,size(wavelengthsMinimum)
+       integral(i)=+log(wavelengthsMaximum(i)/wavelengthsMinimum(i)) &
+            &      *sum(weights*luminosities((i-1)*order+1:i*order))
+    end do
+    return
+  end function dustEmissionLuminosityIntegratedSampled
 
 end module Dust_Emission_Spectra
