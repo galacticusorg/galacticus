@@ -51,6 +51,9 @@
    of birth clouds and diffuse medium alike. Anything expressible here is expressible with
    :galacticus-class:`dustAttenuationSequence`; use that directly to vary the extinction curve of either component
    independently, or to build a model with more than two components.
+
+   Its two phases of dust are the birth clouds and the diffuse interstellar medium, in that order, labeled
+   ``birthCloud`` and ``screenSurfaceDensityMetals``, so that the energy each absorbs can be re-emitted separately.
    </description>
   </dustAttenuation>
   !!]
@@ -68,9 +71,12 @@
           &                                                                  timescale                      , exponent_     , &
           &                                                                  wavelengthReference
    contains
-     final     ::                 charlotFall2000Destructor
-     procedure :: transmission => charlotFall2000Transmission
-     procedure :: request      => charlotFall2000Request
+     final     ::                       charlotFall2000Destructor
+     procedure :: transmission       => charlotFall2000Transmission
+     procedure :: request            => charlotFall2000Request
+     procedure :: countPhases        => charlotFall2000CountPhases
+     procedure :: labelPhase         => charlotFall2000LabelPhase
+     procedure :: transmissionPhases => charlotFall2000TransmissionPhases
   end type dustAttenuationCharlotFall2000
 
   interface dustAttenuationCharlotFall2000
@@ -230,3 +236,56 @@ contains
     request=self%birthCloud_%request()
     return
   end function charlotFall2000Request
+
+  integer function charlotFall2000CountPhases(self) result(countPhases)
+    !!{RST
+    Return the number of phases of dust: birth clouds and the diffuse interstellar medium.
+    !!}
+    implicit none
+    class(dustAttenuationCharlotFall2000), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    countPhases=2
+    return
+  end function charlotFall2000CountPhases
+
+  function charlotFall2000LabelPhase(self,indexPhase) result(label)
+    !!{RST
+    Return the label of a phase of dust: that of the birth cloud component for the first, and of the diffuse
+    interstellar medium for the second.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    type   (varying_string                )                :: label
+    class  (dustAttenuationCharlotFall2000), intent(inout) :: self
+    integer                                , intent(in   ) :: indexPhase
+
+    select case (indexPhase)
+    case (1)
+       label=self%birthCloud_%labelPhase(1)
+    case (2)
+       label=self%screenISM_ %labelPhase(1)
+    case default
+       label=''
+       call Error_Report('phase index out of range'//{introspection:location})
+    end select
+    return
+  end function charlotFall2000LabelPhase
+
+  function charlotFall2000TransmissionPhases(self,node,descriptors,inclination) result(transmission)
+    !!{RST
+    Return the transmission through the birth clouds and through the diffuse interstellar medium, in that order.
+    !!}
+    implicit none
+    double precision                                , allocatable  , dimension(:,:) :: transmission
+    class           (dustAttenuationCharlotFall2000), intent(inout)                 :: self
+    type            (treeNode                      ), intent(inout), target         :: node
+    type            (emissionDescriptor            ), intent(in   ), dimension(:  ) :: descriptors
+    double precision                                , intent(in   ), optional       :: inclination
+    !$GLC attributes unused :: inclination
+
+    allocate(transmission(size(descriptors),2))
+    transmission(:,1)=self%birthCloud_%transmission(node,descriptors)
+    transmission(:,2)=self%screenISM_ %transmission(node,descriptors)
+    return
+  end function charlotFall2000TransmissionPhases

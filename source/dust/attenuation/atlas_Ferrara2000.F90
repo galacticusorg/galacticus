@@ -117,10 +117,11 @@
      type            (interpolator                   )                                  :: interpolatorWavelength            , interpolatorInclination   , &
           &                                                                                interpolatorDepthOptical          , interpolatorRadiusSpheroid
    contains
-     final     ::                      atlasFerrara2000Destructor
-     procedure :: transmission      => atlasFerrara2000Transmission
-     procedure :: request           => atlasFerrara2000Request
-     procedure :: supportsComponent => atlasFerrara2000SupportsComponent
+     final     ::                           atlasFerrara2000Destructor
+     procedure :: transmission           => atlasFerrara2000Transmission
+     procedure :: request                => atlasFerrara2000Request
+     procedure :: supportsComponent      => atlasFerrara2000SupportsComponent
+     procedure :: isOrientationDependent => atlasFerrara2000IsOrientationDependent
   end type dustAttenuationAtlasFerrara2000
 
   interface dustAttenuationAtlasFerrara2000
@@ -404,3 +405,15 @@ contains
          &              componentType == componentTypeSpheroid
     return
   end function atlasFerrara2000SupportsComponent
+
+  logical function atlasFerrara2000IsOrientationDependent(self) result(isOrientationDependent)
+    !!{RST
+    Return true: the transmission of a radiative transfer atlas depends on the inclination at which the galaxy is seen.
+    !!}
+    implicit none
+    class(dustAttenuationAtlasFerrara2000), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isOrientationDependent=.true.
+    return
+  end function atlasFerrara2000IsOrientationDependent
