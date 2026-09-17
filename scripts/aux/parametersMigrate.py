@@ -5,6 +5,7 @@ import argparse
 import os
 import re
 import subprocess
+import math
 import sys
 import tempfile
 from datetime import datetime, timezone
@@ -1642,8 +1643,61 @@ def extended_schmidt_normalization_per_gigayear(input_doc, parameters, is_grid):
         node.set("value", f"{rescaled:.6e}")
 
 
+def dust_properties(input_doc, parameters, is_grid):
+    """Special handling for the introduction of the `dustProperties` class.
+
+    Dust attenuation classes now take their dust-to-metals ratio and V-band opacity from a `dustProperties` object, so
+    that the dust which attenuates a galaxy's light and the dust which re-emits it are the same. Two parameters change:
+
+    * `birthCloud` replaces its dimensionless `coefficient` (the V-band optical depth of a birth cloud of local
+      interstellar medium metallicity) with `densitySurfaceGas`, the column of gas through the cloud in M☉/pc². With the
+      default dust properties unit optical depth corresponds to `COLUMN_UNIT_OPTICAL_DEPTH`, so the coefficient is
+      multiplied by that. (`charlotFall2000` keeps its dimensionless `coefficientBirthCloud` and is unaffected.)
+    * `atlasCompendium` loses its `dustToMetalsRatio`, which moves into a `dustProperties` object of its own. That object
+      must also carry the opacity of the tabulation, which depends on the file and so can not be filled in here: the
+      model reports the required value when it is run.
+    """
+    for node in parameters.xpath(".//dustAttenuation[@value='birthCloud']/coefficient"):
+        print("   translate special './/dustAttenuation[@value=\'birthCloud\']/coefficient'")
+        value = node.get("value")
+        try:
+            column = float(value) * COLUMN_UNIT_OPTICAL_DEPTH
+        except (TypeError, ValueError):
+            sys.exit(f'parametersMigrate.py: can not convert the non-numeric birthCloud coefficient "{value}" to a densitySurfaceGas - convert it by hand, multiplying by {COLUMN_UNIT_OPTICAL_DEPTH:.6e}')
+        node.tag = "densitySurfaceGas"
+        node.set("value", f"{column:.6e}")
+    for node in parameters.xpath(".//dustAttenuation[@value='atlasCompendium']/dustToMetalsRatio"):
+        print("   translate special './/dustAttenuation[@value=\'atlasCompendium\']/dustToMetalsRatio'")
+        print("      NOTE: the new dustProperties object also needs `opacityExtinctionV` set to the opacity of the tabulation;")
+        print("            run the model once to have it reported")
+        attenuator = node.getparent()
+        properties = etree.Element("dustProperties")
+        properties.set("value", "simple")
+        ratio = etree.SubElement(properties, "dustToMetalsRatio")
+        ratio.set("value", node.get("value"))
+        # Indent the new element to match the one it replaces.
+        previous    = node.getprevious()
+        whitespace  = (previous.tail if previous is not None else attenuator.text) or "\n"
+        indentation = whitespace.split("\n")[-1]
+        properties.text = "\n" + indentation + "  "
+        ratio     .tail = "\n" + indentation
+        properties.tail = node.tail
+        insert_after(attenuator, properties, node)
+        attenuator.remove(node)
+
+
+# Surface density of gas, in M☉/pc², for which gas of the metallicity of the local interstellar medium containing Milky
+# Way dust has unit V-band optical depth. This matches `densitySurfaceGasDepthOpticalVUnitMilkyWay` in
+# `source/dust/properties/_class.F90`: the Savage & Mathis (1979) relation between column density and reddening
+# (A_V/E(B-V)=3.1, N_H/E(B-V)=5.8e21 atoms/cm²/mag), a solar hydrogen mass fraction of 0.707, and a local interstellar
+# medium metallicity of 0.02.
+_DEPTH_OPTICAL_PER_SURFACE_DENSITY_METALS = 3.1 / 5.8e21 * 0.707 / 1.660538782e-24 / 0.02 / (2.5 / math.log(10.0))  # cm²/g
+COLUMN_UNIT_OPTICAL_DEPTH = 1.0 / _DEPTH_OPTICAL_PER_SURFACE_DENSITY_METALS / 0.02 * 3.08567758135e18**2 / 1.98892e33
+
+
 SPECIAL_FUNCTIONS = {
     "extended_schmidt_normalization_per_gigayear": extended_schmidt_normalization_per_gigayear,
+    "dust_properties": dust_properties,
     "dust_attenuation_framework": dust_attenuation_framework,
     "prompt_cusp_require_collapse_before_halo": prompt_cusp_require_collapse_before_halo,
     "radiation_field_intergalactic_background_cmb": radiation_field_intergalactic_background_cmb,

@@ -23,7 +23,7 @@
   Implements a property extractor which applies dust attenuation to the luminosities of other extractors.
   !!}
 
-  use :: Dust_Attenuations, only : dustAttenuationClass
+  use :: Dust_Attenuations, only : dustAttenuationClass, gaussLegendreRule
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDustAttenuation" docformat="rst">
@@ -47,6 +47,17 @@
    Note that ``[outputUnattenuated]`` should be set on at most one of a set of siblings sharing children, since the
    unattenuated property carries no such label and is in any case the same value.
 
+   Setting ``[outputAbsorbed]`` additionally emits, for each child, the luminosity absorbed by each phase of dust of the
+   attenuator---the birth clouds and diffuse interstellar medium of :galacticus-class:`dustAttenuationCharlotFall2000`,
+   for example, or each member of a :galacticus-class:`dustAttenuationSequence`. These are named for the child with
+   ``:dustAbsorbed:``, the name of the attenuator, any ``[appendSuffix]``, and the label of the phase appended, and are
+   formed from the same parcels of emission as the attenuated luminosity. They are what a dust emission model
+   re-emits. Where the attenuator depends on orientation, the absorbed luminosity is averaged over it, by
+   Gauss-Legendre quadrature of order ``[orderInclinationAverage]``, whereas the attenuated luminosity is that seen from
+   the galaxy's own inclination: light scattered out of one line of sight escapes along another rather than being
+   absorbed. For an attenuator independent of orientation, the attenuated and absorbed luminosities of a child
+   therefore sum to its unattenuated luminosity. ``[outputAbsorbed]`` can not be combined with ``[outputSumOnly]``.
+
    ``[outputSumOnly]`` in particular is what lets a consumer which expects a single value per galaxy, such as an
    output analysis, use this extractor at all.
 
@@ -61,20 +72,25 @@
      A property extractor which applies dust attenuation to the luminosities of other extractors.
      !!}
      private
-     class  (dustAttenuationClass), pointer :: dustAttenuation_   => null()
-     logical                                :: outputUnattenuated          , outputSum, &
-          &                                    outputSumOnly
-     type   (varying_string      )          :: sumName             , appendSuffix
+     class           (dustAttenuationClass), pointer                   :: dustAttenuation_        => null()
+     logical                                                           :: outputUnattenuated               , outputSum     , &
+          &                                                               outputSumOnly                    , outputAbsorbed
+     integer                                                           :: orderInclinationAverage
+     ! Abscissae in cos(i), and weights, of the quadrature rule used to average absorbed luminosity over orientation.
+     double precision                      , allocatable, dimension(:) :: cosineInclination                , weight
+     type            (varying_string      )                            :: sumName                          , appendSuffix
    contains
      !![
      <methods docformat="rst">
        <method method="countChildElements" description="Return the number of properties produced by a child extractor."/>
-       <method method="attenuate"          description="Return the attenuated properties of a child extractor."        />
+       <method method="attenuate"          description="Return the attenuated properties of a child extractor, and optionally those absorbed by each phase of dust."/>
+       <method method="phaseLabels"        description="Return unique labels for the phases of dust of the attenuator."/>
      </methods>
      !!]
      final     ::                       dustAttenuationDestructor
      procedure :: countChildElements => dustAttenuationCountChildElements
      procedure :: attenuate          => dustAttenuationAttenuate
+     procedure :: phaseLabels        => dustAttenuationPhaseLabels
      procedure :: elementCount       => dustAttenuationElementCount
      procedure :: extractDouble      => dustAttenuationExtractDouble
      procedure :: names              => dustAttenuationNames
@@ -107,9 +123,10 @@ contains
     type   (nodePropertyExtractorDustAttenuation)                :: self
     type   (inputParameters                     ), intent(inout) :: parameters
     class  (dustAttenuationClass                ), pointer       :: dustAttenuation_
-    logical                                                      :: outputUnattenuated, outputSum, &
-         &                                                          outputSumOnly
-    type   (varying_string                      )                :: sumName           , appendSuffix
+    logical                                                      :: outputUnattenuated     , outputSum     , &
+         &                                                          outputSumOnly          , outputAbsorbed
+    integer                                                      :: orderInclinationAverage
+    type   (varying_string                      )                :: sumName                , appendSuffix
 
     self%nodePropertyExtractorMulti=nodePropertyExtractorMulti(parameters)
     !![
@@ -166,18 +183,39 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>outputAbsorbed</name>
+      <defaultValue>.false.</defaultValue>
+      <description>
+      If true, the luminosity absorbed by each phase of dust is emitted for each child, averaged over orientation where
+      the attenuator depends on it.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>orderInclinationAverage</name>
+      <defaultValue>8</defaultValue>
+      <description>
+      The order of the Gauss-Legendre quadrature used to average absorbed luminosity over orientation, where the
+      attenuator depends on orientation. The cost of emitting absorbed luminosity from such an attenuator is
+      proportional to this.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="dustAttenuation" name="dustAttenuation_" source="parameters"/>
     <inputParametersValidate source="parameters" multiParameters="nodePropertyExtractor"/>
     !!]
-    self%dustAttenuation_   => dustAttenuation_
+    self%dustAttenuation_       => dustAttenuation_
     !![
     <referenceCountIncrement owner="self" object="dustAttenuation_"/>
     !!]
-    self%outputUnattenuated =  outputUnattenuated
-    self%outputSum          =  outputSum
-    self%outputSumOnly      =  outputSumOnly
-    self%sumName            =  sumName
-    self%appendSuffix       =  appendSuffix
+    self%outputUnattenuated     =  outputUnattenuated
+    self%outputSum              =  outputSum
+    self%outputSumOnly          =  outputSumOnly
+    self%sumName                =  sumName
+    self%appendSuffix           =  appendSuffix
+    self%outputAbsorbed         =  outputAbsorbed
+    self%orderInclinationAverage=  orderInclinationAverage
     call dustAttenuationValidate(self)
     !![
     <objectDestructor name="dustAttenuation_"/>
@@ -185,22 +223,28 @@ contains
     return
   end function dustAttenuationConstructorParameters
 
-  function dustAttenuationConstructorInternal(dustAttenuation_,outputUnattenuated,outputSum,outputSumOnly,sumName,appendSuffix,extractors) result(self)
+  function dustAttenuationConstructorInternal(dustAttenuation_,outputUnattenuated,outputSum,outputSumOnly,sumName,appendSuffix,extractors,outputAbsorbed,orderInclinationAverage) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorDustAttenuation` property extractor class.
     !!}
     implicit none
-    type   (nodePropertyExtractorDustAttenuation)                        :: self
-    class  (dustAttenuationClass                ), intent(in   ), target :: dustAttenuation_
-    logical                                      , intent(in   )         :: outputUnattenuated, outputSum, &
-         &                                                                  outputSumOnly
-    type   (varying_string                      ), intent(in   )         :: sumName           , appendSuffix
-    type   (multiExtractorList                  ), intent(in   ), target :: extractors
+    type   (nodePropertyExtractorDustAttenuation)                          :: self
+    class  (dustAttenuationClass                ), intent(in   ), target   :: dustAttenuation_
+    logical                                      , intent(in   )           :: outputUnattenuated     , outputSum   , &
+         &                                                                    outputSumOnly
+    type   (varying_string                      ), intent(in   )           :: sumName                , appendSuffix
+    type   (multiExtractorList                  ), intent(in   ), target   :: extractors
+    logical                                      , intent(in   ), optional :: outputAbsorbed
+    integer                                      , intent(in   ), optional :: orderInclinationAverage
     !![
     <constructorAssign variables="outputUnattenuated, outputSum, outputSumOnly, sumName, appendSuffix, *dustAttenuation_"/>
     !!]
 
     self%nodePropertyExtractorMulti=nodePropertyExtractorMulti(extractors)
+    self%outputAbsorbed            =.false.
+    self%orderInclinationAverage   =8
+    if (present(outputAbsorbed         )) self%outputAbsorbed         =outputAbsorbed
+    if (present(orderInclinationAverage)) self%orderInclinationAverage=orderInclinationAverage
     call dustAttenuationValidate(self)
     return
   end function dustAttenuationConstructorInternal
@@ -225,6 +269,14 @@ contains
        ! Emitting only the sum requires that the sum be formed.
        self%outputSum=.true.
     end if
+    if (self%outputAbsorbed .and. self%outputSumOnly)                                                                      &
+         & call Error_Report(                                                                                              &
+         &                   '[outputAbsorbed] and [outputSumOnly] are contradictory: absorbed luminosities are emitted'// &
+         &                   ' per child, and [outputSumOnly] suppresses per-child properties'                          // &
+         &                   {introspection:location}                                                                      &
+         &                  )
+    if (self%orderInclinationAverage < 1) call Error_Report('[orderInclinationAverage] must be positive'//{introspection:location})
+    call gaussLegendreRule(self%orderInclinationAverage,self%cosineInclination,self%weight)
     ! A wrapper with no children can emit nothing, and leaves the property class and type undefined.
     if (.not.associated(self%extractors)) call Error_Report('no extractors to attenuate'//{introspection:location})
     extractor_ => self%extractors
@@ -318,46 +370,34 @@ contains
        countChild  =self%countChildElements(extractor_%extractor_,time)
        elementCount=elementCount+countChild
        if (self%outputUnattenuated) elementCount=elementCount+countChild
+       if (self%outputAbsorbed    ) elementCount=elementCount+countChild*self%dustAttenuation_%countPhases()
        extractor_  => extractor_%next
     end do
     if (self%outputSum) elementCount=elementCount+1
     return
   end function dustAttenuationElementCount
 
-  function dustAttenuationAttenuate(self,extractor_,node,time,instance) result(values)
+  function dustAttenuationAttenuate(self,extractor_,node,time,instance,absorbed) result(values)
     !!{RST
     Return the attenuated properties of a child extractor: decompose its luminosity into parcels, attenuate each, and
-    let the child recombine them.
+    let the child recombine them. If ``absorbed`` is present, the luminosity absorbed by each phase of dust is also
+    returned. The work is done by ``dustAbsorbedLuminosities``, shared with the dust emission property extractor.
     !!}
-    use :: Error, only : Error_Report
     implicit none
-    double precision                                      , allocatable  , dimension(:) :: values
-    class           (nodePropertyExtractorDustAttenuation), intent(inout)               :: self
-    class           (nodePropertyExtractorClass          ), intent(inout), target       :: extractor_
-    type            (treeNode                            ), intent(inout), target       :: node
-    double precision                                      , intent(in   )               :: time
-    type            (multiCounter                        ), intent(inout), optional     :: instance
-    type            (luminosityDecomposition             )                              :: decomposition
-    double precision                                      , allocatable  , dimension(:) :: transmission
-    integer                                                                             :: i
+    double precision                                                               , allocatable, dimension(:  ) :: values
+    class           (nodePropertyExtractorDustAttenuation), intent(inout)                                        :: self
+    class           (nodePropertyExtractorClass          ), intent(inout), target                                :: extractor_
+    type            (treeNode                            ), intent(inout), target                                :: node
+    double precision                                      , intent(in   )                                        :: time
+    type            (multiCounter                        ), intent(inout), optional                              :: instance
+    double precision                                      , intent(inout), optional, allocatable, dimension(:,:) :: absorbed
     !$GLC attributes unused :: instance
 
-    decomposition=extractor_%decompose(node,time,self%dustAttenuation_%request())
-    ! The attenuator may refuse the component a parcel came from -- most refuse a luminosity summed over components,
-    ! which can not be attenuated meaningfully. The child's component is not visible until it decomposes, so this is
-    ! checked here rather than at construction.
-    do i=1,decomposition%countTerms()
-       if (.not.self%dustAttenuation_%supportsComponent(decomposition%descriptors(i)%componentType))                &
-            & call Error_Report(                                                                                    &
-            &                   'the dust attenuation model refuses the component of a parcel of emission from "'// &
-            &                   extractor_%objectType()                                                          // &
-            &                   '" - a luminosity summed over components can not be attenuated'                  // &
-            &                   {introspection:location}                                                            &
-            &                  )
-    end do
-    allocate(transmission(decomposition%countTerms()))
-    if (decomposition%countTerms() > 0) transmission=self%dustAttenuation_%transmission(node,decomposition%descriptors)
-    call extractor_%recompose(decomposition,transmission,values)
+    if (present(absorbed)) then
+       call dustAbsorbedLuminosities(self%dustAttenuation_,extractor_,node,time,attenuated=values,absorbed=absorbed,cosineInclination=self%cosineInclination,weight=self%weight)
+    else
+       call dustAbsorbedLuminosities(self%dustAttenuation_,extractor_,node,time,attenuated=values                                                                      )
+    end if
     return
   end function dustAttenuationAttenuate
 
@@ -375,12 +415,12 @@ contains
     type            (multiCounter                        ), intent(inout), optional                              :: instance
     integer                                               , intent(  out), optional, allocatable, dimension(:  ) :: ranks
     type            (multiExtractorList                  ), pointer                                              :: extractor_
-    double precision                                                               , allocatable, dimension(:  ) :: valuesAttenuated, valuesRaw , &
+    double precision                                                               , allocatable, dimension(:  ) :: valuesAttenuated, valuesRaw     , &
          &                                                                                                          sumAttenuated
-    double precision                                                               , allocatable, dimension(:,:) :: valuesRank1
-    integer                                                                                                      :: offset          , countChild, &
-         &                                                                                                          i               , countRows , &
-         &                                                                                                          lengthElement
+    double precision                                                               , allocatable, dimension(:,:) :: valuesRank1     , valuesAbsorbed
+    integer                                                                                                      :: offset          , countChild    , &
+         &                                                                                                          i               , countRows     , &
+         &                                                                                                          lengthElement   , k
 
     allocate(properties(self%elementCount(elementTypeDouble,time)))
     if (present(ranks)) then
@@ -414,7 +454,11 @@ contains
           end select
           if (.not.self%outputSumOnly) offset=offset+countChild
        end if
-       valuesAttenuated=self%attenuate(extractor_%extractor_,node,time,instance)
+       if (self%outputAbsorbed) then
+          valuesAttenuated=self%attenuate(extractor_%extractor_,node,time,instance,valuesAbsorbed)
+       else
+          valuesAttenuated=self%attenuate(extractor_%extractor_,node,time,instance               )
+       end if
        ! The child returns one value per output *element*. For a scalar or tuple child that is one per property; for
        ! an array child, whose properties are themselves arrays, it is `size` values per property.
        countRows=1
@@ -457,6 +501,20 @@ contains
           sumAttenuated=sumAttenuated+valuesAttenuated
        end if
        if (.not.self%outputSumOnly) offset=offset+countChild
+       ! Absorbed luminosities follow: one block of the child's properties for each phase of dust.
+       if (self%outputAbsorbed) then
+          do k=1,size(valuesAbsorbed,dim=2)
+             do i=1,countChild
+                if (countRows == 1) then
+                   properties(offset+i)=polyRankDouble(valuesAbsorbed( i                           ,k))
+                else
+                   properties(offset+i)=polyRankDouble(valuesAbsorbed((i-1)*countRows+1:i*countRows,k))
+                end if
+             end do
+             offset=offset+countChild
+          end do
+          deallocate(valuesAbsorbed)
+       end if
        deallocate(valuesAttenuated)
        extractor_ => extractor_%next
     end do
@@ -483,16 +541,26 @@ contains
     type            (enumerationElementTypeType          ), intent(in   )                            :: elementType
     double precision                                      , intent(in   )                            :: time
     type            (varying_string                      ), intent(inout), dimension(:), allocatable :: names
-    type            (varying_string                      )               , dimension(:), allocatable :: namesChild
+    type            (varying_string                      )               , dimension(:), allocatable :: namesChild    , labelsPhase
+    type            (varying_string                      )                                           :: suffixAbsorbed
+    integer                                                                                          :: k
     type            (multiExtractorList                  ), pointer                                  :: extractor_
     type            (varying_string                      )                                           :: suffix
-    integer                                                                                          :: offset     , countChild, &
+    integer                                                                                          :: offset        , countChild, &
          &                                                                                              i
 
     allocate(names(self%elementCount(elementType,time)))
     if (elementType /= elementTypeDouble) return
     suffix     =  ":dustAttenuated:"//self%dustAttenuation_%objectType(short=.true.)
     if (self%appendSuffix /= 'none') suffix=suffix//":"//self%appendSuffix
+    if (self%outputAbsorbed) then
+       ! Allocate explicitly: varying_string has a defined assignment, and an unallocated array is not allocated on
+       ! assignment when a defined assignment is used.
+       allocate(labelsPhase(self%dustAttenuation_%countPhases()))
+       labelsPhase   =self%phaseLabels()
+       suffixAbsorbed=":dustAbsorbed:"//self%dustAttenuation_%objectType(short=.true.)
+       if (self%appendSuffix /= 'none') suffixAbsorbed=suffixAbsorbed//":"//self%appendSuffix
+    end if
     offset     =  0
     extractor_ => self%extractors
     do while (associated(extractor_))
@@ -510,6 +578,14 @@ contains
           end do
        end if
        if (.not.self%outputSumOnly) offset=offset+countChild
+       if (self%outputAbsorbed) then
+          do k=1,size(labelsPhase)
+             do i=1,countChild
+                names(offset+i)=namesChild(i)//suffixAbsorbed//":"//labelsPhase(k)
+             end do
+             offset=offset+countChild
+          end do
+       end if
        deallocate(namesChild)
        extractor_ => extractor_%next
     end do
@@ -554,7 +630,8 @@ contains
     type            (enumerationElementTypeType          ), intent(in   )                            :: elementType
     double precision                                      , intent(in   )                            :: time
     type            (varying_string                      ), intent(inout), dimension(:), allocatable :: descriptions
-    type            (varying_string                      )               , dimension(:), allocatable :: descriptionsChild
+    type            (varying_string                      )               , dimension(:), allocatable :: descriptionsChild, labelsPhase
+    integer                                                                                          :: k
     type            (multiExtractorList                  ), pointer                                  :: extractor_
     type            (varying_string                      )                                           :: suffix
     integer                                                                                          :: offset           , countChild, &
@@ -564,6 +641,12 @@ contains
     if (elementType /= elementTypeDouble) return
     suffix     =  ", attenuated by dust using the '"//self%dustAttenuation_%objectType(short=.true.)//"' model"
     if (self%appendSuffix /= 'none') suffix=suffix//" ("//self%appendSuffix//")"
+    if (self%outputAbsorbed) then
+       ! Allocate explicitly: varying_string has a defined assignment, and an unallocated array is not allocated on
+       ! assignment when a defined assignment is used.
+       allocate(labelsPhase(self%dustAttenuation_%countPhases()))
+       labelsPhase=self%phaseLabels()
+    end if
     offset     =  0
     extractor_ => self%extractors
     do while (associated(extractor_))
@@ -589,6 +672,17 @@ contains
           end do
        end if
        if (.not.self%outputSumOnly) offset=offset+countChild
+       if (self%outputAbsorbed) then
+          do k=1,size(labelsPhase)
+             do i=1,countChild
+                descriptions(offset+i)=descriptionsChild(i)                                             // &
+                     &                 ", absorbed by the '"//labelsPhase(k)//"' phase of dust of the '"// &
+                     &                 self%dustAttenuation_%objectType(short=.true.)                   // &
+                     &                 "' model, averaged over orientation"
+             end do
+             offset=offset+countChild
+          end do
+       end if
        deallocate(descriptionsChild)
        extractor_ => extractor_%next
     end do
@@ -613,6 +707,7 @@ contains
     type            (multiExtractorList                  ), pointer                     :: extractor_
     integer                                                                             :: offset     , countChild
     double precision                                                                    :: unitsSum
+    integer                                                                             :: k
     logical                                                                             :: unitsSumSet
 
     allocate(unitsInSI(self%elementCount(elementType,time)))
@@ -634,11 +729,17 @@ contains
        end select
        if (.not.self%outputSumOnly) then
           if (self%outputUnattenuated) then
-             unitsInSI(offset+1:offset+countChild)=unitsChild
-             offset                               =offset+countChild
+             unitsInSI   (offset+1:offset+countChild)=unitsChild
+             offset                                  =offset+countChild
           end if
-          unitsInSI   (offset+1:offset+countChild)=unitsChild
-          offset                                  =offset+countChild
+          unitsInSI      (offset+1:offset+countChild)=unitsChild
+          offset                                     =offset+countChild
+          if (self%outputAbsorbed) then
+             do k=1,self%dustAttenuation_%countPhases()
+                unitsInSI(offset+1:offset+countChild)=unitsChild
+                offset                               =offset+countChild
+             end do
+          end if
        end if
        ! Remember the units of the first child. The summed property carries them, and can not read them back from an
        ! emitted property: where only the sum is emitted, there is no earlier property to read.
@@ -671,6 +772,7 @@ contains
     integer                                                                             :: offset     , countChild, &
          &                                                                                 i
     type            (unitType                            )                              :: unitsSum
+    integer                                                                             :: k
     logical                                                                             :: unitsSumSet
 
     allocate(units(self%elementCount(elementType,time)))
@@ -703,6 +805,14 @@ contains
           end do
        end if
        if (.not.self%outputSumOnly) offset=offset+countChild
+       if (self%outputAbsorbed) then
+          do k=1,self%dustAttenuation_%countPhases()
+             do i=1,countChild
+                units(offset+i)=unitsChild(i)
+             end do
+             offset=offset+countChild
+          end do
+       end if
        ! Remember the units of the first child. The summed property carries them, and can not read them back from an
        ! emitted property: where only the sum is emitted, there is no earlier property to read.
        if (.not.unitsSumSet .and. size(unitsChild) > 0) then
@@ -733,7 +843,7 @@ contains
     type            (multiExtractorList                  ), pointer                     :: extractor_
     integer                                                                             :: offset    , countChild, &
          &                                                                                 rankChild , countRows , &
-         &                                                                                 lengthSum
+         &                                                                                 lengthSum , k
 
     allocate(ranks(self%elementCount(elementType,time)))
     ranks=0
@@ -749,11 +859,17 @@ contains
        end select
        if (.not.self%outputSumOnly) then
           if (self%outputUnattenuated) then
-             ranks(offset+1:offset+countChild)=rankChild
-             offset                           =offset+countChild
+             ranks   (offset+1:offset+countChild)=rankChild
+             offset                              =offset+countChild
           end if
-          ranks   (offset+1:offset+countChild)=rankChild
-          offset                              =offset+countChild
+          ranks      (offset+1:offset+countChild)=rankChild
+          offset                                 =offset+countChild
+          if (self%outputAbsorbed) then
+             do k=1,self%dustAttenuation_%countPhases()
+                ranks(offset+1:offset+countChild)=rankChild
+                offset                           =offset+countChild
+             end do
+          end if
        end if
        extractor_ => extractor_%next
     end do
@@ -802,7 +918,8 @@ contains
     type            (doubleDictionary                    ), intent(inout) :: metaDataRank0
     type            (rank1DoubleDictionary               ), intent(inout) :: metaDataRank1
     type            (multiExtractorList                  ), pointer       :: extractor_
-    integer                                                               :: offset       , countChild
+    integer                                                               :: offset       , countChild, &
+         &                                                                   k
 
     if (elementType /= elementTypeDouble) return
     ! Where only the sum is emitted, there is no child property to describe.
@@ -824,6 +941,16 @@ contains
           return
        end if
        offset     =  offset+countChild
+       ! Absorbed luminosities carry the same metadata as the property from which they were absorbed.
+       if (self%outputAbsorbed) then
+          do k=1,self%dustAttenuation_%countPhases()
+             if (iProperty > offset .and. iProperty <= offset+countChild) then
+                call dustAttenuationChildMetaData(extractor_%extractor_,node,iProperty-offset,metaDataRank0,metaDataRank1)
+                return
+             end if
+             offset=offset+countChild
+          end do
+       end if
        extractor_ => extractor_%next
     end do
     ! Anything beyond the children is the summed property, which describes no single child and so carries no metadata.
@@ -895,3 +1022,18 @@ contains
     end do
     return
   end function dustAttenuationType
+
+  function dustAttenuationPhaseLabels(self) result(labels)
+    !!{RST
+    Return unique labels for the phases of dust of the attenuator, as given by ``dustPhaseLabels``.
+    !!}
+    implicit none
+    type (varying_string                      ), allocatable  , dimension(:) :: labels
+    class(nodePropertyExtractorDustAttenuation), intent(inout)               :: self
+
+    ! Allocate explicitly: varying_string has a defined assignment, and an unallocated array is not allocated on
+    ! assignment when a defined assignment is used.
+    allocate(labels(self%dustAttenuation_%countPhases()))
+    labels=dustPhaseLabels(self%dustAttenuation_)
+    return
+  end function dustAttenuationPhaseLabels

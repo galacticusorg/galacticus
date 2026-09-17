@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of the :cite:t:`zhao_analytical_1996` mass distribution class.
   !!}
@@ -336,10 +338,11 @@ contains
        massTotal=+huge(0.0d0)
     else
        massTotal=+ 4.0d0                                                              &
-            &    /(3.0d0-self%gamma)                                                  &
+            &    *Pi                                                                  &
+            &    /self%alpha                                                          &
+            &    *Gamma_Function((+3.0d0           -self%gamma          )/self%alpha) &
             &    *Gamma_Function((-3.0d0           +self%beta           )/self%alpha) &
-            &    *Gamma_Function((+3.0d0+self%alpha          -self%gamma)/self%alpha) &
-            &    /Gamma_Function((      -self%alpha+self%beta           )/self%alpha) &
+            &    /Gamma_Function((                 +self%beta-self%gamma)/self%alpha) &
             &    *self%densityNormalization                                           &
             &    *self%scaleLength         **3
     end if

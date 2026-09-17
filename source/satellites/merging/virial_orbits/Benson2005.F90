@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of virial orbits using the :cite:t:`benson_orbital_2005` orbital parameter distribution.
   !!}
@@ -30,7 +32,7 @@
   !![
   <virialOrbit name="virialOrbitBenson2005" docformat="rst">
    <description>
-   A virial orbits class which selects orbital parameters randomly from the distribution given by :cite:t:`benson_orbital_2005`. If the virial density contrast definition differs from that used by :cite:t:`benson_orbital_2005` then the orbit is assigned based on :cite:t:`benson_orbital_2005`'s definition and then propagated to the virial radius relevant to the current definition of density contrast.
+   A virial orbits class which selects orbital parameters randomly from the distribution given by :cite:t:`benson_orbital_2005`. Only the :math:`z=0` fit of their Table 2 is used - the distribution is taken to be independent of redshift - although that paper also gives fits at :math:`z=0.5` and :math:`z=1`. If the virial density contrast definition differs from that used by :cite:t:`benson_orbital_2005` then the orbit is assigned based on :cite:t:`benson_orbital_2005`'s definition and then propagated to the virial radius relevant to the current definition of density contrast.
    </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_"/>
@@ -270,7 +272,7 @@ contains
     type            (treeNode             ), intent(inout) :: node                             , host
     class           (nodeComponentBasic   ), pointer       :: basicHost
     ! The mean magnitude of tangential velocity. This was by numerical integration over the velocity distribution fitting function.
-    double precision                       , parameter     :: velocityTangentialMean=0.748205d0
+    double precision                       , parameter     :: velocityTangentialMean=0.749265d0
     double precision                                       :: massHost                         , radiusHost, &
          &                                                    velocityHost
     !$GLC attributes unused :: node
@@ -348,11 +350,11 @@ contains
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
     class           (virialOrbitBenson2005), intent(inout) :: self
-    type            (treeNode             ), intent(inout) :: node                                  , host
+    type            (treeNode             ), intent(inout) :: node                                   , host
     class           (nodeComponentBasic   ), pointer       :: basicHost
     ! The root mean squared total velocity. This was by numerical integration over the velocity distribution fitting function.
-    double precision                       , parameter     :: velocityTotalRootMeanSquared=1.25534d0
-    double precision                                       :: massHost                              , radiusHost, &
+    double precision                       , parameter     :: velocityTotalRootMeanSquared=1.254476d0
+    double precision                                       :: massHost                               , radiusHost, &
          &                                                    velocityHost
     !$GLC attributes unused :: node
 

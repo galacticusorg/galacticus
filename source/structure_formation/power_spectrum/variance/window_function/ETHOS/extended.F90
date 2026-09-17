@@ -134,7 +134,7 @@ contains
     <inputParameter docformat="rst">
       <name>cW1</name>
       <source>parameters</source>
-      <defaultValue>0.0d0</defaultValue>
+      <defaultValue>1.0d0</defaultValue>
       <description>
       The parameter :math:`c_\mathrm{W,1}` in the generalized ETHOS power spectrum window function.
       </description>
@@ -142,7 +142,7 @@ contains
     <inputParameter docformat="rst">
       <name>beta1</name>
       <source>parameters</source>
-      <defaultValue>0.0d0</defaultValue>
+      <defaultValue>1.0d0</defaultValue>
       <description>
       The parameter :math:`\beta_1` in the generalized ETHOS power spectrum window function.
       </description>
@@ -253,7 +253,7 @@ contains
          &               )                                                                                , &
          &                +exponentPowerMaximum                                                             &
          &           )
-    if (exponent(self%beta0)+exponent(self%beta1)*exponentPower < maxExponent(parameterValueMaximum)) then
+    if (exponent(self%beta0)+exponent(self%beta1)*exponentPower < exponent(parameterValueMaximum)) then
        beta   =+self%beta0                &
             &  *self%beta1**exponentPower
     else
@@ -264,7 +264,7 @@ contains
   
   double precision function ETHOSExtendedWavenumberScaledMinimum(self,wavenumber,time) result(wavenumberScaledMinimum)
     !!{RST
-    Compute the :math:`\beta` parameter for the extended ETHOS window function.
+    Compute the minimum scaled wavenumber, :math:`x_\mathrm{min}`, for the extended ETHOS window function.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionETHOSExtended), intent(inout) :: self

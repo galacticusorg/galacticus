@@ -51,6 +51,10 @@
    quickly, and because the cost of the average multiplies the cost of every luminosity: a fixed order makes that
    cost predictable and puts it under the user's control. Order 8 is accurate to better than one part in
    :math:`10^{6}` for the attenuation curves of interest.
+
+   The phases of dust of the wrapped attenuator are preserved. Their absorbed fractions are averaged over orientation
+   with this class's own quadrature, whether or not a consumer asks for an average, and the class itself reports no
+   dependence on orientation.
    </description>
   </dustAttenuation>
   !!]
@@ -64,10 +68,14 @@
      ! Abscissae in cos(i) and their weights, computed once at construction.
      double precision                      , allocatable, dimension(:) :: cosineInclination         , weight
    contains
-     final     ::                      inclinationAveragedDestructor
-     procedure :: transmission      => inclinationAveragedTransmission
-     procedure :: request           => inclinationAveragedRequest
-     procedure :: supportsComponent => inclinationAveragedSupportsComponent
+     final     ::                           inclinationAveragedDestructor
+     procedure :: transmission           => inclinationAveragedTransmission
+     procedure :: request                => inclinationAveragedRequest
+     procedure :: supportsComponent      => inclinationAveragedSupportsComponent
+     procedure :: countPhases            => inclinationAveragedCountPhases
+     procedure :: labelPhase             => inclinationAveragedLabelPhase
+     procedure :: transmissionPhases     => inclinationAveragedTransmissionPhases
+     procedure :: absorbedFractions      => inclinationAveragedAbsorbedFractions
   end type dustAttenuationInclinationAveraged
 
   interface dustAttenuationInclinationAveraged
@@ -143,59 +151,6 @@ contains
     return
   end subroutine inclinationAveragedDestructor
 
-  subroutine gaussLegendreRule(order,abscissae,weights)
-    !!{RST
-    Return the abscissae and weights of the Gauss-Legendre rule of the given ``order`` on the interval
-    :math:`[0,1]`.
-
-    The nodes are the roots of the Legendre polynomial of that order, found by Newton iteration from the standard
-    Chebyshev-like starting guess, with the polynomial and its derivative evaluated by the usual recurrence. Both are
-    then mapped from :math:`[-1,1]` onto :math:`[0,1]`, and the weights scaled by the half-width of the interval so
-    that they sum to unity---which is what makes the result an average rather than an integral.
-    !!}
-    use :: Numerical_Constants_Math, only : Pi
-    implicit none
-    integer                       , intent(in   )               :: order
-    double precision, allocatable , intent(inout), dimension(:) :: abscissae                     , weights
-    double precision              , parameter                   :: toleranceRelative     =1.0d-15
-    integer                       , parameter                   :: countIterationsMaximum=100
-    double precision                                            :: root                          , rootPrevious , &
-         &                                                         legendre                      , legendreLower, &
-         &                                                         legendreLowerLower            , derivative
-    integer                                                     :: i                             , j            , &
-         &                                                         countIterations
-
-    if (allocated(abscissae)) deallocate(abscissae)
-    if (allocated(weights  )) deallocate(weights  )
-    allocate(abscissae(order))
-    allocate(weights  (order))
-    do i=1,order
-       ! Initial guess for the i'th root of the Legendre polynomial of this order.
-       root=cos(Pi*(dble(i)-0.25d0)/(dble(order)+0.5d0))
-       countIterations=0
-       do
-          ! Evaluate the Legendre polynomial and its derivative at the current estimate by recurrence.
-          legendre     =1.0d0
-          legendreLower=0.0d0
-          do j=1,order
-             legendreLowerLower=legendreLower
-             legendreLower     =legendre
-             legendre          =(dble(2*j-1)*root*legendreLower-dble(j-1)*legendreLowerLower)/dble(j)
-          end do
-          derivative  =dble(order)*(root*legendre-legendreLower)/(root**2-1.0d0)
-          rootPrevious=root
-          root        =rootPrevious-legendre/derivative
-          countIterations=countIterations+1
-          if (abs(root-rootPrevious) <= toleranceRelative*abs(root) .or. countIterations >= countIterationsMaximum) exit
-       end do
-       ! Map from [-1,1] onto [0,1]. The weights are halved along with the interval, so that they sum to unity and
-       ! the quadrature returns a mean.
-       abscissae(i)=0.5d0*(1.0d0-root)
-       weights  (i)=1.0d0/((1.0d0-root**2)*derivative**2)
-    end do
-    return
-  end subroutine gaussLegendreRule
-
   function inclinationAveragedTransmission(self,node,descriptors,inclination) result(transmission)
     !!{RST
     Return the transmission of the wrapped attenuator, averaged over orientation.
@@ -255,3 +210,76 @@ contains
     request=self%dustAttenuation_%request()
     return
   end function inclinationAveragedRequest
+
+  integer function inclinationAveragedCountPhases(self) result(countPhases)
+    !!{RST
+    Return the number of phases of dust of the wrapped attenuator.
+    !!}
+    implicit none
+    class(dustAttenuationInclinationAveraged), intent(inout) :: self
+
+    countPhases=self%dustAttenuation_%countPhases()
+    return
+  end function inclinationAveragedCountPhases
+
+  function inclinationAveragedLabelPhase(self,indexPhase) result(label)
+    !!{RST
+    Return the label of a phase of dust of the wrapped attenuator.
+    !!}
+    implicit none
+    type   (varying_string                    )                :: label
+    class  (dustAttenuationInclinationAveraged), intent(inout) :: self
+    integer                                    , intent(in   ) :: indexPhase
+
+    label=self%dustAttenuation_%labelPhase(indexPhase)
+    return
+  end function inclinationAveragedLabelPhase
+
+  function inclinationAveragedTransmissionPhases(self,node,descriptors,inclination) result(transmission)
+    !!{RST
+    Return the transmission through each phase of dust of the wrapped attenuator, each averaged over orientation.
+
+    Note that the product of these is not the averaged total transmission, since the average of a product is not the
+    product of the averages. The absorbed fractions are therefore not derived from these, but averaged directly---see
+    ``inclinationAveragedAbsorbedFractions``.
+    !!}
+    implicit none
+    double precision                                    , allocatable  , dimension(:,:) :: transmission
+    class           (dustAttenuationInclinationAveraged), intent(inout)                 :: self
+    type            (treeNode                          ), intent(inout), target         :: node
+    type            (emissionDescriptor                ), intent(in   ), dimension(:  ) :: descriptors
+    double precision                                    , intent(in   ), optional       :: inclination
+    integer                                                                             :: i
+    !$GLC attributes unused :: inclination
+
+    allocate(transmission(size(descriptors),self%dustAttenuation_%countPhases()))
+    transmission=0.0d0
+    do i=1,self%order
+       transmission=+transmission                                                              &
+            &       +self%weight(i)                                                            &
+            &       *self%dustAttenuation_%transmissionPhases(                                 &
+            &                                                 node                           , &
+            &                                                 descriptors                    , &
+            &                                                 acos(self%cosineInclination(i))  &
+            &                                                )
+    end do
+    return
+  end function inclinationAveragedTransmissionPhases
+
+  function inclinationAveragedAbsorbedFractions(self,node,descriptors,cosineInclination,weight) result(fractions)
+    !!{RST
+    Return the fractions of emission absorbed by each phase of dust of the wrapped attenuator, averaged over orientation
+    with this class's own quadrature rule. Any rule supplied by the caller is ignored, for the same reason that an
+    imposed inclination is ignored by ``inclinationAveragedTransmission``.
+    !!}
+    implicit none
+    double precision                                    , allocatable  , dimension(:,:) :: fractions
+    class           (dustAttenuationInclinationAveraged), intent(inout)                 :: self
+    type            (treeNode                          ), intent(inout), target         :: node
+    type            (emissionDescriptor                ), intent(in   ), dimension(:  ) :: descriptors
+    double precision                                    , intent(in   ), dimension(:  ) :: cosineInclination, weight
+    !$GLC attributes unused :: cosineInclination, weight
+
+    fractions=self%dustAttenuation_%absorbedFractions(node,descriptors,self%cosineInclination,self%weight)
+    return
+  end function inclinationAveragedAbsorbedFractions

@@ -229,7 +229,7 @@ contains
   
   double precision function ETHOSWavenumberScaledMinimum(self,wavenumber,time) result(wavenumberScaledMinimum)
     !!{RST
-    Compute the :math:`\beta` parameter for the ETHOS window function.
+    Compute the minimum scaled wavenumber, :math:`x_\mathrm{min}`, for the ETHOS window function.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self
