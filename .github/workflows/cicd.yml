@@ -1252,6 +1252,7 @@ jobs:
                       tests.Prada2011_concentration.exe,
                       tests.DiemerKravtsov2014_concentration.exe,
                       tests.concentration.Correa2015.exe,
+                      tests.concentration.Gao2008.exe,
                       tests.concentrations.exe,
                       tests.biases.exe,
                       tests.kepler_orbits.exe,
