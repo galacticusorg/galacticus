@@ -65,18 +65,20 @@ extensions = [
 # needs libgalacticus itself.
 nbsphinx_execute = 'never'
 
-# The notebooks live at the repository root (tutorials/) so users can run
+# The notebooks live at the repository root (tutorials/library/ for the Python
+# library, tutorials/models/ for analyses of model output) so users can run
 # them in place; copy them into the Sphinx source tree at build time (the
 # copies are gitignored).
 def _copy_tutorial_notebooks():
     import glob
     import shutil
     docs_dir  = os.path.dirname(os.path.abspath(__file__))
-    source    = os.path.join(docs_dir, os.pardir, 'tutorials')
-    target    = os.path.join(docs_dir, 'tutorials')
-    os.makedirs(target, exist_ok=True)
-    for notebook in glob.glob(os.path.join(source, '*.ipynb')):
-        shutil.copy2(notebook, target)
+    for group in ('library', 'models'):
+        source = os.path.join(docs_dir, os.pardir, 'tutorials', group)
+        target = os.path.join(docs_dir, 'tutorials', group)
+        os.makedirs(target, exist_ok=True)
+        for notebook in glob.glob(os.path.join(source, '*.ipynb')):
+            shutil.copy2(notebook, target)
 
 _copy_tutorial_notebooks()
 

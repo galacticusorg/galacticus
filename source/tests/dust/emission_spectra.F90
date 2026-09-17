@@ -40,10 +40,11 @@ program Test_Dust_Emission_Spectra
   use :: Cosmology_Functions             , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters            , only : cosmologyParametersSimple
   use :: Display                         , only : displayVerbositySet                         , verbosityLevelStandard
-  use :: Dust_Emission_Spectra           , only : dustEmissionSpectrumBlackBodyModified       , dustEmissionSpectrumList        , dustEmissionSpectrumSum         , &
-       &                                          dustEmissionSpectrumDaleHelou2002           , dustEmissionSpectrumDraineLi2007, draineLi2007GrainModelMilkyWay60
-  use :: Dust_Properties                 , only : depthOpticalVPerSurfaceDensityMetalsMilkyWay, dustPropertiesSimple            , dustToMetalsRatioMilkyWay
-  use :: IO_HDF5                         , only : hdf5File                                    , hdf5Group                       , ioHDF5AccessInitialize
+  use :: Dust_Emission_Spectra           , only : dustEmissionSpectrumBlackBodyModified       , dustEmissionSpectrumList                 , dustEmissionSpectrumSum                    , &
+       &                                          dustEmissionSpectrumDaleHelou2002           , dustEmissionSpectrumDraineLi2007         , draineLi2007GrainModelMilkyWay60           , &
+       &                                          dustEmissionSpectrumRichieHensley2026       , richieHensley2026SizeDistributionStandard, richieHensley2026IonizationFunctionStandard
+  use :: Dust_Properties                 , only : depthOpticalVPerSurfaceDensityMetalsMilkyWay, dustPropertiesSimple                     , dustToMetalsRatioMilkyWay
+  use :: IO_HDF5                         , only : hdf5File                                    , hdf5Group                                , ioHDF5AccessInitialize
   use :: Input_Paths                     , only : inputPath                                   , pathTypeDataStatic
   use :: ISO_Varying_String              , only : char                                        , operator(//)
   use :: Numerical_Constants_Astronomical, only : luminositySolar                             , massSolar
@@ -53,7 +54,7 @@ program Test_Dust_Emission_Spectra
   use :: Numerical_Constants_Prefixes    , only : centi                                       , kilo
   use :: Numerical_Constants_Units       , only : ergs                                        , metersToAngstroms
   use :: Thermodynamics_Radiation        , only : Blackbody_Emission                          , radianceTypeFrequency
-  use :: Unit_Tests                      , only : Assert                                      , Unit_Tests_Begin_Group           , Unit_Tests_End_Group           , &
+  use :: Unit_Tests                      , only : Assert                                      , Unit_Tests_Begin_Group                    , Unit_Tests_End_Group                      , &
        &                                          Unit_Tests_Finish
   implicit none
   ! Wavelengths spanning 1 μm to 10 cm, finely enough, and far enough into the tails, that integrals of the spectra over
@@ -83,7 +84,21 @@ program Test_Dust_Emission_Spectra
   type            (dustEmissionSpectrumDraineLi2007     ), pointer                       :: draineLi_                     , draineLiFixed_            , &
        &                                                                                    draineLiFixedNext_            , draineLiFixedBetween_     , &
        &                                                                                    draineLiFixedHighest_
-  type            (hdf5File                             )                                :: fileDale                      , fileDraine
+  type            (dustEmissionSpectrumRichieHensley2026), pointer                       :: richieHensley_
+  type            (hdf5File                             )                                :: fileDale                      , fileDraine                , &
+       &                                                                                    fileRichieHensley
+  type            (hdf5Group                            )                                :: groupRichieHensley
+  double precision                                       , allocatable, dimension(:    )  :: edgesAbsorbedPAH              , edgesEmittedPAH           , &
+       &                                                                                    opacityAstrodustPAH           , opacityPAH                , &
+       &                                                                                    fractionPAH                   , heatingPAH                , &
+       &                                                                                    wavelengthsFineMinimum        , wavelengthsFineMaximum    , &
+       &                                                                                    integratedFine                , integratedFineGrains      , &
+       &                                                                                    integratedPAH                 , expectedPAH
+  double precision                                       , allocatable, dimension(:,:  )  :: emissionPAH
+  double precision                                       , dimension(2)                  :: wavelengthsNarrowMinimum      , wavelengthsNarrowMaximum  , &
+       &                                                                                    integratedNarrow
+  double precision                                                                       :: energyEmitted                 , energyEmittedGrains
+  integer                                                                                :: countFine                     , indexHeating
   type            (hdf5Group                            )                                :: groupDraine
   double precision                                       , allocatable, dimension(:    ) :: wavelengthsDale               , alphasDale                , &
        &                                                                                    wavelengthsDraine             , intensitiesDraine         , &
@@ -293,7 +308,64 @@ program Test_Dust_Emission_Spectra
   call Assert("no absorption, no emission"                                               ,all(draineLi_%luminosity(wavelengths,0.0d0,massDust,timePresent) == 0.0d0)                                                                                                                                              ,.true.              )
   call Unit_Tests_End_Group()
 
+  call Unit_Tests_Begin_Group("Luminosity integrated over intervals (default)")
+  ! Across narrow intervals the integral over ln λ, divided by the width, is L_ν at the center.
+  wavelengthsNarrowMinimum=[1.0d5,1.0d6]
+  wavelengthsNarrowMaximum=wavelengthsNarrowMinimum*exp(1.0d-4)
+  integratedNarrow        =greybody_%luminosityIntegrated(wavelengthsNarrowMinimum,wavelengthsNarrowMaximum,[1.0d3,1.0d4],[luminosityAbsorbed],massDust,timePresent)
+  luminosityNodes         =greybody_%luminosity          (sqrt(wavelengthsNarrowMinimum*wavelengthsNarrowMaximum)            ,luminosityAbsorbed ,massDust,timePresent)
+  call Assert("narrow intervals give L_ν at their centers"      ,maxval(abs(integratedNarrow/1.0d-4-luminosityNodes)) <= 1.0d-6*maxval(luminosityNodes)                                                                                                                                  ,.true.)
+  call Assert("only the total absorbed luminosity matters"      ,maxval(abs(greybody_%luminosityIntegrated(wavelengthsNarrowMinimum,wavelengthsNarrowMaximum,[1.0d3,2.0d3,1.0d4],[0.3d0,0.7d0]*luminosityAbsorbed,massDust,timePresent)-integratedNarrow)) <= 1.0d-12*maxval(integratedNarrow),.true.)
+  call Assert("a sum forwards the absorbed spectrum to members" ,maxval(abs(sum_%luminosityIntegrated(wavelengthsNarrowMinimum,wavelengthsNarrowMaximum,[1.0d3,1.0d4],[luminosityAbsorbed],massDust,timePresent)-greybodyCold_%luminosityIntegrated(wavelengthsNarrowMinimum,wavelengthsNarrowMaximum,[1.0d3,1.0d4],[0.3d0*luminosityAbsorbed],0.3d0*massDust,timePresent)-greybodyWarm_%luminosityIntegrated(wavelengthsNarrowMinimum,wavelengthsNarrowMaximum,[1.0d3,1.0d4],[0.7d0*luminosityAbsorbed],0.7d0*massDust,timePresent))) <= 1.0d-12*maxval(integratedNarrow),.true.)
+  call Unit_Tests_End_Group()
+
+  call Unit_Tests_Begin_Group("Richie & Hensley (2026) PAH emission")
+  allocate(richieHensley_)
   !![
+  <referenceConstruct object="richieHensley_" constructor="dustEmissionSpectrumRichieHensley2026(richieHensley2026SizeDistributionStandard,richieHensley2026IonizationFunctionStandard,greybodyCold_)"/>
+  !!]
+  fileRichieHensley =hdf5File(char(inputPath(pathTypeDataStatic)//'dust/emission/richieHensley2026.hdf5'),readOnly=.true.)
+  call fileRichieHensley %readDataset('wavelengthAbsorbedEdges'   ,edgesAbsorbedPAH   )
+  call fileRichieHensley %readDataset('wavelengthEmittedEdges'    ,edgesEmittedPAH    )
+  call fileRichieHensley %readDataset('opacityAbsorptionAstrodust',opacityAstrodustPAH)
+  groupRichieHensley=fileRichieHensley%openGroup('sizeStandardIonizationStandard')
+  call groupRichieHensley%readDataset('opacityAbsorptionPAH'      ,opacityPAH         )
+  call groupRichieHensley%readDataset('emission'                  ,emissionPAH        )
+  fractionPAH=opacityPAH/(opacityPAH+opacityAstrodustPAH)
+  ! Heat with equal luminosity in each tabulated absorbed bin, and find the energy emitted by integrating over intervals
+  ! of width 10⁻⁴ in ln λ from 0.1 μm to 10 cm, each weighted by its central frequency.
+  allocate(heatingPAH(size(fractionPAH)))
+  heatingPAH=luminosityAbsorbed/dble(size(fractionPAH))
+  countFine =int(log(1.0d6)/1.0d-4)
+  allocate(wavelengthsFineMinimum(countFine),wavelengthsFineMaximum(countFine))
+  do i=1,countFine
+     wavelengthsFineMinimum(i)=1.0d3*exp(dble(i-1)*1.0d-4)
+     wavelengthsFineMaximum(i)=1.0d3*exp(dble(i  )*1.0d-4)
+  end do
+  integratedFine      =richieHensley_%luminosityIntegrated(wavelengthsFineMinimum,wavelengthsFineMaximum,edgesAbsorbedPAH,heatingPAH                    ,massDust,timePresent)
+  integratedFineGrains=greybodyCold_ %luminosityIntegrated(wavelengthsFineMinimum,wavelengthsFineMaximum,edgesAbsorbedPAH,heatingPAH*(1.0d0-fractionPAH),massDust,timePresent)
+  energyEmitted       =sum(integratedFine      *speedLight*metersToAngstroms/sqrt(wavelengthsFineMinimum*wavelengthsFineMaximum))
+  energyEmittedGrains =sum(integratedFineGrains*speedLight*metersToAngstroms/sqrt(wavelengthsFineMinimum*wavelengthsFineMaximum))
+  call Assert("dust emits the luminosity it absorbs"          ,energyEmitted                    ,luminosityAbsorbed         ,relTol=1.0d-5)
+  call Assert("PAHs emit the part of it their opacity takes"  ,energyEmitted-energyEmittedGrains,sum(heatingPAH*fractionPAH),relTol=1.0d-5)
+  call Assert("PAHs take a plausible share of a flat spectrum",sum(fractionPAH)/dble(size(fractionPAH)) > 0.05d0 .and. sum(fractionPAH)/dble(size(fractionPAH)) < 0.6d0,.true.)
+  ! Heat in a single tabulated bin, and compare the PAH emission in each tabulated emitted bin with the table.
+  indexHeating            =100
+  heatingPAH              =0.0d0
+  heatingPAH(indexHeating)=luminosityAbsorbed
+  integratedPAH           =+richieHensley_%luminosityIntegrated(edgesEmittedPAH(1:size(edgesEmittedPAH)-1),edgesEmittedPAH(2:size(edgesEmittedPAH)),edgesAbsorbedPAH,heatingPAH                    ,massDust,timePresent) &
+       &                   -greybodyCold_ %luminosityIntegrated(edgesEmittedPAH(1:size(edgesEmittedPAH)-1),edgesEmittedPAH(2:size(edgesEmittedPAH)),edgesAbsorbedPAH,heatingPAH*(1.0d0-fractionPAH),massDust,timePresent)
+  expectedPAH             =+luminosityAbsorbed                                                                    &
+       &                   *fractionPAH(indexHeating)                                                             &
+       &                   *emissionPAH(:,indexHeating)                                                           &
+       &                   *(edgesEmittedPAH(2:size(edgesEmittedPAH))-edgesEmittedPAH(1:size(edgesEmittedPAH)-1)) &
+       &                   /speedLight                                                                            &
+       &                   /metersToAngstroms
+  call Assert("emission from a single absorbed bin is that tabulated",maxval(abs(integratedPAH-expectedPAH)) <= 1.0d-6*maxval(expectedPAH),.true.)
+  call Unit_Tests_End_Group()
+
+  !![
+  <objectDestructor name="richieHensley_"       />
   <objectDestructor name="draineLiFixedHighest_"/>
   <objectDestructor name="draineLiFixedBetween_"/>
   <objectDestructor name="draineLiFixedNext_"   />
@@ -338,14 +410,14 @@ contains
     implicit none
     integer, intent(in   ) :: j
 
-    emission=+4.0d0                                                                              &
-         &   *Pi                                                                                 &
-         &   *massDust                                                                           &
-         &   *massSolar                                                                          &
-         &   *opacityReference                                                                   &
-         &   *centi**2                                                                           &
-         &   *kilo                                                                               &
-         &   *(frequencies(j)*wavelengthReference/speedLight/metersToAngstroms)**exponent        &
+    emission=+4.0d0                                                                       &
+         &   *Pi                                                                          &
+         &   *massDust                                                                    &
+         &   *massSolar                                                                   &
+         &   *opacityReference                                                            &
+         &   *centi**2                                                                    &
+         &   *kilo                                                                        &
+         &   *(frequencies(j)*wavelengthReference/speedLight/metersToAngstroms)**exponent &
          &   *Blackbody_Emission(wavelengths(j),temperature,radianceTypeFrequency)
     return
   end function emission

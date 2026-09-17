@@ -4,7 +4,8 @@
 Dust must re-emit exactly the luminosity it absorbs. For each of several attenuators, the luminosity absorbed by each
 phase of dust is extracted by a `dustAttenuation` extractor (`outputAbsorbed`), and the thermal emission of the dust by
 a `SEDDustEmission` extractor heated by the same light. One attenuator is paired with two emission extractors: one using
-modified blackbodies, and one using the template spectra of Dale & Helou (2002) and Draine & Li (2007). The absorbed luminosity is integrated here, independently of
+modified blackbodies, one using the template spectra of Dale & Helou (2002) and Draine & Li (2007), and one with
+PAH emission (Richie & Hensley 2026) heated by the spectrum of the absorbed light. The absorbed luminosity is integrated here, independently of
 the emission extractor, and compared with the integral of the emitted spectrum, in total and phase by phase. Heating by
 the cosmic microwave background is switched off, since with it the dust also re-emits energy absorbed from the CMB.
 
@@ -39,6 +40,7 @@ FACTOR           = (1.0 + np.sqrt(1.0 + 4.0 * RESOLUTION**2)) / 2.0 / RESOLUTION
 CASES = (
     ("charlotFall2000"           , ""          , ("birthCloud", "screenSurfaceDensityMetals")),
     ("charlotFall2000"           , ":templates", ("birthCloud", "screenSurfaceDensityMetals")),
+    ("charlotFall2000"           , ":PAH"      , ("birthCloud", "screenSurfaceDensityMetals")),
     ("screenSurfaceDensityMetals", ""          , ("screenSurfaceDensityMetals",)              ),
     ("atlasFerrara2000"          , ""          , ("atlasFerrara2000",)                        ),
 )
@@ -74,9 +76,19 @@ def columnValues(nodes, name, fallback):
     return nodes[fallback + "ColumnValues"][:]
 
 
-def heatingGrid(nodes, length):
-    """Return the wavelength grid of the heating spectra, which all share one grid in this test."""
-    grids = [nodes[name][:] for name in nodes.keys() if "StellarSED" in name and name.endswith("ColumnValues")]
+def heatingGrid(nodes, name, length):
+    """Return the wavelength grid of an absorbed spectrum which has no column values of its own.
+
+    The outputter writes column values only for the first property on a grid, so they are taken from another absorbed
+    phase of the same child spectrum if it has them, and otherwise from the stellar spectra, which all share one grid in
+    this test.
+    """
+    prefix = name.split(":dustAbsorbed:")[0] + ":dustAbsorbed:"
+    grids  = [nodes[other][:] for other in nodes.keys() if other.startswith(prefix) and other.endswith("ColumnValues")]
+    grids  = [grid for grid in grids if grid.size == length]
+    if grids:
+        return grids[0]
+    grids = [nodes[other][:] for other in nodes.keys() if "StellarSED" in other and other.endswith("ColumnValues")]
     grids = [grid for grid in grids if grid.size == length]
     if not grids or any(not np.array_equal(grid, grids[0]) for grid in grids):
         print("FAILED: the heating spectra do not share a single wavelength grid, which this test assumes")
@@ -100,7 +112,7 @@ def absorbedLuminosities(nodes, attenuator):
         units = float(nodes[name].attrs["units"]["unitsInSI"])
         if data.ndim == 2:
             # An absorbed spectrum, L_ν: integrate over frequency by the trapezoidal rule.
-            wavelengths = nodes[name + "ColumnValues"][:] if name + "ColumnValues" in nodes else heatingGrid(nodes, data.shape[1])
+            wavelengths = nodes[name + "ColumnValues"][:] if name + "ColumnValues" in nodes else heatingGrid(nodes, name, data.shape[1])
             frequencies = SPEED_OF_LIGHT / wavelengths
             luminosity  = np.sum(0.5 * (data[:, 1:] + data[:, :-1]) * np.abs(frequencies[:-1] - frequencies[1:]), axis=1)
         else:

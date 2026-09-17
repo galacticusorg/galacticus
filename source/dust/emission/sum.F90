@@ -52,8 +52,9 @@
      type            (dustEmissionSpectrumList), pointer                   :: dustEmissionSpectra => null()
      double precision                          , allocatable, dimension(:) :: fractionsLuminosity          , fractionsMass
    contains
-     final     ::               sumDestructor
-     procedure :: luminosity => sumLuminosity
+     final     ::                         sumDestructor
+     procedure :: luminosity           => sumLuminosity
+     procedure :: luminosityIntegrated => sumLuminosityIntegrated
   end type dustEmissionSpectrumSum
 
   interface dustEmissionSpectrumSum
@@ -236,3 +237,36 @@ contains
     end do
     return
   end function sumLuminosity
+
+  function sumLuminosityIntegrated(self,wavelengthsMinimum,wavelengthsMaximum,wavelengthsHeating,luminositiesAbsorbed,massDust,time) result(integral)
+    !!{RST
+    Return the sum of the integrated luminosities of the member spectra, each given its fraction of the absorbed
+    luminosity in every interval of heating wavelength, and its fraction of the dust mass.
+    !!}
+    implicit none
+    class           (dustEmissionSpectrumSum ), intent(inout)                                      :: self
+    double precision                          , intent(in   ), dimension(:                       ) :: wavelengthsMinimum   , wavelengthsMaximum  , &
+         &                                                                                            wavelengthsHeating   , luminositiesAbsorbed
+    double precision                          , intent(in   )                                      :: massDust             , time
+    double precision                                         , dimension(size(wavelengthsMinimum)) :: integral
+    type            (dustEmissionSpectrumList), pointer                                            :: dustEmissionSpectrum_
+    integer                                                                                        :: i
+
+    integral              =  0.0d0
+    i                     =  0
+    dustEmissionSpectrum_ => self%dustEmissionSpectra
+    do while (associated(dustEmissionSpectrum_))
+       i                     =  i+1
+       integral              =  +integral                                                                                                           &
+            &                   +dustEmissionSpectrum_%dustEmissionSpectrum_%luminosityIntegrated(                                                  &
+            &                                                                                     wavelengthsMinimum                              , &
+            &                                                                                     wavelengthsMaximum                              , &
+            &                                                                                     wavelengthsHeating                              , &
+            &                                                                                     self%fractionsLuminosity(i)*luminositiesAbsorbed, &
+            &                                                                                     self%fractionsMass      (i)*massDust            , &
+            &                                                                                     time                                              &
+            &                                                                                    )
+       dustEmissionSpectrum_ => dustEmissionSpectrum_%next
+    end do
+    return
+  end function sumLuminosityIntegrated

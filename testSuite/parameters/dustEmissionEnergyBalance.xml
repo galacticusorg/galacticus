@@ -358,6 +358,12 @@
         <resolution value="50.0"/>
         <toleranceRelative value="1.0e-2"/>
       </nodePropertyExtractor>
+      <nodePropertyExtractor value="SEDAGN">
+        <frame value="rest"/>
+        <wavelengthMinimum value="8.0e2"/>
+        <wavelengthMaximum value="4.0e4"/>
+        <resolution value="50.0"/>
+      </nodePropertyExtractor>
       <nodePropertyExtractor value="luminosityEmissionLine">
         <component value="all"/>
         <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727"/>
@@ -366,7 +372,7 @@
     <!-- Thermal emission from dust heated by the same light. -->
     <nodePropertyExtractor value="SEDDustEmission">
       <frame value="rest"/>
-      <wavelengthMinimum value="1.0e4"/>
+      <wavelengthMinimum value="1.0e3"/>
       <wavelengthMaximum value="1.0e8"/>
       <resolution value="50.0"/>
       <outputPhases value="true"/>
@@ -401,6 +407,12 @@
           <component value="all"/>
           <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727"/>
         </nodePropertyExtractor>
+        <nodePropertyExtractor value="SEDAGN">
+          <frame value="rest"/>
+          <wavelengthMinimum value="8.0e2"/>
+          <wavelengthMaximum value="4.0e4"/>
+          <resolution value="50.0"/>
+        </nodePropertyExtractor>
       </nodePropertyExtractor>
     </nodePropertyExtractor>
     <!-- Thermal emission from the same dust, described by template spectra: those of Dale & Helou (2002) for the birth
@@ -408,7 +420,7 @@
          The templates are truncated sharply at the ends of their tabulations, which the output grid spans. -->
     <nodePropertyExtractor value="SEDDustEmission">
       <frame value="rest"/>
-      <wavelengthMinimum value="1.0e4"/>
+      <wavelengthMinimum value="1.0e3"/>
       <wavelengthMaximum value="1.0e8"/>
       <resolution value="50.0"/>
       <outputPhases value="true"/>
@@ -440,6 +452,63 @@
         <nodePropertyExtractor value="luminosityEmissionLine">
           <component value="all"/>
           <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727"/>
+        </nodePropertyExtractor>
+        <nodePropertyExtractor value="SEDAGN">
+          <frame value="rest"/>
+          <wavelengthMinimum value="8.0e2"/>
+          <wavelengthMaximum value="4.0e4"/>
+          <resolution value="50.0"/>
+        </nodePropertyExtractor>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <!-- Thermal emission from the same dust, with PAHs in the diffuse interstellar medium emitting in the single-photon
+         approximation of Richie & Hensley (2026), heated by the spectrum of the light they absorb, and the larger grains
+         there emitting as a modified blackbody heated by the rest. -->
+    <nodePropertyExtractor value="SEDDustEmission">
+      <frame value="rest"/>
+      <wavelengthMinimum value="1.0e3"/>
+      <wavelengthMaximum value="1.0e8"/>
+      <resolution value="50.0"/>
+      <outputPhases value="true"/>
+      <appendSuffix value="PAH"/>
+      <dustAttenuation value="charlotFall2000">
+        <wavelengthReference value="5500.0"/>
+      </dustAttenuation>
+      <dustEmissionSpectrum value="blackBodyModified">
+        <temperature value="50.0"/>
+        <heatingCMB value="false"/>
+      </dustEmissionSpectrum>
+      <dustEmissionSpectrum value="richieHensley2026">
+        <dustEmissionSpectrum value="blackBodyModified">
+          <heatingCMB value="false"/>
+        </dustEmissionSpectrum>
+      </dustEmissionSpectrum>
+      <nodePropertyExtractor value="multi">
+        <nodePropertyExtractor value="SED">
+          <component value="disk"/>
+          <frame value="rest"/>
+          <wavelengthMinimum value="8.0e2"/>
+          <wavelengthMaximum value="4.0e4"/>
+          <resolution value="50.0"/>
+          <toleranceRelative value="1.0e-2"/>
+        </nodePropertyExtractor>
+        <nodePropertyExtractor value="SED">
+          <component value="spheroid"/>
+          <frame value="rest"/>
+          <wavelengthMinimum value="8.0e2"/>
+          <wavelengthMaximum value="4.0e4"/>
+          <resolution value="50.0"/>
+          <toleranceRelative value="1.0e-2"/>
+        </nodePropertyExtractor>
+        <nodePropertyExtractor value="luminosityEmissionLine">
+          <component value="all"/>
+          <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727"/>
+        </nodePropertyExtractor>
+        <nodePropertyExtractor value="SEDAGN">
+          <frame value="rest"/>
+          <wavelengthMinimum value="8.0e2"/>
+          <wavelengthMaximum value="4.0e4"/>
+          <resolution value="50.0"/>
         </nodePropertyExtractor>
       </nodePropertyExtractor>
     </nodePropertyExtractor>
@@ -479,7 +548,7 @@
     <!-- Thermal emission from dust heated by the same light. -->
     <nodePropertyExtractor value="SEDDustEmission">
       <frame value="rest"/>
-      <wavelengthMinimum value="1.0e4"/>
+      <wavelengthMinimum value="1.0e3"/>
       <wavelengthMaximum value="1.0e8"/>
       <resolution value="50.0"/>
       <outputPhases value="true"/>
@@ -559,7 +628,7 @@
     <!-- Thermal emission from dust heated by the same light. -->
     <nodePropertyExtractor value="SEDDustEmission">
       <frame value="rest"/>
-      <wavelengthMinimum value="1.0e4"/>
+      <wavelengthMinimum value="1.0e3"/>
       <wavelengthMaximum value="1.0e8"/>
       <resolution value="50.0"/>
       <outputPhases value="true"/>
@@ -608,7 +677,7 @@
          rest-frame emission, bin by bin. -->
     <nodePropertyExtractor value="SEDDustEmission">
       <frame value="observed"/>
-      <wavelengthMinimum value="2.0e4"/>
+      <wavelengthMinimum value="2.0e3"/>
       <wavelengthMaximum value="2.0e8"/>
       <resolution value="50.0"/>
       <appendSuffix value="observed"/>
@@ -642,6 +711,12 @@
         <nodePropertyExtractor value="luminosityEmissionLine">
           <component value="all"/>
           <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727"/>
+        </nodePropertyExtractor>
+        <nodePropertyExtractor value="SEDAGN">
+          <frame value="rest"/>
+          <wavelengthMinimum value="8.0e2"/>
+          <wavelengthMaximum value="4.0e4"/>
+          <resolution value="50.0"/>
         </nodePropertyExtractor>
       </nodePropertyExtractor>
     </nodePropertyExtractor>
