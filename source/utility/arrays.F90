@@ -25,6 +25,8 @@ module Array_Utilities
   !!{RST
   Contains routines which implement useful operations on arrays.
   !!}
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
+  use            :: Kind_Numbers , only : kind_int8
   implicit none
   private
   public :: Array_Reverse, Array_Cumulate, Array_Is_Monotonic      , Array_Is_Uniform, &
@@ -73,53 +75,42 @@ module Array_Utilities
   integer, parameter, public :: directionDecreasing=-1
   integer, parameter, public :: directionIncreasing=+1
 
+  ! Generic type instances used to generate the type-specific array functions.
+  !![
+  <generic identifier="reversetype">
+   <instance label="Real"     description="a real"               intrinsic="real"/>
+   <instance label="Double"   description="a double precision"   intrinsic="double precision"/>
+   <instance label="SizeT"    description="a ``size_t`` integer" intrinsic="integer(c_size_t)"/>
+  </generic>
+  <generic identifier="indextype">
+   <instance label="Integer"  description="an integer"           intrinsic="integer"/>
+   <instance label="Integer8" description="an integer"           intrinsic="integer(kind=kind_int8)"/>
+   <instance label="Double"   description="a double precision"   intrinsic="double precision"/>
+  </generic>
+  <generic identifier="monotonictype">
+   <instance label="Integer8" description="an integer"           intrinsic="integer(kind=kind_int8)"/>
+   <instance label="Double"   description="a double precision"   intrinsic="double precision"/>
+  </generic>
+  !!]
+
 contains
 
-  function Array_Reverse_SizeT(array) result (reversedArray)
+
+
+  function Array_Reverse_{reversetype¦label}(array) result (reversedArray)
     !!{RST
-    Reverses the direction of a real array.
+    Reverses the direction of {reversetype¦description} array.
     !!}
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
-    integer(c_size_t), intent(in   )          :: array        (:)
-    integer(c_size_t), dimension(size(array)) :: reversedArray
-    integer                                   :: i
+    {reversetype¦intrinsic}, intent(in   )          :: array        (:)
+    {reversetype¦intrinsic}, dimension(size(array)) :: reversedArray
+    integer                                         :: i
 
     forall (i=1:size(array))
        reversedArray(i)=array(size(array)+1-i)
     end forall
     return
-  end function Array_Reverse_SizeT
-
-  function Array_Reverse_Real(array) result (reversedArray)
-    !!{RST
-    Reverses the direction of a real array.
-    !!}
-    implicit none
-    real   , intent(in   )          :: array        (:)
-    real   , dimension(size(array)) :: reversedArray
-    integer                         :: i
-
-    forall (i=1:size(array))
-       reversedArray(i)=array(size(array)+1-i)
-    end forall
-    return
-  end function Array_Reverse_Real
-
-  function Array_Reverse_Double(array) result (reversedArray)
-    !!{RST
-    Reverses the direction of a double precision array.
-    !!}
-    implicit none
-    double precision, intent(in   )          :: array        (:)
-    double precision, dimension(size(array)) :: reversedArray
-    integer                                  :: i
-
-    forall (i=1:size(array))
-       reversedArray(i)=array(size(array)+1-i)
-    end forall
-    return
-  end function Array_Reverse_Double
+  end function Array_Reverse_{reversetype¦label}
 
   function Array_Cumulate_Double(array) result (cumulatedArray)
     !!{RST
@@ -139,20 +130,20 @@ contains
     return
   end function Array_Cumulate_Double
 
-  logical function Array_Is_Monotonic_Double(array,direction,allowEqual)
+  logical function Array_Is_Monotonic_{monotonictype¦label}(array,direction,allowEqual)
     !!{RST
-    Checks if a double precision array is monotonic.
+    Checks if {monotonictype¦description} array is monotonic.
     !!}
     implicit none
-    double precision, intent(in   )           :: array           (:)
-    integer         , intent(in   ), optional :: direction
-    logical         , intent(in   ), optional :: allowEqual
-    integer                                   :: i
-    logical                                   :: allowEqualActual   , arrayIsFlat, isIncreasing
+    {monotonictype¦intrinsic}, intent(in   )           :: array           (:)
+    integer                  , intent(in   ), optional :: direction
+    logical                  , intent(in   ), optional :: allowEqual
+    integer                                            :: i
+    logical                                            :: allowEqualActual   , arrayIsFlat, isIncreasing
 
     ! Single element arrays count as monotonic.
     if (size(array) <= 1) then
-       Array_Is_Monotonic_Double=.true.
+       Array_Is_Monotonic_{monotonictype¦label}=.true.
        return
     end if
 
@@ -181,12 +172,12 @@ contains
        ! If no element differing from the first was found, then the array is flat and so is deemed to be monotonic in this case
        ! (since equal entries are allowed).
        if (arrayIsFlat) then
-          Array_Is_Monotonic_Double=.true.
+          Array_Is_Monotonic_{monotonictype¦label}=.true.
           return
        end if
     else
        if (array(2) == array(1)) then
-          Array_Is_Monotonic_Double=.false.
+          Array_Is_Monotonic_{monotonictype¦label}=.false.
           return
        end if
        isIncreasing=array(2) > array(1)
@@ -196,13 +187,13 @@ contains
     if (present(direction)) then
        if (   (direction == directionIncreasing .and. .not.isIncreasing) .or.        &
             & (direction == directionDecreasing .and.      isIncreasing)      ) then
-          Array_Is_Monotonic_Double=.false.
+          Array_Is_Monotonic_{monotonictype¦label}=.false.
           return
        end if
     end if
 
     ! Check elements are monotonic. We will exit immediately on finding any non-monotonicity, so set the result to false.
-    Array_Is_Monotonic_Double=.false.
+    Array_Is_Monotonic_{monotonictype¦label}=.false.
     do i=2,size(array)
        select case (isIncreasing)
        case (.true.)
@@ -222,9 +213,9 @@ contains
      end select
     end do
     ! No elements failed the test, so the array must be monotonic.
-    Array_Is_Monotonic_Double=.true.
+    Array_Is_Monotonic_{monotonictype¦label}=.true.
     return
-  end function Array_Is_Monotonic_Double
+  end function Array_Is_Monotonic_{monotonictype¦label}
 
   subroutine Array_Which(mask,indices)
     !!{RST
@@ -248,54 +239,23 @@ contains
     return
   end subroutine Array_Which
 
-  function Array_Index_Double(array,indices) result (arraySubset)
+  function Array_Index_{indextype¦label}(array,indices) result (arraySubset)
     !!{RST
-    Return a subset of a double precision array given a set of indices into the array.
+    Return a subset of {indextype¦description} array given a set of indices into the array.
     !!}
     implicit none
-    double precision, dimension(:)            , intent(in   ) :: array
-    integer         , dimension(:)            , intent(in   ) :: indices
-    double precision, dimension(size(indices))                :: arraySubset
-    integer                                                   :: i
+    {indextype¦intrinsic}, dimension(:)            , intent(in   ) :: array
+    integer              , dimension(:)            , intent(in   ) :: indices
+    {indextype¦intrinsic}, dimension(size(indices))                :: arraySubset
+    integer                                                        :: i
 
     forall(i=1:size(indices))
        arraySubset(i)=array(indices(i))
     end forall
     return
-  end function Array_Index_Double
+  end function Array_Index_{indextype¦label}
 
-  function Array_Index_Integer(array,indices) result (arraySubset)
-    !!{RST
-    Return a subset of an integer array given a set of indices into the array.
-    !!}
-    implicit none
-    integer, dimension(:)            , intent(in   ) :: array
-    integer, dimension(:)            , intent(in   ) :: indices
-    integer, dimension(size(indices))                :: arraySubset
-    integer                                          :: i
 
-    forall(i=1:size(indices))
-       arraySubset(i)=array(indices(i))
-    end forall
-    return
-  end function Array_Index_Integer
-
-  function Array_Index_Integer8(array,indices) result (arraySubset)
-    !!{RST
-    Return a subset of an integer array given a set of indices into the array.
-    !!}
-    use :: Kind_Numbers, only : kind_int8
-    implicit none
-    integer(kind=kind_int8), dimension(:)            , intent(in   ) :: array
-    integer                , dimension(:)            , intent(in   ) :: indices
-    integer(kind=kind_int8), dimension(size(indices))                :: arraySubset
-    integer                                                          :: i
-
-    forall(i=1:size(indices))
-       arraySubset(i)=array(indices(i))
-    end forall
-    return
-  end function Array_Index_Integer8
 
   function Array_Index_Double_2D(array,indices,indexOn) result (arraySubset)
     !!{RST
@@ -329,93 +289,6 @@ contains
     return
   end function Array_Index_Double_2D
 
-  logical function Array_Is_Monotonic_Integer8(array,direction,allowEqual)
-    !!{RST
-    Checks if an integer array is monotonic.
-    !!}
-    use :: Kind_Numbers, only : kind_int8
-    implicit none
-    integer(kind=kind_int8), intent(in   )           :: array           (:)
-    integer                , intent(in   ), optional :: direction
-    logical                , intent(in   ), optional :: allowEqual
-    integer                                          :: i
-    logical                                          :: allowEqualActual   , arrayIsFlat, isIncreasing
-
-    ! Single element arrays count as monotonic.
-    if (size(array) <= 1) then
-       Array_Is_Monotonic_Integer8=.true.
-       return
-    end if
-
-    ! Determine if equal points are allowed.
-    if (present(allowEqual)) then
-       allowEqualActual=allowEqual
-    else
-       allowEqualActual=.false.
-    end if
-
-    ! Determine if the array is increasing or decreasing at the start.
-    if (allowEqualActual) then
-       ! Equal entries are allowed, so scan the array to find the first element which is not equal to the first element.
-       i=2                ! Begin with the second element.
-       arrayIsFlat=.true. ! Assume that the array is flat (all elements the same) until we can prove otherwise.
-       do while (i <= size(array))
-          ! Check for a difference in the element compared to the first element.
-          if (array(i) /= array(1)) then
-             ! Element does differ: 1) determine in what sense it differs; 2) flag that the array is not flat; 3) exit the loop.
-             isIncreasing=array(i) > array(1)
-             arrayIsFlat=.false.
-             exit
-          end if
-          i=i+1
-       end do
-       ! If no element differing from the first was found, then the array is flat and so is deemed to be monotonic in this case
-       ! (since equal entries are allowed).
-       if (arrayIsFlat) then
-          Array_Is_Monotonic_Integer8=.true.
-          return
-       end if
-    else
-       if (array(2) == array(1)) then
-          Array_Is_Monotonic_Integer8=.false.
-          return
-       end if
-       isIncreasing=array(2) > array(1)
-    end if
-
-    ! Check direction is correct if this was specified.
-    if (present(direction)) then
-       if (   (direction == directionIncreasing .and. .not.isIncreasing) .or.        &
-            & (direction == directionDecreasing .and.      isIncreasing)      ) then
-          Array_Is_Monotonic_Integer8=.false.
-          return
-       end if
-    end if
-
-    ! Check elements are monotonic. We will exit immediately on finding any non-monotonicity, so set the result to false.
-    Array_Is_Monotonic_Integer8=.false.
-    do i=2,size(array)
-       select case (isIncreasing)
-       case (.true.)
-          select case (allowEqualActual)
-          case (.false.)
-             if (array(i) <= array(i-1)) return
-          case (.true.)
-             if (array(i) <  array(i-1)) return
-          end select
-       case (.false.)
-          select case (allowEqualActual)
-          case (.false.)
-             if (array(i) >= array(i-1)) return
-          case (.true.)
-             if (array(i) >  array(i-1)) return
-          end select
-     end select
-    end do
-    ! No elements failed the test, so the array must be monotonic.
-    Array_Is_Monotonic_Integer8=.true.
-    return
-  end function Array_Is_Monotonic_Integer8
 
   function Array_Intersection_Varying_String(a,b)
     use :: ISO_Varying_String, only : operator(==), varying_string
