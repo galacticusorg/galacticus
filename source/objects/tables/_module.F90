@@ -525,6 +525,14 @@ module Tables
      procedure :: ys                   => Table_2DLogLogLin_Ys
   end type table2DLogLogLin
 
+  ! Generic type instances used to generate the spline computation for the monotone cubic spline tables.
+  !![
+  <generic identifier="splinetype">
+   <instance label="Monotone"        intrinsic="type(table1DMonotoneCSpline      )"/>
+   <instance label="Linear_Monotone" intrinsic="type(table1DLinearMonotoneCSpline)"/>
+  </generic>
+  !!]
+
 contains
 
   subroutine Table_1D_Destroy(self)
@@ -2417,16 +2425,16 @@ contains
     return
   end subroutine Table_Monotone_CSpline_1D_Populate_Single
 
-  subroutine Table_Monotone_CSpline_1D_Compute_Spline(self,table)
+  subroutine Table_{splinetype¦label}_CSpline_1D_Compute_Spline(self,table)
     !!{RST
-    Compute the interpolating spline factors for a 1-D linear spline.
+    Compute the interpolating spline factors for a 1-D monotone cubic spline.
     !!}
     implicit none
-    type            (table1DMonotoneCSpline), intent(inout)               :: self
-    integer                                 , intent(in   )               :: table
-    double precision                        , allocatable  , dimension(:) :: dx   , dy    , m
-    integer                                                               :: i
-    double precision                                                      :: dxSum, factor
+    {splinetype¦intrinsic}, intent(inout)               :: self
+    integer               , intent(in   )               :: table
+    double precision      , allocatable  , dimension(:) :: dx   , dy    , m
+    integer                                             :: i
+    double precision                                    :: dxSum, factor
 
     ! Reset all previously stored values.
     self% tablePrevious=-1
@@ -2464,7 +2472,7 @@ contains
     deallocate(dy)
     deallocate( m)
     return
-  end subroutine Table_Monotone_CSpline_1D_Compute_Spline
+  end subroutine Table_{splinetype¦label}_CSpline_1D_Compute_Spline
 
   double precision function Table_Monotone_CSpline_1D_Interpolate(self,x,table,status)
     !!{RST
@@ -3415,54 +3423,6 @@ contains
     return
   end subroutine Table_Linear_Monotone_CSpline_1D_Populate_Single
 
-  subroutine Table_Linear_Monotone_CSpline_1D_Compute_Spline(self,table)
-    !!{RST
-    Compute the interpolating spline factors for a 1-D linear spline.
-    !!}
-    implicit none
-    type            (table1DLinearMonotoneCSpline), intent(inout)               :: self
-    integer                                       , intent(in   )               :: table
-    double precision                              , allocatable  , dimension(:) :: dx   , dy    , m
-    integer                                                                     :: i
-    double precision                                                            :: dxSum, factor
-
-    ! Reset all previously stored values.
-    self% tablePrevious=-1
-    self%dTablePrevious=-1
-    self%     iPrevious=-1
-    ! Allocate workspace.
-    allocate(dx(size(self%xv)-1))
-    allocate(dy(size(self%xv)-1))
-    allocate( m(size(self%xv)-1))
-    ! Get consecutive differences and slopes.
-    do i=1,size(self%xv)-1
-       dx(i)=self%xv(i+1      )-self%xv(i      )
-       dy(i)=self%yv(i+1,table)-self%yv(i,table)
-       m (i)=dy(i)/dx(i)
-    end do
-    ! Get degree-1 coefficients.
-    self%av(1,table)=m(1)
-    do i=1,size(dx)-1
-       if (m(i)*m(i+1) <= 0.0d0) then
-          self%av(i+1,table)=0.0d0
-       else
-          dxSum=dx(i)+dx(i+1)
-          self%av(i+1,table)=3.0d0*dxSum/((dxSum+dx(i+1))/m(i)+(dxSum+dx(i))/m(i+1))
-       end if
-    end do
-    self%av(size(dx)+1,table)=m(size(m))
-    ! Get degree-2 and degree-3 coefficients.
-    do i=1,size(self%av)-1
-       factor=self%av(i,table)+self%av(i+1,table)-2.0d0*m(i)
-       self%bv(i,table)=(m(i)-self%av(i,table)-factor)/dx(i)
-       self%cv(i,table)=factor/dx(i)**2
-    end do
-    ! Destroy workspace.
-    deallocate(dx)
-    deallocate(dy)
-    deallocate( m)
-    return
-  end subroutine Table_Linear_Monotone_CSpline_1D_Compute_Spline
 
   double precision function Table_Linear_Monotone_CSpline_1D_Interpolate(self,x,table,status)
     !!{RST
