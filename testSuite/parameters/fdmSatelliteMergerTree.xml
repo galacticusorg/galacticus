@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A merger tree in which a single satellite falls into its host, used to test satellite merging in fuzzy dark matter models. -->
+<tree>
+  <node>
+    <index>1</index>
+    <parent>4</parent>
+    <firstChild>-1</firstChild>
+    <sibling>3</sibling>
+    <basic>
+      <time>1.0</time>
+      <mass>1.0e11</mass>
+    </basic>
+  </node>
+  <node>
+    <index>3</index>
+    <parent>4</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>1.0</time>
+      <mass>5.0e10</mass>
+    </basic>
+  </node>
+  <node>
+    <index>4</index>
+    <parent>2</parent>
+    <firstChild>1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>2.0</time>
+      <mass>1.6e11</mass>
+    </basic>
+  </node>
+  <node>
+    <index>2</index>
+    <parent>-1</parent>
+    <firstChild>4</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>14.0</time>
+      <mass>1.0e12</mass>
+    </basic>
+  </node>
+</tree>

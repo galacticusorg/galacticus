@@ -1536,6 +1536,7 @@ jobs:
                 test-enforceNonNegativity.py,
                 test-pruneLightcone.py,
                 test-soliton-coremass.py,
+                test-soliton-satellite-merging.py,
                 test-promptCuspNFW.py,
                 test-postprocessing.py,
                 test-merger-tree-export.sh,
