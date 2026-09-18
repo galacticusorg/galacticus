@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that outputs complete data on node evolution.
   !!}
@@ -28,16 +30,19 @@
    <description>
    A node operator class that records the complete evolutionary trajectory of each node to an XML file at each ODE post-step, for debugging and detailed analysis. ``outputFileName`` specifies the output file (default: ``mergerTreeEvolution.xml``); a ``galacticFilter`` selects which nodes to record (default: all nodes). Useful for inspecting how galaxy properties evolve between output snapshots.
    </description>
+   <deepCopy>
+    <setTo variables="isOwner" value=".false."/>
+   </deepCopy>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorEvolutionOutput
      !!{RST
-     A node operator class that shifts node indices at node promotion.
+     A node operator class that outputs complete data on node evolution.
      !!}
      private
      type   (varying_string     )          :: outputFileName
      class  (galacticFilterClass), pointer :: galacticFilter_ => null()
-     integer                               :: outputFile
+     logical                               :: isOwner         =  .false.
    contains
      final     ::                              evolutionOutputDestructor
      procedure :: differentialEvolutionPost => evolutionOutputDifferentialEvolutionPost
@@ -50,6 +55,15 @@
      module procedure evolutionOutputConstructorParameters
      module procedure evolutionOutputConstructorInternal
   end interface nodeOperatorEvolutionOutput
+
+  ! The output file. This is shared by all instances of the class - including the copies made for each OpenMP thread, which
+  ! must all write to the same file - so it is opened on first use (rather than by the constructor), and closed only by the
+  ! instance which was constructed (and so "owns" the file). This also ensures that finalization of any temporary or
+  ! default-initialized instances (which occurs during construction) can not close the file. Whether the file is open is recorded
+  ! separately, as unit numbers returned by `open(newUnit=...)` are negative and so can not serve as an indicator.
+  integer                 :: evolutionOutputUnit
+  logical                 :: evolutionOutputIsOpen  =.false.
+  type   (varying_string) :: evolutionOutputFileName
   
 contains
   
@@ -98,9 +112,8 @@ contains
     !![
     <constructorAssign variables="outputFileName, *galacticFilter_"/>
     !!]
-    
-    open(newUnit=self%outputFile,file=char(outputFileName),status='unknown',form='formatted')
-    write (self%outputFile,'(a)') '<evolution>'
+
+    self%isOwner=.true.
     return
   end function evolutionOutputConstructorInternal
   
@@ -114,8 +127,15 @@ contains
     !![
     <objectDestructor name="self%galacticFilter_"/>
     !!]
-    write (self%outputFile,'(a)') '</evolution>'
-    close(self%outputFile)
+    if (self%isOwner) then
+       !$omp critical(evolutionOutputFile)
+       if (evolutionOutputIsOpen) then
+          write (evolutionOutputUnit,'(a)') '</evolution>'
+          close(evolutionOutputUnit)
+          evolutionOutputIsOpen=.false.
+       end if
+       !$omp end critical(evolutionOutputFile)
+    end if
     return
   end subroutine evolutionOutputDestructor
   
@@ -123,11 +143,24 @@ contains
     !!{RST
     Operate on the node after differential evolution
     !!}
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : operator(/=)
     implicit none
     class(nodeOperatorEvolutionOutput), intent(inout) :: self
     type (treeNode                   ), intent(inout) :: node
 
-    if (self%galacticFilter_%passes(node)) call node%serializeXML(self%outputFile)    
+    if (.not.self%galacticFilter_%passes(node)) return
+    !$omp critical(evolutionOutputFile)
+    if (.not.evolutionOutputIsOpen) then
+       open(newUnit=evolutionOutputUnit,file=char(self%outputFileName),status='replace',form='formatted')
+       write (evolutionOutputUnit,'(a)') '<evolution>'
+       evolutionOutputIsOpen  =.true.
+       evolutionOutputFileName=self%outputFileName
+    else if (self%outputFileName /= evolutionOutputFileName) then
+       call Error_Report('only a single evolution output file is supported'//{introspection:location})
+    end if
+    call node%serializeXML(evolutionOutputUnit)
+    !$omp end critical(evolutionOutputFile)
     return
   end subroutine evolutionOutputDifferentialEvolutionPost
   
