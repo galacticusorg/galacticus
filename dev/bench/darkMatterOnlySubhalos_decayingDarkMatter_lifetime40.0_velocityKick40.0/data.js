@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789368552255,
+  "lastUpdate": 1789702437838,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=40 km/s)": [
@@ -6805,6 +6805,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": 7.380751252310019,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4cc2edf4715c993c393e6d3a59cc13eaca16661c",
+          "message": "Merge pull request #1511 from galacticusorg/physics-verification-satellite-orbits\n\nfix(satellites): correct two mass-normalization errors in satellite evolution, and verify the rates and their assembly",
+          "timestamp": "2026-09-17T17:01:05Z",
+          "tree_id": "12880a9129ff8fce3c58e7d32fb0cdbac8d14ae2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4cc2edf4715c993c393e6d3a59cc13eaca16661c"
+        },
+        "date": 1789702437027,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": 27.921609173121723,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": 4.354864230075082,
             "unit": "-logℒ"
           }
         ]
