@@ -356,7 +356,7 @@ contains
     ! cancellation, which is far below that: this threshold minimizes the largest error over the whole range, reducing it from
     ! 6.7×10⁻⁴ to 2.6×10⁻⁵, and to below 10⁻⁸ for the cusp amplitudes y ≳ 0.05 found in practice.
     double precision                         , parameter             :: fractionSmallSimplified=1.0d-5
-    double precision                                                 :: radiusScaleFree
+    double precision                                                 :: radiusScaleFree               , termLogarithmic
 
     radiusScaleFree=+     radius      &
          &          /self%radiusScale
@@ -378,18 +378,27 @@ contains
             &   /              self%y**2        &
             & )
     else if (radiusScaleFree < fractionSmallSimplified) then
-       ! Use a simplified solution (approximating ρ = ρ₀ √(r+y²)/r^{3/2}) for small radii r ≪ 1.
+       ! Use a simplified solution (approximating ρ = ρ₀ √(r+y²)/r^{3/2}) for small radii r ≪ 1. The logarithmic term vanishes as
+       ! y → 0, since y⁴log(2√r/y) → 0, but the expressions from which it is built divide by y, so it must be omitted in that
+       ! limit rather than evaluated. A cusp-free profile is a valid configuration - it is simply NFW, and
+       ! `densitySlopeLogarithmicCentral` returns -1 for it - so without this the enclosed mass raises a floating point exception
+       ! at any radius below this branch's threshold.
+       if (self%y > 0.0d0) then
+          termLogarithmic=+self%y**4                                          &
+               &          *log(                                               &
+               &               +sqrt(1.0d0+radiusScaleFree/self%y**2)         &
+               &               +sqrt(      radiusScaleFree          )/self%y  &
+               &              )
+       else
+          termLogarithmic=+0.0d0
+       end if
        mass  =+Pi                                                        &
             & *self%densityNormalization                                 &
             & *self%radiusScale         **3                              &
             & *(                                                         &
             &   +                     (2.0d0*radiusScaleFree+self%y**2)  &
             &   *sqrt(radiusScaleFree*(      radiusScaleFree+self%y**2)) &
-            &   -self%y**4                                               &
-            &   *log(                                                    &
-            &        +sqrt(1.0d0+radiusScaleFree/self%y**2)              &
-            &        +sqrt(      radiusScaleFree          )/self%y       &
-            &       )                                                    &
+            &   -termLogarithmic                                         &
             &  )
     else if (self%y**2 < fractionSmall*radiusScaleFree) then
        ! For small cusps, y² ≪ r, use a series solution. This is essentially the NFW solution with the lowest order correction for

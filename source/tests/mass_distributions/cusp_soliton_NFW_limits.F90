@@ -89,6 +89,10 @@ program Test_Mass_Distributions_Cusp_Soliton_NFW_Limits
   ! reference integrals are converged to better than 10⁻¹², and the enclosed-mass branches agree with them to better than
   ! 3×10⁻⁹ for these cusp amplitudes.
   double precision                            , parameter                 :: toleranceExact          =1.0d-12, toleranceReference  =1.0d-7
+  ! With no cusp the profile is exactly NFW, so its enclosed mass must be too. At the smallest radii the cusp-NFW value comes
+  ! from a simplified solution which drops the (1+r/r_s)⁻² factor of the density, costing O(r/r_s) - at most 1.3×10⁻⁶ over the
+  ! radii used here.
+  double precision                            , parameter                 :: toleranceNoCusp         =1.0d-5
   integer                                                                 :: i
 
   call displayVerbositySet  (verbosityLevelStandard)
@@ -112,6 +116,7 @@ program Test_Mass_Distributions_Cusp_Soliton_NFW_Limits
      densityCuspExpected(i)=densityNFWCusp(i)*sqrt(1.0d0+yCusp**2/radiiCusp(i))
   end do
   call Assert('y=0 gives the NFW density'                    ,densityCuspNoCusp                                              ,densityNFWCusp                                       ,relTol=toleranceExact    )
+  call Assert('y=0 gives the NFW enclosed mass'              ,massCuspNoCusp                                                 ,massNFWCusp                                          ,relTol=toleranceNoCusp   )
   call Assert('the cusp multiplies NFW by √(1+y²r_s/r)'      ,densityCusp                                                    ,densityCuspExpected                                  ,relTol=toleranceExact    )
   call Assert('enclosed mass against numerical integration'  ,massCusp                                                       ,massCuspReference*densityNormalization*radiusScale**3,relTol=toleranceReference)
   call Assert('central slope is -3/2 with a cusp'            ,massDistributionCuspNFW_      %densitySlopeLogarithmicCentral(),-1.5d0                                               ,relTol=toleranceExact    )
