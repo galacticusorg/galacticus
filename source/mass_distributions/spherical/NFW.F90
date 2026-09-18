@@ -55,7 +55,7 @@
      procedure :: massTotal                         => nfwMassTotal
      procedure :: density                           => nfwDensity
      procedure :: densityGradientRadial             => nfwDensityGradientRadial
-     procedure :: densitySlopeLogarithmicGradient    => nfwDensitySlopeLogarithmicGradient
+     procedure :: densitySlopeLogarithmicGradient   => nfwDensitySlopeLogarithmicGradient
      procedure :: densitySlopeLogarithmicCentral    => nfwDensitySlopeLogarithmicCentral
      procedure :: densityRadialMoment               => nfwDensityRadialMoment
      procedure :: massEnclosedBySphere              => nfwMassEnclosedBySphere
@@ -318,10 +318,10 @@ contains
     class           (coordinate         ), intent(in   )         :: coordinates
     double precision                                             :: radiusScaleFree
 
-    radiusScaleFree               =+coordinates%rSpherical()         &
-         &                         /self       %scaleLength
-    densitySlopeLogarithmicGradient=-2.0d0                           &
-         &                          *       radiusScaleFree          &
+    radiusScaleFree                =+coordinates%rSpherical()   &
+         &                          /self       %scaleLength
+    densitySlopeLogarithmicGradient=-2.0d0                      &
+         &                          *       radiusScaleFree     &
          &                          /(1.0d0+radiusScaleFree)**2
     return
   end function nfwDensitySlopeLogarithmicGradient

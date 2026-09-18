@@ -43,9 +43,9 @@
      private
      double precision :: lengthResolution
    contains
-     final     ::                          sphericalFiniteResolutionDestructor
-     procedure :: density               => sphericalFiniteResolutionDensity
-     procedure :: densityGradientRadial => sphericalFiniteResolutionDensityGradientRadial
+     final     ::                                    sphericalFiniteResolutionDestructor
+     procedure :: density                         => sphericalFiniteResolutionDensity
+     procedure :: densityGradientRadial           => sphericalFiniteResolutionDensityGradientRadial
      procedure :: densitySlopeLogarithmicGradient => sphericalFiniteResolutionDensitySlopeLogarithmicGradient
   end type massDistributionSphericalFiniteResolution
 
@@ -184,9 +184,9 @@ contains
     class           (coordinate                               ), intent(in   )         :: coordinates
     double precision                                                                   :: resolutionFractionalSquared
 
-    resolutionFractionalSquared    =+(                                    &
-         &                            +self       %lengthResolution       &
-         &                            /coordinates%rSpherical      ()     &
+    resolutionFractionalSquared    =+(                                &
+         &                            +self       %lengthResolution   &
+         &                            /coordinates%rSpherical      () &
          &                           )**2
     densitySlopeLogarithmicGradient=+self%massDistribution_%densitySlopeLogarithmicGradient(coordinates) &
          &                          -2.0d0                                                               &

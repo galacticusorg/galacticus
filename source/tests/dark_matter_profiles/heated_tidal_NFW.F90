@@ -46,14 +46,14 @@ program Test_Dark_Matter_Profiles_Heated_Tidal_NFW
   non-zero second-order coefficients, and asserts against the first-order-only case as well, so that each term is exercised
   separately.
   !!}
-  use :: Display              , only : displayMessage             , displayVerbositySet         , verbosityLevelStandard
+  use :: Display              , only : displayMessage              , displayVerbositySet         , verbosityLevelStandard
   use :: Error                , only : Error_Handler_Register
   use :: Events_Hooks         , only : eventsHooksInitialize
   use :: IO_HDF5              , only : ioHDF5AccessInitialize
-  use :: Coordinates          , only : coordinateSpherical        , assignment(=)
+  use :: Coordinates          , only : coordinateSpherical         , assignment(=)
   use :: Mass_Distributions   , only : massDistributionClass       , massDistributionNFW        , massDistributionSpherical, massDistributionSphericalHeated, &
        &                               massDistributionHeatingTidal, kinematicsDistributionClass, kinematicsDistributionNFW, nonAnalyticSolversNumerical
-  use :: Unit_Tests           , only : Assert                     , Unit_Tests_Begin_Group      , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Unit_Tests           , only : Assert                      , Unit_Tests_Begin_Group     , Unit_Tests_End_Group     , Unit_Tests_Finish
   implicit none
   ! The satellite's unheated profile: an NFW halo holding the dark matter fraction of a 10¹⁰ M☉ halo, at the concentration and
   ! virial radius used by the companion orbit references.
@@ -86,23 +86,24 @@ program Test_Dark_Matter_Profiles_Heated_Tidal_NFW
   ! while remaining far tighter than any error in the physics: the missing coefficient-derivative term in
   ! `tidalSpecificEnergyGradient`, found by this test, displaced the density by 1.8 x 10⁻³ at the coefficients used here and
   ! by 1.7-3.8 x 10⁻² at those of the reference tidal heating model.
-  double precision, parameter :: toleranceRadius=1.0d-7, toleranceMass=1.0d-7, toleranceDensity=1.0d-6
+  double precision                              , parameter    :: toleranceRadius           =1.0d-7, toleranceMass    =1.0d-7, &
+       &                                                          toleranceDensity          =1.0d-6
   class           (massDistributionClass       ), pointer      :: massDistributionHeated_
   class           (massDistributionSpherical   ), pointer      :: massDistributionNFW_
   class           (kinematicsDistributionClass ), pointer      :: kinematicsDistributionNFW_
   class           (massDistributionHeatingTidal), pointer      :: massDistributionHeating_
   type            (coordinateSpherical         )               :: coordinates
   character       (len=128                     )               :: message
-  integer                                                      :: iConfiguration, iOrder
-  double precision                                             :: radiusInitial , massEnclosed        , &
-       &                                                          density       , differenceMaximum   , &
-       &                                                          differenceRadius, differenceMass    , &
+  integer                                                      :: iConfiguration                   , iOrder
+  double precision                                             :: radiusInitial                    , massEnclosed           , &
+       &                                                          density                          , differenceMaximum      , &
+       &                                                          differenceRadius                 , differenceMass         , &
        &                                                          differenceDensity
 
-  call displayVerbositySet   (verbosityLevelStandard)
-  call Error_Handler_Register(                      )
-  call eventsHooksInitialize (                      )
-  call ioHDF5AccessInitialize(                      )
+  call displayVerbositySet   (verbosityLevelStandard      )
+  call Error_Handler_Register(                            )
+  call eventsHooksInitialize (                            )
+  call ioHDF5AccessInitialize(                            )
   call Unit_Tests_Begin_Group("Tidally heated NFW profile")
   differenceMaximum=0.0d0
   ! Loop over the two orders: iOrder=1 includes the second-order energy perturbation, iOrder=2 switches it off by zeroing its
@@ -160,7 +161,7 @@ program Test_Dark_Matter_Profiles_Heated_Tidal_NFW
            call Assert(trim(message),radiusInitial,radiusInitialReference(iConfiguration),relTol=toleranceRadius )
            write (message,'(a,i0)') 'enclosed mass, second order, configuration ',iConfiguration
            call Assert(trim(message),massEnclosed ,massEnclosedReference (iConfiguration),relTol=toleranceMass   )
-           write (message,'(a,i0)') 'density, second order, configuration ',iConfiguration
+           write (message,'(a,i0)') 'density, second order, configuration '      ,iConfiguration
            call Assert(trim(message),density      ,densityReference      (iConfiguration),relTol=toleranceDensity)
         else
            differenceRadius =abs(radiusInitial/radiusInitialFirstOrderReference(iConfiguration)-1.0d0)

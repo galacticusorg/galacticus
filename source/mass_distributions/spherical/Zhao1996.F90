@@ -84,7 +84,7 @@
      procedure :: massTotal                         => zhao1996MassTotal
      procedure :: density                           => zhao1996Density
      procedure :: densityGradientRadial             => zhao1996DensityGradientRadial
-     procedure :: densitySlopeLogarithmicGradient    => zhao1996DensitySlopeLogarithmicGradient
+     procedure :: densitySlopeLogarithmicGradient   => zhao1996DensitySlopeLogarithmicGradient
      procedure :: densitySlopeLogarithmicCentral    => zhao1996DensitySlopeLogarithmicCentral
      procedure :: densityRadialMoment               => zhao1996DensityRadialMoment
      procedure :: massEnclosedBySphere              => zhao1996MassEnclosedBySphere
@@ -418,13 +418,13 @@ contains
     class           (coordinate              ), intent(in   )         :: coordinates
     double precision                                                  :: radiusScaleFreePowered
 
-    radiusScaleFreePowered         =+(                            &
-         &                            +coordinates%rSpherical ()  &
-         &                            /self       %scaleLength    &
+    radiusScaleFreePowered         =+(                                 &
+         &                            +coordinates%rSpherical ()       &
+         &                            /self       %scaleLength         &
          &                           )**self%alpha
-    densitySlopeLogarithmicGradient=-self%alpha                            &
-         &                          *(     self%beta-self%gamma )         &
-         &                          *       radiusScaleFreePowered         &
+    densitySlopeLogarithmicGradient=-self%alpha                        &
+         &                          *(self%beta-self%gamma)            &
+         &                          *       radiusScaleFreePowered     &
          &                          /(1.0d0+radiusScaleFreePowered)**2
     return
   end function zhao1996DensitySlopeLogarithmicGradient

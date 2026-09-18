@@ -52,13 +52,13 @@
           &              densityAtTruncation        , kappa                        , &
           &              massEnclosedExponentialTerm, massEnclosedGammaFunctionTerm
    contains
-     final     ::                           sphericalTruncatedExponentialDestructor
-     procedure :: density                => sphericalTruncatedExponentialDensity
-     procedure :: densityGradientRadial  => sphericalTruncatedExponentialDensityGradientRadial
+     final     ::                                    sphericalTruncatedExponentialDestructor
+     procedure :: density                         => sphericalTruncatedExponentialDensity
+     procedure :: densityGradientRadial           => sphericalTruncatedExponentialDensityGradientRadial
      procedure :: densitySlopeLogarithmicGradient => sphericalTruncatedExponentialDensitySlopeLogarithmicGradient
-     procedure :: massTotal              => sphericalTruncatedExponentialMassTotal
-     procedure :: massEnclosedBySphere   => sphericalTruncatedExponentialMassEnclosedBySphere
-     procedure :: radiusEnclosingMass    => sphericalTruncatedExponentialRadiusEnclosingMass
+     procedure :: massTotal                       => sphericalTruncatedExponentialMassTotal
+     procedure :: massEnclosedBySphere            => sphericalTruncatedExponentialMassEnclosedBySphere
+     procedure :: radiusEnclosingMass             => sphericalTruncatedExponentialRadiusEnclosingMass
   end type massDistributionSphericalTruncatedExponential
 
   interface massDistributionSphericalTruncatedExponential
@@ -242,7 +242,7 @@ contains
     if (coordinates%rSpherical() <= self%radiusTruncateMinimum) then
        densitySlopeLogarithmicGradient=+self%massDistribution_%densitySlopeLogarithmicGradient(coordinates)
     else
-       densitySlopeLogarithmicGradient=-coordinates%rSpherical          () &
+       densitySlopeLogarithmicGradient=-coordinates%rSpherical         () &
             &                          /self       %radiusTruncateDecay
     end if
     return

@@ -46,7 +46,7 @@
      procedure :: massEnclosedBySphere            => solitonNFWMassEnclosedBySphere
      procedure :: density                         => solitonNFWDensity
      procedure :: densityGradientRadial           => solitonNFWDensityGradientRadial
-     procedure :: densitySlopeLogarithmicGradient  => solitonNFWDensitySlopeLogarithmicGradient
+     procedure :: densitySlopeLogarithmicGradient => solitonNFWDensitySlopeLogarithmicGradient
      procedure :: densitySlopeLogarithmicCentral  => solitonNFWDensitySlopeLogarithmicCentral
      procedure :: radiusEnclosingDensity          => solitonNFWRadiusEnclosingDensity
      procedure :: radiusEnclosingDensityNumerical => solitonNFWRadiusEnclosingDensityNumerical
@@ -432,20 +432,20 @@
         densitySlopeLogarithmicGradient=+0.0d0
      else if (coordinates%rSpherical() <  self%radiusSoliton) then
         ! Soliton regime.
-        radiusCoreFreeSquared          =+coefficientCore                       &
-             &                          *(                                     &
-             &                            +coordinates%rSpherical ()           &
-             &                            /self       %radiusCore              &
+        radiusCoreFreeSquared          =+coefficientCore                  &
+             &                          *(                                &
+             &                            +coordinates%rSpherical ()      &
+             &                            /self       %radiusCore         &
              &                           )**2
-        densitySlopeLogarithmicGradient=-32.0d0                                &
-             &                          *       radiusCoreFreeSquared          &
+        densitySlopeLogarithmicGradient=-32.0d0                           &
+             &                          *       radiusCoreFreeSquared     &
              &                          /(1.0d0+radiusCoreFreeSquared)**2
      else
         ! NFW regime.
-        radiusScaleFree                =+coordinates%rSpherical () &
+        radiusScaleFree                =+coordinates%rSpherical ()        &
              &                          /self       %radiusScale
-        densitySlopeLogarithmicGradient=-2.0d0                     &
-             &                          *       radiusScaleFree    &
+        densitySlopeLogarithmicGradient=-2.0d0                            &
+             &                          *       radiusScaleFree           &
              &                          /(1.0d0+radiusScaleFree)**2
      end if
      return

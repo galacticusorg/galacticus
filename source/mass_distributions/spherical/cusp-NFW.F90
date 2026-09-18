@@ -42,16 +42,16 @@
      double precision :: densityNormalization, radiusScale, &
           &              y
    contains
-     procedure :: describe                       => cuspNFWDescribe
-     procedure :: density                        => cuspNFWDensity
-     procedure :: densityGradientRadial          => cuspNFWDensityGradientRadial
+     procedure :: describe                        => cuspNFWDescribe
+     procedure :: density                         => cuspNFWDensity
+     procedure :: densityGradientRadial           => cuspNFWDensityGradientRadial
      procedure :: densitySlopeLogarithmicGradient => cuspNFWDensitySlopeLogarithmicGradient
-     procedure :: densitySlopeLogarithmicCentral => cuspNFWDensitySlopeLogarithmicCentral
-     procedure :: massEnclosedBySphere           => cuspNFWMassEnclosedBySphere
-     procedure :: parameters                     => cuspNFWParameters
-     procedure :: factoryTabulation              => cuspNFWFactoryTabulation
-     procedure :: descriptor                     => cuspNFWDescriptor
-     procedure :: suffix                         => cuspNFWSuffix
+     procedure :: densitySlopeLogarithmicCentral  => cuspNFWDensitySlopeLogarithmicCentral
+     procedure :: massEnclosedBySphere            => cuspNFWMassEnclosedBySphere
+     procedure :: parameters                      => cuspNFWParameters
+     procedure :: factoryTabulation               => cuspNFWFactoryTabulation
+     procedure :: descriptor                      => cuspNFWDescriptor
+     procedure :: suffix                          => cuspNFWSuffix
   end type massDistributionCuspNFW
   
   interface massDistributionCuspNFW
@@ -312,10 +312,10 @@ contains
 
     radiusScaleFree                =+coordinates%rSpherical () &
          &                          /self       %radiusScale
-    densitySlopeLogarithmicGradient=+radiusScaleFree                                       &
-         &                          *(                                                     &
-         &                            -2.0d0        /(     1.0d0   +radiusScaleFree)**2    &
-         &                            +0.5d0*self%y**2/(self%y**2+radiusScaleFree)**2      &
+    densitySlopeLogarithmicGradient=+radiusScaleFree                                  &
+         &                          *(                                                &
+         &                            -2.0d0          /(1.0d0    +radiusScaleFree)**2 &
+         &                            +0.5d0*self%y**2/(self%y**2+radiusScaleFree)**2 &
          &                           )
     return
   end function cuspNFWDensitySlopeLogarithmicGradient

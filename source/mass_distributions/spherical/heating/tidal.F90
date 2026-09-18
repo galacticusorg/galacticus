@@ -216,12 +216,12 @@ contains
                   &                  +self%coefficientSecondOrder1*densityLogSlope    &
                   &                  +self%coefficientSecondOrder2*densityLogSlope**2
              densityLogSlopeGradient=massDistribution_%densitySlopeLogarithmicGradient(coordinates)
-             gradientCoefficient    =+(                                          &
-                  &                    +      self%coefficientSecondOrder1       &
-                  &                    +2.0d0*self%coefficientSecondOrder2       &
-                  &                    *           densityLogSlope               &
-                  &                   )                                          &
-                  &                  *             densityLogSlopeGradient       &
+             gradientCoefficient    =+(                                    &
+                  &                    +      self%coefficientSecondOrder1 &
+                  &                    +2.0d0*self%coefficientSecondOrder2 &
+                  &                    *           densityLogSlope         &
+                  &                   )                                    &
+                  &                  *             densityLogSlopeGradient &
                   &                  /             coefficientSecondOrder
           else
              gradientCoefficient    =+0.0d0
@@ -242,7 +242,7 @@ contains
                &                  )                                                                                   &
                &                 /radius
        else
-          energySpecificGradient=+  energyPerturbationFirstOrder *  2.0d0                                                                                                                          & !   dlog[r²    ]/dlog(r) term
+          energySpecificGradient=+  energyPerturbationFirstOrder *  2.0d0                                             & !   dlog[r²    ]/dlog(r) term
                &                 /radius
        end if
     else
