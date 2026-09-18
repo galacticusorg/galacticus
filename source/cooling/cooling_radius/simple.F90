@@ -26,8 +26,6 @@
   use :: Cooling_Times                , only : coolingTimeClass
   use :: Cooling_Times_Available      , only : coolingTimeAvailableClass
   use :: Cosmology_Functions          , only : cosmologyFunctions                     , cosmologyFunctionsClass
-  use :: Kind_Numbers                 , only : kind_int8
-  use :: Radiation_Fields             , only : radiationFieldCosmicMicrowaveBackground
   use :: Root_Finder                  , only : rootFinder
 
   !![
@@ -35,40 +33,18 @@
    <description>
    A cooling radius class that computes the cooling radius by seeking the radius at which the time available for cooling (see :galacticus-class:`coolingTimeAvailable`) equals the cooling time (see :galacticus-class:`coolingTime`). The growth rate is determined consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at which the time available for cooling is increasing. This method assumes that the cooling time is a monotonic function of radius.
    </description>
-   <deepCopy>
-    <functionClass variables="radiation"/>
-   </deepCopy>
-   <stateStorable>
-    <functionClass variables="radiation"/>
-   </stateStorable>
   </coolingRadius>
   !!]
-  type, extends(coolingRadiusClass) :: coolingRadiusSimple
+  type, extends(coolingRadiusCoolingTime) :: coolingRadiusSimple
      !!{RST
      Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available for cooling equals the cooling time.
      !!}
      private
-     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_        => null()
-     class           (coolingTimeClass                       ), pointer :: coolingTime_               => null()
-     class           (coolingTimeAvailableClass              ), pointer :: coolingTimeAvailable_      => null()
-     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                  => null()
-     type            (rootFinder                             )          :: finder
-     integer         (kind=kind_int8                         )          :: lastUniqueID               =  -1
-     integer                                                            :: abundancesCount                     , chemicalsCount
-     ! Stored values of cooling radius.
-     logical                                                            :: radiusComputed                      , radiusGrowthRateComputed
-     double precision                                                   :: radiusGrowthRateStored              , radiusStored
+     type(rootFinder) :: finder
    contains
-     !![
-     <methods docformat="rst">
-       <method description="Reset memoized calculations." method="calculationReset" />
-     </methods>
-     !!]
      final     ::                     simpleDestructor
-     procedure :: autoHook         => simpleAutoHook
      procedure :: radius           => simpleRadius
      procedure :: radiusGrowthRate => simpleRadiusGrowthRate
-     procedure :: calculationReset => simpleCalculationReset
   end type coolingRadiusSimple
 
   interface coolingRadiusSimple
@@ -120,11 +96,6 @@ contains
     !!{RST
     Internal constructor for the simple cooling radius class.
     !!}
-    use :: Abundances_Structure         , only : Abundances_Property_Count, abundances
-    use :: Array_Utilities              , only : operator(.intersection.)
-    use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
-    use :: Error                        , only : Component_List           , Error_Report
-    use :: Galacticus_Nodes             , only : defaultHotHaloComponent
     implicit none
     type            (coolingRadiusSimple      )                        :: self
     class           (cosmologyFunctionsClass  ), intent(in   ), target :: cosmologyFunctions_
@@ -135,41 +106,8 @@ contains
     <constructorAssign variables="*cosmologyFunctions_, *coolingTimeAvailable_, *coolingTime_"/>
     !!]
 
-    ! Initial state of stored solutions.
-    self%radiusComputed          =.false.
-    self%radiusGrowthRateComputed=.false.
-    ! Get a count of the number of abundances and chemicals properties.
-    self%abundancesCount=Abundances_Property_Count()
-    self%chemicalsCount =Chemicals_Property_Count ()
-    ! Initialize radiation field.
-    allocate(self%radiation)
-    !![
-    <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
-    !!]
-    ! Check that required components are gettable.
-    if     (                                                                                                             &
-         &  .not.(                                                                                                       &
-         &         defaultHotHaloComponent%       massIsGettable() .and.                                                 &
-         &         defaultHotHaloComponent% abundancesIsGettable() .and.                                                 &
-         &         defaultHotHaloComponent%outerRadiusIsGettable() .and.                                                 &
-         &        (defaultHotHaloComponent%  chemicalsIsGettable() .or.  self%chemicalsCount == 0)                       &
-         &       )                                                                                                       &
-         & ) call Error_Report                                                                                           &
-         & (                                                                                                             &
-         &  'This method requires that the "mass", "abundances", "outerRadius", and "chemicals" '//                      &
-         &  '(if any chemicals are being used) properties of the hot halo are gettable.'         //                      &
-         &  Component_List(                                                                                              &
-         &                 'hotHalo'                                                                                  ,  &
-         &                  defaultHotHaloComponent%massAttributeMatch       (requireGettable=.true.                 )   &
-         &                 .intersection.                                                                                &
-         &                  defaultHotHaloComponent%abundancesAttributeMatch (requireGettable=.true.                 )   &
-         &                 .intersection.                                                                                &
-         &                  defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.                 )   &
-         &                 .intersection.                                                                                &
-         &                  defaultHotHaloComponent%chemicalsAttributeMatch  (requireGettable=self%chemicalsCount > 0)   &
-         &                )                                                                                           // &
-         &  {introspection:location}                                                                                     &
-         & )
+    ! Initialize the state shared with other cooling time-based classes.
+    call self%initialize()
     ! Initialize a root finder.
     self%finder=rootFinder(                                     &
          &                 rootFunction     =coolingRadiusRoot, &
@@ -178,18 +116,6 @@ contains
          &                )
     return
   end function simpleConstructorInternal
-
-  subroutine simpleAutoHook(self)
-    !!{RST
-    Attach to the calculation reset event.
-    !!}
-    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
-    implicit none
-    class(coolingRadiusSimple), intent(inout) :: self
-
-    call calculationResetEvent%attach(self,simpleCalculationReset,openMPThreadBindingAllLevels,label='coolingRadiusSimple')
-    return
-  end subroutine simpleAutoHook
 
   subroutine simpleDestructor(self)
     !!{RST
@@ -205,26 +131,9 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"  />
     <objectDestructor name="self%radiation"            />
     !!]
-    if (calculationResetEvent%isAttached(self,simpleCalculationReset)) call calculationResetEvent%detach(self,simpleCalculationReset)
+    if (calculationResetEvent%isAttached(self,coolingTimeCalculationReset)) call calculationResetEvent%detach(self,coolingTimeCalculationReset)
     return
   end subroutine simpleDestructor
-
-  subroutine simpleCalculationReset(self,node,uniqueID)
-    !!{RST
-    Reset the cooling radius calculation.
-    !!}
-    use :: Kind_Numbers, only : kind_int8
-    implicit none
-    class  (coolingRadiusSimple), intent(inout) :: self
-    type   (treeNode           ), intent(inout) :: node
-    integer(kind_int8          ), intent(in   ) :: uniqueID
-    !$GLC attributes unused :: node
-
-    self%radiusComputed          =.false.
-    self%radiusGrowthRateComputed=.false.
-    self%lastUniqueID            =uniqueID
-    return
-  end subroutine simpleCalculationReset
 
   double precision function simpleRadiusGrowthRate(self,node)
     !!{RST

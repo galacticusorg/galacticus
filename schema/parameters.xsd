@@ -489,6 +489,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="betaProfile"/>
+          <xs:enumeration value="coolingTime"/>
           <xs:enumeration value="isothermal"/>
           <xs:enumeration value="simple"/>
          </xs:restriction>

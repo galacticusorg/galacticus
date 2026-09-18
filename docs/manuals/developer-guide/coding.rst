@@ -701,19 +701,19 @@ Attaching Functions to an Event Hook
 
 A ``functionClass`` implementation can attach one or more of its functions to event hooks by implementing an ``autoHook`` method. This method is automatically called whenever a new instance is created via deep copy (see Section :galacticus-ref:`functionClassAll`), and also on newly-constructed instances. The method should call the ``attach`` method on the relevant ``eventHookUnspecified`` object (or a typed variant) from the ``Events_Hooks`` module.
 
-For example, the following ``autoHook`` implementation attaches the ``betaProfileCalculationReset`` function to the ``calculationResetEvent`` event hook:
+For example, the following ``autoHook`` implementation (from the abstract :galacticus-class:`coolingRadiusCoolingTime` class, and so inherited by each of its concrete classes) attaches the ``coolingTimeCalculationReset`` function to the ``calculationResetEvent`` event hook:
 
 .. code-block:: none
 
-     subroutine betaProfileAutoHook(self)
+     subroutine coolingTimeAutoHook(self)
        use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
        implicit none
-       class(coolingRadiusBetaProfile), intent(inout) :: self
+       class(coolingRadiusCoolingTime), intent(inout) :: self
 
-       call calculationResetEvent%attach(self,betaProfileCalculationReset, &
-            & openMPThreadBindingAllLevels,label='coolingRadiusBetaProfile')
+       call calculationResetEvent%attach(self,coolingTimeCalculationReset, &
+            & openMPThreadBindingAllLevels,label='coolingRadiusCoolingTime')
        return
-     end subroutine betaProfileAutoHook
+     end subroutine coolingTimeAutoHook
 
 The ``attach`` method takes the following arguments:
 
@@ -732,7 +732,7 @@ The ``attach`` method takes the following arguments:
 ``dependencies``
    *(optional)* An array of ``dependency`` objects (of type ``dependencyExact`` or ``dependencyRegEx``) specifying ordering constraints relative to other hooks with matching labels.
 
-Each ``functionClass`` implementation that provides an ``autoHook`` method must also detach its functions from event hooks in its destructor, using the ``detach`` method:
+Each ``functionClass`` implementation that provides (or, as here, inherits) an ``autoHook`` method must also detach its functions from event hooks in its destructor, using the ``detach`` method:
 
 .. code-block:: none
 
@@ -741,8 +741,8 @@ Each ``functionClass`` implementation that provides an ``autoHook`` method must 
        implicit none
        type(coolingRadiusBetaProfile), intent(inout) :: self
 
-       if (calculationResetEvent%isAttached(self,betaProfileCalculationReset)) &
-          & call calculationResetEvent%detach(self,betaProfileCalculationReset)
+       if (calculationResetEvent%isAttached(self,coolingTimeCalculationReset)) &
+          & call calculationResetEvent%detach(self,coolingTimeCalculationReset)
        return
      end subroutine betaProfileDestructor
 
