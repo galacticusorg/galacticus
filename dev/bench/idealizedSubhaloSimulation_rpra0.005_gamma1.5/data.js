@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789368479446,
+  "lastUpdate": 1789702373911,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "dff395c7d57c7fdf93b3b881ede90f241b562a5c",
-          "message": "fix: Remove obsoleted `darkMatterProfileDMO` object in call to dark matter halo mass definition function",
-          "timestamp": "2024-09-03T16:09:29Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/dff395c7d57c7fdf93b3b881ede90f241b562a5c"
-        },
-        "date": 1725409001105,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteBoundMass",
-            "value": "48.57555996098561",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "35.056147793037816",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteVelocityMaximum",
-            "value": "23.74933605926893",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9931,6 +9894,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteVelocityMaximum",
             "value": -23.791741508144522,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4cc2edf4715c993c393e6d3a59cc13eaca16661c",
+          "message": "Merge pull request #1511 from galacticusorg/physics-verification-satellite-orbits\n\nfix(satellites): correct two mass-normalization errors in satellite evolution, and verify the rates and their assembly",
+          "timestamp": "2026-09-17T17:01:05Z",
+          "tree_id": "12880a9129ff8fce3c58e7d32fb0cdbac8d14ae2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4cc2edf4715c993c393e6d3a59cc13eaca16661c"
+        },
+        "date": 1789702372706,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": -48.178534851693755,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -35.33233179258223,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": -23.791741281728402,
             "unit": "-logℒ"
           }
         ]
