@@ -56,6 +56,7 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`mergerTreeBuildMassesUnion` merger tree masses class which takes a parameter set as input.
     !!}
+    use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (mergerTreeBuildMassesUnion)                :: self
@@ -63,6 +64,8 @@ contains
     type   (mergerTreeBuildMassesList ), pointer       :: mergerTreeBuildMasses_
     integer                                            :: i
 
+    if (parameters%copiesCount('mergerTreeBuildMasses',zeroIfNotPresent=.true.) == 0) &
+         & call Error_Report('at least one [mergerTreeBuildMasses] must be specified'//{introspection:location})
     self%mergerTreeBuildMasses_ => null()
     mergerTreeBuildMasses_      => null()
     do i=1,parameters%copiesCount('mergerTreeBuildMasses',zeroIfNotPresent=.true.)
