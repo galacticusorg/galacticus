@@ -197,18 +197,21 @@ contains
     !!{RST
     Return true if this cooling function is to be cut off.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Galacticus_Nodes    , only : nodeComponentBasic   , treeNode
+    use :: Nodes_Formation_Node, only : nodeFormationRequired
     implicit none
     class           (coolingFunctionVelocityCutOff), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
     class           (nodeComponentBasic           ), pointer       :: basic
+    type            (treeNode                     ), pointer       :: nodeFormation
     double precision                                               :: velocityVirial
 
     select case (self%useFormationNode)
     case (.false.)
-       velocityVirial=self%darkMatterHaloScale_%velocityVirial(node              )
+       velocityVirial =  self%darkMatterHaloScale_%velocityVirial(node         )
     case (.true. )
-       velocityVirial=self%darkMatterHaloScale_%velocityVirial(node%formationNode)
+       nodeFormation  => nodeFormationRequired(node,'[useFormationNode]=true in the [velocityCutOff] cooling function')
+       velocityVirial =  self%darkMatterHaloScale_%velocityVirial(nodeFormation)
     end select
     basic                  =>  node%basic()
     velocityCutOffIsCutOff =  (                                                                               &

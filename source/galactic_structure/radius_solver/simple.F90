@@ -201,8 +201,8 @@ contains
     Solve for the structure of galactic components.
     !!}
     use :: Calculations_Resets                       , only : Calculations_Reset
-    use :: Error                                     , only : Error_Report
     use :: Galactic_Structure_Radius_Solver_Utilities, only : radiusSolverPlausibilities, radiusSolverTasks, radiusSolver
+    use :: Nodes_Formation_Node                      , only : nodeFormationRequired
     implicit none
     class           (galacticStructureSolverSimple), intent(inout)           :: self
     type            (treeNode                     ), intent(inout), target   :: node
@@ -221,8 +221,7 @@ contains
     if (node%isPhysicallyPlausible .and. .not.plausibilityOnly_) then
        ! Determine which node to use for halo properties.
        if (self%useFormationHalo) then
-          if (.not.associated(node%formationNode)) call Error_Report('no formation node exists'//{introspection:location})
-          haloNode => node%formationNode
+          haloNode => nodeFormationRequired(node,'[useFormationHalo]=true in the [simple] galactic structure solver')
        else
           haloNode => node
        end if
