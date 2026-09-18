@@ -24,6 +24,23 @@ A deliberate fatal error raised by Galacticus has a fixed layout:
 
 The first line after ``Fatal error:`` is the message itself. Many messages are followed by a ``HELP:`` line (shown in green on a terminal) which states the most likely fix; try that first. The ``Occurred at:`` block names the procedure, module, and source file that raised the error, and the final line identifies the OpenMP thread (and, under MPI, the process and host). A stack trace follows the message; see :doc:`debugging` for how to read it. When reporting a problem, include the whole block.
 
+Failed tasks and the exit status
+--------------------------------
+
+Not every failure is a fatal error. If the task being performed cannot complete - most often because the evolution of a merger tree fails (for example, with ``ODE integration failed``) - Galacticus finishes the run, closing its output file, and prints:
+
+.. code-block:: text
+
+   WARNING: task failed
+
+The output file is then incomplete. To make such failures easy to detect when Galacticus is run from a script or a workflow manager, the exit status of ``Galacticus.exe`` is non-zero whenever the run did not succeed:
+
+* ``0`` - the run succeeded;
+* ``1`` - a fatal error was reported, or the task failed;
+* the signal number (for example ``8`` for a floating point exception, or ``11`` for a segmentation fault) - Galacticus was stopped by a signal (see `Floating point errors and Segfaults`_ below).
+
+When evolving merger trees, a forest whose evolution fails can instead be abandoned while evolution of the other forests continues, by setting ``[tolerateFailures]=true`` in the ``evolveForests`` task. The run then exits with status ``0``, but an abandoned forest is evolved no further, so it is missing from any outputs after the time at which it failed.
+
 Error Message Diagnosis and Reporting
 -------------------------------------
 
