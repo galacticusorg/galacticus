@@ -3423,7 +3423,6 @@ contains
     return
   end subroutine Table_Linear_Monotone_CSpline_1D_Populate_Single
 
-
   double precision function Table_Linear_Monotone_CSpline_1D_Interpolate(self,x,table,status)
     !!{RST
     Perform linear interpolation in a linear 1D table.

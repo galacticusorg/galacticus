@@ -87,16 +87,16 @@ module String_Handling
   ! Generic type instances used to generate the type-specific string functions.
   !![
   <generic identifier="wordstype">
-   <instance label="VarString" intrinsic="type     (varying_string)"/>
-   <instance label="Char"      intrinsic="character(len=*         )"/>
+   <instance label="VarString"                                    intrinsic="type     (varying_string)"/>
+   <instance label="Char"                                         intrinsic="character(len=*         )"/>
   </generic>
   <generic identifier="concatenatetype">
-   <instance label=""          intrinsic="integer"/>
-   <instance label="8"         intrinsic="integer(kind=kind_int8)"/>
+   <instance label=""                                             intrinsic="integer"                  />
+   <instance label="8"                                            intrinsic="integer(kind=kind_int8)"  />
   </generic>
   <generic identifier="extracttype">
-   <instance label=""          description="an integer"           intrinsic="integer"/>
-   <instance label="_Size_T"   description="a ``size_t`` integer" intrinsic="integer(c_size_t)"/>
+   <instance label=""          description="an integer"           intrinsic="integer"                  />
+   <instance label="_Size_T"   description="a ``size_t`` integer" intrinsic="integer(c_size_t)"        />
   </generic>
   !!]
 
@@ -157,14 +157,13 @@ contains
     return
   end function String_Count_Words_Char
 
-
   subroutine String_Split_Words_{wordstype¦label}(words,inputString,separator,bracketing)
     !!{RST
     Split ``inputString`` into words and return as an array.
     !!}
     use :: ISO_Varying_String, only : varying_string, index, assignment(=)
     implicit none
-    {wordstype¦intrinsic}, dimension(:), intent(  out)           :: words
+    {wordstype¦intrinsic}    , dimension(:), intent(  out)           :: words
     character(len=*         )              , intent(in   )           :: inputString
     character(len=*         )              , intent(in   ), optional :: separator
     character(len=2         )              , intent(in   ), optional :: bracketing
@@ -217,7 +216,7 @@ contains
     use :: ISO_Varying_String, only : varying_string, operator(//)
     implicit none
     type     (varying_string    ), intent(in   ) :: varStrVariable
-    {concatenatetype¦intrinsic}      , intent(in   ) :: intVariable
+    {concatenatetype¦intrinsic}  , intent(in   ) :: intVariable
     type     (varying_string    )                :: Concatenate_VarStr_Integer{concatenatetype¦label}
     character(len=maxIntegerSize)                :: intString
 
@@ -225,7 +224,6 @@ contains
     Concatenate_VarStr_Integer{concatenatetype¦label}=varStrVariable//trim(adjustl(intString))
     return
   end function Concatenate_VarStr_Integer{concatenatetype¦label}
-
 
   function String_Upper_Case(stringInput) result (stringOutput)
     !!{RST
@@ -579,8 +577,8 @@ contains
     Extract {extracttype¦description} value from a string.
     !!}
     implicit none
-    {extracttype¦intrinsic}                           :: valueInteger
-    character(len=*       ), intent(in   )           :: input
+    {extracttype¦intrinsic}                          :: valueInteger
+    character(len=*)       , intent(in   )           :: input
     integer                , intent(  out), optional :: status
     integer                                          :: status_
 
@@ -588,7 +586,6 @@ contains
     if (present(status)) status=status_
     return
   end function String_Value_Extract_Integer{extracttype¦label}
-
 
   function stringSubstitute(string,find,replace)
     use :: ISO_Varying_String, only : varying_string, assignment(=), len, extract, &

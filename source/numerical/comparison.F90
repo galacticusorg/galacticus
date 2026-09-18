@@ -46,7 +46,7 @@ module Numerical_Comparison
   ! Generic type instances used to generate the type-specific comparison functions.
   !![
   <generic identifier="valuetype">
-   <instance label="Real"   intrinsic="real"/>
+   <instance label="Real"   intrinsic="real"            />
    <instance label="Double" intrinsic="double precision"/>
   </generic>
   !!]

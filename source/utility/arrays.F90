@@ -78,24 +78,22 @@ module Array_Utilities
   ! Generic type instances used to generate the type-specific array functions.
   !![
   <generic identifier="reversetype">
-   <instance label="Real"     description="a real"               intrinsic="real"/>
-   <instance label="Double"   description="a double precision"   intrinsic="double precision"/>
-   <instance label="SizeT"    description="a ``size_t`` integer" intrinsic="integer(c_size_t)"/>
+   <instance label="Real"     description="a real"               intrinsic="real"                   />
+   <instance label="Double"   description="a double precision"   intrinsic="double precision"       />
+   <instance label="SizeT"    description="a ``size_t`` integer" intrinsic="integer(c_size_t)"      />
   </generic>
   <generic identifier="indextype">
    <instance label="Integer"  description="an integer"           intrinsic="integer"/>
    <instance label="Integer8" description="an integer"           intrinsic="integer(kind=kind_int8)"/>
-   <instance label="Double"   description="a double precision"   intrinsic="double precision"/>
+   <instance label="Double"   description="a double precision"   intrinsic="double precision"       />
   </generic>
   <generic identifier="monotonictype">
    <instance label="Integer8" description="an integer"           intrinsic="integer(kind=kind_int8)"/>
-   <instance label="Double"   description="a double precision"   intrinsic="double precision"/>
+   <instance label="Double"   description="a double precision"   intrinsic="double precision"       />
   </generic>
   !!]
 
 contains
-
-
 
   function Array_Reverse_{reversetype¦label}(array) result (reversedArray)
     !!{RST
@@ -255,8 +253,6 @@ contains
     return
   end function Array_Index_{indextype¦label}
 
-
-
   function Array_Index_Double_2D(array,indices,indexOn) result (arraySubset)
     !!{RST
     Return a subset of a 2D double precision array given a set of indices into the array.
@@ -288,7 +284,6 @@ contains
     end select
     return
   end function Array_Index_Double_2D
-
 
   function Array_Intersection_Varying_String(a,b)
     use :: ISO_Varying_String, only : operator(==), varying_string
