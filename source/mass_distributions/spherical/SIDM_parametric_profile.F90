@@ -221,21 +221,21 @@ contains
     implicit none
     class           (massDistributionSIDMParametricProfile), intent(inout), target :: self
     class           (coordinate                           ), intent(in   )         :: coordinates
-    double precision                                                               :: radius, radiusCoreFreePowered
+    double precision                                                               :: radius     , radiusCoreFreePowered
 
     radius=coordinates%rSpherical()
     if (radius > 0.0d0) then
-       radiusCoreFreePowered          =+(                      &
-            &                            +radius               &
-            &                            /self%radiusCore      &
+       radiusCoreFreePowered          =+(                                &
+            &                            +radius                         &
+            &                            /self%radiusCore                &
             &                           )**self%beta
-       densitySlopeLogarithmicGradient=-self%beta                                     &
-            &                          *       radiusCoreFreePowered                  &
-            &                          /(1.0d0+radiusCoreFreePowered)**2              &
-            &                          -2.0d0                                         &
-            &                          *       radius                                 &
-            &                          *self  %radiusScale                            &
-            &                          /(      radius          +self%radiusScale)**2
+       densitySlopeLogarithmicGradient=-self%beta                        &
+            &                          *       radiusCoreFreePowered     &
+            &                          /(1.0d0+radiusCoreFreePowered)**2 &
+            &                          -2.0d0                            &
+            &                          * radius                          &
+            &                          *        self%radiusScale         &
+            &                          /(radius+self%radiusScale)**2
     else
        densitySlopeLogarithmicGradient=+0.0d0
     end if
