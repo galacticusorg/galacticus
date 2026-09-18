@@ -24,7 +24,6 @@
   use :: Cooling_Times          , only : coolingTimeClass
   use :: Cooling_Times_Available, only : coolingTimeAvailableClass
   use :: Cosmology_Functions    , only : cosmologyFunctions                     , cosmologyFunctionsClass
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
   <coolingRadius name="coolingRadiusBetaProfile" docformat="rst">
@@ -44,7 +43,6 @@
      Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available for cooling equals the cooling time.
      !!}
      private
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::                     betaProfileDestructor
      procedure :: radius           => betaProfileRadius
@@ -67,42 +65,38 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (coolingRadiusBetaProfile      )                :: self
-    type (inputParameters               ), intent(inout) :: parameters
-    class(coolingTimeAvailableClass     ), pointer       :: coolingTimeAvailable_
-    class(coolingTimeClass              ), pointer       :: coolingTime_
-    class(darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
-    class(cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
+    type (coolingRadiusBetaProfile )                :: self
+    type (inputParameters          ), intent(inout) :: parameters
+    class(coolingTimeAvailableClass), pointer       :: coolingTimeAvailable_
+    class(coolingTimeClass         ), pointer       :: coolingTime_
+    class(cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
 
     !![
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
-    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="coolingTimeAvailable" name="coolingTimeAvailable_" source="parameters"/>
     <objectBuilder class="coolingTime"          name="coolingTime_"          source="parameters"/>
     !!]
-    self=coolingRadiusBetaProfile(cosmologyFunctions_,darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_)
+    self=coolingRadiusBetaProfile(cosmologyFunctions_,coolingTimeAvailable_,coolingTime_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"  />
-    <objectDestructor name="darkMatterHaloScale_" />
     <objectDestructor name="coolingTimeAvailable_"/>
     <objectDestructor name="coolingTime_"         />
     !!]
     return
   end function betaProfileConstructorParameters
 
-  function betaProfileConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_) result(self)
+  function betaProfileConstructorInternal(cosmologyFunctions_,coolingTimeAvailable_,coolingTime_) result(self)
     !!{RST
     Internal constructor for the :math:`\beta`-profile cooling radius class.
     !!}
     implicit none
     type (coolingRadiusBetaProfile )                        :: self
     class(cosmologyFunctionsClass  ), intent(in   ), target :: cosmologyFunctions_
-    class(darkMatterHaloScaleClass ), intent(in   ), target :: darkMatterHaloScale_
     class(coolingTimeAvailableClass), intent(in   ), target :: coolingTimeAvailable_
     class(coolingTimeClass         ), intent(in   ), target :: coolingTime_
     !![
-    <constructorAssign variables="*cosmologyFunctions_, *darkMatterHaloScale_, *coolingTimeAvailable_, *coolingTime_"/>
+    <constructorAssign variables="*cosmologyFunctions_, *coolingTimeAvailable_, *coolingTime_"/>
     !!]
 
     ! Initialize the state shared with other cooling time-based classes.
@@ -119,7 +113,6 @@ contains
     type(coolingRadiusBetaProfile), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%coolingTimeAvailable_"/>
     <objectDestructor name="self%coolingTime_"         />
     <objectDestructor name="self%cosmologyFunctions_"  />
