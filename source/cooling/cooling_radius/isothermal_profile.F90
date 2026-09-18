@@ -181,26 +181,24 @@ contains
     !!{RST
     Return the cooling radius in the isothermal model.
     !!}
-    use :: Abundances_Structure             , only : abundances
-    use :: Chemical_Abundances_Structure    , only : chemicalAbundances
-    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Fraction_Conversion
-    use :: Galacticus_Nodes                 , only : nodeComponentBasic                   , nodeComponentHotHalo       , treeNode
-    use :: Mass_Distributions               , only : massDistributionClass                , kinematicsDistributionClass
-    use :: Coordinates                      , only : coordinateSpherical                  , assignment(=)
-    use :: Galactic_Structure_Options       , only : componentTypeHotHalo                 , massTypeGaseous
+    use :: Abundances_Structure         , only : abundances
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
+    use :: Galacticus_Nodes             , only : nodeComponentBasic   , treeNode
+    use :: Mass_Distributions           , only : massDistributionClass, kinematicsDistributionClass
+    use :: Coordinates                  , only : coordinateSpherical  , assignment(=)
+    use :: Galactic_Structure_Options   , only : componentTypeHotHalo , massTypeGaseous
     implicit none
     class           (coolingRadiusIsothermal    ), intent(inout), target  :: self
     type            (treeNode                   ), intent(inout), target  :: node
     class           (nodeComponentBasic         )               , pointer :: basic
-    class           (nodeComponentHotHalo       )               , pointer :: hotHalo
     class           (massDistributionClass      )               , pointer :: massDistribution_
     class           (kinematicsDistributionClass)               , pointer :: kinematicsDistribution_
     type            (coordinateSpherical        )                         :: coordinates
     double precision                                                      :: coolingTime            , timeAvailable          , &
-         &                                                                   density                , massToDensityConversion, &
-         &                                                                   temperature            , radiusVirial
+         &                                                                   density                , temperature            , &
+         &                                                                   radiusVirial
     type            (abundances                 )                         :: hotAbundances
-    type            (chemicalAbundances         )                         :: chemicalFractions      , chemicalMasses
+    type            (chemicalAbundances         )                         :: chemicalFractions
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
@@ -208,23 +206,8 @@ contains
     if (.not.self%radiusComputed) then
        ! Get the time available for cooling in node.
        timeAvailable                   =  self%coolingTimeAvailable_%timeAvailable(node)
-       ! Get the abundances for this node.
-       hotHalo                         => node    %hotHalo  ()
-       hotAbundances                   =  hotHalo%abundances()
-       call hotAbundances%massToMassFraction(hotHalo%mass())
-       ! Get the chemicals for this node.
-       if (self%chemicalsCount > 0) then
-          chemicalMasses=hotHalo%chemicals()
-          ! Scale all chemical masses by their mass in atomic mass units to get a number density.
-          call chemicalMasses%massToNumber(chemicalFractions)
-          if (hotHalo%mass() > 0.0d0) then
-             massToDensityConversion=Chemicals_Mass_To_Fraction_Conversion(hotHalo%mass())
-          else
-             massToDensityConversion=0.0d0
-          end if          
-          ! Convert to number density per unit total mass density.
-          chemicalFractions=chemicalFractions*massToDensityConversion
-       end if
+       ! Get the abundances and chemicals for this node.
+       call self%hotHaloComposition(node,hotAbundances,chemicalFractions)
        ! Set epoch for radiation field.
        basic => node%basic()
        call self%radiation%timeSet(basic%time())

@@ -223,17 +223,15 @@ contains
     !!{RST
     Return the cooling radius in the simple model.
     !!}
-    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Fraction_Conversion
-    use :: Galacticus_Nodes                 , only : nodeComponentBasic                   , nodeComponentHotHalo, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
     class           (coolingRadiusSimple ), intent(inout), target :: self
     type            (treeNode            ), intent(inout), target :: node
     class           (nodeComponentBasic  ), pointer               :: basic
     class           (nodeComponentHotHalo), pointer               :: hotHalo
     double precision                      , parameter             :: zeroRadius    =0.0d0
-    type            (chemicalAbundances  )                        :: chemicalMasses
-    double precision                                              :: outerRadius         , massToDensityConversion, &
-         &                                                           rootZero            , rootOuter
+    double precision                                              :: outerRadius         , rootZero               , &
+         &                                                           rootOuter
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
@@ -245,24 +243,8 @@ contains
        coolingTimeAvailable_=self%coolingTimeAvailable_%timeAvailable(node)
        ! Get node components.
        hotHalo => node%hotHalo()
-       ! Get the abundances for this node.
-       abundancesGas_=hotHalo%abundances()
-       call abundancesGas_%massToMassFraction(hotHalo%mass())
-       ! Get the chemicals for this node.
-       if (self%chemicalsCount > 0) then
-          chemicalMasses=hotHalo%chemicals()
-          ! Scale all chemical masses by their mass in atomic mass units to get a number density.
-          call chemicalMasses%massToNumber(fractionsChemical_)
-          ! Compute factor converting mass of chemicals in (M☉) to number density per unit total mass density (in cm⁻³ / M☉
-          ! Mpc⁻³).
-          if (hotHalo%mass() > 0.0d0) then
-             massToDensityConversion=Chemicals_Mass_To_Fraction_Conversion(hotHalo%mass())
-          else
-             massToDensityConversion=0.0d0
-          end if          
-          ! Convert to number density per unit total mass density.
-          call fractionsChemical_%scale(massToDensityConversion)
-       end if
+       ! Get the abundances and chemicals for this node.
+       call self%hotHaloComposition(node,abundancesGas_,fractionsChemical_)
        ! Set epoch for radiation field.
        basic => node%basic()
        call self%radiation%timeSet(basic%time())

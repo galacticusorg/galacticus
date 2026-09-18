@@ -23,11 +23,13 @@
   Implements an abstract cooling radius class for models in which the cooling radius is found by comparing the cooling time with the time available for cooling.
   !!}
 
-  use :: Cooling_Times          , only : coolingTimeClass
-  use :: Cooling_Times_Available, only : coolingTimeAvailableClass
-  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
-  use :: Kind_Numbers           , only : kind_int8
-  use :: Radiation_Fields       , only : radiationFieldCosmicMicrowaveBackground
+  use :: Abundances_Structure         , only : abundances
+  use :: Chemical_Abundances_Structure, only : chemicalAbundances
+  use :: Cooling_Times                , only : coolingTimeClass
+  use :: Cooling_Times_Available      , only : coolingTimeAvailableClass
+  use :: Cosmology_Functions          , only : cosmologyFunctionsClass
+  use :: Kind_Numbers                 , only : kind_int8
+  use :: Radiation_Fields             , only : radiationFieldCosmicMicrowaveBackground
 
   !![
   <coolingRadius name="coolingRadiusCoolingTime" abstract="yes" docformat="rst">
@@ -61,11 +63,13 @@
      <methods docformat="rst">
        <method description="Reset memoized calculations." method="calculationReset" />
        <method description="Initialize the state shared by all cooling time-based cooling radius classes. Must be called by the constructor of each concrete class, after its cosmology functions object has been assigned." method="initialize" />
+       <method description="Return the abundances of gas in the hot atmosphere as mass fractions, and its chemical abundances as number densities per unit total mass density." method="hotHaloComposition" />
      </methods>
      !!]
-     procedure :: autoHook         => coolingTimeAutoHook
-     procedure :: calculationReset => coolingTimeCalculationReset
-     procedure :: initialize       => coolingTimeInitialize
+     procedure :: autoHook           => coolingTimeAutoHook
+     procedure :: calculationReset   => coolingTimeCalculationReset
+     procedure :: initialize         => coolingTimeInitialize
+     procedure :: hotHaloComposition => coolingTimeHotHaloComposition
   end type coolingRadiusCoolingTime
 
 contains
@@ -119,6 +123,44 @@ contains
          & )
     return
   end subroutine coolingTimeInitialize
+
+  subroutine coolingTimeHotHaloComposition(self,node,abundancesGas,fractionsChemical)
+    !!{RST
+    Return the abundances of gas in the hot atmosphere of ``node`` as mass fractions, and (if any chemicals are being tracked)
+    its chemical abundances as number densities (in cm⁻³) per unit total mass density (in M☉ Mpc⁻³).
+    !!}
+    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Fraction_Conversion
+    use :: Galacticus_Nodes                 , only : nodeComponentHotHalo                 , treeNode
+    implicit none
+    class           (coolingRadiusCoolingTime), intent(in   ) :: self
+    type            (treeNode                ), intent(inout) :: node
+    type            (abundances              ), intent(  out) :: abundancesGas
+    type            (chemicalAbundances      ), intent(  out) :: fractionsChemical
+    class           (nodeComponentHotHalo    ), pointer       :: hotHalo
+    type            (chemicalAbundances      )                :: chemicalMasses
+    double precision                                          :: massToDensityConversion
+
+    hotHalo => node%hotHalo()
+    ! Get the abundances for this node.
+    abundancesGas=hotHalo%abundances()
+    call abundancesGas%massToMassFraction(hotHalo%mass())
+    ! Get the chemicals for this node.
+    if (self%chemicalsCount > 0) then
+       chemicalMasses=hotHalo%chemicals()
+       ! Scale all chemical masses by their mass in atomic mass units to get a number density.
+       call chemicalMasses%massToNumber(fractionsChemical)
+       ! Compute factor converting mass of chemicals in (M☉) to number density per unit total mass density (in cm⁻³ / M☉
+       ! Mpc⁻³).
+       if (hotHalo%mass() > 0.0d0) then
+          massToDensityConversion=Chemicals_Mass_To_Fraction_Conversion(hotHalo%mass())
+       else
+          massToDensityConversion=0.0d0
+       end if
+       ! Convert to number density per unit total mass density.
+       call fractionsChemical%scale(massToDensityConversion)
+    end if
+    return
+  end subroutine coolingTimeHotHaloComposition
 
   subroutine coolingTimeAutoHook(self)
     !!{RST
