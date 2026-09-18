@@ -46,5 +46,12 @@ for i in range(nHalos):
     data["metricUntruncated"][i] = np.sum(np.log10(densityTarget / densityUntruncated)**2) / len(radii)
     data["metricTruncated"][i]   = np.sum(np.log10(densityTarget / densityTruncated)**2)   / len(radii)
 
-status_str = "SUCCESS" if np.median(data["metricTruncated"]) < 0.0125 else "FAILED"
+# The threshold was raised from 0.0125 to 0.015 when the tidal heating specific energy gradient was corrected to include
+# the radial derivative of its second-order coefficient (which depends on the density logarithmic slope). That correction
+# makes the heated density consistent with the Jacobian of the profile's own initial-to-final radius mapping - previously
+# the class' density did not equal (1/4 pi r^2) dM/dr - and the analytic truncated-NFW form fits the corrected profile
+# slightly less well: the median metric moved from 0.011909 to 0.013424, measured by zeroing only that term. In RMS terms
+# the residual grew from 0.109 to 0.116 dex. The threshold measures how well the fitting form describes the profile, not
+# whether the profile is right, so it is the threshold which moves.
+status_str = "SUCCESS" if np.median(data["metricTruncated"]) < 0.015 else "FAILED"
 print(f"{status_str}: tidally truncated NFW fit")
