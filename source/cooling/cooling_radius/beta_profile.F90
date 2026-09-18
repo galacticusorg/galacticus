@@ -23,7 +23,7 @@
 
   use :: Cooling_Times          , only : coolingTimeClass
   use :: Cooling_Times_Available, only : coolingTimeAvailableClass
-  use :: Cosmology_Functions    , only : cosmologyFunctions                     , cosmologyFunctionsClass
+  use :: Cosmology_Functions    , only : cosmologyFunctions       , cosmologyFunctionsClass
 
   !![
   <coolingRadius name="coolingRadiusBetaProfile" docformat="rst">
@@ -261,7 +261,7 @@ contains
           self%radiusStored=0.0d0
        else
           ! Cooling radius is between zero and virial radii.
-          self%radiusStored=+outerRadius                                     &
+          self%radiusStored=+outerRadius                                    &
                &            *sqrt(                                          &
                &                  +(timeAvailable   /coolingTimeZero-1.0d0) &
                &                  /(coolingTimeOuter/coolingTimeZero-1.0d0) &

@@ -47,15 +47,15 @@
      An abstract cooling radius class for models in which the cooling radius is the radius at which the cooling time equals the time available for cooling.
      !!}
      private
-     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_        => null()
-     class           (coolingTimeAvailableClass              ), pointer :: coolingTimeAvailable_      => null()
-     class           (coolingTimeClass                       ), pointer :: coolingTime_               => null()
-     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                  => null()
-     integer         (kind=kind_int8                         )          :: lastUniqueID               =  -1
-     integer                                                            :: abundancesCount                     , chemicalsCount
+     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_    => null()
+     class           (coolingTimeAvailableClass              ), pointer :: coolingTimeAvailable_  => null()
+     class           (coolingTimeClass                       ), pointer :: coolingTime_           => null()
+     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation              => null()
+     integer         (kind=kind_int8                         )          :: lastUniqueID           =  -1_kind_int8
+     integer                                                            :: abundancesCount                       , chemicalsCount
      ! Stored values of cooling radius.
-     logical                                                            :: radiusComputed                      , radiusGrowthRateComputed
-     double precision                                                   :: radiusGrowthRateStored              , radiusStored
+     logical                                                            :: radiusComputed                        , radiusGrowthRateComputed
+     double precision                                                   :: radiusGrowthRateStored                , radiusStored
    contains
      !![
      <methods docformat="rst">

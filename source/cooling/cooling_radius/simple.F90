@@ -25,7 +25,7 @@
   use :: Chemical_Abundances_Structure, only : chemicalAbundances
   use :: Cooling_Times                , only : coolingTimeClass
   use :: Cooling_Times_Available      , only : coolingTimeAvailableClass
-  use :: Cosmology_Functions          , only : cosmologyFunctions                     , cosmologyFunctionsClass
+  use :: Cosmology_Functions          , only : cosmologyFunctions       , cosmologyFunctionsClass
   use :: Root_Finder                  , only : rootFinder
 
   !![
@@ -78,9 +78,9 @@ contains
     class(cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
 
     !![
-    <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"        source="parameters"/>
-    <objectBuilder class="coolingTimeAvailable" name="coolingTimeAvailable_"      source="parameters"/>
-    <objectBuilder class="coolingTime"          name="coolingTime_"               source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
+    <objectBuilder class="coolingTimeAvailable" name="coolingTimeAvailable_" source="parameters"/>
+    <objectBuilder class="coolingTime"          name="coolingTime_"          source="parameters"/>
     !!]
     self=coolingRadiusSimple(cosmologyFunctions_,coolingTimeAvailable_,coolingTime_)
     !![
@@ -101,7 +101,7 @@ contains
     class           (cosmologyFunctionsClass  ), intent(in   ), target :: cosmologyFunctions_
     class           (coolingTimeAvailableClass), intent(in   ), target :: coolingTimeAvailable_
     class           (coolingTimeClass         ), intent(in   ), target :: coolingTime_
-    double precision                           , parameter             :: toleranceAbsolute         =0.0d0, toleranceRelative=1.0d-6
+    double precision                           , parameter             :: toleranceAbsolute    =0.0d0, toleranceRelative=1.0d-6
     !![
     <constructorAssign variables="*cosmologyFunctions_, *coolingTimeAvailable_, *coolingTime_"/>
     !!]
