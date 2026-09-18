@@ -44,9 +44,15 @@
      !!}
      private
    contains
+     !![
+     <methods docformat="rst">
+       <method description="Compute the time available for cooling, the outer radius of the hot atmosphere, and the cooling times at zero radius and at that outer radius." method="coolingTimes" />
+     </methods>
+     !!]
      final     ::                     betaProfileDestructor
      procedure :: radius           => betaProfileRadius
      procedure :: radiusGrowthRate => betaProfileRadiusGrowthRate
+     procedure :: coolingTimes     => betaProfileCoolingTimes
   end type coolingRadiusBetaProfile
 
   interface coolingRadiusBetaProfile
@@ -122,9 +128,10 @@ contains
     return
   end subroutine betaProfileDestructor
 
-  double precision function betaProfileRadiusGrowthRate(self,node)
+  subroutine betaProfileCoolingTimes(self,node,timeAvailable,outerRadius,coolingTimeZero,coolingTimeOuter)
     !!{RST
-    Returns the cooling radius growth rate (in Mpc/Gyr) in the hot atmosphere.
+    Compute the time available for cooling in ``node``, the outer radius of its hot atmosphere, and the cooling times at zero
+    radius and at that outer radius (both evaluated at the temperature at the outer radius).
     !!}
     use :: Abundances_Structure             , only : abundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances
@@ -136,63 +143,78 @@ contains
     implicit none
     class           (coolingRadiusBetaProfile   ), intent(inout) :: self
     type            (treeNode                   ), intent(inout) :: node
+    double precision                             , intent(  out) :: timeAvailable          , outerRadius            , &
+         &                                                          coolingTimeZero        , coolingTimeOuter
     class           (nodeComponentBasic         ), pointer       :: basic
     class           (nodeComponentHotHalo       ), pointer       :: hotHalo
     class           (massDistributionClass      ), pointer       :: massDistribution_
     class           (kinematicsDistributionClass), pointer       :: kinematicsDistribution_
     type            (coordinateSpherical        )                :: coordinates
-    double precision                                             :: coolingTimeZero        , timeAvailable          , &
-         &                                                          densityZero            , massToDensityConversion, &
-         &                                                          temperature            , outerRadius            , &
-         &                                                          densityOuter           , coolingTimeOuter
+    double precision                                             :: densityZero            , densityOuter           , &
+         &                                                          temperature            , massToDensityConversion
     type            (abundances                 )                :: hotAbundances
     type            (chemicalAbundances         )                :: chemicalFractions      , chemicalMasses
+
+    ! Get the time available for cooling in node.
+    timeAvailable              =  self%coolingTimeAvailable_%timeAvailable(node)
+    ! Get the abundances for this node.
+    hotHalo                    => node   %hotHalo   ()
+    hotAbundances              =  hotHalo%abundances()
+    call hotAbundances%massToMassFraction(hotHalo%mass())
+    ! Get the chemicals for this node.
+    if (self%chemicalsCount > 0) then
+       chemicalMasses=hotHalo%chemicals()
+       ! Scale all chemical masses by their mass in atomic mass units to get a number density.
+       call chemicalMasses%massToNumber(chemicalFractions)
+       if (hotHalo%mass() > 0.0d0) then
+          massToDensityConversion=Chemicals_Mass_To_Fraction_Conversion(hotHalo%mass())
+       else
+          massToDensityConversion=0.0d0
+       end if          
+       ! Convert to number density per unit total mass density.
+       chemicalFractions=chemicalFractions*massToDensityConversion
+    end if
+    ! Set epoch for radiation field.
+    basic => node%basic()
+    call self%radiation%timeSet(basic%time())
+    ! Get the outer radius.
+    outerRadius=hotHalo%outerRadius()
+    ! Get the mass distribution.
+    massDistribution_       => node             %massDistribution      (componentTypeHotHalo,massTypeGaseous)
+    kinematicsDistribution_ => massDistribution_%kinematicsDistribution(                                    )
+    ! Get the temperature.
+    coordinates             =  [outerRadius,0.0d0,0.0d0]
+    temperature             =  kinematicsDistribution_       %temperature(coordinates                                                                              )
+    ! Compute density and cooling time at outer radius and zero radius.
+    densityOuter            =  massDistribution_             %density    (coordinates                                                                              )
+    coordinates             =  [0.0d0      ,0.0d0,0.0d0]
+    densityZero             =  massDistribution_             %density    (coordinates                                                                              )
+    coolingTimeZero         =  self             %coolingTime_%time       (node,temperature,densityZero ,hotAbundances,chemicalFractions*densityZero ,self%radiation)
+    coolingTimeOuter        =  self             %coolingTime_%time       (node,temperature,densityOuter,hotAbundances,chemicalFractions*densityOuter,self%radiation)
+    !![
+    <objectDestructor name="massDistribution_"      />
+    <objectDestructor name="kinematicsDistribution_"/>
+    !!]          
+    return
+  end subroutine betaProfileCoolingTimes
+
+  double precision function betaProfileRadiusGrowthRate(self,node)
+    !!{RST
+    Returns the cooling radius growth rate (in Mpc/Gyr) in the hot atmosphere.
+    !!}
+    implicit none
+    class           (coolingRadiusBetaProfile), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
+    double precision                                          :: timeAvailable  , outerRadius     , &
+         &                                                       coolingTimeZero, coolingTimeOuter
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
 
     ! Check if cooling radius growth rate is already computed.
     if (.not.self%radiusGrowthRateComputed) then
-       ! Get the time available for cooling in node.
-       timeAvailable              =  self%coolingTimeAvailable_%timeAvailable(node)
-       ! Get the abundances for this node.
-       hotHalo                    => node   %hotHalo   ()
-       hotAbundances              =  hotHalo%abundances()
-       call hotAbundances%massToMassFraction(hotHalo%mass())
-       ! Get the chemicals for this node.
-       if (self%chemicalsCount > 0) then
-          chemicalMasses=hotHalo%chemicals()
-          ! Scale all chemical masses by their mass in atomic mass units to get a number density.
-          call chemicalMasses%massToNumber(chemicalFractions)
-          if (hotHalo%mass() > 0.0d0) then
-             massToDensityConversion=Chemicals_Mass_To_Fraction_Conversion(hotHalo%mass())
-          else
-             massToDensityConversion=0.0d0
-          end if          
-          ! Convert to number density per unit total mass density.
-          chemicalFractions=chemicalFractions*massToDensityConversion
-       end if
-       ! Set epoch for radiation field.
-       basic => node%basic()
-       call self%radiation%timeSet(basic%time())
-       ! Get the outer radius.
-       outerRadius=hotHalo%outerRadius()
-       ! Get the mass distribution.
-       massDistribution_       => node             %massDistribution      (componentTypeHotHalo,massTypeGaseous)
-       kinematicsDistribution_ => massDistribution_%kinematicsDistribution(                                    )
-       ! Get the temperature.
-       coordinates             =  [outerRadius,0.0d0,0.0d0]
-       temperature             =  kinematicsDistribution_       %temperature(coordinates                                                                              )
-       ! Compute density and cooling time at outer radius and zero radius.
-       densityOuter            =  massDistribution_             %density    (coordinates                                                                              )
-       coordinates             =  [0.0d0      ,0.0d0,0.0d0]
-       densityZero             =  massDistribution_             %density    (coordinates                                                                              )
-       coolingTimeZero         =  self             %coolingTime_%time       (node,temperature,densityZero ,hotAbundances,chemicalFractions*densityZero ,self%radiation)
-       coolingTimeOuter        =  self             %coolingTime_%time       (node,temperature,densityOuter,hotAbundances,chemicalFractions*densityOuter,self%radiation)
-       !![
-       <objectDestructor name="massDistribution_"      />
-       <objectDestructor name="kinematicsDistribution_"/>
-       !!]          
+       ! Get the time available for cooling, the outer radius, and the cooling times at zero and outer radii.
+       call self%coolingTimes(node,timeAvailable,outerRadius,coolingTimeZero,coolingTimeOuter)
        if (coolingTimeOuter < timeAvailable .or. coolingTimeZero > timeAvailable) then
           ! Cooling radius is static.
           self%radiusGrowthRateStored=0.0d0
@@ -219,72 +241,18 @@ contains
     !!{RST
     Return the cooling radius in the :math:`\beta`-profile model.
     !!}
-    use :: Abundances_Structure             , only : abundances
-    use :: Chemical_Abundances_Structure    , only : chemicalAbundances
-    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Fraction_Conversion
-    use :: Galacticus_Nodes                 , only : nodeComponentBasic                   , nodeComponentHotHalo       , treeNode
-    use :: Mass_Distributions               , only : massDistributionClass                , kinematicsDistributionClass
-    use :: Coordinates                      , only : coordinateSpherical                  , assignment(=)
-    use :: Galactic_Structure_Options       , only : componentTypeHotHalo                 , massTypeGaseous
     implicit none
-    class           (coolingRadiusBetaProfile   ), intent(inout), target  :: self
-    type            (treeNode                   ), intent(inout), target  :: node
-    class           (nodeComponentBasic         )               , pointer :: basic
-    class           (nodeComponentHotHalo       )               , pointer :: hotHalo
-    class           (massDistributionClass      ), pointer                :: massDistribution_
-    class           (kinematicsDistributionClass), pointer                :: kinematicsDistribution_
-    type            (coordinateSpherical        )                         :: coordinates
-    double precision                                                      :: coolingTimeZero        , timeAvailable          , &
-         &                                                                   densityZero            , massToDensityConversion, &
-         &                                                                   temperature            , outerRadius            , &
-         &                                                                   densityOuter           , coolingTimeOuter
-    type            (abundances                 )                         :: hotAbundances
-    type            (chemicalAbundances         )                         :: chemicalFractions      , chemicalMasses
+    class           (coolingRadiusBetaProfile), intent(inout), target :: self
+    type            (treeNode                ), intent(inout), target :: node
+    double precision                                                  :: timeAvailable  , outerRadius     , &
+         &                                                               coolingTimeZero, coolingTimeOuter
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if cooling radius is already computed.
     if (.not.self%radiusComputed) then
-       ! Get the time available for cooling in node.
-       timeAvailable              =  self%coolingTimeAvailable_%timeAvailable(node)
-       ! Get the abundances for this node.
-       hotHalo                    => node   %hotHalo   ()
-       hotAbundances              =  hotHalo%abundances()
-       call hotAbundances%massToMassFraction(hotHalo%mass())
-       ! Get the chemicals for this node.
-       if (self%chemicalsCount > 0) then
-          chemicalMasses=hotHalo%chemicals()
-          ! Scale all chemical masses by their mass in atomic mass units to get a number density.
-          call chemicalMasses%massToNumber(chemicalFractions)
-          if (hotHalo%mass() > 0.0d0) then
-             massToDensityConversion=Chemicals_Mass_To_Fraction_Conversion(hotHalo%mass())
-          else
-             massToDensityConversion=0.0d0
-          end if          
-          ! Convert to number density per unit total mass density.
-          chemicalFractions=chemicalFractions*massToDensityConversion
-       end if
-       ! Set epoch for radiation field.
-       basic => node%basic()
-       call self%radiation%timeSet(basic%time())
-       ! Get the outer radius.
-       outerRadius=hotHalo%outerRadius()
-       ! Get the mass distribution.
-       massDistribution_       => node             %massDistribution      (componentTypeHotHalo,massTypeGaseous)
-       kinematicsDistribution_ => massDistribution_%kinematicsDistribution(                                    )
-       ! Get the temperature.
-       coordinates             =  [outerRadius,0.0d0,0.0d0]
-       temperature             =  kinematicsDistribution_       %temperature(coordinates                                                                              )
-       ! Compute density and cooling time at outer radius and zero radius.
-       densityOuter            =  massDistribution_             %density    (coordinates                                                                              )
-       coordinates             =  [0.0d0      ,0.0d0,0.0d0]
-       densityZero             =  massDistribution_             %density    (coordinates                                                                              )
-       coolingTimeZero         =  self             %coolingTime_%time       (node,temperature,densityZero ,hotAbundances,chemicalFractions*densityZero ,self%radiation)
-       coolingTimeOuter        =  self             %coolingTime_%time       (node,temperature,densityOuter,hotAbundances,chemicalFractions*densityOuter,self%radiation)
-       !![
-       <objectDestructor name="massDistribution_"      />
-       <objectDestructor name="kinematicsDistribution_"/>
-       !!]          
+       ! Get the time available for cooling, the outer radius, and the cooling times at zero and outer radii.
+       call self%coolingTimes(node,timeAvailable,outerRadius,coolingTimeZero,coolingTimeOuter)
        if (coolingTimeOuter < timeAvailable) then
           ! Cooling time available exceeds cooling time at virial radius, return virial radius.
           self%radiusStored=outerRadius
