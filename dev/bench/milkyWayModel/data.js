@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789368473060,
+  "lastUpdate": 1789702275829,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "d8c01b4a46e407e3d1285833cd41fd216d725966",
-          "message": "Merge pull request #880 from galacticusorg/fixOpenMPCritical\n\nUse OpenMP locks instead of `critical` sections",
-          "timestamp": "2025-07-16T14:04:57Z",
-          "tree_id": "cdf63738d5321bc6d5ba616e6518fc08434a4cd8",
-          "url": "https://github.com/galacticusorg/galacticus/commit/d8c01b4a46e407e3d1285833cd41fd216d725966"
-        },
-        "date": 1752699335290,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 96.23,
-            "unit": "seconds",
-            "range": 0.197175049131764
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10815,6 +10785,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 20.06222706233144,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4cc2edf4715c993c393e6d3a59cc13eaca16661c",
+          "message": "Merge pull request #1511 from galacticusorg/physics-verification-satellite-orbits\n\nfix(satellites): correct two mass-normalization errors in satellite evolution, and verify the rates and their assembly",
+          "timestamp": "2026-09-17T17:01:05Z",
+          "tree_id": "12880a9129ff8fce3c58e7d32fb0cdbac8d14ae2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4cc2edf4715c993c393e6d3a59cc13eaca16661c"
+        },
+        "date": 1789702274676,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 25.578,
+            "range": "0.04914875379905367",
+            "unit": "seconds"
           }
         ]
       }
