@@ -84,6 +84,7 @@
      procedure :: massTotal                         => zhao1996MassTotal
      procedure :: density                           => zhao1996Density
      procedure :: densityGradientRadial             => zhao1996DensityGradientRadial
+     procedure :: densitySlopeLogarithmicGradient    => zhao1996DensitySlopeLogarithmicGradient
      procedure :: densitySlopeLogarithmicCentral    => zhao1996DensitySlopeLogarithmicCentral
      procedure :: densityRadialMoment               => zhao1996DensityRadialMoment
      procedure :: massEnclosedBySphere              => zhao1996MassEnclosedBySphere
@@ -402,6 +403,31 @@ contains
     end select
     return
   end function zhao1996Density
+
+  double precision function zhao1996DensitySlopeLogarithmicGradient(self,coordinates) result(densitySlopeLogarithmicGradient)
+    !!{RST
+    Return the logarithmic gradient of the logarithmic density slope in a :cite:t:`zhao_analytical_1996` mass distribution.
+
+    Differentiating the slope :math:`\mathrm{d}\ln\rho/\mathrm{d}\ln r = -(\beta y + \gamma)/(1+y)`, with
+    :math:`y=(r/r_\mathrm{s})^\alpha` and :math:`\mathrm{d}y/\mathrm{d}\ln r = \alpha y`, gives
+    :math:`-\alpha (\beta - \gamma) y/(1+y)^2`. It vanishes at both small and large radii, where the slope tends to
+    :math:`-\gamma` and :math:`-\beta`.
+    !!}
+    implicit none
+    class           (massDistributionZhao1996), intent(inout), target :: self
+    class           (coordinate              ), intent(in   )         :: coordinates
+    double precision                                                  :: radiusScaleFreePowered
+
+    radiusScaleFreePowered         =+(                            &
+         &                            +coordinates%rSpherical ()  &
+         &                            /self       %scaleLength    &
+         &                           )**self%alpha
+    densitySlopeLogarithmicGradient=-self%alpha                            &
+         &                          *(     self%beta-self%gamma )         &
+         &                          *       radiusScaleFreePowered         &
+         &                          /(1.0d0+radiusScaleFreePowered)**2
+    return
+  end function zhao1996DensitySlopeLogarithmicGradient
 
   double precision function zhao1996DensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{RST

@@ -55,6 +55,7 @@
      final     ::                           sphericalTruncatedExponentialDestructor
      procedure :: density                => sphericalTruncatedExponentialDensity
      procedure :: densityGradientRadial  => sphericalTruncatedExponentialDensityGradientRadial
+     procedure :: densitySlopeLogarithmicGradient => sphericalTruncatedExponentialDensitySlopeLogarithmicGradient
      procedure :: massTotal              => sphericalTruncatedExponentialMassTotal
      procedure :: massEnclosedBySphere   => sphericalTruncatedExponentialMassEnclosedBySphere
      procedure :: radiusEnclosingMass    => sphericalTruncatedExponentialRadiusEnclosingMass
@@ -224,6 +225,28 @@ contains
     end if
     return
   end function sphericalTruncatedExponentialDensity
+
+  double precision function sphericalTruncatedExponentialDensitySlopeLogarithmicGradient(self,coordinates) result(densitySlopeLogarithmicGradient)
+    !!{RST
+    Return the logarithmic gradient of the logarithmic density slope in an exponentially-truncated spherical mass
+    distribution.
+
+    Within the truncation radius the distribution is unmodified, so the result is that of the distribution being truncated.
+    Beyond it the density is :math:`\propto (r/r_\mathrm{t})^\kappa \exp[-(r-r_\mathrm{t})/r_\mathrm{decay}]`, whose
+    logarithmic slope is :math:`\kappa - r/r_\mathrm{decay}`, giving a gradient of :math:`-r/r_\mathrm{decay}`.
+    !!}
+    implicit none
+    class           (massDistributionSphericalTruncatedExponential), intent(inout), target :: self
+    class           (coordinate                                   ), intent(in   )         :: coordinates
+
+    if (coordinates%rSpherical() <= self%radiusTruncateMinimum) then
+       densitySlopeLogarithmicGradient=+self%massDistribution_%densitySlopeLogarithmicGradient(coordinates)
+    else
+       densitySlopeLogarithmicGradient=-coordinates%rSpherical          () &
+            &                          /self       %radiusTruncateDecay
+    end if
+    return
+  end function sphericalTruncatedExponentialDensitySlopeLogarithmicGradient
 
   double precision function sphericalTruncatedExponentialDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{RST

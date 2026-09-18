@@ -45,6 +45,7 @@
      procedure :: describe                       => cuspNFWDescribe
      procedure :: density                        => cuspNFWDensity
      procedure :: densityGradientRadial          => cuspNFWDensityGradientRadial
+     procedure :: densitySlopeLogarithmicGradient => cuspNFWDensitySlopeLogarithmicGradient
      procedure :: densitySlopeLogarithmicCentral => cuspNFWDensitySlopeLogarithmicCentral
      procedure :: massEnclosedBySphere           => cuspNFWMassEnclosedBySphere
      procedure :: parameters                     => cuspNFWParameters
@@ -298,6 +299,27 @@ contains
     return
   end function cuspNFWDensity
   
+  double precision function cuspNFWDensitySlopeLogarithmicGradient(self,coordinates) result(densitySlopeLogarithmicGradient)
+    !!{RST
+    Return the logarithmic gradient of the logarithmic density slope in a cusp-NFW mass distribution. Differentiating the
+    slope :math:`\mathrm{d}\ln\rho/\mathrm{d}\ln r = -7/2 + 2/(1+x) + x/2(y^2+x)`, with :math:`x=r/r_\mathrm{s}`, gives
+    :math:`x[-2/(1+x)^2 + y^2/2(y^2+x)^2]`.
+    !!}
+    implicit none
+    class           (massDistributionCuspNFW), intent(inout), target :: self
+    class           (coordinate             ), intent(in   )         :: coordinates
+    double precision                                                 :: radiusScaleFree
+
+    radiusScaleFree                =+coordinates%rSpherical () &
+         &                          /self       %radiusScale
+    densitySlopeLogarithmicGradient=+radiusScaleFree                                       &
+         &                          *(                                                     &
+         &                            -2.0d0        /(     1.0d0   +radiusScaleFree)**2    &
+         &                            +0.5d0*self%y**2/(self%y**2+radiusScaleFree)**2      &
+         &                           )
+    return
+  end function cuspNFWDensitySlopeLogarithmicGradient
+
   double precision function cuspNFWDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{RST
     Return the radial density gradient at the specified ``coordinates`` in a cusp-NFW mass distribution.

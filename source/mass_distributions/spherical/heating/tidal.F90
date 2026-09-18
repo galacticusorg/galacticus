@@ -185,16 +185,47 @@ contains
     Returns the gradient of the specific energy of heating.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
     implicit none
     class           (massDistributionHeatingTidal), intent(inout) :: self
     double precision                              , intent(in   ) :: radius
     class           (massDistributionClass       ), intent(inout) :: massDistribution_
     double precision                                              :: energyPerturbationFirstOrder, energyPerturbationSecondOrder, &
-         &                                                           densityLogSlope             , velocityDispersion1D
+         &                                                           densityLogSlope             , velocityDispersion1D         , &
+         &                                                           coefficientSecondOrder      , densityLogSlopeGradient      , &
+         &                                                           gradientCoefficient
+    type            (coordinateSpherical         )                :: coordinates
 
     if (radius > 0.0d0) then
        call self%specificEnergyTerms(radius,massDistribution_,energyPerturbationFirstOrder,energyPerturbationSecondOrder,densityLogSlope,velocityDispersion1D)
-       if (energyPerturbationSecondOrder > 0.0d0) then
+       if (energyPerturbationSecondOrder /= 0.0d0) then
+          ! The coefficient of the second-order term, f=a₀+a₁s+a₂s², depends on radius through the density logarithmic slope
+          ! s, so its own logarithmic derivative, dlog[f]/dlog[r]=(a₁+2a₂s)(ds/dlog r)/f, enters the gradient. Omitting it
+          ! left the heated density inconsistent with the Jacobian of the initial-to-final radius mapping which the same
+          ! class implements, by a few per cent for coefficients like those of the reference tidal heating model.
+          ! The gradient of the coefficient is needed only if the coefficient actually depends on the slope. When a₁ and a₂ are
+          ! both zero - as they are by default - f is constant, the term below vanishes identically, and
+          ! `densitySlopeLogarithmicGradient` is not called at all: distributions which do not implement it remain usable.
+          if     (                                       &
+               &   self%coefficientSecondOrder1 /= 0.0d0 &
+               &  .or.                                   &
+               &   self%coefficientSecondOrder2 /= 0.0d0 &
+               & ) then
+             coordinates            =[radius,0.0d0,0.0d0]
+             coefficientSecondOrder =+self%coefficientSecondOrder0                    &
+                  &                  +self%coefficientSecondOrder1*densityLogSlope    &
+                  &                  +self%coefficientSecondOrder2*densityLogSlope**2
+             densityLogSlopeGradient=massDistribution_%densitySlopeLogarithmicGradient(coordinates)
+             gradientCoefficient    =+(                                          &
+                  &                    +      self%coefficientSecondOrder1       &
+                  &                    +2.0d0*self%coefficientSecondOrder2       &
+                  &                    *           densityLogSlope               &
+                  &                   )                                          &
+                  &                  *             densityLogSlopeGradient       &
+                  &                  /             coefficientSecondOrder
+          else
+             gradientCoefficient    =+0.0d0
+          end if
           energySpecificGradient=+(                                                                                   &
                &                   +energyPerturbationFirstOrder *  2.0d0                                             & !   dlog[r²    ]/dlog(r) term
                &                   +energyPerturbationSecondOrder*(                                                   &
@@ -206,6 +237,7 @@ contains
                &                                                   /                                       radius     & ! ⎥ have this provided by the
                &                                                   /velocityDispersion1D                          **2 & ! ⎩ darkMatterProfileDMO class.
                &                                                   +1.0d0                                             & !   dlog[r     ]/dlog(r) term
+               &                                                   +gradientCoefficient                               & !   dlog[f     ]/dlog(r) term
                &                                                  )                                                   &
                &                  )                                                                                   &
                &                 /radius

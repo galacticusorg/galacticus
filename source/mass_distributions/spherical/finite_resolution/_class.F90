@@ -46,6 +46,7 @@
      final     ::                          sphericalFiniteResolutionDestructor
      procedure :: density               => sphericalFiniteResolutionDensity
      procedure :: densityGradientRadial => sphericalFiniteResolutionDensityGradientRadial
+     procedure :: densitySlopeLogarithmicGradient => sphericalFiniteResolutionDensitySlopeLogarithmicGradient
   end type massDistributionSphericalFiniteResolution
 
   interface massDistributionSphericalFiniteResolution
@@ -169,6 +170,30 @@ contains
          &       )
       return
   end function sphericalFiniteResolutionDensity
+
+  double precision function sphericalFiniteResolutionDensitySlopeLogarithmicGradient(self,coordinates) result(densitySlopeLogarithmicGradient)
+    !!{RST
+    Return the logarithmic gradient of the logarithmic density slope in a finite resolution spherical mass distribution.
+
+    The resolution reduces the density by a factor :math:`(1+u^2)^{-1/2}` with :math:`u=l_\mathrm{res}/r`, which adds
+    :math:`u^2/(1+u^2)` to the logarithmic slope. Since :math:`\mathrm{d}u^2/\mathrm{d}\ln r = -2u^2`, that term
+    contributes :math:`-2u^2/(1+u^2)^2` to the gradient of the slope, on top of that of the distribution being resolved.
+    !!}
+    implicit none
+    class           (massDistributionSphericalFiniteResolution), intent(inout), target :: self
+    class           (coordinate                               ), intent(in   )         :: coordinates
+    double precision                                                                   :: resolutionFractionalSquared
+
+    resolutionFractionalSquared    =+(                                    &
+         &                            +self       %lengthResolution       &
+         &                            /coordinates%rSpherical      ()     &
+         &                           )**2
+    densitySlopeLogarithmicGradient=+self%massDistribution_%densitySlopeLogarithmicGradient(coordinates) &
+         &                          -2.0d0                                                               &
+         &                          *       resolutionFractionalSquared                                  &
+         &                          /(1.0d0+resolutionFractionalSquared)**2
+    return
+  end function sphericalFiniteResolutionDensitySlopeLogarithmicGradient
 
   double precision function sphericalFiniteResolutionDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{RST

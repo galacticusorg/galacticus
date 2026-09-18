@@ -1282,6 +1282,7 @@ jobs:
                       tests.satellite_orbit_rates.exe,
                       tests.satellite_tidal_heating_rate.exe,
                       tests.dark_matter_profiles.heated.exe,
+                      tests.dark_matter_profiles.heated_tidal_NFW.exe,
                       tests.dark_matter_halo_radius_enclosing_mass.exe,
                       tests.dark_matter_profiles.tidal_tracks.exe,
                       tests.dark_matter_profiles.generic.exe,
