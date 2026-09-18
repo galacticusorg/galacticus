@@ -194,8 +194,8 @@ contains
     class           (massDistributionClass      )               , pointer :: massDistribution_
     class           (kinematicsDistributionClass)               , pointer :: kinematicsDistribution_
     type            (coordinateSpherical        )                         :: coordinates
-    double precision                                                      :: coolingTime            , timeAvailable          , &
-         &                                                                   density                , temperature            , &
+    double precision                                                      :: coolingTime            , timeAvailable, &
+         &                                                                   density                , temperature  , &
          &                                                                   radiusVirial
     type            (abundances                 )                         :: hotAbundances
     type            (chemicalAbundances         )                         :: chemicalFractions
@@ -205,7 +205,7 @@ contains
     ! Check if cooling radius is already computed.
     if (.not.self%radiusComputed) then
        ! Get the time available for cooling in node.
-       timeAvailable                   =  self%coolingTimeAvailable_%timeAvailable(node)
+       timeAvailable=self%coolingTimeAvailable_%timeAvailable(node)
        ! Get the abundances and chemicals for this node.
        call self%hotHaloComposition(node,hotAbundances,chemicalFractions)
        ! Set epoch for radiation field.

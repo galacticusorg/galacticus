@@ -155,7 +155,7 @@ contains
     type            (chemicalAbundances         )                :: chemicalFractions
 
     ! Get the time available for cooling in node.
-    timeAvailable              =  self%coolingTimeAvailable_%timeAvailable(node)
+    timeAvailable=self%coolingTimeAvailable_%timeAvailable(node)
     ! Get the abundances and chemicals for this node.
     call self%hotHaloComposition(node,hotAbundances,chemicalFractions)
     hotHalo => node%hotHalo()

@@ -229,8 +229,8 @@ contains
     type            (treeNode            ), intent(inout), target :: node
     class           (nodeComponentBasic  ), pointer               :: basic
     class           (nodeComponentHotHalo), pointer               :: hotHalo
-    double precision                      , parameter             :: zeroRadius    =0.0d0
-    double precision                                              :: outerRadius         , rootZero               , &
+    double precision                      , parameter             :: zeroRadius =0.0d0
+    double precision                                              :: outerRadius      , rootZero, &
          &                                                           rootOuter
 
     ! Check if node differs from previous one for which we performed calculations.
@@ -253,7 +253,7 @@ contains
        node_ => node
        ! Check if cooling time at hot halo outer radius is reached.
        outerRadius=hotHalo%outerRadius()
-       rootOuter=coolingRadiusRoot(outerRadius)
+       rootOuter  =coolingRadiusRoot(outerRadius)
        if (rootOuter < 0.0d0) then
           ! Cooling time available exceeds cooling time at outer radius radius, return outer radius.
           self%radiusStored=outerRadius
