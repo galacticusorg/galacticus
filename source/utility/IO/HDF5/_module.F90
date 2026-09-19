@@ -98,6 +98,24 @@ module IO_HDF5
    <instance label="Real"    intrinsic="real   " typeName="real   "/>
    <instance label="Integer" intrinsic="integer" typeName="integer"/>
   </generic>
+  <generic identifier="attributescalartype">
+   <instance label="Integer"   intrinsic="integer           " typename="integer"      target=", target"/>
+   <instance label="Integer8"  intrinsic="integer(kind_int8)" typename="long integer" target=", target"/>
+   <instance label="Double"    intrinsic="double precision  " typename="double"       target=", target"/>
+   <instance label="Character" intrinsic="character(len=*)  " typename="character"    target=""        />
+  </generic>
+  <generic identifier="attributearraytype">
+   <instance label="Integer"   intrinsic="integer             " typename="integer"        target=", target" statictarget=", target, contiguous" staticintent="out  "/>
+   <instance label="Integer8"  intrinsic="integer(kind_int8)  " typename="long integer"   target=", target" statictarget=", target, contiguous" staticintent="out  "/>
+   <instance label="Double"    intrinsic="double precision    " typename="double"         target=", target" statictarget=", target, contiguous" staticintent="out  "/>
+   <instance label="Character" intrinsic="character(len=*)    " typename="character"      target=""         statictarget=""                     staticintent="out  "/>
+   <instance label="VarString" intrinsic="type(varying_string)" typename="varying string" target=""         statictarget=""                     staticintent="inout"/>
+  </generic>
+  <generic identifier="finalizetype">
+   <instance label="Group"     intrinsic="type(hdf5Group    )" noun="group"     article="a group"      closer="h5gclose_f" example=" (a file re-opened into a group variable via ``deepCopy``)"/>
+   <instance label="Dataset"   intrinsic="type(hdf5Dataset  )" noun="dataset"   article="a dataset"    closer="h5dclose_f" example=""                                                           />
+   <instance label="Attribute" intrinsic="type(hdf5Attribute)" noun="attribute" article="an attribute" closer="h5aclose_f" example=""                                                           />
+  </generic>
   !!]
 
   ! Class hierarchy for HDF5 objects (see issue #93). The abstract base ``hdf5Object`` holds the data components and the methods
@@ -764,28 +782,28 @@ contains
   ! close once and then the object is inert.) Finalization occurs within an HDF5 locked region to avoid thread conflicts: the HDF5
   ! library is not thread-safe, and resource manager counts must be updated in a thread-safe manner for correct counting.
 
-  impure elemental subroutine IO_HDF5_Finalize_Group(self)
+  impure elemental subroutine IO_HDF5_Finalize_{finalizetype¦label}(self)
     !!{RST
-    Finalize an HDF5 group object.
+    Finalize an HDF5 {finalizetype¦noun} object.
     !!}
     use :: Error             , only : Error_Report
-    use :: HDF5              , only : h5gclose_f
+    use :: HDF5              , only : {finalizetype¦closer}
     use :: ISO_Varying_String, only : operator(//)
     implicit none
-    type   (hdf5Group     ), intent(inout) :: self
+    {finalizetype¦intrinsic}, intent(inout) :: self
     integer                                :: errorCode
     type   (varying_string)                :: message
 
     if (.not.associated(self%objectID)) return
     !$ call IO_HDF5_Start_Locked()
     if (self%objectManager%count() == 1) then
-       ! Close the group — unless this object actually holds the file's own identifier (a file re-opened into a group variable via
-       ! ``deepCopy``, where ``objectID`` equals ``fileID``). The file is a shared resource closed via the file manager, and must
-       ! not be closed here as a group.
+       ! Close the {finalizetype¦noun} — unless this object actually holds the file's own identifier{finalizetype¦example}, where
+       ! ``objectID`` equals ``fileID``. The file is a shared resource closed via the file manager, and must not be closed here as
+       ! {finalizetype¦article}.
        if (self%objectID /= self%fileID) then
-          call h5gclose_f(self%objectID,errorCode)
+          call {finalizetype¦closer}(self%objectID,errorCode)
           if (errorCode /= 0) then
-             message="unable to close group object '"//self%objectName//"'"
+             message="unable to close {finalizetype¦noun} object '"//self%objectName//"'"
              call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
@@ -798,7 +816,7 @@ contains
     nullify(self%objectID)
     !$ call IO_HDF5_End_Locked()
     return
-  end subroutine IO_HDF5_Finalize_Group
+  end subroutine IO_HDF5_Finalize_{finalizetype¦label}
 
   impure elemental subroutine IO_HDF5_Finalize_File(self)
     !!{RST
@@ -820,75 +838,7 @@ contains
     return
   end subroutine IO_HDF5_Finalize_File
 
-  impure elemental subroutine IO_HDF5_Finalize_Dataset(self)
-    !!{RST
-    Finalize an HDF5 dataset object.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : h5dclose_f
-    use :: ISO_Varying_String, only : operator(//)
-    implicit none
-    type   (hdf5Dataset   ), intent(inout) :: self
-    integer                                :: errorCode
-    type   (varying_string)                :: message
 
-    if (.not.associated(self%objectID)) return
-    !$ call IO_HDF5_Start_Locked()
-    if (self%objectManager%count() == 1) then
-       ! Close the dataset — unless this object holds the file's own identifier (``objectID`` equals ``fileID``), which is a shared
-       ! resource closed via the file manager and must not be closed here as a dataset.
-       if (self%objectID /= self%fileID) then
-          call h5dclose_f(self%objectID,errorCode)
-          if (errorCode /= 0) then
-             message="unable to close dataset object '"//self%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-       end if
-       nullify(self%parentObject)
-    end if
-    call IO_HDF5_Finalize_Shared(self)
-    ! Mark the object inert. ``hdf5File`` extends the concrete ``hdf5Group``, so finalizing a file runs this type's finalizer and then
-    ! the inherited ``hdf5Group`` finalizer; nullifying the object identifier makes that chained parent finalizer's guard return
-    ! immediately, so it does not attempt a second (wrong-kind) close.
-    nullify(self%objectID)
-    !$ call IO_HDF5_End_Locked()
-    return
-  end subroutine IO_HDF5_Finalize_Dataset
-
-  impure elemental subroutine IO_HDF5_Finalize_Attribute(self)
-    !!{RST
-    Finalize an HDF5 attribute object.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : h5aclose_f
-    use :: ISO_Varying_String, only : operator(//)
-    implicit none
-    type   (hdf5Attribute ), intent(inout) :: self
-    integer                                :: errorCode
-    type   (varying_string)                :: message
-
-    if (.not.associated(self%objectID)) return
-    !$ call IO_HDF5_Start_Locked()
-    if (self%objectManager%count() == 1) then
-       ! Close the attribute — unless this object holds the file's own identifier (``objectID`` equals ``fileID``), which is a shared
-       ! resource closed via the file manager and must not be closed here as an attribute.
-       if (self%objectID /= self%fileID) then
-          call h5aclose_f(self%objectID,errorCode)
-          if (errorCode /= 0) then
-             message="unable to close attribute object '"//self%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-       end if
-       nullify(self%parentObject)
-    end if
-    call IO_HDF5_Finalize_Shared(self)
-    ! Mark the object inert. ``hdf5File`` extends the concrete ``hdf5Group``, so finalizing a file runs this type's finalizer and then
-    ! the inherited ``hdf5Group`` finalizer; nullifying the object identifier makes that chained parent finalizer's guard return
-    ! immediately, so it does not attempt a second (wrong-kind) close.
-    nullify(self%objectID)
-    !$ call IO_HDF5_End_Locked()
-    return
-  end subroutine IO_HDF5_Finalize_Attribute
 
   logical function IO_HDF5_Is_Open(self)
     !!{RST
@@ -2230,14 +2180,14 @@ contains
     return
   end subroutine IO_HDF5_Write_Attribute_VarString_1D_Self
 
-  subroutine IO_HDF5_Read_Attribute_{Type¦label}_Scalar(self,attributeName,attributeValue,allowPseudoScalar)
+  subroutine IO_HDF5_Read_Attribute_{attributescalartype¦label}_Scalar(self,attributeName,attributeValue,allowPseudoScalar)
     !!{RST
-    Open the named {Type¦typeName} scalar attribute in ``self`` and read it by delegating to the attribute object.
+    Open the named {attributescalartype¦typename} scalar attribute in ``self`` and read it by delegating to the attribute object.
     !!}
     use            :: Error             , only : Error_Report
     use            :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
-    {Type¦intrinsic}, intent(  out), target :: attributeValue
+    {attributescalartype¦intrinsic}, intent(  out){attributescalartype¦target} :: attributeValue
     class    (hdf5AttributableObject)      , intent(inout)           :: self
     character(len=*                 )      , intent(in   ), optional :: attributeName
     logical                                , intent(in   ), optional :: allowPseudoScalar
@@ -2271,7 +2221,7 @@ contains
     attributeObject=self%openAttribute(attributeName)
     call attributeObject%readAttribute(attributeValue,allowPseudoScalar=allowPseudoScalar)
     return
-  end subroutine IO_HDF5_Read_Attribute_{Type¦label}_Scalar
+  end subroutine IO_HDF5_Read_Attribute_{attributescalartype¦label}_Scalar
 
   subroutine IO_HDF5_Read_Attribute_{Type¦label}_Scalar_Self(self,attributeValue,allowPseudoScalar)
     !!{RST
@@ -2359,14 +2309,14 @@ contains
     return
   end subroutine IO_HDF5_Read_Attribute_{Type¦label}_Scalar_Self
 
-  subroutine IO_HDF5_Read_Attribute_{Type¦label}_1D_Array_Allocatable(self,attributeName,attributeValue)
+  subroutine IO_HDF5_Read_Attribute_{attributearraytype¦label}_1D_Array_Allocatable(self,attributeName,attributeValue)
     !!{RST
-    Open the named {Type¦typeName} 1-D array attribute in ``self`` and read it into an allocatable array by delegating to the attribute object.
+    Open the named {attributearraytype¦typename} 1-D array attribute in ``self`` and read it into an allocatable array by delegating to the attribute object.
     !!}
     use            :: Error             , only : Error_Report
     use            :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
-    {Type¦intrinsic}         , allocatable, dimension(:), intent(  out), target   :: attributeValue
+    {attributearraytype¦intrinsic}, allocatable, dimension(:), intent(  out){attributearraytype¦target} :: attributeValue
     class    (hdf5AttributableObject)                   , intent(inout)           :: self
     character(len=*                 )                   , intent(in   ), optional :: attributeName
     type     (hdf5Attribute         )                                            :: attributeObject
@@ -2399,7 +2349,7 @@ contains
     attributeObject=self%openAttribute(attributeName)
     call attributeObject%readAttribute(attributeValue)
     return
-  end subroutine IO_HDF5_Read_Attribute_{Type¦label}_1D_Array_Allocatable
+  end subroutine IO_HDF5_Read_Attribute_{attributearraytype¦label}_1D_Array_Allocatable
 
   subroutine IO_HDF5_Read_Attribute_{Type¦label}_1D_Array_Allocatable_Self(self,attributeValue)
     !!{RST
@@ -2470,14 +2420,14 @@ contains
     return
   end subroutine IO_HDF5_Read_Attribute_{Type¦label}_1D_Array_Allocatable_Self
 
-  subroutine IO_HDF5_Read_Attribute_{Type¦label}_1D_Array_Static(self,attributeName,attributeValue)
+  subroutine IO_HDF5_Read_Attribute_{attributearraytype¦label}_1D_Array_Static(self,attributeName,attributeValue)
     !!{RST
-    Open the named {Type¦typeName} 1-D array attribute in ``self`` and read it into a static array by delegating to the attribute object.
+    Open the named {attributearraytype¦typename} 1-D array attribute in ``self`` and read it into a static array by delegating to the attribute object.
     !!}
     use            :: Error             , only : Error_Report
     use            :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
-    {Type¦intrinsic}                 , intent(  out), dimension(:), target, contiguous :: attributeValue
+    {attributearraytype¦intrinsic}   , intent({attributearraytype¦staticintent}), dimension(:){attributearraytype¦statictarget} :: attributeValue
     class    (hdf5AttributableObject), intent(inout)                                   :: self
     character(len=*                 ), intent(in   ), optional                         :: attributeName
     type     (hdf5Attribute         )                                                  :: attributeObject
@@ -2510,7 +2460,7 @@ contains
     attributeObject=self%openAttribute(attributeName)
     call attributeObject%readAttributeStatic(attributeValue)
     return
-  end subroutine IO_HDF5_Read_Attribute_{Type¦label}_1D_Array_Static
+  end subroutine IO_HDF5_Read_Attribute_{attributearraytype¦label}_1D_Array_Static
 
   subroutine IO_HDF5_Read_Attribute_{Type¦label}_1D_Array_Static_Self(self,attributeValue)
     !!{RST
@@ -2581,48 +2531,6 @@ contains
     return
   end subroutine IO_HDF5_Read_Attribute_{Type¦label}_1D_Array_Static_Self
 
-  subroutine IO_HDF5_Read_Attribute_Character_Scalar(self,attributeName,attributeValue,allowPseudoScalar)
-    !!{RST
-    Open the named character scalar attribute in ``self`` and read it by delegating to the attribute object.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : assignment(=), operator(//), trim
-    implicit none
-    character(len=*                 )              , intent(  out)           :: attributeValue
-    class    (hdf5AttributableObject)              , intent(inout)           :: self
-    character(len=*                 )              , intent(in   ), optional :: attributeName
-    logical                                        , intent(in   ), optional :: allowPseudoScalar
-    type     (hdf5Attribute         )                                        :: attributeObject
-    type     (varying_string        )                                        :: attributeNameActual, message
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-    ! Get the name of the attribute.
-    if (present(attributeName)) then
-       attributeNameActual=attributeName
-    else
-       attributeNameActual=self%objectName
-    end if
-    ! Check that the object is already open.
-    if (.not.self%isOpenValue) then
-       message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    ! Require that an attribute name was supplied.
-    if (.not.present(attributeName)) then
-       message="attribute name was not supplied for object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    ! Check that the attribute exists.
-    if (.not.self%hasAttribute(attributeName)) then
-       message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    ! Open the attribute and delegate the read.
-    attributeObject=self%openAttribute(attributeName)
-    call attributeObject%readAttribute(attributeValue,allowPseudoScalar=allowPseudoScalar)
-    return
-  end subroutine IO_HDF5_Read_Attribute_Character_Scalar
 
   subroutine IO_HDF5_Read_Attribute_Character_Scalar_Self(self,attributeValue,allowPseudoScalar)
     !!{RST
@@ -2759,47 +2667,6 @@ contains
     return
   end subroutine IO_HDF5_Read_Attribute_Character_Scalar_Self
 
-  subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable(self,attributeName,attributeValue)
-    !!{RST
-    Open the named character 1-D array attribute in ``self`` and read it into an allocatable array by delegating to the attribute object.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : assignment(=), operator(//), trim
-    implicit none
-    character(len=*                 ), allocatable, dimension(:), intent(  out)           :: attributeValue
-    class    (hdf5AttributableObject)                           , intent(inout)           :: self
-    character(len=*                 )                           , intent(in   ), optional :: attributeName
-    type     (hdf5Attribute         )                                                     :: attributeObject
-    type     (varying_string        )                                                     :: attributeNameActual, message
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-    ! Get the name of the attribute.
-    if (present(attributeName)) then
-       attributeNameActual=attributeName
-    else
-       attributeNameActual=self%objectName
-    end if
-    ! Check that the object is already open.
-    if (.not.self%isOpenValue) then
-       message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    ! Require that an attribute name was supplied.
-    if (.not.present(attributeName)) then
-       message="attribute name was not supplied for object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    ! Check that the attribute exists.
-    if (.not.self%hasAttribute(attributeName)) then
-       message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    ! Open the attribute and delegate the read.
-    attributeObject=self%openAttribute(attributeName)
-    call attributeObject%readAttribute(attributeValue)
-    return
-  end subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable
 
   subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable_Self(self,attributeValue)
     !!{RST
@@ -2884,47 +2751,6 @@ contains
     return
   end subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable_Self
 
-  subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Static(self,attributeName,attributeValue)
-    !!{RST
-    Open the named character 1-D array attribute in ``self`` and read it into a static array by delegating to the attribute object.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : assignment(=), operator(//), trim
-    implicit none
-    character(len=*                 ), dimension(:), intent(  out)           :: attributeValue
-    class    (hdf5AttributableObject)              , intent(inout)           :: self
-    character(len=*                 )              , intent(in   ), optional :: attributeName
-    type     (hdf5Attribute         )                                        :: attributeObject
-    type     (varying_string        )                                        :: attributeNameActual, message
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-    ! Get the name of the attribute.
-    if (present(attributeName)) then
-       attributeNameActual=attributeName
-    else
-       attributeNameActual=self%objectName
-    end if
-    ! Check that the object is already open.
-    if (.not.self%isOpenValue) then
-       message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    ! Require that an attribute name was supplied.
-    if (.not.present(attributeName)) then
-       message="attribute name was not supplied for object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    ! Check that the attribute exists.
-    if (.not.self%hasAttribute(attributeName)) then
-       message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    ! Open the attribute and delegate the read.
-    attributeObject=self%openAttribute(attributeName)
-    call attributeObject%readAttributeStatic(attributeValue)
-    return
-  end subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Static
 
   subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Static_Self(self,attributeValue)
     !!{RST
@@ -3155,47 +2981,6 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Read_Attribute_VarString_Scalar_Do_Read
 
-  subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable(self,attributeName,attributeValue)
-    !!{RST
-    Open the named varying string 1-D array attribute in ``self`` and read it into an allocatable array by delegating to the attribute object.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : assignment(=), operator(//), trim
-    implicit none
-    type     (varying_string        ), allocatable, dimension(:), intent(  out)           :: attributeValue
-    class    (hdf5AttributableObject)                           , intent(inout)           :: self
-    character(len=*                 )                           , intent(in   ), optional :: attributeName
-    type     (hdf5Attribute         )                                                     :: attributeObject
-    type     (varying_string        )                                                     :: attributeNameActual, message
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-    ! Get the name of the attribute.
-    if (present(attributeName)) then
-       attributeNameActual=attributeName
-    else
-       attributeNameActual=self%objectName
-    end if
-    ! Check that the object is already open.
-    if (.not.self%isOpenValue) then
-       message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    ! Require that an attribute name was supplied.
-    if (.not.present(attributeName)) then
-       message="attribute name was not supplied for object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    ! Check that the attribute exists.
-    if (.not.self%hasAttribute(attributeName)) then
-       message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    ! Open the attribute and delegate the read.
-    attributeObject=self%openAttribute(attributeName)
-    call attributeObject%readAttribute(attributeValue)
-    return
-  end subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable
 
   subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable_Self(self,attributeValue)
     !!{RST
@@ -3276,47 +3061,6 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable_Do_Read
 
-  subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Static(self,attributeName,attributeValue)
-    !!{RST
-    Open the named varying string 1-D array attribute in ``self`` and read it into a static array by delegating to the attribute object.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : assignment(=), operator(//), trim
-    implicit none
-    type     (varying_string        ), dimension(:), intent(inout)           :: attributeValue
-    class    (hdf5AttributableObject)              , intent(inout)           :: self
-    character(len=*                 )              , intent(in   ), optional :: attributeName
-    type     (hdf5Attribute         )                                        :: attributeObject
-    type     (varying_string        )                                        :: attributeNameActual, message
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-    ! Get the name of the attribute.
-    if (present(attributeName)) then
-       attributeNameActual=attributeName
-    else
-       attributeNameActual=self%objectName
-    end if
-    ! Check that the object is already open.
-    if (.not.self%isOpenValue) then
-       message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    ! Require that an attribute name was supplied.
-    if (.not.present(attributeName)) then
-       message="attribute name was not supplied for object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    ! Check that the attribute exists.
-    if (.not.self%hasAttribute(attributeName)) then
-       message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    ! Open the attribute and delegate the read.
-    attributeObject=self%openAttribute(attributeName)
-    call attributeObject%readAttributeStatic(attributeValue)
-    return
-  end subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Static
 
   subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Static_Self(self,attributeValue)
     !!{RST
