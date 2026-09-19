@@ -254,6 +254,51 @@ module MPI_Utilities
    <instance label="SizeT"  description="a ``size_t``" intrinsic="integer(c_size_t )" zero="0_c_size_t"/>
    <instance label="Double" description="a double"     intrinsic="double precision  " zero="0.0d0"     />
   </generic>
+  <generic identifier="extremumarray">
+   <instance label="MaxvalArray"      extremum="maximum" intrinsic="double precision " mpitype="MPI_Double_Precision" operation="MPI_Max" fill="-huge(1.0d0)"      zero="0.0d0"     />
+   <instance label="MaxvalArraySizeT" extremum="maximum" intrinsic="integer(c_size_t)" mpitype="MPI_Integer8"         operation="MPI_Max" fill="-huge(1_c_size_t)" zero="0_c_size_t"/>
+   <instance label="MinvalArray"      extremum="minimum" intrinsic="double precision " mpitype="MPI_Double_Precision" operation="MPI_Min" fill="+huge(1.0d0)"      zero="0.0d0"     />
+   <instance label="MinvalIntArray"   extremum="minimum" intrinsic="integer          " mpitype="MPI_Integer"          operation="MPI_Min" fill="+huge(1)"          zero="0"         />
+  </generic>
+  <generic identifier="extremumscalar">
+   <instance label="MaxvalScalar"      extremum="maximum" description="a scalar"            intrinsic="double precision " method="maxval" zero="0.0d0"     />
+   <instance label="MaxvalScalarSizeT" extremum="maximum" description="a ``size_t`` scalar" intrinsic="integer(c_size_t)" method="maxval" zero="0_c_size_t"/>
+   <instance label="MinvalScalar"      extremum="minimum" description="a scalar"            intrinsic="double precision " method="minval" zero="0.0d0"     />
+   <instance label="MinvalIntScalar"   extremum="minimum" description="a scalar"            intrinsic="integer          " method="minval" zero="0"         />
+  </generic>
+  <generic identifier="extremumlocation">
+   <instance label="Maxloc" intrinsic="double precision" extremum="maximum" operation="MPI_MaxLoc" fill="-HUGE(1.0d0)"/>
+   <instance label="Minloc" intrinsic="double precision" extremum="minimum" operation="MPI_MinLoc" fill="+HUGE(1.0d0)"/>
+  </generic>
+  <generic identifier="logicalreduction">
+   <instance label="AnyLogicalScalar" intrinsic="logical" description="any of the given booleans is true" operation="MPI_LOr"  fill=".false."/>
+   <instance label="AllLogicalScalar" intrinsic="logical" description="all of the given booleans are true" operation="MPI_LAnd" fill=".true." />
+  </generic>
+  <generic identifier="gatherarray">
+   <instance label="1D"    description="a 1-D array"            result="a 2-D array" intrinsic="double precision" argdims="          :                " resultdims="size(array),self%countValue"                         zero="0.0d0"/>
+   <instance label="2D"    description="a 2-D array"            result="a 3-D array" intrinsic="double precision" argdims="          :,:              " resultdims="size(array,dim=1),size(array,dim=2),self%countValue" zero="0.0d0"/>
+   <instance label="Int1D" description="an integer 1-D array"   result="a 2-D array" intrinsic="integer         " argdims="          :                " resultdims="size(array),self%countValue"                         zero="0"    />
+  </generic>
+  <generic identifier="gatherscalar">
+   <instance label="Scalar"        description="a scalar"          intrinsic="double precision" zero="0.0d0"  />
+   <instance label="LogicalScalar" description="a logical scalar"  intrinsic="logical         " zero=".false."/>
+   <instance label="IntScalar"     description="an integer scalar" intrinsic="integer         " zero="0"      />
+  </generic>
+  <generic identifier="broadcastarray">
+   <instance label="1D" intrinsic="double precision" dims=":    "/>
+   <instance label="2D" intrinsic="double precision" dims=":,:  "/>
+   <instance label="3D" intrinsic="double precision" dims=":,:,:"/>
+  </generic>
+  <generic identifier="broadcastscalar">
+   <instance label="Scalar"      intrinsic="double precision " mpitype="MPI_Double_Precision"/>
+   <instance label="SizeTScalar" intrinsic="integer(c_size_t)" mpitype="MPI_Integer8"        />
+  </generic>
+  <generic identifier="requestdata">
+   <instance label="1D"        intrinsic="double precision" mpitype="MPI_Double_Precision" mpiimport=", MPI_Double_Precision" argdims=":  " resultdims="size(array),size(requestFrom)"                   receiveddims="size(array)"                   count="size(array)"           slice=":  " zero="0.0d0"  />
+   <instance label="2D"        intrinsic="double precision" mpitype="MPI_Double_Precision" mpiimport=", MPI_Double_Precision" argdims=":,:" resultdims="size(array,dim=1),size(array,dim=2),size(requestFrom)" receiveddims="size(array,dim=1),size(array,dim=2)" count="product(shape(array))" slice=":,:" zero="0.0d0"  />
+   <instance label="Int1D"     intrinsic="integer         " mpitype="MPI_Integer"          mpiimport=""                       argdims=":  " resultdims="size(array),size(requestFrom)"                   receiveddims="size(array)"                   count="size(array)"           slice=":  " zero="0"      />
+   <instance label="Logical1D" intrinsic="logical         " mpitype="MPI_Logical"          mpiimport=", MPI_Logical"          argdims=":  " resultdims="size(array),size(requestFrom)"                   receiveddims="size(array)"                   count="size(array)"           slice=":  " zero=".false."/>
+  </generic>
   !!]
 
 contains
@@ -566,202 +611,26 @@ contains
     return
   end function mpiMessageWaiting
 
-  function mpiRequestData1D(self,requestFrom,array)
+  function mpiRequestData{requestdata¦label}(self,requestFrom,array)
     !!{RST
     Request and receive data from other MPI processes.
     !!}
 #ifndef USEMPI
     use :: Error  , only : Error_Report
 #else
-    use :: MPI_F08, only : MPI_Request , MPI_Status , MPI_Wait      , MPI_ISend           , &
-         &                 MPI_Recv    , MPI_Integer, MPI_Any_Source, MPI_Double_Precision
+    use :: MPI_F08, only : MPI_Request , MPI_Status , MPI_Wait                             , MPI_ISend, &
+         &                 MPI_Recv    , MPI_Integer, MPI_Any_Source{requestdata¦mpiimport}
 #endif
     implicit none
-    class           (mpiObject), intent(in   )                                           :: self
-    integer                    , intent(in   ), dimension(                            :) :: requestFrom
-    double precision           , intent(in   ), dimension(          :                  ) :: array
-    double precision                          , dimension(size(array),size(requestFrom)) :: mpiRequestData1D
+    class  (mpiObject  )   , intent(in   )                                        :: self
+    integer                , intent(in   ), dimension(                         :) :: requestFrom
+    {requestdata¦intrinsic}, intent(in   ), dimension({requestdata¦argdims}     ) :: array
+    {requestdata¦intrinsic}               , dimension({requestdata¦resultdims}  ) :: mpiRequestData{requestdata¦label}
 #ifdef USEMPI
-    double precision                          , dimension(size(array)                  ) :: receivedData
-    integer                                   , dimension(                            1) :: requester       , requestedBy
-    type            (MPI_Request)             , dimension(         0: self%countValue-1) :: requestFromID
-    type            (MPI_Request), allocatable, dimension(                            :) :: requestID       , requestIDtemp
-    type            (MPI_Status )                                                        :: messageStatus
-    integer                                                                              :: i               , iError       , &
-         &                                                                                  iRequest        , receivedFrom , &
-         &                                                                                  j
-#endif
-
-#ifdef USEMPI
-    ! Record our own rank as the requester.
-    requester=self%rank()
-    ! Send requests.
-    call mpiBarrier()
-    do i=0,self%count()-1
-       if (any(requestFrom == i)) then
-          call MPI_ISend(requester    ,1,MPI_Integer,i,tagRequestForData,mpiSelf%communicator,requestFromID(i),iError)
-       else
-          call MPI_ISend(nullRequester,1,MPI_Integer,i,tagRequestForData,mpiSelf%communicator,requestFromID(i),iError)
-       end if
-    end do
-    call mpiBarrier()
-    ! Check for waiting requests.
-    allocate(requestID(size(requestFrom)))
-    iRequest=0
-    do i=0,self%count()-1
-       ! Receive the request.
-       call MPI_Recv(requestedBy,1,MPI_Integer,MPI_Any_Source,tagRequestForData,mpiSelf%communicator,messageStatus,iError)
-       ! Check for a non-null request.
-       if (requestedBy(1) /= nullRequester) then
-          ! Expand the requestID buffer as required.
-          iRequest=iRequest+1
-          if (iRequest > size(requestID)) then
-             call Move_Alloc(requestID,requestIDtemp)
-             allocate(requestID(2*iRequest))
-             requestID(1:size(requestIDtemp))=requestIDtemp
-             deallocate(requestIDtemp)
-          end if
-          ! Send our data in reply.
-          call MPI_ISend(array,size(array),MPI_Double_Precision,requestedBy(1),tagState,mpiSelf%communicator,requestID(iRequest),iError)
-       end if
-    end do
-    call mpiBarrier()
-    ! Wait until all of our sends have been received.
-    do i=0,self%count()-1
-       call MPI_Wait(requestFromID(i),messageStatus,iError)
-    end do
-    ! Receive data.
-    do i=1,size(requestFrom)
-       call MPI_Recv(receivedData,size(array),MPI_Double_Precision,MPI_Any_Source,tagState,mpiSelf%communicator,messageStatus,iError)
-       ! Find who sent this data and apply to the relevant part of the results array.
-       receivedFrom=messageStatus%MPI_Source
-       do j=1,size(requestFrom)
-          if (requestFrom(j) == receivedFrom) mpiRequestData1D(:,j)=receivedData
-       end do
-    end do
-    ! Wait until all of our sends have been received.
-    do i=1,iRequest
-       call MPI_Wait(requestID(i),messageStatus,iError)
-    end do
-    call mpiBarrier()
-    ! Deallocate request ID workspace.
-    deallocate(requestID)
-#else
-    !$GLC attributes unused :: self, requestFrom, array
-    mpiRequestData1D=0.0d0
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiRequestData1D
-
-  function mpiRequestData2D(self,requestFrom,array)
-    !!{RST
-    Request and receive data from other MPI processes.
-    !!}
-#ifndef USEMPI
-    use :: Error  , only : Error_Report
-#else
-    use :: MPI_F08, only : MPI_Request , MPI_Status , MPI_Wait      , MPI_ISend           , &
-         &                 MPI_Recv    , MPI_Integer, MPI_Any_Source, MPI_Double_Precision
-#endif
-    implicit none
-    class           (mpiObject  ), intent(in   )                                                                   :: self
-    integer                      , intent(in   ), dimension(                                                    :) :: requestFrom
-    double precision             , intent(in   ), dimension(                :,                :                  ) :: array
-    double precision                            , dimension(size(array,dim=1),size(array,dim=2),size(requestFrom)) :: mpiRequestData2D
-#ifdef USEMPI
-    double precision                            , dimension(size(array,dim=1),size(array,dim=2)                  ) :: receivedData
-    integer                                     , dimension(                                                    1) :: requester       , requestedBy
-    type            (MPI_Request)               , dimension(                                 0: self%countValue-1) :: requestFromID
-    type            (MPI_Request), allocatable  , dimension(                                                    :) :: requestID       , requestIDtemp
-    type            (MPI_Status )                                                                                  :: messageStatus
-    integer                                                                                                        :: i               , iError       , &
-         &                                                                                                            iRequest        , j            , &
-         &                                                                                                            receivedFrom
-#endif
-
-#ifdef USEMPI
-    ! Record our own rank as the requester.
-    requester=self%rank()
-    ! Send requests.
-    call mpiBarrier()
-    do i=0,self%count()-1
-       if (any(requestFrom == i)) then
-          call MPI_ISend(requester    ,1,MPI_Integer,i,tagRequestForData,mpiSelf%communicator,requestFromID(i),iError)
-       else
-          call MPI_ISend(nullRequester,1,MPI_Integer,i,tagRequestForData,mpiSelf%communicator,requestFromID(i),iError)
-       end if
-    end do
-    call mpiBarrier()
-    ! Check for waiting requests.
-    allocate(requestID(size(requestFrom)))
-    iRequest=0
-    do i=0,self%count()-1
-       ! Receive the request.
-       call MPI_Recv(requestedBy,1,MPI_Integer,MPI_Any_Source,tagRequestForData,mpiSelf%communicator,messageStatus,iError)
-       ! Check for a non-null request.
-       if (requestedBy(1) /= nullRequester) then
-          ! Expand the requestID buffer as required.
-          iRequest=iRequest+1
-          if (iRequest > size(requestID)) then
-             call Move_Alloc(requestID,requestIDtemp)
-             allocate(requestID(2*iRequest))
-             requestID(1:size(requestIDtemp))=requestIDtemp
-             deallocate(requestIDtemp)
-          end if
-          ! Send our data in reply.
-          call MPI_ISend(array,product(shape(array)),MPI_Double_Precision,requestedBy(1),tagState,mpiSelf%communicator,requestID(iRequest),iError)
-       end if
-    end do
-    call mpiBarrier()
-    ! Wait until all of our sends have been received.
-    do i=0,self%count()-1
-       call MPI_Wait(requestFromID(i),messageStatus,iError)
-    end do
-    ! Receive data.
-    do i=1,size(requestFrom)
-       call MPI_Recv(receivedData,product(shape(array)),MPI_Double_Precision,requestFrom(i),tagState,mpiSelf%communicator,messageStatus,iError)
-       ! Find who sent this data and apply to the relevant part of the results array.
-       receivedFrom=messageStatus%MPI_Source
-       do j=1,size(requestFrom)
-          if (requestFrom(j) == receivedFrom) mpiRequestData2D(:,:,j)=receivedData
-       end do
-    end do
-    ! Wait until all of our sends have been received.
-    do i=1,iRequest
-       call MPI_Wait(requestID(i),messageStatus,iError)
-    end do
-    call mpiBarrier()
-    ! Deallocate request ID workspace.
-    deallocate(requestID)
-#else
-    !$GLC attributes unused :: self, requestFrom, array
-    mpiRequestData2D=0.0d0
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiRequestData2D
-
-  function mpiRequestDataInt1D(self,requestFrom,array)
-    !!{RST
-    Request and receive data from other MPI processes.
-    !!}
-#ifndef USEMPI
-    use :: Error  , only : Error_Report
-#else
-    use :: MPI_F08, only : MPI_Request              , MPI_Status    , MPI_Wait, MPI_ISend, &
-         &                 MPI_Recv    , MPI_Integer, MPI_Any_Source
-#endif
-    implicit none
-    class  (mpiObject  ), intent(in   )                                           :: self
-    integer             , intent(in   ), dimension(                            :) :: requestFrom
-    integer             , intent(in   ), dimension(          :                  ) :: array
-    integer                            , dimension(size(array),size(requestFrom)) :: mpiRequestDataInt1D
-#ifdef USEMPI
-    integer                            , dimension(size(array)                  ) :: receivedData
-    integer                            , dimension(                            1) :: requester       , requestedBy
-    type   (MPI_Request)               , dimension(         0: self%countValue-1) :: requestFromID
-    type   (MPI_Request), allocatable  , dimension(                            :) :: requestID       , requestIDtemp
+    {requestdata¦intrinsic}               , dimension({requestdata¦receiveddims}) :: receivedData
+    integer                               , dimension(                         1) :: requester       , requestedBy
+    type   (MPI_Request)                  , dimension(      0: self%countValue-1) :: requestFromID
+    type   (MPI_Request)   , allocatable  , dimension(                         :) :: requestID       , requestIDtemp
     type   (MPI_Status )                                                          :: messageStatus
     integer                                                                       :: i               , iError       , &
          &                                                                           iRequest        , j            , &
@@ -798,7 +667,7 @@ contains
              deallocate(requestIDtemp)
           end if
           ! Send our data in reply.
-          call MPI_ISend(array,size(array),MPI_Integer,requestedBy(1),tagState,mpiSelf%communicator,requestID(iRequest),iError)
+          call MPI_ISend(array,{requestdata¦count},{requestdata¦mpitype},requestedBy(1),tagState,mpiSelf%communicator,requestID(iRequest),iError)
        end if
     end do
     call mpiBarrier()
@@ -808,11 +677,11 @@ contains
     end do
     ! Receive data.
     do i=1,size(requestFrom)
-       call MPI_Recv(receivedData,size(array),MPI_Integer,requestFrom(i),tagState,mpiSelf%communicator,messageStatus,iError)
+       call MPI_Recv(receivedData,{requestdata¦count},{requestdata¦mpitype},requestFrom(i),tagState,mpiSelf%communicator,messageStatus,iError)
        ! Find who sent this data and apply to the relevant part of the results array.
        receivedFrom=messageStatus%MPI_Source
        do j=1,size(requestFrom)
-          if (requestFrom(j) == receivedFrom) mpiRequestDataInt1D(:,j)=receivedData
+          if (requestFrom(j) == receivedFrom) mpiRequestData{requestdata¦label}({requestdata¦slice},j)=receivedData
        end do
     end do
     ! Wait until all of our sends have been received.
@@ -824,225 +693,62 @@ contains
     deallocate(requestID)
 #else
     !$GLC attributes unused :: self, requestFrom, array
-    mpiRequestDataInt1D=0
+    mpiRequestData{requestdata¦label}={requestdata¦zero}
     call Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
-  end function mpiRequestDataInt1D
+  end function mpiRequestData{requestdata¦label}
 
-  function mpiRequestDataLogical1D(self,requestFrom,array)
-    !!{RST
-    Request and receive data from other MPI processes.
-    !!}
-#ifndef USEMPI
-    use :: Error  , only : Error_Report
-#else
-    use :: MPI_F08, only : MPI_Request , MPI_Status , MPI_Wait      , MPI_ISend, &
-         &                 MPI_Recv    , MPI_Logical, MPI_Any_Source
-#endif
-    implicit none
-    class  (mpiObject  ), intent(in   )                                           :: self
-    integer             , intent(in   ), dimension(                            :) :: requestFrom
-    logical             , intent(in   ), dimension(          :                  ) :: array
-    logical                            , dimension(size(array),size(requestFrom)) :: mpiRequestDataLogical1D
-#ifdef USEMPI
-    logical                            , dimension(size(array)                  ) :: receivedData
-    integer                            , dimension(                            1) :: requester              , requestedBy
-    type   (MPI_Request)               , dimension(         0: self%countValue-1) :: requestFromID
-    type   (MPI_Request), allocatable  , dimension(                            :) :: requestID              , requestIDtemp
-    type   (MPI_Status )                                                          :: messageStatus
-    integer                                                                       :: i                      , iError       , &
-         &                                                                           iRequest               , j            , &
-         &                                                                           receivedFrom
-#endif
-
-#ifdef USEMPI
-    ! Record our own rank as the requester.
-    requester=self%rank()
-    ! Send requests.
-    call mpiBarrier()
-    do i=0,self%count()-1
-       if (any(requestFrom == i)) then
-          call MPI_ISend(requester    ,1,MPI_Logical,i,tagRequestForData,mpiSelf%communicator,requestFromID(i),iError)
-       else
-          call MPI_ISend(nullRequester,1,MPI_Logical,i,tagRequestForData,mpiSelf%communicator,requestFromID(i),iError)
-       end if
-    end do
-    call mpiBarrier()
-    ! Check for waiting requests.
-    allocate(requestID(size(requestFrom)))
-    iRequest=0
-    do i=0,self%count()-1
-       ! Receive the request.
-       call MPI_Recv(requestedBy,1,MPI_Logical,MPI_Any_Source,tagRequestForData,mpiSelf%communicator,messageStatus,iError)
-       ! Check for a non-null request.
-       if (requestedBy(1) /= nullRequester) then
-          ! Expand the requestID buffer as required.
-          iRequest=iRequest+1
-          if (iRequest > size(requestID)) then
-             call Move_Alloc(requestID,requestIDtemp)
-             allocate(requestID(2*iRequest))
-             requestID(1:size(requestIDtemp))=requestIDtemp
-             deallocate(requestIDtemp)
-          end if
-          ! Send our data in reply.
-          call MPI_ISend(array,size(array),MPI_Logical,requestedBy(1),tagState,mpiSelf%communicator,requestID(iRequest),iError)
-       end if
-    end do
-    call mpiBarrier()
-    ! Wait until all of our sends have been received.
-    do i=0,self%count()-1
-       call MPI_Wait(requestFromID(i),messageStatus,iError)
-    end do
-    ! Receive data.
-    do i=1,size(requestFrom)
-       call MPI_Recv(receivedData,size(array),MPI_Logical,requestFrom(i),tagState,mpiSelf%communicator,messageStatus,iError)
-       ! Find who sent this data and apply to the relevant part of the results array.
-       receivedFrom=messageStatus%MPI_Source
-       do j=1,size(requestFrom)
-          if (requestFrom(j) == receivedFrom) mpiRequestDataLogical1D(:,j)=receivedData
-       end do
-    end do
-    ! Wait until all of our sends have been received.
-    do i=1,iRequest
-       call MPI_Wait(requestID(i),messageStatus,iError)
-    end do
-    call mpiBarrier()
-    ! Deallocate request ID workspace.
-    deallocate(requestID)
-#else
-    !$GLC attributes unused :: self, requestFrom, array
-    mpiRequestDataLogical1D=.false.
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiRequestDataLogical1D
-
-  subroutine mpiBroadcastDataScalar(self,sendFrom,scalar)
+  subroutine mpiBroadcastData{broadcastscalar¦label}(self,sendFrom,scalar)
     !!{RST
     Broadcast data to all other MPI processes.
     !!}
     use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI_F08, only : MPI_Double_Precision, MPI_Bcast
+    use :: MPI_F08, only : {broadcastscalar¦mpitype}, MPI_Bcast
 #endif
     implicit none
     class           (mpiObject), intent(in   ) :: self
     integer                    , intent(in   ) :: sendFrom
-    double precision           , intent(inout) :: scalar
+    {broadcastscalar¦intrinsic}, intent(inout) :: scalar
 #ifdef USEMPI
     integer                                    :: status
     !$GLC attributes unused :: self
     
-    call MPI_Bcast(scalar,1,MPI_Double_Precision,sendFrom,mpiSelf%communicator,status)
+    call MPI_Bcast(scalar,1,{broadcastscalar¦mpitype},sendFrom,mpiSelf%communicator,status)
     if (status /= 0) call Error_Report('failed to broadcast data'//{introspection:location})
 #else
     !$GLC attributes unused :: self, sendFrom, scalar
     call Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
-  end subroutine mpiBroadcastDataScalar
+  end subroutine mpiBroadcastData{broadcastscalar¦label}
+  
+  subroutine mpiBroadcastData{broadcastarray¦label}(self,sendFrom,array)
+    !!{RST
+    Broadcast data to all other MPI processes.
+    !!}
+    use :: Error  , only : Error_Report
+#ifdef USEMPI
+    use :: MPI_F08, only : MPI_Double_Precision, MPI_Bcast
+#endif
+    implicit none
+    class           (mpiObject), intent(in   )                                   :: self
+    integer                    , intent(in   )                                   :: sendFrom
+    {broadcastarray¦intrinsic} , intent(inout), dimension({broadcastarray¦dims}) :: array
+#ifdef USEMPI
+    integer                                                                      :: status
+    !$GLC attributes unused :: self
+    
+    call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,mpiSelf%communicator,status)
+    if (status /= 0) call Error_Report('failed to broadcast data'//{introspection:location})
+#else
+    !$GLC attributes unused :: self, sendFrom, array
+    call Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end subroutine mpiBroadcastData{broadcastarray¦label}
 
-  subroutine mpiBroadcastDataSizeTScalar(self,sendFrom,scalar)
-    !!{RST
-    Broadcast data to all other MPI processes.
-    !!}
-    use :: Error  , only : Error_Report
-#ifdef USEMPI
-    use :: MPI_F08, only : MPI_Integer8, MPI_Bcast
-#endif
-    implicit none
-    class           (mpiObject), intent(in   ) :: self
-    integer                    , intent(in   ) :: sendFrom
-    integer         (c_size_t ), intent(inout) :: scalar
-#ifdef USEMPI
-    integer                                    :: status
-    !$GLC attributes unused :: self
-    
-    call MPI_Bcast(scalar,1,MPI_Integer8,sendFrom,mpiSelf%communicator,status)
-    if (status /= 0) call Error_Report('failed to broadcast data'//{introspection:location})
-#else
-    !$GLC attributes unused :: self, sendFrom, scalar
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end subroutine mpiBroadcastDataSizeTScalar
-  
-  subroutine mpiBroadcastData1D(self,sendFrom,array)
-    !!{RST
-    Broadcast data to all other MPI processes.
-    !!}
-    use :: Error  , only : Error_Report
-#ifdef USEMPI
-    use :: MPI_F08, only : MPI_Double_Precision, MPI_Bcast
-#endif
-    implicit none
-    class           (mpiObject), intent(in   )               :: self
-    integer                    , intent(in   )               :: sendFrom
-    double precision           , intent(inout), dimension(:) :: array
-#ifdef USEMPI
-    integer                                                  :: status
-    !$GLC attributes unused :: self
-    
-    call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,mpiSelf%communicator,status)
-    if (status /= 0) call Error_Report('failed to broadcast data'//{introspection:location})
-#else
-    !$GLC attributes unused :: self, sendFrom, array
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end subroutine mpiBroadcastData1D
-  
-  subroutine mpiBroadcastData2D(self,sendFrom,array)
-    !!{RST
-    Broadcast data to all other MPI processes.
-    !!}
-    use :: Error  , only : Error_Report
-#ifdef USEMPI
-    use :: MPI_F08, only : MPI_Double_Precision, MPI_Bcast
-#endif
-    implicit none
-    class           (mpiObject), intent(in   )                 :: self
-    integer                    , intent(in   )                 :: sendFrom
-    double precision           , intent(inout), dimension(:,:) :: array
-#ifdef USEMPI
-    integer                                                    :: status
-    !$GLC attributes unused :: self
-    
-    call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,mpiSelf%communicator,status)
-    if (status /= 0) call Error_Report('failed to broadcast data'//{introspection:location})
-#else
-    !$GLC attributes unused :: self, sendFrom, array
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end subroutine mpiBroadcastData2D
-  
-  subroutine mpiBroadcastData3D(self,sendFrom,array)
-    !!{RST
-    Broadcast data to all other MPI processes.
-    !!}
-    use :: Error  , only : Error_Report
-#ifdef USEMPI
-    use :: MPI_F08, only : MPI_Double_Precision, MPI_Bcast
-#endif
-    implicit none
-    class           (mpiObject), intent(in   )                   :: self
-    integer                    , intent(in   )                   :: sendFrom
-    double precision           , intent(inout), dimension(:,:,:) :: array
-#ifdef USEMPI
-    integer                                                      :: status
-    !$GLC attributes unused :: self
-
-    call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,mpiSelf%communicator,status)
-    if (status /= 0) call Error_Report('failed to broadcast data'//{introspection:location})
-#else
-    !$GLC attributes unused :: self, sendFrom, array
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end subroutine mpiBroadcastData3D
-  
   function mpiSumArray{arraytype¦label}(self,array,mask)
     !!{RST
     Sum {arraytype¦description} array over all processes, returning it to all processes.
@@ -1226,327 +932,111 @@ contains
     return
   end function mpiAverageScalar
 
-  function mpiMaxvalArray(self,array,mask)
+  function mpi{extremumarray¦label}(self,array,mask)
     !!{RST
-    Find the maximum values of an array over all processes, returning it to all processes.
+    Find the {extremumarray¦extremum} values of an array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI_F08, only : MPI_AllReduce, MPI_Double_Precision, MPI_Max
+    use :: MPI_F08, only : MPI_AllReduce, {extremumarray¦mpitype}, {extremumarray¦operation}
 #endif
     implicit none
-    class           (mpiObject), intent(in   )                                    :: self
-    double precision           , intent(in   ), dimension( :          )           :: array
-    logical                    , intent(in   ), dimension(0:          ), optional :: mask
-    double precision                          , dimension(size(array) )           :: mpiMaxvalArray
+    class  (mpiObject)       , intent(in   )                                    :: self
+    {extremumarray¦intrinsic}, intent(in   ), dimension( :          )           :: array
+    logical                  , intent(in   ), dimension(0:          ), optional :: mask
+    {extremumarray¦intrinsic}               , dimension(size(array) )           :: mpi{extremumarray¦label}
 #ifdef USEMPI
-    double precision                          , dimension(size(array) )           :: maskedArray
-    integer                                                                       :: iError
+    {extremumarray¦intrinsic}               , dimension(size(array) )           :: maskedArray
+    integer                                                                     :: iError
 #endif
 
 #ifdef USEMPI
-    ! Find the maximum over all processes.
+    ! Find the {extremumarray¦extremum} over all processes.
     maskedArray=array
     if (present(mask)) then
-       if (.not.mask(self%rank())) maskedArray=-HUGE(1.0d0)
+       if (.not.mask(self%rank())) maskedArray={extremumarray¦fill}
     end if
-    call MPI_AllReduce(maskedArray,mpiMaxvalArray,size(array),MPI_Double_Precision,MPI_Max,mpiSelf%communicator,iError)
+    call MPI_AllReduce(maskedArray,mpi{extremumarray¦label},size(array),{extremumarray¦mpitype},{extremumarray¦operation},mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
 #else
     !$GLC attributes unused :: self, array, mask
-    mpiMaxvalArray=0.0d0
+    mpi{extremumarray¦label}={extremumarray¦zero}
     call Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
-  end function mpiMaxvalArray
+  end function mpi{extremumarray¦label}
 
-  double precision function mpiMaxvalScalar(self,scalar,mask)
+  function mpi{extremumscalar¦label}(self,scalar,mask)
     !!{RST
-    Find the maximum values of a scalar over all processes, returning it to all processes.
+    Find the {extremumscalar¦extremum} values of {extremumscalar¦description} over all processes, returning it to all processes.
     !!}
 #ifndef USEMPI
     use :: Error, only : Error_Report
 #endif
     implicit none
-    class           (mpiObject), intent(in   )                         :: self
-    double precision           , intent(in   )                         :: scalar
-    logical                    , intent(in   ), dimension(:), optional :: mask
+    {extremumscalar¦intrinsic}                                        :: mpi{extremumscalar¦label}
+    class  (mpiObject)        , intent(in   )                         :: self
+    {extremumscalar¦intrinsic}, intent(in   )                         :: scalar
+    logical                   , intent(in   ), dimension(:), optional :: mask
 #ifdef USEMPI
-    double precision                          , dimension(1)           :: array
+    {extremumscalar¦intrinsic}               , dimension(1)           :: array
 #endif
 
 #ifdef USEMPI
-    array=self%maxval([scalar],mask)
-    mpiMaxvalScalar=array(1)
+    array=self%{extremumscalar¦method}([scalar],mask)
+    mpi{extremumscalar¦label}=array(1)
 #else
     !$GLC attributes unused :: self, scalar, mask
-    mpiMaxvalScalar=0.0d0
+    mpi{extremumscalar¦label}={extremumscalar¦zero}
     call Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
-  end function mpiMaxvalScalar
+  end function mpi{extremumscalar¦label}
 
-  function mpiMaxvalArraySizeT(self,array,mask)
+  function mpi{extremumlocation¦label}(self,array,mask)
     !!{RST
-    Find the maximum values of an array over all processes, returning it to all processes.
+    Find the rank of the process having {extremumlocation¦extremum} values of an array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI_F08, only : MPI_AllReduce, MPI_Integer8, MPI_Max
-#endif
-    implicit none
-    class  (mpiObject), intent(in   )                                    :: self
-    integer(c_size_t ), intent(in   ), dimension( :          )           :: array
-    logical           , intent(in   ), dimension(0:          ), optional :: mask
-    integer(c_size_t )               , dimension(size(array) )           :: mpiMaxvalArraySizeT
-#ifdef USEMPI
-    integer(c_size_t )               , dimension(size(array) )           :: maskedArray
-    integer                                                              :: iError
-#endif
-
-#ifdef USEMPI
-    ! Find the maximum over all processes.
-    maskedArray=array
-    if (present(mask)) then
-       if (.not.mask(self%rank())) maskedArray=-huge(1_c_size_t)
-    end if
-    call MPI_AllReduce(maskedArray,mpiMaxvalArraySizeT,size(array),MPI_Integer8,MPI_Max,mpiSelf%communicator,iError)
-    if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
-#else
-    !$GLC attributes unused :: self, array, mask
-    mpiMaxvalArraySizeT=0_c_size_t
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiMaxvalArraySizeT
-
-  function mpiMaxvalScalarSizeT(self,scalar,mask)
-    !!{RST
-    Find the maximum values of a ``size_t`` scalar over all processes, returning it to all processes.
-    !!}
-#ifndef USEMPI
-    use :: Error, only : Error_Report
-#endif
-    implicit none
-    integer(c_size_t )                                        :: mpiMaxvalScalarSizeT
-    class  (mpiObject), intent(in   )                         :: self
-    integer(c_size_t ), intent(in   )                         :: scalar
-    logical           , intent(in   ), dimension(:), optional :: mask
-#ifdef USEMPI
-    integer(c_size_t )               , dimension(1)           :: array
-#endif
-
-#ifdef USEMPI
-    array=self%maxval([scalar],mask)
-    mpiMaxvalScalarSizeT=array(1)
-#else
-    !$GLC attributes unused :: self, scalar, mask
-    mpiMaxvalScalarSizeT=0.0d0
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiMaxvalScalarSizeT
-
-  function mpiMaxloc(self,array,mask)
-    !!{RST
-    Find the rank of the process having maximum values of an array over all processes, returning it to all processes.
-    !!}
-    use :: Error  , only : Error_Report
-#ifdef USEMPI
-    use :: MPI_F08, only : MPI_AllReduce, MPI_2Double_Precision, MPI_MaxLoc
+    use :: MPI_F08, only : MPI_AllReduce, MPI_2Double_Precision, {extremumlocation¦operation}
 #endif
     implicit none
     class           (mpiObject), intent(in   )                                      :: self
     double precision           , intent(in   ), dimension( :            )           :: array
     logical                    , intent(in   ), dimension(0:            ), optional :: mask
-    integer                                   , dimension(   size(array))           :: mpiMaxloc
+    integer                                   , dimension(   size(array))           :: mpi{extremumlocation¦label}
 #ifdef USEMPI
     double precision                          , dimension(2 ,size(array))           :: arrayIn  , arrayOut
     integer                                                                         :: iError
 #endif
 
 #ifdef USEMPI
-    ! Find the maximum over all processes.
+    ! Find the {extremumlocation¦extremum} over all processes.
     arrayIn(1,:)=array
     if (present(mask)) then
-       if (.not.mask(self%rank())) arrayIn(1,:)=-HUGE(1.0d0)
+       if (.not.mask(self%rank())) arrayIn(1,:)={extremumlocation¦fill}
     end if
     arrayIn(2,:)=self%rank()
-    call MPI_AllReduce(arrayIn,arrayOut,size(array),MPI_2Double_Precision,MPI_MaxLoc,mpiSelf%communicator,iError)
+    call MPI_AllReduce(arrayIn,arrayOut,size(array),MPI_2Double_Precision,{extremumlocation¦operation},mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
-    mpiMaxloc=int(arrayOut(2,:))
+    mpi{extremumlocation¦label}=int(arrayOut(2,:))
 #else
     !$GLC attributes unused :: self, array, mask
-    mpiMaxloc=0
+    mpi{extremumlocation¦label}=0
     call Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
-  end function mpiMaxloc
+  end function mpi{extremumlocation¦label}
 
-  function mpiMinvalArray(self,array,mask)
+  logical function mpi{logicalreduction¦label}(self,boolean,mask)
     !!{RST
-    Find the minimum values of an array over all processes, returning it to all processes.
-    !!}
-    use :: Error  , only : Error_Report
-#ifdef USEMPI
-    use :: MPI_F08, only : MPI_AllReduce, MPI_Double_Precision, MPI_Min
-#endif
-    implicit none
-    class           (mpiObject), intent(in   )                                    :: self
-    double precision           , intent(in   ), dimension( :          )           :: array
-    logical                    , intent(in   ), dimension(0:          ), optional :: mask
-    double precision                          , dimension(size(array) )           :: mpiMinvalArray
-#ifdef USEMPI
-    double precision                          , dimension(size(array) )           :: maskedArray
-    integer                                                                       :: iError
-#endif
-
-#ifdef USEMPI
-   ! Find the minimum over all processes.
-    maskedArray=array
-    if (present(mask)) then
-       if (.not.mask(self%rank())) maskedArray=-HUGE(1.0d0)
-    end if
-    call MPI_AllReduce(maskedArray,mpiMinvalArray,size(array),MPI_Double_Precision,MPI_Min,mpiSelf%communicator,iError)
-    if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
-#else
-    !$GLC attributes unused :: self, array, mask
-    mpiMinvalArray=0.0d0
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiMinvalArray
-
-  function mpiMinvalIntArray(self,array,mask)
-    !!{RST
-    Find the minimum values of an array over all processes, returning it to all processes.
-    !!}
-    use :: Error  , only : Error_Report
-#ifdef USEMPI
-    use :: MPI_F08, only : MPI_AllReduce, MPI_Integer, MPI_Min
-#endif
-    implicit none
-    class           (mpiObject), intent(in   )                                    :: self
-    integer                    , intent(in   ), dimension( :          )           :: array
-    logical                    , intent(in   ), dimension(0:          ), optional :: mask
-    integer                                   , dimension(size(array) )           :: mpiMinvalIntArray
-#ifdef USEMPI
-    integer                                   , dimension(size(array) )           :: maskedArray
-    integer                                                                       :: iError
-#endif
-
-#ifdef USEMPI
-   ! Find the minimum over all processes.
-    maskedArray=array
-    if (present(mask)) then
-       if (.not.mask(self%rank())) maskedArray=-huge(1)
-    end if
-    call MPI_AllReduce(maskedArray,mpiMinvalIntArray,size(array),MPI_Integer,MPI_Min,mpiSelf%communicator,iError)
-    if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
-#else
-    !$GLC attributes unused :: self, array, mask
-    mpiMinvalIntArray=0
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiMinvalIntArray
-
-  double precision function mpiMinvalScalar(self,scalar,mask)
-    !!{RST
-    Find the minimum values of a scalar over all processes, returning it to all processes.
-    !!}
-#ifndef USEMPI
-    use :: Error, only : Error_Report
-#endif
-    implicit none
-    class           (mpiObject), intent(in   )                         :: self
-    double precision           , intent(in   )                         :: scalar
-    logical                    , intent(in   ), dimension(:), optional :: mask
-#ifdef USEMPI
-    double precision                          , dimension(1)           :: array
-#endif
-
-#ifdef USEMPI
-    array=self%minval([scalar],mask)
-    mpiMinvalScalar=array(1)
-#else
-    !$GLC attributes unused :: self, scalar, mask
-    mpiMinvalScalar=0.0d0
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiMinvalScalar
-
-  integer function mpiMinvalIntScalar(self,scalar,mask)
-    !!{RST
-    Find the minimum values of a scalar over all processes, returning it to all processes.
-    !!}
-#ifndef USEMPI
-    use :: Error, only : Error_Report
-#endif
-    implicit none
-    class           (mpiObject), intent(in   )                         :: self
-    integer                    , intent(in   )                         :: scalar
-    logical                    , intent(in   ), dimension(:), optional :: mask
-#ifdef USEMPI
-    integer                                   , dimension(1)           :: array
-#endif
-
-#ifdef USEMPI
-    array=self%minval([scalar],mask)
-    mpiMinvalIntScalar=array(1)
-#else
-    !$GLC attributes unused :: self, scalar, mask
-    mpiMinvalIntScalar=0
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiMinvalIntScalar
-
-  function mpiMinloc(self,array,mask)
-    !!{RST
-    Find the rank of the process having minimum values of an array over all processes, returning it to all processes.
-    !!}
-    use :: Error  , only : Error_Report
-#ifdef USEMPI
-    use :: MPI_F08, only : MPI_AllReduce, MPI_2Double_Precision, MPI_MinLoc
-#endif
-    implicit none
-    class           (mpiObject), intent(in   )                                      :: self
-    double precision           , intent(in   ), dimension( :            )           :: array
-    logical                    , intent(in   ), dimension(0:            ), optional :: mask
-    integer                                   , dimension(   size(array))           :: mpiMinloc
-#ifdef USEMPI
-    double precision                          , dimension(2 ,size(array))           :: arrayIn  , arrayOut
-    integer                                                                         :: iError
-#endif
-
-#ifdef USEMPI
-    ! Find the minimum over all processes.
-    arrayIn(1,:)=array
-    if (present(mask)) then
-       if (.not.mask(self%rank())) arrayIn(1,:)=-HUGE(1.0d0)
-    end if
-    arrayIn(2,:)=self%rank()
-    call MPI_AllReduce(arrayIn,arrayOut,size(array),MPI_2Double_Precision,MPI_MinLoc,mpiSelf%communicator,iError)
-    if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
-    mpiMinloc=int(arrayOut(2,:))
-#else
-    !$GLC attributes unused :: self, array, mask
-    mpiMinloc=0
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiMinloc
-
-  logical function mpiAnyLogicalScalar(self,boolean,mask)
-    !!{RST
-    Return true if any of the given booleans is true over all processes.
+    Return true if {logicalreduction¦description} over all processes.
     !!}
 #ifndef USEMPI
     use :: Error  , only : Error_Report
 #else
-    use :: MPI_F08, only : MPI_AllReduce, MPI_Logical, MPI_LOr
+    use :: MPI_F08, only : MPI_AllReduce, MPI_Logical, {logicalreduction¦operation}
 #endif
     implicit none
     class  (mpiObject), intent(in   )                         :: self
@@ -1560,192 +1050,64 @@ contains
 #ifdef USEMPI
     array=boolean
     if (present(mask)) then
-       if (.not.mask(self%rank())) array=.false.
+       if (.not.mask(self%rank())) array={logicalreduction¦fill}
     end if
-    call MPI_AllReduce(array,mpiAnyLogicalScalar,size(array),MPI_Logical,MPI_LOr,mpiSelf%communicator,iError)
+    call MPI_AllReduce(array,mpi{logicalreduction¦label},size(array),MPI_Logical,{logicalreduction¦operation},mpiSelf%communicator,iError)
 #else
     !$GLC attributes unused :: self, boolean, mask
-    mpiAnyLogicalScalar=.false.
+    mpi{logicalreduction¦label}=.false.
     call Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
-  end function mpiAnyLogicalScalar
+  end function mpi{logicalreduction¦label}
 
-  logical function mpiAllLogicalScalar(self,boolean,mask)
+  function mpiGather{gatherscalar¦label}(self,scalar)
     !!{RST
-    Return true if all of the given booleans are true over all processes.
-    !!}
-#ifndef USEMPI
-    use :: Error  , only : Error_Report
-#else
-    use :: MPI_F08, only : MPI_AllReduce, MPI_Logical, MPI_LAnd
-#endif
-    implicit none
-    class  (mpiObject), intent(in   )                         :: self
-    logical           , intent(in   )                         :: boolean
-    logical           , intent(in   ), dimension(:), optional :: mask
-#ifdef USEMPI
-    integer                                                   :: iError
-    logical                          , dimension(1)           :: array
-#endif
-
-#ifdef USEMPI
-    array=boolean
-    if (present(mask)) then
-       if (.not.mask(self%rank())) array=.false.
-    end if
-    call MPI_AllReduce(array,mpiAllLogicalScalar,size(array),MPI_Logical,MPI_LAnd,mpiSelf%communicator,iError)
-#else
-    !$GLC attributes unused :: self, boolean, mask
-    mpiAllLogicalScalar=.false.
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiAllLogicalScalar
-
-  function mpiGatherScalar(self,scalar)
-    !!{RST
-    Gather a scalar from all processes, returning it as a 1-D array.
+    Gather {gatherscalar¦description} from all processes, returning it as a 1-D array.
     !!}
 #ifndef USEMPI
     use Error, only : Error_Report
 #endif
     implicit none
-    class           (mpiObject), intent(in   )                :: self
-    double precision           , intent(in   )                :: scalar
-    double precision           , dimension(  self%countValue) :: mpiGatherScalar
+    class(mpiObject)        , intent(in   )                :: self
+    {gatherscalar¦intrinsic}, intent(in   )                :: scalar
+    {gatherscalar¦intrinsic}, dimension(  self%countValue) :: mpiGather{gatherscalar¦label}
 #ifdef USEMPI
-    double precision           , dimension(1,self%countValue) :: array
+    {gatherscalar¦intrinsic}, dimension(1,self%countValue) :: array
 #endif
 
 #ifdef USEMPI
     array=self%requestData(self%allRanks,[scalar])
-    mpiGatherScalar=array(1,:)
+    mpiGather{gatherscalar¦label}=array(1,:)
 #else
     !$GLC attributes unused :: self, scalar
-    mpiGatherScalar=0.0d0
+    mpiGather{gatherscalar¦label}={gatherscalar¦zero}
     call Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
-  end function mpiGatherScalar
+  end function mpiGather{gatherscalar¦label}
 
-  function mpiGather1D(self,array)
+  function mpiGather{gatherarray¦label}(self,array)
     !!{RST
-    Gather a 1-D array from all processes, returning it as a 2-D array.
+    Gather {gatherarray¦description} from all processes, returning it as {gatherarray¦result}.
     !!}
 #ifndef USEMPI
     use Error, only : Error_Report
 #endif
     implicit none
-    class           (mpiObject), intent(in   )                                         :: self
-    double precision           , intent(in   ), dimension(          :                ) :: array
-    double precision           ,                dimension(size(array),self%countValue) :: mpiGather1D
+    class(mpiObject)       , intent(in   )                                       :: self
+    {gatherarray¦intrinsic}, intent(in   ), dimension({gatherarray¦argdims}    ) :: array
+    {gatherarray¦intrinsic},                dimension({gatherarray¦resultdims} ) :: mpiGather{gatherarray¦label}
 
 #ifdef USEMPI
-    mpiGather1D=self%requestData(self%allRanks,array)
+    mpiGather{gatherarray¦label}=self%requestData(self%allRanks,array)
 #else
     !$GLC attributes unused :: self, array
-    mpiGather1D=0.0d0
+    mpiGather{gatherarray¦label}={gatherarray¦zero}
     call Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
-  end function mpiGather1D
-
-  function mpiGather2D(self,array)
-    !!{RST
-    Gather a 1-D array from all processes, returning it as a 2-D array.
-    !!}
-#ifndef USEMPI
-    use Error, only : Error_Report
-#endif
-    implicit none
-    class           (mpiObject), intent(in   )                                                                 :: self
-    double precision           , intent(in   ), dimension(                :,                :                ) :: array
-    double precision           ,                dimension(size(array,dim=1),size(array,dim=2),self%countValue) :: mpiGather2D
-
-#ifdef USEMPI
-    mpiGather2D=self%requestData(self%allRanks,array)
-#else
-    !$GLC attributes unused :: self, array
-    mpiGather2D=0.0d0
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiGather2D
-
-  function mpiGatherLogicalScalar(self,scalar)
-    !!{RST
-    Gather a logical scalar from all processes, returning it as a 1-D array.
-    !!}
-#ifndef USEMPI
-    use Error, only : Error_Report
-#endif
-    implicit none
-    class           (mpiObject), intent(in   )                :: self
-    logical                    , intent(in   )                :: scalar
-    logical                    , dimension(  self%countValue) :: mpiGatherLogicalScalar
-#ifdef USEMPI
-    logical                    , dimension(1,self%countValue) :: array
-#endif
-
-#ifdef USEMPI
-    array=self%requestData(self%allRanks,[scalar])
-    mpiGatherLogicalScalar=array(1,:)
-#else
-    !$GLC attributes unused :: self, scalar
-    mpiGatherLogicalScalar=.false.
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiGatherLogicalScalar
-
-  function mpiGatherIntScalar(self,scalar)
-    !!{RST
-    Gather an integer scalar from all processes, returning it as a 1-D array.
-    !!}
-#ifndef USEMPI
-    use Error, only : Error_Report
-#endif
-    implicit none
-    class           (mpiObject), intent(in   )                :: self
-    integer                    , intent(in   )                :: scalar
-    integer                    , dimension(  self%countValue) :: mpiGatherIntScalar
-#ifdef USEMPI
-    integer                    , dimension(1,self%countValue) :: array
-#endif
-
-#ifdef USEMPI
-    array=self%requestData(self%allRanks,[scalar])
-    mpiGatherIntScalar=array(1,:)
-#else
-    !$GLC attributes unused :: self, scalar
-    mpiGatherIntScalar=0
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiGatherIntScalar
-
-  function mpiGatherInt1D(self,array)
-    !!{RST
-    Gather an integer 1-D array from all processes, returning it as a 2-D array.
-    !!}
-#ifndef USEMPI
-    use Error, only : Error_Report
-#endif
-    implicit none
-    class  (mpiObject), intent(in   )                                         :: self
-    integer           , intent(in   ), dimension(          :                ) :: array
-    integer           ,                dimension(size(array),self%countValue) :: mpiGatherInt1D
-
-#ifdef USEMPI
-    mpiGatherInt1D=self%requestData(self%allRanks,array)
-#else
-    !$GLC attributes unused :: self, array
-    mpiGatherInt1D=0
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiGatherInt1D
+  end function mpiGather{gatherarray¦label}
 
   subroutine mpiCommunicatorPush(self,color)
     !!{RST
