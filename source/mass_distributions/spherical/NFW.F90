@@ -55,6 +55,7 @@
      procedure :: massTotal                         => nfwMassTotal
      procedure :: density                           => nfwDensity
      procedure :: densityGradientRadial             => nfwDensityGradientRadial
+     procedure :: densitySlopeLogarithmicGradient   => nfwDensitySlopeLogarithmicGradient
      procedure :: densitySlopeLogarithmicCentral    => nfwDensitySlopeLogarithmicCentral
      procedure :: densityRadialMoment               => nfwDensityRadialMoment
      procedure :: massEnclosedBySphere              => nfwMassEnclosedBySphere
@@ -304,6 +305,26 @@ contains
          &          /(1.0d0+radiusScaleFree)**2
     return
   end function nfwDensity
+
+  double precision function nfwDensitySlopeLogarithmicGradient(self,coordinates) result(densitySlopeLogarithmicGradient)
+    !!{RST
+    Return the logarithmic gradient of the logarithmic density slope in an NFW :cite:p:`navarro_structure_1996` mass
+    distribution. Differentiating the slope :math:`\mathrm{d}\ln\rho/\mathrm{d}\ln r = -(1+3x)/(1+x)`, with
+    :math:`x=r/r_\mathrm{s}`, gives :math:`-2x/(1+x)^2`. It vanishes at both the center and at large radii, where the slope
+    tends to its asymptotic values of :math:`-1` and :math:`-3`.
+    !!}
+    implicit none
+    class           (massDistributionNFW), intent(inout), target :: self
+    class           (coordinate         ), intent(in   )         :: coordinates
+    double precision                                             :: radiusScaleFree
+
+    radiusScaleFree                =+coordinates%rSpherical()   &
+         &                          /self       %scaleLength
+    densitySlopeLogarithmicGradient=-2.0d0                      &
+         &                          *       radiusScaleFree     &
+         &                          /(1.0d0+radiusScaleFree)**2
+    return
+  end function nfwDensitySlopeLogarithmicGradient
 
   double precision function nfwDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{RST

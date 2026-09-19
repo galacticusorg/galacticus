@@ -34,14 +34,30 @@
 
    .. math::
 
-      \dot{Q}_\mathrm{tidal}=\frac{1}{3}\epsilon\left[1+\left(\frac{T_\mathrm{shock}}{T_\mathrm{orb}}\right)^2\right]^{-\gamma}
+      \dot{Q}_\mathrm{tidal}=\frac{1}{3}\epsilon\left[1+\left(\omega T_\mathrm{shock}\right)^2\right]^{-\gamma}
       g_{ij} G^{ij}
 
-   where :math:`T_\mathrm{orb}` and :math:`T_\mathrm{shock}` are the orbital period and shock duration, respectively, of the satellite, :math:`\epsilon=`\ ``[epsilon]`` and :math:`\gamma=`\ ``[gamma]`` are model parameters, :math:`g_{ij}` is the tidal tensor, and :math:`G_{ij}` is the integral with respect to time of :math:`g_{ij}` along the orbit of the satellite.  Upon tidal heating, a mass element at radius :math:`r_\mathrm{i}` expands to radius :math:`r_\mathrm{f}`, according to the equation
+   where :math:`T_\mathrm{shock}=r/|\mathbf{v}|` is the duration of the shock, taken to be the radial crossing time of the satellite's orbit, :math:`\omega=V_\mathrm{c}(r_{1/2})/r_{1/2}` is the orbital frequency (not period) at the satellite's half-mass radius, :math:`r_{1/2}`, with :math:`r_{1/2}` that of the satellite's dark matter and :math:`V_\mathrm{c}` the circular velocity of its total mass distribution, :math:`\epsilon=`\ ``[epsilon]`` and :math:`\gamma=`\ ``[gamma]`` are model parameters, :math:`g_{ij}` is the tidal tensor, and :math:`G_{ij}` is the integral with respect to time of :math:`g_{ij}` along the orbit of the satellite.  Upon tidal heating, a mass element initially at radius :math:`r_\mathrm{i}` moves outward to radius
+   :math:`r_\mathrm{f}`, found by equating the specific energy it gains to the change in its binding energy:
 
    .. math::
 
-      \frac{1}{r_\mathrm{f}}=\frac{1}{r_\mathrm{i}}-\frac{2r_\mathrm{i}^3Q_\mathrm{tidal}}{\mathrm{G}M_\mathrm{sat}(&lt;r_\mathrm{i})}.
+      \Delta \epsilon(r_\mathrm{i}) + \frac{\mathrm{G}M_\mathrm{sat}(&lt;r_\mathrm{i})}{2} \left( \frac{1}{r_\mathrm{f}} - \frac{1}{r_\mathrm{i}} \right) = 0,
+
+   or, for the first-order energy perturbation :math:`\Delta \epsilon = Q_\mathrm{tidal} r_\mathrm{i}^2` alone,
+
+   .. math::
+
+      \frac{1}{r_\mathrm{f}}=\frac{1}{r_\mathrm{i}}-\frac{2r_\mathrm{i}^2Q_\mathrm{tidal}}{\mathrm{G}M_\mathrm{sat}(&lt;r_\mathrm{i})}.
+
+   Three points of detail, since neither the mapping nor the energy is applied by this class. The heating rate computed
+   here accumulates into :math:`Q_\mathrm{tidal}`, which :galacticus-class:`massDistributionHeatingTidal` turns into a
+   specific energy---one which also carries a second-order term, not shown above, so the second form holds only when that
+   term is switched off. The mapping itself is solved by :galacticus-class:`massDistributionSphericalHeated`, and it is
+   solved for :math:`r_\mathrm{i}` at a *given* :math:`r_\mathrm{f}`, which is the direction every consumer needs: the
+   heated profile is asked for its density or enclosed mass at a radius, and must find the shell which started there.
+   Assuming no shell crossing, that shell carries its enclosed mass with it, :math:`M_\mathrm{heated}(&lt;r_\mathrm{f}) =
+   M_\mathrm{sat}(&lt;r_\mathrm{i})`.
    </description>
   </satelliteTidalHeatingRate>
   !!]
@@ -163,7 +179,7 @@ contains
     class           (nodeComponentSatellite             ), pointer       :: satellite
     type            (treeNode                           ), pointer       :: nodeHost
     class           (nodeComponentBasic                 ), pointer       :: basic
-    class           (massDistributionClass              ), pointer       :: massDistribution_
+    class           (massDistributionClass              ), pointer       :: massDistribution_                  , massDistributionTotal_
     double precision                                     , dimension(3)  :: position                           , velocity
     double precision                                     , parameter     :: radiusHalfMassSatelliteTiny=1.0d-30, fractionMassTiny         =1.0d-6
     double precision                                                     :: massSatellite                      , velocityCircularSatellite       , &
@@ -191,8 +207,11 @@ contains
          &                       /  self%cosmologyParameters_%OmegaMatter()
     ! Find the gravitational tidal tensor.
     tidalTensor              =  self%satelliteTidalField_%tidalTensor(node,nodeHost=nodeHost,includeCentrifugalAcceleration=.false.)
-    ! Find the orbital frequency at the half mass radius of the satellite.
+    ! Find the orbital frequency at the half mass radius of the satellite. The half mass radius is that of the dark matter
+    ! distribution, but the circular velocity there is that of the *total* mass distribution, so that any baryonic component of
+    ! the satellite contributes to the orbital frequency. For a dark matter only satellite the two distributions coincide.
     massDistribution_        => node%massDistribution(componentTypeAll,massTypeDark)
+    massDistributionTotal_   => node%massDistribution(                             )
     basic                    => node%basic()
     massHalfSatellite        =  +0.50d0                                                                                                       &
          &                      *min(                                                                                                         &
@@ -203,7 +222,7 @@ contains
     useFrequencyOrbital      = massHalfSatellite > fractionMassTiny*basic%mass()
     if (useFrequencyOrbital) then
        radiusHalfMassSatellite  =     massDistribution_%radiusEnclosingMass (mass  =                                massHalfSatellite      )
-       velocityCircularSatellite=     massDistribution_%rotationCurve       (radius=                          radiusHalfMassSatellite      )
+       velocityCircularSatellite=massDistributionTotal_%rotationCurve       (radius=                          radiusHalfMassSatellite      )
        ! Compute the orbital frequency.
        orbitalFrequencySatellite =  +velocityCircularSatellite &
             &                       /radiusHalfMassSatellite   &
@@ -219,7 +238,8 @@ contains
             &                       /megaParsec
     end if
     !![
-    <objectDestructor name="massDistribution_"/>
+    <objectDestructor name="massDistribution_"     />
+    <objectDestructor name="massDistributionTotal_"/>
     !!]
     ! Catch non-positive speeds.
     if (speed > 0.0d0) then

@@ -82,26 +82,27 @@
        <method method="suffix"                         description="Return a file name suffix (containing a source code digest."                                       />
      </methods>
      !!]
-     procedure :: density                        => sphericalFiniteResolutionNFWDensity
-     procedure :: densityGradientRadial          => sphericalFiniteResolutionNFWDensityGradientRadial
-     procedure :: massEnclosedBySphere           => sphericalFiniteResolutionNFWMassEnclosedBySphere
-     procedure :: potentialIsAnalytic            => sphericalFiniteResolutionNFWPotentialIsAnalytic
-     procedure :: potential                      => sphericalFiniteResolutionNFWPotential
-     procedure :: radiusEnclosingMass            => sphericalFiniteResolutionNFWRadiusEnclosingMass
-     procedure :: radiusEnclosingDensity         => sphericalFiniteResolutionNFWRadiusEnclosingDensity
-     procedure :: energy                         => sphericalFiniteResolutionNFWEnergy
-     procedure :: radiusEnclosingDensityTabulate => sphericalFiniteResolutionNFWRadiusEnclosingDensityTabulate
-     procedure :: radiusEnclosingMassTabulate    => sphericalFiniteResolutionNFWRadiusEnclosingMassTabulate
-     procedure :: energyTabulate                 => sphericalFiniteResolutionNFWEnergyTabulate
-     procedure :: densityScaleFree               => sphericalFiniteResolutionNFWDensityScaleFree
-     procedure :: massEnclosedScaleFree          => sphericalFiniteResolutionNFWMassEnclosedScaleFree
-     procedure :: storeDensityTable              => sphericalFiniteResolutionNFWStoreDensityTable
-     procedure :: restoreDensityTable            => sphericalFiniteResolutionNFWRestoreDensityTable
-     procedure :: storeMassTable                 => sphericalFiniteResolutionNFWStoreMassTable
-     procedure :: restoreMassTable               => sphericalFiniteResolutionNFWRestoreMassTable
-     procedure :: storeEnergyTable               => sphericalFiniteResolutionNFWStoreEnergyTable
-     procedure :: restoreEnergyTable             => sphericalFiniteResolutionNFWRestoreEnergyTable
-     procedure :: suffix                         => finiteResolutionNFWSuffix
+     procedure :: density                         => sphericalFiniteResolutionNFWDensity
+     procedure :: densityGradientRadial           => sphericalFiniteResolutionNFWDensityGradientRadial
+     procedure :: densitySlopeLogarithmicGradient => sphericalFiniteResolutionNFWDensitySlopeLogarithmicGradient
+     procedure :: massEnclosedBySphere            => sphericalFiniteResolutionNFWMassEnclosedBySphere
+     procedure :: potentialIsAnalytic             => sphericalFiniteResolutionNFWPotentialIsAnalytic
+     procedure :: potential                       => sphericalFiniteResolutionNFWPotential
+     procedure :: radiusEnclosingMass             => sphericalFiniteResolutionNFWRadiusEnclosingMass
+     procedure :: radiusEnclosingDensity          => sphericalFiniteResolutionNFWRadiusEnclosingDensity
+     procedure :: energy                          => sphericalFiniteResolutionNFWEnergy
+     procedure :: radiusEnclosingDensityTabulate  => sphericalFiniteResolutionNFWRadiusEnclosingDensityTabulate
+     procedure :: radiusEnclosingMassTabulate     => sphericalFiniteResolutionNFWRadiusEnclosingMassTabulate
+     procedure :: energyTabulate                  => sphericalFiniteResolutionNFWEnergyTabulate
+     procedure :: densityScaleFree                => sphericalFiniteResolutionNFWDensityScaleFree
+     procedure :: massEnclosedScaleFree           => sphericalFiniteResolutionNFWMassEnclosedScaleFree
+     procedure :: storeDensityTable               => sphericalFiniteResolutionNFWStoreDensityTable
+     procedure :: restoreDensityTable             => sphericalFiniteResolutionNFWRestoreDensityTable
+     procedure :: storeMassTable                  => sphericalFiniteResolutionNFWStoreMassTable
+     procedure :: restoreMassTable                => sphericalFiniteResolutionNFWRestoreMassTable
+     procedure :: storeEnergyTable                => sphericalFiniteResolutionNFWStoreEnergyTable
+     procedure :: restoreEnergyTable              => sphericalFiniteResolutionNFWRestoreEnergyTable
+     procedure :: suffix                          => finiteResolutionNFWSuffix
   end type massDistributionSphericalFiniteResolutionNFW
 
   interface massDistributionSphericalFiniteResolutionNFW
@@ -302,6 +303,32 @@ contains
          &          /    (+1.0d0                            +radiusScaleFree)**2
     return
   end function sphericalFiniteResolutionNFWDensity
+
+  double precision function sphericalFiniteResolutionNFWDensitySlopeLogarithmicGradient(self,coordinates) result(densitySlopeLogarithmicGradient)
+    !!{RST
+    Return the logarithmic gradient of the logarithmic density slope in a finite resolution NFW mass distribution.
+
+    Differentiating the slope :math:`\mathrm{d}\ln\rho/\mathrm{d}\ln r = -3 + 2/(1+x) + 1/(1+u^2)`, with
+    :math:`x=r/r_\mathrm{s}` and :math:`u=x/\lambda` for a scale-free resolution length :math:`\lambda`, gives
+    :math:`-2x/(1+x)^2 - 2u^2/(1+u^2)^2`.
+    !!}
+    implicit none
+    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target :: self
+    class           (coordinate                                  ), intent(in   )         :: coordinates
+    double precision                                                                      :: radiusScaleFree, resolutionFractional
+
+    radiusScaleFree                =+coordinates%rSpherical ()          &
+         &                          /self       %radiusScale
+    resolutionFractional           =+     radiusScaleFree               &
+         &                          /self%lengthResolutionScaleFree
+    densitySlopeLogarithmicGradient=-2.0d0                              &
+         &                          *       radiusScaleFree             &
+         &                          /(1.0d0+radiusScaleFree        )**2 &
+         &                          -2.0d0                              &
+         &                          *       resolutionFractional**2     &
+         &                          /(1.0d0+resolutionFractional**2)**2
+    return
+  end function sphericalFiniteResolutionNFWDensitySlopeLogarithmicGradient
 
   double precision function sphericalFiniteResolutionNFWDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{RST

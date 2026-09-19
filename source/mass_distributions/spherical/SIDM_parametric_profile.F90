@@ -46,6 +46,7 @@
    contains
      procedure :: density                         => SIDMParametricProfileDensity
      procedure :: densityGradientRadial           => SIDMParametricProfileDensityGradientRadial
+     procedure :: densitySlopeLogarithmicGradient => SIDMParametricProfileDensitySlopeLogarithmicGradient
      procedure :: densitySlopeLogarithmicCentral  => SIDMParametricProfileDensitySlopeLogarithmicCentral
      procedure :: radiusEnclosingDensity          => SIDMParametricProfileRadiusEnclosingDensity
      procedure :: radiusEnclosingDensityNumerical => SIDMParametricProfileRadiusEnclosingDensityNumerical
@@ -208,6 +209,38 @@ contains
          &   )**(1.0d0/self%beta)
     return
   end function SIDMParametricProfileDensity
+
+  double precision function SIDMParametricProfileDensitySlopeLogarithmicGradient(self,coordinates) result(densitySlopeLogarithmicGradient)
+    !!{RST
+    Return the logarithmic gradient of the logarithmic density slope in a SIDM parametric mass distribution.
+
+    Differentiating the slope :math:`\mathrm{d}\ln\rho/\mathrm{d}\ln r = -1 + 1/(1+u) - 2r/(r+r_\mathrm{s})`, with
+    :math:`u=(r/r_\mathrm{c})^\beta` and :math:`\mathrm{d}u/\mathrm{d}\ln r = \beta u`, gives
+    :math:`-\beta u/(1+u)^2 - 2 r r_\mathrm{s}/(r+r_\mathrm{s})^2`.
+    !!}
+    implicit none
+    class           (massDistributionSIDMParametricProfile), intent(inout), target :: self
+    class           (coordinate                           ), intent(in   )         :: coordinates
+    double precision                                                               :: radius     , radiusCoreFreePowered
+
+    radius=coordinates%rSpherical()
+    if (radius > 0.0d0) then
+       radiusCoreFreePowered          =+(                                &
+            &                            +radius                         &
+            &                            /self%radiusCore                &
+            &                           )**self%beta
+       densitySlopeLogarithmicGradient=-self%beta                        &
+            &                          *       radiusCoreFreePowered     &
+            &                          /(1.0d0+radiusCoreFreePowered)**2 &
+            &                          -2.0d0                            &
+            &                          * radius                          &
+            &                          *        self%radiusScale         &
+            &                          /(radius+self%radiusScale)**2
+    else
+       densitySlopeLogarithmicGradient=+0.0d0
+    end if
+    return
+  end function SIDMParametricProfileDensitySlopeLogarithmicGradient
 
   double precision function SIDMParametricProfileDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{RST

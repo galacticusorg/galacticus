@@ -214,6 +214,27 @@ module Mass_Distributions
     <argument>class  (coordinate), intent(in   )           :: coordinates</argument>
     <argument>logical            , intent(in   ), optional :: logarithmic</argument>
    </method>
+   <method name="densitySlopeLogarithmicGradient" >
+    <description>
+    Return the logarithmic gradient of the logarithmic density slope, :math:`\mathrm{d}(\mathrm{d}\ln\rho/\mathrm{d}\ln
+    r)/\mathrm{d}\ln r`, at the given coordinates---that is, the second logarithmic derivative of the density.
+
+    There is no default implementation: a distribution which does not provide one raises an error. The quantity is needed
+    only where a calculation differentiates a function of the density slope itself, as
+    :galacticus-class:`massDistributionHeatingTidal` does when its second-order coefficient depends on the slope, so
+    implementing it is deferred to the distributions which such a calculation reaches.
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <modules>Error</modules>
+    <argument>class(coordinate), intent(in   ) :: coordinates</argument>
+    <code>
+     !$GLC attributes unused :: coordinates
+     massDistributionDensitySlopeLogarithmicGradient=0.0d0
+     call Error_Report(&apos;the logarithmic gradient of the density slope is not implemented for this mass distribution&apos;//{introspection:location})
+    </code>
+   </method>
    <method name="densitySlopeLogarithmicCentral" >
     <description>
     Return the logarithmic slope of the density profile, :math:`\mathrm{d}\ln\rho/\mathrm{d}\ln r`, in the limit :math:`r

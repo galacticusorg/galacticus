@@ -46,6 +46,7 @@
      procedure :: massEnclosedBySphere            => solitonNFWMassEnclosedBySphere
      procedure :: density                         => solitonNFWDensity
      procedure :: densityGradientRadial           => solitonNFWDensityGradientRadial
+     procedure :: densitySlopeLogarithmicGradient => solitonNFWDensitySlopeLogarithmicGradient
      procedure :: densitySlopeLogarithmicCentral  => solitonNFWDensitySlopeLogarithmicCentral
      procedure :: radiusEnclosingDensity          => solitonNFWRadiusEnclosingDensity
      procedure :: radiusEnclosingDensityNumerical => solitonNFWRadiusEnclosingDensityNumerical
@@ -411,6 +412,45 @@
      return
    end function solitonNFWDensity
    
+   double precision function solitonNFWDensitySlopeLogarithmicGradient(self,coordinates) result(densitySlopeLogarithmicGradient)
+     !!{RST
+     Return the logarithmic gradient of the logarithmic density slope in a soliton and NFW mass distribution.
+
+     In the soliton regime the slope is :math:`-16w/(1+w)` with :math:`w=c(r/r_\mathrm{c})^2`, and since
+     :math:`\mathrm{d}w/\mathrm{d}\ln r = 2w` its gradient is :math:`-32w/(1+w)^2`. In the NFW regime the slope is
+     :math:`-(1+3x)/(1+x)` with :math:`x=r/r_\mathrm{s}`, whose gradient is :math:`-2x/(1+x)^2`. The profile is
+     discontinuous in slope at the transition, so this gradient is too.
+     !!}
+     use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
+     implicit none
+     class           (massDistributionSolitonNFW), intent(inout), target :: self
+     class           (coordinate                ), intent(in   )         :: coordinates
+     double precision                                                    :: radiusScaleFree, radiusCoreFreeSquared
+
+     if      (coordinates%rSpherical() <= 0.0d0            ) then
+        ! Zero radius: the slope is constant in both regimes' limits.
+        densitySlopeLogarithmicGradient=+0.0d0
+     else if (coordinates%rSpherical() <  self%radiusSoliton) then
+        ! Soliton regime.
+        radiusCoreFreeSquared          =+coefficientCore                  &
+             &                          *(                                &
+             &                            +coordinates%rSpherical ()      &
+             &                            /self       %radiusCore         &
+             &                           )**2
+        densitySlopeLogarithmicGradient=-32.0d0                           &
+             &                          *       radiusCoreFreeSquared     &
+             &                          /(1.0d0+radiusCoreFreeSquared)**2
+     else
+        ! NFW regime.
+        radiusScaleFree                =+coordinates%rSpherical ()        &
+             &                          /self       %radiusScale
+        densitySlopeLogarithmicGradient=-2.0d0                            &
+             &                          *       radiusScaleFree           &
+             &                          /(1.0d0+radiusScaleFree)**2
+     end if
+     return
+   end function solitonNFWDensitySlopeLogarithmicGradient
+
    double precision function solitonNFWDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
      !!{RST
      Return the radial density gradient at the specified ``coordinates`` in a soliton and NFW mass distribution.
