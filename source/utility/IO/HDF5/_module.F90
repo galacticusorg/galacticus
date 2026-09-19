@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
 !!{RST
 Contains a module that implements simple and convenient interfaces to a variety of HDF5 functionality.
 !!}
@@ -84,6 +86,13 @@ module IO_HDF5
   <generic identifier="VlenType">
    <instance label="VarDouble"   intrinsic="hdf5VarDouble"   h5VlenType="H5T_VLEN_DOUBLE"   dataType="hdf5DataTypeVlenDouble"   typeName="varying-length double"      />
    <instance label="VarInteger8" intrinsic="hdf5VarInteger8" h5VlenType="H5T_VLEN_INTEGER8" dataType="hdf5DataTypeVlenInteger8" typeName="varying-length long integer"/>
+  </generic>
+  <generic identifier="rank">
+   <instance label="1D" rank="1" intrinsic="integer  (kind=HSIZE_T  )"/>
+   <instance label="2D" rank="2" intrinsic="integer  (kind=HSIZE_T  )"/>
+   <instance label="3D" rank="3" intrinsic="integer  (kind=HSIZE_T  )"/>
+   <instance label="4D" rank="4" intrinsic="integer  (kind=HSIZE_T  )"/>
+   <instance label="5D" rank="5" intrinsic="integer  (kind=HSIZE_T  )"/>
   </generic>
   <generic identifier="TableType">
    <instance label="Real"    intrinsic="real   " typeName="real   "/>
@@ -216,11 +225,7 @@ module IO_HDF5
        <method description="Get a list of datasets in a group object." method="datasets" />
        <method description="Remove the named object." method="remove" />
        <method description="Flush an HDF5 file to disk." method="flush" />
-       <method description="Create a reference to a 1D dataset." method="createReference1D" />
-       <method description="Create a reference to a 2D dataset." method="createReference2D" />
-       <method description="Create a reference to a 3D dataset." method="createReference3D" />
-       <method description="Create a reference to a 4D dataset." method="createReference4D" />
-       <method description="Create a reference to a 5D dataset." method="createReference5D" />
+       <method description="Create a reference to a {rank¦label} dataset." method="createReference{rank¦label}" />
      </methods>
      !!]
      final     ::                                           IO_HDF5_Finalize_Group
@@ -268,11 +273,7 @@ module IO_HDF5
      procedure :: hasGroup           =>IO_HDF5_Has_Group
      procedure :: hasDataset         =>IO_HDF5_Has_Dataset
      procedure :: datasets           =>IO_HDF5_Datasets
-     procedure :: createReference1D  =>IO_HDF5_Create_Reference_Scalar_To_1D
-     procedure :: createReference2D  =>IO_HDF5_Create_Reference_Scalar_To_2D
-     procedure :: createReference3D  =>IO_HDF5_Create_Reference_Scalar_To_3D
-     procedure :: createReference4D  =>IO_HDF5_Create_Reference_Scalar_To_4D
-     procedure :: createReference5D  =>IO_HDF5_Create_Reference_Scalar_To_5D
+     procedure :: createReference{rank¦label}  =>IO_HDF5_Create_Reference_Scalar_To_{rank¦label}
   end type hdf5Group
 
   type, extends(hdf5Group             ) :: hdf5File
@@ -8316,9 +8317,9 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Reference_Region
 
-  subroutine IO_HDF5_Create_Reference_Scalar_To_1D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
+  subroutine IO_HDF5_Create_Reference_Scalar_To_{rank¦label}(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !!{RST
-    Create a scalar reference to the 1-D ``toDataset`` in the HDF5 group ``fromGroup``.
+    Create a scalar reference to the {rank¦rank}-D ``toDataset`` in the HDF5 group ``fromGroup``.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F     , H5T_STD_REF_DSETREG  , HID_T         , HSIZE_T   , &
@@ -8326,15 +8327,15 @@ attributeValue=trim(attributeValue)
           &                           h5screate_simple_f   , h5sselect_hyperslab_f
     use :: ISO_Varying_String, only : assignment(=)        , char                 , operator(//)  , trim
     implicit none
-    class    (hdf5Group     )              , intent(inout)         :: fromGroup
-    class    (hdf5Dataset   )              , intent(inout)         :: toDataset
-    character(len=*         )              , intent(in   )         :: referenceName
-    integer  (kind=HSIZE_T  ), dimension(1), intent(in   )         :: referenceCount   , referenceStart
-    integer  (kind=HSIZE_T  ), dimension(1)                        :: datasetDimensions, hyperslabCount, hyperslabStart
-    type     (hdf5Reference )                             , target :: reference
-    integer                                                        :: errorCode        , datasetRank
-    integer  (kind=HID_T    )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
-    type     (varying_string)                                      :: message
+    class    (hdf5Group     )                        , intent(inout) :: fromGroup
+    class    (hdf5Dataset   )                        , intent(inout) :: toDataset
+    character(len=*         )                        , intent(in   ) :: referenceName
+    {rank¦intrinsic}         , dimension({rank¦rank}), intent(in   ) :: referenceCount   , referenceStart
+    {rank¦intrinsic}         , dimension({rank¦rank})                :: datasetDimensions, hyperslabCount, hyperslabStart
+    type     (hdf5Reference )                        , target        :: reference
+    integer                                                          :: errorCode        , datasetRank
+    integer  (kind=HID_T    )                                        :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
+    type     (varying_string)                                        :: message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -8409,387 +8410,7 @@ attributeValue=trim(attributeValue)
     end if
 
     return
-  end subroutine IO_HDF5_Create_Reference_Scalar_To_1D
-
-  subroutine IO_HDF5_Create_Reference_Scalar_To_2D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
-    !!{RST
-    Create a scalar reference to the 2-D ``toDataset`` in the HDF5 group ``fromGroup``.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_STD_REF_DSETREG  , HID_T          , HSIZE_T   , &
-          &                           h5dclose_f        , h5dcreate_f          , h5dget_space_f , h5sclose_f, &
-          &                           h5screate_simple_f, h5sselect_hyperslab_f
-    use :: ISO_Varying_String, only : assignment(=)     , char                , operator(//)    , trim
-    implicit none
-    class    (hdf5Group     )              , intent(inout)         :: fromGroup
-    class    (hdf5Dataset   )              , intent(inout)         :: toDataset
-    character(len=*         )              , intent(in   )         :: referenceName
-    integer  (kind=HSIZE_T  ), dimension(2), intent(in   )         :: referenceCount   , referenceStart
-    integer  (kind=HSIZE_T  ), dimension(2)                        :: datasetDimensions, hyperslabCount, hyperslabStart
-    type     (hdf5Reference )                             , target :: reference
-    integer                                                        :: errorCode        , datasetRank
-    integer  (kind=HID_T    )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
-    type     (varying_string)                                      :: message
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-
-    ! Check that the group is already open.
-    if (.not.fromGroup%isOpenValue) then
-       message="attempt to write reference '"//trim(referenceName)//"' in unopen group '"//fromGroup%objectName//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Check that the dataset is already open.
-    if (.not.toDataset%isOpenValue) then
-       message="attempt to write reference '"//trim(referenceName)//"' to unopen dataset '"//toDataset%objectName//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Get the dataspace of the dataset.
-    call h5dget_space_f(toDataset%objectID,dataSubsetSpaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to get dataspace for dataset '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Select a hyperslab from this dataspace. Subtract one from the start position since HDF5 uses indexing beginning at 0.
-    hyperslabStart=referenceStart-1
-    hyperslabCount=referenceCount
-    call h5sselect_hyperslab_f(dataSubsetSpaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
-    if (errorCode /= 0) then
-       message="unable to get select hyperslab in dataspace of dataset '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Create a dataspace for the reference dataset.
-    datasetRank      =0
-    datasetDimensions=1
-    call h5screate_simple_f(datasetRank,datasetDimensions,dataSpaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to create reference dataspace for '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Create the reference dataset.
-    call h5dcreate_f(fromGroup%objectID,trim(referenceName),H5T_STD_REF_DSETREG,dataSpaceID,dataSetID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to create reference dataset for '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Create the region reference to the selected region of the target dataset, and write it to the reference dataset.
-    call reference%create (toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID)
-    call reference%writeTo(dataSetID                                                                   )
-
-    ! Close the dataset dataspace.
-    call h5sclose_f(dataSpaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to close dataset dataspace for '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Close the reference dataset dataspace.
-    call h5sclose_f(dataSubsetSpaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to reference dataspace for '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Close the dataset.
-    call h5dclose_f(dataSetID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to reference dataset for '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    return
-  end subroutine IO_HDF5_Create_Reference_Scalar_To_2D
-
-  subroutine IO_HDF5_Create_Reference_Scalar_To_3D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
-    !!{RST
-    Create a scalar reference to the 3-D ``toDataset`` in the HDF5 group ``fromGroup``.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_STD_REF_DSETREG  , HID_T         , HSIZE_T   , &
-          &                           h5dclose_f        , h5dcreate_f          , h5dget_space_f, h5sclose_f, &
-          &                           h5screate_simple_f, h5sselect_hyperslab_f
-    use :: ISO_Varying_String, only : assignment(=)     , char                 , operator(//)  , trim
-    implicit none
-    class    (hdf5Group     )              , intent(inout)         :: fromGroup
-    class    (hdf5Dataset   )              , intent(inout)         :: toDataset
-    character(len=*         )              , intent(in   )         :: referenceName
-    integer  (kind=HSIZE_T  ), dimension(3), intent(in   )         :: referenceCount   , referenceStart
-    integer  (kind=HSIZE_T  ), dimension(3)                        :: datasetDimensions, hyperslabCount, hyperslabStart
-    type     (hdf5Reference )                             , target :: reference
-    integer                                                        :: errorCode        , datasetRank
-    integer  (kind=HID_T    )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
-    type     (varying_string)                                      :: message
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-
-    ! Check that the group is already open.
-    if (.not.fromGroup%isOpenValue) then
-       message="attempt to write reference '"//trim(referenceName)//"' in unopen group '"//fromGroup%objectName//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Check that the dataset is already open.
-    if (.not.toDataset%isOpenValue) then
-       message="attempt to write reference '"//trim(referenceName)//"' to unopen dataset '"//toDataset%objectName//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Get the dataspace of the dataset.
-    call h5dget_space_f(toDataset%objectID,dataSubsetSpaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to get dataspace for dataset '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Select a hyperslab from this dataspace. Subtract one from the start position since HDF5 uses indexing beginning at 0.
-    hyperslabStart=referenceStart-1
-    hyperslabCount=referenceCount
-    call h5sselect_hyperslab_f(dataSubsetSpaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
-    if (errorCode /= 0) then
-       message="unable to get select hyperslab in dataspace of dataset '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Create a dataspace for the reference dataset.
-    datasetRank      =0
-    datasetDimensions=1
-    call h5screate_simple_f(datasetRank,datasetDimensions,dataSpaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to create reference dataspace for '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Create the reference dataset.
-    call h5dcreate_f(fromGroup%objectID,trim(referenceName),H5T_STD_REF_DSETREG,dataSpaceID,dataSetID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to create reference dataset for '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Create the region reference to the selected region of the target dataset, and write it to the reference dataset.
-    call reference%create (toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID)
-    call reference%writeTo(dataSetID                                                                   )
-
-    ! Close the dataset dataspace.
-    call h5sclose_f(dataSpaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to close dataset dataspace for '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Close the reference dataset dataspace.
-    call h5sclose_f(dataSubsetSpaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to reference dataspace for '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Close the dataset.
-    call h5dclose_f(dataSetID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to reference dataset for '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    return
-  end subroutine IO_HDF5_Create_Reference_Scalar_To_3D
-
-  subroutine IO_HDF5_Create_Reference_Scalar_To_4D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
-    !!{RST
-    Create a scalar reference to the 4-D ``toDataset`` in the HDF5 group ``fromGroup``.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_STD_REF_DSETREG  , HID_T         , HSIZE_T   , &
-          &                           h5dclose_f        , h5dcreate_f          , h5dget_space_f, h5sclose_f, &
-          &                           h5screate_simple_f, h5sselect_hyperslab_f
-    use :: ISO_Varying_String, only : assignment(=)     , char                 , operator(//)  , trim
-    implicit none
-    class    (hdf5Group     )              , intent(inout)         :: fromGroup
-    class    (hdf5Dataset   )              , intent(inout)         :: toDataset
-    character(len=*         )              , intent(in   )         :: referenceName
-    integer  (kind=HSIZE_T  ), dimension(4), intent(in   )         :: referenceCount   , referenceStart
-    integer  (kind=HSIZE_T  ), dimension(4)                        :: datasetDimensions, hyperslabCount, hyperslabStart
-    type     (hdf5Reference )                             , target :: reference
-    integer                                                        :: errorCode        , datasetRank
-    integer  (kind=HID_T    )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
-    type     (varying_string)                                      :: message
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-
-    ! Check that the group is already open.
-    if (.not.fromGroup%isOpenValue) then
-       message="attempt to write reference '"//trim(referenceName)//"' in unopen group '"//fromGroup%objectName//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Check that the dataset is already open.
-    if (.not.toDataset%isOpenValue) then
-       message="attempt to write reference '"//trim(referenceName)//"' to unopen dataset '"//toDataset%objectName//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Get the dataspace of the dataset.
-    call h5dget_space_f(toDataset%objectID,dataSubsetSpaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to get dataspace for dataset '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Select a hyperslab from this dataspace. Subtract one from the start position since HDF5 uses indexing beginning at 0.
-    hyperslabStart=referenceStart-1
-    hyperslabCount=referenceCount
-    call h5sselect_hyperslab_f(dataSubsetSpaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
-    if (errorCode /= 0) then
-       message="unable to get select hyperslab in dataspace of dataset '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Create a dataspace for the reference dataset.
-    datasetRank      =0
-    datasetDimensions=1
-    call h5screate_simple_f(datasetRank,datasetDimensions,dataSpaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to create reference dataspace for '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Create the reference dataset.
-    call h5dcreate_f(fromGroup%objectID,trim(referenceName),H5T_STD_REF_DSETREG,dataSpaceID,dataSetID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to create reference dataset for '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Create the region reference to the selected region of the target dataset, and write it to the reference dataset.
-    call reference%create (toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID)
-    call reference%writeTo(dataSetID                                                                   )
-
-    ! Close the dataset dataspace.
-    call h5sclose_f(dataSpaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to close dataset dataspace for '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Close the reference dataset dataspace.
-    call h5sclose_f(dataSubsetSpaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to reference dataspace for '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Close the dataset.
-    call h5dclose_f(dataSetID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to reference dataset for '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    return
-  end subroutine IO_HDF5_Create_Reference_Scalar_To_4D
-
-  subroutine IO_HDF5_Create_Reference_Scalar_To_5D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
-    !!{RST
-    Create a scalar reference to the 5-D ``toDataset`` in the HDF5 group ``fromGroup``.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_STD_REF_DSETREG  , HID_T         , HSIZE_T   , &
-          &                           h5dclose_f        , h5dcreate_f          , h5dget_space_f, h5sclose_f, &
-          &                           h5screate_simple_f, h5sselect_hyperslab_f
-    use :: ISO_Varying_String, only : assignment(=)     , char                 , operator(//)   , trim
-    implicit none
-    class    (hdf5Group     )              , intent(inout)         :: fromGroup
-    class    (hdf5Dataset   )              , intent(inout)         :: toDataset
-    character(len=*         )              , intent(in   )         :: referenceName
-    integer  (kind=HSIZE_T  ), dimension(5), intent(in   )         :: referenceCount   , referenceStart
-    integer  (kind=HSIZE_T  ), dimension(5)                        :: datasetDimensions, hyperslabCount, hyperslabStart
-    type     (hdf5Reference )                             , target :: reference
-    integer                                                        :: errorCode        , datasetRank
-    integer  (kind=HID_T    )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
-    type     (varying_string)                                      :: message
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-
-    ! Check that the group is already open.
-    if (.not.fromGroup%isOpenValue) then
-       message="attempt to write reference '"//trim(referenceName)//"' in unopen group '"//fromGroup%objectName//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Check that the dataset is already open.
-    if (.not.toDataset%isOpenValue) then
-       message="attempt to write reference '"//trim(referenceName)//"' to unopen dataset '"//toDataset%objectName//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Get the dataspace of the dataset.
-    call h5dget_space_f(toDataset%objectID,dataSubsetSpaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to get dataspace for dataset '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Select a hyperslab from this dataspace. Subtract one from the start position since HDF5 uses indexing beginning at 0.
-    hyperslabStart=referenceStart-1
-    hyperslabCount=referenceCount
-    call h5sselect_hyperslab_f(dataSubsetSpaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
-    if (errorCode /= 0) then
-       message="unable to get select hyperslab in dataspace of dataset '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Create a dataspace for the reference dataset.
-    datasetRank      =0
-    datasetDimensions=1
-    call h5screate_simple_f(datasetRank,datasetDimensions,dataSpaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to create reference dataspace for '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Create the reference dataset.
-    call h5dcreate_f(fromGroup%objectID,trim(referenceName),H5T_STD_REF_DSETREG,dataSpaceID,dataSetID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to create reference dataset for '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Create the region reference to the selected region of the target dataset, and write it to the reference dataset.
-    call reference%create (toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID)
-    call reference%writeTo(dataSetID                                                                   )
-
-    ! Close the dataset dataspace.
-    call h5sclose_f(dataSpaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to close dataset dataspace for '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Close the reference dataset dataspace.
-    call h5sclose_f(dataSubsetSpaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to reference dataspace for '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Close the dataset.
-    call h5dclose_f(dataSetID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to reference dataset for '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    return
-  end subroutine IO_HDF5_Create_Reference_Scalar_To_5D
+  end subroutine IO_HDF5_Create_Reference_Scalar_To_{rank¦label}
 
   logical function IO_HDF5_Is_Reference(dataset)
     !!{RST
