@@ -44,7 +44,7 @@
 
     .. math::
 
-       \Phi(r) = - \frac{\mathrm{G} \pi \rho_0 r_\mathrm{s}^2}{R} \left[ (R-1) \log \left(R^2+1\right)-2 (R+1) \log (R+1)-2 (R+1) \cot^{-1}(R)+\pi \right]
+       \Phi(r) = - \frac{\mathrm{G} \pi \rho_0 r_\mathrm{s}^2}{R} \left[ 2 (1+R) \log (1+R) + (1-R) \log \left(1+R^2\right) - 2 \tan^{-1}(R) + 2 R \cot^{-1}(R) \right]
 
     The peak of the rotation curve occurs at :math:`R=3.2446257246042642` (found by numerical solution) at which point the rotation curve amplitude is 1.644297750532498, and the Fourier transform of the profile, :math:`F(k) = \int_0^c 4 \pi r^2 \exp(-i k r) \rho(r) \mathrm{d} r / k r` (needed in calculations of clustering using the halo model) is given by
 
@@ -479,15 +479,24 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: radius
-    double precision, parameter     :: minimumRadiusForExactSolution=1.0d-4
+    ! Below this radius the exact solution below loses accuracy: its terms are of order R while their sum is of order R³, and
+    ! `log(1+R)` is evaluated from an argument which has already been rounded to unity plus an ulp. The series is accurate to
+    ! better than 10⁻¹⁵ up to this radius, and the exact solution to better than 10⁻¹¹ beyond it.
+    double precision, parameter     :: minimumRadiusForExactSolution=1.0d-2
 
     if (radius < minimumRadiusForExactSolution) then
-       ! Use a series solution for small radii.
-       mass   =+4.0d0             &
-            &  /3.0d0             &
-            &  *Pi                &
-            &  *        radius**3 &
-            &  *(+1.0d0-radius)
+       ! Use a series solution for small radii. Since (1-R)(1+R+R²+R³) = 1-R⁴, the density is (1-R)(1+R⁴+R⁸+…), so the mass is
+       ! 4π(R³/3-R⁴/4+R⁷/7-R⁸/8+…).
+       mass   =+4.0d0                   &
+            &  /3.0d0                   &
+            &  *Pi                      &
+            &  *              radius**3 &
+            &  *(                       &
+            &    +1.0d0                 &
+            &    -3.0d0/4.0d0*radius    &
+            &    +3.0d0/7.0d0*radius**4 &
+            &    -3.0d0/8.0d0*radius**5 &
+            &   )
     else
        ! Use the exact solution.
        mass   =+Pi                            &
