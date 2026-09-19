@@ -838,8 +838,6 @@ contains
     return
   end subroutine IO_HDF5_Finalize_File
 
-
-
   logical function IO_HDF5_Is_Open(self)
     !!{RST
     Returns true if ``self`` is open.
@@ -2316,11 +2314,11 @@ contains
     use            :: Error             , only : Error_Report
     use            :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
-    {attributearraytype¦intrinsic}, allocatable, dimension(:), intent(  out){attributearraytype¦target} :: attributeValue
-    class    (hdf5AttributableObject)                   , intent(inout)           :: self
-    character(len=*                 )                   , intent(in   ), optional :: attributeName
-    type     (hdf5Attribute         )                                            :: attributeObject
-    type     (varying_string        )                                            :: attributeNameActual , message
+    {attributearraytype¦intrinsic}   , allocatable, dimension(:), intent(  out){attributearraytype¦target} :: attributeValue
+    class    (hdf5AttributableObject)                           , intent(inout)                            :: self
+    character(len=*                 )                           , intent(in   ), optional                  :: attributeName
+    type     (hdf5Attribute         )                                                                      :: attributeObject
+    type     (varying_string        )                                                                      :: attributeNameActual , message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -2428,10 +2426,10 @@ contains
     use            :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
     {attributearraytype¦intrinsic}   , intent({attributearraytype¦staticintent}), dimension(:){attributearraytype¦statictarget} :: attributeValue
-    class    (hdf5AttributableObject), intent(inout)                                   :: self
-    character(len=*                 ), intent(in   ), optional                         :: attributeName
-    type     (hdf5Attribute         )                                                  :: attributeObject
-    type     (varying_string        )                                                  :: attributeNameActual, message
+    class    (hdf5AttributableObject), intent(inout)                                                                            :: self
+    character(len=*                 ), intent(in   )                            , optional                                      :: attributeName
+    type     (hdf5Attribute         )                                                                                           :: attributeObject
+    type     (varying_string        )                                                                                           :: attributeNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -2530,7 +2528,6 @@ contains
     end if
     return
   end subroutine IO_HDF5_Read_Attribute_{Type¦label}_1D_Array_Static_Self
-
 
   subroutine IO_HDF5_Read_Attribute_Character_Scalar_Self(self,attributeValue,allowPseudoScalar)
     !!{RST
@@ -2667,7 +2664,6 @@ contains
     return
   end subroutine IO_HDF5_Read_Attribute_Character_Scalar_Self
 
-
   subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable_Self(self,attributeValue)
     !!{RST
     Read a character 1-D array attribute from ``self`` (an attribute object), into an allocatable array.
@@ -2750,7 +2746,6 @@ contains
     end if
     return
   end subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable_Self
-
 
   subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Static_Self(self,attributeValue)
     !!{RST
@@ -2981,7 +2976,6 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Read_Attribute_VarString_Scalar_Do_Read
 
-
   subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable_Self(self,attributeValue)
     !!{RST
     Read a varying string 1-D array attribute from ``self`` (an attribute object), into an allocatable array.
@@ -3060,7 +3054,6 @@ attributeValue=trim(attributeValue)
 
     return
   end subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable_Do_Read
-
 
   subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Static_Self(self,attributeValue)
     !!{RST

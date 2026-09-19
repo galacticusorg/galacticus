@@ -38,17 +38,17 @@ program Test_MPI
 #endif
   implicit none
 #ifdef USEMPI
-  type   (mpiCounter) :: counter
-  integer(c_size_t  ) :: i             , counterSum   , &
-       &                 counterSumOver, counters     , &
-       &                 counterMaxOver, j
-  integer             :: rankOriginal  , countOriginal
-  logical         , allocatable, dimension(:    ) :: maskExcludeFirst, maskExcludeLast
-  double precision, allocatable, dimension(:,:  ) :: dataDouble1D
-  double precision, allocatable, dimension(:,:,:) :: dataDouble2D
-  integer         , allocatable, dimension(:,:  ) :: dataInteger1D
-  logical         , allocatable, dimension(:,:  ) :: dataLogical1D
-  integer                                         :: rankNext
+  type            (mpiCounter)                                :: counter
+  integer         (c_size_t  )                                :: i               , counterSum     , &
+       &                                                         counterSumOver  , counters       , &
+       &                                                         counterMaxOver  , j
+  integer                                                     :: rankOriginal    , countOriginal
+  logical                     , allocatable, dimension(:    ) :: maskExcludeFirst, maskExcludeLast
+  double precision            , allocatable, dimension(:,:  ) :: dataDouble1D
+  double precision            , allocatable, dimension(:,:,:) :: dataDouble2D
+  integer                     , allocatable, dimension(:,:  ) :: dataInteger1D
+  logical                     , allocatable, dimension(:,:  ) :: dataLogical1D
+  integer                                                     :: rankNext
 #endif
   
   ! Set verbosity level.
@@ -101,16 +101,16 @@ program Test_MPI
      maskExcludeLast                    =.true.
      maskExcludeLast (mpiSelf%count()-1)=.false.
      call Unit_Tests_Begin_Group("Masked reductions")
-     call Assert("minval (double array)"  ,mpiSelf%minval([dble(mpiSelf%rank()+1)            ],maskExcludeFirst),[2.0d0                         ])
-     call Assert("minval (integer array)" ,mpiSelf%minval([     mpiSelf%rank()+1             ],maskExcludeFirst),[2                             ])
-     call Assert("minval (double scalar)" ,mpiSelf%minval( dble(mpiSelf%rank()+1)             ,maskExcludeFirst), 2.0d0                          )
-     call Assert("minval (integer scalar)",mpiSelf%minval(      mpiSelf%rank()+1              ,maskExcludeFirst), 2                              )
-     call Assert("maxval (double array)"  ,mpiSelf%maxval([dble(mpiSelf%rank()+1)            ],maskExcludeLast ),[dble(mpiSelf%count()-1)       ])
+     call Assert("minval (double array)"  ,mpiSelf%minval([dble(mpiSelf%rank()+1)              ],maskExcludeFirst),[2.0d0                           ])
+     call Assert("minval (integer array)" ,mpiSelf%minval([     mpiSelf%rank()+1               ],maskExcludeFirst),[2                               ])
+     call Assert("minval (double scalar)" ,mpiSelf%minval( dble(mpiSelf%rank()+1)               ,maskExcludeFirst), 2.0d0                            )
+     call Assert("minval (integer scalar)",mpiSelf%minval(      mpiSelf%rank()+1                ,maskExcludeFirst), 2                                )
+     call Assert("maxval (double array)"  ,mpiSelf%maxval([dble(mpiSelf%rank()+1)              ],maskExcludeLast ),[dble(mpiSelf%count()-1         )])
      call Assert("maxval (size_t array)"  ,mpiSelf%maxval([int (mpiSelf%rank()+1,kind=c_size_t)],maskExcludeLast ),[int (mpiSelf%count()-1,c_size_t)])
-     call Assert("minloc (double array)"  ,mpiSelf%minloc([dble(mpiSelf%rank()+1)            ],maskExcludeFirst),[1                             ])
-     call Assert("maxloc (double array)"  ,mpiSelf%maxloc([dble(mpiSelf%rank()+1)            ],maskExcludeLast ),[mpiSelf%count()-2             ])
-     call Assert("all (logical scalar)"   ,mpiSelf%all   (      mpiSelf%rank() /= 0            ,maskExcludeFirst),.true.                          )
-     call Assert("any (logical scalar)"   ,mpiSelf%any   (      mpiSelf%rank() == 0            ,maskExcludeFirst),.false.                         )
+     call Assert("minloc (double array)"  ,mpiSelf%minloc([dble(mpiSelf%rank()+1)              ],maskExcludeFirst),[1                               ])
+     call Assert("maxloc (double array)"  ,mpiSelf%maxloc([dble(mpiSelf%rank()+1)              ],maskExcludeLast ),[mpiSelf%count()-2               ])
+     call Assert("all (logical scalar)"   ,mpiSelf%all   (      mpiSelf%rank() /= 0             ,maskExcludeFirst),.true.                            )
+     call Assert("any (logical scalar)"   ,mpiSelf%any   (      mpiSelf%rank() == 0             ,maskExcludeFirst),.false.                           )
      call Unit_Tests_End_Group()
      deallocate(maskExcludeFirst,maskExcludeLast)
      ! Test data requests. Each process requests data from the next process (cyclically), which returns data identifying itself.
@@ -120,10 +120,10 @@ program Test_MPI
      dataInteger1D=mpiSelf%requestData([rankNext],[mpiSelf%rank(),2*mpiSelf%rank()])
      dataLogical1D=mpiSelf%requestData([rankNext],[modulo(mpiSelf%rank(),2) == 0,.true.])
      call Unit_Tests_Begin_Group("Data requests")
-     call Assert("requestData (double 1-D)" ,dataDouble1D (:,  1),[dble(rankNext),-dble(rankNext)]                                )
+     call Assert("requestData (double 1-D)" ,dataDouble1D (:,  1),[dble(rankNext),-dble(rankNext)]                           )
      call Assert("requestData (double 2-D)" ,dataDouble2D (:,:,1),reshape([dble(rankNext),1.0d0,2.0d0,-dble(rankNext)],[2,2]))
-     call Assert("requestData (integer 1-D)",dataInteger1D(:,  1),[rankNext,2*rankNext]                                          )
-     call Assert("requestData (logical 1-D)",dataLogical1D(:,  1),[modulo(rankNext,2) == 0,.true.]                             )
+     call Assert("requestData (integer 1-D)",dataInteger1D(:,  1),[rankNext,2*rankNext]                                      )
+     call Assert("requestData (logical 1-D)",dataLogical1D(:,  1),[modulo(rankNext,2) == 0,.true.]                           )
      call Unit_Tests_End_Group()
   end if
   ! Test communicators.

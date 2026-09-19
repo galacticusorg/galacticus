@@ -255,16 +255,16 @@ module MPI_Utilities
    <instance label="Double" description="a double"     intrinsic="double precision  " zero="0.0d0"     />
   </generic>
   <generic identifier="extremumarray">
-   <instance label="MaxvalArray"      extremum="maximum" intrinsic="double precision " mpitype="MPI_Double_Precision" operation="MPI_Max" fill="-HUGE(1.0d0)"      zero="0.0d0"     />
+   <instance label="MaxvalArray"      extremum="maximum" intrinsic="double precision " mpitype="MPI_Double_Precision" operation="MPI_Max" fill="-huge(1.0d0)"      zero="0.0d0"     />
    <instance label="MaxvalArraySizeT" extremum="maximum" intrinsic="integer(c_size_t)" mpitype="MPI_Integer8"         operation="MPI_Max" fill="-huge(1_c_size_t)" zero="0_c_size_t"/>
-   <instance label="MinvalArray"      extremum="minimum" intrinsic="double precision " mpitype="MPI_Double_Precision" operation="MPI_Min" fill="+HUGE(1.0d0)"      zero="0.0d0"     />
+   <instance label="MinvalArray"      extremum="minimum" intrinsic="double precision " mpitype="MPI_Double_Precision" operation="MPI_Min" fill="+huge(1.0d0)"      zero="0.0d0"     />
    <instance label="MinvalIntArray"   extremum="minimum" intrinsic="integer          " mpitype="MPI_Integer"          operation="MPI_Min" fill="+huge(1)"          zero="0"         />
   </generic>
   <generic identifier="extremumscalar">
-   <instance label="MaxvalScalar"      extremum="maximum" description="a scalar"             intrinsic="double precision " method="maxval" zero="0.0d0"     />
+   <instance label="MaxvalScalar"      extremum="maximum" description="a scalar"            intrinsic="double precision " method="maxval" zero="0.0d0"     />
    <instance label="MaxvalScalarSizeT" extremum="maximum" description="a ``size_t`` scalar" intrinsic="integer(c_size_t)" method="maxval" zero="0_c_size_t"/>
-   <instance label="MinvalScalar"      extremum="minimum" description="a scalar"             intrinsic="double precision " method="minval" zero="0.0d0"     />
-   <instance label="MinvalIntScalar"   extremum="minimum" description="a scalar"             intrinsic="integer          " method="minval" zero="0"         />
+   <instance label="MinvalScalar"      extremum="minimum" description="a scalar"            intrinsic="double precision " method="minval" zero="0.0d0"     />
+   <instance label="MinvalIntScalar"   extremum="minimum" description="a scalar"            intrinsic="integer          " method="minval" zero="0"         />
   </generic>
   <generic identifier="extremumlocation">
    <instance label="Maxloc" intrinsic="double precision" extremum="maximum" operation="MPI_MaxLoc" fill="-HUGE(1.0d0)"/>
@@ -275,9 +275,9 @@ module MPI_Utilities
    <instance label="AllLogicalScalar" intrinsic="logical" description="all of the given booleans are true" operation="MPI_LAnd" fill=".true." />
   </generic>
   <generic identifier="gatherarray">
-   <instance label="1D"    description="a 1-D array"            result="a 2-D array" intrinsic="double precision" argdims="          :                " resultdims="size(array),self%countValue"                   zero="0.0d0"/>
+   <instance label="1D"    description="a 1-D array"            result="a 2-D array" intrinsic="double precision" argdims="          :                " resultdims="size(array),self%countValue"                         zero="0.0d0"/>
    <instance label="2D"    description="a 2-D array"            result="a 3-D array" intrinsic="double precision" argdims="          :,:              " resultdims="size(array,dim=1),size(array,dim=2),self%countValue" zero="0.0d0"/>
-   <instance label="Int1D" description="an integer 1-D array"   result="a 2-D array" intrinsic="integer         " argdims="          :                " resultdims="size(array),self%countValue"                   zero="0"    />
+   <instance label="Int1D" description="an integer 1-D array"   result="a 2-D array" intrinsic="integer         " argdims="          :                " resultdims="size(array),self%countValue"                         zero="0"    />
   </generic>
   <generic identifier="gatherscalar">
    <instance label="Scalar"        description="a scalar"          intrinsic="double precision" zero="0.0d0"  />
@@ -611,8 +611,6 @@ contains
     return
   end function mpiMessageWaiting
 
-
-
   function mpiRequestData{requestdata¦label}(self,requestFrom,array)
     !!{RST
     Request and receive data from other MPI processes.
@@ -620,19 +618,19 @@ contains
 #ifndef USEMPI
     use :: Error  , only : Error_Report
 #else
-    use :: MPI_F08, only : MPI_Request , MPI_Status , MPI_Wait      , MPI_ISend                 , &
+    use :: MPI_F08, only : MPI_Request , MPI_Status , MPI_Wait                             , MPI_ISend, &
          &                 MPI_Recv    , MPI_Integer, MPI_Any_Source{requestdata¦mpiimport}
 #endif
     implicit none
-    class  (mpiObject  ), intent(in   )                                           :: self
-    integer             , intent(in   ), dimension(                            :) :: requestFrom
-    {requestdata¦intrinsic}, intent(in   ), dimension({requestdata¦argdims}) :: array
-    {requestdata¦intrinsic}               , dimension({requestdata¦resultdims}) :: mpiRequestData{requestdata¦label}
+    class  (mpiObject  )   , intent(in   )                                        :: self
+    integer                , intent(in   ), dimension(                         :) :: requestFrom
+    {requestdata¦intrinsic}, intent(in   ), dimension({requestdata¦argdims}     ) :: array
+    {requestdata¦intrinsic}               , dimension({requestdata¦resultdims}  ) :: mpiRequestData{requestdata¦label}
 #ifdef USEMPI
     {requestdata¦intrinsic}               , dimension({requestdata¦receiveddims}) :: receivedData
-    integer                            , dimension(                            1) :: requester       , requestedBy
-    type   (MPI_Request)               , dimension(         0: self%countValue-1) :: requestFromID
-    type   (MPI_Request), allocatable  , dimension(                            :) :: requestID       , requestIDtemp
+    integer                               , dimension(                         1) :: requester       , requestedBy
+    type   (MPI_Request)                  , dimension(      0: self%countValue-1) :: requestFromID
+    type   (MPI_Request)   , allocatable  , dimension(                         :) :: requestID       , requestIDtemp
     type   (MPI_Status )                                                          :: messageStatus
     integer                                                                       :: i               , iError       , &
          &                                                                           iRequest        , j            , &
@@ -701,7 +699,6 @@ contains
     return
   end function mpiRequestData{requestdata¦label}
 
-
   subroutine mpiBroadcastData{broadcastscalar¦label}(self,sendFrom,scalar)
     !!{RST
     Broadcast data to all other MPI processes.
@@ -726,7 +723,6 @@ contains
 #endif
     return
   end subroutine mpiBroadcastData{broadcastscalar¦label}
-
   
   subroutine mpiBroadcastData{broadcastarray¦label}(self,sendFrom,array)
     !!{RST
@@ -737,11 +733,11 @@ contains
     use :: MPI_F08, only : MPI_Double_Precision, MPI_Bcast
 #endif
     implicit none
-    class           (mpiObject), intent(in   )                                 :: self
-    integer                    , intent(in   )                                 :: sendFrom
+    class           (mpiObject), intent(in   )                                   :: self
+    integer                    , intent(in   )                                   :: sendFrom
     {broadcastarray¦intrinsic} , intent(inout), dimension({broadcastarray¦dims}) :: array
 #ifdef USEMPI
-    integer                                                                    :: status
+    integer                                                                      :: status
     !$GLC attributes unused :: self
     
     call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,mpiSelf%communicator,status)
@@ -752,9 +748,7 @@ contains
 #endif
     return
   end subroutine mpiBroadcastData{broadcastarray¦label}
-  
-  
-  
+
   function mpiSumArray{arraytype¦label}(self,array,mask)
     !!{RST
     Sum {arraytype¦description} array over all processes, returning it to all processes.
@@ -947,13 +941,13 @@ contains
     use :: MPI_F08, only : MPI_AllReduce, {extremumarray¦mpitype}, {extremumarray¦operation}
 #endif
     implicit none
-    class           (mpiObject), intent(in   )                                    :: self
-    {extremumarray¦intrinsic}  , intent(in   ), dimension( :          )           :: array
-    logical                    , intent(in   ), dimension(0:          ), optional :: mask
-    {extremumarray¦intrinsic}                 , dimension(size(array) )           :: mpi{extremumarray¦label}
+    class  (mpiObject)       , intent(in   )                                    :: self
+    {extremumarray¦intrinsic}, intent(in   ), dimension( :          )           :: array
+    logical                  , intent(in   ), dimension(0:          ), optional :: mask
+    {extremumarray¦intrinsic}               , dimension(size(array) )           :: mpi{extremumarray¦label}
 #ifdef USEMPI
-    {extremumarray¦intrinsic}                 , dimension(size(array) )           :: maskedArray
-    integer                                                                       :: iError
+    {extremumarray¦intrinsic}               , dimension(size(array) )           :: maskedArray
+    integer                                                                     :: iError
 #endif
 
 #ifdef USEMPI
@@ -980,12 +974,12 @@ contains
     use :: Error, only : Error_Report
 #endif
     implicit none
-    {extremumscalar¦intrinsic}                                         :: mpi{extremumscalar¦label}
-    class           (mpiObject), intent(in   )                         :: self
-    {extremumscalar¦intrinsic} , intent(in   )                         :: scalar
-    logical                    , intent(in   ), dimension(:), optional :: mask
+    {extremumscalar¦intrinsic}                                        :: mpi{extremumscalar¦label}
+    class  (mpiObject)        , intent(in   )                         :: self
+    {extremumscalar¦intrinsic}, intent(in   )                         :: scalar
+    logical                   , intent(in   ), dimension(:), optional :: mask
 #ifdef USEMPI
-    {extremumscalar¦intrinsic}                , dimension(1)           :: array
+    {extremumscalar¦intrinsic}               , dimension(1)           :: array
 #endif
 
 #ifdef USEMPI
@@ -998,8 +992,6 @@ contains
 #endif
     return
   end function mpi{extremumscalar¦label}
-
-
 
   function mpi{extremumlocation¦label}(self,array,mask)
     !!{RST
@@ -1037,11 +1029,6 @@ contains
     return
   end function mpi{extremumlocation¦label}
 
-
-
-
-
-
   logical function mpi{logicalreduction¦label}(self,boolean,mask)
     !!{RST
     Return true if {logicalreduction¦description} over all processes.
@@ -1074,7 +1061,6 @@ contains
     return
   end function mpi{logicalreduction¦label}
 
-
   function mpiGather{gatherscalar¦label}(self,scalar)
     !!{RST
     Gather {gatherscalar¦description} from all processes, returning it as a 1-D array.
@@ -1083,11 +1069,11 @@ contains
     use Error, only : Error_Report
 #endif
     implicit none
-    class           (mpiObject), intent(in   )                :: self
-    {gatherscalar¦intrinsic}   , intent(in   )                :: scalar
-    {gatherscalar¦intrinsic}   , dimension(  self%countValue) :: mpiGather{gatherscalar¦label}
+    class(mpiObject)        , intent(in   )                :: self
+    {gatherscalar¦intrinsic}, intent(in   )                :: scalar
+    {gatherscalar¦intrinsic}, dimension(  self%countValue) :: mpiGather{gatherscalar¦label}
 #ifdef USEMPI
-    {gatherscalar¦intrinsic}   , dimension(1,self%countValue) :: array
+    {gatherscalar¦intrinsic}, dimension(1,self%countValue) :: array
 #endif
 
 #ifdef USEMPI
@@ -1109,9 +1095,9 @@ contains
     use Error, only : Error_Report
 #endif
     implicit none
-    class           (mpiObject), intent(in   )                                         :: self
-    {gatherarray¦intrinsic}    , intent(in   ), dimension({gatherarray¦argdims}    ) :: array
-    {gatherarray¦intrinsic}    ,                dimension({gatherarray¦resultdims} ) :: mpiGather{gatherarray¦label}
+    class(mpiObject)       , intent(in   )                                       :: self
+    {gatherarray¦intrinsic}, intent(in   ), dimension({gatherarray¦argdims}    ) :: array
+    {gatherarray¦intrinsic},                dimension({gatherarray¦resultdims} ) :: mpiGather{gatherarray¦label}
 
 #ifdef USEMPI
     mpiGather{gatherarray¦label}=self%requestData(self%allRanks,array)
@@ -1122,10 +1108,6 @@ contains
 #endif
     return
   end function mpiGather{gatherarray¦label}
-
-
-
-
 
   subroutine mpiCommunicatorPush(self,color)
     !!{RST
