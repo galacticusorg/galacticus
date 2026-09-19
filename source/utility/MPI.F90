@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
 !!{RST
 Contains a module that implements useful MPI utilities.
 !!}
@@ -206,6 +208,53 @@ module MPI_Utilities
   ! Tags.
   integer, parameter :: tagRequestForData= 1, tagState=2
   integer, parameter :: nullRequester    =-1
+
+  ! Generic type instances used to generate the type- and rank-specific MPI sum functions.
+  !![
+  <generic identifier="arraytype">
+   <instance label="Int"         description="an integer"       intrinsic="integer                    " mpitype="MPI_Integer"          zero="0"
+             argdims=" :         "
+             maskdims="0:         "
+             resultdims="size(array)"/>
+   <instance label="SizeT"       description="an integer"       intrinsic="integer(c_size_t )         " mpitype="MPI_Integer8"         zero="0_c_size_t"
+             argdims=" :         "
+             maskdims="0:         "
+             resultdims="size(array)"/>
+   <instance label="TwoSizeT"    description="a rank-2 integer" intrinsic="integer(c_size_t )         " mpitype="MPI_Integer8"         zero="0_c_size_t"
+             argdims=" :               , :               "
+             maskdims="0:                                 "
+             resultdims="size(array,dim=1),size(array,dim=2)"/>
+   <instance label="ThreeSizeT"  description="a rank-3 integer" intrinsic="integer(c_size_t )         " mpitype="MPI_Integer8"         zero="0_c_size_t"
+             argdims=" :               , :               , :               "
+             maskdims="0:                                                   "
+             resultdims="size(array,dim=1),size(array,dim=2),size(array,dim=3)"/>
+   <instance label="FourSizeT"   description="a rank-4 integer" intrinsic="integer(c_size_t )         " mpitype="MPI_Integer8"         zero="0_c_size_t"
+             argdims=" :               , :               , :               , :               "
+             maskdims="0:                                                                     "
+             resultdims="size(array,dim=1),size(array,dim=2),size(array,dim=3),size(array,dim=4)"/>
+   <instance label="Real"        description="a real"           intrinsic="real                       " mpitype="MPI_Real"             zero="0.0"
+             argdims=" :         "
+             maskdims="0:         "
+             resultdims="size(array)"/>
+   <instance label="Double"      description="a double"         intrinsic="double precision           " mpitype="MPI_Double_Precision" zero="0.0d0"
+             argdims=" :         "
+             maskdims="0:         "
+             resultdims="size(array)"/>
+   <instance label="TwoDouble"   description="a rank-2 double"  intrinsic="double precision           " mpitype="MPI_Double_Precision" zero="0.0d0"
+             argdims=" :               , :               "
+             maskdims="0:                                 "
+             resultdims="size(array,dim=1),size(array,dim=2)"/>
+   <instance label="ThreeDouble" description="a rank-3 double"  intrinsic="double precision           " mpitype="MPI_Double_Precision" zero="0.0d0"
+             argdims=" :               , :               , :               "
+             maskdims="0:                                                   "
+             resultdims="size(array,dim=1),size(array,dim=2),size(array,dim=3)"/>
+  </generic>
+  <generic identifier="scalartype">
+   <instance label="Int"    description="an integer"   intrinsic="integer           " zero="0"         />
+   <instance label="SizeT"  description="a ``size_t``" intrinsic="integer(c_size_t )" zero="0_c_size_t"/>
+   <instance label="Double" description="a double"     intrinsic="double precision  " zero="0.0d0"     />
+  </generic>
+  !!]
 
 contains
 
@@ -994,22 +1043,22 @@ contains
     return
   end subroutine mpiBroadcastData3D
   
-  function mpiSumArrayInt(self,array,mask)
+  function mpiSumArray{arraytype¦label}(self,array,mask)
     !!{RST
-    Sum an integer array over all processes, returning it to all processes.
+    Sum {arraytype¦description} array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
 #ifdef USEMPI
-    use :: MPI_F08, only : MPI_AllReduce, MPI_Integer, MPI_Sum
+    use :: MPI_F08, only : MPI_AllReduce, {arraytype¦mpitype}, MPI_Sum
 #endif
     implicit none
-    class  (mpiObject), intent(in   )                                    :: self
-    integer           , intent(in   ), dimension( :          )           :: array
-    logical           , intent(in   ), dimension(0:          ), optional :: mask
-    integer                          , dimension(size(array))            :: mpiSumArrayInt
+    class                (mpiObject), intent(in   )                                              :: self
+    {arraytype¦intrinsic}           , intent(in   ), dimension({arraytype¦argdims}   )           :: array
+    logical                         , intent(in   ), dimension({arraytype¦maskdims}  ), optional :: mask
+    {arraytype¦intrinsic}                          , dimension({arraytype¦resultdims})           :: mpiSumArray{arraytype¦label}
 #ifdef USEMPI
-    integer                          , dimension(size(array))            :: maskedArray
-    integer                                                              :: iError        , activeCount
+    {arraytype¦intrinsic}                          , dimension({arraytype¦resultdims})           :: maskedArray
+    integer                                                                                      :: iError                      , activeCount
 #endif
 
 #ifdef USEMPI
@@ -1017,385 +1066,45 @@ contains
     maskedArray=array
     activeCount=self%count()
     if (present(mask)) then
-       if (.not.mask(self%rank())) maskedArray=0
+       if (.not.mask(self%rank())) maskedArray={arraytype¦zero}
        activeCount=count(mask)
     end if
-    call MPI_AllReduce(maskedArray,mpiSumArrayInt,size(array),MPI_Integer,MPI_Sum,mpiSelf%communicator,iError)
+    call MPI_AllReduce(maskedArray,mpiSumArray{arraytype¦label},size(array),{arraytype¦mpitype},MPI_Sum,mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
 #else
     !$GLC attributes unused :: self, array, mask
-    mpiSumArrayInt=0
+    mpiSumArray{arraytype¦label}={arraytype¦zero}
     call Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
-  end function mpiSumArrayInt
+  end function mpiSumArray{arraytype¦label}
 
-  function mpiSumArraySizeT(self,array,mask)
+  function mpiSumScalar{scalartype¦label}(self,scalar,mask)
     !!{RST
-    Sum an integer array over all processes, returning it to all processes.
-    !!}
-    use :: Error  , only : Error_Report
-#ifdef USEMPI
-    use :: MPI_F08, only : MPI_AllReduce, MPI_Integer8, MPI_Sum
-#endif
-    implicit none
-    class  (mpiObject), intent(in   )                                    :: self
-    integer(c_size_t ), intent(in   ), dimension( :          )           :: array
-    logical           , intent(in   ), dimension(0:          ), optional :: mask
-    integer(c_size_t )               , dimension(size(array))            :: mpiSumArraySizeT
-#ifdef USEMPI
-    integer(c_size_t )               , dimension(size(array))            :: maskedArray
-    integer                                                              :: iError        , activeCount
-#endif
-
-#ifdef USEMPI
-    ! Sum the array over all processes.
-    maskedArray=array
-    activeCount=self%count()
-    if (present(mask)) then
-       if (.not.mask(self%rank())) maskedArray=0_c_size_t
-       activeCount=count(mask)
-    end if
-    call MPI_AllReduce(maskedArray,mpiSumArraySizeT,size(array),MPI_Integer8,MPI_Sum,mpiSelf%communicator,iError)
-    if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
-#else
-    !$GLC attributes unused :: self, array, mask
-    mpiSumArraySizeT=0_c_size_t
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiSumArraySizeT
-
-  function mpiSumArrayTwoSizeT(self,array,mask)
-    !!{RST
-    Sum a rank-2 integer array over all processes, returning it to all processes.
-    !!}
-    use :: Error  , only : Error_Report
-#ifdef USEMPI
-    use :: MPI_F08, only : MPI_AllReduce, MPI_Integer8, MPI_Sum
-#endif
-    implicit none
-    class  (mpiObject), intent(in   )                                                           :: self
-    integer(c_size_t ), intent(in   ), dimension( :               , :               )           :: array
-    logical           , intent(in   ), dimension(0:                                 ), optional :: mask
-    integer(c_size_t )               , dimension(size(array,dim=1),size(array,dim=2))           :: mpiSumArrayTwoSizeT
-#ifdef USEMPI
-    integer(c_size_t )               , dimension(size(array,dim=1),size(array,dim=2))           :: maskedArray
-    integer                                                                                     :: iError             , activeCount
-#endif
-
-#ifdef USEMPI
-    ! Sum the array over all processes.
-    maskedArray=array
-    activeCount=self%count()
-    if (present(mask)) then
-       if (.not.mask(self%rank())) maskedArray=0_c_size_t
-       activeCount=count(mask)
-    end if
-    call MPI_AllReduce(maskedArray,mpiSumArrayTwoSizeT,size(array),MPI_Integer8,MPI_Sum,mpiSelf%communicator,iError)
-    if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
-#else
-    !$GLC attributes unused :: self, array, mask
-    mpiSumArrayTwoSizeT=0_c_size_t
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiSumArrayTwoSizeT
-
-  function mpiSumArrayThreeSizeT(self,array,mask)
-    !!{RST
-    Sum a rank-3 integer array over all processes, returning it to all processes.
-    !!}
-    use :: Error  , only : Error_Report
-#ifdef USEMPI
-    use :: MPI_F08, only : MPI_AllReduce, MPI_Integer8, MPI_Sum
-#endif
-    implicit none
-    class  (mpiObject), intent(in   )                                                                             :: self
-    integer(c_size_t ), intent(in   ), dimension( :               , :               , :               )           :: array
-    logical           , intent(in   ), dimension(0:                                                   ), optional :: mask
-    integer(c_size_t )               , dimension(size(array,dim=1),size(array,dim=2),size(array,dim=3))           :: mpiSumArrayThreeSizeT
-#ifdef USEMPI
-    integer(c_size_t )               , dimension(size(array,dim=1),size(array,dim=2),size(array,dim=3))           :: maskedArray
-    integer                                                                                                       :: iError               , activeCount
-#endif
-
-#ifdef USEMPI
-    ! Sum the array over all processes.
-    maskedArray=array
-    activeCount=self%count()
-    if (present(mask)) then
-       if (.not.mask(self%rank())) maskedArray=0_c_size_t
-       activeCount=count(mask)
-    end if
-    call MPI_AllReduce(maskedArray,mpiSumArrayThreeSizeT,size(array),MPI_Integer8,MPI_Sum,mpiSelf%communicator,iError)
-    if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
-#else
-    !$GLC attributes unused :: self, array, mask
-    mpiSumArrayThreeSizeT=0_c_size_t
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiSumArrayThreeSizeT
-  
-  function mpiSumArrayFourSizeT(self,array,mask)
-    !!{RST
-    Sum a rank-4 integer array over all processes, returning it to all processes.
-    !!}
-    use :: Error  , only : Error_Report
-#ifdef USEMPI
-    use :: MPI_F08, only : MPI_AllReduce, MPI_Integer8, MPI_Sum
-#endif
-    implicit none
-    class  (mpiObject), intent(in   )                                                                                               :: self
-    integer(c_size_t ), intent(in   ), dimension( :               , :               , :               , :               )           :: array
-    logical           , intent(in   ), dimension(0:                                                                     ), optional :: mask
-    integer(c_size_t )               , dimension(size(array,dim=1),size(array,dim=2),size(array,dim=3),size(array,dim=4))           :: mpiSumArrayFourSizeT
-#ifdef USEMPI
-    integer(c_size_t )               , dimension(size(array,dim=1),size(array,dim=2),size(array,dim=3),size(array,dim=4))           :: maskedArray
-    integer                                                                                                                         :: iError               , activeCount
-#endif
-
-#ifdef USEMPI
-    ! Sum the array over all processes.
-    maskedArray=array
-    activeCount=self%count()
-    if (present(mask)) then
-       if (.not.mask(self%rank())) maskedArray=0_c_size_t
-       activeCount=count(mask)
-    end if
-    call MPI_AllReduce(maskedArray,mpiSumArrayFourSizeT,size(array),MPI_Integer8,MPI_Sum,mpiSelf%communicator,iError)
-    if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
-#else
-    !$GLC attributes unused :: self, array, mask
-    mpiSumArrayFourSizeT=0_c_size_t
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiSumArrayFourSizeT
-
-  integer function mpiSumScalarInt(self,scalar,mask)
-    !!{RST
-    Sum an integer scalar over all processes, returning it to all processes.
+    Sum {scalartype¦description} scalar over all processes, returning it to all processes.
     !!}
 #ifndef USEMPI
     use :: Error, only : Error_Report
 #endif
     implicit none
-    class  (mpiObject), intent(in   )                         :: self
-    integer           , intent(in   )                         :: scalar
-    logical           , intent(in   ), dimension(:), optional :: mask
+    {scalartype¦intrinsic}                                                   :: mpiSumScalar{scalartype¦label}
+    class                 (mpiObject), intent(in   )                         :: self
+    {scalartype¦intrinsic}           , intent(in   )                         :: scalar
+    logical                          , intent(in   ), dimension(:), optional :: mask
 #ifdef USEMPI
-    integer                          , dimension(1)           :: array
+    {scalartype¦intrinsic}                          , dimension(1)           :: array
 #endif
 
 #ifdef USEMPI
     array=self%sum([scalar],mask)
-    mpiSumScalarInt=array(1)
+    mpiSumScalar{scalartype¦label}=array(1)
 #else
     !$GLC attributes unused :: self, scalar, mask
-    mpiSumScalarInt=0
+    mpiSumScalar{scalartype¦label}={scalartype¦zero}
     call Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
-  end function mpiSumScalarInt
-
-  function mpiSumScalarSizeT(self,scalar,mask)
-    !!{RST
-    Sum a ``size_t`` scalar over all processes, returning it to all processes.
-    !!}
-#ifndef USEMPI
-    use :: Error, only : Error_Report
-#endif
-    implicit none
-    integer(c_size_t )                                        :: mpiSumScalarSizeT
-    class  (mpiObject), intent(in   )                         :: self
-    integer(c_size_t ), intent(in   )                         :: scalar
-    logical           , intent(in   ), dimension(:), optional :: mask
-#ifdef USEMPI
-    integer(c_size_t )               , dimension(1)           :: array
-#endif
-
-#ifdef USEMPI
-    array=self%sum([scalar],mask)
-    mpiSumScalarSizeT=array(1)
-#else
-    !$GLC attributes unused :: self, scalar, mask
-    mpiSumScalarSizeT=0_c_size_t
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiSumScalarSizeT
-
-  function mpiSumArrayReal(self,array,mask)
-    !!{RST
-    Sum a real array over all processes, returning it to all processes.
-    !!}
-    use :: Error  , only : Error_Report
-#ifdef USEMPI
-    use :: MPI_F08, only : MPI_AllReduce, MPI_Real, MPI_Sum
-#endif
-    implicit none
-    class           (mpiObject), intent(in   )                                    :: self
-    real                       , intent(in   ), dimension( :          )           :: array
-    logical                    , intent(in   ), dimension(0:          ), optional :: mask
-    real                                      , dimension(size(array))            :: mpiSumArrayReal
-#ifdef USEMPI
-    real                                      , dimension(size(array))            :: maskedArray
-    integer                                                                       :: iError          , activeCount
-#endif
-
-#ifdef USEMPI
-    ! Sum the array over all processes.
-    maskedArray=array
-    activeCount=self%count()
-    if (present(mask)) then
-       if (.not.mask(self%rank())) maskedArray=0.0
-       activeCount=count(mask)
-    end if
-    call MPI_AllReduce(maskedArray,mpiSumArrayReal,size(array),MPI_Real,MPI_Sum,mpiSelf%communicator,iError)
-    if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
-#else
-    !$GLC attributes unused :: self, array, mask
-    mpiSumArrayReal=0.0
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiSumArrayReal
-
-  function mpiSumArrayDouble(self,array,mask)
-    !!{RST
-    Sum an integer array over all processes, returning it to all processes.
-    !!}
-    use :: Error  , only : Error_Report
-#ifdef USEMPI
-    use :: MPI_F08, only : MPI_AllReduce, MPI_Double_Precision, MPI_Sum
-#endif
-    implicit none
-    class           (mpiObject), intent(in   )                                    :: self
-    double precision           , intent(in   ), dimension( :          )           :: array
-    logical                    , intent(in   ), dimension(0:          ), optional :: mask
-    double precision                          , dimension(size(array))            :: mpiSumArrayDouble
-#ifdef USEMPI
-    double precision                          , dimension(size(array))            :: maskedArray
-    integer                                                                       :: iError           , activeCount
-#endif
-
-#ifdef USEMPI
-    ! Sum the array over all processes.
-    maskedArray=array
-    activeCount=self%count()
-    if (present(mask)) then
-       if (.not.mask(self%rank())) maskedArray=0.0d0
-       activeCount=count(mask)
-    end if
-    call MPI_AllReduce(maskedArray,mpiSumArrayDouble,size(array),MPI_Double_Precision,MPI_Sum,mpiSelf%communicator,iError)
-    if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
-#else
-    !$GLC attributes unused :: self, array, mask
-    mpiSumArrayDouble=0.0d0
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiSumArrayDouble
-
-  function mpiSumArrayTwoDouble(self,array,mask)
-    !!{RST
-    Sum an rank-2 double array over all processes, returning it to all processes.
-    !!}
-    use :: Error  , only : Error_Report
-#ifdef USEMPI
-    use :: MPI_F08, only : MPI_AllReduce, MPI_Double_Precision, MPI_Sum
-#endif
-    implicit none
-    class           (mpiObject), intent(in   )                                                           :: self
-    double precision           , intent(in   ), dimension( :               , :               )           :: array
-    logical                    , intent(in   ), dimension(0:                                 ), optional :: mask
-    double precision                          , dimension(size(array,dim=1),size(array,dim=2))           :: mpiSumArrayTwoDouble
-#ifdef USEMPI
-    double precision                          , dimension(size(array,dim=1),size(array,dim=2))            :: maskedArray
-    integer                                                                                               :: iError           , activeCount
-#endif
-
-#ifdef USEMPI
-    ! Sum the array over all processes.
-    maskedArray=array
-    activeCount=self%count()
-    if (present(mask)) then
-       if (.not.mask(self%rank())) maskedArray=0.0d0
-       activeCount=count(mask)
-    end if
-    call MPI_AllReduce(maskedArray,mpiSumArrayTwoDouble,size(array),MPI_Double_Precision,MPI_Sum,mpiSelf%communicator,iError)
-    if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
-#else
-    !$GLC attributes unused :: self, array, mask
-    mpiSumArrayTwoDouble=0.0d0
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiSumArrayTwoDouble
-
-  function mpiSumArrayThreeDouble(self,array,mask)
-    !!{RST
-    Sum an rank-3 double array over all processes, returning it to all processes.
-    !!}
-    use :: Error  , only : Error_Report
-#ifdef USEMPI
-    use :: MPI_F08, only : MPI_AllReduce, MPI_Double_Precision, MPI_Sum
-#endif
-    implicit none
-    class           (mpiObject), intent(in   )                                                                             :: self
-    double precision           , intent(in   ), dimension( :               , :               , :               )           :: array
-    logical                    , intent(in   ), dimension(0:                                                   ), optional :: mask
-    double precision                          , dimension(size(array,dim=1),size(array,dim=2),size(array,dim=3))           :: mpiSumArrayThreeDouble
-#ifdef USEMPI
-    double precision                          , dimension(size(array,dim=1),size(array,dim=2),size(array,dim=3))           :: maskedArray
-    integer                                                                                                                :: iError                , activeCount
-#endif
-
-#ifdef USEMPI
-    ! Sum the array over all processes.
-    maskedArray=array
-    activeCount=self%count()
-    if (present(mask)) then
-       if (.not.mask(self%rank())) maskedArray=0.0d0
-       activeCount=count(mask)
-    end if
-    call MPI_AllReduce(maskedArray,mpiSumArrayThreeDouble,size(array),MPI_Double_Precision,MPI_Sum,mpiSelf%communicator,iError)
-    if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
-#else
-    !$GLC attributes unused :: self, array, mask
-    mpiSumArrayThreeDouble=0.0d0
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiSumArrayThreeDouble
-
-  double precision function mpiSumScalarDouble(self,scalar,mask)
-    !!{RST
-    Sum an integer scalar over all processes, returning it to all processes.
-    !!}
-#ifndef USEMPI
-    use :: Error, only : Error_Report
-#endif
-    implicit none
-    class           (mpiObject), intent(in   )                         :: self
-    double precision           , intent(in   )                         :: scalar
-    logical                    , intent(in   ), dimension(:), optional :: mask
-#ifdef USEMPI
-    double precision                          , dimension(1)           :: array
-#endif
-
-#ifdef USEMPI
-    array=self%sum([scalar],mask)
-    mpiSumScalarDouble=array(1)
-#else
-    !$GLC attributes unused :: self, scalar, mask
-    mpiSumScalarDouble=0.0d0
-    call Error_Report('code was not compiled for MPI'//{introspection:location})
-#endif
-    return
-  end function mpiSumScalarDouble
+  end function mpiSumScalar{scalartype¦label}
 
   function mpiAverageArray(self,array,mask)
     !!{RST

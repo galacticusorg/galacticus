@@ -17,13 +17,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Yu Zhao
+  !+    Contributions to this file made by: Yu Zhao, Claude
 
   !!{RST
   Implements a node operator class that triggers merging of satellites based on their orbital radius.
   !!}
-
-  use :: Kepler_Orbits, only : keplerOrbitCount
 
   !![
   <nodeOperator name="nodeOperatorSatelliteMergingSoliton" docformat="rst">
@@ -32,25 +30,17 @@
    </description>
   </nodeOperator>
   !!]
-  type, extends(nodeOperatorClass) :: nodeOperatorSatelliteMergingSoliton
+  type, extends(nodeOperatorSatelliteMergingRadius) :: nodeOperatorSatelliteMergingSoliton
      !!{RST
      A node operator that triggers satellite merging in FDM models when the orbital radius falls below the sum of the soliton core radii of the host and satellite.
      !!}
      private
-     logical :: recordMergedSubhaloProperties                  , recordFirstLevelOnly
-     integer :: mergedSubhaloIDs             (keplerOrbitCount), nodeHierarchyLevelMaximumID
-     integer :: radiusCoreID                                   , massCoreID                 , &
-                randomOffsetID                                 , massCoreNormalID
+     integer :: radiusCoreID  , massCoreID      , &
+                randomOffsetID, massCoreNormalID
    contains
-     !![
-     <methods docformat="rst">
-       <method description="Compute the radius at which the satellite will be merged in FDM models." method="radiusMerge" />
-     </methods>
-     !!]
-     final     ::                          satelliteMergingSolitonDestructor
-     procedure :: differentialEvolution => satelliteMergingSolitonDifferentialEvolution
-     procedure :: radiusMerge           => satelliteMergingSolitonRadiusMerge
-     procedure :: autoHook              => satelliteMergingSolitonAutoHook
+     final     ::                satelliteMergingSolitonDestructor
+     procedure :: radiusMerge => satelliteMergingSolitonRadiusMerge
+     procedure :: autoHook    => satelliteMergingSolitonAutoHook
   end type nodeOperatorSatelliteMergingSoliton
   
   interface nodeOperatorSatelliteMergingSoliton
@@ -61,9 +51,6 @@
      module procedure satelliteMergingSolitonConstructorInternal
   end interface nodeOperatorSatelliteMergingSoliton
 
-  ! Sub-module-scope pointer to self used in callback function.
-  class(nodeOperatorSatelliteMergingSoliton), pointer :: self_
-  !$omp threadprivate(self)
   
 contains
 
@@ -106,8 +93,6 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`nodeOperatorSatelliteMergingSoliton` node operator class.
     !!}
-    use :: Kepler_Orbits, only : keplerOrbitTimeInitial     , keplerOrbitMassSatellite, keplerOrbitMassHost, keplerOrbitRadius, &
-         &                       keplerOrbitRadiusPericenter, keplerOrbitTimeCurrent
     implicit none
     type   (nodeOperatorSatelliteMergingSoliton)                :: self
     logical                                     , intent(in   ) :: recordMergedSubhaloProperties, recordFirstLevelOnly
@@ -122,17 +107,7 @@ contains
     <addMetaProperty component="darkMatterProfile" name="solitonMassCoreNormal" id="self%massCoreNormalID" isEvolvable="yes" isCreator="no"/>
     !!]
     
-    if (recordMergedSubhaloProperties) then
-       !![
-       <addMetaProperty component="basic" name="mergedSubhaloTimeCurrent"                     id="self%mergedSubhaloIDs(keplerOrbitTimeCurrent     %ID)" rank="1" isCreator="yes"/>
-       <addMetaProperty component="basic" name="mergedSubhaloTimeInitial"                     id="self%mergedSubhaloIDs(keplerOrbitTimeInitial     %ID)" rank="1" isCreator="yes"/>
-       <addMetaProperty component="basic" name="mergedSubhaloMassSatellite"                   id="self%mergedSubhaloIDs(keplerOrbitMassSatellite   %ID)" rank="1" isCreator="yes"/>
-       <addMetaProperty component="basic" name="mergedSubhaloMassHost"                        id="self%mergedSubhaloIDs(keplerOrbitMassHost        %ID)" rank="1" isCreator="yes"/>
-       <addMetaProperty component="basic" name="mergedSubhaloRadius"                          id="self%mergedSubhaloIDs(keplerOrbitRadius          %ID)" rank="1" isCreator="yes"/>
-       <addMetaProperty component="basic" name="mergedSubhaloRadiusPericenter"                id="self%mergedSubhaloIDs(keplerOrbitRadiusPericenter%ID)" rank="1" isCreator="yes"/>
-       <addMetaProperty component="basic" name="nodeHierarchyLevelMaximum"     type="integer" id="self%nodeHierarchyLevelMaximumID"                               isCreator="no" />
-       !!]
-    end if
+    call self%recordingInitialize()
     return
   end function satelliteMergingSolitonConstructorInternal
 
@@ -161,114 +136,6 @@ contains
     if (satelliteMergerEvent%isAttached(self,satelliteMerger)) call satelliteMergerEvent%detach(self,satelliteMerger)
     return
   end subroutine satelliteMergingSolitonDestructor
-  
-  subroutine satelliteMergingSolitonDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{RST
-    Trigger merging of a satellite halo based on its orbital radius.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite
-    use :: Vectors         , only : Vector_Magnitude
-    implicit none
-    class           (nodeOperatorSatelliteMergingSoliton), intent   (inout), target  :: self
-    type            (treeNode                           ), intent   (inout), target  :: node
-    logical                                              , intent   (inout)          :: interrupt
-    procedure       (interruptTask                      ), intent   (inout), pointer :: functionInterrupt
-    integer                                              , intent   (in   )          :: propertyType
-    class           (nodeComponentSatellite             )                  , pointer :: satellite
-    double precision                                     , dimension(3    )          :: position
-    double precision                                                                 :: radius
-    !$GLC attributes unused :: propertyType
-    
-    if (.not.node%isSatellite()) return
-    satellite => node     %satellite(        )
-    position  =  satellite%position (        )
-    radius    =  Vector_Magnitude   (position)
-    ! Test for merging.
-    if     (                                 &
-         &   radius > 0.0d0                  &
-         &  .and.                            &
-         &   radius < self%radiusMerge(node) &
-         & ) then
-       ! Merging criterion met - trigger an interrupt.
-       interrupt         =  .true.
-       functionInterrupt => mergerTrigger
-       self_             => self
-    end if
-    return
-  end subroutine satelliteMergingSolitonDifferentialEvolution
-
-  subroutine mergerTrigger(node,timeEnd)
-    !!{RST
-    Trigger a merger of the satellite by setting the time until merging to zero.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite     , nodeComponentBasic    , treeNode
-    use :: Kepler_Orbits   , only : keplerOrbit                , keplerOrbitTimeInitial, keplerOrbitMassSatellite, keplerOrbitMassHost, &
-         &                          keplerOrbitRadiusPericenter, keplerOrbitRadius     , keplerOrbitTimeCurrent
-    implicit none
-    type            (treeNode              ), intent(inout), target      :: node
-    double precision                        , intent(in   ), optional    :: timeEnd
-    type            (treeNode              )               , pointer     :: nodeHost
-    class           (nodeComponentBasic    )               , pointer     :: basic          , basicHost
-    class           (nodeComponentSatellite)               , pointer     :: satellite
-    double precision                        , dimension(:) , allocatable :: propertyCurrent, propertyNew
-    double precision                                                     :: property
-    type            (keplerOrbit           )                             :: orbit
-    integer                                                              :: i              , ID
-    !$GLC attributes unused :: timeEnd
-
-    ! Set the time of merging to the current time.
-    basic     => node%basic    ()
-    satellite => node%satellite()
-    call satellite%timeOfMergingSet(basic%time())
-    ! Record properties of the merging subhalo if necessary.
-    if (self_%recordMergedSubhaloProperties) then
-       ! Find the node to merge with.
-       nodeHost  => node    %mergesWith()
-       basicHost => nodeHost%basic     ()
-       ! Only record if we are recording mergers from all levels of the hierarchy, or if this is a first level subhalo relative to the host.
-       if     (                                                                             &
-            &   .not.self_%recordFirstLevelOnly                                             &
-            &  .or.                                                                         &
-            &    basic    %integerRank0MetaPropertyGet(self_%nodeHierarchyLevelMaximumID)   &
-            &   ==                                                                          &
-            &    basicHost%integerRank0MetaPropertyGet(self_%nodeHierarchyLevelMaximumID)+1 &
-            & ) then
-          ! Get the virial orbit of the halo about to merge.
-          orbit=satellite%virialOrbit()
-          ! Append the orbit data.
-          do i=1,6
-             select case (i)
-             case (1)
-                ID      =keplerOrbitTimeInitial     %ID
-                property=basic%timeLastIsolated()
-             case (2)
-                ID      =keplerOrbitTimeCurrent     %ID
-                property=basic%time            ()
-             case (3)
-                ID      =keplerOrbitMassSatellite   %ID
-                property=orbit%massSatellite   ()
-             case (4)
-                ID      =keplerOrbitMassHost        %ID
-                property=orbit%massHost        ()
-             case (5)
-                ID      =keplerOrbitRadius          %ID
-                property=orbit%radius          ()
-             case (6)
-                ID      =keplerOrbitRadiusPericenter%ID
-                property=orbit%radiusPericenter()
-             end select
-             propertyCurrent=basicHost%floatRank1MetaPropertyGet(self_%mergedSubhaloIDs(ID))
-             allocate(propertyNew(size(propertyCurrent)+1_c_size_t))
-             propertyNew(1_c_size_t:size(propertyCurrent))=propertyCurrent(:)
-             propertyNew(           size(propertyNew    ))=property
-             call basicHost%floatRank1MetaPropertySet(self_%mergedSubhaloIDs(ID),propertyNew)
-             deallocate(propertyCurrent)
-             deallocate(propertyNew    )
-          end do
-       end if
-    end if
-    return
-  end subroutine mergerTrigger
 
   double precision function satelliteMergingSolitonRadiusMerge(self,node) result(radiusMerge)
     !!{RST
@@ -301,7 +168,10 @@ contains
     !!{RST
     Merge the solitonic cores of the satellite and host halos.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentDarkMatterProfile, treeNode
+    use :: Error             , only : Error_Report
+    use :: Function_Classes  , only : functionClass
+    use :: Galacticus_Nodes  , only : nodeComponentSatellite, nodeComponentDarkMatterProfile, treeNode
+    use :: ISO_Varying_String, only : char
     implicit none
     class           (*                             ), intent(inout)         :: self
     type            (treeNode                      ), intent(inout), target :: node
@@ -310,33 +180,39 @@ contains
     double precision                                , parameter             :: fractionMassRetained=0.7d0
     double precision                                                        :: massCoreHost              , massCoreSatellite      , &
             &                                                                  massCoreNormalHost        , massCoreNormalSatellite
-    !$GLC attributes unused :: self
 
-    ! Find the host node profile.
-    nodeHost              => node    %mergesWith       ()
-    darkMatterProfileHost => nodeHost%darkMatterProfile()
-    ! Get the satellite profile.
-    darkMatterProfile     => node    %darkMatterProfile()
-    ! Compute the new core mass.
-    massCoreNormalHost     = darkMatterProfileHost%floatRank0MetaPropertyGet(self_%massCoreNormalID)
-    massCoreNormalSatellite= darkMatterProfile    %floatRank0MetaPropertyGet(self_%massCoreNormalID)
-    massCoreHost           = darkMatterProfileHost%floatRank0MetaPropertyGet(self_%massCoreID      )
-    massCoreSatellite      = darkMatterProfile    %floatRank0MetaPropertyGet(self_%massCoreID      )
-    call darkMatterProfileHost%floatRank0MetaPropertySet(                                                                    &
-         &                                                self_%massCoreNormalID                                           , &
-         &                                               +fractionMassRetained*(massCoreNormalHost+massCoreNormalSatellite)  &
-         &                                              )
-    call darkMatterProfileHost%floatRank0MetaPropertySet(                                                                    &
-         &                                                self_%massCoreID                                                 , &
-         &                                               +fractionMassRetained*(massCoreHost      +massCoreSatellite      )  &
-         &                                              )
-    call darkMatterProfileHost%floatRank0MetaPropertySet(                                                                    &
-         &                                                self_%randomOffsetID                                             , &
-         &                                               +log10(                                                             &
-         &                                                      +(massCoreHost      +massCoreSatellite      )                &
-         &                                                      /(massCoreNormalHost+massCoreNormalSatellite)                &
-         &                                                     )                                                             &
-         &                                              )
+    select type (self)
+    class is (nodeOperatorSatelliteMergingSoliton)
+       ! Find the host node profile.
+       nodeHost              => node    %mergesWith       ()
+       darkMatterProfileHost => nodeHost%darkMatterProfile()
+       ! Get the satellite profile.
+       darkMatterProfile     => node    %darkMatterProfile()
+       ! Compute the new core mass.
+       massCoreNormalHost     = darkMatterProfileHost%floatRank0MetaPropertyGet(self%massCoreNormalID)
+       massCoreNormalSatellite= darkMatterProfile    %floatRank0MetaPropertyGet(self%massCoreNormalID)
+       massCoreHost           = darkMatterProfileHost%floatRank0MetaPropertyGet(self%massCoreID      )
+       massCoreSatellite      = darkMatterProfile    %floatRank0MetaPropertyGet(self%massCoreID      )
+       call darkMatterProfileHost%floatRank0MetaPropertySet(                                                                    &
+            &                                                self%massCoreNormalID                                            , &
+            &                                               +fractionMassRetained*(massCoreNormalHost+massCoreNormalSatellite)  &
+            &                                              )
+       call darkMatterProfileHost%floatRank0MetaPropertySet(                                                                    &
+            &                                                self%massCoreID                                                  , &
+            &                                               +fractionMassRetained*(massCoreHost      +massCoreSatellite      )  &
+            &                                              )
+       call darkMatterProfileHost%floatRank0MetaPropertySet(                                                                    &
+            &                                                self%randomOffsetID                                              , &
+            &                                               +log10(                                                             &
+            &                                                      +(massCoreHost      +massCoreSatellite      )                &
+            &                                                      /(massCoreNormalHost+massCoreNormalSatellite)                &
+            &                                                     )                                                             &
+            &                                              )
+    class is (functionClass)
+       call Error_Report('object is not of [nodeOperatorSatelliteMergingSoliton] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
+    class default
+       call Error_Report('object is not of [nodeOperatorSatelliteMergingSoliton] class'//{introspection:location})
+    end select
     return
   end subroutine satelliteMerger
 

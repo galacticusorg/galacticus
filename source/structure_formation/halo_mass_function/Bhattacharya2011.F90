@@ -22,11 +22,20 @@
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
 
   !![
   <haloMassFunction name="haloMassFunctionBhattacharya2011" docformat="rst">
    <description>
    The dark matter halo mass function is computed using the redshift-dependent fitting function of :cite:t:`bhattacharya_mass_2011`, calibrated against N-body simulations. The shape parameters :math:`\bar{a}`, :math:`\bar{p}`, :math:`\bar{q}`, and normalization :math:`\bar{A}` of the fit can each be specified via input parameters.
+
+   Two of those parameters evolve with redshift in :cite:t:`bhattacharya_mass_2011`:
+
+   .. math::
+
+      \bar{A}(z) = \bar{A}_0 (1+z)^{\alpha_\mathrm{A}}, \,\,\, \bar{a}(z) = \bar{a}_0 (1+z)^{\alpha_\mathrm{a}},
+
+   where :math:`\bar{A}_0=`\ ``[normalization]`` and :math:`\bar{a}_0=`\ ``[a]`` are the values at :math:`z=0`, and the exponents :math:`\alpha_\mathrm{A}=`\ ``[exponentRedshiftNormalization]`` and :math:`\alpha_\mathrm{a}=`\ ``[exponentRedshiftA]`` default to the values of that paper. Set both exponents to zero to recover a fit with no redshift dependence - as is appropriate when the other parameters have been calibrated under that assumption.
    </description>
   </haloMassFunction>
   !!]
@@ -35,20 +44,23 @@
      A halo mass function class using the fitting function of :cite:t:`bhattacharya_mass_2011`.
      !!}
      private
-     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
-     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
-     double precision                                         :: a_                                 , p_, &
-          &                                                      normalization_                     , q_, &
-          &                                                      b_                                 , c_
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_      => null()
+     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_           => null()
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_            => null()
+     double precision                                         :: a_                                      , p_, &
+          &                                                      normalization_                          , q_, &
+          &                                                      b_                                      , c_, &
+          &                                                      exponentRedshiftA_                          , &
+          &                                                      exponentRedshiftNormalization_
    contains
      !![
      <methods docformat="rst">
-       <method description="Return the parameter :math:`\bar{a}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="a" />
-       <method description="Return the parameter :math:`\bar{b}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="c" />
-       <method description="Return the parameter :math:`\bar{c}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="b" />
-       <method description="Return the parameter :math:`\bar{p}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="p" />
-       <method description="Return the parameter :math:`\bar{q}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="q" />
-       <method description="Return the parameter :math:`\bar{A}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="normalization" />
+       <method description="Return the parameter :math:`\bar{a}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="a"            />
+       <method description="Return the parameter :math:`\bar{b}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="c"            />
+       <method description="Return the parameter :math:`\bar{c}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="b"            />
+       <method description="Return the parameter :math:`\bar{p}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="p"            />
+       <method description="Return the parameter :math:`\bar{q}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="q"            />
+       <method description="Return the parameter :math:`\bar{A}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="normalization"/>
      </methods>
      !!]
      final     ::                                   bhattacharya2011Destructor
@@ -83,15 +95,18 @@ contains
     class           (cosmologyParametersClass        ), pointer       :: cosmologyParameters_
     class           (cosmologicalMassVarianceClass   ), pointer       :: cosmologicalMassVariance_
     class           (criticalOverdensityClass        ), pointer       :: criticalOverdensity_
-    double precision                                                  :: a                        , p, &
-         &                                                               normalization            , q, &
-         &                                                               b                        , c
+    class           (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
+    double precision                                                  :: a                        , p                            , &
+         &                                                               normalization            , q                            , &
+         &                                                               b                        , c                            , &
+         &                                                               exponentRedshiftA        , exponentRedshiftNormalization
 
     ! Check and read parameters.
     !![
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <inputParameter docformat="rst">
       <name>a</name>
       <source>parameters</source>
@@ -152,18 +167,41 @@ contains
       The normalization parameter :math:`\bar{A}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit.
       </description>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>exponentRedshiftA</name>
+      <source>parameters</source>
+      <defaultValue>-0.01d0</defaultValue>
+      <defaultSource>
+      :cite:p:`bhattacharya_mass_2011`
+      </defaultSource>
+      <description>
+      The exponent :math:`\alpha_\mathrm{a}` of :math:`(1+z)` in the redshift dependence of the parameter :math:`\bar{a}` of the :cite:t:`bhattacharya_mass_2011` halo mass function fit. Set to zero for no redshift dependence.
+      </description>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>exponentRedshiftNormalization</name>
+      <source>parameters</source>
+      <defaultValue>-0.11d0</defaultValue>
+      <defaultSource>
+      :cite:p:`bhattacharya_mass_2011`
+      </defaultSource>
+      <description>
+      The exponent :math:`\alpha_\mathrm{A}` of :math:`(1+z)` in the redshift dependence of the normalization :math:`\bar{A}` of the :cite:t:`bhattacharya_mass_2011` halo mass function fit. Set to zero for no redshift dependence.
+      </description>
+    </inputParameter>
     !!]
-    self=haloMassFunctionBhattacharya2011(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,b,c,p,q,normalization)
+    self=haloMassFunctionBhattacharya2011(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologyFunctions_,a,b,c,p,q,normalization,exponentRedshiftA,exponentRedshiftNormalization)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"     />
     <objectDestructor name="cosmologicalMassVariance_"/>
     <objectDestructor name="criticalOverdensity_"     />
+    <objectDestructor name="cosmologyFunctions_"      />
     !!]
     return
   end function bhattacharya2011ConstructorParameters
 
-  function bhattacharya2011ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,b,c,p,q,normalization) result(self)
+  function bhattacharya2011ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologyFunctions_,a,b,c,p,q,normalization,exponentRedshiftA,exponentRedshiftNormalization) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`haloMassFunctionBhattacharya2011` halo mass function class.
     !!}
@@ -172,19 +210,23 @@ contains
     class           (cosmologyParametersClass        ), target, intent(in   ) :: cosmologyParameters_
     class           (cosmologicalMassVarianceClass   ), target, intent(in   ) :: cosmologicalMassVariance_
     class           (criticalOverdensityClass        ), target, intent(in   ) :: criticalOverdensity_
-    double precision                                          , intent(in   ) :: a                        , p, &
-         &                                                                       normalization            , q, &
-         &                                                                       b                        , c
+    class           (cosmologyFunctionsClass         ), target, intent(in   ) :: cosmologyFunctions_
+    double precision                                          , intent(in   ) :: a                        , p                            , &
+         &                                                                       normalization            , q                            , &
+         &                                                                       b                        , c                            , &
+         &                                                                       exponentRedshiftA        , exponentRedshiftNormalization
     !![
-    <constructorAssign variables="*cosmologyParameters_, *cosmologicalMassVariance_, *criticalOverdensity_"/>
+    <constructorAssign variables="*cosmologyParameters_, *cosmologicalMassVariance_, *criticalOverdensity_, *cosmologyFunctions_"/>
     !!]
 
-    self%            a_=a
-    self%            b_=b
-    self%            c_=c
-    self%            p_=p
-    self%            q_=q
-    self%normalization_=normalization
+    self%                            a_=a
+    self%                            b_=b
+    self%                            c_=c
+    self%                            p_=p
+    self%                            q_=q
+    self%                normalization_=normalization
+    self%            exponentRedshiftA_=exponentRedshiftA
+    self%exponentRedshiftNormalization_=exponentRedshiftNormalization
     return
   end function bhattacharya2011ConstructorInternal
 
@@ -196,9 +238,10 @@ contains
     type(haloMassFunctionBhattacharya2011), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyParameters_"      />
-    <objectDestructor name="self%cosmologicalMassVariance_" />
-    <objectDestructor name="self%criticalOverdensity_"      />
+    <objectDestructor name="self%cosmologyParameters_"     />
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    <objectDestructor name="self%criticalOverdensity_"     />
+    <objectDestructor name="self%cosmologyFunctions_"      />
     !!]
     return
   end subroutine bhattacharya2011Destructor
@@ -275,9 +318,10 @@ contains
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
     double precision                                  , intent(in   ) :: time , mass
-    !$GLC attributes unused :: time, mass
+    !$GLC attributes unused :: mass
 
-    bhattacharya2011A=self%a_
+    bhattacharya2011A=+self%a_                                                                    &
+         &            *self%cosmologyFunctions_%expansionFactor(time)**(-self%exponentRedshiftA_)
     return
   end function bhattacharya2011A
 
@@ -339,10 +383,11 @@ contains
     !!}
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
-    double precision                                  , intent(in   ) :: time , mass
-    !$GLC attributes unused :: time, mass
+    double precision                                  , intent(in   ) :: time, mass
+    !$GLC attributes unused :: mass
 
-    bhattacharya2011Normalization=self%normalization_
+    bhattacharya2011Normalization=+self%normalization_                                                                    &
+         &                        *self%cosmologyFunctions_%expansionFactor(time)**(-self%exponentRedshiftNormalization_)
     return
   end function bhattacharya2011Normalization
 
