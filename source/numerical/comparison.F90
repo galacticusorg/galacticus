@@ -43,37 +43,31 @@ module Numerical_Comparison
      module procedure Values_Agree_Double_Complex
   end interface Values_Agree
 
+  ! Generic type instances used to generate the type-specific comparison functions.
+  !![
+  <generic identifier="valuetype">
+   <instance label="Real"   intrinsic="real"            />
+   <instance label="Double" intrinsic="double precision"/>
+  </generic>
+  !!]
+
 contains
 
-  elemental logical function Values_Differ_Real(value1,value2,absTol,relTol)
+
+  elemental logical function Values_Differ_{valuetype¦label}(value1,value2,absTol,relTol)
     !!{RST
     Returns true if ``value1`` and ``value2`` differ by more than ``absTol`` in absolute terms, or ``relTol`` in relative terms.
     !!}
     implicit none
-    real, intent(in   )           :: value1, value2
-    real, intent(in   ), optional :: absTol, relTol
+    {valuetype¦intrinsic}, intent(in   )           :: value1, value2
+    {valuetype¦intrinsic}, intent(in   ), optional :: absTol, relTol
 
-    Values_Differ_Real=.false.
-    if (present(absTol)) Values_Differ_Real=(abs(value1-value2) > absTol)
-    if (present(relTol)) Values_Differ_Real=Values_Differ_Real.or.(abs(value1-value2) > 0.5d0*abs(value1+value2)*relTol)
-    if (.not.(present(absTol).or.present(relTol))) Values_Differ_Real=(value1 /= value2)
+    Values_Differ_{valuetype¦label}=.false.
+    if (present(absTol)) Values_Differ_{valuetype¦label}=(abs(value1-value2) > absTol)
+    if (present(relTol)) Values_Differ_{valuetype¦label}=Values_Differ_{valuetype¦label}.or.(abs(value1-value2) > 0.5d0*abs(value1+value2)*relTol)
+    if (.not.(present(absTol).or.present(relTol))) Values_Differ_{valuetype¦label}=(value1 /= value2)
     return
-  end function Values_Differ_Real
-
-  elemental logical function Values_Differ_Double(value1,value2,absTol,relTol)
-    !!{RST
-    Returns true if ``value1`` and ``value2`` differ by more than ``absTol`` in absolute terms, or ``relTol`` in relative terms.
-    !!}
-    implicit none
-    double precision, intent(in   )           :: value1, value2
-    double precision, intent(in   ), optional :: absTol, relTol
-
-    Values_Differ_Double=.false.
-    if (present(absTol)) Values_Differ_Double=(abs(value1-value2) > absTol)
-    if (present(relTol)) Values_Differ_Double=Values_Differ_Double.or.(abs(value1-value2) > 0.5d0*abs(value1+value2)*relTol)
-    if (.not.(present(absTol).or.present(relTol))) Values_Differ_Double=(value1 /= value2)
-    return
-  end function Values_Differ_Double
+  end function Values_Differ_{valuetype¦label}
 
   elemental logical function Values_Differ_Double_Complex(value1,value2,absTol,relTol)
     !!{RST
@@ -96,17 +90,18 @@ contains
     return
   end function Values_Differ_Double_Complex
 
-  elemental logical function Values_Agree_Real(value1,value2,absTol,relTol)
+
+  elemental logical function Values_Agree_{valuetype¦label}(value1,value2,absTol,relTol)
     !!{RST
     Returns true if ``value1`` and ``value2`` agree to within ``absTol`` in absolute terms, or ``relTol`` in relative terms.
     !!}
     implicit none
-    real   , intent(in   )           :: value1         , value2
-    real   , intent(in   ), optional :: absTol         , relTol
-    logical                          :: agreeAbsolutely, agreeRelatively
+    {valuetype¦intrinsic}, intent(in   )           :: value1         , value2
+    {valuetype¦intrinsic}, intent(in   ), optional :: absTol         , relTol
+    logical                                        :: agreeAbsolutely, agreeRelatively
 
     if (value1 == value2) then
-       Values_Agree_Real=.true.
+       Values_Agree_{valuetype¦label}=.true.
     else
        if (present(absTol)) then
           agreeAbsolutely=(abs(value1-value2) <= absTol)
@@ -118,39 +113,11 @@ contains
        else
           agreeRelatively=.true.
        end if
-       Values_Agree_Real=    (present(absTol).and.agreeAbsolutely) &
-            &            .or.(present(relTol).and.agreeRelatively)
-    end if
-    return
-  end function Values_Agree_Real
-
-  elemental logical function Values_Agree_Double(value1,value2,absTol,relTol)
-    !!{RST
-    Returns true if ``value1`` and ``value2`` agree to within ``absTol`` in absolute terms, or ``relTol`` in relative terms.
-    !!}
-    implicit none
-    double precision, intent(in   )           :: value1         , value2
-    double precision, intent(in   ), optional :: absTol         , relTol
-    logical                                   :: agreeAbsolutely, agreeRelatively
-
-    if (value1 == value2) then
-       Values_Agree_Double=.true.
-    else
-       if (present(absTol)) then
-          agreeAbsolutely=(abs(value1-value2) <= absTol)
-       else
-          agreeAbsolutely=.true.
-       end if
-       if (present(relTol)) then
-          agreeRelatively=(abs(value1-value2) <= 0.5d0*abs(value1+value2)*relTol)
-       else
-          agreeRelatively=.true.
-       end if
-       Values_Agree_Double=    (present(absTol).and.agreeAbsolutely) &
+       Values_Agree_{valuetype¦label}=    (present(absTol).and.agreeAbsolutely) &
             &              .or.(present(relTol).and.agreeRelatively)
     end if
     return
-  end function Values_Agree_Double
+  end function Values_Agree_{valuetype¦label}
 
   elemental logical function Values_Agree_Double_Complex(value1,value2,absTol,relTol)
     !!{RST
