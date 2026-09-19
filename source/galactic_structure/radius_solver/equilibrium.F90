@@ -248,6 +248,7 @@ contains
     use :: Display                                   , only : displayMessage
     use :: Error                                     , only : Error_Report              , Warn
     use :: Galactic_Structure_Radius_Solver_Utilities, only : radiusSolverPlausibilities, radiusSolverTasks, radiusSolver
+    use :: Nodes_Formation_Node                      , only : nodeFormationRequired
     implicit none
     class           (galacticStructureSolverEquilibrium), intent(inout)           :: self
     type            (treeNode                          ), intent(inout), target   :: node
@@ -269,8 +270,7 @@ contains
        fitMeasure    =2.0d0*self%solutionTolerance
        ! Determine which node to use for halo properties.
        if (self%useFormationHalo) then
-          if (.not.associated(node%formationNode)) call Error_Report('no formation node exists'//{introspection:location})
-          node_ => node%formationNode
+          node_ => nodeFormationRequired(node,'[useFormationHalo]=true in the [equilibrium] galactic structure solver')
        else
           node_ => node
        end if

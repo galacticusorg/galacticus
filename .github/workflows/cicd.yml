@@ -1553,6 +1553,7 @@ jobs:
                 test-decaying-dark-matter-halo-mass-function.py,
                 test-objectBuilder-recursion.py,
                 test-objectBuilder-recursion-success.py,
+                test-parameter-fuzzing-regressions.py,
                 test-library-interfaces.py,
                 test-merger-tree-read-ties.py,
                 test-node-trajectory.py,

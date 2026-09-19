@@ -48,7 +48,7 @@ program Galacticus
   implicit none
   integer                             , parameter                 :: fileNameLengthMaximum =1024
   class    (taskClass                ), pointer                   :: task_
-  integer                                                         :: status
+  integer                                                         :: status                    , statusTask
   character(len=fileNameLengthMaximum)                            :: parameterFileCharacter    , option
   type     (varying_string           )                            :: parameterFile
   type     (varying_string           ), allocatable, dimension(:) :: changeFiles
@@ -150,6 +150,8 @@ program Galacticus
   end if
   call Output_HDF5_Completion_Status(status)
   if (status /= errorStatusSuccess) call displayMessage(displayMagenta()//'WARNING:'//displayReset()//' task failed')
+  ! Retain the task status - `status` is reused below.
+  statusTask=status
   call parameters%reset  ()
   call parameters%destroy()
   !![
@@ -162,7 +164,8 @@ program Galacticus
   if (status /= 0) call Error_Report('MPI barrier failed'//{introspection:location})
   call mpiFinalize()
 #endif
-  ! All done, finish.
+  ! All done. If the task failed exit with a non-zero status so that the failure can be detected by whatever ran Galacticus.
+  if (statusTask /= errorStatusSuccess) call Exit(1)
 
 contains
 
