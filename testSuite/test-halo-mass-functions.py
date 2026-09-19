@@ -23,12 +23,10 @@ massFunctionTypes = [
      {
      	 "label" : "Tinker2008",
      	 "method": "tinker2008"
-     },
-     # Disabled because we're not able to get agreement with the HMFCalc result. Reason is not understood.
-     # {
-     # 	 "label" : "Bhattacharya",
-     # 	 "method": "bhattacharya2011"
-     # }
+     }
+     # Bhattacharya et al. (2011) was disabled here, never having agreed with the HMFcalc result for reasons that were not
+     # understood. It is now covered by `tests.halo_mass_function.Bhattacharya2011`, which compares against colossus and does
+     # agree, so the commented-out entry has been dropped rather than left to rot.
     ]
 
 # Iterate over mass functions.
