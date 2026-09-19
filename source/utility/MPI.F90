@@ -1405,7 +1405,7 @@ contains
    ! Find the minimum over all processes.
     maskedArray=array
     if (present(mask)) then
-       if (.not.mask(self%rank())) maskedArray=-HUGE(1.0d0)
+       if (.not.mask(self%rank())) maskedArray=+HUGE(1.0d0)
     end if
     call MPI_AllReduce(maskedArray,mpiMinvalArray,size(array),MPI_Double_Precision,MPI_Min,mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
@@ -1439,7 +1439,7 @@ contains
    ! Find the minimum over all processes.
     maskedArray=array
     if (present(mask)) then
-       if (.not.mask(self%rank())) maskedArray=-huge(1)
+       if (.not.mask(self%rank())) maskedArray=+huge(1)
     end if
     call MPI_AllReduce(maskedArray,mpiMinvalIntArray,size(array),MPI_Integer,MPI_Min,mpiSelf%communicator,iError)
     if (iError /= 0) call Error_Report('MPI all reduce failed'//{introspection:location})
@@ -1525,7 +1525,7 @@ contains
     ! Find the minimum over all processes.
     arrayIn(1,:)=array
     if (present(mask)) then
-       if (.not.mask(self%rank())) arrayIn(1,:)=-HUGE(1.0d0)
+       if (.not.mask(self%rank())) arrayIn(1,:)=+HUGE(1.0d0)
     end if
     arrayIn(2,:)=self%rank()
     call MPI_AllReduce(arrayIn,arrayOut,size(array),MPI_2Double_Precision,MPI_MinLoc,mpiSelf%communicator,iError)
@@ -1592,7 +1592,7 @@ contains
 #ifdef USEMPI
     array=boolean
     if (present(mask)) then
-       if (.not.mask(self%rank())) array=.false.
+       if (.not.mask(self%rank())) array=.true.
     end if
     call MPI_AllReduce(array,mpiAllLogicalScalar,size(array),MPI_Logical,MPI_LAnd,mpiSelf%communicator,iError)
 #else
