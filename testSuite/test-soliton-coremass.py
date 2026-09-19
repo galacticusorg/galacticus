@@ -66,7 +66,7 @@ with h5py.File(pathOutputModel, 'r') as file:
         )/np.sqrt(expansionFactor)
 
         # Verify that numerical results agree with the analytic expectation.
-        if np.allclose(massCore, massCoreAnalytic, rtol=massCore*1e-4):
+        if np.allclose(massCore, massCoreAnalytic, rtol=1.0e-4):
             print(f"SUCCESS [output {i}]: results do agree"   )
         else:
             print(f"FAILED  [output {i}]: results do not agree")
