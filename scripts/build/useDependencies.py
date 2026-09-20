@@ -39,7 +39,7 @@ from Galacticus.Build.ScanCache import (
 
 # Version stamp for the Makefile_Use_Dependencies.blob cache. Bump when the
 # scan rules change so stale-rule entries are discarded.
-_BLOB_VERSION = 3
+_BLOB_VERSION = 4
 
 # Directives consulted per source file (module-level so the parallel worker can
 # see it). Order matters only in that it is fixed.
@@ -546,6 +546,10 @@ def _apply_directive_requirements(entry, source_file, directives,
     # functionClass / inputParameter → input_parameters.mod.
     if directives['functionClass'] or directives['inputParameter']:
         entry['modulesUsed'].append(work_dir + 'input_parameters.mod')
+    # An inputParameter declaring a bound → input_parameters_bounds.mod, for the bound check that
+    # InputParameter.py generates.
+    if any('minimum' in d or 'maximum' in d for d in directives['inputParameter']):
+        entry['modulesUsed'].append(work_dir + 'input_parameters_bounds.mod')
 
     # enumeration: errorless encode/decode forms need error.mod; any
     # enumeration directive needs enumerations.mod.
