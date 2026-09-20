@@ -140,6 +140,7 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`initialMassFunctionChabrier2001` initial mass function.
     !!}
+    use :: Error                   , only : Error_Report
     use :: Error_Functions         , only : Error_Function
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -152,6 +153,7 @@ contains
     <constructorAssign variables="massLower,massTransition,massUpper,exponent,massCharacteristic,sigma"/>
     !!]
 
+    if (massUpper <= massLower) call Error_Report('[massUpper] > [massLower] is required'//{introspection:location})
     self%normalizationLogNormal  =+sqrt(Pi/2.0d0)                                     &
          &                        *self%sigma                                         &
          &                        *self%massCharacteristic                            &

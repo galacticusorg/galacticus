@@ -143,12 +143,14 @@ contains
     !!{RST
     Internal constructor for the simple cosmological parameters class.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     type            (cosmologyParametersSimple)                :: self
     double precision                           , intent(in   ) :: HubbleConstant , OmegaBaryon, &
          &                                                        OmegaDarkEnergy, OmegaMatter, &
          &                                                        temperatureCMB
     
+    if (OmegaBaryon > OmegaMatter) call Error_Report('[OmegaBaryon] ≤ [OmegaMatter] is required'//{introspection:location})
     self%HubbleConstant_ =HubbleConstant
     self%OmegaBaryon_    =OmegaBaryon
     self%OmegaDarkEnergy_=OmegaDarkEnergy
