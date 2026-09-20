@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789702416648,
+  "lastUpdate": 1789888358999,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=10 Gyr; vₖ=20 km/s)": [
@@ -6839,6 +6839,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": 102.64918120889628,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "45d032acace507e411a80e5f7d208d219d6f091a",
+          "message": "Merge pull request #1532 from galacticusorg/refactor/generic-mpi-hdf5\n\nfix(mpi): correct masked minval/minloc/all reductions; refactor: generate the remaining MPI and HDF5 variants from generic blocks",
+          "timestamp": "2026-09-20T01:05:39Z",
+          "tree_id": "d5e4caf8b49cd7ea23d9ebdb2fb94b39631ed75c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/45d032acace507e411a80e5f7d208d219d6f091a"
+        },
+        "date": 1789888357863,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": 27.272941773040195,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": 98.43396142106572,
             "unit": "-logℒ"
           }
         ]
