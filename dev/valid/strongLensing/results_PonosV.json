@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "45d032acace507e411a80e5f7d208d219d6f091a",
-        "message": "Merge pull request #1532 from galacticusorg/refactor/generic-mpi-hdf5\n\nfix(mpi): correct masked minval/minloc/all reductions; refactor: generate the remaining MPI and HDF5 variants from generic blocks\n",
-        "timestamp": "2026-09-20 01:05:39+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/45d032acace507e411a80e5f7d208d219d6f091a"
+        "id": "e44a3bd4fc543415a55b219babc559c71204f3b2",
+        "message": "Merge pull request #1534 from galacticusorg/dependabot/github_actions/docker/build-push-action-7.4.0\n\nchore(deps): bump docker/build-push-action from 7.3.0 to 7.4.0\n",
+        "timestamp": "2026-09-20 10:01:34+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2"
     },
     "surfaceDensity": {
         "percentageBelow": 42.857142857142854,
@@ -17,8 +17,8 @@ window.PONOSV_DATA = {
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 80.0,
-        "percentageAbove": 20.0,
+        "percentageBelow": 73.33333333333333,
+        "percentageAbove": 26.666666666666668,
         "target": 0.85
     }
 }

@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "45d032acace507e411a80e5f7d208d219d6f091a",
-        "message": "Merge pull request #1532 from galacticusorg/refactor/generic-mpi-hdf5\n\nfix(mpi): correct masked minval/minloc/all reductions; refactor: generate the remaining MPI and HDF5 variants from generic blocks\n",
-        "timestamp": "2026-09-20 01:05:39+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/45d032acace507e411a80e5f7d208d219d6f091a"
+        "id": "e44a3bd4fc543415a55b219babc559c71204f3b2",
+        "message": "Merge pull request #1534 from galacticusorg/dependabot/github_actions/docker/build-push-action-7.4.0\n\nchore(deps): bump docker/build-push-action from 7.3.0 to 7.4.0\n",
+        "timestamp": "2026-09-20 10:01:34+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2"
     },
     "results": [
         {
@@ -189,7 +189,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Symphony (Nadler et al. 2023)",
                 "comment": "Subhalo mean maximum velocity vs. bound mass relation",
                 "description": "Subhalo mean maximum velocity vs. bound mass relation",
-                "logLikelihood": "-21.54990559166094",
+                "logLikelihood": "-21.549905591660927",
                 "type": "function1D",
                 "xDataset": "massBound",
                 "yCovariance": "velocityMaximumMeanCovariance",
@@ -222,7 +222,7 @@ window.ANALYSES_DATA = {
                 "yDataset": [
                     26.93895242411964,
                     30.928442227694735,
-                    35.96162097530354,
+                    35.96162097530353,
                     42.017572191586005,
                     47.69728734520362,
                     53.935032534653224,
@@ -264,11 +264,11 @@ window.ANALYSES_DATA = {
                 "yError": [
                     0.23655044089780106,
                     0.2933517743105131,
-                    0.4178976800199643,
+                    0.4178976800199669,
                     0.5653169416138585,
                     0.6994779056317828,
                     1.0905152353742074,
-                    1.3747313463096382,
+                    1.3747313463096447,
                     2.194693862160911,
                     2.969808516576124,
                     4.082093174429448,
