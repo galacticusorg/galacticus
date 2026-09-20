@@ -437,7 +437,7 @@ contains
       do k=1,nodeCount
          if (associated(nodeArray(k)%node,node_)) then
             if (nodeVisited(k)) return
-            nodeVisited(k)         =.true.
+            nodeVisited(k         )=.true.
             countStack             =countStack+1
             nodeStack  (countStack)=k
             return

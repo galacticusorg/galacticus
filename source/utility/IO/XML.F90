@@ -90,11 +90,11 @@ contains
     it is passed an ``iostat`` argument. Callers must therefore always pass ``iostat`` and use this function to report any failure
     through ``Error_Report``, or a malformed file will terminate the run silently, with a zero exit status.
     !!}
-    use :: Display           , only : displayGreen  , displayReset
-    use :: ISO_Varying_String, only : varying_string, assignment(=), operator(//)
+    use :: Display           , only : displayGreen , displayReset
+    use :: ISO_Varying_String, only : assignment(=), operator(//), varying_string
     implicit none
     type     (varying_string)                :: message
-    integer                  , intent(in   ) :: status   , rank
+    integer                  , intent(in   ) :: status     , rank
     character(len=*         ), intent(in   ) :: elementName
 
     message="failed to parse the content of the XML element '"//trim(elementName)//"': "
@@ -143,13 +143,13 @@ contains
     !!}
     use :: FoX_dom, only : extractDataContent, getElementsByTagName, node
     implicit none
-    type            (node       )              , intent(in   ), pointer :: xmlElement
-    character       (len=*      )              , intent(in   )          :: arrayElementName
-    double precision             , dimension(:), intent(inout)          :: column1
-    type            (node       )                             , pointer :: arrayElement
-    type            (xmlNodeList), dimension(:), allocatable            :: arrayElements
-    double precision             , dimension(1)                         :: dataValues
-    integer                                                             :: i
+    type            (node       ), intent(in   ), pointer      :: xmlElement
+    character       (len=*      ), intent(in   )               :: arrayElementName
+    double precision             , intent(inout), dimension(:) :: column1
+    type            (node       ), pointer                     :: arrayElement
+    type            (xmlNodeList), allocatable  , dimension(:) :: arrayElements
+    double precision             , dimension(1)                :: dataValues
+    integer                                                    :: i
 
     call XML_Get_Elements_By_Tag_Name(xmlElement,arrayElementName,arrayElements)
     do i=1,size(arrayElements)
@@ -164,15 +164,15 @@ contains
     !!{RST
     Read one column of data from an array of XML elements.
     !!}
-    use :: FoX_dom          , only : extractDataContent, getElementsByTagName, node
+    use :: FoX_dom, only : extractDataContent, getElementsByTagName, node
     implicit none
-    type            (node       )                           , intent(in   ), pointer :: xmlElement
-    character       (len=*      )                           , intent(in   )          :: arrayElementName
-    double precision             , allocatable, dimension(:), intent(inout)          :: column1
-    type            (node       )                                          , pointer :: arrayElement
-    type            (xmlNodeList), allocatable, dimension(:)                         :: arrayElements
-    double precision                          , dimension(1)                         :: dataValues
-    integer                                                                          :: i
+    type            (node       ), intent(in   ), pointer                    :: xmlElement
+    character       (len=*      ), intent(in   )                             :: arrayElementName
+    double precision             , intent(inout), allocatable , dimension(:) :: column1
+    type            (node       ), pointer                                   :: arrayElement
+    type            (xmlNodeList), allocatable  , dimension(:)               :: arrayElements
+    double precision             , dimension(1)                              :: dataValues
+    integer                                                                  :: i
 
     call XML_Get_Elements_By_Tag_Name(xmlElement,arrayElementName,arrayElements)
     if (allocated(column1)) deallocate(column1)
@@ -189,15 +189,15 @@ contains
     !!{RST
     Read two columns of data from an array of XML elements.
     !!}
-    use :: FoX_dom          , only : extractDataContent, getElementsByTagName, node
+    use :: FoX_dom, only : extractDataContent, getElementsByTagName, node
     implicit none
-    type            (node       )                           , intent(in   ), pointer :: xmlElement
-    character       (len=*      )                           , intent(in   )          :: arrayElementName
-    double precision             , allocatable, dimension(:), intent(inout)          :: column1         , column2
-    type            (node       )                                          , pointer :: arrayElement
-    type            (xmlNodeList), allocatable, dimension(:)                         :: arrayElements
-    double precision                          , dimension(2)                         :: dataValues
-    integer                                                                          :: i
+    type            (node       ), intent(in   ), pointer                    :: xmlElement
+    character       (len=*      ), intent(in   )                             :: arrayElementName
+    double precision             , intent(inout), allocatable , dimension(:) :: column1         , column2
+    type            (node       ), pointer                                   :: arrayElement
+    type            (xmlNodeList), allocatable  , dimension(:)               :: arrayElements
+    double precision             , dimension(2)                              :: dataValues
+    integer                                                                  :: i
 
     call XML_Get_Elements_By_Tag_Name(xmlElement,arrayElementName,arrayElements)
     if (allocated(column1)) deallocate(column1)
@@ -217,14 +217,14 @@ contains
     !!{RST
     Read one column of data from an array of XML elements.
     !!}
-    use :: FoX_dom          , only : extractDataContent, node
+    use :: FoX_dom, only : extractDataContent, node
     implicit none
-    type            (xmlNodeList)             , dimension(0:), intent(in   ) :: xmlElements
-    character       (len=*      )                            , intent(in   ) :: arrayElementName
-    double precision             , allocatable, dimension(: ), intent(inout) :: column1
-    type            (node       ), pointer                                   :: arrayElement
-    double precision                          , dimension(1 )                :: dataValues
-    integer                                                                  :: i
+    type            (xmlNodeList), intent(in   ), dimension(0:)               :: xmlElements
+    character       (len=*      ), intent(in   )                              :: arrayElementName
+    double precision             , intent(inout), allocatable  , dimension(:) :: column1
+    type            (node       ), pointer                                    :: arrayElement
+    double precision             , dimension(1)                               :: dataValues
+    integer                                                                   :: i
 
     if (allocated(column1)) deallocate(column1)
     allocate(column1(size(xmlElements)))
@@ -242,12 +242,12 @@ contains
     !!}
     use :: FoX_dom, only : extractDataContent, node
     implicit none
-    type            (xmlNodeList), dimension(0:), intent(in   )          :: xmlElements
-    character       (len=*      )               , intent(in   )          :: arrayElementName
-    double precision             , dimension(: ), intent(inout)          :: column1
-    type            (node       )                              , pointer :: arrayElement
-    double precision             , dimension(1 )                         :: dataValues
-    integer                                                              :: i
+    type            (xmlNodeList), intent(in   ), dimension(0:) :: xmlElements
+    character       (len=*      ), intent(in   )                :: arrayElementName
+    double precision             , intent(inout), dimension(:)  :: column1
+    type            (node       ), pointer                      :: arrayElement
+    double precision             , dimension(1)                 :: dataValues
+    integer                                                     :: i
 
     do i=1,size(xmlElements)
        arrayElement => XML_Get_First_Element_By_Tag_Name(xmlElements(i-1)%element,arrayElementName)
@@ -263,12 +263,12 @@ contains
     !!}
     use :: FoX_dom, only : extractDataContent, node
     implicit none
-    type     (xmlNodeList), dimension(0:), intent(in   )          :: xmlElements
-    character(len=*      )               , intent(in   )          :: arrayElementName
-    integer               , dimension(: ), intent(inout)          :: column1
-    type     (node       )                              , pointer :: arrayElement
-    integer               , dimension(1 )                         :: dataValues
-    integer                                                       :: i
+    type     (xmlNodeList), intent(in   ), dimension(0:) :: xmlElements
+    character(len=*      ), intent(in   )                :: arrayElementName
+    integer               , intent(inout), dimension(:)  :: column1
+    type     (node       ), pointer                      :: arrayElement
+    integer               , dimension(1)                 :: dataValues
+    integer                                              :: i
 
     do i=1,size(xmlElements)
        arrayElement => XML_Get_First_Element_By_Tag_Name(xmlElements(i-1)%element,arrayElementName)
@@ -284,12 +284,12 @@ contains
     !!}
     use :: FoX_dom, only : extractDataContent, node
     implicit none
-    type     (xmlNodeList     ), dimension(0:), intent(in   )          :: xmlElements
-    character(len=*           )               , intent(in   )          :: arrayElementName
-    character(len=*           ), dimension(: ), intent(inout)          :: column1
-    type     (node            )                              , pointer :: arrayElement
-    character(len=len(column1)), dimension(1 )                         :: dataValues
-    integer                                                            :: i
+    type     (xmlNodeList     ), intent(in   ), dimension(0:) :: xmlElements
+    character(len=*           ), intent(in   )                :: arrayElementName
+    character(len=*           ), intent(inout), dimension(:)  :: column1
+    type     (node            ), pointer                      :: arrayElement
+    character(len=len(column1)), dimension(1)                 :: dataValues
+    integer                                                   :: i
 
     do i=1,size(xmlElements)
        arrayElement => XML_Get_First_Element_By_Tag_Name(xmlElements(i-1)%element,arrayElementName)
@@ -308,7 +308,7 @@ contains
     implicit none
     type   (xmlNodeList), intent(inout), allocatable, dimension(:) :: elements
     type   (node       ), intent(in   ), pointer                   :: xmlElement
-    type   (node       )               , pointer                   :: childNode
+    type   (node       ), pointer                                  :: childNode
     integer(c_size_t   )                                           :: countElements
     
     countElements=0_c_size_t
@@ -392,21 +392,21 @@ contains
     the ``N``-th matching direct child.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
-    use            :: FoX_DOM      , only : Element_Node, getFirstChild, getNextSibling, getNodeName , &
-          &                                 getNodeType , hasChildNodes, node          , getAttribute
+    use            :: FoX_DOM      , only : Element_Node, getAttribute, getFirstChild, getNextSibling, &
+    &                                       getNodeName , getNodeType , hasChildNodes, node
     use            :: Error        , only : Error_Report
     implicit none
-    type     (xmlNodeList     ), intent(inout), allocatable, dimension(:) :: elements
-    integer  (c_size_t        )                                           :: countElements     , offset
-    type     (node            ), intent(in   ), pointer                   :: xmlElement
-    character(len=*           ), intent(in   )                            :: tagName
-    logical                    , intent(in   ), optional                  :: directChildrenOnly
-    type     (node            )               , pointer                   :: childNode
-    type     (xmlNodeList     )               , allocatable, dimension(:) :: childElements
-    logical                                                               :: matchAll          , matches
-    integer                                                               :: elementIndex      , matchCount
-    character(len=len(tagName))                                           :: tagName_          , attributeName, &
-         &                                                                   attributeValue
+    type     (xmlNodeList     ), intent(inout), allocatable , dimension(:) :: elements
+    integer  (c_size_t        )                                            :: countElements     , offset
+    type     (node            ), intent(in   ), pointer                    :: xmlElement
+    character(len=*           ), intent(in   )                             :: tagName
+    logical                    , intent(in   ), optional                   :: directChildrenOnly
+    type     (node            ), pointer                                   :: childNode
+    type     (xmlNodeList     ), allocatable  , dimension(:)               :: childElements
+    logical                                                                :: matchAll          , matches
+    integer                                                                :: elementIndex      , matchCount
+    character(len=len(tagName))                                            :: tagName_          , attributeName, &
+         &                                                                    attributeValue
     !![
     <optionalArgument name="directChildrenOnly" defaultsTo=".false."/>
     !!]
@@ -450,15 +450,15 @@ contains
     description of the ``directChildrenOnly`` argument.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
-    use            :: FoX_DOM      , only : Element_Node, getFirstChild, getNextSibling, getNodeName, &
-          &                                 getNodeType , hasChildNodes, node          , getAttribute
+    use            :: FoX_DOM      , only : Element_Node, getAttribute, getFirstChild, getNextSibling, &
+    &                                       getNodeName , getNodeType , hasChildNodes, node
     use            :: Error        , only : Error_Report
     implicit none
     integer  (c_size_t        )                          :: countElements
     type     (node            ), intent(in   ), pointer  :: xmlElement
     character(len=*           ), intent(in   )           :: tagName
     logical                    , intent(in   ), optional :: directChildrenOnly
-    type     (node            )               , pointer  :: childNode
+    type     (node            ), pointer                 :: childNode
     logical                                              :: matchAll
     integer                                              :: elementIndex      , matchCount
     character(len=len(tagName))                          :: tagName_          , attributeName, &
@@ -495,12 +495,12 @@ contains
     use :: FoX_dom, only : getParentNode, node
     use :: Error  , only : Error_Report
     implicit none
-    type     (node            )               , pointer      :: element
+    type     (node            ), pointer                     :: element
     type     (node            ), intent(in   ), pointer      :: xmlElement
     character(len=*           ), intent(in   )               :: tagName
     logical                    , intent(in   ), optional     :: directChildrenOnly
     type     (xmlNodeList     ), allocatable  , dimension(:) :: elementList
-    type     (node            )               , pointer      :: parent
+    type     (node            ), pointer                     :: parent
     character(len=len(tagName))                              :: currentTagName    , path
     integer                                                  :: pathPosition      , i
     logical                                                  :: found
@@ -553,13 +553,13 @@ contains
     be matched. This is useful for constructing informative error messages that indicate where in the path resolution failed.
     !!}
     use :: FoX_dom           , only : ELEMENT_NODE , getElementsByTagName, getLength, getNodeType, &
-          &                           getParentNode, node
+    &                                 getParentNode, node
     use :: ISO_Varying_String, only : assignment(=), operator(//)
     implicit none
     type     (node          ), intent(in   ), pointer      :: xmlElement
     character(len=*         ), intent(in   )               :: path
     type     (varying_string), intent(  out), optional     :: pathFailed
-    type     (node          )               , pointer      :: element     , child         , &
+    type     (node          ), pointer                     :: element     , child         , &
          &                                                    parent
     character(len=len(path) )                              :: currentPath , currentTagName
     type     (varying_string)                              :: pathSoFar
@@ -632,16 +632,16 @@ contains
     !!{RST
     Parse an XML document, automatically resolve XInclude references.
     !!}
-    use :: File_Utilities    , only : File_Exists  , File_Name         , File_Path    , File_Name_Expand
-    use :: FoX_dom           , only : DOMException , ELEMENT_NODE      , destroy      , getAttribute    , &
-          &                           getChildNodes, getDocumentElement, getFirstChild, getNextSibling  , &
-          &                           getNodeName  , getNodeType       , getParentNode, hasAttribute    , &
-          &                           hasChildNodes, importNode        , insertBefore , node            , &
-          &                           parseFile    , removeChild       , replaceChild , setLiveNodeLists, &
-          &                           setAttribute , inException
+    use :: File_Utilities    , only : File_Exists  , File_Name         , File_Name_Expand, File_Path
+    use :: FoX_dom           , only : DOMException , ELEMENT_NODE      , destroy         , getAttribute  , &
+    &                                 getChildNodes, getDocumentElement, getFirstChild   , getNextSibling, &
+    &                                 getNodeName  , getNodeType       , getParentNode   , hasAttribute  , &
+    &                                 hasChildNodes, importNode        , inException     , insertBefore  , &
+    &                                 node         , parseFile         , removeChild     , replaceChild  , &
+    &                                 setAttribute , setLiveNodeLists
     use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : assignment(=), char              , extract      , len             , &
-          &                           operator(//) , operator(==)      , operator(/=)
+    use :: ISO_Varying_String, only : assignment(=), char              , extract         , len           , &
+    &                                 operator(//) , operator(/=)      , operator(==)
     implicit none
     type     (node            ), pointer                     :: document           , nodeNew       , &
          &                                                      nodeCurrent        , nodeParent    , &
