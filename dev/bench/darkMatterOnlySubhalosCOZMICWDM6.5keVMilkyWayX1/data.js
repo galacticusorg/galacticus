@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789702324772,
+  "lastUpdate": 1789888273997,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 6.5keV resolutionX1)": [
@@ -3926,6 +3926,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 3.2395856121329465,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "45d032acace507e411a80e5f7d208d219d6f091a",
+          "message": "Merge pull request #1532 from galacticusorg/refactor/generic-mpi-hdf5\n\nfix(mpi): correct masked minval/minloc/all reductions; refactor: generate the remaining MPI and HDF5 variants from generic blocks",
+          "timestamp": "2026-09-20T01:05:39Z",
+          "tree_id": "d5e4caf8b49cd7ea23d9ebdb2fb94b39631ed75c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/45d032acace507e411a80e5f7d208d219d6f091a"
+        },
+        "date": 1789888272882,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": -1.2412002851773989,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": -0.8707202698181349,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 3.2266219338375524,
             "unit": "-logℒ"
           }
         ]
