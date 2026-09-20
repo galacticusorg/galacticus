@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789702281517,
+  "lastUpdate": 1789888224928,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "9a2087d819666417d93d1130a7ceed4084b32454",
-          "message": "Merge pull request #881 from galacticusorg/fixRemoveWorkaroundPolyAssign\n\nRemove workaround for \"Assignment to an allocatable polymorphic variable is not yet supported\"",
-          "timestamp": "2025-07-17T14:58:09Z",
-          "tree_id": "3c50abe4888036bfdeef1d2b250b73f321afb3eb",
-          "url": "https://github.com/galacticusorg/galacticus/commit/9a2087d819666417d93d1130a7ceed4084b32454"
-        },
-        "date": 1752793029094,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 60.779,
-            "unit": "seconds",
-            "range": 0.0975340966025342
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8800,6 +8770,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 14830.95561079772,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "45d032acace507e411a80e5f7d208d219d6f091a",
+          "message": "Merge pull request #1532 from galacticusorg/refactor/generic-mpi-hdf5\n\nfix(mpi): correct masked minval/minloc/all reductions; refactor: generate the remaining MPI and HDF5 variants from generic blocks",
+          "timestamp": "2026-09-20T01:05:39Z",
+          "tree_id": "d5e4caf8b49cd7ea23d9ebdb2fb94b39631ed75c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/45d032acace507e411a80e5f7d208d219d6f091a"
+        },
+        "date": 1789888220441,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 24.371,
+            "range": "0.15096655258698874",
+            "unit": "seconds"
           }
         ]
       }
