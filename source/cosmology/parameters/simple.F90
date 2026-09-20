@@ -80,6 +80,7 @@ contains
       <description>
       The density of matter in the Universe in units of the critical density.
       </description>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>OmegaBaryon</name>
@@ -91,6 +92,7 @@ contains
       <description>
       The density of baryons in the Universe in units of the critical density.
       </description>
+      <minimum>0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>OmegaDarkEnergy</name>
@@ -113,6 +115,7 @@ contains
       <description>
       The present day temperature of the :term:`CMB` in units of Kelvin.
       </description>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>HubbleConstant</name>

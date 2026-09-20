@@ -93,6 +93,7 @@ contains
       The lower mass limit for the :cite:t:`chabrier_galactic_2001` :term:`IMF`.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>massTransition</name>
@@ -109,6 +110,7 @@ contains
       The width of the lognormal part of the :cite:t:`chabrier_galactic_2001` :term:`IMF`.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>exponent</name>

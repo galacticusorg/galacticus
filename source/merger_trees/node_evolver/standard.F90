@@ -170,6 +170,7 @@ contains
       The absolute tolerance used in solving differential equations for node evolution.
       </description>
       <source>parameters</source>
+      <minimum>0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>odeToleranceRelative</name>
@@ -178,6 +179,7 @@ contains
       The relative tolerance used in solving differential equations for node evolution.
       </description>
       <source>parameters</source>
+      <minimum>0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>odeJacobianStepSizeRelative</name>

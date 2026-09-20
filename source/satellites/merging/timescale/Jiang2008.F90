@@ -85,6 +85,7 @@ contains
       Specifies whether or not to add random scatter to the dynamical friction timescales in the ``Jiang2008`` satellite merging time implementation.
       </description>
       <source>parameters</source>
+      <minimum>0.0</minimum>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>

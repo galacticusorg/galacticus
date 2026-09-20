@@ -72,6 +72,7 @@ contains
       The minimum allowed concentration parameter :math:`c = r_\mathrm{virial}/r_\mathrm{scale}` for dark matter halos; scale radii that would imply concentrations below this floor are adjusted upward to enforce the constraint.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>   
     <inputParameter docformat="rst">
       <name>concentrationMaximum</name>
