@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789888235130,
+  "lastUpdate": 1789923873438,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abensonca@gmail.com"
-          },
-          "committer": {
-            "name": "GitHub",
-            "username": "web-flow",
-            "email": "noreply@github.com"
-          },
-          "id": "26eeebdd348094c63813fd18840d939f574fc339",
-          "message": "Merge pull request #883 from galacticusorg/fixNodeOperatorRateCompute\n\nMove more physics into `nodeOperators`",
-          "timestamp": "2025-07-18T17:28:02Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/26eeebdd348094c63813fd18840d939f574fc339"
-        },
-        "date": 1752957133718,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 60.844,
-            "unit": "seconds",
-            "range": 0.0796391863349007
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8800,6 +8772,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 14480.796016778637,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e44a3bd4fc543415a55b219babc559c71204f3b2",
+          "message": "Merge pull request #1534 from galacticusorg/dependabot/github_actions/docker/build-push-action-7.4.0\n\nchore(deps): bump docker/build-push-action from 7.3.0 to 7.4.0",
+          "timestamp": "2026-09-20T10:01:34Z",
+          "tree_id": "cf2ca9034ba0584f288f4981fc2c5227d7fe7abf",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2"
+        },
+        "date": 1789923868652,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 32.43499999999999,
+            "range": "0.08623514364805115",
+            "unit": "seconds"
           }
         ]
       }
