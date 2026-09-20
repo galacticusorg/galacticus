@@ -85,6 +85,7 @@ contains
       <description>
       The parameter :math:`\lambda_0` in the halo spin distribution of :cite:t:`bett_spin_2007`.
       </description>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>alpha</name>
@@ -96,6 +97,7 @@ contains
       <description>
       The parameter :math:`\alpha` in the halo spin distribution of :cite:t:`bett_spin_2007`.
       </description>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]

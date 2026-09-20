@@ -100,6 +100,7 @@ contains
       <description>
       The scatter (in dex) to assume in the halo concentration distribution at fixed mass.
       </description>
+      <minimum>0.0</minimum>
     </inputParameter>
     !!]
     self=darkMatterProfileConcentrationGao2008(scatter,cosmologyParameters_,cosmologyFunctions_)

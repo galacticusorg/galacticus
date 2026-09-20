@@ -178,6 +178,7 @@ contains
       <description>
       The scatter (in dex) to assume in the halo concentration algorithm of :cite:t:`diemer_universal_2014`.
       </description>
+      <minimum>0.0</minimum>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>

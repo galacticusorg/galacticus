@@ -80,6 +80,7 @@ contains
       <description>
       The parameter :math:`\alpha` of the :cite:t:`zhao_analytical_1996` dark matter density profile.
       </description>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>beta</name>
@@ -94,6 +95,7 @@ contains
       <description>
       The parameter :math:`\gamma` of the :cite:t:`zhao_analytical_1996` dark matter density profile.
       </description>
+      <maximum inclusive="false">3.0</maximum>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]

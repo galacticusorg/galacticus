@@ -142,6 +142,7 @@ contains
       The parameter :math:`G_0` appearing in the modified merger rate expression of :cite:t:`parkinson_generating_2008`.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>gamma1</name>
@@ -166,6 +167,7 @@ contains
       Limits the step in :math:`\delta_\mathrm{crit}` when constructing merger trees using the :cite:t:`parkinson_generating_2008` algorithm, so that it never exceeds ``accuracyFirstOrder``\ :math:`\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}`.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>precisionHypergeometric</name>

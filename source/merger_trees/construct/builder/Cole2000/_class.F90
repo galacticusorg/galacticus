@@ -190,6 +190,8 @@ contains
       <description>
       The largest probability of branching allowed in a timestep in merger trees built by the :cite:t:`cole_hierarchical_2000` method.
       </description>
+      <minimum inclusive="false">0.0</minimum>
+      <maximum>1.0</maximum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>accretionLimit</name>
@@ -198,6 +200,7 @@ contains
       <description>
       The largest fractional mass change due to subresolution accretion allowed in a timestep in merger trees built by the :cite:t:`cole_hierarchical_2000` method.
       </description>
+      <minimum inclusive="false">0.0</minimum>
       <maximum inclusive="false">1.0</maximum>
     </inputParameter>
     <inputParameter docformat="rst">

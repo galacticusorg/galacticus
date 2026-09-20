@@ -111,6 +111,7 @@ contains
       <description>
       When a running power spectrum index is used, this is the wavenumber, :math:`k_\mathrm{ref}`, at which the index is equal to ``[index]``.
       </description>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>runningSmallScalesOnly</name>

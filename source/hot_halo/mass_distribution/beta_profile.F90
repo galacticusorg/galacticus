@@ -96,6 +96,7 @@ contains
       The value of :math:`\beta` in :math:`\beta`-profile hot halo mass distributions.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <objectBuilder class="hotHaloMassDistributionCoreRadius" name="hotHaloMassDistributionCoreRadius_" source="parameters"/>
     !!]

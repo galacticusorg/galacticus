@@ -163,6 +163,7 @@ contains
       <description>
       The scatter (in dex) to assume in the halo concentration algorithm of :cite:t:`diemer_accurate_2019`.
       </description>
+      <minimum>0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>truncateConcentration</name>
