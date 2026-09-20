@@ -139,3 +139,43 @@ def test_lmap_remaps_preprocessed_lines_to_original():
         assert original_lines[remapped - 1] == text, (
             f"output line {out_number} ({text!r}) remapped to original "
             f"line {remapped} ({original_lines[remapped - 1]!r})")
+
+
+def test_function_class_method_locations_name_the_class_file(monkeypatch):
+    """The bodies of methods defined in a functionClass directive are emitted
+    as generated code, re-parsed, and have their `{introspection:location}`
+    placeholders expanded before being inserted into the class file's tree.
+    The placeholders were tagged with their line numbers in the class file,
+    so the location must name the class file (not the generator), while the
+    generated code's line-number mappings must still attribute it to the
+    generator.
+    """
+    import Galacticus.Build.SourceTree.Process.FunctionClass as FC
+    from Galacticus.Build.SourceTree.Process.SourceIntrospection import process_source_introspection
+
+    # Run only the placeholder expansion: `process_tree()` would run every registered process, some of
+    # which need a populated `$BUILDPATH`.
+    monkeypatch.setattr(FC, 'process_tree', lambda tree, options=None: process_source_introspection(tree, options))
+
+    source = (
+        "module foo\n"
+        "  !![\n"
+        "  <placeholder/>\n"
+        "  !!]\n"
+        "contains\n"
+        "end module foo\n"
+    )
+    tree = parse_code(source, name='intergalactic_medium/state/_class.F90')
+    node = next(n for n in walk_tree(tree) if n.get('type') == 'placeholder')
+    post = {'content': (
+        "  subroutine bar()\n"
+        "    call Error_Report('message'//{introspection:location:187})\n"
+        "  end subroutine bar\n"
+    )}
+    FC._insert_and_write_output(node, {'module': {}, 'submodule': {}}, {'content': ''}, post, {}, {})
+
+    output, mappings = serialize(tree, annotate=True, strip_mappings=True)
+    report = next(line for line in output.splitlines() if 'Error_Report' in line)
+    assert "file:intergalactic_medium/state/_class.F90'//'   [line 187]" in report
+    assert 'process_function_class' not in report
+    assert 'FunctionClass.process_function_class()"' in mappings

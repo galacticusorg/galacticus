@@ -541,6 +541,16 @@ def _load_and_sort_classes(directive, directive_locations):
 # Output injection + submodule writing
 # ---------------------------------------------------------------------------
 
+def _enclosing_file_name(node):
+    """Return the name of the outermost file node enclosing `node`, or None if there is none."""
+    name = None
+    while node is not None:
+        if node.get('type') == 'file' and node.get('name'):
+            name = node['name']
+        node = node.get('parent')
+    return name
+
+
 def _insert_and_write_output(node, code_content, pre, post, classes, directive):
     """Re-parse the accumulated pre/post-contains content, run it through
     process_tree so nested directives expand, and inject the trees into
@@ -551,16 +561,17 @@ def _insert_and_write_output(node, code_content, pre, post, classes, directive):
     temp file and rename only when the content differs (using a simple
     `os.path.exists` + `open/read` compare).
     """
-    tree_pre  = parse_code(
-        pre['content'],
-        name='Galacticus.Build.SourceTree.Process.FunctionClass'
-             '.process_function_class()',
-    )
-    tree_post = parse_code(
-        post['content'],
-        name='Galacticus.Build.SourceTree.Process.FunctionClass'
-             '.process_function_class()',
-    )
+    # The generated content carries the bodies of methods defined in the class directive, whose
+    # `{introspection:location}` placeholders were tagged with their line numbers in the class file
+    # when it was parsed, and which are expanded by `process_tree()` below - before the trees are
+    # inserted into the class file's tree. The trees are therefore named for the class file, so that
+    # those locations report it (rather than this generator). Their `source` remains this generator,
+    # as the generated lines themselves have no counterpart in the class file.
+    source    = ('Galacticus.Build.SourceTree.Process.FunctionClass'
+                 '.process_function_class()')
+    name      = _enclosing_file_name(node) or source
+    tree_pre  = parse_code(pre ['content'], name=name, source=source)
+    tree_post = parse_code(post['content'], name=name, source=source)
     process_tree(tree_pre)
     process_tree(tree_post)
 
