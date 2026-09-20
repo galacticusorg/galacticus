@@ -261,15 +261,16 @@ contains
     !!{RST
     Build a ``abundances`` object from the given XML ``abundancesDefinition``.
     !!}
-    use :: FoX_DOM, only : node                        , extractDataContent
-    use :: Error  , only : Error_Report
-    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: FoX_DOM           , only : node                        , extractDataContent
+    use :: Error             , only : Error_Report
+    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList              , XML_Extract_Error_Message
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
     class  (abundances ), intent(inout)              :: self
     type   (node       ), intent(in   ), pointer     :: abundancesDefinition
     type   (node       )               , pointer     :: abundance
     type   (xmlNodeList), dimension(:) , allocatable :: abundanceList
-    integer                                          :: i
+    integer                                          :: i                   , status
 
     ! Get the metallicity.
     !$omp critical (FoX_DOM_Access)
@@ -279,8 +280,9 @@ contains
     if (size(abundanceList) == 1) then
        !$omp critical (FoX_DOM_Access)
        abundance => abundanceList(0)%element
-       call extractDataContent(abundance,self%metallicityValue)
+       call extractDataContent(abundance,self%metallicityValue,iostat=status)
        !$omp end critical (FoX_DOM_Access)
+       if (status /= 0) call Error_Report(XML_Extract_Error_Message(status,'metals',0)//{introspection:location})
     end if
     if (elementsCount > 0) then
        do i=1,elementsCount
@@ -291,8 +293,9 @@ contains
           if (size(abundanceList) == 1) then
              !$omp critical (FoX_DOM_Access)
              abundance => abundanceList(0)%element
-             call extractDataContent(abundance,self%elementalValue(i))
+             call extractDataContent(abundance,self%elementalValue(i),iostat=status)
              !$omp end critical (FoX_DOM_Access)
+             if (status /= 0) call Error_Report(XML_Extract_Error_Message(status,trim(elementsToTrack(i)),0)//{introspection:location})
           end if
        end do
     end if

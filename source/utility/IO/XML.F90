@@ -34,7 +34,7 @@ module IO_XML
   public :: XML_Array_Read                   , XML_Array_Read_Static         , XML_Path_Exists             , &
        &    XML_Get_First_Element_By_Tag_Name, XML_Count_Elements_By_Tag_Name, XML_Extract_Text            , &
        &    XML_Parse                        , XML_Get_Elements_By_Tag_Name  , XML_Get_Child_Elements      , &
-       &    xmlNodeList
+       &    XML_Extract_Error_Message        , xmlNodeList
 
   ! Interface for array reading functions.
   interface XML_Array_Read
@@ -78,6 +78,50 @@ module IO_XML
   end type xmlNodeList
   
 contains
+
+  function XML_Extract_Error_Message(status,elementName,rank) result(message)
+    !!{RST
+    Return a message describing a non-zero status returned by the FoX ``extractDataContent`` function when reading the content of
+    the XML element ``elementName``. The ``rank`` of the property being read is used to tailor the accompanying hint: rank-0
+    (scalar) properties are read from a single element containing a single value, while rank-1 properties are read from a list of
+    elements, one per value.
+
+    Note that ``extractDataContent`` writes its own, uninformative, message to standard error and then stops the program unless
+    it is passed an ``iostat`` argument. Callers must therefore always pass ``iostat`` and use this function to report any failure
+    through ``Error_Report``, or a malformed file will terminate the run silently, with a zero exit status.
+    !!}
+    use :: Display           , only : displayGreen  , displayReset
+    use :: ISO_Varying_String, only : varying_string, assignment(=), operator(//)
+    implicit none
+    type     (varying_string)                :: message
+    integer                  , intent(in   ) :: status   , rank
+    character(len=*         ), intent(in   ) :: elementName
+
+    message="failed to parse the content of the XML element '"//trim(elementName)//"': "
+    select case (status)
+    case (-1)
+       message=message//"too few values found"
+    case (+1)
+       message=message//"too many values found"
+    case (+2)
+       message=message//"malformed value"
+    case default
+       message=message//"unknown error"
+    end select
+    message=message//char(10)//displayGreen()//"HELP:"//displayReset()//" "
+    select case (rank)
+    case (0)
+       message=message//"this property is a scalar, so its element must contain precisely one value, e.g."   //char(10)// &
+            &           "        <"//trim(elementName)//">1.0</"//trim(elementName)//">"
+    case default
+       message=message//"this property is an array, and is read one value per element, so a list of elements"//char(10)// &
+            &           "      must be given rather than a single element holding several values, e.g."      //char(10)// &
+            &           "        <"//trim(elementName)//">1.0</"//trim(elementName)//">"                     //char(10)// &
+            &           "        <"//trim(elementName)//">2.0</"//trim(elementName)//">"                     //char(10)// &
+            &           "        <"//trim(elementName)//">3.0</"//trim(elementName)//">"
+    end select
+    return
+  end function XML_Extract_Error_Message
 
   function XML_Extract_Text(xmlElement)
     !!{RST

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which defines the structure used for describing chemical abundances in Galacticus.
 !!}
@@ -488,14 +490,14 @@ contains
     !!}
     use :: FoX_DOM           , only : node                        , extractDataContent
     use :: Error             , only : Error_Report
-    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
-    use :: ISO_Varying_String, only : char
+    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList              , XML_Extract_Error_Message
+    use :: ISO_Varying_String, only : char                        , operator(//)
     implicit none
     class  (chemicalAbundances), intent(inout)              :: self
     type   (node              ), pointer                    :: chemicalsDefinition
     type   (node              )               , pointer     :: chemical
     type   (xmlNodeList       ), dimension(:) , allocatable :: chemicalAbundanceList
-    integer                                                 :: i
+    integer                                                 :: i                    , status
 
     if (chemicalsCount > 0) then
        do i=1,chemicalsCount
@@ -506,8 +508,9 @@ contains
           if (size(chemicalAbundanceList) == 1) then
              !$omp critical (FoX_DOM_Access)
              chemical => chemicalAbundanceList(0)%element
-             call extractDataContent(chemical,self%chemicalValue(i))
+             call extractDataContent(chemical,self%chemicalValue(i),iostat=status)
              !$omp end critical (FoX_DOM_Access)
+             if (status /= 0) call Error_Report(XML_Extract_Error_Message(status,char(chemicalsToTrack(i)),0)//{introspection:location})
           end if
        end do
     end if

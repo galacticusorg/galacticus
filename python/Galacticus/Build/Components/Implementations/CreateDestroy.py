@@ -310,7 +310,7 @@ def Implementation_Builder(build, class_dict, member):
             },
             {
                 'intrinsic':  'integer',
-                'variables':  ['i', 'j', 'propertyListLength'],
+                'variables':  ['i', 'j', 'propertyListLength', 'status'],
             },
         ],
     }
@@ -345,14 +345,21 @@ def Implementation_Builder(build, class_dict, member):
                 "!$omp end critical (FoX_DOM_Access)\n"
             )
 
+            # `extractDataContent` writes a two-line message to stderr and
+            # then `stop`s — exiting with status 0 — unless it is passed an
+            # `iostat` argument, so every call must pass one and report any
+            # failure itself (issue #1512).
+            error_args = (
+                f"'{name}','{member['name']}','{prop['name']}',{rank},"
+                "propertyListLength,"
+            )
             if rank == 0:
                 content += (
                     "!$omp critical (FoX_DOM_Access)\n"
                     "propertyListLength=getLength(propertyList)\n"
                     "!$omp end critical (FoX_DOM_Access)\n"
-                    "if (propertyListLength > 1) call Error_Report("
-                    "'scalar property must have precisely one value'"
-                    "//{introspection:location})\n"
+                    "if (propertyListLength > 1) call "
+                    f"Node_Component_Builder_Error({error_args}0,self%hostNode)\n"
                     "if (propertyListLength == 1) then\n"
                     "  !$omp critical (FoX_DOM_Access)\n"
                     "  property => item(propertyList,0)\n"
@@ -361,8 +368,10 @@ def Implementation_Builder(build, class_dict, member):
                 if ptype in ('double', 'integer', 'logical'):
                     content += (
                         "  !$omp critical (FoX_DOM_Access)\n"
-                        f"  call extractDataContent(property,self%{prop['name']}Data)\n"
+                        f"  call extractDataContent(property,self%{prop['name']}Data,iostat=status)\n"
                         "  !$omp end critical (FoX_DOM_Access)\n"
+                        "  if (status /= 0) call "
+                        f"Node_Component_Builder_Error({error_args}status,self%hostNode)\n"
                     )
                 elif ptype == 'longInteger':
                     content += (
@@ -390,8 +399,10 @@ def Implementation_Builder(build, class_dict, member):
                         "  do i=1,propertyListLength\n"
                         "    !$omp critical (FoX_DOM_Access)\n"
                         "    property => item(propertyList,i-1)\n"
-                        f"    call extractDataContent(property,self%{prop['name']}Data(i))\n"
+                        f"    call extractDataContent(property,self%{prop['name']}Data(i),iostat=status)\n"
                         "    !$omp end critical (FoX_DOM_Access)\n"
+                        "    if (status /= 0) call "
+                        f"Node_Component_Builder_Error({error_args}status,self%hostNode)\n"
                         "  end do\n"
                     )
                 elif ptype == 'longInteger':
@@ -433,11 +444,15 @@ def Implementation_Builder(build, class_dict, member):
                 mpt['intrinsic'] == 'integer'
                 and mpt.get('type') == 'kind_int8'
             )
+            error_args = (
+                f"'{name}','{member['name']}',"
+                f"char({var_pref}MetaPropertyNames(i)),{rank},"
+                "propertyListLength,"
+            )
             if rank == 0:
                 content += (
-                    "  if (propertyListLength > 1) call Error_Report("
-                    "'meta-property must have precisely one value'"
-                    "//{introspection:location})\n"
+                    "  if (propertyListLength > 1) call "
+                    f"Node_Component_Builder_Error({error_args}0,self%hostNode)\n"
                 )
                 if is_long_integer:
                     content += (
@@ -450,8 +465,10 @@ def Implementation_Builder(build, class_dict, member):
                         "  if (propertyListLength == 1) then\n"
                         "    !$omp critical (FoX_DOM_Access)\n"
                         "    property => item(propertyList,0)\n"
-                        f"    call extractDataContent(property,self%{prefix}MetaProperties(i))\n"
+                        f"    call extractDataContent(property,self%{prefix}MetaProperties(i),iostat=status)\n"
                         "    !$omp end critical (FoX_DOM_Access)\n"
+                        "    if (status /= 0) call "
+                        f"Node_Component_Builder_Error({error_args}status,self%hostNode)\n"
                         "  end if\n"
                     )
             elif rank == 1:
@@ -470,8 +487,10 @@ def Implementation_Builder(build, class_dict, member):
                         "    do j=1,propertyListLength\n"
                         "     !$omp critical (FoX_DOM_Access)\n"
                         "     property => item(propertyList,j-1)\n"
-                        f"     call extractDataContent(property,self%{prefix}MetaProperties(i)%values(j))\n"
+                        f"     call extractDataContent(property,self%{prefix}MetaProperties(i)%values(j),iostat=status)\n"
                         "     !$omp end critical (FoX_DOM_Access)\n"
+                        "     if (status /= 0) call "
+                        f"Node_Component_Builder_Error({error_args}status,self%hostNode)\n"
                         "    end do\n"
                         "  end if\n"
                     )

@@ -36,6 +36,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a merger tree constructor class which constructs a merger tree given a full specification in XML.
   !!}
@@ -106,7 +108,13 @@
 
    Each ``node`` element may contain elements which specify the properties of a component in the node. For example, a ``basic`` element will specify properties of the "basic" component. If multiple elements for a given component type are present, then multiple instances of that component will be created in the node.
 
-   Within a component definition element scalar properties are set using an element with the same name as that property (e.g. ``mass`` in the ``basic`` components in the above example). Rank-1 properties are set using a list of elements with the same name as the property (e.g. ``position`` in the ``position`` component in the above example).
+   Within a component definition element scalar properties are set using an element with the same name as that property (e.g. ``mass`` in the ``basic`` components in the above example). Rank-1 properties are set using a list of elements with the same name as the property (e.g. ``position`` in the ``position`` component in the above example) - one element per value. A single element holding several values, such as
+
+   .. code-block:: none
+
+      &lt;position&gt;1.23 6.31 3.59&lt;/position&gt;
+
+   is *not* a valid way to specify a rank-1 property, and will be reported as an error naming the node, component, and property concerned.
 
    For composite properties (e.g. abundances), the specification element should contain sub-elements that specify each property of the composite. Currently only the ``abundances`` object supports specification in this way, as detailed below:
 
@@ -270,13 +278,16 @@ contains
     !!{RST
     Construct a fully-specified merger tree.
     !!}
-    use            :: Display         , only : displayIndent               , displayUnindent, displayVerbosity, verbosityLevelInfo
-    use            :: FoX_DOM         , only : node
-    use            :: Error           , only : Error_Report
-    use            :: Galacticus_Nodes, only : mergerTree                  , treeNode       , treeNodeList
-    use            :: IO_XML          , only : XML_Get_Elements_By_Tag_Name
-    use, intrinsic :: ISO_C_Binding   , only : c_size_t
-    use            :: Kind_Numbers    , only : kind_int8
+    use            :: Display           , only : displayIndent               , displayUnindent, displayVerbosity, verbosityLevelInfo, &
+         &                                        displayGreen               , displayReset
+    use            :: FoX_DOM           , only : node
+    use            :: Error             , only : Error_Report
+    use            :: Galacticus_Nodes  , only : mergerTree                  , treeNode       , treeNodeList
+    use            :: IO_XML            , only : XML_Get_Elements_By_Tag_Name
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: ISO_Varying_String, only : var_str                     , operator(//)
+    use            :: Kind_Numbers      , only : kind_int8
+    use            :: String_Handling   , only : operator(//)
     implicit none
     type   (mergerTree                         ), pointer                     :: tree
     class  (mergerTreeConstructorFullySpecified), intent(inout)               :: self
@@ -285,7 +296,10 @@ contains
     type   (treeNodeList                       ), allocatable  , dimension(:) :: nodeArray
     type   (node                               ), pointer                     :: treeDefinition, nodeDefinition
     type   (xmlNodeList                        ), allocatable  , dimension(:) :: nodes
-    integer                                                                   :: i             , nodeCount
+    logical                                     , allocatable  , dimension(:) :: nodeVisited
+    integer                                     , allocatable  , dimension(:) :: nodeStack
+    integer                                                                   :: i             , nodeCount       , &
+         &                                                                       j             , countStack
     integer(kind_int8                          )                              :: indexValue    , treeNumberActual
 
     ! Read one tree.
@@ -369,10 +383,38 @@ contains
        end do
        ! Finish writing report.
        call displayUnindent('done',verbosityLevelInfo)
-       ! Destroy the node array.
-       deallocate(nodeArray)
        ! Check that we found a root node.
        if (.not.associated(tree%nodeBase)) call Error_Report('no root node was found'//{introspection:location})
+       ! Check that every node specified in the file is reachable from the root of the constructed tree. A node which is
+       ! specified but which is not the first child, sibling, or first satellite of any other node is simply absent from the
+       ! tree - which, without this check, leaves the tree quietly incomplete.
+       allocate(nodeVisited(nodeCount))
+       allocate(nodeStack  (nodeCount))
+       nodeVisited=.false.
+       countStack =0
+       call nodeMark(tree%nodeBase)
+       do while (countStack > 0)
+          j         =nodeStack(countStack)
+          countStack=countStack-1
+          call nodeMark(nodeArray(j)%node%firstChild    )
+          call nodeMark(nodeArray(j)%node%sibling       )
+          call nodeMark(nodeArray(j)%node%firstSatellite)
+       end do
+       do i=1,nodeCount
+          if (.not.nodeVisited(i))                                                                                     &
+               & call Error_Report(                                                                                    &
+               &                   var_str("node ")//nodeArray(i)%node%index()//" is specified in the merger tree file" &
+               &                   //" but is not reachable from the root of the tree"//char(10)//                      &
+               &                   displayGreen()//"HELP:"//displayReset()//                                           &
+               &                   " check that this node is named as the 'firstChild', 'sibling', or 'firstSatellite'" &
+               &                   //" of some other node"//                                                           &
+               &                   {introspection:location}                                                            &
+               &                  )
+       end do
+       deallocate(nodeVisited)
+       deallocate(nodeStack  )
+       ! Destroy the node array.
+       deallocate(nodeArray)
     else
        nullify(tree)
     end if
@@ -381,14 +423,38 @@ contains
 
   contains
 
+    subroutine nodeMark(node_)
+      !!{RST
+      Mark a node as reachable from the root of a fully-specified merger tree, and push it onto the stack of nodes whose own
+      links have yet to be followed. Nodes already marked, and null pointers, are ignored.
+      !!}
+      use :: Galacticus_Nodes, only : treeNode
+      implicit none
+      type   (treeNode), intent(in   ), pointer :: node_
+      integer                                   :: k
+
+      if (.not.associated(node_)) return
+      do k=1,nodeCount
+         if (associated(nodeArray(k)%node,node_)) then
+            if (nodeVisited(k)) return
+            nodeVisited(k)         =.true.
+            countStack             =countStack+1
+            nodeStack  (countStack)=k
+            return
+         end if
+      end do
+      return
+    end subroutine nodeMark
+
     function indexNode(nodeDefinition,indexType,required)
       !!{RST
       Extract and return an index from a node definition as used when constructing fully-specified merger trees.
       !!}
-      use :: FoX_Dom     , only : node                        , extractDataContent
-      use :: Kind_Numbers, only : kind_int8
-      use :: IO_XML      , only : XML_Get_Elements_By_Tag_Name
-      use :: Error       , only : Error_Report
+      use :: FoX_Dom           , only : node                        , extractDataContent
+      use :: Kind_Numbers      , only : kind_int8
+      use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, XML_Extract_Error_Message
+      use :: Error             , only : Error_Report
+      use :: ISO_Varying_String, only : operator(//)
       implicit none
       integer  (kind=kind_int8)                             :: indexNode
       type     (node          ), intent(in   ), pointer     :: nodeDefinition
@@ -396,17 +462,17 @@ contains
       logical                  , intent(in   ), optional    :: required
       type     (xmlNodeList   ), dimension(:) , allocatable :: indexElements
       type     (node          )               , pointer     :: indexElement
-      integer                                               :: indexValue
+      integer                                               :: indexValue    , status
       !![
       <optionalArgument name="required" defaultsTo=".true." />
       !!]
       
       ! Find all matching tags.
       call XML_Get_Elements_By_Tag_Name(nodeDefinition,indexType,indexElements)
-      if (size(indexElements) > 1) call Error_Report('multiple indices specified'//{introspection:location})
+      if (size(indexElements) > 1) call Error_Report("multiple '"//trim(indexType)//"' indices specified for a node"//{introspection:location})
       if (size(indexElements) < 1) then
          if (required_) then
-            call Error_Report('required index not specified'//{introspection:location})
+            call Error_Report("required index '"//trim(indexType)//"' not specified for a node"//{introspection:location})
          else
             indexNode=-1
             return
@@ -414,8 +480,10 @@ contains
       end if
       ! Get the index element.
       indexElement => indexElements(0)%element
-      ! Extract the value.
-      call extractDataContent(indexElement,indexValue)
+      ! Extract the value. Note that a status must always be requested here - without one the XML layer writes an uninformative
+      ! message to standard error and stops the program with a zero exit status.
+      call extractDataContent(indexElement,indexValue,iostat=status)
+      if (status /= 0) call Error_Report(XML_Extract_Error_Message(status,indexType,0)//{introspection:location})
       ! Transfer to function result.
       indexNode=indexValue
       return

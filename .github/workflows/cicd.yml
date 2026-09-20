@@ -1541,6 +1541,7 @@ jobs:
                 test-haloTriaxiality.py,
                 test-parallelTreeBuild.py,
                 test-duplicatedOutputPropertyName.py,
+                test-fullySpecifiedTreeMalformedProperty.py,
                 test-decayingDM-caustic.py,
                 test-decayingDM-profile.py,
                 test-decayingDM-shell-crossing-capture.py,

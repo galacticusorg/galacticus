@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
+!+    Contributions to this file made by:  Anthony Pullen, Andrew Benson, Claude.
 
 !!{RST
 Contains a submodule which provides implementations of functions for rank-2, dimension-3, symmetric tensors.
@@ -91,13 +91,14 @@ contains
     !!{RST
     Build a ``tensorRank2Dimension3Symmetric`` object from the given XML ``tensorDefinition``.
     !!}
-    use :: FoX_DOM, only : node                        , extractDataContent
-    use :: Error  , only : Error_Report
-    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: FoX_DOM           , only : node                        , extractDataContent
+    use :: Error             , only : Error_Report
+    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList              , XML_Extract_Error_Message
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
     type   (node       )               , pointer     :: element
     type   (xmlNodeList), dimension(:) , allocatable :: elementList
-    integer                                          :: i
+    integer                                          :: i                                   , status
 
     ! Get the elements.
     do i=1,6
@@ -108,8 +109,9 @@ contains
        if (size(elementList) < 1) call Error_Report('no "'     //elementNames(i)//'" value specified'  //{introspection:location})
        !$omp critical (FoX_DOM_Access)
        element => elementList(0)%element
-       call extractDataContent(element,self%c(i))
+       call extractDataContent(element,self%c(i),iostat=status)
        !$omp end critical (FoX_DOM_Access)
+       if (status /= 0) call Error_Report(XML_Extract_Error_Message(status,elementNames(i),0)//{introspection:location})
     end do
     return
   end procedure Tensor_R2_D3_Sym_Builder

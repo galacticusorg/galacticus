@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements an object hierarchy for nodes in merger trees and all of their constituent physical components.
 !!}
@@ -1894,6 +1896,38 @@ module Galacticus_Nodes
     end do
     return
   end subroutine massDistributionsDestroy
+
+  subroutine Node_Component_Builder_Error(componentClass,implementationName,propertyName,rank,countFound,status,hostNode)
+    !!{RST
+    Report a failure to read a property of a node component from an XML definition of a node, as used when building
+    fully-specified merger trees. The message names the node, component, implementation, and property concerned, none of which
+    appear in the messages issued by the underlying XML layer.
+
+    A non-zero ``status`` is the ``iostat`` value returned by the FoX ``extractDataContent`` function, and indicates that the
+    content of the property element could not be parsed. A zero ``status`` instead indicates that ``countFound`` elements were
+    found for a property which must be specified by precisely one element.
+    !!}
+    use :: Error             , only : Error_Report
+    use :: IO_XML            , only : XML_Extract_Error_Message
+    use :: ISO_Varying_String, only : varying_string           , assignment(=), operator(//)
+    use :: String_Handling   , only : operator(//)
+    implicit none
+    character(len=*         ), intent(in   )          :: componentClass, implementationName, propertyName
+    integer                  , intent(in   )          :: rank          , countFound        , status
+    type     (treeNode      ), intent(in   ), pointer :: hostNode
+    type     (varying_string)                         :: message
+
+    message="while building the '"//trim(implementationName)//"' implementation of the '"//trim(componentClass)//"' component"
+    if (associated(hostNode)) message=message//" of node "//hostNode%index()
+    message=message//":"//char(10)//"  "
+    if (status /= 0) then
+       message=message//XML_Extract_Error_Message(status,propertyName,rank)
+    else
+       message=message//"property '"//trim(propertyName)//"' must be specified by precisely one element, but "//countFound//" were found"
+    end if
+    call Error_Report(message//{introspection:location})
+    return
+  end subroutine Node_Component_Builder_Error
 
   subroutine nodeHierarchyWrapperDestructor(self)
     !!{RST

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by:  Alex Merson.
+!+    Contributions to this file made by:  Alex Merson, Claude.
 
 !!{RST
 Contains a module which defines the stellar luminosities object.
@@ -495,15 +495,16 @@ contains
     !!{RST
     Build a ``stellarLuminosities`` object from the given XML ``stellarLuminositiesDefinition``.
     !!}
-    use :: FoX_DOM, only : node                        , extractDataContent
-    use :: Error  , only : Error_Report
-    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: FoX_DOM           , only : node                        , extractDataContent
+    use :: Error             , only : Error_Report
+    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList              , XML_Extract_Error_Message
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
     class  (stellarLuminosities), intent(inout)              :: self
     type   (node               ), intent(in   ), pointer     :: stellarLuminositiesDefinition
     type   (node               )               , pointer     :: luminosity
     type   (xmlNodeList        ), dimension(:) , allocatable :: luminosityList
-    integer                                                  :: i
+    integer                                                  :: i                            , status
 
     ! Get the luminosities.
     !$omp critical (FoX_DOM_Access)
@@ -513,8 +514,9 @@ contains
        do i=0,luminosityCount-1
           !$omp critical (FoX_DOM_Access)
           luminosity => luminosityList(i)%element
-          call extractDataContent(luminosity,self%luminosityValue(i+1))
+          call extractDataContent(luminosity,self%luminosityValue(i+1),iostat=status)
           !$omp end critical (FoX_DOM_Access)
+          if (status /= 0) call Error_Report(XML_Extract_Error_Message(status,'luminosity',0)//{introspection:location})
        end do
     end if
     return
