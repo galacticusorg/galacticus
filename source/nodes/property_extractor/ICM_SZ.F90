@@ -277,11 +277,11 @@ contains
       !!}
       use :: Abundances_Structure            , only : abundances
       use :: Numerical_Constants_Astronomical, only : megaParsec
-      use :: Numerical_Constants_Physical    , only : boltzmannsConstant   , electronMass               , speedLight, thomsonCrossSection
+      use :: Numerical_Constants_Physical    , only : boltzmannsConstant      , electronMass               , speedLight, thomsonCrossSection
       use :: Numerical_Constants_Prefixes    , only : centi
-      use :: Mass_Distributions              , only : massDistributionClass, kinematicsDistributionClass
-      use :: Coordinates                     , only : coordinateSpherical  , assignment(=)
-      use :: Galactic_Structure_Options      , only : componentTypeHotHalo , massTypeGaseous
+      use :: Mass_Distributions              , only : massDistributionClass   , kinematicsDistributionClass
+      use :: Coordinates                     , only : coordinateSpherical     , assignment(=)
+      use :: Galactic_Structure_Options      , only : componentTypeHotHalo    , massTypeGaseous
       use :: Hot_Halo_Composition            , only : Hot_Halo_Gas_Composition, Hydrogen_Number_Density
       implicit none
       double precision                             , intent(in   ) :: radius

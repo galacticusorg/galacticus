@@ -235,13 +235,13 @@ contains
     end function integrandLuminosityInBand
 
     subroutine icmProperties(radius,numberDensityHydrogen,temperature,abundancesICM,densityChemicalICM)
-      use :: Abundances_Structure             , only : abundances
-      use :: Chemical_Abundances_Structure    , only : chemicalAbundances
-      use :: Coordinates                      , only : coordinateSpherical     , assignment(=)
-      use :: Hot_Halo_Composition             , only : Hot_Halo_Gas_Composition, Hydrogen_Number_Density
+      use :: Abundances_Structure         , only : abundances
+      use :: Chemical_Abundances_Structure, only : chemicalAbundances
+      use :: Coordinates                  , only : coordinateSpherical     , assignment(=)
+      use :: Hot_Halo_Composition         , only : Hot_Halo_Gas_Composition, Hydrogen_Number_Density
       implicit none
       double precision                      , intent(in   ) :: radius
-      double precision                      , intent(  out) :: numberDensityHydrogen  , temperature
+      double precision                      , intent(  out) :: numberDensityHydrogen, temperature
       type            (abundances          ), intent(  out) :: abundancesICM
       type            (chemicalAbundances  ), intent(  out) :: densityChemicalICM
       type            (coordinateSpherical )                :: coordinates

@@ -52,7 +52,7 @@ contains
     use :: Tabulations_Inverse  , only : tabulationInverse
     implicit none
     type            (tabulationInverse                   ), intent(inout)               :: timeFreefallScaleFree_
-    double precision                                      , intent(in   )               :: timeScaleFree              , toleranceRelative
+    double precision                                      , intent(in   )               :: timeScaleFree               , toleranceRelative
     procedure       (potentialDifferenceScaleFreeTemplate)                              :: potentialDifferenceScaleFree
     double precision                                      , allocatable  , dimension(:) :: radii
     double precision                                                                    :: radiusStart

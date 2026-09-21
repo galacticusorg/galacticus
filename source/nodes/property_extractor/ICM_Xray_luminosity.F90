@@ -163,20 +163,20 @@ contains
       !!{RST
       Integrand function used for computing ICM X-ray luminosities.
       !!}
-      use :: Abundances_Structure             , only : abundances
-      use :: Chemical_Abundances_Structure    , only : chemicalAbundances
-      use :: Numerical_Constants_Astronomical , only : megaParsec
-      use :: Numerical_Constants_Math         , only : Pi
-      use :: Numerical_Constants_Prefixes     , only : centi
-      use :: Coordinates                      , only : coordinateSpherical     , assignment(=)
-      use :: Hot_Halo_Composition             , only : Hot_Halo_Gas_Composition, Hydrogen_Number_Density
+      use :: Abundances_Structure            , only : abundances
+      use :: Chemical_Abundances_Structure   , only : chemicalAbundances
+      use :: Numerical_Constants_Astronomical, only : megaParsec
+      use :: Numerical_Constants_Math        , only : Pi
+      use :: Numerical_Constants_Prefixes    , only : centi
+      use :: Coordinates                     , only : coordinateSpherical     , assignment(=)
+      use :: Hot_Halo_Composition            , only : Hot_Halo_Gas_Composition, Hydrogen_Number_Density
       implicit none
-      double precision                      , intent(in   ) :: radius
-      double precision                                      :: density                , temperature        , &
-           &                                                   numberDensityHydrogen
-      type            (abundances          )                :: abundancesICM
-      type            (chemicalAbundances  )                :: fractionChemicalICM
-      type            (coordinateSpherical )                :: coordinates
+      double precision                     , intent(in   ) :: radius
+      double precision                                     :: density              , temperature, &
+           &                                                  numberDensityHydrogen
+      type            (abundances         )                :: abundancesICM
+      type            (chemicalAbundances )                :: fractionChemicalICM
+      type            (coordinateSpherical)                :: coordinates
 
       ! Set the coordinates.
       coordinates     =  [radius,0.0d0,0.0d0]

@@ -187,7 +187,7 @@ contains
       implicit none
       double precision                      , intent(in   ) :: radius
       type            (coordinateSpherical )                :: coordinates
-      double precision                                      :: density                , temperature        , &
+      double precision                                      :: density              , temperature, &
            &                                                   numberDensityHydrogen
       type            (abundances          )                :: abundancesICM
       type            (chemicalAbundances  )                :: fractionChemicalICM
