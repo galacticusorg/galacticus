@@ -1255,6 +1255,7 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="equilibrium"/>
           <xs:enumeration value="fixed"/>
+          <xs:enumeration value="hooked"/>
           <xs:enumeration value="linear"/>
           <xs:enumeration value="null"/>
           <xs:enumeration value="simple"/>

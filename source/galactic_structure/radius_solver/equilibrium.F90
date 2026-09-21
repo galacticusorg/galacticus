@@ -31,7 +31,7 @@
    </description>
   </galacticStructureSolver>
   !!]
-  type, extends(galacticStructureSolverClass) :: galacticStructureSolverEquilibrium
+  type, extends(galacticStructureSolverHooked) :: galacticStructureSolverEquilibrium
      !!{RST
      Implementation of an "equilibrium" solver for galactic structure.
      !!}
@@ -42,10 +42,10 @@
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_       => null()
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_      => null()
    contains
-     final     ::             equilibriumDestructor
-     procedure :: solve    => equilibriumSolve
-     procedure :: revert   => equilibriumRevert
-     procedure :: autoHook => equilibriumAutoHook
+     final     ::                       equilibriumDestructor
+     procedure :: solve              => equilibriumSolve
+     procedure :: revert             => equilibriumRevert
+     procedure :: solvePreDerivative => equilibriumSolvePreDerivative
   end type galacticStructureSolverEquilibrium
 
   interface galacticStructureSolverEquilibrium
@@ -157,29 +157,10 @@ contains
     return
   end function equilibriumConstructorInternal
 
-  subroutine equilibriumAutoHook(self)
-    !!{RST
-    Attach to various event hooks.
-    !!}
-    use :: Events_Hooks, only : dependencyDirectionAfter, dependencyRegEx   , nodePromotionEvent  , openMPThreadBindingAtLevel, &
-          &                     postEvolveEvent         , preDerivativeEvent, satelliteMergerEvent
-    implicit none
-    class(galacticStructureSolverEquilibrium), intent(inout) :: self
-    type (dependencyRegEx                   ), dimension(1)  :: dependencies
-
-    dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')
-    call   preDerivativeEvent%attach(self,equilibriumSolvePreDeriativeHook,openMPThreadBindingAtLevel,label='structureSolverEquilibrium'                          )
-    call      postEvolveEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverEquilibrium',dependencies=dependencies)
-    call satelliteMergerEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverEquilibrium',dependencies=dependencies)
-    call   nodePromotionEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverEquilibrium',dependencies=dependencies)
-    return
-  end subroutine equilibriumAutoHook
-
   subroutine equilibriumDestructor(self)
     !!{RST
     Destructor for the :galacticus-class:`galacticStructureSolverEquilibrium` galactic structure solver class.
     !!}
-    use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none
     type(galacticStructureSolverEquilibrium), intent(inout) :: self
 
@@ -187,58 +168,23 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
-    if (  preDerivativeEvent%isAttached(self,equilibriumSolvePreDeriativeHook)) call   preDerivativeEvent%detach(self,equilibriumSolvePreDeriativeHook)
-    if (     postEvolveEvent%isAttached(self,equilibriumSolveHook            )) call      postEvolveEvent%detach(self,equilibriumSolveHook            )
-    if (satelliteMergerEvent%isAttached(self,equilibriumSolveHook            )) call satelliteMergerEvent%detach(self,equilibriumSolveHook            )
-    if (  nodePromotionEvent%isAttached(self,equilibriumSolveHook            )) call   nodePromotionEvent%detach(self,equilibriumSolveHook            )
+    call self%detachHooks()
     return
   end subroutine equilibriumDestructor
 
-  subroutine equilibriumSolveHook(self,node)
+  subroutine equilibriumSolvePreDerivative(self,node,propertyType)
     !!{RST
-    Hookable wrapper around the solver.
+    Solve for the structure of the given node in response to the pre-derivative event.
     !!}
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : char
-    use :: Function_Classes  , only : functionClass
+    use :: Galacticus_Nodes, only : propertyTypeInactive
     implicit none
-    class(*       ), intent(inout)         :: self
-    type (treeNode), intent(inout), target :: node
+    class  (galacticStructureSolverEquilibrium), intent(inout)         :: self
+    type   (treeNode                          ), intent(inout), target :: node
+    integer                                    , intent(in   )         :: propertyType
 
-    select type (self)
-    type is (galacticStructureSolverEquilibrium)
-       call self%solve(node)
-    class is (functionClass)
-       call Error_Report('object is not of [galacticStructureSolverEquilibrium] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
-    class default
-       call Error_Report('object is not of [galacticStructureSolverEquilibrium] class'//{introspection:location})
-    end select
+    call self%solve(node,plausibilityOnly=propertyType == propertyTypeInactive .and. .not.self%solveForInactiveProperties)
     return
-  end subroutine equilibriumSolveHook
-
-  subroutine equilibriumSolvePreDeriativeHook(self,node,propertyType)
-    !!{RST
-    Hookable wrapper around the solver for pre-derivative events.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: Galacticus_Nodes  , only : propertyTypeInactive, treeNode
-    use :: ISO_Varying_String, only : char
-    use :: Function_Classes  , only : functionClass
-    implicit none
-    class  (*       ), intent(inout)         :: self
-    type   (treeNode), intent(inout), target :: node
-    integer          , intent(in   )         :: propertyType
-
-    select type (self)
-    type is (galacticStructureSolverEquilibrium)
-       call self%solve(node,plausibilityOnly=propertyType == propertyTypeInactive .and. .not.self%solveForInactiveProperties)
-    class is (functionClass)
-       call Error_Report('object is not of [galacticStructureSolverEquilibrium] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
-    class default
-       call Error_Report('object is not of [galacticStructureSolverEquilibrium] class'//{introspection:location})
-    end select
-    return
-  end subroutine equilibriumSolvePreDeriativeHook
+  end subroutine equilibriumSolvePreDerivative
 
   subroutine equilibriumSolve(self,node,plausibilityOnly)
     !!{RST
