@@ -1885,6 +1885,7 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="cole2000"/>
           <xs:enumeration value="covington2008"/>
+          <xs:enumeration value="memoized"/>
           <xs:enumeration value="null"/>
          </xs:restriction>
         </xs:simpleType>
