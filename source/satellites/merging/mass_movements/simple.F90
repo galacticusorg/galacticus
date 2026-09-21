@@ -23,7 +23,6 @@
   Implements a merger mass movements class which uses a simple calculation.
   !!}
 
-
   !![
   <mergerMassMovements name="mergerMassMovementsSimple" docformat="rst">
    <description>

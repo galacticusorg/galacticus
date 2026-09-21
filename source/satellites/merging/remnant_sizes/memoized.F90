@@ -44,8 +44,8 @@
    contains
      !![
      <methods docformat="rst">
-       <method description="Compute the size, circular velocity, and specific angular momentum of the merger remnant." method="calculate"   />
-       <method description="Detach from the node events. Must be called by the destructor of each concrete class."    method="detachHooks" />
+       <method description="Compute the size, circular velocity, and specific angular momentum of the merger remnant." method="calculate"  />
+       <method description="Detach from the node events. Must be called by the destructor of each concrete class."     method="detachHooks"/>
      </methods>
      !!]
      procedure                              :: autoHook    => memoizedAutoHook
@@ -62,7 +62,8 @@
        import mergerRemnantSizeMemoized, treeNode
        class           (mergerRemnantSizeMemoized), intent(inout) :: self
        type            (treeNode                 ), intent(inout) :: node
-       double precision                           , intent(  out) :: radius, velocityCircular, angularMomentumSpecific
+       double precision                           , intent(  out) :: radius                 , velocityCircular, &
+            &                                                        angularMomentumSpecific
      end subroutine memoizedCalculate
   end interface
 
@@ -115,7 +116,7 @@ contains
     class is (functionClass)
        call Error_Report('object is not of [mergerRemnantSizeMemoized] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('object is not of [mergerRemnantSizeMemoized] class'//{introspection:location})
+       call Error_Report('object is not of [mergerRemnantSizeMemoized] class'                                              //{introspection:location})
     end select
     return
   end subroutine memoizedCalculationReset
@@ -139,7 +140,7 @@ contains
     class is (functionClass)
        call Error_Report('object is not of [mergerRemnantSizeMemoized] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('object is not of [mergerRemnantSizeMemoized] class'//{introspection:location})
+       call Error_Report('object is not of [mergerRemnantSizeMemoized] class'                                              //{introspection:location})
     end select
     return
   end subroutine memoizedGetHook
@@ -151,7 +152,8 @@ contains
     implicit none
     class           (mergerRemnantSizeMemoized), intent(inout) :: self
     type            (treeNode                 ), intent(inout) :: node
-    double precision                           , intent(  out) :: radius, velocityCircular, angularMomentumSpecific
+    double precision                           , intent(  out) :: radius                 , velocityCircular, &
+         &                                                        angularMomentumSpecific
 
     ! The remnant properties are computed when first needed and then stored. This ensures that they are determined by the
     ! properties of the merging galaxies prior to any modification that will occur as node components are modified in response
@@ -164,9 +166,9 @@ contains
        self%velocityCircular       =velocityCircular
        self%angularMomentumSpecific=angularMomentumSpecific
     else
-       radius                 =self%radius
-       velocityCircular       =self%velocityCircular
-       angularMomentumSpecific=self%angularMomentumSpecific
+       radius                      =self%radius
+       velocityCircular            =self%velocityCircular
+       angularMomentumSpecific     =self%angularMomentumSpecific
     end if
     return
   end subroutine memoizedGet

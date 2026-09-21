@@ -57,7 +57,7 @@
      Implementation of a "fixed" solver for galactic structure (no self-gravity of baryons, and size simply scales in proportion to specific angular momentum).
      !!}
      private
-     double precision                                      :: factor                          , factorDisk        , &
+     double precision                                      :: factor                          , factorDisk, &
           &                                                   factorSpheroid
      type            (enumerationRadiusFixedType)          :: radiusFixed
      class           (darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_   => null()

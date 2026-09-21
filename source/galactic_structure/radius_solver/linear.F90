@@ -43,9 +43,9 @@
      private
      class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
-     final     ::             linearDestructor
-     procedure :: solve    => linearSolve
-     procedure :: revert   => linearRevert
+     final     ::           linearDestructor
+     procedure :: solve  => linearSolve
+     procedure :: revert => linearRevert
   end type galacticStructureSolverLinear
 
   interface galacticStructureSolverLinear
@@ -113,7 +113,7 @@ contains
     !!}
     use :: Calculations_Resets                       , only : Calculations_Reset
     use :: Galactic_Structure_Radius_Solver_Utilities, only : radiusSolverPlausibilities  , radiusSolverTasks, radiusSolver
-   implicit none
+    implicit none
     class           (galacticStructureSolverLinear), intent(inout)           :: self
     type            (treeNode                     ), intent(inout), target   :: node
     logical                                        , intent(in   ), optional :: plausibilityOnly

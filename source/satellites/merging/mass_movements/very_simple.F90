@@ -21,7 +21,6 @@
   Implements a merger mass movements class which uses a simple calculation.
   !!}
 
-
   !![
   <mergerMassMovements name="mergerMassMovementsVerySimple" docformat="rst">
    <description>
@@ -123,20 +122,20 @@ contains
     else if (self%massRatioMajorMerger >  1.0d0) then
        mergerIsMajor=.false.
     else
-       nodeHost                 => node                     %mergesWith      (                         )
-       massDistributionHost     => nodeHost                 %massDistribution(massType=massTypeGalactic)
-       massDistributionSatellite=> node                     %massDistribution(massType=massTypeGalactic)
-       massSatellite            =  massDistributionSatellite%massTotal       (                         )
-       massHost                 =  massDistributionHost     %massTotal       (                         )
-       mergerIsMajor            =  massSatellite >= self%massRatioMajorMerger*massHost
+       nodeHost                  => node                     %mergesWith      (                         )
+       massDistributionHost      => nodeHost                 %massDistribution(massType=massTypeGalactic)
+       massDistributionSatellite => node                     %massDistribution(massType=massTypeGalactic)
+       massSatellite             =  massDistributionSatellite%massTotal       (                         )
+       massHost                  =  massDistributionHost     %massTotal       (                         )
+       mergerIsMajor             =  massSatellite >= self%massRatioMajorMerger*massHost
        !![
 	  <objectDestructor name="massDistributionHost"     />
 	  <objectDestructor name="massDistributionSatellite"/>
 	  !!]
     end if
-    destinationGasSatellite  =     destinationMergerDisk
-    destinationStarsSatellite=     destinationMergerDisk
-    destinationGasHost       =     destinationMergerUnmoved
-    destinationStarsHost     =     destinationMergerUnmoved
+    destinationGasSatellite     =  destinationMergerDisk
+    destinationStarsSatellite   =  destinationMergerDisk
+    destinationGasHost          =  destinationMergerUnmoved
+    destinationStarsHost        =  destinationMergerUnmoved
     return
   end subroutine verySimpleCalculate

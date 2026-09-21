@@ -45,8 +45,8 @@
    contains
      !![
      <methods docformat="rst">
-       <method description="Compute the movements of stellar and gaseous mass components during a galaxy merger event." method="calculate"   />
-       <method description="Detach from the node events. Must be called by the destructor of each concrete class."        method="detachHooks" />
+       <method description="Compute the movements of stellar and gaseous mass components during a galaxy merger event." method="calculate"  />
+       <method description="Detach from the node events. Must be called by the destructor of each concrete class."      method="detachHooks"/>
      </methods>
      !!]
      procedure                                  :: autoHook    => memoizedAutoHook
@@ -172,11 +172,11 @@ contains
        self%destinationStarsHost     =destinationStarsHost
        self%mergerIsMajor            =mergerIsMajor
     else
-       destinationGasSatellite  =self%destinationGasSatellite
-       destinationStarsSatellite=self%destinationStarsSatellite
-       destinationGasHost       =self%destinationGasHost
-       destinationStarsHost     =self%destinationStarsHost
-       mergerIsMajor            =self%mergerIsMajor
+       destinationGasSatellite       =self%destinationGasSatellite
+       destinationStarsSatellite     =self%destinationStarsSatellite
+       destinationGasHost            =self%destinationGasHost
+       destinationStarsHost          =self%destinationStarsHost
+       mergerIsMajor                 =self%mergerIsMajor
     end if
     return
   end subroutine memoizedGet

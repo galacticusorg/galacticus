@@ -114,7 +114,7 @@ contains
     class is (functionClass)
        call Error_Report('object is not of [galacticStructureSolverHooked] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('object is not of [galacticStructureSolverHooked] class'//{introspection:location})
+       call Error_Report('object is not of [galacticStructureSolverHooked] class'                                             //{introspection:location})
     end select
     return
   end subroutine hookedSolveHook
@@ -137,7 +137,7 @@ contains
     class is (functionClass)
        call Error_Report('object is not of [galacticStructureSolverHooked] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('object is not of [galacticStructureSolverHooked] class'//{introspection:location})
+       call Error_Report('object is not of [galacticStructureSolverHooked] class'                                              //{introspection:location})
     end select
     return
   end subroutine hookedSolvePreDerivativeHook

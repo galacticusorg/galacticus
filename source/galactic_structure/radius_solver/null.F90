@@ -34,8 +34,8 @@
      !!}
      private
    contains
-     final     ::             nullDestructor
-     procedure :: solve    => nullSolve
+     final     ::          nullDestructor
+     procedure :: solve => nullSolve
   end type galacticStructureSolverNull
 
   interface galacticStructureSolverNull

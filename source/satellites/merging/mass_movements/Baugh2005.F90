@@ -21,7 +21,6 @@
   Implements a merger mass movements class using the :cite:t:`baugh_can_2005` model.
   !!}
 
-
   !![
   <mergerMassMovements name="mergerMassMovementsBaugh2005" docformat="rst">
    <description>
@@ -42,7 +41,7 @@
      A merger mass movements class which uses the :cite:t:`baugh_can_2005` calculation.
      !!}
      private
-     double precision                                   :: massRatioMajorMerger     , ratioMassBurst           , &
+     double precision                                   :: massRatioMajorMerger     , ratioMassBurst, &
           &                                                fractionGasCriticalBurst
      type            (enumerationDestinationMergerType) :: destinationGasMinorMerger
    contains
@@ -170,9 +169,9 @@ contains
     massHost                        =  +massDistributionHost           %massTotal       (                                                             )
     massGasHost                     =  +massDistributionHostDiskGas    %massTotal       (                                                             ) &
          &                             +massDistributionHostSpheroidGas%massTotal       (                                                             )
-    massSpheroidHost=  +massDistributionHostSpheroid   %massTotal       (                                                             )
-    mergerIsMajor   =    massSatellite    >= self%massRatioMajorMerger    *massHost
-    triggersBurst   =                        mergerIsMajor                     &
+    massSpheroidHost                =  +massDistributionHostSpheroid   %massTotal       (                                                             )
+    mergerIsMajor                   =    massSatellite    >= self%massRatioMajorMerger    *massHost
+    triggersBurst                   =    mergerIsMajor                                              &
          &                             .or.                                                         &
          &                              (                                                           &
          &                               massSpheroidHost <  self%ratioMassBurst          *massHost &

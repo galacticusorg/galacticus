@@ -138,6 +138,7 @@ contains
     <constructorAssign variables="energyOrbital, ignoreUnphysicalConditions, *mergerProgenitorProperties_"/>
     !!]
 
+    return
   end function cole2000ConstructorInternal
 
   subroutine cole2000Destructor(self)
