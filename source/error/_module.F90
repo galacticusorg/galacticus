@@ -476,13 +476,13 @@ contains
     use               :: System_Output     , only : stdOutIsATTY
     use               :: ISO_Varying_String, only : char
     implicit none
-    integer                        , intent(in   ) :: signalNumber
-    character(len=*               ), intent(in   ) :: description
-    character(len=:), allocatable                  :: message
+    integer           , intent(in   ) :: signalNumber
+    character(len=*  ), intent(in   ) :: description
+    character(len=:  ), allocatable   :: message
 #ifdef USEMPI
-    integer            :: mpiRank , error
-    character(len=128) :: hostName
-    logical            :: flag
+    integer                           :: mpiRank     , error
+    character(len=128)                :: hostName
+    logical                           :: flag
 #endif
 
     call signalHandlersCall(signalNumber)
@@ -501,11 +501,11 @@ contains
 #ifndef UNCLEANEXIT
     call closeHDF5()
 #endif
-    call BackTrace  (           )
-    call Warn_Review(           )
-    call Error_Help_Message(.true.)
-    call Flush      (output_unit)
-    call Flush      ( error_unit)
+    call BackTrace         (           )
+    call Warn_Review       (           )
+    call Error_Help_Message(.true.     )
+    call Flush             (output_unit)
+    call Flush             ( error_unit)
 #ifdef UNCLEANEXIT
     call Exit(signalNumber)
 #else
