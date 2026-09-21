@@ -338,13 +338,17 @@ contains
     !!}
     use :: Events_Hooks                    , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeOutputStateAdvanceEvent
     use :: Galacticus_Nodes                , only : defaultNSCComponent
-    use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_
+    use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_, scalerStellarPool, &
+         &                                          scalerGasPool
     implicit none
 
     if (defaultNSCComponent%standardIsActive()) then
        if (satelliteMergerEvent             %isAttached(thread,satelliteMerger             )) call satelliteMergerEvent             %detach(thread,satelliteMerger             )
        if (postEvolveEvent                  %isAttached(thread,Node_Component_NSC_Standard_Post_Evolve                  )) call postEvolveEvent                  %detach(thread,Node_Component_NSC_Standard_Post_Evolve                  )
        if (mergerTreeOutputStateAdvanceEvent%isAttached(thread,mergerTreeOutputStateAdvance)) call mergerTreeOutputStateAdvanceEvent%detach(thread,mergerTreeOutputStateAdvance)
+       ! Release the pooled scaler mass distributions before the dimensionless distributions they wrap.
+       call scalerStellarPool%destroy()
+       call scalerGasPool    %destroy()
        !![
        <objectDestructor name="stellarPopulationProperties_"/>
        <objectDestructor name="darkMatterHaloScale_"        />
