@@ -28,9 +28,11 @@ Implements an orbital velocity output analysis property extractor class.
 
    .. math::
 
-      \mathbf{v} = sum_{i=1}^N \mathbf{v}_i,
+      \mathbf{v} = \sum_{i=1}^N \mathbf{v}_i,
 
    where :math:`N` is the depth of the node in the sub-halo hierarchy.
+
+   If that top-level halo is not on the main branch of its tree---as when the orbits of halos prior to infall are tracked (see the ``trackPreInfallOrbit`` parameter of :galacticus-class:`nodeOperatorSatelliteOrbit`)---the sum continues from the halo, at the same time, on the branch with which the top-level halo will eventually merge, repeating until a halo on the main branch is reached. The orbital velocity is therefore always relative to a halo on the main branch.
    </description>
   </nodePropertyExtractor>
   !!]
