@@ -291,14 +291,21 @@ contains
     !!{RST
     Return the density at the specified ``coordinates`` in an NFW mass distribution.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     class           (massDistributionNFW), intent(inout) :: self
     class           (coordinate         ), intent(in   ) :: coordinates
     double precision                                     :: radiusScaleFree
 
-    ! Compute the density at this position.
+    ! Compute the density at this position. The profile diverges at zero radius: that is reported here, as returning the largest
+    ! representable density instead simply moves the overflow into whatever uses the result.
     radiusScaleFree=+coordinates%rSpherical          () &
          &          /self       %scaleLength
+    if (radiusScaleFree <= 0.0d0) then
+       nfwDensity  =+0.0d0
+       call Error_Report('density is divergent at zero radius'//{introspection:location})
+       return
+    end if
     nfwDensity     =+self       %densityNormalization   &
          &          /       radiusScaleFree             &
          &          /(1.0d0+radiusScaleFree)**2
