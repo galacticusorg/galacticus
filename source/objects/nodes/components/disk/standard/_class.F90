@@ -31,6 +31,7 @@ module Node_Component_Disk_Standard
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   use :: Star_Formation_Histories        , only : starFormationHistory            , starFormationHistoryClass
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
+  use :: Node_Components_Galactic_Shared, only : Node_Component_Disk_Standard_Post_Evolve
   implicit none
   private
   public :: Node_Component_Disk_Standard_Scale_Set                 , Node_Component_Disk_Standard_Pre_Evolve         , &
@@ -298,7 +299,7 @@ contains
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        dependencies(2)=dependencyRegEx(dependencyDirectionAfter,'^preAnalysis:'     )
        call satelliteMergerEvent             %attach(thread,satelliteMerger             ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard',dependencies=dependencies)
-       call postEvolveEvent                  %attach(thread,postEvolve                  ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
+       call postEvolveEvent                  %attach(thread,Node_Component_Disk_Standard_Post_Evolve                  ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
        call mergerTreeOutputStateAdvanceEvent%attach(thread,mergerTreeOutputStateAdvance,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
        ! Find our parameters.
        subParameters=parameters%subParameters('componentDisk')
@@ -398,7 +399,7 @@ contains
 
     if (defaultDiskComponent%standardIsActive()) then
        if (satelliteMergerEvent             %isAttached(thread,satelliteMerger             )) call satelliteMergerEvent             %detach(thread,satelliteMerger             )
-       if (postEvolveEvent                  %isAttached(thread,postEvolve                  )) call postEvolveEvent                  %detach(thread,postEvolve                  )
+       if (postEvolveEvent                  %isAttached(thread,Node_Component_Disk_Standard_Post_Evolve                  )) call postEvolveEvent                  %detach(thread,Node_Component_Disk_Standard_Post_Evolve                  )
        if (mergerTreeOutputStateAdvanceEvent%isAttached(thread,mergerTreeOutputStateAdvance)) call mergerTreeOutputStateAdvanceEvent%detach(thread,mergerTreeOutputStateAdvance)
        ! Release the pooled scaler mass distributions before the dimensionless distributions they wrap.
        call scalerStellarPool%destroy()
@@ -440,34 +441,6 @@ contains
     end select
     return
   end subroutine Node_Component_Disk_Standard_Pre_Evolve
-
-  subroutine postEvolve(self,node)
-    !!{RST
-    Trim histories attached to the disk.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, nodeComponentDiskStandard, treeNode
-    use :: Histories       , only : history
-    implicit none
-    class(*                 ), intent(inout) :: self
-    type (treeNode          ), intent(inout) :: node
-    class(nodeComponentDisk ), pointer       :: disk
-    class(nodeComponentBasic), pointer       :: basic
-    type (history           )                :: stellarPropertiesHistory
-    !$GLC attributes unused :: self
-
-    ! Get the disk component.
-    disk => node%disk()
-    ! Check if an standard disk component exists.
-    select type (disk)
-    class is (nodeComponentDiskStandard)
-       ! Trim the stellar populations properties future history.
-       basic => node%basic()
-       stellarPropertiesHistory=disk%stellarPropertiesHistory()
-       call stellarPropertiesHistory%trim(basic%time())
-       call disk%stellarPropertiesHistorySet(stellarPropertiesHistory)
-    end select
-    return
-  end subroutine postEvolve
 
   !![
   <postStepTask function="Node_Component_Disk_Standard_Post_Step"/>
