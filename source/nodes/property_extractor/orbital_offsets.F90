@@ -43,12 +43,12 @@ contains
     use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentSatellite, treeNode
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
-    type            (treeNode              ), intent(inout), target             :: node
-    double precision                        , intent(in   )                     :: time
+    type            (treeNode              ), intent(inout), target                 :: node
+    double precision                        , intent(in   )                         :: time
     double precision                        , intent(  out), dimension(3), optional :: position , velocity
-    type            (treeNode              ), pointer                           :: nodeWork
-    class           (nodeComponentBasic    ), pointer                           :: basic
-    class           (nodeComponentSatellite), pointer                           :: satellite
+    type            (treeNode              ), pointer                               :: nodeWork
+    class           (nodeComponentBasic    ), pointer                               :: basic
+    class           (nodeComponentSatellite), pointer                               :: satellite
 
     if (present(position)) position=0.0d0
     if (present(velocity)) velocity=0.0d0
