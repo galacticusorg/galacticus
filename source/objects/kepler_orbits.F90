@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which defines an orbit structure for use in Galacticus.
 !!}
@@ -221,9 +223,10 @@ contains
     !!{RST
     Build a ``keplerOrbit`` object from the given XML ``keplerOrbitDefinition``.
     !!}
-    use :: FoX_DOM, only : getNodeName                 , node       , extractDataContent
-    use :: Error  , only : Error_Report
-    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: FoX_DOM           , only : getNodeName                 , node       , extractDataContent
+    use :: Error             , only : Error_Report
+    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, XML_Extract_Error_Message
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
     class           (keplerOrbit), intent(inout)               :: self
     type            (node       ), pointer                     :: keplerOrbitDefinition
@@ -237,7 +240,7 @@ contains
          &                                                                               'velocityTangential',                   &
          &                                                                               'radius            '                    &
          &                                                                              ]
-    integer                                                    :: i
+    integer                                                    :: i                                          , status
     double precision                                           :: massHost                                   , massSatellite   , &
          &                                                        propertyValue
     logical                                                    :: massHostSet                                , massSatelliteSet
@@ -252,9 +255,10 @@ contains
        if (size(propertyList) == 1) then
           !$omp critical (FoX_DOM_Access)
           property => propertyList(0)%element
-          call extractDataContent(property,propertyValue)
+          call extractDataContent(property,propertyValue,iostat=status)
           nodeName=getNodeName(property)
           !$omp end critical (FoX_DOM_Access)
+          if (status /= 0) call Error_Report(XML_Extract_Error_Message(status,trim(propertyNames(i)),0)//{introspection:location})
           select case (trim(nodeName))
           case ( 'radius'             )
              call self%            radiusSet(propertyValue)

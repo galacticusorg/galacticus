@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Model used by test-fullySpecifiedTreeMalformedProperty.py. It reads a fully-specified merger tree in which a rank-1 node
+     component property is malformed (see fullySpecifiedTreeMalformedPropertyTree.xml), and so is expected to fail while
+     constructing the tree. Nothing here is ever evolved, so the physics is stripped to the minimum needed to build a tree
+     containing a satellite.
+  -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="45d032acac6d59571afd2c4f7f84e0e8b0f14f8f" time="2026-09-19T00:00:00"/>
+
+  <!-- Cosmology. -->
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="67.36"  />
+    <OmegaMatter     value="0.3153" />
+    <OmegaDarkEnergy value="0.6847" />
+    <OmegaBaryon     value="0.0493" />
+    <temperatureCMB  value="2.72548"/>
+  </cosmologyParameters>
+  <cosmologyFunctions value="matterLambda"/>
+
+  <virialDensityContrast value="fixed">
+    <densityContrastValue value="200.0"/>
+    <densityType          value="mean" />
+  </virialDensityContrast>
+  <darkMatterHaloScale  value="virialDensityContrastDefinition"/>
+  <darkMatterProfileDMO value="NFW"                            />
+  <darkMatterProfile    value="darkMatterOnly"                 />
+
+  <!-- Node components. `satellite` must be `orbiting`, as that is the implementation carrying the rank-1 `position` property
+       which the tree file gets wrong. -->
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+  <componentSatellite         value="orbiting"/>
+  <componentBlackHole         value="null"    />
+  <componentDisk              value="null"    />
+  <componentHotHalo           value="null"    />
+  <componentSpheroid          value="null"    />
+  <componentSpin              value="null"    />
+  <hotHaloMassDistribution    value="null"    />
+  <mergerRemnantSize          value="null"    />
+
+  <!-- The tree, containing the malformed property. -->
+  <mergerTreeConstructor value="fullySpecified">
+    <fileName value="testSuite/parameters/fullySpecifiedTreeMalformedPropertyTree.xml"/>
+  </mergerTreeConstructor>
+
+  <nodeOperator value="cosmicTime"/>
+
+  <outputTimes value="list">
+    <times value="13.8"/>
+  </outputTimes>
+  <nodePropertyExtractor value="nodeIndices"/>
+  <outputFileName value="testSuite/outputs/fullySpecifiedTreeMalformedProperty.hdf5"/>
+
+</parameters>
