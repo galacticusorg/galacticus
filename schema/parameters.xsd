@@ -1849,6 +1849,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="baugh2005"/>
+          <xs:enumeration value="memoized"/>
           <xs:enumeration value="simple"/>
           <xs:enumeration value="verySimple"/>
          </xs:restriction>

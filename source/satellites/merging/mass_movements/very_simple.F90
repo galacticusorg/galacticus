@@ -21,7 +21,6 @@
   Implements a merger mass movements class which uses a simple calculation.
   !!}
 
-  use :: Kind_Numbers, only : kind_int8
 
   !![
   <mergerMassMovements name="mergerMassMovementsVerySimple" docformat="rst">
@@ -30,18 +29,15 @@
    </description>
   </mergerMassMovements>
   !!]
-  type, extends(mergerMassMovementsClass) :: mergerMassMovementsVerySimple
+  type, extends(mergerMassMovementsMemoized) :: mergerMassMovementsVerySimple
      !!{RST
      A merger mass movements class which uses a simple calculation.
      !!}
      private
-     double precision                          :: massRatioMajorMerger
-     integer         (kind=kind_int8)          :: lastUniqueID
-     logical                                   :: mergerIsMajor       , movementsCalculated
+     double precision :: massRatioMajorMerger
    contains
-     final     ::             verySimpleDestructor
-     procedure :: autoHook => verySimpleAutoHook
-     procedure :: get      => verySimpleGet
+     final     ::              verySimpleDestructor
+     procedure :: calculate => verySimpleCalculate
   end type mergerMassMovementsVerySimple
 
   interface mergerMassMovementsVerySimple
@@ -92,90 +88,21 @@ contains
     <constructorAssign variables="massRatioMajorMerger"/>
     !!]
 
-    self%lastUniqueID       =-huge(0_kind_int8)
-    self%mergerIsMajor      =.false.
-    self%movementsCalculated=.false.
     return
   end function verySimpleConstructorInternal
-
-  subroutine verySimpleAutoHook(self)
-    !!{RST
-    Attach to the calculation reset event.
-    !!}
-    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels, satelliteMergerEvent
-    implicit none
-    class(mergerMassMovementsVerySimple), intent(inout) :: self
-
-    call calculationResetEvent%attach(self,verySimpleCalculationReset,openMPThreadBindingAllLevels,label='remnantStructure:massMovementsVerySimple')
-    call satelliteMergerEvent %attach(self,verySimpleGetHook         ,openMPThreadBindingAllLevels,label='remnantStructure:massMovementsVerySimple')
-    return
-  end subroutine verySimpleAutoHook
 
   subroutine verySimpleDestructor(self)
     !!{RST
     Destructor for the :galacticus-class:`mergerMassMovementsVerySimple` merger mass movements class.
     !!}
-    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none
     type(mergerMassMovementsVerySimple), intent(inout) :: self
 
-    if (calculationResetEvent%isAttached(self,verySimpleCalculationReset)) call calculationResetEvent%detach(self,verySimpleCalculationReset)
-    if (satelliteMergerEvent %isAttached(self,verySimpleGetHook         )) call satelliteMergerEvent %detach(self,verySimpleGetHook         )
+    call self%detachHooks()
     return
   end subroutine verySimpleDestructor
 
-  subroutine verySimpleCalculationReset(self,node,uniqueID)
-    !!{RST
-    Reset the dark matter profile calculation.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: Kind_Numbers      , only : kind_int8
-    use :: ISO_Varying_String, only : char
-    use :: Function_Classes  , only : functionClass
-    implicit none
-    class  (*        ), intent(inout) :: self
-    type   (treeNode ), intent(inout) :: node
-    integer(kind_int8), intent(in   ) :: uniqueID
-    !$GLC attributes unused :: node
-
-    select type (self)
-    class is (mergerMassMovementsVerySimple)
-       self%movementsCalculated=.false.
-       self%lastUniqueID       =uniqueID
-    class is (functionClass)
-       call Error_Report('object is not of [mergerMassMovementsVerySimple] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
-    class default
-       call Error_Report('object is not of [mergerMassMovementsVerySimple] class'//{introspection:location})
-    end select
-    return
-  end subroutine verySimpleCalculationReset
-
-  subroutine verySimpleGetHook(self,node)
-    !!{RST
-    Hookable wrapper around the get function.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : char
-    use :: Function_Classes  , only : functionClass
-    implicit none
-    class  (*                               ), intent(inout)         :: self
-    type   (treeNode                        ), intent(inout), target :: node
-    type   (enumerationDestinationMergerType)                        :: destinationGasSatellite, destinationGasHost       , &
-         &                                                              destinationStarsHost   , destinationStarsSatellite
-    logical                                                          :: mergerIsMajor
-
-    select type (self)
-    type is (mergerMassMovementsVerySimple)
-       call self%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
-    class is (functionClass)
-       call Error_Report('object is not of [mergerMassMovementsVerySimple] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
-    class default
-       call Error_Report('object is not of [mergerMassMovementsVerySimple] class'//{introspection:location})
-    end select
-    return
-  end subroutine verySimpleGetHook
-
-  subroutine verySimpleGet(self,node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
+  subroutine verySimpleCalculate(self,node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
     !!{RST
     Determine where stars and gas move as the result of a merger event using a very simple algorithm.
     !!}
@@ -191,33 +118,25 @@ contains
     class           (massDistributionClass           ), pointer               :: massDistributionSatellite, massDistributionHost
     double precision                                                          :: massHost                 , massSatellite
     
-    ! The calculation of how mass moves as a result of the merger is computed when first needed and then stored. This ensures that
-    ! the results are determined by the properties of the merge target prior to any modification that will occur as node
-    ! components are modified in response to the merger.
-    if (node%uniqueID() /= self%lastUniqueID) call verySimpleCalculationReset(self,node,node%uniqueID())
-    if (.not.self%movementsCalculated) then
-       self%movementsCalculated=.true.
-       if      (self%massRatioMajorMerger <= 0.0d0) then
-          self%mergerIsMajor=.true.
-       else if (self%massRatioMajorMerger >  1.0d0) then
-          self%mergerIsMajor=.false.
-       else
-          nodeHost                  => node                     %mergesWith      (                         )
-          massDistributionHost      => nodeHost                 %massDistribution(massType=massTypeGalactic)
-          massDistributionSatellite => node                     %massDistribution(massType=massTypeGalactic)
-          massSatellite             =  massDistributionSatellite%massTotal       (                         )
-          massHost                  =  massDistributionHost     %massTotal       (                         )
-          self%mergerIsMajor        =  massSatellite >= self%massRatioMajorMerger*massHost
-          !![
+    if      (self%massRatioMajorMerger <= 0.0d0) then
+       mergerIsMajor=.true.
+    else if (self%massRatioMajorMerger >  1.0d0) then
+       mergerIsMajor=.false.
+    else
+       nodeHost                 => node                     %mergesWith      (                         )
+       massDistributionHost     => nodeHost                 %massDistribution(massType=massTypeGalactic)
+       massDistributionSatellite=> node                     %massDistribution(massType=massTypeGalactic)
+       massSatellite            =  massDistributionSatellite%massTotal       (                         )
+       massHost                 =  massDistributionHost     %massTotal       (                         )
+       mergerIsMajor            =  massSatellite >= self%massRatioMajorMerger*massHost
+       !![
 	  <objectDestructor name="massDistributionHost"     />
 	  <objectDestructor name="massDistributionSatellite"/>
 	  !!]
-       end if
     end if
-    mergerIsMajor            =self%mergerIsMajor
     destinationGasSatellite  =     destinationMergerDisk
     destinationStarsSatellite=     destinationMergerDisk
     destinationGasHost       =     destinationMergerUnmoved
     destinationStarsHost     =     destinationMergerUnmoved
     return
-  end subroutine verySimpleGet
+  end subroutine verySimpleCalculate

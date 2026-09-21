@@ -23,7 +23,6 @@
   Implements a merger mass movements class which uses a simple calculation.
   !!}
 
-  use :: Kind_Numbers, only : kind_int8
 
   !![
   <mergerMassMovements name="mergerMassMovementsSimple" docformat="rst">
@@ -37,21 +36,16 @@
    </description>
   </mergerMassMovements>
   !!]
-  type, extends(mergerMassMovementsClass) :: mergerMassMovementsSimple
+  type, extends(mergerMassMovementsMemoized) :: mergerMassMovementsSimple
      !!{RST
      A merger mass movements class which uses a simple calculation.
      !!}
      private
      double precision                                   :: massRatioMajorMerger
      type            (enumerationDestinationMergerType) :: destinationGasMinorMerger, destinationStarsMinorMerger
-     integer         (kind=kind_int8                  ) :: lastUniqueID
-     type            (enumerationDestinationMergerType) :: destinationGasSatellite  , destinationStarsSatellite  , &
-          &                                                destinationGasHost       , destinationStarsHost
-     logical                                            :: mergerIsMajor            , movementsCalculated
    contains
-     final     ::             simpleDestructor
-     procedure :: autoHook => simpleAutoHook
-     procedure :: get      => simpleGet
+     final     ::              simpleDestructor
+     procedure :: calculate => simpleCalculate
   end type mergerMassMovementsSimple
 
   interface mergerMassMovementsSimple
@@ -120,94 +114,21 @@ contains
     <constructorAssign variables="massRatioMajorMerger, destinationGasMinorMerger, destinationStarsMinorMerger"/>
     !!]
 
-    self%lastUniqueID             =-huge(0_kind_int8)
-    self%destinationGasSatellite  =destinationMergerUnmoved
-    self%destinationStarsSatellite=destinationMergerUnmoved
-    self%destinationGasHost       =destinationMergerUnmoved
-    self%destinationStarsHost     =destinationMergerUnmoved
-    self%mergerIsMajor            =.false.
-    self%movementsCalculated      =.false.
     return
   end function simpleConstructorInternal
-
-  subroutine simpleAutoHook(self)
-    !!{RST
-    Attach to the calculation reset event.
-    !!}
-    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels, satelliteMergerEvent
-    implicit none
-    class(mergerMassMovementsSimple), intent(inout) :: self
-
-    call calculationResetEvent%attach(self,simpleCalculationReset,openMPThreadBindingAllLevels,label='remnantStructure:massMovementsSimple')
-    call satelliteMergerEvent %attach(self,simpleGetHook         ,openMPThreadBindingAllLevels,label='remnantStructure:massMovementsSimple')
-    return
-  end subroutine simpleAutoHook
 
   subroutine simpleDestructor(self)
     !!{RST
     Destructor for the :galacticus-class:`mergerMassMovementsSimple` merger mass movements class
     !!}
-    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none
     type(mergerMassMovementsSimple), intent(inout) :: self
 
-    if (calculationResetEvent%isAttached(self,simpleCalculationReset)) call calculationResetEvent%detach(self,simpleCalculationReset)
-    if (satelliteMergerEvent %isAttached(self,simpleGetHook         )) call satelliteMergerEvent %detach(self,simpleGetHook         )
+    call self%detachHooks()
     return
   end subroutine simpleDestructor
 
-  subroutine simpleCalculationReset(self,node,uniqueID)
-    !!{RST
-    Reset the dark matter profile calculation.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: Kind_Numbers      , only : kind_int8
-    use :: ISO_Varying_String, only : char
-    use :: Function_Classes  , only : functionClass
-    implicit none
-    class  (*        ), intent(inout) :: self
-    type   (treeNode ), intent(inout) :: node
-    integer(kind_int8), intent(in   ) :: uniqueID
-    !$GLC attributes unused :: node
-
-    select type (self)
-    class is (mergerMassMovementsSimple)
-       self%movementsCalculated=.false.
-       self%lastUniqueID       =uniqueID
-       class is (functionClass)
-       call Error_Report('object is not of [mergerMassMovementsSimple] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
-       class default
-       call Error_Report('object is not of [mergerMassMovementsSimple] class'//{introspection:location})
-    end select
-    return
-  end subroutine simpleCalculationReset
-
-  subroutine simpleGetHook(self,node)
-    !!{RST
-    Hookable wrapper around the get function.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : char
-    use :: Function_Classes  , only : functionClass
-    implicit none
-    class  (*                               ), intent(inout)         :: self
-    type   (treeNode                        ), intent(inout), target :: node
-    type   (enumerationDestinationMergerType)                        :: destinationGasSatellite, destinationGasHost       , &
-         &                                                              destinationStarsHost   , destinationStarsSatellite
-    logical                                                          :: mergerIsMajor
-
-    select type (self)
-    type is (mergerMassMovementsSimple)
-       call self%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
-    class is (functionClass)
-       call Error_Report('object is not of [mergerMassMovementsSimple] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
-    class default
-       call Error_Report('object is not of [mergerMassMovementsSimple] class'//{introspection:location})
-    end select
-    return
-  end subroutine simpleGetHook
-
-  subroutine simpleGet(self,node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
+  subroutine simpleCalculate(self,node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
     !!{RST
     Determine where stars and gas move as the result of a merger event using a simple algorithm.
     !!}
@@ -226,67 +147,55 @@ contains
          &                                                                       massSpheroid             , massDisk
     type            (enumerationDestinationMergerType)                        :: destinationDominant
 
-    ! The calculation of how mass moves as a result of the merger is computed when first needed and then stored. This ensures that
-    ! the results are determined by the properties of the merge target prior to any modification that will occur as node
-    ! components are modified in response to the merger.
-    if (node%uniqueID() /= self%lastUniqueID) call simpleCalculationReset(self,node,node%uniqueID())
-    if (.not.self%movementsCalculated) then
-       self%movementsCalculated  =  .true.
-       nodeHost                  => node                     %mergesWith      (                         )
-       massDistributionHost      => nodeHost                 %massDistribution(massType=massTypeGalactic)
-       massDistributionSatellite => node                     %massDistribution(massType=massTypeGalactic)
-       massSatellite             =  massDistributionSatellite%massTotal       (                         )
-       massHost                  =  massDistributionHost     %massTotal       (                         )
-       self%mergerIsMajor        =  massSatellite > 0.0d0 .and. massHost > 0.0d0 .and. min(massSatellite,massHost) >= self%massRatioMajorMerger*max(massSatellite,massHost)
-       !![
-       <objectDestructor name="massDistributionHost"     />
-       <objectDestructor name="massDistributionSatellite"/>
-       !!]
-       if (self%mergerIsMajor) then
-          self%destinationGasSatellite  =     destinationMergerSpheroid
-          self%destinationStarsSatellite=     destinationMergerSpheroid
-          self%destinationGasHost       =     destinationMergerSpheroid
-          self%destinationStarsHost     =     destinationMergerSpheroid
-       else
-          destinationDominant=destinationMergerUnmoved
-          if (self%destinationGasMinorMerger == destinationMergerDominant .or. self%destinationStarsMinorMerger == destinationMergerDominant) then
-             if (massSatellite < massHost) then
-                nodeMajor => nodeHost
-             else
-                nodeMajor => node
-             end if
-             massDistributionDisk     => nodeMajor               %massDistribution(massType=massTypeGalactic,componentType=componentTypeDisk    )
-             massDistributionSpheroid => nodeMajor               %massDistribution(massType=massTypeGalactic,componentType=componentTypeSpheroid)
-             massDisk                 =  massDistributionDisk    %massTotal       (                                                             )
-             massSpheroid             =  massDistributionSpheroid%massTotal       (                                                             )
-             !![
+    nodeHost                 => node                     %mergesWith      (                         )
+    massDistributionHost     => nodeHost                 %massDistribution(massType=massTypeGalactic)
+    massDistributionSatellite=> node                     %massDistribution(massType=massTypeGalactic)
+    massSatellite            =  massDistributionSatellite%massTotal       (                         )
+    massHost                 =  massDistributionHost     %massTotal       (                         )
+    mergerIsMajor            =  massSatellite > 0.0d0 .and. massHost > 0.0d0 .and. min(massSatellite,massHost) >= self%massRatioMajorMerger*max(massSatellite,massHost)
+    !![
+    <objectDestructor name="massDistributionHost"     />
+    <objectDestructor name="massDistributionSatellite"/>
+    !!]
+    if (mergerIsMajor) then
+       destinationGasSatellite  =     destinationMergerSpheroid
+       destinationStarsSatellite=     destinationMergerSpheroid
+       destinationGasHost       =     destinationMergerSpheroid
+       destinationStarsHost     =     destinationMergerSpheroid
+    else
+       destinationDominant=destinationMergerUnmoved
+       if (self%destinationGasMinorMerger == destinationMergerDominant .or. self%destinationStarsMinorMerger == destinationMergerDominant) then
+          if (massSatellite < massHost) then
+             nodeMajor => nodeHost
+          else
+             nodeMajor => node
+          end if
+          massDistributionDisk     => nodeMajor               %massDistribution(massType=massTypeGalactic,componentType=componentTypeDisk    )
+          massDistributionSpheroid => nodeMajor               %massDistribution(massType=massTypeGalactic,componentType=componentTypeSpheroid)
+          massDisk                 =  massDistributionDisk    %massTotal       (                                                             )
+          massSpheroid             =  massDistributionSpheroid%massTotal       (                                                             )
+          !![
 	     <objectDestructor name="massDistributionDisk"    />
 	     <objectDestructor name="massDistributionSpheroid"/>
 	     !!]
-             if (massDisk > massSpheroid) then
-                destinationDominant=destinationMergerDisk
-             else
-                destinationDominant=destinationMergerSpheroid
-             end if
-          end if
-          if (self%destinationGasMinorMerger   == destinationMergerDominant) then
-             self%destinationGasSatellite  =     destinationDominant
+          if (massDisk > massSpheroid) then
+             destinationDominant=destinationMergerDisk
           else
-             self%destinationGasSatellite  =self%destinationGasMinorMerger
+             destinationDominant=destinationMergerSpheroid
           end if
-          if (self%destinationStarsMinorMerger == destinationMergerDominant) then
-             self%destinationStarsSatellite=     destinationDominant
-          else
-             self%destinationStarsSatellite=self%destinationStarsMinorMerger
-          end if
-          self%destinationGasHost       =     destinationMergerUnmoved
-          self%destinationStarsHost     =     destinationMergerUnmoved
        end if
+       if (self%destinationGasMinorMerger   == destinationMergerDominant) then
+          destinationGasSatellite=     destinationDominant
+       else
+          destinationGasSatellite=self%destinationGasMinorMerger
+       end if
+       if (self%destinationStarsMinorMerger == destinationMergerDominant) then
+          destinationStarsSatellite=     destinationDominant
+       else
+          destinationStarsSatellite=self%destinationStarsMinorMerger
+       end if
+       destinationGasHost  =     destinationMergerUnmoved
+       destinationStarsHost=     destinationMergerUnmoved
     end if
-    mergerIsMajor            =self%mergerIsMajor
-    destinationGasSatellite  =self%destinationGasSatellite
-    destinationStarsSatellite=self%destinationStarsSatellite
-    destinationGasHost       =self%destinationGasHost
-    destinationStarsHost     =self%destinationStarsHost
     return
-  end subroutine simpleGet
+  end subroutine simpleCalculate
