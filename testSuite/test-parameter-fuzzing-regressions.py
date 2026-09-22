@@ -81,6 +81,20 @@ cases = [
         1,
     ),
     (
+        # `accretionHalo` is changed too, so that something asks the IGM for its state: nothing in `quickTest` does otherwise.
+        "internal IGM state without the universe operator which solves for it",
+        """  <change type="replaceOrAppend" path="intergalacticMediumState">
+    <intergalacticMediumState value="internal"/>
+  </change>
+  <change type="replace" path="accretionHalo">
+    <accretionHalo value="naozBarkana2007"/>
+  </change>
+""",
+        ("rejected", ["the state of the IGM has not been solved for",
+                      "[universeOperator]=intergalacticMediumStateEvolve"]),
+        1,
+    ),
+    (
         "evolution output node operator",
         """  <change type="append" path="nodeOperator">
     <nodeOperator value="evolutionOutput">
