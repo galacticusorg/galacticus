@@ -188,15 +188,19 @@ cases = [
         4,
     ),
     (
+        # The original configuration for this case, a [rateMaximumExpulsion] of 1e30, no longer causes evolution to fail, so
+        # tolerances far below what the solver can achieve are used instead.
         "failed evolution",
-        """  <change type="update" path="nodeOperator/nodeOperator[@value='CGMCoolingHeating']/rateMaximumExpulsion" value="1.0e30"/>
+        """  <change type="update" path="mergerTreeNodeEvolver/odeToleranceAbsolute" value="1.0e-100"/>
+  <change type="update" path="mergerTreeNodeEvolver/odeToleranceRelative" value="1.0e-100"/>
 """,
         ("taskFailed", None),
         1,
     ),
     (
         "failed evolution with failures tolerated",
-        """  <change type="update" path="nodeOperator/nodeOperator[@value='CGMCoolingHeating']/rateMaximumExpulsion" value="1.0e30"/>
+        """  <change type="update" path="mergerTreeNodeEvolver/odeToleranceAbsolute" value="1.0e-100"/>
+  <change type="update" path="mergerTreeNodeEvolver/odeToleranceRelative" value="1.0e-100"/>
   <change type="replaceOrAppend" path="task">
     <task value="evolveForests">
       <tolerateFailures value="true"/>
