@@ -20,6 +20,9 @@ import subprocess
 import sys
 import xml.etree.ElementTree as ET
 
+import h5py
+import numpy as np
+
 # Ensure output directory exists.
 os.makedirs("outputs", exist_ok=True)
 
@@ -27,6 +30,55 @@ os.makedirs("outputs", exist_ok=True)
 #   ("rejected"  , [strings which must all appear in the output]),
 #   ("runs"      , check) where `check` is a function returning a list of problems (empty if none), or
 #   ("taskFailed", None).
+
+
+def tagFor(label):
+    """Return the tag used to name the files of the case with this label."""
+    return "".join(c if c.isalnum() else "_" for c in label)
+
+
+def outputFileNameFor(label):
+    """Return the name of the model output file written by the case with this label."""
+    return f"outputs/parameterFuzzingRegressions_{tagFor(label)}.hdf5"
+
+
+# Labels of the cases whose checks must find their own output file.
+labelMergerTreeMassUnion = "union of merger tree masses with two members"
+labelOutputTimesUnion    = "union of output times with two members"
+
+
+def checkMergerTreeMassUnion():
+    """Check that the union built one tree from each of its two `fixedMass` members."""
+    fileName = outputFileNameFor(labelMergerTreeMassUnion)
+    if not os.path.exists(fileName):
+        return [f"output file '{fileName}' was not written"]
+    with h5py.File(fileName, "r") as file:
+        trees  = file["Outputs/Output1/mergerTreeIndex"     ][:]
+        masses = file["Outputs/Output1/nodeData/basicMass"  ][:]
+    problems = []
+    if len(trees) != 2:
+        problems.append(f"expected 2 trees, one from each member of the union, but found {len(trees)}")
+    for massExpected in (1.0e12, 1.0e13):
+        if not np.any(np.isclose(masses, massExpected, rtol=1.0e-3)):
+            problems.append(f"no halo of mass {massExpected:g} M_Solar - a member of the union contributed no tree")
+    return problems
+
+
+def checkOutputTimesUnion():
+    """Check that the union output at the times of both of its `list` members."""
+    fileName = outputFileNameFor(labelOutputTimesUnion)
+    if not os.path.exists(fileName):
+        return [f"output file '{fileName}' was not written"]
+    with h5py.File(fileName, "r") as file:
+        expansionFactors = sorted(file[f"Outputs/{name}"].attrs["outputExpansionFactor"] for name in file["Outputs"].keys())
+    problems = []
+    if len(expansionFactors) != 2:
+        problems.append(f"expected 2 outputs, one from each member of the union, but found {len(expansionFactors)}")
+    # The members ask for redshifts 1 and 0, i.e. expansion factors 0.5 and 1.
+    for expansionFactorExpected in (0.5, 1.0):
+        if not any(np.isclose(expansionFactors, expansionFactorExpected, rtol=1.0e-3)):
+            problems.append(f"no output at expansion factor {expansionFactorExpected} - a member of the union contributed no time")
+    return problems
 
 
 def checkEvolutionOutput():
@@ -69,6 +121,49 @@ cases = [
   </change>
 """,
         ("rejected", ["at least one [mergerTreeBuildMasses] must be specified"]),
+        1,
+    ),
+    (
+        labelMergerTreeMassUnion,
+        """  <change type="replace" path="mergerTreeBuildMasses">
+    <mergerTreeBuildMasses value="union">
+      <mergerTreeBuildMasses value="fixedMass">
+        <massTree value="1.0e12"/>
+        <treeCount value="1"/>
+      </mergerTreeBuildMasses>
+      <mergerTreeBuildMasses value="fixedMass">
+        <massTree value="1.0e13"/>
+        <treeCount value="1"/>
+      </mergerTreeBuildMasses>
+    </mergerTreeBuildMasses>
+  </change>
+""",
+        ("runs", checkMergerTreeMassUnion),
+        1,
+    ),
+    (
+        "union of output times with no members",
+        """  <change type="replaceOrAppend" path="outputTimes">
+    <outputTimes value="union"/>
+  </change>
+""",
+        ("rejected", ["at least one [outputTimes] must be specified"]),
+        1,
+    ),
+    (
+        labelOutputTimesUnion,
+        """  <change type="replaceOrAppend" path="outputTimes">
+    <outputTimes value="union">
+      <outputTimes value="list">
+        <redshifts value="0.0"/>
+      </outputTimes>
+      <outputTimes value="list">
+        <redshifts value="1.0"/>
+      </outputTimes>
+    </outputTimes>
+  </change>
+""",
+        ("runs", checkOutputTimesUnion),
         1,
     ),
     (
@@ -116,7 +211,7 @@ cases = [
 
 def run(label, changes, countThreads):
     """Run quickTest with the given changes and number of OpenMP threads, returning (return code, output)."""
-    tag            = "".join(c if c.isalnum() else "_" for c in label)
+    tag            = tagFor(label)
     changeFileName = f"outputs/parameterFuzzingRegressions_{tag}.changes.xml"
     with open(changeFileName, "w") as changeFile:
         changeFile.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<changes>\n")
