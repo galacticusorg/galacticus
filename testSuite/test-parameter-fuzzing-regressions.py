@@ -81,6 +81,70 @@ cases = [
         1,
     ),
     (
+        # Without `darkMatterProfileScaleSet` no node operator gives the halo a dark matter profile, so the enclosed mass within
+        # `radiusTree` is zero whatever the halo mass, and no root can be found. The scale radius interpolation and halo spin
+        # operators are removed too, as they would otherwise report the missing profile first.
+        "tree radius with no dark matter profile",
+        """  <change type="replace" path="mergerTreeBuildMasses">
+    <mergerTreeBuildMasses value="fixedMass">
+      <massTree   value="1.0e12"/>
+      <radiusTree value="0.2"   />
+      <treeCount  value="1"     />
+    </mergerTreeBuildMasses>
+  </change>
+  <change type="remove" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleSet']"/>
+  <change type="remove" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleInterpolate']"/>
+  <change type="remove" path="nodeOperator/nodeOperator[@value='haloAngularMomentumRandom']"/>
+  <change type="remove" path="nodeOperator/nodeOperator[@value='haloAngularMomentumInterpolate']"/>
+""",
+        ("rejected", ["the halo has no dark matter mass distribution, so [radiusTree]",
+                      "[nodeOperator]=darkMatterProfileScaleSet"]),
+        1,
+    ),
+    (
+        "halo spin with no dark matter profile",
+        """  <change type="remove" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleSet']"/>
+  <change type="remove" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleInterpolate']"/>
+""",
+        ("rejected", ["the halo has no dark matter mass distribution, so its angular momentum scale",
+                      "[nodeOperator]=darkMatterProfileScaleSet"]),
+        1,
+    ),
+    (
+        # Nested inside `filteredMainBranch` the scale radius is set only for halos on the main branch.
+        "dark matter profile scale radius never set",
+        """  <change type="replace" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleSet']">
+    <nodeOperator value="filteredMainBranch">
+      <nodeOperator value="darkMatterProfileScaleSet"/>
+    </nodeOperator>
+  </change>
+  <change type="remove" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleInterpolate']"/>
+  <change type="remove" path="nodeOperator/nodeOperator[@value='haloAngularMomentumRandom']"/>
+  <change type="remove" path="nodeOperator/nodeOperator[@value='haloAngularMomentumInterpolate']"/>
+""",
+        ("rejected", ["requires a positive scale radius", "has not been set"]),
+        1,
+    ),
+    (
+        "zero dark matter profile scale radius with an NFW profile",
+        """  <change type="replace" path="darkMatterProfileScaleRadius">
+    <darkMatterProfileScaleRadius value="zero"/>
+  </change>
+""",
+        ("rejected", ["requires a positive scale radius", "[darkMatterProfileScaleRadius]"]),
+        1,
+    ),
+    (
+        # `quickTest` uses the Eisenstein & Hu (1999) transfer function, which has no small-scale cutoff.
+        "prompt cusps with no small-scale cutoff in the power spectrum",
+        """  <change type="append" path="nodeOperator">
+    <nodeOperator value="darkMatterProfilePromptCusps"/>
+  </change>
+""",
+        ("rejected", ["of the power spectrum does not converge", "small-scale cutoff"]),
+        1,
+    ),
+    (
         "evolution output node operator",
         """  <change type="append" path="nodeOperator">
     <nodeOperator value="evolutionOutput">
