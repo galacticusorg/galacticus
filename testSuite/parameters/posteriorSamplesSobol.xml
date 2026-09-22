@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameters for the Sobol posterior samples unit test (tests.posterior_sampling.samples_Sobol.exe). -->
+
+<parameters>
+  <lastModified revision="3a3cb2a91b024b65597526ce20b32dbe969815ce" time="2026-09-22T00:00:00"/>
+  <formatVersion>2</formatVersion>
+
+  <!-- A grid simulation, as used to evaluate a design. It is not run: the test builds its model parameters and design. -->
+  <posteriorSampleSimulation value="grid">
+    <!-- One active parameter for each class of prior used in calibrations. The names are arbitrary: they are not applied to -->
+    <!-- any model.                                                                                                        -->
+    <modelParameter value="active">
+      <name value="parameterUniform"/>
+      <distributionFunction1DPrior value="uniform">
+        <limitLower value="-2.0"/>
+        <limitUpper value="+4.0"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0"/>
+        <scale value="1.0e-3"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="parameterLogUniform"/>
+      <distributionFunction1DPrior value="logUniform">
+        <limitLower value="1.0e-3"/>
+        <limitUpper value="1.0e+1"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="logarithm"/>
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0"/>
+        <scale value="1.0e-3"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="parameterNormalTruncated"/>
+      <distributionFunction1DPrior value="normal">
+        <mean       value="0.25"/>
+        <variance   value="0.01"/>
+        <limitLower value="0.00"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0"/>
+        <scale value="1.0e-3"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="parameterLogNormalTruncated"/>
+      <distributionFunction1DPrior value="logNormal">
+        <x0         value="150.0"/>
+        <sigma      value="0.5"/>
+        <limitLower value="25.0"/>
+        <limitUpper value="300.0"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="logarithm"/>
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0"/>
+        <scale value="1.0e-3"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+
+    <!-- A randomly-shifted design. (An unshifted design is also constructed by the test.) -->
+    <posteriorSamples value="sobol">
+      <countSamples value="64"/>
+      <randomShift  value="true"/>
+    </posteriorSamples>
+  </posteriorSampleSimulation>
+
+  <randomNumberGenerator value="GSL">
+    <seed value="42"/>
+  </randomNumberGenerator>
+</parameters>

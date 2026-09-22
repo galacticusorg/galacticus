@@ -3209,6 +3209,7 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="latinHypercube"/>
           <xs:enumeration value="priorGrid"/>
+          <xs:enumeration value="sobol"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
