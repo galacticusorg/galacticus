@@ -81,6 +81,35 @@ cases = [
         1,
     ),
     (
+        "array parameter with the wrong number of values",
+        """  <change type="replace" path="virialOrbit">
+    <virialOrbit value="jiang2014">
+      <gammaRatioLow value="0.2"/>
+    </virialOrbit>
+  </change>
+""",
+        ("rejected", ["parameter [gammaRatioLow] requires 3 values, but 1 was given"]),
+        1,
+    ),
+    (
+        # CAMB itself rejects this cosmology - its reason should be quoted in the error message.
+        "CAMB given an invalid cosmology",
+        """  <change type="replace" path="transferFunction">
+    <transferFunction value="CAMB">
+      <cosmologyParameters value="simple">
+        <HubbleConstant  value="67.36"/>
+        <OmegaMatter     value="13.4" />
+        <OmegaDarkEnergy value="0.685"/>
+        <OmegaBaryon     value="0.049"/>
+        <temperatureCMB  value="2.725"/>
+      </cosmologyParameters>
+    </transferFunction>
+  </change>
+""",
+        ("rejected", ["CAMB failed - its output ends:", "Your matter densities are strange"]),
+        1,
+    ),
+    (
         "evolution output node operator",
         """  <change type="append" path="nodeOperator">
     <nodeOperator value="evolutionOutput">
