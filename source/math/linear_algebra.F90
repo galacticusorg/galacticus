@@ -34,7 +34,7 @@ module Linear_Algebra
   private
   public :: vector         , matrix              , matrixRotation, matrixLU      , &
        &    assignment(=)  , operator(*)         , gsl_vector_get, gsl_vector_set, &
-       &    gsl_vector_free, matrixRotationRandom
+       &    gsl_vector_free, matrixRotationRandom, matrixCholesky
 
   type :: vectorWrapper
      !!{RST
@@ -186,6 +186,33 @@ module Linear_Algebra
      !!}
      module procedure matrixLUConstructor
   end interface matrixLU
+
+  type, public, extends(matrix) :: matrixCholesky
+     !!{RST
+     Matrix class for the Cholesky decomposition, :math:`A = L L^\mathrm{T}`, of a symmetric, positive-definite matrix
+     :math:`A`. The lower triangle of the stored matrix holds :math:`L`. The ``inverse`` and ``logarithmicDeterminant``
+     methods return those of :math:`A`; other methods inherited from ``matrix`` act on the stored decomposition.
+     !!}
+     private
+   contains
+     !![
+     <methods docformat="rst">
+       <method description="Solve the linear system :math:`y = A \cdot x` for :math:`x`."                                                                        method="squareSystemSolve"     />
+       <method description="Solve the triangular linear system :math:`y = L \cdot x` for :math:`x`, such that :math:`|x|^2 = y^\mathrm{T} A^{-1} y`."         method="lowerTriangularSolve"  />
+     </methods>
+     !!]
+     procedure :: squareSystemSolve      => matrixCholeskySquareSystemSolve
+     procedure :: lowerTriangularSolve   => matrixCholeskyLowerTriangularSolve
+     procedure :: inverse                => matrixCholeskyInverse
+     procedure :: logarithmicDeterminant => matrixCholeskyLogarithmicDeterminant
+  end type matrixCholesky
+
+  interface matrixCholesky
+     !!{RST
+     Interface to Cholesky matrix constructors.
+     !!}
+     module procedure matrixCholeskyConstructor
+  end interface matrixCholesky
   
   ! Assignment interfaces.
   interface assignment(=)
@@ -194,6 +221,7 @@ module Linear_Algebra
      module procedure matrixAssignmentConstructor
      module procedure matrixUnassignment
      module procedure matrixLUUnassignment
+     module procedure matrixCholeskyUnassignment
   end interface assignment(=)
 
   ! Operator interfaces.
@@ -442,6 +470,34 @@ module Linear_Algebra
        type   (c_ptr), value :: A
      end function gsl_linalg_cholesky_decomp
 
+     function gsl_linalg_cholesky_decomp1(A) bind(c,name='gsl_linalg_cholesky_decomp1')
+       !!{RST
+       Template for the GSL Cholesky decomposition function which leaves the upper triangle unmodified.
+       !!}
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_linalg_cholesky_decomp1
+       type   (c_ptr), value :: A
+     end function gsl_linalg_cholesky_decomp1
+
+     function gsl_linalg_cholesky_solve(cholesky,b,x) bind(c,name='gsl_linalg_cholesky_solve')
+       !!{RST
+       Template for the GSL Cholesky solve function.
+       !!}
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_linalg_cholesky_solve
+       type   (c_ptr), value :: cholesky                 , b, &
+            &                   x
+     end function gsl_linalg_cholesky_solve
+
+     function gsl_linalg_cholesky_invert(cholesky) bind(c,name='gsl_linalg_cholesky_invert')
+       !!{RST
+       Template for the GSL Cholesky in-place inversion function.
+       !!}
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_linalg_cholesky_invert
+       type   (c_ptr), value :: cholesky
+     end function gsl_linalg_cholesky_invert
+
      function gsl_eigen_symmv_alloc(n) bind(c,name='gsl_eigen_symmv_alloc')
        !!{RST
        Template for the GSL symmetric eigenvalues workspace alloc function.
@@ -491,6 +547,19 @@ module Linear_Algebra
             &                                y
        !$GLC attributes interoperable :: TransA
      end function gsl_blas_dgemv
+
+     function gsl_blas_dtrsv(Uplo,TransA,Diag,A,x) bind(c,name='gsl_blas_dtrsv')
+       !!{RST
+       Template for the GSL BLAS triangular solve function.
+       !!}
+       import c_ptr, c_int
+       integer(c_int             )        :: gsl_blas_dtrsv
+       integer(kind(CblasLower  )), value :: Uplo
+       integer(kind(CblasNoTrans)), value :: TransA
+       integer(kind(CblasNonUnit)), value :: Diag
+       type   (c_ptr             ), value :: A             , x
+       !$GLC attributes interoperable :: Uplo, TransA, Diag
+     end function gsl_blas_dtrsv
 
      function gsl_blas_dgemm(TransA,TransB,alpha,A,B,beta,C) bind(c,name='gsl_blas_dgemm')
        !!{RST
@@ -1316,6 +1385,129 @@ contains
     return
   end subroutine matrixLUUnassignment
   
+  !! Cholesky matrix functions.
+
+  function matrixCholeskyConstructor(matrix_,status) result(self)
+    !!{RST
+    Constructor for the ``matrixCholesky`` class, which finds the Cholesky decomposition of the given symmetric,
+    positive-definite matrix. If ``status`` is present, failure of the decomposition (e.g. because the matrix is not
+    positive-definite) is reported through it instead of being fatal.
+    !!}
+    use :: Error        , only : Error_Report, GSL_Error_Handler_Abort_Off, GSL_Error_Handler_Abort_On
+    use :: Interface_GSL, only : GSL_Success
+    implicit none
+    type   (matrixCholesky)                          :: self
+    type   (matrix        ), intent(in   )           :: matrix_
+    integer                , intent(  out), optional :: status
+    integer(c_int         )                          :: status_
+
+    if (.not.matrix_%isSquare) call Error_Report('can not find Cholesky decomposition of a non-square matrix'//{introspection:location})
+    self%matrix=matrix(matrix_)
+    if (present(status)) then
+       call GSL_Error_Handler_Abort_Off()
+       status =GSL_LinAlg_Cholesky_Decomp1(self%matrix_%gsl)
+       call GSL_Error_Handler_Abort_On ()
+    else
+       status_=GSL_LinAlg_Cholesky_Decomp1(self%matrix_%gsl)
+       if (status_ /= GSL_Success) call Error_Report('Cholesky decomposition failed'//{introspection:location})
+    end if
+    return
+  end function matrixCholeskyConstructor
+
+  function matrixCholeskySquareSystemSolve(self,y)
+    !!{RST
+    Solve the square linear system :math:`y = A \cdot x` using the Cholesky decomposition of :math:`A`.
+    !!}
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
+    implicit none
+    type   (vector        )                :: matrixCholeskySquareSystemSolve
+    class  (matrixCholesky), intent(inout) :: self
+    type   (vector        ), intent(in   ) :: y
+    integer(c_int         )                :: status
+
+    matrixCholeskySquareSystemSolve=vector                   (y%size_                                                                        )
+    status                         =GSL_LinAlg_Cholesky_Solve(self%matrix_%gsl,y%vector_%gsl,matrixCholeskySquareSystemSolve%vector_%gsl)
+    if (status /= GSL_Success) call Error_Report('Cholesky solve failed'//{introspection:location})
+    return
+  end function matrixCholeskySquareSystemSolve
+
+  function matrixCholeskyLowerTriangularSolve(self,y)
+    !!{RST
+    Solve the triangular linear system :math:`y = L \cdot x` where :math:`L` is the lower-triangular Cholesky factor. Since
+    :math:`A^{-1} = L^{-\mathrm{T}} L^{-1}`, the result satisfies :math:`|x|^2 = y^\mathrm{T} A^{-1} y` at half the cost of a
+    full solve.
+    !!}
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
+    implicit none
+    type   (vector        )                :: matrixCholeskyLowerTriangularSolve
+    class  (matrixCholesky), intent(inout) :: self
+    type   (vector        ), intent(in   ) :: y
+    integer(c_int         )                :: status
+
+    matrixCholeskyLowerTriangularSolve=vector        (y                                                                                   )
+    status                            =GSL_BLAS_DTRSV(CblasLower,CblasNoTrans,CblasNonUnit,self%matrix_%gsl,matrixCholeskyLowerTriangularSolve%vector_%gsl)
+    if (status /= GSL_Success) call Error_Report('triangular solve failed'//{introspection:location})
+    return
+  end function matrixCholeskyLowerTriangularSolve
+
+  function matrixCholeskyInverse(self)
+    !!{RST
+    Compute the inverse of the matrix :math:`A` from its Cholesky decomposition.
+    !!}
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
+    implicit none
+    type   (matrix        )                :: matrixCholeskyInverse
+    class  (matrixCholesky), intent(in   ) :: self
+    integer(c_int         )                :: status
+
+    matrixCholeskyInverse=matrix                    (self%matrix                       )
+    status               =GSL_LinAlg_Cholesky_Invert(matrixCholeskyInverse%matrix_%gsl)
+    if (status /= GSL_Success) call Error_Report('Cholesky inversion failed'//{introspection:location})
+    return
+  end function matrixCholeskyInverse
+
+  double precision function matrixCholeskyLogarithmicDeterminant(self)
+    !!{RST
+    Compute the logarithm of the determinant of the matrix :math:`A` from its Cholesky decomposition, as :math:`2 \sum_i \log
+    L_{ii}`.
+    !!}
+    implicit none
+    class  (matrixCholesky), intent(in   ) :: self
+    integer(c_size_t      )                :: i
+
+    matrixCholeskyLogarithmicDeterminant=0.0d0
+    do i=1_c_size_t,self%size_(1)
+       matrixCholeskyLogarithmicDeterminant=+matrixCholeskyLogarithmicDeterminant                          &
+            &                               +2.0d0*log(gsl_matrix_get(self%matrix_%gsl,i-1_c_size_t,i-1_c_size_t))
+    end do
+    return
+  end function matrixCholeskyLogarithmicDeterminant
+
+  subroutine matrixCholeskyUnassignment(array,self)
+    !!{RST
+    Assign the lower-triangular Cholesky factor, :math:`L`, of a ``matrixCholesky`` object to an array. Elements above the
+    diagonal are set to zero.
+    !!}
+    implicit none
+    double precision                , intent(  out), dimension(:,:) :: array
+    type            (matrixCholesky), intent(in   )                 :: self
+    integer         (c_size_t      )                                :: i    , j
+
+    do i=1_c_size_t,self%size_(1)
+       do j=1_c_size_t,self%size_(2)
+          if (j <= i) then
+             array(i,j)=gsl_matrix_get(self%matrix_%gsl,i-1_c_size_t,j-1_c_size_t)
+          else
+             array(i,j)=0.0d0
+          end if
+       end do
+    end do
+    return
+  end subroutine matrixCholeskyUnassignment
+
   !! Geometrical transformations.
 
   function matrixRotationRandom(randomNumberGenerator_)
