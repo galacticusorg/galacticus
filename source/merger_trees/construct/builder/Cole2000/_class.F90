@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of a merger tree builder using the algorithm of :cite:t:`cole_hierarchical_2000`.
   !!}
@@ -199,6 +201,10 @@ contains
       <defaultValue>0.1d0</defaultValue>
       <description>
       The largest fractional mass change due to subresolution accretion allowed in a timestep in merger trees built by the :cite:t:`cole_hierarchical_2000` method.
+      Smaller values give finer trees, at a cost: memory use and run time grow roughly as 1/``[accretionLimit]``. For example,
+      for a single tree of mass :math:`1.5\times 10^{12}\mathrm{M}_\odot`, built with a mass resolution of
+      :math:`8\times 10^7\mathrm{M}_\odot` and evolved on one thread, peak memory is about 0.2 GB at the default of 0.1, and
+      about 6 GB at 0.001.
       </description>
       <minimum inclusive="false">0.0</minimum>
       <maximum inclusive="false">1.0</maximum>
