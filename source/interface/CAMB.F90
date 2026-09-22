@@ -178,13 +178,13 @@ contains
     use            :: IO_HDF5                         , only : hdf5File                    , hdf5Group
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: ISO_Varying_String              , only : assignment(=)               , char                            , extract       , len           , &
-          &                                                    operator(//)                , operator(==)                    , varying_string
+          &                                                    operator(//)                , operator(==)                    , varying_string, var_str
     use            :: Input_Parameters                , only : inputParameters
     use            :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use            :: Numerical_Interpolation         , only : GSL_Interp_cSpline
     use            :: Sorting                         , only : sortIndex
     use            :: String_Handling                 , only : String_C_To_Fortran         , operator(//)
-    use            :: System_Command                  , only : System_Command_Do           , shellEscape
+    use            :: System_Command                  , only : System_Command_Do           , shellEscape                     , System_Command_Failure_Report
     use            :: Table_Labels                    , only : extrapolationTypeExtrapolate, enumerationExtrapolationTypeType
     use            :: Tables                          , only : table                       , table1DGeneric
     implicit none
@@ -479,7 +479,20 @@ contains
              escapedParameterFile=shellEscape(parameterFile   )
              escapedLogFile      =shellEscape(logFile         )
              call System_Command_Do(escapedExecutable//" "//escapedParameterFile//" > "//escapedLogFile//" 2>&1",status)
-             if (status /= 0) call cambFailureReport(logFile,parameterFile)
+             ! A failure is detected by a non-zero exit status, or by the absence of the transfer function file - some versions of
+             ! CAMB stop on invalid parameters with a zero exit status.
+             if     (                                                                                                  &
+                  &        status /= 0                                                                                 &
+                  &  .or. .not.File_Exists(outputRoot//'_transfer_'//trim(adjustl(redshiftLabelsCombined(1)))//'.dat') &
+                  & )                                                                                                  &
+                  & call System_Command_Failure_Report(                                                                &
+                  &                                    'CAMB'                                                        , &
+                  &                                    logFile                                                       , &
+                  &                                    var_str('CAMB most often fails because the cosmological'    )// &
+                  &                                    ' parameters given to it are invalid - check those of'       // &
+                  &                                    ' [transferFunction]=CAMB. Its parameter file is "'          // &
+                  &                                    parameterFile//'".'                                             &
+                  &                                   )
              ! Read the CAMB transfer function file.
              if (allocated(wavenumbers      )) deallocate(wavenumbers      )
              if (allocated(transferFunctions)) deallocate(transferFunctions)
@@ -619,65 +632,5 @@ contains
     end do
     return
   end subroutine Interface_CAMB_Transfer_Function
-
-  subroutine cambFailureReport(logFile,parameterFile)
-    !!{RST
-    Report a fatal error for a failed run of :term:`CAMB`, quoting the last lines of its output (without its backtrace), which
-    usually give its reason for failing - for example, that the cosmological parameters it was given are invalid.
-    !!}
-    use :: Display           , only : displayGreen  , displayReset
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : varying_string, char        , operator(//), assignment(=), var_str
-    implicit none
-    type     (varying_string), intent(in   )                :: logFile             , parameterFile
-    integer                  , parameter                    :: countLinesMaximum=10
-    character(len=1024      ), dimension(countLinesMaximum) :: lines
-    character(len=1024      )                               :: line
-    type     (varying_string)                               :: message
-    integer                                                 :: logUnit             , statusRead   , &
-         &                                                     countLines          , i            , &
-         &                                                     iStart
-
-    ! Collect the last lines of CAMB's output, skipping blank lines, and the lines of any backtrace.
-    countLines=0
-    open(newunit=logUnit,file=char(logFile),status='old',form='formatted',action='read',iostat=statusRead)
-    if (statusRead == 0) then
-       do while (.true.)
-          read (logUnit,'(a)',iostat=statusRead) line
-          if (statusRead /= 0) exit
-          ! Replace tabs (which begin the source-location lines of a backtrace) with spaces, then left-justify.
-          i=index(line,char(9))
-          do while (i > 0)
-             line(i:i)=' '
-             i       =index(line,char(9))
-          end do
-          line=adjustl(line)
-          if     (                                                                  &
-               &       len_trim(line)             == 0                              &
-               &  .or. line(1:3)                  == 'at '                          &
-               &  .or. line(1:17)                 == 'Error termination'            &
-               &  .or. (line(1:1) == '#' .and. verify(line(2:2),'0123456789') == 0) &
-               & ) cycle
-          countLines                                  =countLines+1
-          lines(mod(countLines-1,countLinesMaximum)+1)=line
-       end do
-       close(logUnit)
-    end if
-    message=var_str('CAMB failed')
-    if (countLines > 0) then
-       message=message//' - its output ends:'
-       iStart=max(1,countLines-countLinesMaximum+1)
-       do i=iStart,countLines
-          message=message//char(10)//'   '//trim(lines(mod(i-1,countLinesMaximum)+1))
-       end do
-    end if
-    message=message                                                                                           //char(10)// &
-         &  displayGreen()//'HELP:'//displayReset()                                                                     // &
-         &  ' CAMB most often fails because the cosmological parameters given to it are invalid - check those'          // &
-         &  ' of [transferFunction]=CAMB. Its full output is in "'//logFile//'", and its parameter file is'             // &
-         &  ' "'//parameterFile//'"'
-    call Error_Report(message//{introspection:location})
-    return
-  end subroutine cambFailureReport
 
 end module Interfaces_CAMB

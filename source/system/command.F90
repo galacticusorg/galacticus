@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which executes system commands.
 !!}
@@ -27,7 +29,7 @@ module System_Command
   !!}
   implicit none
   private
-  public :: System_Command_Do, shellEscape
+  public :: System_Command_Do, shellEscape, System_Command_Failure_Report
 
   interface System_Command_Do
      module procedure System_Command_Char
@@ -116,5 +118,67 @@ contains
     end if
     return
   end subroutine System_Command_Char
+
+  subroutine System_Command_Failure_Report(program,logFile,help)
+    !!{RST
+    Report a fatal error for a failed run of an external ``program``, quoting the last lines of the output it wrote to
+    ``logFile`` (skipping any backtrace), which usually give its reason for failing. ``help`` is appended as advice to the
+    user, followed by the name of the log file.
+    !!}
+    use :: Display           , only : displayGreen  , displayReset
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : varying_string, char        , operator(//), assignment(=), var_str
+    implicit none
+    character(len=*         ), intent(in   )                :: program
+    type     (varying_string), intent(in   )                :: logFile             , help
+    integer                  , parameter                    :: countLinesMaximum=10
+    character(len=1024      ), dimension(countLinesMaximum) :: lines
+    character(len=1024      )                               :: line
+    type     (varying_string)                               :: message
+    integer                                                 :: logUnit             , statusRead, &
+         &                                                     countLines          , i         , &
+         &                                                     iStart
+
+    ! Collect the last lines of the output, skipping blank lines, and the lines of any backtrace.
+    countLines=0
+    open(newunit=logUnit,file=char(logFile),status='old',form='formatted',action='read',iostat=statusRead)
+    if (statusRead == 0) then
+       do while (.true.)
+          read (logUnit,'(a)',iostat=statusRead) line
+          if (statusRead /= 0) exit
+          ! Replace tabs (which begin the source-location lines of a backtrace) with spaces, then left-justify.
+          i=index(line,char(9))
+          do while (i > 0)
+             line(i:i)=' '
+             i       =index(line,char(9))
+          end do
+          line=adjustl(line)
+          if     (                                                                      &
+               &       len_trim(line) == 0                                              &
+               &  .or.  line(1: 3)    == 'at '                                          &
+               &  .or.  line(1:17)    == 'Error termination'                            &
+               &  .or. (line(1: 1)    == '#' .and. verify(line(2:2),'0123456789') == 0) &
+               & ) cycle
+          countLines                                  =countLines+1
+          lines(mod(countLines-1,countLinesMaximum)+1)=line
+       end do
+       close(logUnit)
+    end if
+    message=var_str(program)//' failed'
+    if (countLines > 0) then
+       message=message//' - its output ends:'
+       iStart=max(1,countLines-countLinesMaximum+1)
+       do i=iStart,countLines
+          message=message//char(10)//'   '//trim(lines(mod(i-1,countLinesMaximum)+1))
+       end do
+    else
+       message=message//' - it wrote no output'
+    end if
+    message=message                                     //char(10)// &
+         &  displayGreen()//'HELP:'//displayReset()//' '//help    // &
+         &  ' Its full output is in "'//logFile//'".'
+    call Error_Report(message//{introspection:location})
+    return
+  end subroutine System_Command_Failure_Report
 
 end module System_Command
