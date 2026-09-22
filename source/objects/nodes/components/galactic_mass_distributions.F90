@@ -49,13 +49,13 @@ contains
     re-initialized if re-used or constructed if not. A null distribution is returned if the scale radius is non-positive, or
     if neither stars nor gas are to be included.
     !!}
-    use :: Mass_Distributions, only : massDistributionClass, {geometry¦intrinsic}, {geometry¦scaler}, massDistributionComposite, &
+    use :: Mass_Distributions, only : massDistributionClass, {geometry¦intrinsic}       , {geometry¦scaler}          , massDistributionComposite, &
          &                            massDistributionList , massDistributionListAcquire, kinematicsDistributionLocal
     use :: Object_Pools      , only : objectPool
     implicit none
     class           (massDistributionClass      ), pointer                :: massDistribution_
     logical                                      , intent(in   )          :: includeStars              , includeGas
-    double precision                             , intent(in   )          :: massStellar               , massGas   , &
+    double precision                             , intent(in   )          :: massStellar               , massGas             , &
          &                                                                   radiusScale
     class           (massDistributionClass      ), intent(in   ), pointer :: massDistributionStellar_  , massDistributionGas_
     type            (kinematicsDistributionLocal), intent(in   ), pointer :: kinematicDistribution_

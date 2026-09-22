@@ -31,9 +31,9 @@ module Node_Component_NSC_Standard
   use :: Histories                       , only : history
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   use :: Satellite_Merging_Remnant_Sizes , only : mergerRemnantSizeClass
-  use :: Star_Formation_Histories        , only : starFormationHistory            , starFormationHistoryClass
+  use :: Star_Formation_Histories        , only : starFormationHistory                   , starFormationHistoryClass
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
-  use :: Node_Components_Galactic_Shared, only : Node_Component_NSC_Standard_Post_Evolve
+  use :: Node_Components_Galactic_Shared , only : Node_Component_NSC_Standard_Post_Evolve
   implicit none
   private
   public :: Node_Component_NSC_Standard_Scale_Set        , Node_Component_NSC_Standard_Pre_Evolve         , &
@@ -282,9 +282,9 @@ contains
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultNSCComponent%standardIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-       call satelliteMergerEvent             %attach(thread,satelliteMerger             ,openMPThreadBindingAtLevel,label='nodeComponentNSCStandard',dependencies=dependencies)
-       call postEvolveEvent                  %attach(thread,Node_Component_NSC_Standard_Post_Evolve                  ,openMPThreadBindingAtLevel,label='nodeComponentNSCStandard'                          )
-       call mergerTreeOutputStateAdvanceEvent%attach(thread,mergerTreeOutputStateAdvance,openMPThreadBindingAtLevel,label='nodeComponentNSCStandard'                          )
+       call satelliteMergerEvent             %attach(thread,satelliteMerger                        ,openMPThreadBindingAtLevel,label='nodeComponentNSCStandard',dependencies=dependencies)
+       call postEvolveEvent                  %attach(thread,Node_Component_NSC_Standard_Post_Evolve,openMPThreadBindingAtLevel,label='nodeComponentNSCStandard'                          )
+       call mergerTreeOutputStateAdvanceEvent%attach(thread,mergerTreeOutputStateAdvance           ,openMPThreadBindingAtLevel,label='nodeComponentNSCStandard'                          )
        ! Find our parameters.
        subParameters=parameters%subParameters('componentNSC')
        !![
@@ -338,14 +338,14 @@ contains
     !!}
     use :: Events_Hooks                    , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeOutputStateAdvanceEvent
     use :: Galacticus_Nodes                , only : defaultNSCComponent
-    use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_, scalerStellarPool, &
+    use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_           , scalerStellarPool, &
          &                                          scalerGasPool
     implicit none
 
     if (defaultNSCComponent%standardIsActive()) then
-       if (satelliteMergerEvent             %isAttached(thread,satelliteMerger             )) call satelliteMergerEvent             %detach(thread,satelliteMerger             )
-       if (postEvolveEvent                  %isAttached(thread,Node_Component_NSC_Standard_Post_Evolve                  )) call postEvolveEvent                  %detach(thread,Node_Component_NSC_Standard_Post_Evolve                  )
-       if (mergerTreeOutputStateAdvanceEvent%isAttached(thread,mergerTreeOutputStateAdvance)) call mergerTreeOutputStateAdvanceEvent%detach(thread,mergerTreeOutputStateAdvance)
+       if (satelliteMergerEvent             %isAttached(thread,satelliteMerger                        )) call satelliteMergerEvent             %detach(thread,satelliteMerger                        )
+       if (postEvolveEvent                  %isAttached(thread,Node_Component_NSC_Standard_Post_Evolve)) call postEvolveEvent                  %detach(thread,Node_Component_NSC_Standard_Post_Evolve)
+       if (mergerTreeOutputStateAdvanceEvent%isAttached(thread,mergerTreeOutputStateAdvance           )) call mergerTreeOutputStateAdvanceEvent%detach(thread,mergerTreeOutputStateAdvance           )
        ! Release the pooled scaler mass distributions before the dimensionless distributions they wrap.
        call scalerStellarPool%destroy()
        call scalerGasPool    %destroy()

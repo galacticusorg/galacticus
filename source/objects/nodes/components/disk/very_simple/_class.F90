@@ -29,7 +29,7 @@ module Node_Component_Disk_Very_Simple
   use :: Math_Exponentiation             , only : fastExponentiator
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
-  use :: Node_Components_Galactic_Shared, only : Node_Component_Disk_Very_Simple_Post_Evolve, Node_Component_Disk_Very_Simple_Post_Step
+  use :: Node_Components_Galactic_Shared , only : Node_Component_Disk_Very_Simple_Post_Evolve, Node_Component_Disk_Very_Simple_Post_Step
   implicit none
   private
   public :: Node_Component_Disk_Very_Simple_Scale_Set   , Node_Component_Disk_Very_Simple_Thread_Uninitialize, &
@@ -107,10 +107,10 @@ module Node_Component_Disk_Very_Simple
   !$omp threadprivate(stellarPopulationProperties_,mergerMassMovements_)
 
   ! Parameters controlling the physical implementation.
-  double precision                    :: scaleAbsoluteMass
+  double precision                                 :: scaleAbsoluteMass
 
   ! A threadprivate object used to track to which thread events are attached.
-  integer :: thread
+  integer                                          :: thread
   !$omp threadprivate(thread)
 
 contains
@@ -165,8 +165,8 @@ contains
 
     if (defaultDiskComponent%verySimpleIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-       call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple',dependencies=dependencies)
-       call postEvolveEvent     %attach(thread,Node_Component_Disk_Very_Simple_Post_Evolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple'                          )
+       call satelliteMergerEvent%attach(thread,satelliteMerger                            ,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple',dependencies=dependencies)
+       call postEvolveEvent     %attach(thread,Node_Component_Disk_Very_Simple_Post_Evolve,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple'                          )
        ! Find our parameters.
        subParameters=parameters%subParameters('componentDisk')
        !![
@@ -193,8 +193,8 @@ contains
        <objectDestructor name="stellarPopulationProperties_"/>
        <objectDestructor name="mergerMassMovements_"        />
        !!]
-       if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
-       if (postEvolveEvent     %isAttached(thread,Node_Component_Disk_Very_Simple_Post_Evolve     )) call postEvolveEvent     %detach(thread,Node_Component_Disk_Very_Simple_Post_Evolve     )
+       if (satelliteMergerEvent%isAttached(thread,satelliteMerger                            )) call satelliteMergerEvent%detach(thread,satelliteMerger                            )
+       if (postEvolveEvent     %isAttached(thread,Node_Component_Disk_Very_Simple_Post_Evolve)) call postEvolveEvent     %detach(thread,Node_Component_Disk_Very_Simple_Post_Evolve)
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Thread_Uninitialize

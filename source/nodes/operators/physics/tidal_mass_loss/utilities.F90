@@ -52,15 +52,15 @@ contains
     use :: Stellar_Luminosities_Structure, only : operator(*)               , stellarLuminosities , zeroStellarLuminosities, max
     use :: Tidal_Stripping_Mass_Loss_Rate, only : tidalStrippingClass
     implicit none
-    type            (treeNode                   ), intent(inout), target  :: node
-    class           (tidalStrippingClass        ), intent(inout)          :: tidalStripping_
-    class           ({tidalcomponent¦intrinsic} )               , pointer :: component
-    class           (nodeComponentHotHalo       )               , pointer :: hotHalo
-    type            (stellarLuminosities        ), save                   :: luminositiesTransferRate
+    type            (treeNode                  ), intent(inout), target  :: node
+    class           (tidalStrippingClass       ), intent(inout)          :: tidalStripping_
+    class           ({tidalcomponent¦intrinsic})               , pointer :: component
+    class           (nodeComponentHotHalo      )               , pointer :: hotHalo
+    type            (stellarLuminosities       ), save                   :: luminositiesTransferRate
     !$omp threadprivate(luminositiesTransferRate)
-    double precision                                                      :: fractionGas             , fractionStellar, &
-         &                                                                   massLossRate
-    type            (history                    )                         :: historyTransferRate
+    double precision                                                     :: fractionGas             , fractionStellar, &
+         &                                                                  massLossRate
+    type            (history                   )                         :: historyTransferRate
 
     ! Return if the component has no mass.
     component => node%{tidalcomponent¦accessor}()
@@ -74,9 +74,9 @@ contains
     fractionGas     =  min(1.0d0,max(0.0d0,component%massGas()/(component%massGas()+component%massStellar())))
     fractionStellar =  1.0d0-fractionGas
     if (fractionGas     > 0.0d0 .and. component%massGas    () > 0.0d0) then
-       call component%                  massGasRate(-fractionGas    *massLossRate                                                                       )
+       call component%                  massGasRate(-fractionGas    *massLossRate                                                                            )
        call component%            abundancesGasRate(-fractionGas    *massLossRate*component%abundancesGas    ()/ component%massGas()                         )
-       call   hotHalo%           outflowingMassRate(+fractionGas    *massLossRate                                                                       )
+       call   hotHalo%           outflowingMassRate(+fractionGas    *massLossRate                                                                            )
        call   hotHalo%outflowingAbundancesRate     (+fractionGas    *massLossRate*component%abundancesGas    ()/ component%massGas()                         )
        call   hotHalo%outflowingAngularMomentumRate(+fractionGas    *massLossRate*component%angularMomentum  ()/(component%massGas()+component%massStellar()))
     end if
@@ -86,7 +86,7 @@ contains
        ! of the following ODE terms so are not inactive. (An approach similar to what is used for transfer of
        ! luminosities to the spheroid by bar instabilities could work here.)
        !! Stellar mass and metals.
-       call component%              massStellarRate(-fractionStellar*massLossRate                                                                       )
+       call component%              massStellarRate(-fractionStellar*massLossRate                                                                            )
        call component%        abundancesStellarRate(-fractionStellar*massLossRate*component%abundancesStellar()/                     component%massStellar() )
        !! Stellar luminosities.
        luminositiesTransferRate=max(zeroStellarLuminosities,component%luminositiesStellar())
@@ -94,15 +94,15 @@ contains
        !! Stellar properties history.
        historyTransferRate=component%stellarPropertiesHistory()
        if (historyTransferRate%exists()) &
-            & call component%stellarPropertiesHistoryRate(-fractionStellar*massLossRate*historyTransferRate/                     component%massStellar() )
+            & call component%stellarPropertiesHistoryRate(-fractionStellar*massLossRate*historyTransferRate    /                     component%massStellar() )
        call historyTransferRate%destroy()
        !! Star formation history.
        historyTransferRate=component%starFormationHistory()
        if (historyTransferRate%exists()) &
-            & call component%starFormationHistoryRate    (-fractionStellar*massLossRate*historyTransferRate/                     component%massStellar() )
+            & call component%starFormationHistoryRate    (-fractionStellar*massLossRate*historyTransferRate    /                     component%massStellar() )
     end if
     ! Angular momentum is lost.
-    call component%          angularMomentumRate(-                massLossRate*component%angularMomentum  ()/(component%massGas()+component%massStellar()))
+    call component%          angularMomentumRate         (-                massLossRate*component%angularMomentum  ()/(component%massGas()+component%massStellar()))
     return
   end subroutine Tidal_Mass_Loss_Apply_{tidalcomponent¦label}
 

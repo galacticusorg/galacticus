@@ -25,24 +25,24 @@ function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massT
   !!{RST
   Return the mass distribution for the standard disk component.
   !!}
-  use :: Mass_Distributions                         , only : massDistributionClass   , massDistributionMatches_
-  use :: Node_Component_Disk_Standard_Data          , only : massDistributionStellar_, massDistributionGas_    , kinematicDistribution_, scalerStellarPool, &
-       &                                                      scalerGasPool
+  use :: Mass_Distributions                         , only : massDistributionClass                              , massDistributionMatches_
+  use :: Node_Component_Disk_Standard_Data          , only : massDistributionStellar_                           , massDistributionGas_    , kinematicDistribution_      , scalerStellarPool      , &
+       &                                                     scalerGasPool
   use :: Node_Components_Galactic_Mass_Distributions, only : Node_Component_Mass_Distribution_Scaled_Cylindrical
-  use :: Galactic_Structure_Options                 , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous             , enumerationWeightByType, &
-       &                                           weightByMass               , weightByLuminosity               , enumerationComponentTypeType, enumerationMassTypeType
+  use :: Galactic_Structure_Options                 , only : componentTypeDisk                                  , massTypeStellar         , massTypeGaseous             , enumerationWeightByType, &
+       &                                                     weightByMass                                       , weightByLuminosity      , enumerationComponentTypeType, enumerationMassTypeType
   implicit none
-  class          (massDistributionClass            ), pointer                 :: massDistribution_
-  class          (nodeComponentDiskStandard        ), intent(inout)           :: self
-  type           (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
-  type           (enumerationMassTypeType          ), intent(in   ), optional :: massType
-  type           (enumerationWeightByType          ), intent(in   ), optional :: weightBy
-  integer                                           , intent(in   ), optional :: weightIndex
-  type           (stellarLuminosities              ), save                    :: luminosities
+  class          (massDistributionClass       ), pointer                 :: massDistribution_
+  class          (nodeComponentDiskStandard   ), intent(inout)           :: self
+  type           (enumerationComponentTypeType), intent(in   ), optional :: componentType
+  type           (enumerationMassTypeType     ), intent(in   ), optional :: massType
+  type           (enumerationWeightByType     ), intent(in   ), optional :: weightBy
+  integer                                      , intent(in   ), optional :: weightIndex
+  type           (stellarLuminosities         ), save                    :: luminosities
   !$omp threadprivate(luminosities)
-  double precision                                                            :: massStellar               , massGas            , &
-       &                                                                         radiusScale
-  logical                                                                     :: includeGas                , includeStars
+  double precision                                                       :: massStellar      , massGas     , &
+       &                                                                    radiusScale
+  logical                                                                :: includeGas       , includeStars
   !![
   <optionalArgument name="weightBy" defaultsTo="weightByMass" />
   !!]

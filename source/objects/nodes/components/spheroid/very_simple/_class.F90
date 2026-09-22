@@ -27,7 +27,7 @@ module Node_Component_Spheroid_Very_Simple
   !!}
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
-  use :: Node_Components_Galactic_Shared, only : Node_Component_Spheroid_Very_Simple_Post_Evolve, Node_Component_Spheroid_Very_Simple_Post_Step
+  use :: Node_Components_Galactic_Shared , only : Node_Component_Spheroid_Very_Simple_Post_Evolve, Node_Component_Spheroid_Very_Simple_Post_Step
   implicit none
   private
   public :: Node_Component_Spheroid_Very_Simple_Thread_Initialize         , Node_Component_Spheroid_Very_Simple_Post_Step          , &
@@ -193,8 +193,8 @@ contains
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-       call postEvolveEvent     %attach(thread,Node_Component_Spheroid_Very_Simple_Post_Evolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple'                          )
-       call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple',dependencies=dependencies)
+       call postEvolveEvent     %attach(thread,Node_Component_Spheroid_Very_Simple_Post_Evolve,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple'                          )
+       call satelliteMergerEvent%attach(thread,satelliteMerger                                ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple',dependencies=dependencies)
        ! Find our parameters.
        subParameters=parameters%subParameters('componentSpheroid')
        !![
@@ -217,8 +217,8 @@ contains
     implicit none
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
-       if (postEvolveEvent     %isAttached(thread,Node_Component_Spheroid_Very_Simple_Post_Evolve     )) call postEvolveEvent     %detach(thread,Node_Component_Spheroid_Very_Simple_Post_Evolve     )
-       if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
+       if (postEvolveEvent     %isAttached(thread,Node_Component_Spheroid_Very_Simple_Post_Evolve)) call postEvolveEvent     %detach(thread,Node_Component_Spheroid_Very_Simple_Post_Evolve)
+       if (satelliteMergerEvent%isAttached(thread,satelliteMerger                                )) call satelliteMergerEvent%detach(thread,satelliteMerger                                )
        !![
        <objectDestructor name="stellarPopulationProperties_" />
        <objectDestructor name="mergerMassMovements_"         />

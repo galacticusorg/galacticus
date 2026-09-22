@@ -31,18 +31,18 @@ module Node_Components_Galactic_Shared
   !!}
   implicit none
   private
-  public :: Node_Component_Disk_Standard_Post_Evolve         , Node_Component_Spheroid_Standard_Post_Evolve         , &
-       &    Node_Component_NSC_Standard_Post_Evolve          , Node_Component_Disk_Very_Simple_Post_Evolve      , &
-       &    Node_Component_Spheroid_Very_Simple_Post_Evolve  , Node_Component_Disk_Very_Simple_Post_Step        , &
+  public :: Node_Component_Disk_Standard_Post_Evolve       , Node_Component_Spheroid_Standard_Post_Evolve, &
+       &    Node_Component_NSC_Standard_Post_Evolve        , Node_Component_Disk_Very_Simple_Post_Evolve , &
+       &    Node_Component_Spheroid_Very_Simple_Post_Evolve, Node_Component_Disk_Very_Simple_Post_Step   , &
        &    Node_Component_Spheroid_Very_Simple_Post_Step
 
   !![
   <generic identifier="historytrim">
-   <instance label="Disk_Standard"            intrinsic="nodeComponentDisk"     implementation="nodeComponentDiskStandard"        accessor="disk"     description="disk"                />
-   <instance label="Spheroid_Standard"        intrinsic="nodeComponentSpheroid" implementation="nodeComponentSpheroidStandard"    accessor="spheroid" description="spheroid"            />
-   <instance label="NSC_Standard"             intrinsic="nodeComponentNSC"      implementation="nodeComponentNSCStandard"         accessor="NSC"      description="nuclear star cluster"/>
-   <instance label="Disk_Very_Simple"         intrinsic="nodeComponentDisk"     implementation="nodeComponentDiskVerySimple"      accessor="disk"     description="disk"                />
-   <instance label="Spheroid_Very_Simple"     intrinsic="nodeComponentSpheroid" implementation="nodeComponentSpheroidVerySimple"  accessor="spheroid" description="spheroid"            />
+   <instance label="Disk_Standard"        intrinsic="nodeComponentDisk"     implementation="nodeComponentDiskStandard"        accessor="disk"     description="disk"                />
+   <instance label="Spheroid_Standard"    intrinsic="nodeComponentSpheroid" implementation="nodeComponentSpheroidStandard"    accessor="spheroid" description="spheroid"            />
+   <instance label="NSC_Standard"         intrinsic="nodeComponentNSC"      implementation="nodeComponentNSCStandard"         accessor="NSC"      description="nuclear star cluster"/>
+   <instance label="Disk_Very_Simple"     intrinsic="nodeComponentDisk"     implementation="nodeComponentDiskVerySimple"      accessor="disk"     description="disk"                />
+   <instance label="Spheroid_Very_Simple" intrinsic="nodeComponentSpheroid" implementation="nodeComponentSpheroidVerySimple"  accessor="spheroid" description="spheroid"            />
   </generic>
   <generic identifier="negativegas">
    <instance label="Disk"     intrinsic="nodeComponentDisk"     implementation="nodeComponentDiskVerySimple"     accessor="disk"     default="defaultDiskComponent"     name="disk"     nameCapitalized="Disk"    />
@@ -84,12 +84,12 @@ contains
     !!{RST
     Catch rounding errors in the very simple {negativegas¦name} gas evolution.
     !!}
-    use :: Abundances_Structure          , only : abs                                  , zeroAbundances
-    use :: Display                       , only : displayMessage                       , verbosityLevelWarn
-    use :: Galacticus_Nodes              , only : {negativegas¦default}                , {negativegas¦intrinsic}, {negativegas¦implementation}, treeNode
-    use :: Interface_GSL                 , only : GSL_Success                          , GSL_Continue
-    use :: ISO_Varying_String            , only : assignment(=)                        , operator(//)           , varying_string
-    use :: Stellar_Luminosities_Structure, only : abs                                  , zeroStellarLuminosities
+    use :: Abundances_Structure          , only : abs                  , zeroAbundances
+    use :: Display                       , only : displayMessage       , verbosityLevelWarn
+    use :: Galacticus_Nodes              , only : {negativegas¦default}, {negativegas¦intrinsic}, {negativegas¦implementation}, treeNode
+    use :: Interface_GSL                 , only : GSL_Success          , GSL_Continue
+    use :: ISO_Varying_String            , only : assignment(=)        , operator(//)           , varying_string
+    use :: Stellar_Luminosities_Structure, only : abs                  , zeroStellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none
     type            (treeNode                 ), intent(inout), pointer :: node
@@ -122,8 +122,8 @@ contains
           if (fractionalError > fractionalErrorMaximum) then
              ! Report a warning.
              message='Warning: {negativegas¦name} has negative gas mass (fractional error exceeds any previously reported):'//char(10)
-             message=message//'  Node index        = '//node%index() //char(10)
-             write (valueString,'(e12.6)') component%massGas()
+             message=message//'  Node index        = '//node%index()//char(10)
+             write (valueString,'(e12.6)') component%massGas    ()
              message=message//'  {negativegas¦nameCapitalized} gas mass     = '//trim(valueString)//char(10)
              write (valueString,'(e12.6)') component%massStellar()
              message=message//'  {negativegas¦nameCapitalized} stellar mass = '//trim(valueString)//char(10)
@@ -131,9 +131,9 @@ contains
              message=message//'  Error measure     = '//trim(valueString)//char(10)
              if (fractionalErrorMaximum == 0.0d0) then
                 ! This is the first time this warning has been issued, so give some extra information.
-                message=message//'  Gas mass will be reset to zero (in future cases also).'//char(10)
+                message=message//'  Gas mass will be reset to zero (in future cases also).'                                 //char(10)
                 message=message//'  Future cases will be reported only when they exceed the previous maximum error measure.'//char(10)
-                message=message//'  Negative masses are due to numerical inaccuracy in the ODE solutions.'//char(10)
+                message=message//'  Negative masses are due to numerical inaccuracy in the ODE solutions.'                  //char(10)
                 message=message//'  If significant, consider using a higher tolerance in the ODE solver.'
              end if
              call displayMessage(message,verbosityLevelWarn)
@@ -143,7 +143,7 @@ contains
           !$omp end critical (Very_Simple_{negativegas¦nameCapitalized}_Post_Evolve_Check)
           ! Get the total mass of the {negativegas¦name} material
           massComponent= component%massGas    () &
-               &   +component%massStellar()
+               &        +component%massStellar()
           if (massComponent == 0.0d0) then
              call component%        massStellarSet(                  0.0d0)
              call component%  abundancesStellarSet(         zeroAbundances)

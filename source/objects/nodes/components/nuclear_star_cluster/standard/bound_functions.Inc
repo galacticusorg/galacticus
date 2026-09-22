@@ -81,12 +81,12 @@ function Node_Component_NSC_Standard_Mass_Distribution(self,componentType,massTy
   !!{RST
   Return the mass distribution for the standard nuclear star cluster component.
   !!}
-  use :: Mass_Distributions                         , only : massDistributionClass   , massDistributionMatches_
-  use :: Node_Component_NSC_Standard_Data           , only : massDistributionStellar_, massDistributionGas_    , kinematicDistribution_, scalerStellarPool, &
-       &                                                      scalerGasPool
+  use :: Mass_Distributions                         , only : massDistributionClass                            , massDistributionMatches_
+  use :: Node_Component_NSC_Standard_Data           , only : massDistributionStellar_                         , massDistributionGas_    , kinematicDistribution_      , scalerStellarPool      , &
+       &                                                     scalerGasPool
   use :: Node_Components_Galactic_Mass_Distributions, only : Node_Component_Mass_Distribution_Scaled_Spherical
-  use :: Galactic_Structure_Options                 , only : componentTypeNuclearStarCluster, massTypeStellar                , massTypeGaseous             , enumerationWeightByType, &
-       &                                          weightByMass                   , weightByLuminosity             , enumerationComponentTypeType, enumerationMassTypeType
+  use :: Galactic_Structure_Options                 , only : componentTypeNuclearStarCluster                  , massTypeStellar         , massTypeGaseous             , enumerationWeightByType, &
+       &                                                     weightByMass                                     , weightByLuminosity      , enumerationComponentTypeType, enumerationMassTypeType
   implicit none
   class           (massDistributionClass          ), pointer                 :: massDistribution_
   class           (nodeComponentNSCStandard       ), intent(inout)           :: self
@@ -96,9 +96,9 @@ function Node_Component_NSC_Standard_Mass_Distribution(self,componentType,massTy
   integer                                          , intent(in   ), optional :: weightIndex
   type            (stellarLuminosities            ), save                    :: luminosities
   !$omp threadprivate(luminosities)
-  double precision                                                           :: massStellar               , massGas            , &
+  double precision                                                           :: massStellar      , massGas     , &
        &                                                                        radiusScale
-  logical                                                                    :: includeGas                , includeStars
+  logical                                                                    :: includeGas       , includeStars
   !![
   <optionalArgument name="weightBy" defaultsTo="weightByMass" />
   !!]
