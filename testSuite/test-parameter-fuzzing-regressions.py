@@ -110,6 +110,24 @@ cases = [
         1,
     ),
     (
+        # CLASS itself fails for this cosmology - its reason should be quoted in the error message.
+        "CLASS given an invalid cosmology",
+        """  <change type="replace" path="transferFunction">
+    <transferFunction value="CLASSCDM">
+      <cosmologyParameters value="simple">
+        <HubbleConstant  value="67.36"/>
+        <OmegaMatter     value="13.4" />
+        <OmegaDarkEnergy value="0.685"/>
+        <OmegaBaryon     value="0.049"/>
+        <temperatureCMB  value="2.725"/>
+      </cosmologyParameters>
+    </transferFunction>
+  </change>
+""",
+        ("rejected", ["CLASS failed - its output ends:", "Error in"]),
+        1,
+    ),
+    (
         "evolution output node operator",
         """  <change type="append" path="nodeOperator">
     <nodeOperator value="evolutionOutput">
