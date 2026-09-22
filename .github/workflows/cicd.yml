@@ -311,7 +311,7 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-          echo "GALACTICUS_FCFLAGS+=\ -DDEBUGGING" >> $GITHUB_ENV
+          echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -DDEBUGGING" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the code
         run: |
