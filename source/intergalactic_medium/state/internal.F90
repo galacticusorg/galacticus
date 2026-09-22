@@ -36,11 +36,11 @@
      !!{RST
      An :term:`IGM` state class for an internally consistent model.
      !!}
-     double precision              , allocatable, dimension(:  ) :: time            , temperatureIGM  , &
-          &                                                         massFiltering   , densityHydrogen1, &
-          &                                                         densityHydrogen2, densityHelium1  , &
-          &                                                         densityHelium2  , densityHelium3
-     type            (interpolator), allocatable                 :: interpolator_
+     double precision              , allocatable, dimension(:) :: time            , temperatureIGM  , &
+          &                                                       massFiltering   , densityHydrogen1, &
+          &                                                       densityHydrogen2, densityHelium1  , &
+          &                                                       densityHelium2  , densityHelium3
+     type            (interpolator), allocatable               :: interpolator_
    contains
      final     ::                                internalDestructor
      procedure :: electronFraction            => internalElectronFraction
@@ -161,11 +161,11 @@ contains
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
-    class           (intergalacticMediumStateInternal), intent(inout)   :: self
-    double precision                                  , intent(in   )   :: time
-    double precision                                  , dimension(0:1)  :: h
-    integer         (c_size_t                        )                  :: i              , j
-    double precision                                                    :: densityHydrogen, densityHelium
+    class           (intergalacticMediumStateInternal), intent(inout)  :: self
+    double precision                                  , intent(in   )  :: time
+    double precision                                  , dimension(0:1) :: h
+    integer         (c_size_t                        )                 :: i              , j
+    double precision                                                   :: densityHydrogen, densityHelium
 
     call internalStateRequired(self,'the electron fraction of the IGM')
     if (size(self%time) > 1) then
@@ -206,11 +206,11 @@ contains
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
-    class           (intergalacticMediumStateInternal), intent(inout)   :: self
-    double precision                                  , intent(in   )   :: time
-    double precision                                  , dimension(0:1)  :: h
-    integer         (c_size_t                        )                  :: i              , j
-    double precision                                                    :: densityHydrogen
+    class           (intergalacticMediumStateInternal), intent(inout)  :: self
+    double precision                                  , intent(in   )  :: time
+    double precision                                  , dimension(0:1) :: h
+    integer         (c_size_t                        )                 :: i              , j
+    double precision                                                   :: densityHydrogen
 
     call internalStateRequired(self,'the neutral hydrogen fraction of the IGM')
     if (size(self%time) > 1) then
@@ -247,8 +247,8 @@ contains
     class           (intergalacticMediumStateInternal), intent(inout)  :: self
     double precision                                  , intent(in   )  :: time
     double precision                                  , dimension(0:1) :: h
-    integer         (c_size_t                        )                  :: i            , j
-    double precision                                                    :: densityHelium
+    integer         (c_size_t                        )                 :: i            , j
+    double precision                                                   :: densityHelium
 
     call internalStateRequired(self,'the neutral helium fraction of the IGM')
     if (size(self%time) > 1) then
@@ -282,11 +282,11 @@ contains
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
-    class           (intergalacticMediumStateInternal), intent(inout)   :: self
-    double precision                                  , intent(in   )   :: time
-    double precision                                  , dimension(0:1)  :: h
-    integer         (c_size_t                        )                  :: i            , j
-    double precision                                                    :: densityHelium
+    class           (intergalacticMediumStateInternal), intent(inout)  :: self
+    double precision                                  , intent(in   )  :: time
+    double precision                                  , dimension(0:1) :: h
+    integer         (c_size_t                        )                 :: i            , j
+    double precision                                                   :: densityHelium
 
     call internalStateRequired(self,'the singly-ionized helium fraction of the IGM')
     if (size(self%time) > 1) then
@@ -320,10 +320,10 @@ contains
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
-    class           (intergalacticMediumStateInternal), intent(inout)   :: self
-    double precision                                  , intent(in   )   :: time
-    double precision                                  , dimension(0:1)  :: h
-    integer         (c_size_t                        )                  :: i   , j
+    class           (intergalacticMediumStateInternal), intent(inout)  :: self
+    double precision                                  , intent(in   )  :: time
+    double precision                                  , dimension(0:1) :: h
+    integer         (c_size_t                        )                 :: i   , j
 
     call internalStateRequired(self,'the temperature of the IGM')
     if (size(self%time) > 1) then
