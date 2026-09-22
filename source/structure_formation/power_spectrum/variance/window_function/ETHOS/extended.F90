@@ -122,6 +122,7 @@ contains
       <description>
       The parameter :math:`c_\mathrm{W,0}` in the generalized ETHOS power spectrum window function.
       </description>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>beta0</name>
@@ -130,6 +131,7 @@ contains
       <description>
       The parameter :math:`\beta_0` in the generalized ETHOS power spectrum window function.
       </description>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>cW1</name>
@@ -138,6 +140,7 @@ contains
       <description>
       The parameter :math:`c_\mathrm{W,1}` in the generalized ETHOS power spectrum window function.
       </description>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>beta1</name>
@@ -146,6 +149,7 @@ contains
       <description>
       The parameter :math:`\beta_1` in the generalized ETHOS power spectrum window function.
       </description>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>wavenumberScaledMinimum</name>
@@ -154,6 +158,7 @@ contains
       <description>
       The parameter :math:`x_\mathrm{min}` in the generalized ETHOS power spectrum window function.
       </description>
+      <minimum>0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>powerSpectrumSmoothingWidth</name>
@@ -162,6 +167,7 @@ contains
       <description>
       The width (in natural logarithm of wavenumber) over which to smooth the power spectrum when estimating the power spectrum slope.
       </description>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
     <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
