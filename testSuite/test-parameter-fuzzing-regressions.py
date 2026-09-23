@@ -20,6 +20,9 @@ import subprocess
 import sys
 import xml.etree.ElementTree as ET
 
+import h5py
+import numpy as np
+
 # Ensure output directory exists.
 os.makedirs("outputs", exist_ok=True)
 
@@ -27,6 +30,55 @@ os.makedirs("outputs", exist_ok=True)
 #   ("rejected"  , [strings which must all appear in the output]),
 #   ("runs"      , check) where `check` is a function returning a list of problems (empty if none), or
 #   ("taskFailed", None).
+
+
+def tagFor(label):
+    """Return the tag used to name the files of the case with this label."""
+    return "".join(c if c.isalnum() else "_" for c in label)
+
+
+def outputFileNameFor(label):
+    """Return the name of the model output file written by the case with this label."""
+    return f"outputs/parameterFuzzingRegressions_{tagFor(label)}.hdf5"
+
+
+# Labels of the cases whose checks must find their own output file.
+labelMergerTreeMassUnion = "union of merger tree masses with two members"
+labelOutputTimesUnion    = "union of output times with two members"
+
+
+def checkMergerTreeMassUnion():
+    """Check that the union built one tree from each of its two `fixedMass` members."""
+    fileName = outputFileNameFor(labelMergerTreeMassUnion)
+    if not os.path.exists(fileName):
+        return [f"output file '{fileName}' was not written"]
+    with h5py.File(fileName, "r") as file:
+        trees  = file["Outputs/Output1/mergerTreeIndex"     ][:]
+        masses = file["Outputs/Output1/nodeData/basicMass"  ][:]
+    problems = []
+    if len(trees) != 2:
+        problems.append(f"expected 2 trees, one from each member of the union, but found {len(trees)}")
+    for massExpected in (1.0e12, 1.0e13):
+        if not np.any(np.isclose(masses, massExpected, rtol=1.0e-3)):
+            problems.append(f"no halo of mass {massExpected:g} M_Solar - a member of the union contributed no tree")
+    return problems
+
+
+def checkOutputTimesUnion():
+    """Check that the union output at the times of both of its `list` members."""
+    fileName = outputFileNameFor(labelOutputTimesUnion)
+    if not os.path.exists(fileName):
+        return [f"output file '{fileName}' was not written"]
+    with h5py.File(fileName, "r") as file:
+        expansionFactors = sorted(file[f"Outputs/{name}"].attrs["outputExpansionFactor"] for name in file["Outputs"].keys())
+    problems = []
+    if len(expansionFactors) != 2:
+        problems.append(f"expected 2 outputs, one from each member of the union, but found {len(expansionFactors)}")
+    # The members ask for redshifts 1 and 0, i.e. expansion factors 0.5 and 1.
+    for expansionFactorExpected in (0.5, 1.0):
+        if not any(np.isclose(expansionFactors, expansionFactorExpected, rtol=1.0e-3)):
+            problems.append(f"no output at expansion factor {expansionFactorExpected} - a member of the union contributed no time")
+    return problems
 
 
 def checkEvolutionOutput():
@@ -72,6 +124,49 @@ cases = [
         1,
     ),
     (
+        labelMergerTreeMassUnion,
+        """  <change type="replace" path="mergerTreeBuildMasses">
+    <mergerTreeBuildMasses value="union">
+      <mergerTreeBuildMasses value="fixedMass">
+        <massTree value="1.0e12"/>
+        <treeCount value="1"/>
+      </mergerTreeBuildMasses>
+      <mergerTreeBuildMasses value="fixedMass">
+        <massTree value="1.0e13"/>
+        <treeCount value="1"/>
+      </mergerTreeBuildMasses>
+    </mergerTreeBuildMasses>
+  </change>
+""",
+        ("runs", checkMergerTreeMassUnion),
+        1,
+    ),
+    (
+        "union of output times with no members",
+        """  <change type="replaceOrAppend" path="outputTimes">
+    <outputTimes value="union"/>
+  </change>
+""",
+        ("rejected", ["at least one [outputTimes] must be specified"]),
+        1,
+    ),
+    (
+        labelOutputTimesUnion,
+        """  <change type="replaceOrAppend" path="outputTimes">
+    <outputTimes value="union">
+      <outputTimes value="list">
+        <redshifts value="0.0"/>
+      </outputTimes>
+      <outputTimes value="list">
+        <redshifts value="1.0"/>
+      </outputTimes>
+    </outputTimes>
+  </change>
+""",
+        ("runs", checkOutputTimesUnion),
+        1,
+    ),
+    (
         "constrained merger tree builder with no builders",
         """  <change type="replace" path="mergerTreeBuilder">
     <mergerTreeBuilder value="constrained"/>
@@ -108,6 +203,70 @@ cases = [
         1,
     ),
     (
+        # Without `darkMatterProfileScaleSet` no node operator gives the halo a dark matter profile, so the enclosed mass within
+        # `radiusTree` is zero whatever the halo mass, and no root can be found. The scale radius interpolation and halo spin
+        # operators are removed too, as they would otherwise report the missing profile first.
+        "tree radius with no dark matter profile",
+        """  <change type="replace" path="mergerTreeBuildMasses">
+    <mergerTreeBuildMasses value="fixedMass">
+      <massTree   value="1.0e12"/>
+      <radiusTree value="0.2"   />
+      <treeCount  value="1"     />
+    </mergerTreeBuildMasses>
+  </change>
+  <change type="remove" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleSet']"/>
+  <change type="remove" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleInterpolate']"/>
+  <change type="remove" path="nodeOperator/nodeOperator[@value='haloAngularMomentumRandom']"/>
+  <change type="remove" path="nodeOperator/nodeOperator[@value='haloAngularMomentumInterpolate']"/>
+""",
+        ("rejected", ["the halo has no dark matter mass distribution, so [radiusTree]",
+                      "[nodeOperator]=darkMatterProfileScaleSet"]),
+        1,
+    ),
+    (
+        "halo spin with no dark matter profile",
+        """  <change type="remove" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleSet']"/>
+  <change type="remove" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleInterpolate']"/>
+""",
+        ("rejected", ["the halo has no dark matter mass distribution, so its angular momentum scale",
+                      "[nodeOperator]=darkMatterProfileScaleSet"]),
+        1,
+    ),
+    (
+        # Nested inside `filteredMainBranch` the scale radius is set only for halos on the main branch.
+        "dark matter profile scale radius never set",
+        """  <change type="replace" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleSet']">
+    <nodeOperator value="filteredMainBranch">
+      <nodeOperator value="darkMatterProfileScaleSet"/>
+    </nodeOperator>
+  </change>
+  <change type="remove" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleInterpolate']"/>
+  <change type="remove" path="nodeOperator/nodeOperator[@value='haloAngularMomentumRandom']"/>
+  <change type="remove" path="nodeOperator/nodeOperator[@value='haloAngularMomentumInterpolate']"/>
+""",
+        ("rejected", ["requires a positive scale radius", "has not been set"]),
+        1,
+    ),
+    (
+        "zero dark matter profile scale radius with an NFW profile",
+        """  <change type="replace" path="darkMatterProfileScaleRadius">
+    <darkMatterProfileScaleRadius value="zero"/>
+  </change>
+""",
+        ("rejected", ["requires a positive scale radius", "[darkMatterProfileScaleRadius]"]),
+        1,
+    ),
+    (
+        # `quickTest` uses the Eisenstein & Hu (1999) transfer function, which has no small-scale cutoff.
+        "prompt cusps with no small-scale cutoff in the power spectrum",
+        """  <change type="append" path="nodeOperator">
+    <nodeOperator value="darkMatterProfilePromptCusps"/>
+  </change>
+""",
+        ("rejected", ["of the power spectrum does not converge", "small-scale cutoff"]),
+        1,
+    ),
+    (
         # `accretionHalo` is changed too, so that something asks the IGM for its state: nothing in `quickTest` does otherwise.
         "internal IGM state without the universe operator which solves for it",
         """  <change type="replaceOrAppend" path="intergalacticMediumState">
@@ -132,6 +291,35 @@ cases = [
         ("runs", checkEvolutionOutput),
         # Use several threads, so that per-thread copies of the node operator must share the output file.
         4,
+    ),
+    (
+        "mass movement destination which the component does not implement",
+        """  <change type="replaceOrAppend" path="mergerMassMovements">
+    <mergerMassMovements value="simple">
+      <destinationStarsMinorMerger value="unmoved"/>
+    </mergerMassMovements>
+  </change>
+""",
+        ("rejected", ["the `unmoved` destination of [destinationStarsSatellite] is not supported"]),
+        1,
+    ),
+    (
+        "star formation rate set for a disk which does not exist",
+        """  <change type="replaceOrAppend" path="starFormationRateDisks">
+    <starFormationRateDisks value="fixed"/>
+  </change>
+""",
+        ("rejected", ["a non-zero rate was set for the `massGas` property of the `disk` component"]),
+        1,
+    ),
+    (
+        "operator which needs a component that is not present",
+        """  <change type="replaceOrAppend" path="nodeOperator/nodeOperator[@value='CGMOuterRadiusRamPressureStripping']">
+    <nodeOperator value="positionToHost"/>
+  </change>
+""",
+        ("rejected", ["attempt to set the `position` property of the null `position` component"]),
+        1,
     ),
     (
         "SIDM satellite evaporation without satellite orbits",
@@ -159,15 +347,19 @@ cases = [
         1,
     ),
     (
+        # The original configuration for this case, a [rateMaximumExpulsion] of 1e30, no longer causes evolution to fail, so
+        # tolerances far below what the solver can achieve are used instead.
         "failed evolution",
-        """  <change type="update" path="nodeOperator/nodeOperator[@value='CGMCoolingHeating']/rateMaximumExpulsion" value="1.0e30"/>
+        """  <change type="update" path="mergerTreeNodeEvolver/odeToleranceAbsolute" value="1.0e-100"/>
+  <change type="update" path="mergerTreeNodeEvolver/odeToleranceRelative" value="1.0e-100"/>
 """,
         ("taskFailed", None),
         1,
     ),
     (
         "failed evolution with failures tolerated",
-        """  <change type="update" path="nodeOperator/nodeOperator[@value='CGMCoolingHeating']/rateMaximumExpulsion" value="1.0e30"/>
+        """  <change type="update" path="mergerTreeNodeEvolver/odeToleranceAbsolute" value="1.0e-100"/>
+  <change type="update" path="mergerTreeNodeEvolver/odeToleranceRelative" value="1.0e-100"/>
   <change type="replaceOrAppend" path="task">
     <task value="evolveForests">
       <tolerateFailures value="true"/>
@@ -182,7 +374,7 @@ cases = [
 
 def run(label, changes, countThreads):
     """Run quickTest with the given changes and number of OpenMP threads, returning (return code, output)."""
-    tag            = "".join(c if c.isalnum() else "_" for c in label)
+    tag            = tagFor(label)
     changeFileName = f"outputs/parameterFuzzingRegressions_{tag}.changes.xml"
     with open(changeFileName, "w") as changeFile:
         changeFile.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<changes>\n")

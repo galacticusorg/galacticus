@@ -596,19 +596,20 @@ contains
     use            :: Interface_GSL     , only : GSL_Success               , gslFunction          , gslFunctionFdF
     implicit none
     class           (rootFinder          )              , intent(inout), target   :: self
-    real            (kind=c_double       ), dimension(2), intent(in   )           :: rootRange             , rootRangeValues
+    real            (kind=c_double       ), dimension(2), intent(in   )           :: rootRange                , rootRangeValues
     logical                                             , intent(in   ), optional :: report
     integer                                             , intent(  out), optional :: status
     type            (rootFinderList      ), dimension(:), allocatable             :: currentFindersTmp
     class           (*                   ), pointer                               :: dummyPointer_
-    integer                               , parameter                             :: iterationMaximum =1000
-    integer                               , parameter                             :: findersIncrement =   3
-    logical                                                                       :: rangeChanged          , rangeLowerAsExpected, rangeUpperAsExpected, &
+    integer                               , parameter                             :: iterationMaximum    =1000
+    integer                               , parameter                             :: findersIncrement    =   3
+    logical                                                                       :: rangeChanged             , rangeLowerAsExpected, rangeUpperAsExpected, &
          &                                                                           errorHandlerDisabled
-    integer                                                                       :: iteration             , statusActual
-    double precision                                                              :: xHigh                 , xLow                , xRoot               , &
-         &                                                                           xRootPrevious         , fLow                , fHigh               , &
-         &                                                                           fDownwardLimit        , fUpwardLimit
+    integer                                                                       :: iteration                , statusActual
+    double precision                                                              :: xHigh                    , xLow                , xRoot               , &
+         &                                                                           xRootPrevious            , fLow                , fHigh               , &
+         &                                                                           fDownwardLimit           , fUpwardLimit        , expandLimitUpward   , &
+         &                                                                           expandLimitDownward
     type            (varying_string      ), save                                  :: message
     !$omp threadprivate(message)
     character       (len= 30             )                                        :: label
@@ -618,6 +619,11 @@ contains
 
     ! Begin reporting.
     if (report_) call displayIndent("Root finder report:")
+    ! Find the largest magnitudes from which the range can be expanded multiplicatively without overflowing. Expansion stops
+    ! beyond these, so that a function whose root can not be bracketed is reported as such, rather than causing a floating point
+    ! exception.
+    expandLimitUpward  =huge(0.0d0)/max(1.0d0,abs(self%rangeExpandUpward  ))
+    expandLimitDownward=huge(0.0d0)/max(1.0d0,abs(self%rangeExpandDownward))
     ! Record that this invocation has not (yet) disabled GSL's abort-on-error handler.
     errorHandlerDisabled=.false.
     ! Add the current finder to the list of finders. This allows us to track back to the previously used finder if this function is called recursively.
@@ -903,6 +909,8 @@ contains
                   &   .or.                               &
                   &   .not.self%rangeUpwardLimitSet      &
                   &  )                                   &
+                  &  .and.                               &
+                  &  abs(xHigh) <= expandLimitUpward     &
                   & ) then
                 if (rangeLowerAsExpected) then
                    ! The lower end of the range has the expected sign. Therefore, we can shift the lower end of the range to the
@@ -937,6 +945,8 @@ contains
                   &   .or.                               &
                   &   .not.self%rangeDownwardLimitSet    &
                   &  )                                   &
+                  &  .and.                               &
+                  &  abs(xLow ) <= expandLimitDownward   &
                   & ) then
                 if (rangeUpperAsExpected) then
                    ! The upper end of the range has the expected sign. Therefore, we can shift the upper end of the range to the

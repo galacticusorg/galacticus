@@ -845,9 +845,12 @@ contains
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : nodeComponentNSC         , nodeComponentNSCStandard, nodeComponentSpheroid   , nodeComponentDisk               , &
+    use :: Galacticus_Nodes                , only : nodeComponentNSC                  , nodeComponentNSCStandard, nodeComponentSpheroid   , nodeComponentDisk               , &
        &                                            treeNode
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerSpheroid, destinationMergerDisk   , destinationMergerUnmoved, enumerationDestinationMergerType
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerSpheroid         , destinationMergerDisk   , destinationMergerUnmoved, enumerationDestinationMergerType, &
+         &                                          enumerationDestinationMergerDecode
+    use :: Display                         , only : displayGreen                      , displayReset
+    use :: ISO_Varying_String              , only : operator(//)
     use :: Satellite_Merging_Remnant_Sizes , only : remnantNoChange
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
     implicit none
@@ -954,7 +957,12 @@ contains
        case (destinationMergerUnmoved%ID)
           ! Do nothing.
        case default
-          call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+          call Error_Report(                                                                                                                                 &
+               &            'the `'//enumerationDestinationMergerDecode(destinationGasHost,includePrefix=.false.)//'` destination of [destinationGasHost]'// &
+               &            ' is not supported by the `standard` nuclear star cluster component'                                                //char(10)// &
+               &            displayGreen()//'   HELP:'//displayReset()//' check the destinations set by the [mergerMassMovements] class'                  // &
+               &            {introspection:location}                                                                                                         &
+               &           )
        end select
        ! Move stellar material within the host if necessary
        select case (destinationStarsHost%ID)
@@ -1052,7 +1060,12 @@ contains
        case (destinationMergerUnmoved%ID)
           ! Do nothing
        case default
-          call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+          call Error_Report(                                                                                                                                     &
+               &            'the `'//enumerationDestinationMergerDecode(destinationStarsHost,includePrefix=.false.)//'` destination of [destinationStarsHost]'// &
+               &            ' is not supported by the `standard` nuclear star cluster component'                                                    //char(10)// &
+               &            displayGreen()//'   HELP:'//displayReset()//' check the destinations set by the [mergerMassMovements] class'                      // &
+               &            {introspection:location}                                                                                                             &
+               &           )
        end select
        ! Get specific angular momentum of the nuclear star cluster material.
        massNuclearStarCluster=+nuclearStarCluster%massGas    () &
@@ -1090,7 +1103,12 @@ contains
                   &                                   *                   angularMomentumSpecificNuclearStarCluster   &
                   &                                  )
           case default
-             call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+             call Error_Report(                                                                                                                                           &
+                  &            'the `'//enumerationDestinationMergerDecode(destinationGasSatellite,includePrefix=.false.)//'` destination of [destinationGasSatellite]'// &
+                  &            ' is not supported by the `standard` nuclear star cluster component'                                                          //char(10)// &
+                  &            displayGreen()//'   HELP:'//displayReset()//' check the destinations set by the [mergerMassMovements] class'                            // &
+                  &            {introspection:location}                                                                                                                   &
+                  &           )
           end select
           call nuclearStarCluster%      massGasSet(         0.0d0)
           call nuclearStarCluster%abundancesGasSet(zeroAbundances)
@@ -1158,7 +1176,12 @@ contains
              call history_                 %destroy                (                                                )
              call historyNuclearStarCluster%destroy                (                                                )
           case default
-             call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+             call Error_Report(                                                                                                                                               &
+                  &            'the `'//enumerationDestinationMergerDecode(destinationStarsSatellite,includePrefix=.false.)//'` destination of [destinationStarsSatellite]'// &
+                  &            ' is not supported by the `standard` nuclear star cluster component'                                                              //char(10)// &
+                  &            displayGreen()//'   HELP:'//displayReset()//' check the destinations set by the [mergerMassMovements] class'                                // &
+                  &            {introspection:location}                                                                                                                       &
+                  &           )
           end select
           call nuclearStarCluster%        massStellarSet(                  0.0d0)
           call nuclearStarCluster%  abundancesStellarSet(         zeroAbundances)

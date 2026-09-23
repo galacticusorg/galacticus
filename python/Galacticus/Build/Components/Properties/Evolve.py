@@ -438,7 +438,7 @@ def Build_Auto_Create_Rate_Functions(build, class_dict, member, prop):
             f"of the ``{class_dict['name']}`` component class. "
             "Trigger an interrupt to create the component."
         ),
-        'modules':     ['Error'],
+        'modules':     ['Error', 'Display'],
         'variables':   [
             {
                 'intrinsic':  'class',
@@ -478,10 +478,14 @@ def Build_Auto_Create_Rate_Functions(build, class_dict, member, prop):
     else:
         if is_intrinsic(ptype):
             content += "if (all(setValue == 0.0d0)) return\n"
+    # The component must be created before the rate can be accumulated, which requires that the caller supplied the interrupt
+    # arguments. Name the property and component, so that the error identifies what was being set and what must be created.
     content += (
         "if (.not.(present(interrupt).and.present(interruptProcedure))) "
-        "call Error_Report('interrupt required, but optional arguments "
-        "missing'//{introspection:location})\n"
+        f"call Error_Report('a non-zero rate was set for the `{prop['name']}` property of the `{class_dict['name']}` component, which does not exist'//char(10)//"
+        "displayGreen()//'   HELP:'//displayReset()//"
+        f"' the component must be created before the rate can be accumulated, which requires that whatever sets this rate provides the `interrupt` and `interruptProcedure` arguments'"
+        "//{introspection:location})\n"
         "interrupt=.true.\n"
         f"interruptProcedure => {class_dict['name']}CreateByInterrupt\n"
     )
