@@ -1196,6 +1196,8 @@ jobs:
                       tests.dust.attenuation_descriptors.exe,
                       tests.dust.extinction_curves.exe,
                       tests.dust.emission_spectra.exe,
+                      tests.dust.attenuation_stellar_mass_redshift.exe,
+                      tests.output_analyses.attenuation_scatter.exe,
                       tests.make_ranges.exe,
                       tests.tabulations_inverse.exe,
                       tests.cosmology_functions.exe,

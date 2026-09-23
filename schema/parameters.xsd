@@ -997,6 +997,7 @@
           <xs:enumeration value="screenFixed"/>
           <xs:enumeration value="screenSurfaceDensityMetals"/>
           <xs:enumeration value="sequence"/>
+          <xs:enumeration value="stellarMassRedshift"/>
           <xs:enumeration value="zero"/>
          </xs:restriction>
         </xs:simpleType>
@@ -2900,6 +2901,7 @@
        <xs:attribute name="value" use="optional">
         <xs:simpleType>
          <xs:restriction base="xs:string">
+          <xs:enumeration value="attenuationScatter"/>
           <xs:enumeration value="diskSizeInclntn"/>
           <xs:enumeration value="gravitationalLensing"/>
           <xs:enumeration value="identity"/>
