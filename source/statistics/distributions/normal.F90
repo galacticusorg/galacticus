@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a normal 1D distribution function.
   !!}
@@ -61,6 +63,7 @@
      procedure :: inverse    => normalInverse
      procedure :: minimum    => normalMinimum
      procedure :: maximum    => normalMaximum
+     procedure :: descriptor => normalDescriptor
   end type distributionFunction1DNormal
 
   interface distributionFunction1DNormal
@@ -171,6 +174,38 @@ contains
     if (self%limitLower >= self%limitUpper) call Error_Report('`limitLower` < `limitUpper` is required'//{introspection:location})
     return
   end function normalConstructorInternal
+
+  subroutine normalDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
+    !!{RST
+    Return an input parameter list descriptor which could be used to recreate this object. Limits are included only if they
+    were specified.
+    !!}
+    use :: Input_Parameters, only : inputParameters, descriptorParameterName
+    implicit none
+    class    (distributionFunction1DNormal), intent(inout)           :: self
+    type     (inputParameters             ), intent(inout)           :: descriptor
+    logical                                , intent(in   ), optional :: includeClass  , includeFileModificationTimes
+    character(len=*                       ), intent(in   ), optional :: parameterName
+    character(len=18                      )                          :: parameterLabel
+    type     (inputParameters             )                          :: parameters
+
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('distributionFunction1D',parameterName),'normal')
+    parameters=descriptor%subparameters(descriptorParameterName('distributionFunction1D',parameterName))
+    write (parameterLabel,'(e17.10)') self%mean
+    call parameters%addParameter('mean'    ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%variance
+    call parameters%addParameter('variance',trim(adjustl(parameterLabel)))
+    if (self%limitLowerExists) then
+       write (parameterLabel,'(e17.10)') self%limitLower
+       call parameters%addParameter('limitLower',trim(adjustl(parameterLabel)))
+    end if
+    if (self%limitUpperExists) then
+       write (parameterLabel,'(e17.10)') self%limitUpper
+       call parameters%addParameter('limitUpper',trim(adjustl(parameterLabel)))
+    end if
+    if (associated(self%randomNumberGenerator_)) call self%randomNumberGenerator_%descriptor(parameters,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)
+    return
+  end subroutine normalDescriptor
 
   double precision function normalMinimum(self)
     !!{RST
