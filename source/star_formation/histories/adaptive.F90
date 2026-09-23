@@ -648,23 +648,24 @@ contains
     return
   end subroutine adaptiveExtend
 
-  subroutine adaptiveDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
+  subroutine adaptiveDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
     !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
-    use :: Input_Parameters  , only : inputParameters
+    use :: Input_Parameters  , only : inputParameters, descriptorParameterName
     use :: ISO_Varying_String, only : assignment(=)  , char, operator(//)
     implicit none
     class    (starFormationHistoryAdaptive), intent(inout)           :: self
     type     (inputParameters             ), intent(inout)           :: descriptor
     logical                                , intent(in   ), optional :: includeClass              , includeFileModificationTimes
+    character(len=*)                       , intent(in   ), optional :: parameterName
     character(len=18                      )                          :: parameterLabel
     type     (inputParameters             )                          :: parameters
     integer                                                          :: i
     type     (varying_string              )                          :: metallicityBoundariesLabel
 
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('starFormationHistory','adaptive')
-    parameters=descriptor%subparameters('starFormationHistory')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('starFormationHistory',parameterName),'adaptive')
+    parameters=descriptor%subparameters(descriptorParameterName('starFormationHistory',parameterName))
     write (parameterLabel,'(e17.10)') self%timeStepMinimum
     call parameters%addParameter('timeStepMinimum'      ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(i17)   ') self%countTimeStepsMaximum

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements an identity transfer function class.
 !!}
@@ -192,17 +194,18 @@ contains
     return
   end function identityEpochTime
 
-  subroutine identityDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
+  subroutine identityDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
     !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
-    use :: Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters, descriptorParameterName
     implicit none
     class  (transferFunctionIdentity), intent(inout)           :: self
     type   (inputParameters         ), intent(inout)           :: descriptor
     logical                          , intent(in   ), optional :: includeClass, includeFileModificationTimes
+    character(len=*)                 , intent(in   ), optional :: parameterName
     !$GLC attributes unused :: self, includeFileModificationTimes
 
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('transferFunction','identity')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('transferFunction',parameterName),'identity')
     return
   end subroutine identityDescriptor

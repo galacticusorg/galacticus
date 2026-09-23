@@ -41,7 +41,8 @@ module Input_Parameters
   use            :: Resource_Manager  , only : resourceManager
   private
   public :: inputParameters                 , inputParameter                         , inputParameterList                           , Input_Parameters_Build_Stack_Push, &
-       &    Input_Parameters_Build_Stack_Pop, Input_Parameters_Build_Stack_Object_Set, Input_Parameters_Build_Stack_Recursive_Object
+       &    Input_Parameters_Build_Stack_Pop, Input_Parameters_Build_Stack_Object_Set, Input_Parameters_Build_Stack_Recursive_Object, &
+       &    descriptorParameterName
   !![
   <generic identifier="Type">
    <instance label="Logical"        intrinsic="logical"                                          outputConverter="regEx¦(.*)¦char($1)¦"/>
@@ -311,6 +312,25 @@ module Input_Parameters
 #endif
 
 contains
+
+  function descriptorParameterName(nameDefault,parameterName) result(name)
+    !!{RST
+    Return the name under which an object is added to a descriptor: ``parameterName`` if it is present (i.e. the object was
+    built from a parameter whose name differs from that of its class, as for an ``objectBuilder`` with a ``parameterName``
+    attribute), and otherwise the name of the class, ``nameDefault``.
+    !!}
+    implicit none
+    character(len=:), allocatable                     :: name
+    character(len=*), intent(in   )                   :: nameDefault
+    character(len=*), intent(in   ), optional         :: parameterName
+
+    if (present(parameterName)) then
+       name=parameterName
+    else
+       name=nameDefault
+    end if
+    return
+  end function descriptorParameterName
 
   subroutine Input_Parameters_Build_Stack_Push(node,className,recursionAware,location)
     !!{RST

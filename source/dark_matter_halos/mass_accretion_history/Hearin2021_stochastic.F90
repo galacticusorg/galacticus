@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo mass accretion histories using the rolling power-law model of :cite:t:`hearin_differentiable_2021` with stochastic sampling of parameters.
   !!}
@@ -876,20 +878,21 @@ contains
     return
   end function softPlus
 
-  subroutine hearin2021StochasticDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
+  subroutine hearin2021StochasticDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
     !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
-    use :: Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters, descriptorParameterName
     implicit none
     class    (darkMatterHaloMassAccretionHistoryHearin2021Stochastic), intent(inout)           :: self
     type     (inputParameters                                       ), intent(inout)           :: descriptor
     logical                                                          , intent(in   ), optional :: includeClass  ,includeFileModificationTimes
+    character(len=*)                                                 , intent(in   ), optional :: parameterName
     character(len=18                                                )                          :: parameterLabel
     type     (inputParameters                                       )                          :: parameters
 
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('darkMatterHaloMassAccretionHistory','hearin2021Stochastic')
-    parameters=descriptor%subparameters('darkMatterHaloMassAccretionHistory')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('darkMatterHaloMassAccretionHistory',parameterName),'hearin2021Stochastic')
+    parameters=descriptor%subparameters(descriptorParameterName('darkMatterHaloMassAccretionHistory',parameterName))
     ! Population fractions.
     write (parameterLabel,'(e17.10)') self%fractionLateLow
     call parameters%addParameter('fractionLateLow'                                   ,trim(adjustl(parameterLabel)))

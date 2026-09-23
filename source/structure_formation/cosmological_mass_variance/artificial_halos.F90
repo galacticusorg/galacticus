@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of cosmological density field mass variance which adds variance to mimic that associated with the formation of artificial halos.
   !!}
@@ -303,19 +305,20 @@ contains
     return
   end function artificialHalosGrowthIsMassDependent
 
-  subroutine artificialHalosDescriptorNormalizationOnly(self,descriptor,includeClass,includeFileModificationTimes)
+  subroutine artificialHalosDescriptorNormalizationOnly(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
     !!{RST
     Return an input parameter list descriptor which could be used to recreate this object, for power spectrum normalization usage only (i.e. we exclude the window function).
     !!}
-    use :: Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters, descriptorParameterName
     implicit none
     class    (cosmologicalMassVarianceArtificialHalos), intent(inout)           :: self
     type     (inputParameters                        ), intent(inout)           :: descriptor
     logical                                           , intent(in   ), optional :: includeClass, includeFileModificationTimes
+    character(len=*)                                  , intent(in   ), optional :: parameterName
     type     (inputParameters                        )                          :: parameters
 
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('cosmologicalMassVariance','filteredPower')
-    parameters=descriptor%subparameters('cosmologicalMassVariance')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('cosmologicalMassVariance',parameterName),'filteredPower')
+    parameters=descriptor%subparameters(descriptorParameterName('cosmologicalMassVariance',parameterName))
     if (associated(self%cosmologyFunctions_      )) &
          & call self%cosmologyFunctions_      %descriptor                 (parameters,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)
     if (associated(self%cosmologicalMassVariance_)) &

@@ -837,23 +837,24 @@ contains
     return
   end function fixedAgesAgeDistribution
 
-  subroutine fixedAgesDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
+  subroutine fixedAgesDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
     !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
-    use :: Input_Parameters  , only : inputParameters
+    use :: Input_Parameters  , only : inputParameters, descriptorParameterName
     use :: ISO_Varying_String, only : assignment(=)  , char, operator(//)
     implicit    none
     class    (starFormationHistoryFixedAges), intent(inout)           :: self
     type     (inputParameters              ), intent(inout)           :: descriptor
     logical                                 , intent(in   ), optional :: includeClass              , includeFileModificationTimes
+    character(len=*)                        , intent(in   ), optional :: parameterName
     character(len=18                       )                          :: parameterLabel
     type     (inputParameters              )                          :: parameters
     integer                                                           :: i
     type     (varying_string               )                          :: metallicityBoundariesLabel
 
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('starFormationHistory','fixedAges')
-    parameters=descriptor%subparameters('starFormationHistory')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('starFormationHistory',parameterName),'fixedAges')
+    parameters=descriptor%subparameters(descriptorParameterName('starFormationHistory',parameterName))
     write (parameterLabel,'(e17.10)') self%ageMinimum
     call parameters%addParameter('ageMinimum'       ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(e17.10)') self%ageMaximum

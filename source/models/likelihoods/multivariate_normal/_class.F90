@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a posterior sampling likelihood class which implements a multivariate normal likelihood.
   !!}
@@ -168,16 +170,17 @@ contains
     return
   end subroutine multivariateNormalFunctionChanged
 
-  subroutine multivariateNormalDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
+  subroutine multivariateNormalDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
     !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
-    use :: Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters, descriptorParameterName
     use :: Linear_Algebra  , only : assignment(=)
     implicit none
     class           (posteriorSampleLikelihoodMultivariateNormal), intent(inout)               :: self
     type            (inputParameters                            ), intent(inout)               :: descriptor
     logical                                                      , intent(in   ), optional     :: includeClass  , includeFileModificationTimes
+    character(len=*)                                             , intent(in   ), optional     :: parameterName
     character       (len=18                                     )                              :: parameterLabel
     type            (inputParameters                            )                              :: parameters
     double precision                                             , allocatable, dimension(:  ) :: means
@@ -185,8 +188,8 @@ contains
     type            (varying_string                             )                              :: parameterCombined
     integer                                                                                    :: i                , j
 
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('posteriorSampleLikelihood','multivariateNormal')
-    parameters       =descriptor%subparameters('posteriorSampleLikelihood')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('posteriorSampleLikelihood',parameterName),'multivariateNormal')
+    parameters       =descriptor%subparameters(descriptorParameterName('posteriorSampleLikelihood',parameterName))
     means            =self%means
     covariance       =self%covariance
     parameterCombined=""

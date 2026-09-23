@@ -1529,20 +1529,21 @@ contains
     return
   end function zhao1996EnergyKinetic
   
-  subroutine zhao1996Descriptor(self,descriptor,includeClass,includeFileModificationTimes)
+  subroutine zhao1996Descriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
     !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
-    use :: Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters, descriptorParameterName
     implicit none
     class    (massDistributionZhao1996), intent(inout)           :: self
     type     (inputParameters         ), intent(inout)           :: descriptor
     logical                            , intent(in   ), optional :: includeClass  , includeFileModificationTimes
+    character(len=*)                   , intent(in   ), optional :: parameterName
     character(len=18                  )                          :: parameterLabel
     type     (inputParameters         )                          :: parameters
 
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('massDistribution','Zhao1996')
-    parameters=descriptor%subparameters('massDistribution')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('massDistribution',parameterName),'Zhao1996')
+    parameters=descriptor%subparameters(descriptorParameterName('massDistribution',parameterName))
     write (parameterLabel,'(e17.10)') self%densityNormalization
     call parameters%addParameter('densityNormalization',trim(adjustl(parameterLabel)))
     write (parameterLabel,'(e17.10)') self%scaleLength
