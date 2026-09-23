@@ -345,7 +345,7 @@
     <translation function="prompt_cusp_require_collapse_before_halo"/>
   </migration>
 
-  <migration commit="8d876521514e569cd4a0d2cb50c958a62e7ea12c">
+  <migration commit="e2792e6912698e66e1edb09a981098eeddd573818d876521514e569cd4a0d2cb50c958a62e7ea12c">
     <!-- The `stellarSpectraDustAttenuation` class and the `lmnstyStllrCF2000` property extractor were retired in    -->
     <!-- favor of the `dustAttenuation` and `dustExtinctionCurve` classes. The former was consumed only by classes   -->
     <!-- which have themselves been migrated, so the parameter is simply removed; the latter is replaced by the      -->
