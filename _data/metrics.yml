@@ -66,11 +66,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalos/
   valid_path: dev/valid/darkMatterOnlySubhalos/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923882729
-  last_ts_iso: '2026-09-20T17:04:42.729000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128158852
+  last_ts_iso: '2026-09-23T01:49:18.852000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -83,11 +83,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1/
   valid_path: dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923887497
-  last_ts_iso: '2026-09-20T17:04:47.497000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128163957
+  last_ts_iso: '2026-09-23T01:49:23.957000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -100,11 +100,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalosSymphonyCDMMilkyWayX64/
   valid_path: dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX64/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923898225
-  last_ts_iso: '2026-09-20T17:04:58.225000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128172957
+  last_ts_iso: '2026-09-23T01:49:32.957000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -117,11 +117,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8/
   valid_path: dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923892985
-  last_ts_iso: '2026-09-20T17:04:52.985000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128168420
+  last_ts_iso: '2026-09-23T01:49:28.420000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -134,11 +134,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX1/
   valid_path: dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX1/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923929686
-  last_ts_iso: '2026-09-20T17:05:29.686000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128202668
+  last_ts_iso: '2026-09-23T01:50:02.668000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -151,11 +151,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1/
   valid_path: dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923903488
-  last_ts_iso: '2026-09-20T17:05:03.488000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128177970
+  last_ts_iso: '2026-09-23T01:49:37.970000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -168,11 +168,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1/
   valid_path: dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923909159
-  last_ts_iso: '2026-09-20T17:05:09.159000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128183257
+  last_ts_iso: '2026-09-23T01:49:43.257000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -185,11 +185,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1/
   valid_path: dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923914390
-  last_ts_iso: '2026-09-20T17:05:14.390000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128188152
+  last_ts_iso: '2026-09-23T01:49:48.152000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -202,11 +202,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1/
   valid_path: dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923919530
-  last_ts_iso: '2026-09-20T17:05:19.530000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128192935
+  last_ts_iso: '2026-09-23T01:49:52.935000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -219,11 +219,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX1/
   valid_path: dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX1/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923924862
-  last_ts_iso: '2026-09-20T17:05:24.862000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128197567
+  last_ts_iso: '2026-09-23T01:49:57.567000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -236,11 +236,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8/
   valid_path: dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923959940
-  last_ts_iso: '2026-09-20T17:05:59.940000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128233834
+  last_ts_iso: '2026-09-23T01:50:33.834000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -253,11 +253,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8/
   valid_path: dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923935208
-  last_ts_iso: '2026-09-20T17:05:35.208000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128207975
+  last_ts_iso: '2026-09-23T01:50:07.975000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -270,11 +270,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX8/
   valid_path: dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX8/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923939937
-  last_ts_iso: '2026-09-20T17:05:39.937000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128213045
+  last_ts_iso: '2026-09-23T01:50:13.045000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -287,11 +287,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX8/
   valid_path: dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX8/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923944859
-  last_ts_iso: '2026-09-20T17:05:44.859000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128217676
+  last_ts_iso: '2026-09-23T01:50:17.676000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -304,11 +304,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX8/
   valid_path: dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX8/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923949724
-  last_ts_iso: '2026-09-20T17:05:49.724000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128222603
+  last_ts_iso: '2026-09-23T01:50:22.603000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -321,11 +321,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8/
   valid_path: dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923955208
-  last_ts_iso: '2026-09-20T17:05:55.208000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128228028
+  last_ts_iso: '2026-09-23T01:50:28.028000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -338,11 +338,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalos_decayingDarkMatter_lifetime10.0_velocityKick20.0/
   valid_path: dev/valid/darkMatterOnlySubhalos_decayingDarkMatter_lifetime10.0_velocityKick20.0/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789924011274
-  last_ts_iso: '2026-09-20T17:06:51.274000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128282635
+  last_ts_iso: '2026-09-23T01:51:22.635000+00:00'
   status: fail
   status_detail: '1/2 fail: radialCumulativeDistribution'
   status_value: null
@@ -355,11 +355,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick20.0/
   valid_path: dev/valid/darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick20.0/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789924016178
-  last_ts_iso: '2026-09-20T17:06:56.178000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128287578
+  last_ts_iso: '2026-09-23T01:51:27.578000+00:00'
   status: ok
   status_detail: all 2 thresholded analyses pass
   status_value: null
@@ -372,11 +372,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick40.0/
   valid_path: dev/valid/darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick40.0/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789924021539
-  last_ts_iso: '2026-09-20T17:07:01.539000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128292543
+  last_ts_iso: '2026-09-23T01:51:32.543000+00:00'
   status: ok
   status_detail: all 2 thresholded analyses pass
   status_value: null
@@ -389,11 +389,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick20.0/
   valid_path: dev/valid/darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick20.0/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789924027231
-  last_ts_iso: '2026-09-20T17:07:07.231000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128297729
+  last_ts_iso: '2026-09-23T01:51:37.729000+00:00'
   status: ok
   status_detail: all 2 thresholded analyses pass
   status_value: null
@@ -406,11 +406,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick40.0/
   valid_path: dev/valid/darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick40.0/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789924031952
-  last_ts_iso: '2026-09-20T17:07:11.952000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128302974
+  last_ts_iso: '2026-09-23T01:51:42.974000+00:00'
   status: ok
   status_detail: all 2 thresholded analyses pass
   status_value: null
@@ -423,11 +423,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/darkMatterOnlySubhalos_decayingDarkMatter_lifetime80.0_velocityKick40.0/
   valid_path: dev/valid/darkMatterOnlySubhalos_decayingDarkMatter_lifetime80.0_velocityKick40.0/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789924037017
-  last_ts_iso: '2026-09-20T17:07:17.017000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128308261
+  last_ts_iso: '2026-09-23T01:51:48.261000+00:00'
   status: ok
   status_detail: all 2 thresholded analyses pass
   status_value: null
@@ -440,11 +440,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/idealizedSubhaloSimulation_rpra0.005_gamma1.5/
   valid_path: dev/valid/idealizedSubhaloSimulation_rpra0.005_gamma1.5/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923970259
-  last_ts_iso: '2026-09-20T17:06:10.259000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128243952
+  last_ts_iso: '2026-09-23T01:50:43.952000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -457,11 +457,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/idealizedSubhaloSimulation_rpra0.01_gamma1.5/
   valid_path: dev/valid/idealizedSubhaloSimulation_rpra0.01_gamma1.5/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923975123
-  last_ts_iso: '2026-09-20T17:06:15.123000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128248620
+  last_ts_iso: '2026-09-23T01:50:48.620000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -474,11 +474,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/idealizedSubhaloSimulation_rpra0.05_gamma0.5/
   valid_path: dev/valid/idealizedSubhaloSimulation_rpra0.05_gamma0.5/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923980311
-  last_ts_iso: '2026-09-20T17:06:20.311000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128253454
+  last_ts_iso: '2026-09-23T01:50:53.454000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -491,11 +491,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/idealizedSubhaloSimulation_rpra0.05_gamma1.0/
   valid_path: dev/valid/idealizedSubhaloSimulation_rpra0.05_gamma1.0/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923985389
-  last_ts_iso: '2026-09-20T17:06:25.389000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128258346
+  last_ts_iso: '2026-09-23T01:50:58.346000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -508,11 +508,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/idealizedSubhaloSimulation_rpra0.2_gamma0.0/
   valid_path: dev/valid/idealizedSubhaloSimulation_rpra0.2_gamma0.0/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923990616
-  last_ts_iso: '2026-09-20T17:06:30.616000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128263280
+  last_ts_iso: '2026-09-23T01:51:03.280000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -525,11 +525,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/idealizedSubhaloSimulation_rpra0.2_gamma0.5/
   valid_path: dev/valid/idealizedSubhaloSimulation_rpra0.2_gamma0.5/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923996037
-  last_ts_iso: '2026-09-20T17:06:36.037000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128268066
+  last_ts_iso: '2026-09-23T01:51:08.066000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -542,11 +542,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/idealizedSubhaloSimulation_rpra0.2_gamma1.0/
   valid_path: dev/valid/idealizedSubhaloSimulation_rpra0.2_gamma1.0/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789924001235
-  last_ts_iso: '2026-09-20T17:06:41.235000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128273043
+  last_ts_iso: '2026-09-23T01:51:13.043000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -559,11 +559,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/idealizedSubhaloSimulation_rpra0.4_gamma0.0/
   valid_path: dev/valid/idealizedSubhaloSimulation_rpra0.4_gamma0.0/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789924006113
-  last_ts_iso: '2026-09-20T17:06:46.113000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128277691
+  last_ts_iso: '2026-09-23T01:51:17.691000+00:00'
   status: ok
   status_detail: all 3 thresholded analyses pass
   status_value: null
@@ -576,11 +576,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/haloMassFunctionMDPL/
   valid_path: dev/valid/haloMassFunctionMDPL/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789924042229
-  last_ts_iso: '2026-09-20T17:07:22.229000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128313323
+  last_ts_iso: '2026-09-23T01:51:53.323000+00:00'
   status: ok
   status_detail: all 9 thresholded analyses pass
   status_value: null
@@ -593,11 +593,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/haloMassFunctionSymphonyLMC/
   valid_path: dev/valid/haloMassFunctionSymphonyLMC/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789924046968
-  last_ts_iso: '2026-09-20T17:07:26.968000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128318076
+  last_ts_iso: '2026-09-23T01:51:58.076000+00:00'
   status: ok
   status_detail: all 1 thresholded analyses pass
   status_value: null
@@ -610,11 +610,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/haloMassFunctionSymphonyMilkyWayZ0/
   valid_path: dev/valid/haloMassFunctionSymphonyMilkyWayZ0/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789924057089
-  last_ts_iso: '2026-09-20T17:07:37.089000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128327936
+  last_ts_iso: '2026-09-23T01:52:07.936000+00:00'
   status: ok
   status_detail: all 2 thresholded analyses pass
   status_value: null
@@ -627,11 +627,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/haloMassFunctionSymphonyMilkyWayZ1/
   valid_path: dev/valid/haloMassFunctionSymphonyMilkyWayZ1/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789924062175
-  last_ts_iso: '2026-09-20T17:07:42.175000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128332625
+  last_ts_iso: '2026-09-23T01:52:12.625000+00:00'
   status: ok
   status_detail: all 1 thresholded analyses pass
   status_value: null
@@ -644,11 +644,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/haloMassFunctionSymphonyMilkyWayZ4/
   valid_path: dev/valid/haloMassFunctionSymphonyMilkyWayZ4/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789924067325
-  last_ts_iso: '2026-09-20T17:07:47.325000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128337619
+  last_ts_iso: '2026-09-23T01:52:17.619000+00:00'
   status: ok
   status_detail: all 1 thresholded analyses pass
   status_value: null
@@ -661,11 +661,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/haloMassFunctionSymphonyMilkyWayEnvironments/
   valid_path: dev/valid/haloMassFunctionSymphonyMilkyWayEnvironments/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789924072311
-  last_ts_iso: '2026-09-20T17:07:52.311000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128342363
+  last_ts_iso: '2026-09-23T01:52:22.363000+00:00'
   status: ok
   status_detail: all 1 thresholded analyses pass
   status_value: null
@@ -678,11 +678,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/haloMassFunctionSymphonyGroup/
   valid_path: dev/valid/haloMassFunctionSymphonyGroup/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789924052019
-  last_ts_iso: '2026-09-20T17:07:32.019000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128323075
+  last_ts_iso: '2026-09-23T01:52:03.075000+00:00'
   status: ok
   status_detail: all 1 thresholded analyses pass
   status_value: null
@@ -695,11 +695,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/haloMassFunctionCOZMIC/
   valid_path: dev/valid/haloMassFunctionCOZMIC/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789924077803
-  last_ts_iso: '2026-09-20T17:07:57.803000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128347141
+  last_ts_iso: '2026-09-23T01:52:27.141000+00:00'
   status: ok
   status_detail: all 5 thresholded analyses pass
   status_value: null
@@ -712,11 +712,11 @@ metrics:
   direct_path: ''
   bench_path: dev/bench/milkyWayModel/
   valid_path: dev/valid/milkyWayModel/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789923965237
-  last_ts_iso: '2026-09-20T17:06:05.237000+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1790128238885
+  last_ts_iso: '2026-09-23T01:50:38.885000+00:00'
   status: warn
   status_detail: '1/7 warn: localGroupStellarMassFunction'
   status_value: null
@@ -763,14 +763,14 @@ metrics:
   direct_path: ''
   bench_path: ''
   valid_path: dev/valid/strongLensing/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789898494000
-  last_ts_iso: '2026-09-20 10:01:34+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1789972803000
+  last_ts_iso: '2026-09-21 06:40:03+00:00'
   status: ok
-  status_detail: min realization fraction = 26.7%
-  status_value: 26.666666666666668
+  status_detail: min realization fraction = 20.0%
+  status_value: 20.0
 - suffix: baryonicSuppression
   group: baryonicSuppression
   display_name: Halo mass function ratio
@@ -780,11 +780,11 @@ metrics:
   direct_path: ''
   bench_path: ''
   valid_path: dev/valid/baryonicSuppression/
-  last_commit_id: e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_commit_short: e44a3bd
-  last_commit_url: https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2
-  last_ts: 1789898494000
-  last_ts_iso: '2026-09-20 10:01:34+00:00'
+  last_commit_id: 3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_commit_short: 3a3cb2a
+  last_commit_url: https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce
+  last_ts: 1789972803000
+  last_ts_iso: '2026-09-21 06:40:03+00:00'
   status: unknown
   status_detail: bespoke schema
   status_value: null
@@ -805,4 +805,4 @@ metrics:
   status: ok
   status_detail: static artifact
   status_value: null
-generated_at: '2026-09-20T17:08:12.256916+00:00'
+generated_at: '2026-09-23T01:52:42.503828+00:00'
