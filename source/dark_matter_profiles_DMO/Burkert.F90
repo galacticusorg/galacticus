@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of :cite:t:`burkert_structure_1995` dark matter halo profiles.
   !!}
@@ -107,8 +109,8 @@ contains
     !!{RST
     Return the dark matter mass distribution for the given ``node``.
     !!}
-    use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeComponentDarkMatterProfile
-    use :: Galactic_Structure_Options, only : componentTypeDarkHalo  , massTypeDark                  , weightByMass
+    use :: Galacticus_Nodes          , only : nodeComponentBasic
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo  , massTypeDark                 , weightByMass
     use :: Mass_Distributions        , only : massDistributionBurkert, kinematicsDistributionBurkert
     implicit none
     class  (massDistributionClass         ), pointer                 :: massDistribution_
@@ -118,7 +120,6 @@ contains
     type   (enumerationWeightByType       ), intent(in   ), optional :: weightBy
     integer                                , intent(in   ), optional :: weightIndex
     class  (nodeComponentBasic            ), pointer                 :: basic
-    class  (nodeComponentDarkMatterProfile), pointer                 :: darkMatterProfile
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -131,17 +132,16 @@ contains
     allocate(massDistributionBurkert :: massDistribution_)
     select type(massDistribution_)
     type is (massDistributionBurkert)
-       basic             => node%basic            ()
-       darkMatterProfile => node%darkMatterProfile()
+       basic => node%basic()
        !![
        <referenceConstruct object="massDistribution_">
 	 <constructor>
-           massDistributionBurkert(                                                                                  &amp;
-           &amp;                   mass         =basic            %mass                                      (    ), &amp;
-           &amp;                   radiusOuter  =self             %darkMatterHaloScale_%radiusVirial         (node), &amp;
-           &amp;                   scaleLength  =darkMatterProfile%scale                                     (    ), &amp;
-           &amp;                   componentType=                                       componentTypeDarkHalo      , &amp;
-           &amp;                   massType     =                                       massTypeDark                 &amp;
+           massDistributionBurkert(                                                                      &amp;
+           &amp;                   mass         =basic%mass                                      (    ), &amp;
+           &amp;                   radiusOuter  =self %darkMatterHaloScale_%radiusVirial         (node), &amp;
+           &amp;                   scaleLength  =self                      %scaleRadiusValidated (node), &amp;
+           &amp;                   componentType=                           componentTypeDarkHalo      , &amp;
+           &amp;                   massType     =                           massTypeDark                 &amp;
            &amp;                  )
 	 </constructor>
        </referenceConstruct>

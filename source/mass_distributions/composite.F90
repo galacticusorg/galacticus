@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a composite mass distribution class.
   !!}
@@ -184,8 +186,9 @@ contains
     
     ! Begin by assuming the highest degree of symmetry.
     self%symmetry_        =massDistributionSymmetrySpherical
-    ! Begin by assuming a single component.
-    self%isSingleComponent=.true.
+    ! Begin by assuming a single component - unless there are no components at all, in which case the single-component shortcuts,
+    ! which pass calls through to the first component, can not be used.
+    self%isSingleComponent=associated(self%massDistributions)
     firstComponent        =.true.
     ! Begin by assuming a collisionless distribution.
     self%isCollisionless  =.true.
@@ -970,7 +973,10 @@ contains
     class           (massDistributionClass    )               , pointer :: self_
 
     self_ => self
-    if (self%isSingleComponent .and. associated(self_,massDistributionEmbedding)) then
+    if (.not.associated(self%massDistributions)) then
+       ! An empty distribution has no mass, and so no energy.
+       energy=0.0d0
+    else if (self%isSingleComponent .and. associated(self_,massDistributionEmbedding)) then
        energy=self%massDistributions%massDistribution_%energy(radiusOuter,self%massDistributions%massDistribution_)
     else
        energy=0.0d0

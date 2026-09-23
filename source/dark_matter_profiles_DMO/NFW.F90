@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of :cite:t:`navarro_universal_1997` dark matter halo profiles.
   !!}
@@ -127,20 +129,19 @@ contains
     !!{RST
     Return the dark matter mass distribution for the given ``node``.
     !!}
-    use :: Galacticus_Nodes          , only : nodeComponentBasic   , nodeComponentDarkMatterProfile
-    use :: Galactic_Structure_Options, only : componentTypeDarkHalo, massTypeDark                   , weightByMass
+    use :: Galacticus_Nodes          , only : nodeComponentBasic
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo, massTypeDark             , weightByMass
     use :: Mass_Distributions        , only : massDistributionNFW  , kinematicsDistributionNFW
     implicit none
-    class  (massDistributionClass         ), pointer                     :: massDistribution_
-    type   (kinematicsDistributionNFW     ), pointer                     :: kinematicsDistribution_
-    class  (darkMatterProfileDMONFW       ), intent(inout)               :: self
-    type   (treeNode                      ), intent(inout)               :: node
-    type   (enumerationWeightByType       ), intent(in   ), optional     :: weightBy
-    integer                                , intent(in   ), optional     :: weightIndex
-    class  (nodeComponentBasic            ), pointer                     :: basic
-    class  (nodeComponentDarkMatterProfile), pointer                     :: darkMatterProfile
-    logical                                                              :: reused
-    integer                                                              :: i
+    class  (massDistributionClass    ), pointer                 :: massDistribution_
+    type   (kinematicsDistributionNFW), pointer                 :: kinematicsDistribution_
+    class  (darkMatterProfileDMONFW  ), intent(inout)           :: self
+    type   (treeNode                 ), intent(inout)           :: node
+    type   (enumerationWeightByType  ), intent(in   ), optional :: weightBy
+    integer                           , intent(in   ), optional :: weightIndex
+    class  (nodeComponentBasic       ), pointer                 :: basic
+    logical                                                     :: reused
+    integer                                                     :: i
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -151,7 +152,6 @@ contains
     if (weightBy_ /= weightByMass) return
     ! Get the components needed to define the NFW profile.
     basic             => node%basic            ()
-    darkMatterProfile => node%darkMatterProfile()
     ! Acquire a pool slot, creating the pool itself on first use. If an existing object is
     ! available for re-use "reused" is returned true, otherwise we must create a new object.
     if (.not.allocated(self%pool)) allocate(self%pool)
@@ -165,7 +165,7 @@ contains
           call massDistribution__%initialize(                                                                          &
                &                              mass         =basic            %mass                             (    ), &
                &                              radiusVirial =self             %darkMatterHaloScale_%radiusVirial(node), &
-               &                              scaleLength  =darkMatterProfile%scale                            (    )  &
+               &                              scaleLength  =self%scaleRadiusValidated(node)                            &
                &                             )
        else
           ! No pool object was available - construct a new mass distribution and attach its
@@ -173,12 +173,12 @@ contains
           !![
           <referenceConstruct object="massDistribution__">
 	    <constructor>
-              massDistributionNFW(                                                                                  &amp;
-              &amp;               mass         =basic            %mass                                      (    ), &amp;
-              &amp;               radiusVirial =self             %darkMatterHaloScale_%radiusVirial         (node), &amp;
-              &amp;               scaleLength  =darkMatterProfile%scale                                     (    ), &amp;
-              &amp;               componentType=                                       componentTypeDarkHalo      , &amp;
-              &amp;               massType     =                                       massTypeDark                 &amp;
+              massDistributionNFW(                                                                      &amp;
+              &amp;               mass         =basic%mass                                      (    ), &amp;
+              &amp;               radiusVirial =self %darkMatterHaloScale_%radiusVirial         (node), &amp;
+              &amp;               scaleLength  =self                      %scaleRadiusValidated (node), &amp;
+              &amp;               componentType=                           componentTypeDarkHalo      , &amp;
+              &amp;               massType     =                           massTypeDark                 &amp;
               &amp;              )
 	    </constructor>
           </referenceConstruct>
