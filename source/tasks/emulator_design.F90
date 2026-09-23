@@ -101,12 +101,12 @@ contains
     type   (modelParameterList   ), allocatable  , dimension(:) :: modelParameters_
     class  (modelParameterClass  ), pointer                     :: modelParameter_
     class  (posteriorSamplesClass), pointer                     :: posteriorSamples_
-    type   (varying_string       )                              :: designFileName   , changeFilesRoot, &
+    type   (varying_string       )                              :: designFileName    , changeFilesRoot     , &
          &                                                         outputFileNameRoot
-    type   (varying_string       ), allocatable  , dimension(:) :: priorClasses     , priorDescriptors, &
+    type   (varying_string       ), allocatable  , dimension(:) :: priorClasses      , priorDescriptors    , &
          &                                                         mappers
     logical                                                     :: seedPerPoint
-    integer                                                     :: seedBase         , realizationsPerPoint, &
+    integer                                                     :: seedBase          , realizationsPerPoint, &
          &                                                         i
 
     !![
@@ -206,16 +206,16 @@ contains
     use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : var_str
     implicit none
-    type   (taskEmulatorDesign   )                              :: self
-    type   (modelParameterList   ), intent(in   ), dimension(:) :: modelParameters_
-    class  (posteriorSamplesClass), intent(in   ), target       :: posteriorSamples_
-    type   (varying_string       ), intent(in   )               :: designFileName   , changeFilesRoot     , &
-         &                                                         outputFileNameRoot
-    logical                       , intent(in   )               :: seedPerPoint
-    integer                       , intent(in   )               :: seedBase         , realizationsPerPoint
-    type   (varying_string       ), intent(in   ), dimension(:), optional :: priorClasses     , priorDescriptors    , &
+    type   (taskEmulatorDesign   )                                        :: self
+    type   (modelParameterList   ), intent(in   ), dimension(:)           :: modelParameters_
+    class  (posteriorSamplesClass), intent(in   ), target                 :: posteriorSamples_
+    type   (varying_string       ), intent(in   )                         :: designFileName    , changeFilesRoot     , &
+         &                                                                   outputFileNameRoot
+    logical                       , intent(in   )                         :: seedPerPoint
+    integer                       , intent(in   )                         :: seedBase          , realizationsPerPoint
+    type   (varying_string       ), intent(in   ), dimension(:), optional :: priorClasses      , priorDescriptors    , &
          &                                                                   mappers
-    integer                                                     :: i
+    integer                                                               :: i
     !![
     <constructorAssign variables="*posteriorSamples_, designFileName, changeFilesRoot, outputFileNameRoot, seedPerPoint, seedBase, realizationsPerPoint"/>
     !!]
@@ -224,11 +224,11 @@ contains
     ! Store the model parameters, checking that each can be expressed as a change file path.
     allocate(self%modelParameters_(size(modelParameters_)))
     do i=1,size(modelParameters_)
-       if (index(modelParameters_(i)%modelParameter_%name(),'{') > 0)                                                        &
-            & call Error_Report(                                                                                           &
-            &                   "parameter '"//modelParameters_(i)%modelParameter_%name()//"' selects an element of a "     // &
-            &                   "multi-valued parameter (`{N}`), which can not be expressed in a change file"               // &
-            &                   {introspection:location}                                                                    &
+       if (index(modelParameters_(i)%modelParameter_%name(),'{') > 0)                                                     &
+            & call Error_Report(                                                                                          &
+            &                   "parameter '"//modelParameters_(i)%modelParameter_%name()//"' selects an element of a "// &
+            &                   "multi-valued parameter (`{N}`), which can not be expressed in a change file"          // &
+            &                   {introspection:location}                                                                  &
             &                  )
        self%modelParameters_(i)=modelParameters_(i)
     end do
@@ -318,33 +318,33 @@ contains
     !!{RST
     Generate the design, and write the design file and change files.
     !!}
-    use            :: Dates_and_Times         , only : Formatted_Date_and_Time
-    use            :: Display                 , only : displayIndent             , displayMessage , displayUnindent
-    use            :: Error                   , only : Error_Report              , errorStatusSuccess
-    use            :: File_Utilities          , only : Directory_Make            , File_Path
-    use            :: HDF5_Access             , only : hdf5Access
-    use            :: IO_HDF5                 , only : hdf5File                  , hdf5Group
-    use            :: ISO_Varying_String      , only : var_str                   , char           , operator(//), operator(/=), &
-         &                                             assignment(=)
-    use            :: MPI_Utilities           , only : mpiSelf
-    use            :: Posterior_Sampling_State, only : posteriorSampleStateSimple
-    use            :: String_Handling         , only : operator(//)
+    use :: Dates_and_Times         , only : Formatted_Date_and_Time
+    use :: Display                 , only : displayIndent             , displayMessage    , displayUnindent
+    use :: Error                   , only : Error_Report              , errorStatusSuccess
+    use :: File_Utilities          , only : Directory_Make            , File_Path
+    use :: HDF5_Access             , only : hdf5Access
+    use :: IO_HDF5                 , only : hdf5File                  , hdf5Group
+    use :: ISO_Varying_String      , only : var_str                   , char              , operator(//)   , operator(/=), &
+         &                                  assignment(=)
+    use :: MPI_Utilities           , only : mpiSelf
+    use :: Posterior_Sampling_State, only : posteriorSampleStateSimple
+    use :: String_Handling         , only : operator(//)
     implicit none
-    class           (taskEmulatorDesign        ), intent(inout), target                   :: self
-    integer                                     , intent(  out), optional                 :: status
+    class           (taskEmulatorDesign        ), intent(inout), target                      :: self
+    integer                                     , intent(  out), optional                    :: status
     type            (posteriorSampleStateSimple)               , allocatable, dimension(:  ) :: simulationStates
     double precision                                           , allocatable, dimension(:,:) :: values               , quantiles
-    type            (varying_string            )               , allocatable, dimension(:  ) :: names                , changeFileNames, &
+    type            (varying_string            )               , allocatable, dimension(:  ) :: names                , changeFileNames   , &
          &                                                                                      outputFileNames
     integer                                                    , allocatable, dimension(:  ) :: pointIndices         , realizationIndices, &
          &                                                                                      seeds
-    type            (varying_string            )                                          :: label                , message
-    character       (len=32                    )                                          :: labelFormat          , labelText      , &
+    type            (varying_string            )                                             :: label                , message
+    character       (len=32                    )                                             :: labelFormat          , labelText         , &
          &                                                                                      valueText
-    integer                                                                               :: countParameters      , countPoints    , &
-         &                                                                                      countRuns            , widthLabel     , &
-         &                                                                                      i                    , j              , &
-         &                                                                                      iRun                 , iRealization   , &
+    integer                                                                                  :: countParameters      , countPoints       , &
+         &                                                                                      countRuns            , widthLabel        , &
+         &                                                                                      i                    , j                 , &
+         &                                                                                      iRun                 , iRealization      , &
          &                                                                                      unit
 
     call displayIndent('Begin task: emulator design')
@@ -390,7 +390,7 @@ contains
           if (self%seedPerPoint) then
              seeds(iRun)=self%seedBase+iRun-1
           else
-             seeds(iRun)=-1
+             seeds(iRun)=                  -1
           end if
        end do
     end do
@@ -403,17 +403,17 @@ contains
          type(hdf5File ) :: file
          type(hdf5Group) :: group, priorsGroup, runsGroup
          file=hdf5File(self%designFileName,overWrite=.true.,readOnly=.false.)
-         call file %writeAttribute('galacticusDesign'                             ,'format'              )
-         call file %writeAttribute(1                                              ,'formatVersion'       )
-         call file %writeAttribute(char(Formatted_Date_and_Time())                ,'created'             )
+         call file %writeAttribute('galacticusDesign'             ,'format'                                                                           )
+         call file %writeAttribute(1                              ,'formatVersion'                                                                    )
+         call file %writeAttribute(char(Formatted_Date_and_Time()),'created'                                                                          )
          group=file%openGroup('design','The design: the parameters varied, their priors, and the points in parameter space.')
-         call group%writeAttribute(countPoints                                    ,'countPoints'         )
-         call group%writeAttribute(self%realizationsPerPoint                      ,'realizationsPerPoint')
-         call group%writeAttribute(merge(1,0,self%seedPerPoint)                   ,'seedPerPoint'        )
-         call group%writeDataset  (names                                          ,'parameterNames'      ,'The name of each parameter.'                                  )
-         call group%writeDataset  (self%mappers                                   ,'mappers'             ,'The operatorUnaryMapper class of each parameter.'             )
-         call group%writeDataset  (quantiles                                      ,'quantiles'           ,'The prior quantile of each parameter at each design point.'   )
-         call group%writeDataset  (values                                         ,'values'              ,'The value of each parameter at each design point.'            )
+         call group%writeAttribute(countPoints                    ,'countPoints'                                                                      )
+         call group%writeAttribute(self%realizationsPerPoint      ,'realizationsPerPoint'                                                             )
+         call group%writeAttribute(merge(1,0,self%seedPerPoint)   ,'seedPerPoint'                                                                     )
+         call group%writeDataset  (names                          ,'parameterNames'      ,'The name of each parameter.'                               )
+         call group%writeDataset  (self%mappers                   ,'mappers'             ,'The operatorUnaryMapper class of each parameter.'          )
+         call group%writeDataset  (quantiles                      ,'quantiles'           ,'The prior quantile of each parameter at each design point.')
+         call group%writeDataset  (values                         ,'values'              ,'The value of each parameter at each design point.'         )
          priorsGroup=group%openGroup('priors','The prior of each parameter.')
          do j=1,countParameters
             block
@@ -424,12 +424,12 @@ contains
             end block
          end do
          runsGroup=file%openGroup('runs','The runs of the model: one per realization per design point.')
-         call runsGroup%writeDataset(pointIndices                                 ,'pointIndex'          ,'The (zero-based) design point of each run.'                   )
-         call runsGroup%writeDataset(realizationIndices                           ,'realizationIndex'    ,'The (zero-based) realization of each run.'                    )
-         if (self%seedPerPoint)                                                                                                    &
-              & call runsGroup%writeDataset(seeds                                 ,'seed'                ,'The random number seed of each run.'                          )
-         call runsGroup%writeDataset(changeFileNames                              ,'changeFileName'      ,'The change file of each run.'                                 )
-         call runsGroup%writeDataset(outputFileNames                              ,'outputFileName'      ,'The output file of each run.'                                 )
+         call runsGroup%writeDataset(pointIndices      ,'pointIndex'      ,'The (zero-based) design point of each run.')
+         call runsGroup%writeDataset(realizationIndices,'realizationIndex','The (zero-based) realization of each run.' )
+         if (self%seedPerPoint)                                                                                          &
+              & call runsGroup%writeDataset(seeds      ,'seed'            ,'The random number seed of each run.'       )
+         call runsGroup%writeDataset(changeFileNames   ,'changeFileName'  ,'The change file of each run.'              )
+         call runsGroup%writeDataset(outputFileNames   ,'outputFileName'  ,'The output file of each run.'              )
        end block
        !$ call hdf5Access%unset()
        ! Write the change files.
