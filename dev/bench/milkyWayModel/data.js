@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789923966147,
+  "lastUpdate": 1790128154785,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "934e2c2629c8e9c85b741a18ccdc949dd2080f6f",
-          "message": "Merge pull request #885 from galacticusorg/fixFilterNameLength\n\nCorrect the maximum filter name length",
-          "timestamp": "2025-07-22T13:10:03Z",
-          "tree_id": "8c05746d6d394158a5ea5d101d98b2770a632070",
-          "url": "https://github.com/galacticusorg/galacticus/commit/934e2c2629c8e9c85b741a18ccdc949dd2080f6f"
-        },
-        "date": 1753214027544,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 102.841,
-            "unit": "seconds",
-            "range": 0.242332209992844
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10834,6 +10804,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.87760863089852,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3a3cb2a91b024b65597526ce20b32dbe969815ce",
+          "message": "Merge pull request #1535 from galacticusorg/fix/fully-specified-tree-malformed-property-1512\n\nfix(mergerTrees): report malformed properties in fully-specified merger trees",
+          "timestamp": "2026-09-21T06:40:03Z",
+          "tree_id": "f77d8ffd0884f34d1461de92052530812da99e55",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce"
+        },
+        "date": 1790128153768,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 56.838,
+            "range": "0.11269250196885315",
+            "unit": "seconds"
           }
         ]
       }
