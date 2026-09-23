@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a dark matter profile scale radius class using the energy-based model of :cite:t:`johnson_random_2021`.
   !!}
@@ -250,8 +252,10 @@ contains
       </defaultSource>
       <source>parameters</source>
       <description>
-      Factor multiplying the estimate of the internal energy of unresolved accretion.
+      Factor multiplying the estimate of the internal energy of unresolved accretion. A value of zero ignores the energy of
+      unresolved accretion.
       </description>
+      <minimum>0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>factorMassResolution</name>
@@ -812,18 +816,21 @@ contains
           else
              energyScatter=0.0d0
           end if
-          ! Accumulate the energy of unresolved halos to the total, including random scatter.
-          energyTotal=+energyTotal                                                                 &
-               &      +energyMean                                                                  &
-               &      *exp(                                                                        &
-               &           +node%hostTree%randomNumberGenerator_%standardNormalSample()            &
-               &           *sqrt(                                                                  &
-               &                 +(min(energyScatter/abs(energyMean),scatterFractionalMaximum))**2 &
-               &                 *(2.0d0+self%massFunctionSlopeLogarithmic)                        &
-               &                 /(3.0d0+self%massFunctionSlopeLogarithmic)                        &
-               &                 +(self%scatterExcess*log(10.0d0))**2                              &
-               &                )                                                                  &
-               &          )
+          ! Accumulate the energy of unresolved halos to the total, including random scatter. The mean energy is zero only if
+          ! the energy of unresolved accretion is ignored ([unresolvedEnergy]=0), in which case there is nothing to add - and
+          ! the fractional scatter, below, would be undefined.
+          if (energyMean /= 0.0d0)                                                                        &
+               & energyTotal=+energyTotal                                                                 &
+               &             +energyMean                                                                  &
+               &             *exp(                                                                        &
+               &                  +node%hostTree%randomNumberGenerator_%standardNormalSample()            &
+               &                  *sqrt(                                                                  &
+               &                        +(min(energyScatter/abs(energyMean),scatterFractionalMaximum))**2 &
+               &                        *(2.0d0+self%massFunctionSlopeLogarithmic)                        &
+               &                        /(3.0d0+self%massFunctionSlopeLogarithmic)                        &
+               &                        +(self%scatterExcess*log(10.0d0))**2                              &
+               &                       )                                                                  &
+               &                 )
        end if
        ! Accumulate the count of nodes to which the energy model was applied (reported by `Johnson2021_Statistics`).
        !$omp atomic update

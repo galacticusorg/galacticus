@@ -558,6 +558,8 @@ contains
          &                                                                                                     binWidth
     class           (outputAnalysisTargetDataClass               ), intent(in   ), optional                 :: targetData_
     integer         (c_size_t                                    )                                          :: i
+    character       (len=12                                      )                                          :: labelMinimum                         , labelMaximum                     , &
+         &                                                                                                     labelBins
     !![
     <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyQuantity, propertyIsComoving, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionQuantity, distributionIsComoving, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *nodePropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, binWidth"/>
     !!]
@@ -660,7 +662,32 @@ contains
     self%functionCovariance=0.0d0
     ! Allocate and initialize binomial covariance model halo arrays if necessary.
     if (self%covarianceModel == outputAnalysisCovarianceModelBinomial) then
+       ! Validate the range of halo masses, which is binned logarithmically.
+       if     (                                                                                  &
+            &   self%covarianceBinomialBinsPerDecade   <= 0                                      &
+            &  .or.                                                                              &
+            &   self%covarianceBinomialMassHaloMinimum <= 0.0d0                                  &
+            &  .or.                                                                              &
+            &   self%covarianceBinomialMassHaloMaximum <= self%covarianceBinomialMassHaloMinimum &
+            & ) then
+          write (labelMinimum,'(e12.6)') self%covarianceBinomialMassHaloMinimum
+          write (labelMaximum,'(e12.6)') self%covarianceBinomialMassHaloMaximum
+          write (labelBins   ,'(i12)'  ) self%covarianceBinomialBinsPerDecade
+          call Error_Report(                                                                                                     &
+               &            'the binomial covariance model requires 0 < [covarianceBinomialMassHaloMinimum] <'                // &
+               &            ' [covarianceBinomialMassHaloMaximum], and [covarianceBinomialBinsPerDecade] > 0, but they are '  // &
+               &            trim(adjustl(labelMinimum))//', '//trim(adjustl(labelMaximum))//', and '//trim(adjustl(labelBins))// &
+               &            {introspection:location}                                                                             &
+               &           )
+       end if
        self%covarianceModelBinomialBinCount                  =int(log10(self%covarianceBinomialMassHaloMaximum/self%covarianceBinomialMassHaloMinimum)*dble(self%covarianceBinomialBinsPerDecade)+0.5d0)
+       if (self%covarianceModelBinomialBinCount < 1)                                                                                     &
+            & call Error_Report(                                                                                                         &
+            &                   'the range from [covarianceBinomialMassHaloMinimum] to [covarianceBinomialMassHaloMaximum] spans less'// &
+            &                   ' than one bin of the binomial covariance model - widen it, or increase'                              // &
+            &                   ' [covarianceBinomialBinsPerDecade]'                                                                  // &
+            &                   {introspection:location}                                                                                 &
+            &                  )
        self%covarianceModelHaloMassMinimumLogarithmic        =log10(self%covarianceBinomialMassHaloMinimum)
        self%covarianceModelHaloMassIntervalLogarithmicInverse=dble(self%covarianceModelBinomialBinCount)/log10(self%covarianceBinomialMassHaloMaximum/self%covarianceBinomialMassHaloMinimum)
        allocate(self%weightMainBranch       (self%binCount,self%covarianceModelBinomialBinCount))

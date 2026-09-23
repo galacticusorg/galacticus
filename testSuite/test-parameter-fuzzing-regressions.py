@@ -176,6 +176,33 @@ cases = [
         1,
     ),
     (
+        # Both parameters of the extended ETHOS window function which are raised to a non-integer power must be positive.
+        "negative beta1 in the extended ETHOS window function",
+        """  <change type="replaceOrAppend" path="powerSpectrumWindowFunction">
+    <powerSpectrumWindowFunction value="ETHOSExtended">
+      <beta1 value="-1.3"/>
+    </powerSpectrumWindowFunction>
+  </change>
+""",
+        ("rejected", ["beta1] has value", "must be greater than 0"]),
+        1,
+    ),
+    (
+        # A zero unresolved energy ignores the energy of unresolved accretion, and should be usable. `factorMassResolution` is
+        # lowered so that the energy model is applied to halos at `quickTest`'s resolution - otherwise it applies to none.
+        "zero unresolved energy in the Johnson et al. (2021) scale radius model",
+        """  <change type="replace" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius">
+    <darkMatterProfileScaleRadius value="johnson2021">
+      <unresolvedEnergy     value="0.0"/>
+      <factorMassResolution value="1.0"/>
+      <darkMatterProfileScaleRadius value="concentration"/>
+    </darkMatterProfileScaleRadius>
+  </change>
+""",
+        ("runs", lambda: []),
+        1,
+    ),
+    (
         "array parameter with the wrong number of values",
         """  <change type="replace" path="virialOrbit">
     <virialOrbit value="jiang2014">
