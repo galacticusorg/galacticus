@@ -56,8 +56,9 @@ jobs:
         # python/ pytest suite); all are small wheels so the job stays fast.
         # zstandard supplies zstd where the standard library has none (before
         # Python 3.14), so the launcher's archive tests do not depend on which
-        # interpreter this job happens to resolve `3.x` to.
-        run: python -m pip install --upgrade pip pytest platformdirs requests lxml zstandard
+        # interpreter this job happens to resolve `3.x` to. numpy and h5py are
+        # needed by the emulator file-format tests (python/Galacticus/Emulation).
+        run: python -m pip install --upgrade pip pytest platformdirs requests lxml zstandard numpy h5py
       - name: Run Python regression tests
         run: |
           cd $GITHUB_WORKSPACE
