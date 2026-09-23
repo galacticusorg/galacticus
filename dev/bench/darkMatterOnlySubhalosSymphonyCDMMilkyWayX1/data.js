@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789923888536,
+  "lastUpdate": 1790128164545,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX1)": [
@@ -5556,6 +5556,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 21.549905591660927,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3a3cb2a91b024b65597526ce20b32dbe969815ce",
+          "message": "Merge pull request #1535 from galacticusorg/fix/fully-specified-tree-malformed-property-1512\n\nfix(mergerTrees): report malformed properties in fully-specified merger trees",
+          "timestamp": "2026-09-21T06:40:03Z",
+          "tree_id": "f77d8ffd0884f34d1461de92052530812da99e55",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce"
+        },
+        "date": 1790128163957,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": -2.5899971359464704,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": -3.221849969045208,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 21.549905591661023,
             "unit": "-logℒ"
           }
         ]
