@@ -2615,11 +2615,12 @@ contains
                 attributeName=getNodeName   (parameterNode%content)
                 content      =getTextContent(valueElement         )
                 !$omp end critical (FoX_DOM_Access) 
+                {Type¦match¦^(Double|Integer|Logical)Rank1$¦call inputParametersValueCountCheck(attributeName,content,size(parameterValue))¦}
                 call Error_Report(                                &
                      &            'unable to parse parameter ['// &
                      &             attributeName               // &
                      &            ']='                         // &
-                     &             content                     // &
+                     &             trim(content)               // &
                      &             {introspection:location}       &
                      &           )
              end if
@@ -2663,6 +2664,40 @@ contains
     end if
     return
   end subroutine inputParametersValueNode{Type¦label}
+
+  subroutine inputParametersValueCountCheck(parameterName,content,countExpected)
+    !!{RST
+    Report a fatal error if the number of values given for an array parameter, ``content``, differs from the number,
+    ``countExpected``, which the parameter requires. This is called only once a value has failed to parse, so that a wrong
+    number of values is reported as such, rather than as a value which could not be parsed.
+    !!}
+    use :: Display           , only : displayGreen      , displayReset
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : varying_string    , operator(//)
+    use :: String_Handling   , only : String_Count_Words, operator(//)
+    implicit none
+    type     (varying_string), intent(in   ) :: parameterName
+    character(len=*         ), intent(in   ) :: content
+    integer                  , intent(in   ) :: countExpected
+    integer                                  :: countGiven
+    character(len=5         )                :: verb
+
+    countGiven=String_Count_Words(trim(content))
+    if (countGiven == countExpected) return
+    if (countGiven == 1) then
+       verb=' was'
+    else
+       verb=' were'
+    end if
+    call Error_Report(                                                                                          &
+         &            'parameter ['//parameterName//'] requires '//countExpected//' values, but '//countGiven// &
+         &            trim(verb)//' given: "'//trim(content)//'"'//char(10)                                  // &
+         &            displayGreen()//'HELP:'//displayReset()                                                // &
+         &            ' give exactly '//countExpected//' space-separated values for ['//parameterName//']'   // &
+         &            {introspection:location}                                                                  &
+         &           )
+    return
+  end subroutine inputParametersValueCountCheck
 
   function inputParameterListConstructor() result(self)
     !!{RST
