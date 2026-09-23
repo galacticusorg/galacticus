@@ -1166,6 +1166,7 @@ jobs:
                       tests.ODE_solver.exe,
                       tests.random.exe,
                       tests.random.quasi.exe,
+                      tests.model_parameter_descriptors.exe,
                       tests.arrays.exe,
                       tests.meshes.exe,
                       tests.convex_hulls.exe,
