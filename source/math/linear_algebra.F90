@@ -197,8 +197,8 @@ module Linear_Algebra
    contains
      !![
      <methods docformat="rst">
-       <method description="Solve the linear system :math:`y = A \cdot x` for :math:`x`."                                                                        method="squareSystemSolve"     />
-       <method description="Solve the triangular linear system :math:`y = L \cdot x` for :math:`x`, such that :math:`|x|^2 = y^\mathrm{T} A^{-1} y`."         method="lowerTriangularSolve"  />
+       <method description="Solve the linear system :math:`y = A \cdot x` for :math:`x`."                                                             method="squareSystemSolve"   />
+       <method description="Solve the triangular linear system :math:`y = L \cdot x` for :math:`x`, such that :math:`|x|^2 = y^\mathrm{T} A^{-1} y`." method="lowerTriangularSolve"/>
      </methods>
      !!]
      procedure :: squareSystemSolve      => matrixCholeskySquareSystemSolve
@@ -1426,7 +1426,7 @@ contains
     type   (vector        ), intent(in   ) :: y
     integer(c_int         )                :: status
 
-    matrixCholeskySquareSystemSolve=vector                   (y%size_                                                                        )
+    matrixCholeskySquareSystemSolve=vector                   (                 y%size_                                                  )
     status                         =GSL_LinAlg_Cholesky_Solve(self%matrix_%gsl,y%vector_%gsl,matrixCholeskySquareSystemSolve%vector_%gsl)
     if (status /= GSL_Success) call Error_Report('Cholesky solve failed'//{introspection:location})
     return
@@ -1446,7 +1446,7 @@ contains
     type   (vector        ), intent(in   ) :: y
     integer(c_int         )                :: status
 
-    matrixCholeskyLowerTriangularSolve=vector        (y                                                                                   )
+    matrixCholeskyLowerTriangularSolve=vector        (y                                                                                                   )
     status                            =GSL_BLAS_DTRSV(CblasLower,CblasNoTrans,CblasNonUnit,self%matrix_%gsl,matrixCholeskyLowerTriangularSolve%vector_%gsl)
     if (status /= GSL_Success) call Error_Report('triangular solve failed'//{introspection:location})
     return
@@ -1480,7 +1480,7 @@ contains
 
     matrixCholeskyLogarithmicDeterminant=0.0d0
     do i=1_c_size_t,self%size_(1)
-       matrixCholeskyLogarithmicDeterminant=+matrixCholeskyLogarithmicDeterminant                          &
+       matrixCholeskyLogarithmicDeterminant=+matrixCholeskyLogarithmicDeterminant                                  &
             &                               +2.0d0*log(gsl_matrix_get(self%matrix_%gsl,i-1_c_size_t,i-1_c_size_t))
     end do
     return

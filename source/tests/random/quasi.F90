@@ -31,16 +31,16 @@ program Test_Quasi_Random
   use :: Numerical_Quasi_Random_Sequences, only : gsl_qrng_sobol     , quasiRandomNumberGenerator
   use :: Unit_Tests                      , only : Assert             , Unit_Tests_Begin_Group    , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  integer                                     , parameter                                :: countDimensions=40, countPoints=1024
-  type            (quasiRandomNumberGenerator)                                           :: quasiRandomSequence, quasiRandomSequence3D, &
-       &                                                                                    quasiRandomSequence40D
-  double precision                            , dimension(7                            ) :: r                 , rSobol
-  double precision                            , dimension(3,7                          ) :: r3                , rSobol3
+  integer                                     , parameter                               :: countDimensions       =40, countPoints          =1024
+  type            (quasiRandomNumberGenerator)                                          :: quasiRandomSequence      , quasiRandomSequence3D     , &
+       &                                                                                   quasiRandomSequence40D
+  double precision                            , dimension(                7          ) :: r                         , rSobol
+  double precision                            , dimension(3              ,7          ) :: r3                        , rSobol3
   double precision                            , dimension(countDimensions,countPoints) :: design
-  integer                                     , dimension(countPoints                  ) :: countPerBin
-  logical                                     , dimension(countDimensions              ) :: isBalanced
-  integer                                                                                :: i                 , j, &
-       &                                                                                    k
+  integer                                     , dimension(                countPoints) :: countPerBin
+  logical                                     , dimension(countDimensions            ) :: isBalanced
+  integer                                                                              :: i                         , j                         , &
+       &                                                                                  k
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -61,17 +61,17 @@ program Test_Quasi_Random
   do i=1,7
      call quasiRandomSequence3D%getVector(r3(:,i))
   end do
-  rSobol3=reshape(                                              &
-       &          [                                             &
-       &           1.0d0/2.0d0,1.0d0/2.0d0,1.0d0/2.0d0,         &
-       &           3.0d0/4.0d0,1.0d0/4.0d0,3.0d0/4.0d0,         &
-       &           1.0d0/4.0d0,3.0d0/4.0d0,1.0d0/4.0d0,         &
-       &           3.0d0/8.0d0,3.0d0/8.0d0,5.0d0/8.0d0,         &
-       &           7.0d0/8.0d0,7.0d0/8.0d0,1.0d0/8.0d0,         &
-       &           5.0d0/8.0d0,1.0d0/8.0d0,3.0d0/8.0d0,         &
-       &           1.0d0/8.0d0,5.0d0/8.0d0,7.0d0/8.0d0          &
-       &          ]                                           , &
-       &          [3,7]                                         &
+  rSobol3=reshape(                                       &
+       &          [                                      &
+       &           1.0d0/2.0d0,1.0d0/2.0d0,1.0d0/2.0d0,  &
+       &           3.0d0/4.0d0,1.0d0/4.0d0,3.0d0/4.0d0,  &
+       &           1.0d0/4.0d0,3.0d0/4.0d0,1.0d0/4.0d0,  &
+       &           3.0d0/8.0d0,3.0d0/8.0d0,5.0d0/8.0d0,  &
+       &           7.0d0/8.0d0,7.0d0/8.0d0,1.0d0/8.0d0,  &
+       &           5.0d0/8.0d0,1.0d0/8.0d0,3.0d0/8.0d0,  &
+       &           1.0d0/8.0d0,5.0d0/8.0d0,7.0d0/8.0d0   &
+       &          ]                                    , &
+       &          [3,7]                                  &
        &         )
   call Assert('Sobol sequence (3D): first points',r3,rSobol3,absTol=1.0d-6)
   ! Balance of a 2^m-point design in the maximum supported dimension. GSL omits the origin, so the origin plus the first
@@ -93,6 +93,6 @@ program Test_Quasi_Random
   call Assert('Sobol sequence (40D): 1024-point design is balanced in every dimension',all(isBalanced),.true.)
   ! End unit tests.
   call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
+  call Unit_Tests_Finish   ()
 
 end program Test_Quasi_Random

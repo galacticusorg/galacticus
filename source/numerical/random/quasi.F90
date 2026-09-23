@@ -100,9 +100,9 @@ module Numerical_Quasi_Random_Sequences
      !!}
      private
      type   (resourceManager)              :: qrngManager
-     type   (gslQRNGWrapper ), pointer     :: gsl_qrng         => null()
+     type   (gslQRNGWrapper ), pointer     :: gsl_qrng       => null()
      type   (c_ptr          ), allocatable :: gsl_qrng_type
-     integer                               :: qrngType                  , countDimensions_
+     integer                               :: qrngType                , countDimensions_
    contains
      !![
      <methods docformat="rst">
@@ -142,14 +142,14 @@ contains
     !!]
     
     ! Validate the sequence type and dimension.
-    if (qrngType_ < 1 .or. qrngType_ > size(dimensionMaximum))                                                 &
+    if (qrngType_ < 1 .or. qrngType_ > size(dimensionMaximum))                                   &
          & call Error_Report('unknown quasi-random sequence type'//{introspection:location})
-    if (countDimensions_ < 1 .or. countDimensions_ > dimensionMaximum(qrngType_))                              &
-         & call Error_Report(                                                                                  &
-         &                   var_str('quasi-random sequence dimension must be between 1 and ')             // &
-         &                   dimensionMaximum(qrngType_)                                                   // &
-         &                   ' for this sequence type'                                                     // &
-         &                   {introspection:location}                                                         &
+    if (countDimensions_ < 1 .or. countDimensions_ > dimensionMaximum(qrngType_))                &
+         & call Error_Report(                                                                    &
+         &                   var_str('quasi-random sequence dimension must be between 1 and ')// &
+         &                   dimensionMaximum(qrngType_)                                      // &
+         &                   ' for this sequence type'                                        // &
+         &                   {introspection:location}                                            &
          &                  )
     ! Get the interpolator type.
     self%qrngType        =qrngType_

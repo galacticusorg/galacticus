@@ -41,23 +41,23 @@ program Test_Posterior_Samples_Sobol
   use :: Unit_Tests                      , only : Assert                    , Unit_Tests_Begin_Group, Unit_Tests_End_Group, &
        &                                          Unit_Tests_Finish
   implicit none
-  integer                                     , parameter                  :: countSamples       =64, countTrials=9
-  type            (inputParameters           )                             :: parameters         , parametersSimulation
-  class           (randomNumberGeneratorClass), pointer                    :: randomNumberGenerator_
-  class           (modelParameterClass       ), pointer                    :: modelParameter_
-  class           (posteriorSamplesClass     ), pointer                    :: posteriorSamples_
+  integer                                     , parameter                   :: countSamples          =64, countTrials         =9
+  type            (inputParameters           )                              :: parameters               , parametersSimulation
+  class           (randomNumberGeneratorClass), pointer                     :: randomNumberGenerator_
+  class           (modelParameterClass       ), pointer                     :: modelParameter_
+  class           (posteriorSamplesClass     ), pointer                     :: posteriorSamples_
   type            (modelParameterList        ), allocatable, dimension(:  ) :: modelParameters_
   type            (posteriorSampleStateSimple), allocatable, dimension(:  ) :: simulationStates
-  type            (quasiRandomNumberGenerator)                             :: quasiRandomSequence
-  double precision                            , allocatable, dimension(:,:) :: values             , quantiles
+  type            (quasiRandomNumberGenerator)                              :: quasiRandomSequence
+  double precision                            , allocatable, dimension(:,:) :: values                   , quantiles
   double precision                            , allocatable, dimension(:  ) :: sequence
   integer                                     , allocatable, dimension(:  ) :: countPerBin
-  double precision                                                          :: x                  , u          , &
+  double precision                                                          :: x                        , u                    , &
        &                                                                       roundTripErrorMaximum
-  integer                                                                   :: i                  , j          , &
-       &                                                                       k                  , iDesign    , &
+  integer                                                                   :: i                        , j                    , &
+       &                                                                       k                        , iDesign              , &
        &                                                                       countParameters
-  logical                                                                   :: isBalanced         , isInPrior  , &
+  logical                                                                   :: isBalanced               , isInPrior            , &
        &                                                                       isUnique
 
   ! Set verbosity level.
@@ -90,10 +90,10 @@ program Test_Posterior_Samples_Sobol
      roundTripErrorMaximum=0.0d0
      do k=1,countTrials
         u                    =dble(k)/dble(countTrials+1)
-        x                    =modelParameters_(j)%modelParameter_%priorInvert    (u)
+        x                    =modelParameters_(j)%modelParameter_%priorInvert(u)
         roundTripErrorMaximum=max(roundTripErrorMaximum,abs(modelParameters_(j)%modelParameter_%priorCumulative(x)-u))
      end do
-     call Assert('priorCumulative(priorInvert(u)) = u: '//char(modelParameters_(j)%modelParameter_%name()),roundTripErrorMaximum,0.0d0,absTol=1.0d-10)
+     call Assert('priorCumulative(priorInvert(u)) = u: ' //char(modelParameters_(j)%modelParameter_%name()),roundTripErrorMaximum,0.0d0,absTol=1.0d-10)
      call Assert('priorCumulative at prior minimum = 0: '//char(modelParameters_(j)%modelParameter_%name()),modelParameters_(j)%modelParameter_%priorCumulative(modelParameters_(j)%modelParameter_%priorMinimum()),0.0d0,absTol=1.0d-10)
   end do
   call Unit_Tests_End_Group()
@@ -148,20 +148,20 @@ program Test_Posterior_Samples_Sobol
      select case (iDesign)
      case (1)
         call Unit_Tests_Begin_Group("Randomly-shifted design")
-        call Assert('number of points'                          ,size(simulationStates),countSamples)
-        call Assert('points lie within the prior'               ,isInPrior             ,.true.      )
-        call Assert('design is balanced'                        ,isBalanced            ,.true.      )
+        call Assert('number of points'                        ,size(simulationStates),countSamples)
+        call Assert('points lie within the prior'             ,isInPrior             ,.true.                     )
+        call Assert('design is balanced'                      ,isBalanced            ,.true.                     )
         ! Every point must be distinct from the unshifted sequence, confirming that a shift was applied.
         isUnique=.true.
         do j=1,countParameters
            if (any(abs(quantiles(j,:)-nint(quantiles(j,:)*dble(countSamples))/dble(countSamples)) < 1.0d-9)) isUnique=.false.
         end do
-        call Assert('design is shifted off the unshifted grid'  ,isUnique              ,.true.      )
+        call Assert('design is shifted off the unshifted grid',isUnique              ,.true.                     )
         call Unit_Tests_End_Group()
      case (2)
         call Unit_Tests_Begin_Group("Unshifted design")
-        call Assert('number of points'                          ,size(simulationStates),countSamples)
-        call Assert('points lie within the prior'               ,isInPrior             ,.true.      )
+        call Assert('number of points'                        ,size(simulationStates),countSamples               )
+        call Assert('points lie within the prior'             ,isInPrior             ,.true.                     )
         ! The quantiles must be the GSL Sobol sequence itself (which omits the origin).
         allocate(sequence(countParameters))
         quasiRandomSequence=quasiRandomNumberGenerator(gsl_qrng_sobol,countDimensions=countParameters)
@@ -171,7 +171,7 @@ program Test_Posterior_Samples_Sobol
            roundTripErrorMaximum=max(roundTripErrorMaximum,maxval(abs(quantiles(:,i)-sequence)))
         end do
         deallocate(sequence)
-        call Assert('quantiles match the Sobol sequence'        ,roundTripErrorMaximum ,0.0d0       ,absTol=1.0d-10)
+        call Assert('quantiles match the Sobol sequence'      ,roundTripErrorMaximum ,0.0d0       ,absTol=1.0d-10)
         call Unit_Tests_End_Group()
      end select
      deallocate(values          )
@@ -191,5 +191,5 @@ program Test_Posterior_Samples_Sobol
      !!]
   end do
   call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
+  call Unit_Tests_Finish   ()
 end program Test_Posterior_Samples_Sobol

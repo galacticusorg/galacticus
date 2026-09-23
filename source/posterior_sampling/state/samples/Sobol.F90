@@ -150,16 +150,16 @@ contains
     type            (posteriorSampleStateSimple), intent(inout), dimension(:  ), allocatable :: simulationStates
     type            (modelParameterList        ), intent(inout), dimension(:  )              :: modelParameters_
     double precision                                           , dimension(:,:), allocatable :: quantiles
-    double precision                                           , dimension(:  ), allocatable :: shift                , stateVector
+    double precision                                           , dimension(:  ), allocatable :: shift              , stateVector
     type            (quasiRandomNumberGenerator)                                             :: quasiRandomSequence
-    integer                                                                                  :: i                    , j          , &
-         &                                                                                      countParameters      , iStart
+    integer                                                                                  :: i                  , j          , &
+         &                                                                                      countParameters    , iStart
 
     countParameters=size(modelParameters_)
     allocate(quantiles       (countParameters,self%countSamples))
     allocate(shift           (countParameters                  ))
     allocate(stateVector     (countParameters                  ))
-    allocate(simulationStates(               self%countSamples))
+    allocate(simulationStates(                self%countSamples))
     ! Generate the sequence.
     quasiRandomSequence=quasiRandomNumberGenerator(gsl_qrng_sobol,countDimensions=countParameters)
     if (self%randomShift) then
@@ -191,15 +191,15 @@ contains
     ! Convert the cumulative density to a value of the prior.
     do i=1,self%countSamples
        do j=1,countParameters
-          stateVector(j)=modelParameters_(j)%modelParameter_%map        (     &
-               &         modelParameters_(j)%modelParameter_%priorInvert (    &
+          stateVector(j)=modelParameters_(j)%modelParameter_%map        (                &
+               &         modelParameters_(j)%modelParameter_%priorInvert (               &
                &                                                          quantiles(j,i) &
-               &                                                         )    &
+               &                                                         )               &
                &                                                        )
        end do
        simulationStates(i)=posteriorSampleStateSimple(acceptedStateCount=1)
-       call simulationStates(i)%parameterCountSet(countParameters)
-       call simulationStates(i)%update(stateVector,.false.,.false.)
+       call simulationStates(i)%parameterCountSet(countParameters                )
+       call simulationStates(i)%update           (stateVector    ,.false.,.false.)
     end do
     return
   end subroutine sobolSamples

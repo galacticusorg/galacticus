@@ -27,15 +27,15 @@ program Test_Math_Linear_Algebra
   !!{RST
   Tests of linear algebra functions.
   !!}
-  use            :: Display                 , only : displayVerbositySet, verbosityLevelStandard
+  use            :: Display                 , only : displayVerbositySet   , verbosityLevelStandard
   use            :: Error                   , only : Error_Handler_Register
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
-  use            :: Linear_Algebra          , only : assignment(=)      , matrix                , matrixLU            , matrixRotation   , &
-          &                                          operator(*)        , vector                , matrixCholesky
+  use            :: Linear_Algebra          , only : assignment(=)         , matrix                , matrixLU      , matrixRotation, &
+          &                                          operator(*)           , vector                , matrixCholesky
   use            :: Interface_GSL           , only : GSL_Success
   use            :: Numerical_Constants_Math, only : Pi
   use            :: Sorting                 , only : sortIndex
-  use            :: Unit_Tests              , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use            :: Unit_Tests              , only : Assert                , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (vector        ), allocatable    :: vector1          , vector2          , &
        &                                              vector3          , vectorE
@@ -183,20 +183,20 @@ program Test_Math_Linear_Algebra
   allocate(matrixCholesky_)
   matrixCholesky_ =matrixCholesky(matrixC)
   matrixComponents=matrixCholesky_
-  call Assert("Cholesky factor"                    ,matrixComponents                           ,reshape([1.0d0,1.1d0,1.4d0,0.0d0,0.888819441731559d0,0.405031644333368d0,0.0d0,0.0d0,0.935921667175522d0],[3,3]),absTol=1.0d-12)
-  call Assert("Cholesky factor reconstructs matrix",matmul(matrixComponents,transpose(matrixComponents)),reshape([1.0d0,1.1d0,1.4d0,1.1d0,2.0d0,1.9d0,1.4d0,1.9d0,3.0d0],[3,3]),absTol=1.0d-12)
+  call Assert("Cholesky factor"                    ,       matrixComponents                             ,reshape([1.0d0,1.1d0,1.4d0,0.0d0,0.888819441731559d0,0.405031644333368d0,0.0d0,0.0d0,0.935921667175522d0],[3,3]),absTol=1.0d-12)
+  call Assert("Cholesky factor reconstructs matrix",matmul(matrixComponents,transpose(matrixComponents)),reshape([1.0d0,1.1d0,1.4d0,1.1d0,2.0d0,1.9d0,1.4d0,1.9d0,3.0d0]                                          ,[3,3]),absTol=1.0d-12)
   allocate(vector3)
-  vector3         =matrixCholesky_%squareSystemSolve(vector1)
+  vector3         =matrixCholesky_%squareSystemSolve   (vector1)
   vectorComponents=vector3
-  call Assert("Cholesky square system solve"       ,vectorComponents,[8.88728323699422d0,-2.254335260115609d0,-1.71965317919075d0],relTol=1.0d-12)
+  call Assert("Cholesky square system solve"        ,vectorComponents,[8.88728323699422d0,-2.254335260115609d0,-1.71965317919075d0],relTol=1.0d-12)
   vector3         =matrixCholesky_%lowerTriangularSolve(vector1)
   vectorComponents=vector3
-  call Assert("Cholesky lower triangular solve"    ,vectorComponents,[4.0d0,-2.700210962222458d0,-1.609460670431893d0],relTol=1.0d-12)
+  call Assert("Cholesky lower triangular solve"     ,vectorComponents,[4.0d0,-2.700210962222458d0,-1.609460670431893d0],relTol=1.0d-12)
   call Assert("Cholesky lower triangular solve: |x|^2 = y.A^-1.y",sum(vectorComponents**2),4.0d0*8.88728323699422d0+2.0d0*(-2.254335260115609d0)+3.0d0*(-1.71965317919075d0),relTol=1.0d-12)
   deallocate(vector3)
   matrixComponents=matrixCholesky_%inverse()
-  call Assert("Cholesky inverse"                   ,matrixComponents,reshape([3.453757225433526d0,-0.92485549132948d0,-1.026011560693641d0,-0.92485549132948d0,1.502890173410404d0,-0.520231213872832d0,-1.026011560693641d0,-0.520231213872832d0,1.141618497109826d0],[3,3]),relTol=1.0d-12)
-  call Assert("Cholesky logarithmic determinant"   ,matrixCholesky_%logarithmicDeterminant(),-0.3681693233644671d0,relTol=1.0d-12)
+  call Assert("Cholesky inverse"                    ,matrixComponents,reshape([3.453757225433526d0,-0.92485549132948d0,-1.026011560693641d0,-0.92485549132948d0,1.502890173410404d0,-0.520231213872832d0,-1.026011560693641d0,-0.520231213872832d0,1.141618497109826d0],[3,3]),relTol=1.0d-12)
+  call Assert("Cholesky logarithmic determinant"    ,matrixCholesky_%logarithmicDeterminant(),-0.3681693233644671d0,relTol=1.0d-12)
   call Assert("Cholesky leaves source matrix intact",matrixC%logarithmicDeterminant(),-0.3681693233644671d0,relTol=1.0d-12)
   deallocate(matrixCholesky_)
   !! A matrix which is not positive-definite (eigenvalues -1 and 3) must report failure through the status argument.
