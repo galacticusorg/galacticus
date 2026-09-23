@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module that implements a class of parameter mapping functions.
 !!}
@@ -33,7 +35,7 @@ module Model_Parameters
    <name>modelParameter</name>
    <descriptiveName>Model Parameters</descriptiveName>
    <description>
-   Class providing model parameters for Bayesian inference---the individual free parameters of a Galacticus model that are explored during parameter estimation (e.g. via MCMC). Each parameter has a name, a prior distribution (with ``logPrior``, ``priorSample``, ``priorInvert``, ``priorMinimum``, and ``priorMaximum`` methods), and a bijective mapping to an unconstrained real line for efficient sampling (via ``map``/``unmap``). Implementations include active parameters that vary during inference, and fixed parameters held at constant values.
+   Class providing model parameters for Bayesian inference---the individual free parameters of a Galacticus model that are explored during parameter estimation (e.g. via MCMC). Each parameter has a name, a prior distribution (with ``logPrior``, ``priorSample``, ``priorInvert``, ``priorCumulative``, ``priorMinimum``, and ``priorMaximum`` methods), and a bijective mapping to an unconstrained real line for efficient sampling (via ``map``/``unmap``). Implementations include active parameters that vary during inference, and fixed parameters held at constant values.
    </description>
    <default>active</default>
    <method name="name">
@@ -65,6 +67,14 @@ module Model_Parameters
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: f</argument>
+   </method>
+   <method name="priorCumulative">
+     <description>
+     Return the cumulative probability of the prior at the physical parameter value ``x``---the inverse of ``priorInvert``. This maps a parameter value to its prior quantile, the coordinate in which space-filling designs are generated and emulators are trained.
+     </description>
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>double precision, intent(in   ) :: x</argument>
    </method>
    <method name="priorMinimum">
      <description>

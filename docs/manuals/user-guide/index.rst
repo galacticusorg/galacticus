@@ -14,6 +14,7 @@ User Guide
    data/index
    advanced
    analysis
+   emulation
    python-interface
    troubleshooting/index
    acknowledgments

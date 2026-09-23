@@ -1255,6 +1255,7 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="equilibrium"/>
           <xs:enumeration value="fixed"/>
+          <xs:enumeration value="hooked"/>
           <xs:enumeration value="linear"/>
           <xs:enumeration value="null"/>
           <xs:enumeration value="simple"/>
@@ -1848,6 +1849,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="baugh2005"/>
+          <xs:enumeration value="memoized"/>
           <xs:enumeration value="simple"/>
           <xs:enumeration value="verySimple"/>
          </xs:restriction>
@@ -1883,6 +1885,7 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="cole2000"/>
           <xs:enumeration value="covington2008"/>
+          <xs:enumeration value="memoized"/>
           <xs:enumeration value="null"/>
          </xs:restriction>
         </xs:simpleType>
@@ -3209,6 +3212,7 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="latinHypercube"/>
           <xs:enumeration value="priorGrid"/>
+          <xs:enumeration value="sobol"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
@@ -4066,6 +4070,7 @@
           <xs:enumeration value="buildBroadbandLuminosityTabulations"/>
           <xs:enumeration value="buildSEDTabulations"/>
           <xs:enumeration value="buildTableCIECloudy"/>
+          <xs:enumeration value="buildTool"/>
           <xs:enumeration value="buildToolAxionCAMB"/>
           <xs:enumeration value="buildToolCAMB"/>
           <xs:enumeration value="buildToolCLASS"/>
@@ -4076,6 +4081,7 @@
           <xs:enumeration value="catalogProjectedCorrelationFunction"/>
           <xs:enumeration value="comovingDistances"/>
           <xs:enumeration value="conditionalMassFunction"/>
+          <xs:enumeration value="emulatorDesign"/>
           <xs:enumeration value="evolveForests"/>
           <xs:enumeration value="excursionSets"/>
           <xs:enumeration value="haloMassFunction"/>

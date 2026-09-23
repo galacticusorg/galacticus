@@ -36,7 +36,7 @@
    </description>
   </galacticStructureSolver>
   !!]
-  type, extends(galacticStructureSolverClass) :: galacticStructureSolverSimple
+  type, extends(galacticStructureSolverHooked) :: galacticStructureSolverSimple
      !!{RST
      Implementation of a simple solver for galactic structure (self-gravity of baryons is ignored).
      !!}
@@ -44,10 +44,10 @@
      class  (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
      logical                                     :: useFormationHalo               , solveForInactiveProperties
    contains
-     final     ::             simpleDestructor
-     procedure :: solve    => simpleSolve
-     procedure :: revert   => simpleRevert
-     procedure :: autoHook => simpleAutoHook
+     final     ::                       simpleDestructor
+     procedure :: solve              => simpleSolve
+     procedure :: revert             => simpleRevert
+     procedure :: solvePreDerivative => simpleSolvePreDerivative
   end type galacticStructureSolverSimple
 
   interface galacticStructureSolverSimple
@@ -113,88 +113,33 @@ contains
     return
   end function simpleConstructorInternal
 
-  subroutine simpleAutoHook(self)
-    !!{RST
-    Attach to various event hooks.
-    !!}
-    use :: Events_Hooks, only : nodePromotionEvent  , openMPThreadBindingAtLevel, postEvolveEvent, preDerivativeEvent, &
-          &                     satelliteMergerEvent, dependencyDirectionAfter  , dependencyRegEx
-    implicit none
-    class(galacticStructureSolverSimple), intent(inout) :: self
-    type (dependencyRegEx              ), dimension(1)  :: dependencies
-
-    dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')
-    call   preDerivativeEvent%attach(self,simpleSolvePreDeriativeHook,openMPThreadBindingAtLevel,label='structureSolverSimple',dependencies=dependencies)
-    call      postEvolveEvent%attach(self,simpleSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverSimple',dependencies=dependencies)
-    call satelliteMergerEvent%attach(self,simpleSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverSimple',dependencies=dependencies)
-    call   nodePromotionEvent%attach(self,simpleSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverSimple',dependencies=dependencies)
-    return
-  end subroutine simpleAutoHook
-
   subroutine simpleDestructor(self)
     !!{RST
     Destructor for the :galacticus-class:`galacticStructureSolverSimple` galactic structure solver class.
     !!}
-    use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none
     type(galacticStructureSolverSimple), intent(inout) :: self
 
     !![
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
-    if (  preDerivativeEvent%isAttached(self,simpleSolvePreDeriativeHook)) call   preDerivativeEvent%detach(self,simpleSolvePreDeriativeHook)
-    if (     postEvolveEvent%isAttached(self,simpleSolveHook            )) call      postEvolveEvent%detach(self,simpleSolveHook            )
-    if (satelliteMergerEvent%isAttached(self,simpleSolveHook            )) call satelliteMergerEvent%detach(self,simpleSolveHook            )
-    if (  nodePromotionEvent%isAttached(self,simpleSolveHook            )) call   nodePromotionEvent%detach(self,simpleSolveHook            )
+    call self%detachHooks()
     return
   end subroutine simpleDestructor
 
-  subroutine simpleSolveHook(self,node)
+  subroutine simpleSolvePreDerivative(self,node,propertyType)
     !!{RST
-    Hookable wrapper around the solver.
+    Solve for the structure of the given node in response to the pre-derivative event.
     !!}
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : char
-    use :: Function_Classes  , only : functionClass
-    implicit none
-    class(*       ), intent(inout)         :: self
-    type (treeNode), intent(inout), target :: node
-
-    select type (self)
-    type is (galacticStructureSolverSimple)
-       call self%solve(node)
-    class is (functionClass)
-       call Error_Report('object is not of [galacticStructureSolverSimple] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
-    class default
-       call Error_Report('object is not of [galacticStructureSolverSimple] class'//{introspection:location})
-    end select
-    return
-  end subroutine simpleSolveHook
-
-  subroutine simpleSolvePreDeriativeHook(self,node,propertyType)
-    !!{RST
-    Hookable wrapper around the solver.
-    !!}
-    use :: Error             , only : Error_Report
     use :: Galacticus_Nodes  , only : propertyTypeInactive
-    use :: ISO_Varying_String, only : char
-    use :: Function_Classes  , only : functionClass
     implicit none
-    class  (*       ), intent(inout)         :: self
-    type   (treeNode), intent(inout), target :: node
-    integer          , intent(in   )         :: propertyType
-    !$GLC attributes unused :: propertyType
+    class  (galacticStructureSolverSimple), intent(inout)         :: self
+    type   (treeNode                     ), intent(inout), target :: node
+    integer                               , intent(in   )         :: propertyType
 
-    select type (self)
-    type is (galacticStructureSolverSimple)
-       if (propertyType /= propertyTypeInactive .or. self%solveForInactiveProperties) call self%solve(node)
-    class is (functionClass)
-       call Error_Report('object is not of [galacticStructureSolverSimple] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
-    class default
-       call Error_Report('object is not of [galacticStructureSolverSimple] class'//{introspection:location})
-    end select
+    if (propertyType /= propertyTypeInactive .or. self%solveForInactiveProperties) call self%solve(node)
     return
-  end subroutine simpleSolvePreDeriativeHook
+  end subroutine simpleSolvePreDerivative
 
   subroutine simpleSolve(self,node,plausibilityOnly)
     !!{RST

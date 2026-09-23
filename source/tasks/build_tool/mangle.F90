@@ -24,14 +24,13 @@
    </description>
   </task>
   !!]
-  type, extends(taskClass) :: taskBuildToolMangle
+  type, extends(taskBuildTool) :: taskBuildToolMangle
      !!{RST
      Implementation of a task which builds the ``mangle`` tool.
      !!}
      private
    contains
-     procedure :: perform            => buildToolManglePerform
-     procedure :: requiresOutputFile => buildToolMangleRequiresOutputFile
+     procedure :: perform => buildToolManglePerform
   end type taskBuildToolMangle
 
   interface taskBuildToolMangle
@@ -59,42 +58,15 @@ contains
 
   subroutine buildToolManglePerform(self,status)
     !!{RST
-    Builds the tabulation.
+    Builds the tool.
     !!}
-    use :: Display        , only : displayIndent      , displayMessage, displayUnindent
-    use :: Error          , only : errorStatusSuccess
-    use :: Geometry_Mangle, only : geometryMangleBuild
+    use :: Geometry_Mangle           , only : geometryMangleBuild
+    use :: Tasks_Build_Tool_Utilities, only : Task_Build_Tool
     implicit none
     class  (taskBuildToolMangle), intent(inout), target   :: self
     integer                     , intent(  out), optional :: status
-    type   (varying_string     )                          :: manglePath, mangleVersion
     !$GLC attributes unused :: self
-#include "os.inc"
-    
-    call displayIndent('Begin task: mangle tool build')
-    call geometryMangleBuild(                      &
-         &                          manglePath   , &
-         &                          mangleVersion, &
-#ifdef __APPLE__
-         &                   static=.false.        &
-#else
-         &                   static=.true.         &
-#endif
-         &                  )
-    call displayMessage('mangle version '//mangleVersion//' successfully built in: '//manglePath)
-    if (present(status)) status=errorStatusSuccess
-    call displayUnindent('Done task: mangle tool build')
+
+    call Task_Build_Tool('mangle',geometryMangleBuild,status)
     return
   end subroutine buildToolManglePerform
-
-  logical function buildToolMangleRequiresOutputFile(self)
-    !!{RST
-    Specifies that this task does not requires the main output file.
-    !!}
-    implicit none
-    class(taskBuildToolMangle), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    buildToolMangleRequiresOutputFile=.false.
-    return
-  end function buildToolMangleRequiresOutputFile

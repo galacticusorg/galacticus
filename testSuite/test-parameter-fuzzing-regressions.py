@@ -81,6 +81,20 @@ cases = [
         1,
     ),
     (
+        # `accretionHalo` is changed too, so that something asks the IGM for its state: nothing in `quickTest` does otherwise.
+        "internal IGM state without the universe operator which solves for it",
+        """  <change type="replaceOrAppend" path="intergalacticMediumState">
+    <intergalacticMediumState value="internal"/>
+  </change>
+  <change type="replace" path="accretionHalo">
+    <accretionHalo value="naozBarkana2007"/>
+  </change>
+""",
+        ("rejected", ["the state of the IGM has not been solved for",
+                      "[universeOperator]=intergalacticMediumStateEvolve"]),
+        1,
+    ),
+    (
         "evolution output node operator",
         """  <change type="append" path="nodeOperator">
     <nodeOperator value="evolutionOutput">
@@ -119,6 +133,31 @@ cases = [
   </change>
 """,
         ("rejected", ["attempt to set the `position` property of the null `position` component"]),
+        1,
+    ),
+    (
+        "SIDM satellite evaporation without satellite orbits",
+        """  <change type="replaceOrAppend" path="nodeOperator/nodeOperator[@value='CGMCoolingHeating']">
+    <nodeOperator value="satelliteEvaporationSIDM"/>
+  </change>
+""",
+        ("rejected", ['the "satellite" component must provide gettable "position" and "velocity"']),
+        1,
+    ),
+    (
+        "satellite tidal mass loss without satellite orbits",
+        """  <change type="replaceOrAppend" path="nodeOperator/nodeOperator[@value='DMOInterpolate']">
+    <nodeOperator value="satelliteTidalMassLoss"/>
+  </change>
+""",
+        ("rejected", ['the "satellite" component must provide gettable "position" and "velocity"']),
+        1,
+    ),
+    (
+        "primordial power spectrum which diverges",
+        """  <change type="update" path="powerSpectrumPrimordial/running" value="0.807252"/>
+""",
+        ("rejected", ["primordial power spectrum overflows at wavenumber"]),
         1,
     ),
     (

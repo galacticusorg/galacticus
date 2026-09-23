@@ -31,8 +31,9 @@ module Node_Component_Spheroid_Standard
   use :: Histories                       , only : history
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   use :: Satellite_Merging_Remnant_Sizes , only : mergerRemnantSizeClass
-  use :: Star_Formation_Histories        , only : starFormationHistory            , starFormationHistoryClass
+  use :: Star_Formation_Histories        , only : starFormationHistory                        , starFormationHistoryClass
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
+  use :: Node_Components_Galactic_Shared , only : Node_Component_Spheroid_Standard_Post_Evolve
   implicit none
   private
   public :: Node_Component_Spheroid_Standard_Initialize         , Node_Component_Spheroid_Standard_Scale_Set                 , &
@@ -297,9 +298,9 @@ contains
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        dependencies(2)=dependencyRegEx(dependencyDirectionAfter,'^preAnalysis:'     )
        dependencies(3)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponentDisk')
-       call satelliteMergerEvent             %attach(thread,satelliteMerger             ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard',dependencies=dependencies)
-       call mergerTreeOutputStateAdvanceEvent%attach(thread,mergerTreeOutputStateAdvance,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          )
-       call postEvolveEvent                  %attach(thread,postEvolve                  ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          ) 
+       call satelliteMergerEvent             %attach(thread,satelliteMerger                             ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard',dependencies=dependencies)
+       call mergerTreeOutputStateAdvanceEvent%attach(thread,mergerTreeOutputStateAdvance                ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          )
+       call postEvolveEvent                  %attach(thread,Node_Component_Spheroid_Standard_Post_Evolve,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          ) 
        ! Find our parameters.
        subParameters=parameters%subParameters('componentSpheroid')
        !![
@@ -387,9 +388,9 @@ contains
     implicit none
 
     if (defaultSpheroidComponent%standardIsActive()) then
-       if (postEvolveEvent                  %isAttached(thread,postEvolve                  )) call postEvolveEvent                  %detach(thread,postEvolve                  )
-       if (satelliteMergerEvent             %isAttached(thread,satelliteMerger             )) call satelliteMergerEvent             %detach(thread,satelliteMerger             )
-       if (mergerTreeOutputStateAdvanceEvent%isAttached(thread,mergerTreeOutputStateAdvance)) call mergerTreeOutputStateAdvanceEvent%detach(thread,mergerTreeOutputStateAdvance)
+       if (postEvolveEvent                  %isAttached(thread,Node_Component_Spheroid_Standard_Post_Evolve)) call postEvolveEvent                  %detach(thread,Node_Component_Spheroid_Standard_Post_Evolve)
+       if (satelliteMergerEvent             %isAttached(thread,satelliteMerger                             )) call satelliteMergerEvent             %detach(thread,satelliteMerger                             )
+       if (mergerTreeOutputStateAdvanceEvent%isAttached(thread,mergerTreeOutputStateAdvance                )) call mergerTreeOutputStateAdvanceEvent%detach(thread,mergerTreeOutputStateAdvance                )
        ! Release the pooled scaler mass distributions before the dimensionless distributions they wrap.
        call scalerStellarPool%destroy()
        call scalerGasPool    %destroy()
@@ -431,34 +432,6 @@ contains
     end select
     return
   end subroutine Node_Component_Spheroid_Standard_Pre_Evolve
-
-  subroutine postEvolve(self,node)
-    !!{RST
-    Trim histories attached to the spheroid.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
-    use :: Histories       , only : history
-    implicit none
-    class(*                    ), intent(inout) :: self
-    type (treeNode             ), intent(inout) :: node
-    class(nodeComponentSpheroid), pointer       :: spheroid
-    class(nodeComponentBasic   ), pointer       :: basic
-    type (history              )                :: stellarPropertiesHistory
-    !$GLC attributes unused :: self
-
-    ! Get the spheroid component.
-    spheroid => node%spheroid()
-    ! Check if an exponential spheroid component exists.
-    select type (spheroid)
-    class is (nodeComponentSpheroidStandard)
-       ! Trim the stellar populations properties future history.
-       basic => node%basic()
-       stellarPropertiesHistory=spheroid%stellarPropertiesHistory()
-       call stellarPropertiesHistory%trim(basic%time())
-       call spheroid%stellarPropertiesHistorySet(stellarPropertiesHistory)
-    end select
-    return
-  end subroutine postEvolve
 
   !![
   <postStepTask function="Node_Component_Spheroid_Standard_Post_Step"/>
