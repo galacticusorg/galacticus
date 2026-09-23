@@ -828,9 +828,11 @@ contains
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentDiskStandard, nodeComponentSpheroid           , treeNode
     use :: Histories                       , only : history
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, enumerationDestinationMergerType
+    use :: Display                         , only : displayGreen           , displayReset
+    use :: ISO_Varying_String              , only : operator(//)
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, enumerationDestinationMergerType, enumerationDestinationMergerDecode
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
-    use :: Kind_NUmbers, only : kind_int8
+    use :: Kind_NUmbers                    , only : kind_int8
     implicit none
     class           (*                               ), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node
@@ -891,7 +893,12 @@ contains
                &                                            +disk        %abundancesGas      ()                         &
                &                                           )
        case default
-          call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+          call Error_Report(                                                                                                                                           &
+               &            'the `'//enumerationDestinationMergerDecode(destinationGasSatellite,includePrefix=.false.)//'` destination of [destinationGasSatellite]'// &
+               &            ' is not supported by the `standard` disk component'                                                                          //char(10)// &
+               &            displayGreen()//'   HELP:'//displayReset()//' check the destinations set by the [mergerMassMovements] class'                            // &
+               &            {introspection:location}                                                                                                                   &
+               &           )
        end select
        call disk%      massGasSet(         0.0d0)
        call disk%abundancesGasSet(zeroAbundances)
@@ -958,7 +965,12 @@ contains
           call historyNode          %destroy                (                                     )
           call historyHost          %destroy                (                                     )
        case default
-          call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+          call Error_Report(                                                                                                                                               &
+               &            'the `'//enumerationDestinationMergerDecode(destinationStarsSatellite,includePrefix=.false.)//'` destination of [destinationStarsSatellite]'// &
+               &            ' is not supported by the `standard` disk component'                                                                              //char(10)// &
+               &            displayGreen()//'   HELP:'//displayReset()//' check the destinations set by the [mergerMassMovements] class'                                // &
+               &            {introspection:location}                                                                                                                       &
+               &           )
        end select
        call disk%        massStellarSet(                  0.0d0)
        call disk%  abundancesStellarSet(         zeroAbundances)

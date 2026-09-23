@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !+    Contributions to this file made by: Yu Zhao
 
   !!{RST
@@ -423,8 +425,8 @@ contains
            self%massCorePrevious     =massCore
        end if
     else
-       self%radiusVirialPrevious=+self%darkMatterHaloScale_%radiusVirial(node)
-       self%radiusScalePrevious =+     darkMatterProfile   %scale       (    )
+       self%radiusVirialPrevious=+self%darkMatterHaloScale_%radiusVirial        (node)
+       self%radiusScalePrevious =+self                     %scaleRadiusValidated(node)
     end if
     radiusVirial =self             %radiusVirialPrevious
     radiusScale  =self             %radiusScalePrevious
@@ -651,7 +653,7 @@ contains
     massHalo       =+basic                                 %mass                       (                       )
     zeta_0         =+self%virialDensityContrast_%densityContrast(massHalo,expansionFactor=1.0d0                )
     zeta_z         =+self%virialDensityContrast_%densityContrast(massHalo,expansionFactor=expansionFactor      )
-    radiusScale    =+darkMatterProfile                     %scale                      (                       )
+    radiusScale    =+self                                  %scaleRadiusValidated       (node                   )
     radiusVirial   =+self             %darkMatterHaloScale_%radiusVirial               (node                   )
     concentration  =+                                       radiusVirial                                         &
          &          /                                       radiusScale

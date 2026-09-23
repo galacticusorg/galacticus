@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a merger tree masses class which uses a fixed mass for trees.
   !!}
@@ -292,23 +294,37 @@ contains
       !!{RST
       Root finding function used to set the halo mass given the halo radius.
       !!}
+      use :: Display                   , only : displayGreen         , displayReset
+      use :: Error                     , only : Error_Report
       use :: Galactic_Structure_Options, only : massTypeDark
       use :: Mass_Distributions        , only : massDistributionClass
       implicit none
       double precision                       , intent(in   ) :: massTree
       class           (massDistributionClass), pointer       :: massDistribution_
+      double precision                                       :: massDark
 
       call basic              %massSet           (massTree)
       call self %nodeOperator_%nodeTreeInitialize(node    )
       call self %nodeOperator_%nodeInitialize    (node    )
       call Calculations_Reset(node)
       massDistribution_ =>    node                                  %massDistribution    (massType=     massTypeDark   )
-      massEnclosed      =  +  massDistribution_                     %massEnclosedBySphere(         self%radiusTree  (i)) &
-           &               *  self             %cosmologyParameters_%OmegaMatter()                                       &
-           &               /(                                                                                            &
-           &                 +self             %cosmologyParameters_%OmegaMatter()                                       &
-           &                 -self             %cosmologyParameters_%OmegaBaryon()                                       &
-           &                )                                                                                            &
+      massDark          =     massDistribution_                     %massEnclosedBySphere(         self%radiusTree  (i))
+      ! A halo of positive mass encloses a positive mass of dark matter within any positive radius. If it encloses none, the halo
+      ! has no dark matter mass distribution at all, and the enclosed mass is independent of the halo mass - so no root can be found.
+      if (massDark <= 0.0d0)                                                                                                     &
+           & call Error_Report(                                                                                                  &
+           &                   'the halo has no dark matter mass distribution, so [radiusTree] can not be converted to a mass'// &
+           &                   char(10)//displayGreen()//'HELP:'//displayReset()                                              // &
+           &                   ' a dark matter profile is given to each halo by a node operator - check that [nodeOperator]'  // &
+           &                   ' includes one, such as [nodeOperator]=darkMatterProfileScaleSet'                              // &
+           &                   {introspection:location}                                                                          &
+           &                  )
+      massEnclosed      =  +  massDark                                                                                           &
+           &               *  self             %cosmologyParameters_%OmegaMatter()                                               &
+           &               /(                                                                                                    &
+           &                 +self             %cosmologyParameters_%OmegaMatter()                                               &
+           &                 -self             %cosmologyParameters_%OmegaBaryon()                                               &
+           &                )                                                                                                    &
            &               -                                                                       self%massTree    (i)
       !![
       <objectDestructor name="massDistribution_"/>
