@@ -28,15 +28,14 @@
    </description>
   </galacticStructureSolver>
   !!]
-  type, extends(galacticStructureSolverClass) :: galacticStructureSolverNull
+  type, extends(galacticStructureSolverHooked) :: galacticStructureSolverNull
      !!{RST
      Implementation of an "null" solver for galactic structure.
      !!}
      private
    contains
-     final     ::             nullDestructor
-     procedure :: solve    => nullSolve
-     procedure :: autoHook => nullAutoHook
+     final     ::          nullDestructor
+     procedure :: solve => nullSolve
   end type galacticStructureSolverNull
 
   interface galacticStructureSolverNull
@@ -64,82 +63,16 @@ contains
     return
   end function nullConstructorParameters
 
-  subroutine nullAutoHook(self)
-    !!{RST
-    Attach to various event hooks.
-    !!}
-    use :: Events_Hooks, only : nodePromotionEvent  , openMPThreadBindingAtLevel, postEvolveEvent, preDerivativeEvent, &
-          &                     satelliteMergerEvent
-    implicit none
-    class(galacticStructureSolverNull), intent(inout) :: self
-
-    call   preDerivativeEvent%attach(self,nullSolvePreDeriativeHook,openMPThreadBindingAtLevel,label='galacticStructureSolverNull')
-    call      postEvolveEvent%attach(self,nullSolveHook            ,openMPThreadBindingAtLevel,label='galacticStructureSolverNull')
-    call satelliteMergerEvent%attach(self,nullSolveHook            ,openMPThreadBindingAtLevel,label='galacticStructureSolverNull')
-    call   nodePromotionEvent%attach(self,nullSolveHook            ,openMPThreadBindingAtLevel,label='galacticStructureSolverNull')
-    return
-  end subroutine nullAutoHook
-
   subroutine nullDestructor(self)
     !!{RST
     Destructor for the :galacticus-class:`galacticStructureSolverNull` galactic structure solver class.
     !!}
-    use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none
     type(galacticStructureSolverNull), intent(inout) :: self
 
-    if (  preDerivativeEvent%isAttached(self,nullSolvePreDeriativeHook)) call   preDerivativeEvent%detach(self,nullSolvePreDeriativeHook)
-    if (     postEvolveEvent%isAttached(self,nullSolveHook            )) call      postEvolveEvent%detach(self,nullSolveHook            )
-    if (satelliteMergerEvent%isAttached(self,nullSolveHook            )) call satelliteMergerEvent%detach(self,nullSolveHook            )
-    if (  nodePromotionEvent%isAttached(self,nullSolveHook            )) call   nodePromotionEvent%detach(self,nullSolveHook            )
+    call self%detachHooks()
     return
   end subroutine nullDestructor
-
-  subroutine nullSolveHook(self,node)
-    !!{RST
-    Hookable wrapper around the solver.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : char
-    use :: Function_Classes  , only : functionClass
-    implicit none
-    class(*       ), intent(inout)         :: self
-    type (treeNode), intent(inout), target :: node
-
-    select type (self)
-    type is (galacticStructureSolverNull)
-       call self%solve(node)
-    class is (functionClass)
-       call Error_Report('object is not of [galacticStructureSolverNull] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
-    class default
-       call Error_Report('object is not of [galacticStructureSolverNull] class'//{introspection:location})
-    end select
-    return
-  end subroutine nullSolveHook
-
-  subroutine nullSolvePreDeriativeHook(self,node,propertyType)
-    !!{RST
-    Hookable wrapper around the solver.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : char
-    use :: Function_Classes  , only : functionClass
-    implicit none
-    class  (*       ), intent(inout)         :: self
-    type   (treeNode), intent(inout), target :: node
-    integer          , intent(in   )         :: propertyType
-    !$GLC attributes unused :: propertyType
-
-    select type (self)
-    type is (galacticStructureSolverNull)
-       call self%solve(node)
-    class is (functionClass)
-       call Error_Report('object is not of [galacticStructureSolverNull] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
-    class default
-       call Error_Report('object is not of [galacticStructureSolverNull] class'//{introspection:location})
-    end select
-    return
-  end subroutine nullSolvePreDeriativeHook
 
   subroutine nullSolve(self,node,plausibilityOnly)
     !!{RST

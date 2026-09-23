@@ -166,10 +166,15 @@ contains
     !!{RST
     Return the primordial power spectrum at the given ``wavenumber``.
     !!}
+    use :: Display           , only : displayGreen  , displayReset
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : varying_string, assignment(=), operator(//)
     implicit none
     class           (powerSpectrumPrimordialPowerLaw), intent(inout) :: self
     double precision                                 , intent(in   ) :: wavenumber
-    double precision                                                 :: indexLocal
+    double precision                                                 :: indexLocal     , wavenumberRelative
+    type            (varying_string                 )                :: message
+    character       (len=24                         )                :: labelWavenumber, labelIndex
 
     if (self%runningSmallScalesOnly .and. wavenumber < self%wavenumberReference) then
        indexLocal=+self%index_
@@ -188,10 +193,20 @@ contains
             &          /self%wavenumberReference &
             &         )**2
     end if
-    powerLawPower=+(                             &
-         &          +     wavenumber             &
-         &          /self%wavenumberReference    &
-         &         )**indexLocal
+    ! A running index grows without limit away from the reference wavenumber, so that the power eventually overflows - at small
+    ! wavenumbers, where the effective index is large and negative, as well as at large ones. Report that here, rather than
+    ! leaving a floating point exception with no indication of its cause.
+    wavenumberRelative=+     wavenumber          &
+         &             /self%wavenumberReference
+    if (wavenumberRelative > 0.0d0 .and. indexLocal*log(wavenumberRelative) > log(huge(0.0d0))) then
+       write (labelWavenumber,'(e12.6)') wavenumber
+       write (labelIndex     ,'(e12.6)') indexLocal
+       message='primordial power spectrum overflows at wavenumber '//trim(adjustl(labelWavenumber))//' Mpc⁻¹, where the effective index is '//trim(adjustl(labelIndex))//char(10)// &
+            &  displayGreen()//'   HELP:'//displayReset()//' a running index diverges far from the reference wavenumber - at small wavenumbers as well as large' //char(10)// &
+            &                  '          - check the values of [running], [runningRunning], and [wavenumberReference]'
+       call Error_Report(message//{introspection:location})
+    end if
+    powerLawPower=+wavenumberRelative**indexLocal
     return
   end function powerLawPower
 

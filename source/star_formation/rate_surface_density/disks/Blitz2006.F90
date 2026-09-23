@@ -26,6 +26,7 @@
   use :: Kind_Numbers       , only : kind_int8
   use :: Root_Finder        , only : rootFinder
   use :: Math_Exponentiation, only : fastExponentiator
+  use :: Mass_Distributions , only : massDistributionClass
 
   ! Floor on the disk gas mass, below which the disk is treated as gas-free.
   !
@@ -81,21 +82,22 @@
      Implementation of the :cite:t:`blitz_role_2006` star formation rate surface density law for galactic disks.
      !!}
      private
-     integer         (kind_int8             )                                :: lastUniqueID
-     logical                                                                 :: factorsComputed                     , assumeMonotonicSurfaceDensity       , &
-          &                                                                     isExponentialDisk
-     double precision                                                        :: heightToRadialScaleDisk             , pressureCharacteristic              , &
-          &                                                                     pressureExponent                    , starFormationFrequencyNormalization , &
-          &                                                                     surfaceDensityCritical              , surfaceDensityExponent              , &
-          &                                                                     velocityDispersionDiskGas           , radiusDisk                          , &
-          &                                                                     massGas                             , hydrogenMassFraction                , &
-          &                                                                     massStellar                         , massGasPrevious                     , &
-          &                                                                     massStellarPrevious                 , hydrogenMassFractionPrevious        , &
-          &                                                                     radiusDiskPrevious                  , radiusCritical                      , &
-          &                                                                     radiusCriticalPrevious              , factorBoostStellarCoefficient       , &
-          &                                                                     pressureRatioCoefficient
-     type            (rootFinder            )                                :: finder
-     type            (fastExponentiator     )                                :: pressureRatioExponentiator
+     integer         (kind_int8        ) :: lastUniqueID
+     logical                             :: factorsComputed               , assumeMonotonicSurfaceDensity      , &
+          &                                 isExponentialDisk
+     double precision                    :: heightToRadialScaleDisk       , pressureCharacteristic             , &
+          &                                 pressureExponent              , starFormationFrequencyNormalization, &
+          &                                 surfaceDensityCritical        , surfaceDensityExponent             , &
+          &                                 velocityDispersionDiskGas     , radiusDisk                         , &
+          &                                 massGas                       , hydrogenMassFraction               , &
+          &                                 massStellar                   , massGasPrevious                    , &
+          &                                 massStellarPrevious           , hydrogenMassFractionPrevious       , &
+          &                                 radiusDiskPrevious            , radiusCritical                     , &
+          &                                 radiusCriticalPrevious        , factorBoostStellarCoefficient      , &
+          &                                 pressureRatioCoefficient      , radiusDiskInverse                  , &
+          &                                 surfaceDensityGasNormalization, surfaceDensityStellarNormalization
+     type            (rootFinder       ) :: finder
+     type            (fastExponentiator) :: pressureRatioExponentiator
    contains
      !![
      <methods docformat="rst">
@@ -123,9 +125,13 @@
   end interface starFormationRateSurfaceDensityDisksBlitz2006
 
   ! Submodule-scope pointer to the active node.
-  class           (starFormationRateSurfaceDensityDisksBlitz2006), pointer   :: self_
-  type            (treeNode                                     ), pointer   :: node_
+  class(starFormationRateSurfaceDensityDisksBlitz2006), pointer :: self_
+  type (treeNode                                     ), pointer :: node_
   !$omp threadprivate(self_,node_)
+  ! Cached disk gas and stellar mass distributions for the active node, reused across all radii of the
+  ! rate integral to avoid a per-radius node%massDistribution() lookup in pressureRatio.
+  class(massDistributionClass                        ), pointer :: massDistributionDiskGaseous_ => null(), massDistributionDiskStellar_ => null()
+  !$omp threadprivate(massDistributionDiskGaseous_,massDistributionDiskStellar_)
 
 contains
 
@@ -325,6 +331,11 @@ contains
     self%factorsComputed       =.false.
     self%lastUniqueID          =uniqueID
     self%radiusCriticalPrevious=-huge(0.0d0)
+    ! Release the cached mass distributions held for the previous node.
+    !![
+    <objectDestructor name="massDistributionDiskGaseous_"/>
+    <objectDestructor name="massDistributionDiskStellar_"/>
+    !!]
     return
   end subroutine blitz2006CalculationReset
 
@@ -468,10 +479,11 @@ contains
              ! Not an exponential distribution.
              self%isExponentialDisk=.false.
           end select
-          !![
-	  <objectDestructor name="massDistributionGaseous"/>
-	  <objectDestructor name="massDistributionStellar"/>
-	  !!]
+          ! Cache the disk gas and stellar mass distributions for reuse across all radii of the rate
+          ! integral (released in calculationReset), avoiding a node%massDistribution() lookup at every
+          ! integrand evaluation in pressureRatio. Ownership of these counted references transfers here.
+          massDistributionDiskGaseous_ => massDistributionGaseous
+          massDistributionDiskStellar_ => massDistributionStellar
           ! Properties required for exponential disks.
           if (self%isExponentialDisk .and. self%massStellar >= 0.0d0 .and. self%radiusDisk > 0.0d0) then
              self%pressureRatioCoefficient     =+gravitationalConstant_internal          &
@@ -493,6 +505,12 @@ contains
                   &                                   /self%heightToRadialScaleDisk      &
                   &                                   /self%radiusDisk               **3 &
                   &                                  ) 
+             ! Precompute exponential-disk surface density normalizations Σ(0)=M/(2 π r_d²) and
+             ! 1/r_d so pressureRatio evaluates Σ(r)=Σ(0) exp(-r/r_d) analytically for exponential
+             ! disks, avoiding the scaler surfaceDensity call (and its per-radius coordinate allocation).
+             self%radiusDiskInverse                 =+1.0d0           /         self%radiusDisk
+             self%surfaceDensityGasNormalization    =+self%massGas    /(2.0d0*Pi*self%radiusDisk**2)
+             self%surfaceDensityStellarNormalization=+self%massStellar/(2.0d0*Pi*self%radiusDisk**2)
           end if
        else
           ! No gas mass, so other factors are irrelevant.
@@ -664,15 +682,25 @@ contains
     class           (massDistributionClass                        ), pointer                 :: massDistribution_
     type            (coordinateCylindrical                        )                          :: coordinates
     double precision                                                                         :: surfaceDensityGas_, surfaceDensityStellar, &
-         &                                                                                      factorBoostStellar
+         &                                                                                      factorBoostStellar, expFactorDisk
 
-    ! Get gas surface density.
+    ! Gas surface density. For an exponential disk evaluate Σ(r)=Σ(0)*exp(-r/r_d) analytically
+    ! (Σ(0) and 1/r_d precomputed), avoiding the scaler surfaceDensity call and its per-radius
+    ! coordinate allocation; otherwise use the cached distribution, or a per-call lookup if factors
+    ! were not computed.
     coordinates        =  [radius,0.0d0,0.0d0]
-    massDistribution_  => node             %massDistribution(componentType=componentTypeDisk,massType=massTypeGaseous)
-    surfaceDensityGas_ =  massDistribution_%surfaceDensity  (              coordinates                               )
-    !![
-    <objectDestructor name="massDistribution_"/>
-    !!]
+    if      (self%isExponentialDisk .and. associated(massDistributionDiskGaseous_)) then
+       expFactorDisk      =  exp(-radius*self%radiusDiskInverse)
+       surfaceDensityGas_ =  self%surfaceDensityGasNormalization*expFactorDisk
+    else if (                             associated(massDistributionDiskGaseous_)) then
+       surfaceDensityGas_ =  massDistributionDiskGaseous_%surfaceDensity(coordinates)
+    else
+       massDistribution_  => node             %massDistribution(componentType=componentTypeDisk,massType=massTypeGaseous)
+       surfaceDensityGas_ =  massDistribution_%surfaceDensity  (              coordinates                               )
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
+    end if
     if (present(surfaceDensityGas)) surfaceDensityGas=surfaceDensityGas_
     ! Compute the pressure ratio that Blitz & Rosolowsky (2006) use to compute the molecular fraction. The molecular fraction,
     ! f_H₂=R_mol/(1+R_mol), is not capped at unity, so the ratio must be computed in full at every radius: neither pinning the
@@ -684,12 +712,18 @@ contains
          &        *surfaceDensityGas_            **2 &
          &        /self%pressureCharacteristic
     if (pressureRatio > 0.0d0) then
-       ! Compute the stellar boost factor.
-       massDistribution_     =>  node             %massDistribution(componentType=componentTypeDisk,massType=massTypeStellar)
-       surfaceDensityStellar =  +massDistribution_%surfaceDensity  (              coordinates                               )
-       !![
-       <objectDestructor name="massDistribution_"/>
-       !!]
+       ! Stellar boost factor (analytic Σ for exponential disks; cached distribution or per-call lookup otherwise).
+       if      (self%isExponentialDisk .and. associated(massDistributionDiskStellar_)) then
+          surfaceDensityStellar =  +self%surfaceDensityStellarNormalization*expFactorDisk
+       else if (                             associated(massDistributionDiskStellar_)) then
+          surfaceDensityStellar =  +massDistributionDiskStellar_%surfaceDensity(coordinates)
+       else
+          massDistribution_     =>  node             %massDistribution(componentType=componentTypeDisk,massType=massTypeStellar)
+          surfaceDensityStellar =  +massDistribution_%surfaceDensity  (              coordinates                               )
+          !![
+          <objectDestructor name="massDistribution_"/>
+          !!]
+       end if
        factorBoostStellar   =+1.0d0                                &
             &                +self%velocityDispersionDiskGas       &
             &                /surfaceDensityGas_                   &
