@@ -24,10 +24,19 @@ Implements a stellar mass function output analysis class.
 !!}
 
 
+  use :: Node_Property_Extractors, only : nodePropertyExtractorClass
+
   !![
   <outputAnalysis name="outputAnalysisLuminosityFunctionSobral2013HiZELS" docformat="rst">
    <description>
    Computes the H\ :math:`\alpha` luminosity function at one of four redshift intervals for comparison with the HiZELS :cite:t:`sobral_large_2013` survey measurements, with H\ :math:`\alpha` luminosity random/systematic error polynomial coefficients, gravitational lensing source size, and binomial covariance parameters.
+
+   Emission from active galactic nuclei is included if a ``[nodePropertyExtractorAGN]`` is given---normally a
+   :galacticus-class:`nodePropertyExtractorLuminosityEmissionLineAGN` with ``[lineNames]`` set to ``balmerAlpha6565``---and is
+   attenuated together with the emission from star formation. If ``[rootVarianceAttenuation]`` is greater than zero, scatter
+   of that root variance (in magnitudes) is applied to the attenuation by an
+   :galacticus-class:`outputAnalysisDistributionOperatorAttenuationScatter` operator, before the observational random error;
+   this requires the ``[dustAttenuation]`` to be a :galacticus-class:`dustAttenuationStellarMassRedshift`.
    </description>
   </outputAnalysis>
   !!]
@@ -36,11 +45,12 @@ Implements a stellar mass function output analysis class.
      An SDSS H\ :math:`\alpha` luminosity function output analysis class for the :cite:t:`sobral_large_2013` analysis.
      !!}
      private
-     class           (gravitationalLensingClass), pointer                     :: gravitationalLensing_            => null()
+     class           (gravitationalLensingClass ), pointer                     :: gravitationalLensing_            => null()
+     class           (nodePropertyExtractorClass), pointer                     :: nodePropertyExtractorAGN_        => null()
      double precision                           , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient
      integer                                                                  :: redshiftInterval
      double precision                                                         :: randomErrorMinimum                        , randomErrorMaximum                  , &
-          &                                                                      sizeSourceLensing
+          &                                                                      sizeSourceLensing                         , rootVarianceAttenuation
    contains
      final :: luminosityFunctionSobral2013HiZELSDestructor
   end type outputAnalysisLuminosityFunctionSobral2013HiZELS
@@ -73,11 +83,13 @@ contains
     class           (hiiRegionDensityDistributionClass               ), pointer                     :: hiiRegionDensityDistribution_
     class           (hiiRegionEscapeFractionClass                    ), pointer                     :: hiiRegionEscapeFraction_
     class           (dustAttenuationClass                            ), pointer                     :: dustAttenuation_
+    class           (nodePropertyExtractorClass                      ), pointer                     :: nodePropertyExtractorAGN_
     double precision                                                  , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
     integer                                                                                         :: covarianceBinomialBinsPerDecade  , redshiftInterval
     double precision                                                                                :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
          &                                                                                             randomErrorMinimum               , randomErrorMaximum                  , &
-         &                                                                                             sizeSourceLensing                , toleranceRelative
+         &                                                                                             sizeSourceLensing                , toleranceRelative                   , &
+         &                                                                                             rootVarianceAttenuation
     type            (varying_string                                  )                              :: cloudyTableFileName
 
     ! Check and read parameters.
@@ -199,9 +211,25 @@ contains
     <objectBuilder class="hiiRegionDensityDistribution" name="hiiRegionDensityDistribution_" source="parameters"/>
     <objectBuilder class="hiiRegionEscapeFraction"      name="hiiRegionEscapeFraction_"      source="parameters"/>
     <objectBuilder class="dustAttenuation"              name="dustAttenuation_"              source="parameters"/>
+    <inputParameter docformat="rst">
+      <name>rootVarianceAttenuation</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>
+      The root variance (in magnitudes) of the scatter in dust attenuation about its mean. If zero, no scatter is applied.
+      </description>
+      <minimum>0.0d0</minimum>
+    </inputParameter>
     !!]
+    if (parameters%isPresent('nodePropertyExtractorAGN')) then
+       !![
+       <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractorAGN_" source="parameters" parameterName="nodePropertyExtractorAGN"/>
+       !!]
+    else
+       nodePropertyExtractorAGN_ => null()
+    end if
     ! Build the object.
-    self=outputAnalysisLuminosityFunctionSobral2013HiZELS(cosmologyFunctions_,gravitationalLensing_,dustAttenuation_,outputTimes_,cloudyTableFileName,toleranceRelative,starFormationHistory_,hiiRegionLuminosityFunction_,hiiRegionMassFunction_,hiiRegionDensityDistribution_,hiiRegionEscapeFraction_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
+    self=outputAnalysisLuminosityFunctionSobral2013HiZELS(cosmologyFunctions_,gravitationalLensing_,dustAttenuation_,outputTimes_,cloudyTableFileName,toleranceRelative,starFormationHistory_,hiiRegionLuminosityFunction_,hiiRegionMassFunction_,hiiRegionDensityDistribution_,hiiRegionEscapeFraction_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,rootVarianceAttenuation,nodePropertyExtractorAGN_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"          />
@@ -214,10 +242,15 @@ contains
     <objectDestructor name="hiiRegionEscapeFraction_"     />
     <objectDestructor name="dustAttenuation_"             />
     !!]
+    if (associated(nodePropertyExtractorAGN_)) then
+       !![
+       <objectDestructor name="nodePropertyExtractorAGN_"/>
+       !!]
+    end if
     return
   end function luminosityFunctionSobral2013HiZELSConstructorParameters
 
-  function luminosityFunctionSobral2013HiZELSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,dustAttenuation_,outputTimes_,cloudyTableFileName,toleranceRelative,starFormationHistory_,hiiRegionLuminosityFunction_,hiiRegionMassFunction_,hiiRegionDensityDistribution_,hiiRegionEscapeFraction_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
+  function luminosityFunctionSobral2013HiZELSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,dustAttenuation_,outputTimes_,cloudyTableFileName,toleranceRelative,starFormationHistory_,hiiRegionLuminosityFunction_,hiiRegionMassFunction_,hiiRegionDensityDistribution_,hiiRegionEscapeFraction_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,rootVarianceAttenuation,nodePropertyExtractorAGN_) result (self)
     !!{RST
     Constructor for the :galacticus-class:`outputAnalysisLuminosityFunctionSobral2013HiZELS` output analysis class for internal use.
     !!}
@@ -228,7 +261,8 @@ contains
     use :: Input_Paths                           , only : inputPath                                      , pathTypeDataStatic
     use :: Geometry_Surveys                      , only : surveyGeometryFullSky
     use :: Gravitational_Lensing                 , only : gravitationalLensingClass
-    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGravitationalLensing, outputAnalysisDistributionOperatorRandomErrorPolynomial, outputAnalysisDistributionOperatorSequence
+    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGravitationalLensing, outputAnalysisDistributionOperatorRandomErrorPolynomial, outputAnalysisDistributionOperatorSequence, &
+         &                                                outputAnalysisDistributionOperatorAttenuationScatter
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystematicPolynomial
     use :: String_Handling                       , only : operator(//)
     implicit none
@@ -250,6 +284,9 @@ contains
     double precision                                                     , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                          , systematicErrorPolynomialCoefficient
     integer                                                              , intent(in   )               :: covarianceBinomialBinsPerDecade
     double precision                                                     , intent(in   )               :: covarianceBinomialMassHaloMinimum                         , covarianceBinomialMassHaloMaximum
+    double precision                                                     , intent(in   )               :: rootVarianceAttenuation
+    class           (nodePropertyExtractorClass                         ), intent(inout), target, optional :: nodePropertyExtractorAGN_
+    type            (outputAnalysisDistributionOperatorAttenuationScatter)               , pointer      :: outputAnalysisDistributionOperatorAttenuationScatter_
     type            (galacticFilterStellarMass                          )               , pointer      :: galacticFilter_
     type            (surveyGeometryFullSky                              )               , pointer      :: surveyGeometry_
     type            (outputAnalysisPropertyOperatorSystematicPolynomial    )               , pointer      :: outputAnalysisPropertyOperator_
@@ -262,8 +299,14 @@ contains
     double precision                                                                    , parameter    :: errorPolynomialZeroPoint                            =40.0d0
     type            (varying_string                                     )                              :: fileName
     !![
-    <constructorAssign variables="randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, redshiftInterval, randomErrorMinimum, randomErrorMaximum, sizeSourceLensing, *gravitationalLensing_"/>
+    <constructorAssign variables="randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, redshiftInterval, randomErrorMinimum, randomErrorMaximum, sizeSourceLensing, rootVarianceAttenuation, *gravitationalLensing_"/>
     !!]
+    if (present(nodePropertyExtractorAGN_)) then
+       self%nodePropertyExtractorAGN_ => nodePropertyExtractorAGN_
+       !![
+       <referenceCountIncrement owner="self" object="nodePropertyExtractorAGN_"/>
+       !!]
+    end if
     
     ! Build a filter which select galaxies with stellar mass 10³M☉ or greater.
     allocate(galacticFilter_)
@@ -352,12 +395,28 @@ contains
      </constructor>
     </referenceConstruct>
     !!]
-    ! Construct sequence distribution operator.
+    ! Construct sequence distribution operator. Scatter in the dust attenuation, if any, is applied first, followed by the
+    ! observational random error and gravitational lensing.
     allocate(distributionOperatorSequence            )
     allocate(distributionOperatorSequence       %next)
     allocate(outputAnalysisDistributionOperator_     )
     distributionOperatorSequence            %operator_   => outputAnalysisDistributionOperatorRandomErrorPolynomial_
     distributionOperatorSequence       %next%operator_   => outputAnalysisDistributionOperatorGravitationalLensing_
+    if (rootVarianceAttenuation > 0.0d0) then
+       allocate(outputAnalysisDistributionOperatorAttenuationScatter_)
+       !![
+       <referenceConstruct object="outputAnalysisDistributionOperatorAttenuationScatter_" constructor="outputAnalysisDistributionOperatorAttenuationScatter(rootVarianceAttenuation,dustAttenuation_)"/>
+       !!]
+       block
+         type(distributionOperatorList), pointer :: distributionOperatorScatter
+         allocate(distributionOperatorScatter)
+         distributionOperatorScatter%operator_ => outputAnalysisDistributionOperatorAttenuationScatter_
+         distributionOperatorScatter%next      => distributionOperatorSequence
+         distributionOperatorSequence          => distributionOperatorScatter
+       end block
+    else
+       outputAnalysisDistributionOperatorAttenuationScatter_ => null()
+    end if
     !![
     <referenceConstruct object="outputAnalysisDistributionOperator_">
      <constructor>
@@ -391,7 +450,8 @@ contains
          &                                        hiiRegionEscapeFraction_                                                                                                    , &
          &                                        covarianceBinomialBinsPerDecade                                                                                             , &
          &                                        covarianceBinomialMassHaloMinimum                                                                                           , &
-         &                                        covarianceBinomialMassHaloMaximum                                                                                             &
+         &                                        covarianceBinomialMassHaloMaximum                                                                                           , &
+         &                                        nodePropertyExtractorAGN_                                                                                                     &
          &                                       )
     ! Clean up.
     !![
@@ -404,6 +464,11 @@ contains
     <objectDestructor name="outputAnalysisDistributionOperatorGravitationalLensing_"      />
     <objectDestructor name="outputAnalysisDistributionOperatorRandomErrorPolynomial_"/>
     !!]
+    if (associated(outputAnalysisDistributionOperatorAttenuationScatter_)) then
+       !![
+       <objectDestructor name="outputAnalysisDistributionOperatorAttenuationScatter_"/>
+       !!]
+    end if
     nullify(distributionOperatorSequence)
     return
   end function luminosityFunctionSobral2013HiZELSConstructorInternal
@@ -416,7 +481,8 @@ contains
     type(outputAnalysisLuminosityFunctionSobral2013HiZELS), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%gravitationalLensing_"/>
+    <objectDestructor name="self%gravitationalLensing_"    />
+    <objectDestructor name="self%nodePropertyExtractorAGN_"/>
     !!]
     return
   end subroutine luminosityFunctionSobral2013HiZELSDestructor
