@@ -777,7 +777,8 @@ contains
     type            (varying_string          )                                                         :: classVersion                     , parameterFile          , &
          &                                                                                                classPath                        , workPath               , &
          &                                                                                                transferFileName                 , escapedExecutable      , &
-         &                                                                                                escapedParameterFile             , escapedLogFile
+         &                                                                                                escapedParameterFile             , escapedLogFile         , &
+         &                                                                                                logFileName                      , helpMessage
     logical                                                                                            :: found                            , haveTransferFunctions  , &
          &                                                                                                haveNormalization                , havePerturbations
     double precision                                                                                   :: sigma8                           , wavenumberCLASS
@@ -873,15 +874,14 @@ contains
     escapedParameterFile=shellEscape(parameterFile         )
     escapedLogFile      =shellEscape(workPath//"/class.log")
     call System_Command_Do(escapedExecutable//" "//escapedParameterFile//" > "//escapedLogFile//" 2>&1",status)
-    if (status /= 0)                                                                          &
-         & call System_Command_Failure_Report(                                                &
-         &                                    'CLASS'                                      ,  &
-         &                                    workPath//"/class.log"                       ,  &
-         &                                    var_str('CLASS most often fails because the')// &
-         &                                    ' cosmological parameters given to it are'   // &
-         &                                    ' invalid. Its parameter file is "'          // &
-         &                                    parameterFile//'".'                             &
-         &                                   )
+    ! Note that the log file name and message are built in assignments, not in the argument list below - `varying_string`
+    ! expressions passed directly as arguments are not finalized by gfortran, and so leak.
+    if (status /= 0) then
+       logFileName=workPath//"/class.log"
+       helpMessage=var_str('CLASS most often fails because the cosmological parameters given to it are invalid. Its')// &
+            &      ' parameter file is "'//parameterFile//'".'
+       call System_Command_Failure_Report('CLASS',logFileName,helpMessage)
+    end if
     ! Extract the ratio σ₈²/Aₛ.
     if (haveNormalization) then
        found=.false.

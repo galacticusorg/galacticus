@@ -194,7 +194,8 @@ contains
     type            (varying_string          )                                  :: uniqueLabel                             , workPath                      , &
          &                                                                         transferFileName                        , fileName_                     , &
          &                                                                         escapedExecutable                       , escapedParameterFile          , &
-         &                                                                         logFile                                 , escapedLogFile
+         &                                                                         logFile                                 , escapedLogFile                , &
+         &                                                                         helpMessage
     type            (inputParameters         )                                  :: descriptor
     logical                                                                     :: allEpochsFound
     !![
@@ -485,19 +486,15 @@ contains
        escapedLogFile      =shellEscape(logFile              )
        call System_Command_Do(escapedExecutable//" "//escapedParameterFile//" > "//escapedLogFile//" 2>&1",status)
        ! A failure is detected by a non-zero exit status, or by the absence of the transfer function file - AxionCAMB stops on
-       ! invalid parameters with a zero exit status.
-       if     (                                                                                                   &
-            &        status /= 0                                                                                  &
-            &  .or. .not.File_Exists(outputRoot//'_transfer_'//trim(adjustl(redshiftLabelsCombined(1)))//'.dat')  &
-            & )                                                                                                   &
-            & call System_Command_Failure_Report(                                                                 &
-            &                                    'AxionCAMB'                                                   ,  &
-            &                                    logFile                                                       ,  &
-            &                                    var_str('AxionCAMB most often fails because the cosmological')// &
-            &                                    ' parameters given to it are invalid - check those of'        // &
-            &                                    ' [transferFunction]=axionCAMB. Its parameter file is "'      // &
-            &                                    parameterFile//'".'                                              &
-            &                                   )
+       ! invalid parameters with a zero exit status. Note that the file name and message are built in assignments, not in the
+       ! argument lists below - `varying_string` expressions passed directly as arguments are not finalized by gfortran, and so
+       ! leak.
+       transferFileName=outputRoot//'_transfer_'//trim(adjustl(redshiftLabelsCombined(1)))//'.dat'
+       if (status /= 0 .or. .not.File_Exists(transferFileName)) then
+          helpMessage=var_str('AxionCAMB most often fails because the cosmological parameters given to it are invalid -')// &
+               &      ' check those of [transferFunction]=axionCAMB. Its parameter file is "'//parameterFile//'".'
+          call System_Command_Failure_Report('AxionCAMB',logFile,helpMessage)
+       end if
        ! Read the AxionCAMB transfer function file.
        if (allocated(wavenumbers      )) deallocate(wavenumbers      )
        if (allocated(transferFunctions)) deallocate(transferFunctions)

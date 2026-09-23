@@ -124,6 +124,9 @@ contains
     Report a fatal error for a failed run of an external ``program``, quoting the last lines of the output it wrote to
     ``logFile`` (skipping any backtrace), which usually give its reason for failing. ``help`` is appended as advice to the
     user, followed by the name of the log file.
+
+    Build ``logFile`` and ``help`` in assignments and pass the variables: a ``varying_string`` expression written directly in
+    an argument list is not finalized by gfortran, and so leaks (see ``shellEscape``).
     !!}
     use :: Display           , only : displayGreen  , displayReset
     use :: Error             , only : Error_Report
