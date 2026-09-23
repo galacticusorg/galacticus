@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "e44a3bd4fc543415a55b219babc559c71204f3b2",
-        "message": "Merge pull request #1534 from galacticusorg/dependabot/github_actions/docker/build-push-action-7.4.0\n\nchore(deps): bump docker/build-push-action from 7.3.0 to 7.4.0\n",
-        "timestamp": "2026-09-20 10:01:34+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/e44a3bd4fc543415a55b219babc559c71204f3b2"
+        "id": "3a3cb2a91b024b65597526ce20b32dbe969815ce",
+        "message": "Merge pull request #1535 from galacticusorg/fix/fully-specified-tree-malformed-property-1512\n\nfix(mergerTrees): report malformed properties in fully-specified merger trees\n",
+        "timestamp": "2026-09-21 06:40:03+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/3a3cb2a91b024b65597526ce20b32dbe969815ce"
     },
     "results": [
         {
@@ -189,7 +189,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Symphony (Nadler et al. 2023)",
                 "comment": "Subhalo mean maximum velocity vs. bound mass relation",
                 "description": "Subhalo mean maximum velocity vs. bound mass relation",
-                "logLikelihood": "-21.549905591660927",
+                "logLikelihood": "-21.549905591661023",
                 "type": "function1D",
                 "xDataset": "massBound",
                 "yCovariance": "velocityMaximumMeanCovariance",
@@ -221,10 +221,10 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     26.93895242411964,
-                    30.928442227694735,
-                    35.96162097530353,
+                    30.928442227694738,
+                    35.96162097530354,
                     42.017572191586005,
-                    47.69728734520362,
+                    47.697287345203634,
                     53.935032534653224,
                     61.5234616120523,
                     72.32316724803921,
@@ -262,18 +262,18 @@ window.ANALYSES_DATA = {
                     0.0
                 ],
                 "yError": [
-                    0.23655044089780106,
+                    0.23655044089780042,
                     0.2933517743105131,
-                    0.4178976800199669,
+                    0.417897680019963,
                     0.5653169416138585,
-                    0.6994779056317828,
+                    0.6994779056317753,
                     1.0905152353742074,
-                    1.3747313463096447,
+                    1.3747313463096382,
                     2.194693862160911,
                     2.969808516576124,
                     4.082093174429448,
                     2.726818770184121,
-                    2.4784664984997273,
+                    2.478466498499544,
                     6.33581809550706,
                     0.0,
                     0.0,
