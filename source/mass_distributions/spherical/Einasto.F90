@@ -735,70 +735,27 @@ contains
     !!{RST
     Tabulate the freefall radius at the given ``time`` in an Einasto mass distribution.
     !!}
-    use :: Numerical_Integration, only : integrator
+    use :: Mass_Distributions_Spherical_Utilities, only : Mass_Distribution_Time_Freefall_Tabulate
     implicit none
-    class           (massDistributionEinasto), intent(inout)               :: self
-    double precision                         , intent(in   )               :: timeScaleFree
-    double precision                         , allocatable  , dimension(:) :: radii
-    double precision                                                       :: radiusStart
-    integer                                                                :: i
-    type            (integrator             )                              :: integrator_
+    class           (massDistributionEinasto), intent(inout) :: self
+    double precision                         , intent(in   ) :: timeScaleFree
 
-    ! Each point is an independent quadrature from the center out to its own radius, so a point carried over by an extension
-    ! is precisely the value which would be computed afresh.
-    if (.not.self%timeFreefallScaleFree_%brackets(timeScaleFree)) then
-       integrator_=integrator(timeFreeFallIntegrand,toleranceRelative=1.0d-6)
-       do while (.not.self%timeFreefallScaleFree_%brackets(timeScaleFree))
-          call self%timeFreefallScaleFree_%expand(timeScaleFree)
-          radii=self%timeFreefallScaleFree_%abscissae()
-          do i=1,size(radii)
-             if (self%timeFreefallScaleFree_%isComputed(i)) cycle
-             call self%timeFreefallScaleFree_%set(i,timeFreefallScaleFree(radii(i)))
-          end do
-          call self%timeFreefallScaleFree_%build()
-       end do
-    end if
+    call Mass_Distribution_Time_Freefall_Tabulate(self%timeFreefallScaleFree_,timeScaleFree,potentialDifference,toleranceRelative=1.0d-6)
     return
-    
-  contains
-    
-    double precision function timeFreefallScaleFree(radius)
-      !!{RST
-      Evaluate the freefall time from a given radius in a scale-free Einasto mass distribution.
-      !!}
-      implicit none
-      double precision, intent(in   ) :: radius
 
-      radiusStart          =                            radius
-      timeFreefallScaleFree=integrator_%integrate(0.0d0,radius)
-      return
-    end function timeFreefallScaleFree
-    
-    double precision function timeFreeFallIntegrand(radius)
+  contains
+
+    double precision function potentialDifference(radius1,radius2)
       !!{RST
-      Integrand used to find the freefall time in a scale-free Einasto mass distribution.
+      Compute the potential difference in the scale-free Einasto mass distribution of this object's shape.
       !!}
       implicit none
-      double precision, intent(in   ) :: radius
-      double precision                :: potentialDifference
-      
-      if (radius == 0.0d0) then
-         timeFreeFallIntegrand=+0.0d0
-      else
-         potentialDifference=+potentialDifferenceScaleFree(radiusStart,radius,self%shapeParameter)
-         if (potentialDifference > 0.0d0) then
-            timeFreeFallIntegrand=+1.0d0                     &
-                 &                /sqrt(                     &
-                 &                      +2.0d0               &
-                 &                      *potentialDifference &
-                 &                     )
-         else
-            timeFreeFallIntegrand=+0.0d0
-         end if
-      end if
+      double precision, intent(in   ) :: radius1, radius2
+
+      potentialDifference=potentialDifferenceScaleFree(radius1,radius2,self%shapeParameter)
       return
-    end function timeFreeFallIntegrand
-    
+    end function potentialDifference
+
   end subroutine einastoTimeFreefallTabulate
 
   subroutine einastoDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)

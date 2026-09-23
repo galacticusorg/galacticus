@@ -1131,69 +1131,15 @@ contains
     !!{RST
     Tabulate the freefall radius at the given ``time`` in an Zhao1996 mass distribution.
     !!}
-    use :: Numerical_Integration, only : integrator
+    use :: Mass_Distributions_Spherical_Utilities, only : Mass_Distribution_Time_Freefall_Tabulate
     implicit none
-    class           (massDistributionZhao1996), intent(inout), target       :: self
-    double precision                          , intent(in   )               :: timeScaleFree
-    double precision                          , allocatable  , dimension(:) :: radii
-    double precision                                                        :: radiusStart
-    integer                                                                 :: i
-    type            (integrator              )                              :: integrator_
+    class           (massDistributionZhao1996), intent(inout), target :: self
+    double precision                          , intent(in   )         :: timeScaleFree
 
-    if (.not.self%timeFreefallScaleFree_%brackets(timeScaleFree)) then
-       self_       => self
-       integrator_ =  integrator(timeFreeFallIntegrand,toleranceRelative=1.0d-6)
-       do while (.not.self%timeFreefallScaleFree_%brackets(timeScaleFree))
-          call self%timeFreefallScaleFree_%expand(timeScaleFree)
-          radii=self%timeFreefallScaleFree_%abscissae()
-          do i=1,size(radii)
-             if (self%timeFreefallScaleFree_%isComputed(i)) cycle
-             call self%timeFreefallScaleFree_%set(i,timeFreefallScaleFree(radii(i)))
-          end do
-          call self%timeFreefallScaleFree_%build()
-       end do
-    end if
+    ! The potential difference function reaches this object through the threadprivate pointer `self_`.
+    self_ => self
+    call Mass_Distribution_Time_Freefall_Tabulate(self%timeFreefallScaleFree_,timeScaleFree,potentialDifferenceScaleFree,toleranceRelative=1.0d-6)
     return
-    
-  contains
-    
-    double precision function timeFreefallScaleFree(radius)
-      !!{RST
-      Evaluate the freefall time from a given radius in a scale-free Zhao1996 mass distribution.
-      !!}
-      implicit none
-      double precision, intent(in   ) :: radius
-
-      radiusStart          =                            radius
-      timeFreefallScaleFree=integrator_%integrate(0.0d0,radius)
-      return
-    end function timeFreefallScaleFree
-    
-    double precision function timeFreeFallIntegrand(radius)
-      !!{RST
-      Integrand used to find the freefall time in a scale-free Zhao1996 mass distribution.
-      !!}
-      implicit none
-      double precision, intent(in   ) :: radius
-      double precision                :: potentialDifference
-      
-      if (radius == 0.0d0) then
-         timeFreeFallIntegrand=+0.0d0
-      else
-         potentialDifference=+potentialDifferenceScaleFree(radiusStart,radius)
-         if (potentialDifference > 0.0d0) then
-            timeFreeFallIntegrand=+1.0d0                     &
-                 &                /sqrt(                     &
-                 &                      +2.0d0               &
-                 &                      *potentialDifference &
-                 &                     )
-         else
-            timeFreeFallIntegrand=+0.0d0
-         end if
-      end if
-      return
-    end function timeFreeFallIntegrand
-    
   end subroutine zhao1996TimeFreefallTabulate
 
   double precision function zhao1996FourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)

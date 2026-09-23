@@ -75,6 +75,15 @@ module Black_Hole_Fundamentals
      module procedure Black_Hole_ISCO_Specific_Energy_Spin
   end interface Black_Hole_ISCO_Specific_Energy
 
+  abstract interface
+     double precision function blackHoleSpinRadiusFunction(spinBlackHole,radius)
+       !!{RST
+       Interface for functions of black hole spin evaluated at a radius in units of the gravitational radius.
+       !!}
+       double precision, intent(in   ) :: spinBlackHole, radius
+     end function blackHoleSpinRadiusFunction
+  end interface
+
 contains
 
   double precision function Black_Hole_ISCO_Radius_Spin(spinBlackHole,orbit)
@@ -138,6 +147,87 @@ contains
          &*gigaYear/thomsonCrossSection/speedLight
     return
   end function Black_Hole_Eddington_Accretion_Rate
+
+  double precision function Black_Hole_Radius_Dimensionless(blackHole,radius,units) result(radiusDimensionless)
+    !!{RST
+    Return ``radius``, given in ``units`` (physical by default), in units of the gravitational radius of ``blackHole``.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole
+    implicit none
+    class           (nodeComponentBlackHole), intent(inout)           :: blackHole
+    double precision                        , intent(in   )           :: radius
+    integer                                 , intent(in   ), optional :: units
+    integer                                                           :: unitsActual
+
+    ! Determine what system of units to use.
+    if (present(units)) then
+       unitsActual=units
+    else
+       unitsActual=unitsPhysical
+    end if
+    select case (unitsActual)
+    case (unitsGravitational)
+       radiusDimensionless=radius
+    case (unitsPhysical)
+       radiusDimensionless=radius/Black_Hole_Gravitational_Radius(blackHole)
+    case default
+       radiusDimensionless=0.0d0
+       call Error_Report('unrecognized units'//{introspection:location})
+    end select
+    return
+  end function Black_Hole_Radius_Dimensionless
+
+  double precision function Black_Hole_Radius_In_Units(blackHole,radiusDimensionless,units) result(radius)
+    !!{RST
+    Return the radius ``radiusDimensionless``, given in units of the gravitational radius of ``blackHole``, in ``units``
+    (physical by default).
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole
+    implicit none
+    class           (nodeComponentBlackHole), intent(inout)           :: blackHole
+    double precision                        , intent(in   )           :: radiusDimensionless
+    integer                                 , intent(in   ), optional :: units
+    integer                                                           :: unitsActual
+
+    ! Determine what system of units to use.
+    if (present(units)) then
+       unitsActual=units
+    else
+       unitsActual=unitsPhysical
+    end if
+    select case (unitsActual)
+    case (unitsGravitational)
+       radius=radiusDimensionless
+    case (unitsPhysical)
+       radius=radiusDimensionless*Black_Hole_Gravitational_Radius(blackHole)
+    case default
+       radius=0.0d0
+       call Error_Report('unrecognized units'//{introspection:location})
+    end select
+    return
+  end function Black_Hole_Radius_In_Units
+
+  double precision function Black_Hole_Spin_Radius_Function(blackHole,radius,units,functionSpin) result(value)
+    !!{RST
+    Evaluate ``functionSpin`` for the spin of ``blackHole`` at ``radius``, given in ``units`` (physical by default).
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentBlackHole
+    implicit none
+    class           (nodeComponentBlackHole      ), intent(inout)           :: blackHole
+    double precision                              , intent(in   )           :: radius
+    integer                                       , intent(in   ), optional :: units
+    procedure       (blackHoleSpinRadiusFunction )                          :: functionSpin
+    double precision                                                        :: radiusDimensionless, spinBlackHole
+
+    ! Get the dimensionless radius.
+    radiusDimensionless=Black_Hole_Radius_Dimensionless(blackHole,radius,units)
+    ! Get the black hole spin.
+    spinBlackHole      =blackHole%spin()
+    value              =functionSpin(spinBlackHole,radiusDimensionless)
+    return
+  end function Black_Hole_Spin_Radius_Function
 
   double precision function Black_Hole_ISCO_Radius_Node(blackHole,units,orbit)
     !!{RST
@@ -302,37 +392,13 @@ contains
     !!{RST
     Returns the frame-dragging angular velocity in the Kerr metric.
     !!}
-    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
     class           (nodeComponentBlackHole), intent(inout), pointer  :: blackHole
     double precision                        , intent(in   )           :: radius
     integer                                 , intent(in   ), optional :: units
-    integer                                                           :: unitsActual
-    double precision                                                  :: spinBlackHole, radiusDimensionless
 
-    ! Determine what system of units to use.
-    if (present(units)) then
-       unitsActual=units
-    else
-       unitsActual=unitsPhysical
-    end if
-
-    ! Get the dimensionless radius.
-    select case (unitsActual)
-    case (unitsGravitational)
-       radiusDimensionless=radius
-    case (unitsPhysical)
-       radiusDimensionless=radius/Black_Hole_Gravitational_Radius(blackHole)
-    case default
-       radiusDimensionless=0.0d0
-       call Error_Report('unrecognized units'//{introspection:location})
-    end select
-
-    ! Get the black hole spin.
-    spinBlackHole=blackHole%spin()
-
-    Black_Hole_Frame_Dragging_Frequency_Node=Black_Hole_Frame_Dragging_Frequency_Spin(spinBlackHole,radiusDimensionless)
+    Black_Hole_Frame_Dragging_Frequency_Node=Black_Hole_Spin_Radius_Function(blackHole,radius,units,Black_Hole_Frame_Dragging_Frequency_Spin)
     return
   end function Black_Hole_Frame_Dragging_Frequency_Node
 
@@ -351,37 +417,13 @@ contains
     !!{RST
     Returns the :math:`\mathcal{A}` factor appearing in the Kerr metric for ``blackHole``.
     !!}
-    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
-    class           (nodeComponentBlackHole), intent(inout)           :: blackHole
+    class           (nodeComponentBlackHole), intent(inout)          :: blackHole
     double precision                        , intent(in   )           :: radius
     integer                                 , intent(in   ), optional :: units
-    integer                                                           :: unitsActual
-    double precision                                                  :: spinBlackHole, radiusDimensionless
 
-    ! Determine what system of units to use.
-    if (present(units)) then
-       unitsActual=units
-    else
-       unitsActual=unitsPhysical
-    end if
-
-    ! Get dimensionless radius.
-    select case (unitsActual)
-    case (unitsGravitational)
-       radiusDimensionless=radius
-    case (unitsPhysical)
-       radiusDimensionless=radius/Black_Hole_Gravitational_Radius(blackHole)
-    case default
-       radiusDimensionless=0.0d0
-       call Error_Report('unrecognized units'//{introspection:location})
-    end select
-
-    ! Get the black hole spin.
-    spinBlackHole=blackHole%spin()
-
-    Black_Hole_Metric_A_Factor_Node=Black_Hole_Metric_A_Factor_Spin(spinBlackHole,radiusDimensionless)
+    Black_Hole_Metric_A_Factor_Node=Black_Hole_Spin_Radius_Function(blackHole,radius,units,Black_Hole_Metric_A_Factor_Spin)
     return
   end function Black_Hole_Metric_A_Factor_Node
 
@@ -408,37 +450,13 @@ contains
     !!{RST
     Returns the :math:`\mathcal{D}` factor appearing in the Kerr metric for ``blackHole``.
     !!}
-    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
     class           (nodeComponentBlackHole), intent(inout), pointer  :: blackHole
     double precision                        , intent(in   )           :: radius
     integer                                 , intent(in   ), optional :: units
-    integer                                                           :: unitsActual
-    double precision                                                  :: spinBlackHole, radiusDimensionless
 
-    ! Determine what system of units to use.
-    if (present(units)) then
-       unitsActual=units
-    else
-       unitsActual=unitsPhysical
-    end if
-
-    ! Get dimensionless radius.
-    select case (unitsActual)
-    case (unitsGravitational)
-       radiusDimensionless=radius
-    case (unitsPhysical)
-       radiusDimensionless=radius/Black_Hole_Gravitational_Radius(blackHole)
-    case default
-       radiusDimensionless=0.0d0
-       call Error_Report('unrecognized units'//{introspection:location})
-    end select
-
-    ! Get the black hole spin.
-    spinBlackHole=blackHole%spin()
-
-    Black_Hole_Metric_D_Factor_Node=Black_Hole_Metric_D_Factor_Spin(spinBlackHole,radiusDimensionless)
+    Black_Hole_Metric_D_Factor_Node=Black_Hole_Spin_Radius_Function(blackHole,radius,units,Black_Hole_Metric_D_Factor_Spin)
     return
   end function Black_Hole_Metric_D_Factor_Node
 
@@ -457,34 +475,12 @@ contains
     !!{RST
     Return the radius of the horizon for a Kerr metric with dimensionless angular momentum ``j``. The radius is in units of the gravitational radius.
     !!}
-    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
-    class           (nodeComponentBlackHole), intent(inout), pointer  :: blackHole
-    integer                                 , intent(in   ), optional :: units
-    double precision                                                  :: spinBlackHole, radiusDimensionless
-    integer                                                           :: unitsActual
+    class  (nodeComponentBlackHole), intent(inout), pointer  :: blackHole
+    integer                        , intent(in   ), optional :: units
 
-    ! Determine what system of units to use.
-    if (present(units)) then
-       unitsActual=units
-    else
-       unitsActual=unitsPhysical
-    end if
-
-    ! Get the black hole spin.
-    spinBlackHole=blackHole%spin()
-
-    radiusDimensionless=Black_Hole_Horizon_Radius_Spin(spinBlackHole)
-    select case (unitsActual)
-    case (unitsGravitational)
-       Black_Hole_Horizon_Radius_Node=radiusDimensionless
-    case (unitsPhysical)
-       Black_Hole_Horizon_Radius_Node=radiusDimensionless*Black_Hole_Gravitational_Radius(blackHole)
-    case default
-       Black_Hole_Horizon_Radius_Node=0.0d0
-       call Error_Report('unrecognized units'//{introspection:location})
-    end select
+    Black_Hole_Horizon_Radius_Node=Black_Hole_Radius_In_Units(blackHole,Black_Hole_Horizon_Radius_Spin(blackHole%spin()),units)
     return
   end function Black_Hole_Horizon_Radius_Node
 
@@ -503,38 +499,13 @@ contains
     !!{RST
     Return the radius of the static limit for a Kerr metric for the black hole in ``blackHole`` and angle ``theta``.
     !!}
-    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
     class           (nodeComponentBlackHole), intent(inout)           :: blackHole
     integer                                 , intent(in   ), optional :: units
     double precision                        , intent(in   ), optional :: theta
-    double precision                                                  :: spinBlackHole, radiusDimensionless
-    integer                                                           :: unitsActual
 
-    ! Determine what system of units to use.
-    if (present(units)) then
-       unitsActual=units
-    else
-       unitsActual=unitsPhysical
-    end if
-
-    ! Get the black hole spin.
-    spinBlackHole=blackHole%spin()
-
-    ! Get the dimensionless static radius.
-    radiusDimensionless=Black_Hole_Static_Radius_Spin(spinBlackHole,theta)
-
-    ! Convert to the appropriate units.
-    select case (unitsActual)
-    case (unitsGravitational)
-       Black_Hole_Static_Radius_Node=radiusDimensionless
-    case (unitsPhysical)
-       Black_Hole_Static_Radius_Node=radiusDimensionless*Black_Hole_Gravitational_Radius(blackHole)
-    case default
-       Black_Hole_Static_Radius_Node=0.0d0
-       call Error_Report('unrecognized units'//{introspection:location})
-    end select
+    Black_Hole_Static_Radius_Node=Black_Hole_Radius_In_Units(blackHole,Black_Hole_Static_Radius_Spin(blackHole%spin(),theta),units)
     return
   end function Black_Hole_Static_Radius_Node
 

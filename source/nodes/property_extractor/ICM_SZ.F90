@@ -276,21 +276,20 @@ contains
       Integrand function used for computing ICM SZ properties.
       !!}
       use :: Abundances_Structure            , only : abundances
-      use :: Numerical_Constants_Astronomical, only : massSolar            , megaParsec
-      use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
-      use :: Numerical_Constants_Physical    , only : boltzmannsConstant   , electronMass               , speedLight, thomsonCrossSection
-      use :: Numerical_Constants_Prefixes    , only : centi                , hecto
-      use :: Mass_Distributions              , only : massDistributionClass, kinematicsDistributionClass
-      use :: Coordinates                     , only : coordinateSpherical  , assignment(=)
-      use :: Galactic_Structure_Options      , only : componentTypeHotHalo , massTypeGaseous
+      use :: Numerical_Constants_Astronomical, only : megaParsec
+      use :: Numerical_Constants_Physical    , only : boltzmannsConstant      , electronMass               , speedLight, thomsonCrossSection
+      use :: Numerical_Constants_Prefixes    , only : centi
+      use :: Mass_Distributions              , only : massDistributionClass   , kinematicsDistributionClass
+      use :: Coordinates                     , only : coordinateSpherical     , assignment(=)
+      use :: Galactic_Structure_Options      , only : componentTypeHotHalo    , massTypeGaseous
+      use :: Hot_Halo_Composition            , only : Hot_Halo_Gas_Composition, Hydrogen_Number_Density
       implicit none
       double precision                             , intent(in   ) :: radius
-      class           (nodeComponentHotHalo       ), pointer       :: hotHalo
       class           (massDistributionClass      ), pointer       :: massDistribution_
       class           (kinematicsDistributionClass), pointer       :: kinematicsDistribution_
       type            (coordinateSpherical        )                :: coordinates
       double precision                                             :: density                , temperature, &
-           &                                                          numberDensityHydrogen  , massICM
+           &                                                          numberDensityHydrogen
       type            (abundances                 )                :: abundancesICM
 
       ! Get the mass distribution.
@@ -305,18 +304,9 @@ contains
       <objectDestructor name="massDistribution_"      />
       <objectDestructor name="kinematicsDistribution_"/>
       !!]          
-      ! Get abundances and chemistry of the ICM.
-      hotHalo         => node   %hotHalo   ()
-      massICM         =  hotHalo%mass      ()
-      abundancesICM   =  hotHalo%abundances()
-      call abundancesICM%massToMassFraction(massICM)
-      ! Compute number density of hydrogen (in cm⁻³).
-      numberDensityHydrogen  =+density                                    &
-           &                  *abundancesICM   %hydrogenMassFraction()    &
-           &                  *massSolar                                  &
-           &                  /massHydrogenAtom                           &
-           &                  /hecto                                  **3 &
-           &                  /megaParsec                             **3
+      ! Get abundances of the ICM, and the number density of hydrogen (in cm⁻³).
+      call Hot_Halo_Gas_Composition(node,abundancesICM)
+      numberDensityHydrogen=Hydrogen_Number_Density(density,abundancesICM)
       ! Evaluate the integrand. This gives a result in units of Mpc² - we will divide by the angular diameter distance (in Mpc)
       ! squared later.
       integrandComptonY=+4.0d0                                                                                              &

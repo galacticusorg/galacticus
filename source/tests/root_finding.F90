@@ -32,7 +32,8 @@ program Test_Root_Finding
   use :: Root_Finder                , only : rangeExpandAdditive       , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rootFinder                , &
        &                                     stoppingCriterionDelta
   use :: Test_Root_Finding_Functions, only : Root_Function_1           , Root_Function_2          , Root_Function_2_Both         , Root_Function_2_Derivative, &
-          &                                  Root_Function_3           , Root_Function_4          , Root_Function_4_Both         , Root_Function_4_Derivative
+          &                                  Root_Function_3           , Root_Function_4          , Root_Function_4_Both         , Root_Function_4_Derivative, &
+          &                                  Root_Function_5
   use :: Unit_Tests                 , only : Assert                    , Unit_Tests_Begin_Group   , Unit_Tests_End_Group         , Unit_Tests_Finish
   implicit none
   type            (rootFinder)               :: finder1, finder2, &
@@ -178,6 +179,18 @@ program Test_Root_Finding
   xRoot=finder4%find(rootRange=xRange,status=status)
   call Assert('root of f(x)=x² - 5x + 1 found once upward limit is relaxed'      ,xRoot                      ,0.5d0*(5.0d0+sqrt(21.0d0)),absTol=1.0d-6,relTol=1.0d-6)
   call Assert('GSL abort-on-error handler restored after successful root finding',GSL_Error_Handler_Aborting(),.true.                                              )
+
+  !! Unlimited multiplicative range expansion for a function which has no root. The range grows without bound, so expansion
+  !! must stop before the upper end of the range overflows - an out-of-range status is expected, not a floating point exception.
+  call finder4%rootFunction(Root_Function_5)
+  call finder4%rangeExpand(                                                             &
+       &                   rangeExpandUpward            =2.0d0                        , &
+       &                   rangeExpandDownward          =0.5d0                        , &
+       &                   rangeExpandType              =rangeExpandMultiplicative      &
+       &                  )
+  xRange=[1.0d0,2.0d0]
+  xRoot=finder4%find(rootRange=xRange,status=status)
+  call Assert('out of range status returned when unlimited expansion can not bracket a root',status,errorStatusOutOfRange)
 
   ! End unit tests.
   call Unit_Tests_End_Group()

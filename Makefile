@@ -144,6 +144,15 @@ endif
 # front-end (f951), so it must be applied only at the LTO link step via FCFLAGS_LINK (see the %.exe rule).
 FCFLAGS_LINK  += -Wno-stringop-overread
 
+# In (non-static) debugging builds export all symbols to the dynamic symbol table so that
+# `backtrace_symbols()` (used by `getCaller()` in the `Debugging` module) can name the functions in a
+# backtrace.
+ifneq '$(findstring -DDEBUGGING,${FCFLAGS})' ''
+ifneq '${STATIC}' '-static'
+FCFLAGS_LINK  += -rdynamic
+endif
+endif
+
 # C compiler flags. The source tree is hierarchical, so add an include path for every source
 # subdirectory (header files such as md5.h or gsl_odeiv2.h live in subdirectories).
 CFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' $(addprefix -I,$(SOURCEDIRS)) -I$(BUILDPATH)/ ${GALACTICUS_CFLAGS}

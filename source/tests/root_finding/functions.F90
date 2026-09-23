@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module of functions for root finding unit tests.
 !!}
@@ -27,8 +29,8 @@ module Test_Root_Finding_Functions
   !!}
   implicit none
   private
-  public :: Root_Function_1, Root_Function_2, Root_Function_2_Derivative, Root_Function_2_Both, Root_Function_3, &
-       & Root_Function_4, Root_Function_4_Derivative, Root_Function_4_Both
+  public :: Root_Function_1, Root_Function_2           , Root_Function_2_Derivative, Root_Function_2_Both, Root_Function_3, &
+       &    Root_Function_4, Root_Function_4_Derivative, Root_Function_4_Both      , Root_Function_5
 
 contains
 
@@ -123,5 +125,16 @@ contains
     end if
     return
   end subroutine Root_Function_4_Both
+
+  double precision function Root_Function_5(x)
+    !!{RST
+    Function for root finding unit tests. It is constant, so has no root.
+    !!}
+    double precision, intent(in   ) :: x
+    !$GLC attributes unused :: x
+
+    Root_Function_5=-1.0d0
+    return
+  end function Root_Function_5
 
 end module Test_Root_Finding_Functions

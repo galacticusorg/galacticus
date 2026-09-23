@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of cusp-NFW :cite:p:`delos_cusp-halo_2025` dark matter halo profiles.
   !!}
@@ -214,12 +216,12 @@ contains
        !![
        <referenceConstruct object="massDistribution_">
 	 <constructor>
-           massDistributionNFW(                                                                                  &amp;
-            &amp;              mass         =basic            %mass                                      (    ), &amp;
-            &amp;              radiusVirial =self             %darkMatterHaloScale_%radiusVirial         (node), &amp;
-            &amp;              scaleLength  =darkMatterProfile%scale                                     (    ), &amp;
-            &amp;              componentType=                                       componentTypeDarkHalo      , &amp;
-            &amp;              massType     =                                       massTypeDark                 &amp;
+           massDistributionNFW(                                                                      &amp;
+            &amp;              mass         =basic%mass                                      (    ), &amp;
+            &amp;              radiusVirial =self %darkMatterHaloScale_%radiusVirial         (node), &amp;
+            &amp;              scaleLength  =self                      %scaleRadiusValidated (node), &amp;
+            &amp;              componentType=                           componentTypeDarkHalo      , &amp;
+            &amp;              massType     =                           massTypeDark                 &amp;
             &amp;             )
 	 </constructor>
        </referenceConstruct>

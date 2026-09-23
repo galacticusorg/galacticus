@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that evaluates the properties of prompt cusps following the model of :cite:t:`delos_cusp-halo_2025`.
   !!}
@@ -781,20 +783,24 @@ contains
 
     where :math:`\mathcal{P}(k) = k^3 P(k) / 2 \pi^2` is the dimensionless form of the power spectrum.
     !!}
+    use :: Display              , only : displayGreen, displayReset
+    use :: Error                , only : Error_Report
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Comparison , only : Values_Agree
     implicit none
     class           (nodeOperatorDarkMatterProfilePromptCusps), intent(inout), target       :: self
     integer                                                   , intent(in   )               :: j
     double precision                                          , intent(in   )               :: time
-    double precision                                          , parameter                   :: wavenumberPhysicalMinimum           =1.0d-2 , wavenumberPhysicalMaximum           =1.0d+2, &
-         &                                                                                     toleranceRelative                   =1.0d-3
+    double precision                                          , parameter                   :: wavenumberPhysicalMinimum           =1.0d-2 , wavenumberPhysicalMaximum           =1.0d+02, &
+         &                                                                                     toleranceRelative                   =1.0d-3 , wavenumberPhysicalLimit             =1.0d+30
     type            (integrator                              ), save                        :: integrator_
     logical                                                   , save                        :: integratorInitialized               =.false.
     !$omp threadprivate(integrator_,integratorInitialized)
     double precision                                          , allocatable  , dimension(:) :: sigmaTmp
-    double precision                                                                        :: wavenumberPhysicalLogarithmicMinimum        , wavenumberPhysicalLogarithmicMaximum       , &
+    double precision                                                                        :: wavenumberPhysicalLogarithmicMinimum        , wavenumberPhysicalLogarithmicMaximum        , &
          &                                                                                     sigmaPrevious
+    character       (len=16                                  )                              :: labelSigma                                  , labelSigmaPrevious                          , &
+         &                                                                                     labelJ
 
     ! Initialize an integrator if necessary.
     if (.not.integratorInitialized) then       
@@ -831,6 +837,23 @@ contains
        sigma                                =  +     0.0d0
        ! Expand the range over wavenumbers integrated over until the integral is sufficiently well converged.
        do while (.not.Values_Agree(sigma,sigmaPrevious,relTol=toleranceRelative))
+          ! If the range has been extended far beyond any physical cutoff scale without converging, the integral diverges. This
+          ! happens for a power spectrum with no small-scale cutoff (e.g. cold dark matter with no free-streaming scale): the
+          ! integral then diverges for all j - even for j=0 it grows as ln³k, since P(k) ∝ ln²k at large k. Report this, rather
+          ! than extending the range until the integrand overflows.
+          if (wavenumberPhysicalLogarithmicMaximum > log(wavenumberPhysicalLimit)) then
+             write (labelSigma        ,'(e12.6)') sigma
+             write (labelSigmaPrevious,'(e12.6)') sigmaPrevious
+             write (labelJ            ,'(i2)'   ) j
+             call Error_Report(                                                                                                                           &
+                  &            'σ_j (j='//trim(adjustl(labelJ))//') of the power spectrum does not converge: it is '//trim(adjustl(labelSigmaPrevious))// &
+                  &            ' and then '//trim(adjustl(labelSigma))//' as the integral is extended to wavenumbers beyond 10³⁰ Mpc⁻¹'//char(10)      // &
+                  &            displayGreen()//'HELP:'//displayReset()                                                                                 // &
+                  &            ' the prompt cusp model requires a power spectrum with a small-scale cutoff - use a [transferFunction] which'           // &
+                  &            ' includes one, such as the free-streaming cutoff of the dark matter particle (e.g. [transferFunction]=bode2001)'       // &
+                  &            {introspection:location}                                                                                                   &
+                  &           )
+          end if
           sigmaPrevious                       =+sigma
           sigma                               =+sqrt(                                                            &
                &                                     integrator_%integrate(                                      &

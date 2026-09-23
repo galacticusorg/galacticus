@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo profiles with finite resolution (to mimic the effects of resolution in N-body simulations for example).
   !!}
@@ -159,7 +161,7 @@ contains
     !!{RST
     Return the dark matter mass distribution for the given ``node``.
     !!}
-    use :: Galacticus_Nodes          , only : nodeComponentBasic                          , nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                       , massTypeDark                             , weightByMass
     use :: Mass_Distributions        , only : massDistributionSphericalFiniteResolutionNFW, kinematicsDistributionFiniteResolutionNFW, massDistributionSpherical
     implicit none
@@ -170,7 +172,6 @@ contains
     type   (enumerationWeightByType                  ), intent(in   ), optional :: weightBy
     integer                                           , intent(in   ), optional :: weightIndex
     class  (nodeComponentBasic                       ), pointer                 :: basic
-    class  (nodeComponentDarkMatterProfile           ), pointer                 :: darkMatterProfile
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -184,17 +185,16 @@ contains
     select type(massDistribution_)
     type is (massDistributionSphericalFiniteResolutionNFW)
        basic => node%basic()
-       darkMatterProfile => node%darkMatterProfile()
        !![
        <referenceConstruct object="massDistribution_">
 	 <constructor>
-           massDistributionSphericalFiniteResolutionNFW(                                                                                         &amp;
-	   &amp;                                        lengthResolution =self                                  %lengthResolutionPhysical(node), &amp;
-	   &amp;                                        radiusScale      =darkMatterProfile                     %scale                   (    ), &amp;
-	   &amp;                                        radiusVirial     =self             %darkMatterHaloScale_%radiusVirial            (node), &amp;
-	   &amp;                                        mass             =basic                                 %mass                    (    ), &amp;
-           &amp;                                        componentType    =                                       componentTypeDarkHalo         , &amp;
-           &amp;                                        massType         =                                       massTypeDark                    &amp;
+           massDistributionSphericalFiniteResolutionNFW(                                                                              &amp;
+	   &amp;                                        lengthResolution =self                       %lengthResolutionPhysical(node), &amp;
+	   &amp;                                        radiusScale      =self                       %scaleRadiusValidated    (node), &amp;
+	   &amp;                                        radiusVirial     =self  %darkMatterHaloScale_%radiusVirial            (node), &amp;
+	   &amp;                                        mass             =basic                      %mass                    (    ), &amp;
+           &amp;                                        componentType    =                            componentTypeDarkHalo         , &amp;
+           &amp;                                        massType         =                            massTypeDark                    &amp;
            &amp;                                       )
 	 </constructor>
        </referenceConstruct>

@@ -462,9 +462,10 @@ contains
     return
   end subroutine Signal_Handler_SIGINT
 
-  subroutine Signal_Handler_SIGSEGV()
+  subroutine Signal_Handler(signalNumber,description)
     !!{RST
-    Handle ``SIGSEGV`` signals, by flushing all data and then aborting.
+    Handle the signal with number ``signalNumber``, by flushing all data and then aborting. ``description`` describes the event
+    in the message reported (e.g. "a segfault").
     !!}
     use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
@@ -475,17 +476,21 @@ contains
     use               :: System_Output     , only : stdOutIsATTY
     use               :: ISO_Varying_String, only : char
     implicit none
+    integer           , intent(in   ) :: signalNumber
+    character(len=*  ), intent(in   ) :: description
+    character(len=:  ), allocatable   :: message
 #ifdef USEMPI
-    integer            :: mpiRank , error
-    character(len=128) :: hostName
-    logical            :: flag
+    integer                           :: mpiRank     , error
+    character(len=128)                :: hostName
+    logical                           :: flag
 #endif
 
-    call signalHandlersCall(11)
+    call signalHandlersCall(signalNumber)
+    message='Galacticus experienced '//description//' - will try to flush data before exiting.'
     if (stdOutIsATTY()) then
-       write (error_unit,*) displayRed()//displayBold()//'Galacticus experienced a segfault - will try to flush data before exiting.'//displayReset()
+       write (error_unit,*) displayRed()//displayBold()//message//displayReset()
     else
-       write (error_unit,*)                              'Galacticus experienced a segfault - will try to flush data before exiting.'
+       write (error_unit,*)                              message
     end if
     !$ if (omp_in_parallel()) then
     !$    write (error_unit,*) " => Error occurred in thread ",omp_get_thread_num()
@@ -496,13 +501,13 @@ contains
 #ifndef UNCLEANEXIT
     call closeHDF5()
 #endif
-    call BackTrace  (           )
-    call Warn_Review(           )
-    call Error_Help_Message(.true.)
-    call Flush      (output_unit)
-    call Flush      ( error_unit)
+    call BackTrace         (           )
+    call Warn_Review       (           )
+    call Error_Help_Message(.true.     )
+    call Flush             (output_unit)
+    call Flush             ( error_unit)
 #ifdef UNCLEANEXIT
-    call Exit(11)
+    call Exit(signalNumber)
 #else
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
@@ -516,8 +521,18 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call Exit(11)
+    call Exit(signalNumber)
 #endif
+    return
+  end subroutine Signal_Handler
+
+  subroutine Signal_Handler_SIGSEGV()
+    !!{RST
+    Handle ``SIGSEGV`` signals, by flushing all data and then aborting.
+    !!}
+    implicit none
+
+    call Signal_Handler(11,'a segfault')
     return
   end subroutine Signal_Handler_SIGSEGV
 
@@ -525,58 +540,9 @@ contains
     !!{RST
     Handle ``SIGFPE`` signals, by flushing all data and then aborting.
     !!}
-    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
-#ifdef USEMPI
-    use               :: MPI_F08           , only : MPI_Comm_Rank     , MPI_Comm_World
-#endif
-    !$ use            :: OMP_Lib           , only : OMP_Get_Thread_Num, OMP_In_Parallel
-    use               :: Display           , only : displayBold       , displayRed     , displayReset
-    use               :: System_Output     , only : stdOutIsATTY
-    use               :: ISO_Varying_String, only : char
     implicit none
-#ifdef USEMPI
-    integer            :: mpiRank , error
-    character(len=128) :: hostName
-    logical            :: flag
-#endif
 
-    call signalHandlersCall(8)
-    if (stdOutIsATTY()) then
-       write (error_unit,*) displayRed()//displayBold()//'Galacticus experienced a floating point exception - will try to flush data before exiting.'//displayReset()
-    else
-       write (error_unit,*)                              'Galacticus experienced a floating point exception - will try to flush data before exiting.'
-    end if
-    !$ if (omp_in_parallel()) then
-    !$    write (error_unit,*) " => Error occurred in thread ",omp_get_thread_num()
-    !$ else
-    !$    write (error_unit,*) " => Error occurred in master thread"
-    !$ end if
-    write (error_unit,*) " => Command line was: ",char(commandLine())
-#ifndef UNCLEANEXIT
-    call closeHDF5()
-#endif
-    call BackTrace  (           )
-    call Warn_Review(           )
-    call Error_Help_Message(.true.)
-    call Flush      (output_unit)
-    call Flush      ( error_unit)
-#ifdef UNCLEANEXIT
-    call Exit(8)
-#else
-#ifdef USEMPI
-    call MPI_Initialized(flag,error)
-    if (flag) then
-       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
-       call hostnm(hostName)
-       write (error_unit,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
-       write (error_unit,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
-       call Flush(output_unit)
-       call Flush( error_unit)
-       call Sleep(errorWaitTime)
-    end if
-#endif
-    call Exit(8)
-#endif
+    call Signal_Handler(8,'a floating point exception')
     return
   end subroutine Signal_Handler_SIGFPE
 
@@ -584,57 +550,9 @@ contains
     !!{RST
     Handle ``SIGBUS`` signals, by flushing all data and then aborting.
     !!}
-    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
-#ifdef USEMPI
-    use               :: MPI_F08           , only : MPI_Comm_Rank     , MPI_Comm_World
-#endif
-    !$ use            :: OMP_Lib           , only : OMP_Get_Thread_Num, OMP_In_Parallel
-    use               :: Display           , only : displayBold       , displayRed     , displayReset
-    use               :: System_Output     , only : stdOutIsATTY
-    use               :: ISO_Varying_String, only : char
     implicit none
-#ifdef USEMPI
-    integer            :: mpiRank , error
-    character(len=128) :: hostName
-    logical            :: flag
-#endif
 
-    call signalHandlersCall(7)
-    if (stdOutIsATTY()) then
-       write (error_unit,*) displayRed()//displayBold()//'Galacticus experienced a bus error - will try to flush data before exiting.'//displayReset()
-    else
-       write (error_unit,*)                              'Galacticus experienced a bus error - will try to flush data before exiting.'
-    end if
-    !$ if (omp_in_parallel()) then
-    !$    write (error_unit,*) " => Error occurred in thread ",omp_get_thread_num()
-    !$ else
-    !$    write (error_unit,*) " => Error occurred in master thread"
-    !$ end if
-    write (error_unit,*) " => Command line was: ",char(commandLine())
-#ifndef UNCLEANEXIT
-    call closeHDF5()
-#endif
-    call BackTrace  (           )
-    call Warn_Review(           )
-    call Flush      (output_unit)
-    call Flush      ( error_unit)
-#ifdef UNCLEANEXIT
-    call Exit(7)
-#else
-#ifdef USEMPI
-    call MPI_Initialized(flag,error)
-    if (flag) then
-       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
-       call hostnm(hostName)
-       write (error_unit,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
-       write (error_unit,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
-       call Flush(output_unit)
-       call Flush( error_unit)
-       call Sleep(errorWaitTime)
-    end if
-#endif
-    call Exit(7)
-#endif
+    call Signal_Handler(7,'a bus error')
     return
   end subroutine Signal_Handler_SIGBUS
 
@@ -642,57 +560,9 @@ contains
     !!{RST
     Handle ``SIGILL`` signals, by flushing all data and then aborting.
     !!}
-    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
-#ifdef USEMPI
-    use               :: MPI_F08           , only : MPI_Comm_Rank     , MPI_Comm_World
-#endif
-    !$ use            :: OMP_Lib           , only : OMP_Get_Thread_Num, OMP_In_Parallel
-    use               :: Display           , only : displayBold       , displayRed     , displayReset
-    use               :: System_Output     , only : stdOutIsATTY
-    use               :: ISO_Varying_String, only : char
     implicit none
-#ifdef USEMPI
-    integer            :: mpiRank , error
-    character(len=128) :: hostName
-    logical            :: flag
-#endif
 
-    call signalHandlersCall(4)
-    if (stdOutIsATTY()) then
-       write (error_unit,*) displayRed()//displayBold()//'Galacticus experienced an illegal instruction - will try to flush data before exiting.'//displayReset()
-    else
-       write (error_unit,*)                              'Galacticus experienced an illegal instruction - will try to flush data before exiting.'
-    end if
-    !$ if (omp_in_parallel()) then
-    !$    write (error_unit,*) " => Error occurred in thread ",omp_get_thread_num()
-    !$ else
-    !$    write (error_unit,*) " => Error occurred in master thread"
-    !$ end if
-    write (error_unit,*) " => Command line was: ",char(commandLine())
-#ifndef UNCLEANEXIT
-    call closeHDF5()
-#endif
-    call BackTrace  (           )
-    call Warn_Review(           )
-    call Flush      (output_unit)
-    call Flush      ( error_unit)
-#ifdef UNCLEANEXIT
-    call Exit(4)
-#else
-#ifdef USEMPI
-    call MPI_Initialized(flag,error)
-    if (flag) then
-       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
-       call hostnm(hostName)
-       write (error_unit,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
-       write (error_unit,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
-       call Flush(output_unit)
-       call Flush( error_unit)
-       call Sleep(errorWaitTime)
-    end if
-#endif
-    call Exit(4)
-#endif
+    call Signal_Handler(4,'an illegal instruction')
     return
   end subroutine Signal_Handler_SIGILL
 
