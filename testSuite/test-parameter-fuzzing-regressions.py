@@ -93,6 +93,31 @@ cases = [
         4,
     ),
     (
+        "SIDM satellite evaporation without satellite orbits",
+        """  <change type="replaceOrAppend" path="nodeOperator/nodeOperator[@value='CGMCoolingHeating']">
+    <nodeOperator value="satelliteEvaporationSIDM"/>
+  </change>
+""",
+        ("rejected", ['the "satellite" component must provide gettable "position" and "velocity"']),
+        1,
+    ),
+    (
+        "satellite tidal mass loss without satellite orbits",
+        """  <change type="replaceOrAppend" path="nodeOperator/nodeOperator[@value='DMOInterpolate']">
+    <nodeOperator value="satelliteTidalMassLoss"/>
+  </change>
+""",
+        ("rejected", ['the "satellite" component must provide gettable "position" and "velocity"']),
+        1,
+    ),
+    (
+        "primordial power spectrum which diverges",
+        """  <change type="update" path="powerSpectrumPrimordial/running" value="0.807252"/>
+""",
+        ("rejected", ["primordial power spectrum overflows at wavenumber"]),
+        1,
+    ),
+    (
         "failed evolution",
         """  <change type="update" path="nodeOperator/nodeOperator[@value='CGMCoolingHeating']/rateMaximumExpulsion" value="1.0e30"/>
 """,

@@ -137,6 +137,10 @@ contains
     <constructorAssign variables="efficiency, useDynamicalTimeScale, *satelliteTidalStrippingRadius_, *darkMatterHaloScale_"/>
     !!]
 
+    ! Ensure that required methods are supported.
+    !![
+    <componentPropertyAssert class="satellite" properties="position velocity" require="gettable"/>
+    !!]
     return
   end function zentner2005ConstructorInternal
 
