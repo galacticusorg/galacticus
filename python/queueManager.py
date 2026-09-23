@@ -23,7 +23,8 @@ _SLURM_OPTION_MAP = {
     "memory":          "mem"            ,
     "walltime":        "time"           ,
     "logOutput":       "output"         ,
-    "logError":        "error"
+    "logError":        "error"          ,
+    "array":           "array"
 }
 
 

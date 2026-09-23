@@ -117,6 +117,11 @@ contains
     <constructorAssign variables="*cosmologyParameters_, *darkMatterParticle_, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
     !!]
 
+    ! Ensure that required methods are supported.
+    !![
+    <componentPropertyAssert class="satellite" properties="position velocity" require="gettable"/>
+    !!]
+
     ! Initialize the maximum tabulated x to an unphysical value. This will force tabulation on the first attempt to evaluate the
     ! deceleration factor.
     self%xMaximum=-     1.0d0

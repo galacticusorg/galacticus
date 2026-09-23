@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of an active model parameter class.
   !!}
@@ -51,6 +53,7 @@
      procedure :: logPrior           => activeLogPrior
      procedure :: priorSample        => activePriorSample
      procedure :: priorInvert        => activePriorInvert
+     procedure :: priorCumulative    => activePriorCumulative
      procedure :: priorMinimum       => activePriorMinimum
      procedure :: priorMaximum       => activePriorMaximum
      procedure :: randomPerturbation => activeRandomPerturbation
@@ -198,6 +201,18 @@ contains
     activePriorInvert=self%prior%inverse(f)
     return
   end function activePriorInvert
+
+  double precision function activePriorCumulative(self,x)
+    !!{RST
+    Return the cumulative probability of the prior at the given parameter value.
+    !!}
+    implicit none
+    class           (modelParameterActive), intent(inout) :: self
+    double precision                      , intent(in   ) :: x
+
+    activePriorCumulative=self%prior%cumulative(x)
+    return
+  end function activePriorCumulative
 
   double precision function activePriorMinimum(self)
     !!{RST

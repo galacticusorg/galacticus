@@ -24,14 +24,13 @@
    </description>
   </task>
   !!]
-  type, extends(taskClass) :: taskBuildToolCAMB
+  type, extends(taskBuildTool) :: taskBuildToolCAMB
      !!{RST
      Implementation of a task which builds the CAMB tool.
      !!}
      private
    contains
-     procedure :: perform            => buildToolCAMBPerform
-     procedure :: requiresOutputFile => buildToolCAMBRequiresOutputFile
+     procedure :: perform => buildToolCAMBPerform
   end type taskBuildToolCAMB
 
   interface taskBuildToolCAMB
@@ -59,42 +58,15 @@ contains
 
   subroutine buildToolCAMBPerform(self,status)
     !!{RST
-    Builds the tabulation.
+    Builds the tool.
     !!}
-    use :: Display         , only : displayIndent            , displayMessage, displayUnindent
-    use :: Error           , only : errorStatusSuccess
-    use :: Interfaces_CAMB , only : Interface_CAMB_Initialize
+    use :: Interfaces_CAMB           , only : Interface_CAMB_Initialize
+    use :: Tasks_Build_Tool_Utilities, only : Task_Build_Tool
     implicit none
     class  (taskBuildToolCAMB), intent(inout), target   :: self
     integer                   , intent(  out), optional :: status
-    type   (varying_string   )                          :: cambPath, cambVersion
     !$GLC attributes unused :: self
-#include "os.inc"
-    
-    call displayIndent  ('Begin task: CAMB tool build')
-    call Interface_CAMB_Initialize(                    &
-         &                                cambPath   , &
-         &                                cambVersion, &
-#ifdef __APPLE__
-         &                         static=.false.      &
-#else
-         &                         static=.true.       &
-#endif
-         &                        )
-    call displayMessage('CAMB version '//cambVersion//' successfully built in: '//cambPath)
-    if (present(status)) status=errorStatusSuccess
-    call displayUnindent('Done task: CAMB tool build')
+
+    call Task_Build_Tool('CAMB',Interface_CAMB_Initialize,status)
     return
   end subroutine buildToolCAMBPerform
-
-  logical function buildToolCAMBRequiresOutputFile(self)
-    !!{RST
-    Specifies that this task does not requires the main output file.
-    !!}
-    implicit none
-    class(taskBuildToolCAMB), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    buildToolCAMBRequiresOutputFile=.false.
-    return
-  end function buildToolCAMBRequiresOutputFile

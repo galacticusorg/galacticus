@@ -52,9 +52,11 @@ program Tests_SIDM_Kummer_Deceleration
   call displayVerbositySet  (verbosityLevelStandard)
   call eventsHooksInitialize(                      )
   call Functions_Global_Set (                      )
-  ! Initialize the node-component hierarchy (the NFW profile required to construct the deceleration object needs the dark matter
-  ! profile component, with a settable scale radius, to be active).
-  parameters=inputParameters('testSuite/parameters/nodes/nodes_SIDM_parametric.xml')
+  ! Initialize the node-component hierarchy. The NFW profile required to construct the deceleration object needs the dark matter
+  ! profile component, with a settable scale radius, to be active, and the deceleration class itself requires the orbiting
+  ! satellite component - it asserts that the satellite's position and velocity are available when constructed, even though the
+  ! asymptotic factor tested here is analytic and uses neither.
+  parameters=inputParameters('testSuite/parameters/nodes/nodes_SIDM_deceleration.xml')
   call nodeClassHierarchyInitialize     (parameters)
   call Node_Components_Initialize       (parameters)
   call Node_Components_Thread_Initialize(parameters)
