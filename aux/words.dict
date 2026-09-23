@@ -90,6 +90,7 @@ Clopper
 Comptonized
 Correa
 Covington
+Cranley
 Creasey
 Cyburt
 DAO
@@ -178,6 +179,7 @@ MD5
 MNRAS
 Maccio
 Mathematica
+Matérn
 Mazure
 McKee
 Menker
@@ -910,6 +912,7 @@ skewness
 reweighting
 rescales
 quantile
+quantiles
 polytropic
 plasmas
 photometry
@@ -1157,6 +1160,7 @@ rescans
 retrigger
 Sameie
 Schwarzschild
+Sobol
 selectable
 simulaTion
 sizeof

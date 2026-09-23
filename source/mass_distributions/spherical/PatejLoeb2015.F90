@@ -250,12 +250,43 @@ contains
     !!{RST
     Return the density at the specified ``coordinates`` in a :cite:t:`patej_simple_2015` mass distribution.
     !!}
+    use :: Coordinates, only : coordinateSpherical, assignment(=)
+    use :: Error      , only : Error_Report
     implicit none
-    class(massDistributionPatejLoeb2015), intent(inout) :: self
-    class(coordinate                   ), intent(in   ) :: coordinates
+    class           (massDistributionPatejLoeb2015), intent(inout) :: self
+    class           (coordinate                   ), intent(in   ) :: coordinates
+    type            (coordinateSpherical          )                :: coordinatesCenter
+    double precision                                               :: slopeCentral
 
     density=0.0d0
     if (self%truncateAtOuterRadius .and. coordinates%rSpherical() > self%radiusOuter) return
+    ! At zero radius the behavior is set by the logarithmic slope there: that of the scaling factor, 3(γ-1), plus γ times that of
+    ! the scaled distribution - the same expression as the radial gradient below, but evaluated at zero radius directly, as the
+    ! mapping to the scaled distribution's coordinates is itself singular there. A negative slope means a divergent density,
+    ! which is reported (as in the NFW distribution), since returning the largest representable density instead simply moves the
+    ! overflow into whatever uses the result. A positive slope means a vanishing density. A zero slope means a finite, non-zero
+    ! central density: that is the scaled distribution's own central density when the scaling factor is unity (γ=1), but for any
+    ! other γ it is a limit of a divergent density times a vanishing scaling factor, which is not available here.
+    if (coordinates%rSpherical() <= 0.0d0) then
+       coordinatesCenter=[0.0d0,0.0d0,0.0d0]
+       slopeCentral     =+3.0d0     *(self%gamma-1.0d0)                                                           &
+            &            +self%gamma*self%massDistribution_%densityGradientRadial(                                &
+            &                                                                                 coordinatesCenter , &
+            &                                                                     logarithmic=.true.              &
+            &                                                                    )
+       if      (slopeCentral  < 0.0d0) then
+          call Error_Report('density is divergent at zero radius'//{introspection:location})
+       else if (slopeCentral == 0.0d0) then
+          if (self%gamma == 1.0d0) then
+             density=+self%gamma                                                    &
+                  &  *self%densityNormalization                                     &
+                  &  *self%massDistribution_%density               (coordinatesCenter)
+          else
+             call Error_Report('density at zero radius is finite, but is not available in closed form for γ≠1'//{introspection:location})
+          end if
+       end if
+       return
+    end if
     ! Evaluate density using equation 12 of Patej & Loeb (2015).
     density=+self%gamma                                                              &
          &  *self%densityNormalization                                               &

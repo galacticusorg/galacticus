@@ -56,8 +56,9 @@ jobs:
         # python/ pytest suite); all are small wheels so the job stays fast.
         # zstandard supplies zstd where the standard library has none (before
         # Python 3.14), so the launcher's archive tests do not depend on which
-        # interpreter this job happens to resolve `3.x` to.
-        run: python -m pip install --upgrade pip pytest platformdirs requests lxml zstandard
+        # interpreter this job happens to resolve `3.x` to. numpy and h5py are
+        # needed by the emulator file-format tests (python/Galacticus/Emulation).
+        run: python -m pip install --upgrade pip pytest platformdirs requests lxml zstandard numpy h5py
       - name: Run Python regression tests
         run: |
           cd $GITHUB_WORKSPACE
@@ -311,7 +312,7 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-          echo "GALACTICUS_FCFLAGS+=\ -DDEBUGGING" >> $GITHUB_ENV
+          echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -DDEBUGGING" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the code
         run: |
@@ -440,7 +441,7 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-          echo "GALACTICUS_FCFLAGS+=\ -static" >> $GITHUB_ENV
+          echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -static" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: "Install archiving tools"
         # The tools archive is packed with zstd (see the packaging step below), which the build container
@@ -1166,6 +1167,7 @@ jobs:
                       tests.ODE_solver.exe,
                       tests.random.exe,
                       tests.random.quasi.exe,
+                      tests.posterior_sampling.samples_Sobol.exe,
                       tests.arrays.exe,
                       tests.meshes.exe,
                       tests.convex_hulls.exe,
@@ -1712,6 +1714,19 @@ jobs:
     uses: ./.github/workflows/testModel.yml
     with:
       file: test-Local-Group-selection-function.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      cacheData: 1
+    secrets: inherit
+  ### Emulator design
+  ## Generates an emulator design with the `emulatorDesign` task, checks the design file and change files against an
+  ## independent computation of the priors, validates runs by Galacticus dry runs (including rejection of a run which
+  ## violates a parameter bound), and runs two points of quickTest.xml through the campaign driver.
+  Emulator-Design:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-emulator-design.py
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 1

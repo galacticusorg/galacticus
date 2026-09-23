@@ -24,7 +24,7 @@ Implements an orbital radius output analysis property extractor class.
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusOrbital" docformat="rst">
    <description>
-   Extracts the current 3D orbital radius of a satellite node from the center of its host halo, tracking the satellite's position along its orbit for use in analyses of satellite radial distributions and orbital evolution.
+   Extracts the current 3D orbital radius of a node: the magnitude of its position relative to the top-level halo of its sub-halo hierarchy, as computed by :galacticus-class:`nodePropertyExtractorPositionOrbital`, for use in analyses of satellite radial distributions and orbital evolution.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -70,30 +70,19 @@ contains
     !!{RST
     Implement a radiusOrbital output analysis.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite
-    use :: Vectors         , only : Vector_Magnitude
+    use :: Galacticus_Nodes    , only : nodeComponentBasic
+    use :: Node_Orbital_Offsets, only : Node_Orbital_Offset
+    use :: Vectors             , only : Vector_Magnitude
     implicit none
     class           (nodePropertyExtractorRadiusOrbital), intent(inout), target   :: self
     type            (treeNode                          ), intent(inout), target   :: node
     type            (multiCounter                      ), intent(inout), optional :: instance
-    type            (treeNode                          ), pointer                 :: nodeWork
-    class           (nodeComponentSatellite            ), pointer                 :: satellite
+    class           (nodeComponentBasic                ), pointer                 :: basic
     double precision                                    , dimension(3)            :: position
     !$GLC attributes unused :: self, instance
 
-    position =  0.0d0
-    nodeWork => node
-    ! Walk up through all host halos of this node, accumulating position offsets from the host node center.
-    do while (associated(nodeWork))
-       satellite =>  nodeWork %satellite()
-       position  =  +          position    &
-            &       +satellite%position ()
-       if (nodeWork%isSatellite()) then
-          nodeWork => nodeWork%parent
-       else
-          nodeWork => null()
-       end if
-    end do
+    basic => node%basic()
+    call Node_Orbital_Offset(node,basic%time(),position=position)
     radiusOrbitalExtract=Vector_Magnitude(position)
     return
   end function radiusOrbitalExtract

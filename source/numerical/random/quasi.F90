@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements quasi-random sequences.
 !!}
@@ -42,6 +44,10 @@ module Numerical_Quasi_Random_Sequences
   integer, public, parameter :: gsl_qrng_sobol         =2
   integer, public, parameter :: gsl_qrng_halton        =3
   integer, public, parameter :: gsl_qrng_reversehalton =4
+
+  ! Maximum dimensions supported by each sequence type. GSL does not enforce these limits itself: for a Sobol sequence of
+  ! more than 40 dimensions `gsl_qrng_alloc` returns a generator without error, but the sequence it produces is invalid.
+  integer, parameter, dimension(4) :: dimensionMaximum=[12,40,1229,1229]
 
   interface
      function gsl_qrng_alloc(T,d) bind(c,name='gsl_qrng_alloc')
@@ -94,16 +100,20 @@ module Numerical_Quasi_Random_Sequences
      !!}
      private
      type   (resourceManager)              :: qrngManager
-     type   (gslQRNGWrapper ), pointer     :: gsl_qrng      => null()
+     type   (gslQRNGWrapper ), pointer     :: gsl_qrng       => null()
      type   (c_ptr          ), allocatable :: gsl_qrng_type
-     integer                               :: qrngType
+     integer                               :: qrngType                , countDimensions_
    contains
      !![
      <methods docformat="rst">
-       <method description="Get numbers from the sequence." method="get" />
+       <method description="Get the next number from a one-dimensional sequence." method="get"       />
+       <method description="Get the next point from a sequence of any dimension." method="getVector" />
+       <method description="Return the dimension of the sequence."                method="dimensions"/>
      </methods>
      !!]
-     procedure :: get => quasiRandomNumberGeneratorGet
+     procedure :: get        => quasiRandomNumberGeneratorGet
+     procedure :: getVector  => quasiRandomNumberGeneratorGetVector
+     procedure :: dimensions => quasiRandomNumberGeneratorDimensions
   end type quasiRandomNumberGenerator
   
   interface quasiRandomNumberGenerator
@@ -115,26 +125,40 @@ module Numerical_Quasi_Random_Sequences
   
 contains
 
-  function quasiRandomNumberGeneratorConstructor(qrngType) result(self)
+  function quasiRandomNumberGeneratorConstructor(qrngType,countDimensions) result(self)
     !!{RST
-    Constructor for ``quasiRandomNumberGenerator`` objects.
+    Constructor for ``quasiRandomNumberGenerator`` objects. The sequence is one-dimensional unless ``countDimensions`` is given.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : var_str     , operator(//)
+    use :: String_Handling   , only : operator(//)
     implicit none
     type   (quasiRandomNumberGenerator)                          :: self
-    integer                            , intent(in   ), optional :: qrngType
+    integer                            , intent(in   ), optional :: qrngType     , countDimensions
     class  (*                         ), pointer                 :: dummyPointer_
     !![
-    <optionalArgument name="qrngType" defaultsTo="gsl_qrng_sobol"/>
+    <optionalArgument name="qrngType"        defaultsTo="gsl_qrng_sobol"/>
+    <optionalArgument name="countDimensions" defaultsTo="1"             />
     !!]
     
+    ! Validate the sequence type and dimension.
+    if (qrngType_ < 1 .or. qrngType_ > size(dimensionMaximum))                                   &
+         & call Error_Report('unknown quasi-random sequence type'//{introspection:location})
+    if (countDimensions_ < 1 .or. countDimensions_ > dimensionMaximum(qrngType_))                &
+         & call Error_Report(                                                                    &
+         &                   var_str('quasi-random sequence dimension must be between 1 and ')// &
+         &                   dimensionMaximum(qrngType_)                                      // &
+         &                   ' for this sequence type'                                        // &
+         &                   {introspection:location}                                            &
+         &                  )
     ! Get the interpolator type.
-    self%qrngType=qrngType_
+    self%qrngType        =qrngType_
+    self%countDimensions_=countDimensions_
     allocate(self%gsl_qrng_type)
     self%gsl_qrng_type=gsl_qrng_type_get(qrngType_)
     ! Allocate the sequence.
     allocate(self%gsl_qrng)
-    self%gsl_qrng%gsl=gsl_qrng_alloc (self%gsl_qrng_type,1)
+    self%gsl_qrng%gsl=gsl_qrng_alloc (self%gsl_qrng_type,countDimensions_)
     !![
     <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
@@ -171,10 +195,41 @@ contains
     double precision                            , dimension(1)  :: sequenceNext
     integer         (c_int                     )                :: status
 
+    if (self%countDimensions_ /= 1) call Error_Report('`get` requires a one-dimensional sequence - use `getVector` instead'//{introspection:location})
     status=GSL_qRng_Get(self%gsl_qrng%gsl,sequenceNext)
     if (status /= GSL_Success) call Error_Report('failed to get next entry in quasi-random sequence'//{introspection:location})
     quasiRandomNumberGeneratorGet=sequenceNext(1)
     return
   end function quasiRandomNumberGeneratorGet
+
+  subroutine quasiRandomNumberGeneratorGetVector(self,sequenceNext)
+    !!{RST
+    Return the next point in the quasi-random sequence. Note that, as implemented by GSL, the sequence omits its first point
+    (the origin), so for a Sobol sequence the first :math:`2^m-1` points returned here, together with the origin, form a
+    balanced :math:`2^m`-point set.
+    !!}
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
+    implicit none
+    class           (quasiRandomNumberGenerator), intent(inout)               :: self
+    double precision                            , intent(  out), dimension(:) :: sequenceNext
+    integer         (c_int                     )                              :: status
+
+    if (size(sequenceNext) /= self%countDimensions_) call Error_Report('array size does not match the sequence dimension'//{introspection:location})
+    status=GSL_qRng_Get(self%gsl_qrng%gsl,sequenceNext)
+    if (status /= GSL_Success) call Error_Report('failed to get next entry in quasi-random sequence'//{introspection:location})
+    return
+  end subroutine quasiRandomNumberGeneratorGetVector
+
+  integer function quasiRandomNumberGeneratorDimensions(self)
+    !!{RST
+    Return the dimension of the quasi-random sequence.
+    !!}
+    implicit none
+    class(quasiRandomNumberGenerator), intent(in   ) :: self
+
+    quasiRandomNumberGeneratorDimensions=self%countDimensions_
+    return
+  end function quasiRandomNumberGeneratorDimensions
   
 end module Numerical_Quasi_Random_Sequences

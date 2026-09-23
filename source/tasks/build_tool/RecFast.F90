@@ -24,14 +24,13 @@
    </description>
   </task>
   !!]
-  type, extends(taskClass) :: taskBuildToolRecFast
+  type, extends(taskBuildTool) :: taskBuildToolRecFast
      !!{RST
      Implementation of a task which builds the RecFast tool.
      !!}
      private
    contains
-     procedure :: perform            => buildToolRecFastPerform
-     procedure :: requiresOutputFile => buildToolRecFastRequiresOutputFile
+     procedure :: perform => buildToolRecFastPerform
   end type taskBuildToolRecFast
 
   interface taskBuildToolRecFast
@@ -59,42 +58,15 @@ contains
 
   subroutine buildToolRecFastPerform(self,status)
     !!{RST
-    Builds the tabulation.
+    Builds the tool.
     !!}
-    use :: Display           , only : displayIndent               , displayMessage, displayUnindent
-    use :: Error  , only : errorStatusSuccess
-    use :: Interfaces_RecFast, only : Interface_RecFast_Initialize
+    use :: Interfaces_RecFast        , only : Interface_RecFast_Initialize
+    use :: Tasks_Build_Tool_Utilities, only : Task_Build_Tool
     implicit none
     class  (taskBuildToolRecFast), intent(inout), target   :: self
     integer                      , intent(  out), optional :: status
-    type   (varying_string      )                          :: recfastPath, recfastVersion
     !$GLC attributes unused :: self
-#include "os.inc"
 
-    call displayIndent ('Begin task: RecFast tool build')
-    call Interface_RecFast_Initialize(                       &
-         &                                   recfastPath   , &
-         &                                   recfastVersion, &
-#ifdef __APPLE__
-         &                            static=.false.         &
-#else
-         &                            static=.true.          &
-#endif
-         &                           )
-    call displayMessage('RecFast version '//recfastVersion//' successfully built in: '//recfastPath)
-    if (present(status)) status=errorStatusSuccess
-    call displayUnindent('Done task: RecFast tool build')
+    call Task_Build_Tool('RecFast',Interface_RecFast_Initialize,status)
     return
   end subroutine buildToolRecFastPerform
-
-  logical function buildToolRecFastRequiresOutputFile(self)
-    !!{RST
-    Specifies that this task does not requires the main output file.
-    !!}
-    implicit none
-    class(taskBuildToolRecFast), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    buildToolRecFastRequiresOutputFile=.false.
-    return
-  end function buildToolRecFastRequiresOutputFile

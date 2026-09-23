@@ -24,14 +24,13 @@
    </description>
   </task>
   !!]
-  type, extends(taskClass) :: taskBuildToolCloudy
+  type, extends(taskBuildTool) :: taskBuildToolCloudy
      !!{RST
      Implementation of a task which builds the Cloudy tool.
      !!}
      private
    contains
-     procedure :: perform            => buildToolCloudyPerform
-     procedure :: requiresOutputFile => buildToolCloudyRequiresOutputFile
+     procedure :: perform => buildToolCloudyPerform
   end type taskBuildToolCloudy
 
   interface taskBuildToolCloudy
@@ -59,42 +58,15 @@ contains
 
   subroutine buildToolCloudyPerform(self,status)
     !!{RST
-    Builds the tabulation.
+    Builds the tool.
     !!}
-    use :: Display          , only : displayIndent              , displayMessage, displayUnindent
-    use :: Error , only : errorStatusSuccess
-    use :: Interfaces_Cloudy, only : Interface_Cloudy_Initialize
+    use :: Interfaces_Cloudy         , only : Interface_Cloudy_Initialize
+    use :: Tasks_Build_Tool_Utilities, only : Task_Build_Tool
     implicit none
     class  (taskBuildToolCloudy), intent(inout), target   :: self
     integer                     , intent(  out), optional :: status
-    type   (varying_string     )                          :: cloudyPath, cloudyVersion
     !$GLC attributes unused :: self
-#include "os.inc"
 
-    call displayIndent  ('Begin task: Cloudy tool build')
-    call Interface_Cloudy_Initialize(                      &
-         &                                  cloudyPath   , &
-         &                                  cloudyVersion, &
-#ifdef __APPLE__
-         &                           static=.false.        &
-#else
-         &                           static=.true.         &
-#endif
-         &                          )
-    call displayMessage('Cloudy version '//cloudyVersion//' successfully built in: '//cloudyPath)
-    if (present(status)) status=errorStatusSuccess
-    call displayUnindent('Done task: Cloudy tool build')
+    call Task_Build_Tool('Cloudy',Interface_Cloudy_Initialize,status)
     return
   end subroutine buildToolCloudyPerform
-
-  logical function buildToolCloudyRequiresOutputFile(self)
-    !!{RST
-    Specifies that this task does not requires the main output file.
-    !!}
-    implicit none
-    class(taskBuildToolCloudy), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    buildToolCloudyRequiresOutputFile=.false.
-    return
-  end function buildToolCloudyRequiresOutputFile
