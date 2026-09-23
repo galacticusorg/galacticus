@@ -1255,6 +1255,7 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="equilibrium"/>
           <xs:enumeration value="fixed"/>
+          <xs:enumeration value="hooked"/>
           <xs:enumeration value="linear"/>
           <xs:enumeration value="null"/>
           <xs:enumeration value="simple"/>
@@ -1848,6 +1849,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="baugh2005"/>
+          <xs:enumeration value="memoized"/>
           <xs:enumeration value="simple"/>
           <xs:enumeration value="verySimple"/>
          </xs:restriction>
@@ -1883,6 +1885,7 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="cole2000"/>
           <xs:enumeration value="covington2008"/>
+          <xs:enumeration value="memoized"/>
           <xs:enumeration value="null"/>
          </xs:restriction>
         </xs:simpleType>

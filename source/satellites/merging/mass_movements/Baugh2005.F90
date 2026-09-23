@@ -21,8 +21,6 @@
   Implements a merger mass movements class using the :cite:t:`baugh_can_2005` model.
   !!}
 
-  use :: Kind_Numbers, only : kind_int8
-
   !![
   <mergerMassMovements name="mergerMassMovementsBaugh2005" docformat="rst">
    <description>
@@ -38,22 +36,17 @@
    </description>
   </mergerMassMovements>
   !!]
-  type, extends(mergerMassMovementsClass) :: mergerMassMovementsBaugh2005
+  type, extends(mergerMassMovementsMemoized) :: mergerMassMovementsBaugh2005
      !!{RST
      A merger mass movements class which uses the :cite:t:`baugh_can_2005` calculation.
      !!}
      private
-     double precision                                   :: massRatioMajorMerger     , ratioMassBurst           , &
+     double precision                                   :: massRatioMajorMerger     , ratioMassBurst, &
           &                                                fractionGasCriticalBurst
      type            (enumerationDestinationMergerType) :: destinationGasMinorMerger
-     integer         (kind=kind_int8                  ) :: lastUniqueID
-     type            (enumerationDestinationMergerType) :: destinationGasSatellite  , destinationStarsSatellite, &
-          &                                                destinationGasHost       , destinationStarsHost
-     logical                                            :: mergerIsMajor            , movementsCalculated
    contains
-     final     ::             baugh2005Destructor
-     procedure :: autoHook => baugh2005AutoHook
-     procedure :: get      => baugh2005Get
+     final     ::              baugh2005Destructor
+     procedure :: calculate => baugh2005Calculate
   end type mergerMassMovementsBaugh2005
 
   interface mergerMassMovementsBaugh2005
@@ -132,94 +125,21 @@ contains
     <constructorAssign variables="massRatioMajorMerger, destinationGasMinorMerger, ratioMassBurst, fractionGasCriticalBurst"/>
     !!]
 
-    self%lastUniqueID             =-huge(0_kind_int8)
-    self%destinationGasSatellite  =destinationMergerUnmoved
-    self%destinationStarsSatellite=destinationMergerUnmoved
-    self%destinationGasHost       =destinationMergerUnmoved
-    self%destinationStarsHost     =destinationMergerUnmoved
-    self%mergerIsMajor            =.false.
-    self%movementsCalculated      =.false.
     return
   end function baugh2005ConstructorInternal
-
-  subroutine baugh2005AutoHook(self)
-    !!{RST
-    Attach to the calculation reset event.
-    !!}
-    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels, satelliteMergerEvent
-    implicit none
-    class(mergerMassMovementsBaugh2005), intent(inout) :: self
-
-    call calculationResetEvent%attach(self,baugh2005CalculationReset,openMPThreadBindingAllLevels,label='remnantStructure:massMovementsBaugh2005')
-    call satelliteMergerEvent %attach(self,baugh2005GetHook         ,openMPThreadBindingAllLevels,label='remnantStructure:massMovementsBaugh2005')
-    return
-  end subroutine baugh2005AutoHook
 
   subroutine baugh2005Destructor(self)
     !!{RST
     Destructor for the :galacticus-class:`mergerMassMovementsBaugh2005` merger mass movements class.
     !!}
-    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none
     type(mergerMassMovementsBaugh2005), intent(inout) :: self
 
-    if (calculationResetEvent%isAttached(self,baugh2005CalculationReset)) call calculationResetEvent%detach(self,baugh2005CalculationReset)
-    if (satelliteMergerEvent %isAttached(self,baugh2005GetHook         )) call satelliteMergerEvent %detach(self,baugh2005GetHook         )
+    call self%detachHooks()
     return
   end subroutine baugh2005Destructor
 
-  subroutine baugh2005CalculationReset(self,node,uniqueID)
-    !!{RST
-    Reset the dark matter profile calculation.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: Kind_Numbers      , only : kind_int8
-    use :: ISO_Varying_String, only : char
-    use :: Function_Classes  , only : functionClass
-    implicit none
-    class  (*        ), intent(inout) :: self
-    type   (treeNode ), intent(inout) :: node
-    integer(kind_int8), intent(in   ) :: uniqueID
-    !$GLC attributes unused :: node
-
-    select type (self)
-    class is (mergerMassMovementsBaugh2005)
-       self%movementsCalculated=.false.
-       self%lastUniqueID       =uniqueID
-    class is (functionClass)
-       call Error_Report('object is not of [mergerMassMovementsBaugh2005] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
-    class default
-       call Error_Report('object is not of [mergerMassMovementsBaugh2005] class'//{introspection:location})
-    end select
-    return
-  end subroutine baugh2005CalculationReset
-
-  subroutine baugh2005GetHook(self,node)
-    !!{RST
-    Hookable wrapper around the get function.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : char
-    use :: Function_Classes  , only : functionClass
-    implicit none
-    class  (*                               ), intent(inout)         :: self
-    type   (treeNode                        ), intent(inout), target :: node
-    type   (enumerationDestinationMergerType)                        :: destinationGasSatellite, destinationGasHost       , &
-         &                                                              destinationStarsHost   , destinationStarsSatellite
-    logical                                                          :: mergerIsMajor
-
-    select type (self)
-    type is (mergerMassMovementsBaugh2005)
-       call self%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
-    class is (functionClass)
-       call Error_Report('object is not of [mergerMassMovementsBaugh2005] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
-    class default
-       call Error_Report('object is not of [mergerMassMovementsBaugh2005] class'//{introspection:location})
-    end select
-    return
-  end subroutine baugh2005GetHook
-
-  subroutine baugh2005Get(self,node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
+  subroutine baugh2005Calculate(self,node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
     !!{RST
     Determine how different mass components should be redistributed as the result of a merger according to the model of :cite:t:`baugh_can_2005`.
     !!}
@@ -239,61 +159,49 @@ contains
          &                                                                       massSpheroidHost            , massGasHost
     logical                                                                   :: triggersBurst
     
-    ! The calculation of how mass moves as a result of the merger is computed when first needed and then stored. This ensures that
-    ! the results are determined by the properties of the merge target prior to any modification that will occur as node
-    ! components are modified in response to the merger.
-    if (node%uniqueID() /= self%lastUniqueID) call baugh2005CalculationReset(self,node,node%uniqueID())
-    if (.not.self%movementsCalculated) then
-       self%movementsCalculated =  .true.
-       nodeHost                        =>  node                           %mergesWith      (                                                             )
-       massDistributionSatellite       =>  node                           %massDistribution(                                    massType=massTypeGalactic) 
-       massDistributionHost            =>  nodeHost                       %massDistribution(                                    massType=massTypeGalactic)
-       massDistributionHostSpheroid    =>  nodeHost                       %massDistribution(componentType=componentTypeSpheroid,massType=massTypeGalactic)
-       massDistributionHostDiskGas     =>  nodeHost                       %massDistribution(componentType=componentTypeDisk    ,massType=massTypeGaseous )
-       massDistributionHostSpheroidGas =>  nodeHost                       %massDistribution(componentType=componentTypeSpheroid,massType=massTypeGaseous )
-       massSatellite                   =  +massDistributionSatellite      %massTotal       (                                                             )
-       massHost                        =  +massDistributionHost           %massTotal       (                                                             )
-       massGasHost                     =  +massDistributionHostDiskGas    %massTotal       (                                                             ) &
-            &                             +massDistributionHostSpheroidGas%massTotal       (                                                             )
-       massSpheroidHost                =  +massDistributionHostSpheroid   %massTotal       (                                                             )
-       self%mergerIsMajor              =    massSatellite    >= self%massRatioMajorMerger    *massHost
-       triggersBurst                   =                        self%mergerIsMajor                     &
-            &                             .or.                                                         &
-            &                              (                                                           &
-            &                               massSpheroidHost <  self%ratioMassBurst          *massHost &
-            &                                .and.                                                     &
-            &                               massGasHost      >= self%fractionGasCriticalBurst*massHost &
-            &                              )
-       !![
-       <objectDestructor name="massDistributionSatellite"      />
-       <objectDestructor name="massDistributionHost"           />
-       <objectDestructor name="massDistributionHostDiskGas"    />
-       <objectDestructor name="massDistributionHostSpheroidGas"/>
-       <objectDestructor name="massDistributionHostSpheroid"   />
-       !!]
-        if (self%mergerIsMajor) then
-          self%destinationGasSatellite     =    destinationMergerSpheroid
-          self%destinationStarsSatellite   =    destinationMergerSpheroid
-          self%destinationGasHost          =    destinationMergerSpheroid
-          self%destinationStarsHost        =    destinationMergerSpheroid
+    nodeHost                        =>  node                           %mergesWith      (                                                             )
+    massDistributionSatellite       =>  node                           %massDistribution(                                    massType=massTypeGalactic) 
+    massDistributionHost            =>  nodeHost                       %massDistribution(                                    massType=massTypeGalactic)
+    massDistributionHostSpheroid    =>  nodeHost                       %massDistribution(componentType=componentTypeSpheroid,massType=massTypeGalactic)
+    massDistributionHostDiskGas     =>  nodeHost                       %massDistribution(componentType=componentTypeDisk    ,massType=massTypeGaseous )
+    massDistributionHostSpheroidGas =>  nodeHost                       %massDistribution(componentType=componentTypeSpheroid,massType=massTypeGaseous )
+    massSatellite                   =  +massDistributionSatellite      %massTotal       (                                                             )
+    massHost                        =  +massDistributionHost           %massTotal       (                                                             )
+    massGasHost                     =  +massDistributionHostDiskGas    %massTotal       (                                                             ) &
+         &                             +massDistributionHostSpheroidGas%massTotal       (                                                             )
+    massSpheroidHost                =  +massDistributionHostSpheroid   %massTotal       (                                                             )
+    mergerIsMajor                   =    massSatellite    >= self%massRatioMajorMerger    *massHost
+    triggersBurst                   =    mergerIsMajor                                              &
+         &                             .or.                                                         &
+         &                              (                                                           &
+         &                               massSpheroidHost <  self%ratioMassBurst          *massHost &
+         &                                .and.                                                     &
+         &                               massGasHost      >= self%fractionGasCriticalBurst*massHost &
+         &                              )
+    !![
+    <objectDestructor name="massDistributionSatellite"      />
+    <objectDestructor name="massDistributionHost"           />
+    <objectDestructor name="massDistributionHostDiskGas"    />
+    <objectDestructor name="massDistributionHostSpheroidGas"/>
+    <objectDestructor name="massDistributionHostSpheroid"   />
+    !!]
+    if (mergerIsMajor) then
+       destinationGasSatellite  =    destinationMergerSpheroid
+       destinationStarsSatellite=    destinationMergerSpheroid
+       destinationGasHost       =    destinationMergerSpheroid
+       destinationStarsHost     =    destinationMergerSpheroid
+    else
+       if (triggersBurst) then
+          destinationGasSatellite  =    destinationMergerSpheroid
+          destinationStarsSatellite=    destinationMergerSpheroid
+          destinationGasHost       =    destinationMergerSpheroid
+          destinationStarsHost     =    destinationMergerUnmoved
        else
-          if (triggersBurst) then
-             self%destinationGasSatellite  =    destinationMergerSpheroid
-             self%destinationStarsSatellite=    destinationMergerSpheroid
-             self%destinationGasHost       =    destinationMergerSpheroid
-             self%destinationStarsHost     =    destinationMergerUnmoved
-          else
-             self%destinationGasSatellite  =self%destinationGasMinorMerger
-             self%destinationStarsSatellite=    destinationMergerSpheroid
-             self%destinationGasHost       =    destinationMergerUnmoved
-             self%destinationStarsHost     =    destinationMergerUnmoved
-          end if
+          destinationGasSatellite  =self%destinationGasMinorMerger
+          destinationStarsSatellite=    destinationMergerSpheroid
+          destinationGasHost       =    destinationMergerUnmoved
+          destinationStarsHost     =    destinationMergerUnmoved
        end if
     end if
-    mergerIsMajor            =self%mergerIsMajor
-    destinationGasSatellite  =self%destinationGasSatellite
-    destinationStarsSatellite=self%destinationStarsSatellite
-    destinationGasHost       =self%destinationGasHost
-    destinationStarsHost     =self%destinationStarsHost
     return
-  end subroutine baugh2005Get
+  end subroutine baugh2005Calculate
