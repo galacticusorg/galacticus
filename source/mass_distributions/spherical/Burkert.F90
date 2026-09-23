@@ -946,11 +946,11 @@ contains
     use :: Input_Parameters, only : inputParameters, descriptorParameterName
     implicit none
     class    (massDistributionBurkert), intent(inout)           :: self
-    type     (inputParameters    ), intent(inout)           :: descriptor
-    logical                       , intent(in   ), optional :: includeClass  , includeFileModificationTimes
-    character(len=*)              , intent(in   ), optional :: parameterName
-    character(len=18             )                          :: parameterLabel
-    type     (inputParameters    )                          :: parameters
+    type     (inputParameters        ), intent(inout)           :: descriptor
+    logical                           , intent(in   ), optional :: includeClass  , includeFileModificationTimes
+    character(len=*                  ), intent(in   ), optional :: parameterName
+    character(len=18                 )                          :: parameterLabel
+    type     (inputParameters        )                          :: parameters
 
     if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('massDistribution',parameterName),'Burkert')
     parameters=descriptor%subparameters(descriptorParameterName('massDistribution',parameterName))

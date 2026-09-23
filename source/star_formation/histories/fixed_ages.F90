@@ -842,12 +842,12 @@ contains
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
     use :: Input_Parameters  , only : inputParameters, descriptorParameterName
-    use :: ISO_Varying_String, only : assignment(=)  , char, operator(//)
+    use :: ISO_Varying_String, only : assignment(=)  , char                   , operator(//)
     implicit    none
     class    (starFormationHistoryFixedAges), intent(inout)           :: self
     type     (inputParameters              ), intent(inout)           :: descriptor
     logical                                 , intent(in   ), optional :: includeClass              , includeFileModificationTimes
-    character(len=*)                        , intent(in   ), optional :: parameterName
+    character(len=*                        ), intent(in   ), optional :: parameterName
     character(len=18                       )                          :: parameterLabel
     type     (inputParameters              )                          :: parameters
     integer                                                           :: i

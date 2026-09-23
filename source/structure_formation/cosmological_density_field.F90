@@ -356,7 +356,7 @@ module Cosmological_Density_Field
     <modules>Input_Parameters</modules>
     <argument>type     (inputParameters), intent(inout)           :: descriptor                                </argument>
     <argument>logical                   , intent(in   ), optional :: includeClass, includeFileModificationTimes</argument>
-    <argument>character(len=*        ), intent(in   ), optional :: parameterName                             </argument>
+    <argument>character(len=*          ), intent(in   ), optional :: parameterName                             </argument>
     <code>
       call self%descriptor(descriptor,includeClass,includeFileModificationTimes,parameterName)
     </code>

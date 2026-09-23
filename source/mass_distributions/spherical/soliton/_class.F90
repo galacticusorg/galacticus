@@ -443,8 +443,8 @@
      class    (massDistributionSoliton), intent(inout)           :: self
      type     (inputParameters        ), intent(inout)           :: descriptor
      logical                           , intent(in   ), optional :: includeClass  , includeFileModificationTimes
-     character(len=*)                  , intent(in   ), optional :: parameterName
-     character(len=18)                                           :: parameterLabel
+     character(len=*                  ), intent(in   ), optional :: parameterName
+     character(len=18                 )                          :: parameterLabel
      type     (inputParameters        )                          :: parameters
      !$GLC attributes unused :: includeFileModificationTimes
      

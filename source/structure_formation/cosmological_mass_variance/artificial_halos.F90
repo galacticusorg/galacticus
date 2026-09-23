@@ -313,8 +313,8 @@ contains
     implicit none
     class    (cosmologicalMassVarianceArtificialHalos), intent(inout)           :: self
     type     (inputParameters                        ), intent(inout)           :: descriptor
-    logical                                           , intent(in   ), optional :: includeClass, includeFileModificationTimes
-    character(len=*)                                  , intent(in   ), optional :: parameterName
+    logical                                           , intent(in   ), optional :: includeClass , includeFileModificationTimes
+    character(len=*                                  ), intent(in   ), optional :: parameterName
     type     (inputParameters                        )                          :: parameters
 
     if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('cosmologicalMassVariance',parameterName),'filteredPower')

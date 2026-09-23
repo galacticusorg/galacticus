@@ -163,11 +163,11 @@ contains
       !!}
       use Input_Parameters, only : inputParameters, descriptorParameterName
       implicit none
-      class  (powerSpectrumStandard), intent(inout)           :: self
-      type   (inputParameters      ), intent(inout)           :: descriptor
-      logical                       , intent(in   ), optional :: includeClass, includeFileModificationTimes
-      character(len=*)              , intent(in   ), optional :: parameterName
-      type   (inputParameters      )                          :: parameters
+      class    (powerSpectrumStandard), intent(inout)           :: self
+      type     (inputParameters      ), intent(inout)           :: descriptor
+      logical                         , intent(in   ), optional :: includeClass , includeFileModificationTimes
+      character(len=*                ), intent(in   ), optional :: parameterName
+      type     (inputParameters      )                          :: parameters
       !![
       <optionalArgument name="includeClass" defaultsTo=".true." />
       !!]

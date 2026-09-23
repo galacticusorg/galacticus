@@ -30,10 +30,10 @@ module Input_Parameters
   !!{RST
   Implements reading of parameters from an XML file.
   !!}
-  use, intrinsic :: ISO_C_Binding     , only : c_char         , c_int
+  use, intrinsic :: ISO_C_Binding     , only : c_char            , c_int
   use            :: FoX_dom           , only : node
   use            :: Function_Classes  , only : functionClass
-  use            :: IO_HDF5           , only : hdf5File, hdf5Group
+  use            :: IO_HDF5           , only : hdf5File          , hdf5Group
   use            :: ISO_Varying_String, only : varying_string
   use            :: Kind_Numbers      , only : kind_int8
   use            :: String_Handling   , only : char
@@ -41,8 +41,7 @@ module Input_Parameters
   use            :: Resource_Manager  , only : resourceManager
   private
   public :: inputParameters                 , inputParameter                         , inputParameterList                           , Input_Parameters_Build_Stack_Push, &
-       &    Input_Parameters_Build_Stack_Pop, Input_Parameters_Build_Stack_Object_Set, Input_Parameters_Build_Stack_Recursive_Object, &
-       &    descriptorParameterName
+       &    Input_Parameters_Build_Stack_Pop, Input_Parameters_Build_Stack_Object_Set, Input_Parameters_Build_Stack_Recursive_Object, descriptorParameterName
   !![
   <generic identifier="Type">
    <instance label="Logical"        intrinsic="logical"                                          outputConverter="regEx¦(.*)¦char($1)¦"/>
@@ -320,9 +319,9 @@ contains
     attribute), and otherwise the name of the class, ``nameDefault``.
     !!}
     implicit none
-    character(len=:), allocatable                     :: name
-    character(len=*), intent(in   )                   :: nameDefault
-    character(len=*), intent(in   ), optional         :: parameterName
+    character(len=:), allocatable             :: name
+    character(len=*), intent(in   )           :: nameDefault
+    character(len=*), intent(in   ), optional :: parameterName
 
     if (present(parameterName)) then
        name=parameterName

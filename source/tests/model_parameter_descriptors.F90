@@ -29,25 +29,25 @@ program Test_Model_Parameter_Descriptors
   the descriptors of normal and log-normal distributions describe them correctly, and that a model parameter rebuilt from
   its descriptor has the same prior.
   !!}
-  use :: Display           , only : displayVerbositySet, verbosityLevelStandard
+  use :: Display           , only : displayVerbositySet   , verbosityLevelStandard
   use :: Error             , only : Error_Handler_Register
   use :: Events_Hooks      , only : eventsHooksInitialize
   use :: Input_Parameters  , only : inputParameters
-  use :: ISO_Varying_String, only : var_str            , varying_string        , char
+  use :: ISO_Varying_String, only : var_str               , varying_string        , char
   use :: Model_Parameters  , only : modelParameterClass
-  use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests        , only : Assert                , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  integer                              , parameter                 :: countTrials   =9
-  type            (inputParameters    )                            :: parameters          , parametersSimulation, &
-       &                                                              descriptor          , descriptorParameter , &
+  integer                              , parameter                 :: countTrials      =9
+  type            (inputParameters    )                            :: parameters                                            , parametersSimulation, &
+       &                                                              descriptor                                            , descriptorParameter , &
        &                                                              descriptorPrior
-  class           (modelParameterClass), pointer                   :: modelParameter_     , modelParameterRebuilt_
-  type            (varying_string     )                            :: classPrior          , classPerturber
-  character       (len=32             ), dimension(3  ), parameter :: classExpected=['logNormal','logNormal','normal   ']
-  double precision                                                 :: x0                  , sigma               , &
-       &                                                              limitLower          , differenceMaximum   , &
-       &                                                              u                   , x
-  integer                                                          :: i                   , k
+  class           (modelParameterClass), pointer                   :: modelParameter_                                       , modelParameterRebuilt_
+  type            (varying_string     )                            :: classPrior                                            , classPerturber
+  character       (len=32             ), dimension(3  ), parameter :: classExpected   =['logNormal','logNormal','normal   ']
+  double precision                                                 :: x0                                                    , sigma               , &
+       &                                                              limitLower                                            , differenceMaximum   , &
+       &                                                              u                                                     , x
+  integer                                                          :: i                                                     , k
 
   call displayVerbositySet(verbosityLevelStandard)
   call Error_Handler_Register()
@@ -71,7 +71,7 @@ program Test_Model_Parameter_Descriptors
      call descriptorParameter%value('distributionFunction1DPrior'    ,classPrior    )
      call descriptorParameter%value('distributionFunction1DPerturber',classPerturber)
      call Assert('prior class'    ,char(classPrior    ),trim(classExpected(i)))
-     call Assert('perturber class',char(classPerturber),'cauchy'               )
+     call Assert('perturber class',char(classPerturber),'cauchy'              )
      descriptorPrior=descriptorParameter%subParameters('distributionFunction1DPrior')
      select case (i)
      case (1)
@@ -90,10 +90,10 @@ program Test_Model_Parameter_Descriptors
         call descriptorPrior%value('sigma'     ,sigma     )
         call descriptorPrior%value('limitUpper',limitLower)
         call Assert('x0 (from mean and variance)'   ,x0        ,3.0d0/sqrt(1.0d0+2.0d0/3.0d0**2),relTol=1.0d-9)
-        call Assert('sigma (from mean and variance)',sigma     ,sqrt(log(1.0d0+2.0d0/3.0d0**2)),relTol=1.0d-9)
-        call Assert('upper limit (not its log)'     ,limitLower,20.0d0                         ,relTol=1.0d-9)
+        call Assert('sigma (from mean and variance)',sigma     ,sqrt(log(1.0d0+2.0d0/3.0d0**2)) ,relTol=1.0d-9)
+        call Assert('upper limit (not its log)'     ,limitLower,20.0d0                          ,relTol=1.0d-9)
      case (3)
-        call Assert('no upper limit'                ,descriptorPrior%isPresent('limitUpper'),.false.)
+        call Assert('no upper limit',descriptorPrior%isPresent('limitUpper'),.false.)
      end select
      ! Rebuild the model parameter from its descriptor, and check that its prior is unchanged. A log-normal descriptor holding an
      ! invalid width can not be rebuilt (the constructor would raise a floating point exception, losing the output of this test),

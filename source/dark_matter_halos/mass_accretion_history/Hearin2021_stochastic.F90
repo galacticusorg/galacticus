@@ -886,8 +886,8 @@ contains
     implicit none
     class    (darkMatterHaloMassAccretionHistoryHearin2021Stochastic), intent(inout)           :: self
     type     (inputParameters                                       ), intent(inout)           :: descriptor
-    logical                                                          , intent(in   ), optional :: includeClass  ,includeFileModificationTimes
-    character(len=*)                                                 , intent(in   ), optional :: parameterName
+    logical                                                          , intent(in   ), optional :: includeClass  , includeFileModificationTimes
+    character(len=*                                                 ), intent(in   ), optional :: parameterName
     character(len=18                                                )                          :: parameterLabel
     type     (inputParameters                                       )                          :: parameters
 

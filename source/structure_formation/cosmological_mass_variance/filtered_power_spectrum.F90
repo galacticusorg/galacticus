@@ -1814,8 +1814,8 @@ contains
     implicit none
     class    (cosmologicalMassVarianceFilteredPower), intent(inout)           :: self
     type     (inputParameters                      ), intent(inout)           :: descriptor
-    logical                                         , intent(in   ), optional :: includeClass, includeFileModificationTimes
-    character(len=*)                                , intent(in   ), optional :: parameterName
+    logical                                         , intent(in   ), optional :: includeClass , includeFileModificationTimes
+    character(len=*                                ), intent(in   ), optional :: parameterName
     type     (inputParameters                      )                          :: parameters
 
     call self%descriptorNormalizationOnly(descriptor,includeClass,includeFileModificationTimes,parameterName)
@@ -1833,7 +1833,7 @@ contains
     class    (cosmologicalMassVarianceFilteredPower), intent(inout)           :: self
     type     (inputParameters                      ), intent(inout)           :: descriptor
     logical                                         , intent(in   ), optional :: includeClass  , includeFileModificationTimes
-    character(len=*)                                , intent(in   ), optional :: parameterName
+    character(len=*                                ), intent(in   ), optional :: parameterName
     character(len=18                               )                          :: parameterLabel
     type     (inputParameters                      )                          :: parameters    , referenceParameters
 

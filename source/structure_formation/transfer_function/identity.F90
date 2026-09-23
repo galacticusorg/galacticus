@@ -200,10 +200,10 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters, descriptorParameterName
     implicit none
-    class  (transferFunctionIdentity), intent(inout)           :: self
-    type   (inputParameters         ), intent(inout)           :: descriptor
-    logical                          , intent(in   ), optional :: includeClass, includeFileModificationTimes
-    character(len=*)                 , intent(in   ), optional :: parameterName
+    class    (transferFunctionIdentity), intent(inout)           :: self
+    type     (inputParameters         ), intent(inout)           :: descriptor
+    logical                            , intent(in   ), optional :: includeClass , includeFileModificationTimes
+    character(len=*                   ), intent(in   ), optional :: parameterName
     !$GLC attributes unused :: self, includeFileModificationTimes
 
     if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('transferFunction',parameterName),'identity')
