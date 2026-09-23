@@ -107,6 +107,35 @@ cases = [
         4,
     ),
     (
+        "mass movement destination which the component does not implement",
+        """  <change type="replaceOrAppend" path="mergerMassMovements">
+    <mergerMassMovements value="simple">
+      <destinationStarsMinorMerger value="unmoved"/>
+    </mergerMassMovements>
+  </change>
+""",
+        ("rejected", ["the `unmoved` destination of [destinationStarsSatellite] is not supported"]),
+        1,
+    ),
+    (
+        "star formation rate set for a disk which does not exist",
+        """  <change type="replaceOrAppend" path="starFormationRateDisks">
+    <starFormationRateDisks value="fixed"/>
+  </change>
+""",
+        ("rejected", ["a non-zero rate was set for the `massGas` property of the `disk` component"]),
+        1,
+    ),
+    (
+        "operator which needs a component that is not present",
+        """  <change type="replaceOrAppend" path="nodeOperator/nodeOperator[@value='CGMOuterRadiusRamPressureStripping']">
+    <nodeOperator value="positionToHost"/>
+  </change>
+""",
+        ("rejected", ["attempt to set the `position` property of the null `position` component"]),
+        1,
+    ),
+    (
         "SIDM satellite evaporation without satellite orbits",
         """  <change type="replaceOrAppend" path="nodeOperator/nodeOperator[@value='CGMCoolingHeating']">
     <nodeOperator value="satelliteEvaporationSIDM"/>

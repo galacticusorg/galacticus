@@ -21,8 +21,13 @@ from Galacticus.Build.Components.Utils import (
 
 
 # Module-level fingerprint cache: a single build process generates each
-# unique null function exactly once.
-_null_function_fingerprints = set()
+# unique null function exactly once. `set` functions are generated per-property
+# (see `create_null_function`), so the name each fingerprint was given is
+# recorded, along with the number of functions sharing each base name, from
+# which the suffix distinguishing them is formed - the property name itself
+# would exceed the 63 character limit on a Fortran name.
+_null_function_fingerprints = {}
+_null_function_counts       = {}
 
 
 def create_null_function(build, descriptor):
@@ -36,11 +41,17 @@ def create_null_function(build, descriptor):
     * `attribute` — one of `"get"`, `"set"`, `"rate"`, `"scale"`,
                     `"analytic"`, `"inactive"`.
     * `intent`    — `"in"` / `"inout"` / `"out"` for the `self` argument.
-    * `property`  — sub-dict carrying at least `type` and `rank`.
+    * `property`  — sub-dict carrying at least `type` and `rank`, and, for a
+                    `set` attribute, `name`: setting a value in a null
+                    component is an error, so those functions are generated
+                    per-property in order to name the property responsible.
     """
     prop = descriptor['property']
+    # A `set` function reports an error naming the component and property, so it can not be shared between properties.
+    named = descriptor['attribute'] == 'set' and prop.get('name') is not None
     fingerprint = ":".join(str(descriptor[k]) for k in ('selfType', 'attribute', 'intent')) \
-                + ":" + ":".join(str(prop[k]) for k in ('type', 'rank'))
+                + ":" + ":".join(str(prop[k]) for k in ('type', 'rank')) \
+                + (":" + prop['name'] if named else "")
 
     function_name = (
         "null"
@@ -49,8 +60,12 @@ def create_null_function(build, descriptor):
     )
 
     if fingerprint in _null_function_fingerprints:
-        return function_name
-    _null_function_fingerprints.add(fingerprint)
+        return _null_function_fingerprints[fingerprint]
+    count = _null_function_counts.get(function_name, 0)
+    _null_function_counts[function_name] = count+1
+    if count > 0:
+        function_name += f"_{count}"
+    _null_function_fingerprints[fingerprint] = function_name
 
     self_type = "nodeComponent" + (
         "" if descriptor['selfType'] == "generic" else descriptor['selfType']
@@ -155,8 +170,14 @@ def create_null_function(build, descriptor):
             null_value = f"null{_ucfirst(prop['type'])}{prop['rank']}d"
         function['content'] += f"getValue={null_value}\n"
     if attribute == 'set':
+        # Name the component class and property, so that the error identifies what must be created (or not set).
+        if named:
+            target = (f"the `{prop['name']}` property of the null "
+                      f"`{descriptor['selfType']}` component")
+        else:
+            target = "a value in a null component"
         function['content'] += (
-            "call Error_Report('attempt to set value in null component'"
+            f"call Error_Report('attempt to set {target}'"
             "//{introspection:location})\n"
         )
 
@@ -172,6 +193,7 @@ def reset_fingerprints():
     `_null_function_fingerprints` and skip emitting the function.
     """
     _null_function_fingerprints.clear()
+    _null_function_counts      .clear()
 
 
 def _ucfirst(text):
