@@ -52,12 +52,12 @@
    </description>
   </galacticStructureSolver>
   !!]
-  type, extends(galacticStructureSolverClass) :: galacticStructureSolverFixed
+  type, extends(galacticStructureSolverHooked) :: galacticStructureSolverFixed
      !!{RST
      Implementation of a "fixed" solver for galactic structure (no self-gravity of baryons, and size simply scales in proportion to specific angular momentum).
      !!}
      private
-     double precision                                      :: factor                          , factorDisk        , &
+     double precision                                      :: factor                          , factorDisk, &
           &                                                   factorSpheroid
      type            (enumerationRadiusFixedType)          :: radiusFixed
      class           (darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_   => null()
@@ -66,7 +66,6 @@
      final     ::             fixedDestructor
      procedure :: solve    => fixedSolve
      procedure :: revert   => fixedRevert
-     procedure :: autoHook => fixedAutoHook
   end type galacticStructureSolverFixed
 
   interface galacticStructureSolverFixed
@@ -171,29 +170,10 @@ contains
     return
   end function fixedConstructorInternal
 
-  subroutine fixedAutoHook(self)
-    !!{RST
-    Attach to various event hooks.
-    !!}
-    use :: Events_Hooks, only : nodePromotionEvent  , openMPThreadBindingAtLevel, postEvolveEvent, preDerivativeEvent, &
-          &                     satelliteMergerEvent, dependencyDirectionAfter  , dependencyRegEx
-    implicit none
-    class(galacticStructureSolverFixed), intent(inout) :: self
-    type (dependencyRegEx             ), dimension(1)  :: dependencies
-
-    dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')
-    call   preDerivativeEvent%attach(self,fixedSolvePreDeriativeHook,openMPThreadBindingAtLevel,label='structureSolverFixed',dependencies=dependencies)
-    call      postEvolveEvent%attach(self,fixedSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverFixed',dependencies=dependencies)
-    call satelliteMergerEvent%attach(self,fixedSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverFixed',dependencies=dependencies)
-    call   nodePromotionEvent%attach(self,fixedSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverFixed',dependencies=dependencies)
-    return
-  end subroutine fixedAutoHook
-
   subroutine fixedDestructor(self)
     !!{RST
     Destructor for the :galacticus-class:`galacticStructureSolverFixed` galactic structure solver class.
     !!}
-    use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none
     type(galacticStructureSolverFixed), intent(inout) :: self
 
@@ -201,58 +181,9 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_"  />
     <objectDestructor name="self%virialDensityContrast_"/>
     !!]
-    if (  preDerivativeEvent%isAttached(self,fixedSolvePreDeriativeHook)) call   preDerivativeEvent%detach(self,fixedSolvePreDeriativeHook)
-    if (     postEvolveEvent%isAttached(self,fixedSolveHook            )) call      postEvolveEvent%detach(self,fixedSolveHook            )
-    if (satelliteMergerEvent%isAttached(self,fixedSolveHook            )) call satelliteMergerEvent%detach(self,fixedSolveHook            )
-    if (  nodePromotionEvent%isAttached(self,fixedSolveHook            )) call   nodePromotionEvent%detach(self,fixedSolveHook            )
+    call self%detachHooks()
     return
   end subroutine fixedDestructor
-
-  subroutine fixedSolveHook(self,node)
-    !!{RST
-    Hookable wrapper around the solver.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : char
-    use :: Function_Classes  , only : functionClass
-    implicit none
-    class(*       ), intent(inout)         :: self
-    type (treeNode), intent(inout), target :: node
-
-    select type (self)
-    type is (galacticStructureSolverFixed)
-       call self%solve(node)
-    class is (functionClass)
-       call Error_Report('object is not of [galacticStructureSolverFixed] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
-    class default
-       call Error_Report('object is not of [galacticStructureSolverFixed] class'//{introspection:location})
-    end select
-    return
-  end subroutine fixedSolveHook
-
-  subroutine fixedSolvePreDeriativeHook(self,node,propertyType)
-    !!{RST
-    Hookable wrapper around the solver.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : char
-    use :: Function_Classes  , only : functionClass
-    implicit none
-    class  (*       ), intent(inout)         :: self
-    type   (treeNode), intent(inout), target :: node
-    integer          , intent(in   )         :: propertyType
-    !$GLC attributes unused :: propertyType
-
-    select type (self)
-    type is (galacticStructureSolverFixed)
-       call self%solve(node)
-    class is (functionClass)
-       call Error_Report('object is not of [galacticStructureSolverFixed] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
-    class default
-       call Error_Report('object is not of [galacticStructureSolverFixed] class'//{introspection:location})
-    end select
-    return
-  end subroutine fixedSolvePreDeriativeHook
 
   subroutine fixedSolve(self,node,plausibilityOnly)
     !!{RST

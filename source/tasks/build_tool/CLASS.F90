@@ -24,14 +24,13 @@
    </description>
   </task>
   !!]
-  type, extends(taskClass) :: taskBuildToolCLASS
+  type, extends(taskBuildTool) :: taskBuildToolCLASS
      !!{RST
      Implementation of a task which builds the CLASS tool.
      !!}
      private
    contains
-     procedure :: perform            => buildToolCLASSPerform
-     procedure :: requiresOutputFile => buildToolCLASSRequiresOutputFile
+     procedure :: perform => buildToolCLASSPerform
   end type taskBuildToolCLASS
 
   interface taskBuildToolCLASS
@@ -59,42 +58,15 @@ contains
 
   subroutine buildToolCLASSPerform(self,status)
     !!{RST
-    Builds the tabulation.
+    Builds the tool.
     !!}
-    use :: Display         , only : displayIndent             , displayMessage, displayUnindent
-    use :: Error, only : errorStatusSuccess
-    use :: Interfaces_CLASS, only : Interface_CLASS_Initialize
+    use :: Interfaces_CLASS          , only : Interface_CLASS_Initialize
+    use :: Tasks_Build_Tool_Utilities, only : Task_Build_Tool
     implicit none
     class  (taskBuildToolCLASS), intent(inout), target   :: self
     integer                    , intent(  out), optional :: status
-    type   (varying_string    )                          :: classPath, classVersion
     !$GLC attributes unused :: self
-#include "os.inc"
 
-    call displayIndent  ('Begin task: CLASS tool build')
-    call Interface_CLASS_Initialize(                     &
-         &                                 classPath   , &
-         &                                 classVersion, &
-#ifdef __APPLE__
-         &                          static=.false.       &
-#else
-         &                          static=.true.        &
-#endif
-         &                         )
-    call displayMessage('CLASS version '//classVersion//' successfully built in: '//classPath)
-    if (present(status)) status=errorStatusSuccess
-    call displayUnindent('Done task: CLASS tool build')
+    call Task_Build_Tool('CLASS',Interface_CLASS_Initialize,status)
     return
   end subroutine buildToolCLASSPerform
-
-  logical function buildToolCLASSRequiresOutputFile(self)
-    !!{RST
-    Specifies that this task does not requires the main output file.
-    !!}
-    implicit none
-    class(taskBuildToolCLASS), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    buildToolCLASSRequiresOutputFile=.false.
-    return
-  end function buildToolCLASSRequiresOutputFile

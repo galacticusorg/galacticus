@@ -204,24 +204,17 @@ contains
     end function crossSectionLymanAlphaLineCenter
     
     subroutine icmProperties(radius,numberDensityHydrogen,temperature,abundancesICM,densityChemicalICM)
-      use :: Abundances_Structure             , only : abundances
-      use :: Chemical_Abundances_Structure    , only : chemicalAbundances
-      use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Fraction_Conversion
-      use :: Galacticus_Nodes                 , only : nodeComponentHotHalo
-      use :: Numerical_Constants_Atomic       , only : massHydrogenAtom
-      use :: Numerical_Constants_Prefixes     , only : hecto
-      use :: Numerical_Constants_Astronomical , only : massSolar                            , megaParsec
-      use :: Coordinates                      , only : coordinateSpherical                  , assignment(=)
+      use :: Abundances_Structure         , only : abundances
+      use :: Chemical_Abundances_Structure, only : chemicalAbundances
+      use :: Coordinates                  , only : coordinateSpherical     , assignment(=)
+      use :: Hot_Halo_Composition         , only : Hot_Halo_Gas_Composition, Hydrogen_Number_Density
       implicit none
       double precision                      , intent(in   ) :: radius
-      double precision                      , intent(  out) :: numberDensityHydrogen  , temperature
+      double precision                      , intent(  out) :: numberDensityHydrogen, temperature
       type            (abundances          ), intent(  out) :: abundancesICM
       type            (chemicalAbundances  ), intent(  out) :: densityChemicalICM
-      class           (nodeComponentHotHalo), pointer       :: hotHalo
-      type            (chemicalAbundances  )                :: massChemicalICM
       type            (coordinateSpherical )                :: coordinates
-      double precision                                      :: density                , massICM     , &
-           &                                                   massToDensityConversion
+      double precision                                      :: density
 
       ! Set the coordinates.
       coordinates     =  [radius,0.0d0,0.0d0]
@@ -229,30 +222,10 @@ contains
       density         =  massDistribution_      %density    (coordinates)
       ! Get the temperature of the ICM.
       temperature     =  kinematicsDistribution_%temperature(coordinates)
-      ! Get abundances and chemistry of the ICM.
-      hotHalo         => node   %hotHalo   ()
-      massICM         =  hotHalo%mass      ()
-      abundancesICM   =  hotHalo%abundances()
-      massChemicalICM =  hotHalo%chemicals ()
-      call abundancesICM  %massToMassFraction(           massICM)
-      call massChemicalICM%massToNumber      (densityChemicalICM)
-      ! Compute factor converting mass of chemicals in (M☉) to number density in cm⁻³ per total mass density.
-      if (hotHalo%mass() > 0.0d0) then
-         massToDensityConversion=Chemicals_Mass_To_Fraction_Conversion(hotHalo%mass())
-      else
-         massToDensityConversion=0.0d0
-      end if
-      ! Convert to number density.
-      densityChemicalICM= densityChemicalICM      &
-           &             *massToDensityConversion &
-           &             *density
-      ! Compute number density of hydrogen (in cm⁻³).
-      numberDensityHydrogen=+density                                    &
-           &                *abundancesICM   %hydrogenMassFraction()    &
-           &                *massSolar                                  &
-           &                /massHydrogenAtom                           &
-           &                /hecto                                  **3 &
-           &                /megaParsec                             **3
+      ! Get abundances and chemistry of the ICM (as number densities in cm⁻³), and the number density of hydrogen (in cm⁻³).
+      call Hot_Halo_Gas_Composition(node,abundancesICM,densityChemicalICM)
+      densityChemicalICM   =densityChemicalICM*density
+      numberDensityHydrogen=Hydrogen_Number_Density(density,abundancesICM)
       return
     end subroutine icmProperties
     
