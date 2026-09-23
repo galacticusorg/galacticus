@@ -1,0 +1,64 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Generate a small emulator design (used by testSuite/test-emulator-design.py). The varied parameters are those of
+     parameters/quickTest.xml, so that the change files can be applied to that model. -->
+
+<parameters>
+  <lastModified revision="74cfed540662649f82b9b24b27745bcf63724277" time="2026-09-23T00:00:00"/>
+  <formatVersion>2</formatVersion>
+
+  <task value="emulatorDesign">
+    <designFileName     value="testSuite/outputs/emulatorDesign/design.hdf5"/>
+    <changeFilesRoot    value="testSuite/outputs/emulatorDesign/changes/point"/>
+    <outputFileNameRoot value="testSuite/outputs/emulatorDesign/models/point"/>
+
+    <!-- A parameter selected by value from among multiple copies, with a truncated log-normal prior. -->
+    <modelParameter value="active">
+      <name value="nodeOperator/nodeOperator[@value='stellarFeedbackDisks']/stellarFeedbackOutflows/stellarFeedbackOutflows/velocityCharacteristic"/>
+      <distributionFunction1DPrior value="logNormal">
+        <x0         value="250.0"/>
+        <sigma      value="0.5"/>
+        <limitLower value="25.0"/>
+        <limitUpper value="500.0"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="logarithm"/>
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0"/>
+        <scale value="1.0e-3"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+    <!-- A parameter with a uniform prior. -->
+    <modelParameter value="active">
+      <name value="hotHaloOutflowReincorporation/multiplier"/>
+      <distributionFunction1DPrior value="uniform">
+        <limitLower value="1.0"/>
+        <limitUpper value="10.0"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0"/>
+        <scale value="1.0e-3"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+    <!-- A parameter with a log-uniform prior. -->
+    <modelParameter value="active">
+      <name value="blackHoleWind/efficiencyWind"/>
+      <distributionFunction1DPrior value="logUniform">
+        <limitLower value="2.4e-4"/>
+        <limitUpper value="2.4e-2"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="logarithm"/>
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0"/>
+        <scale value="1.0e-3"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+
+    <posteriorSamples value="sobol">
+      <countSamples value="16"/>
+    </posteriorSamples>
+  </task>
+
+  <randomNumberGenerator value="GSL">
+    <seed value="42"/>
+  </randomNumberGenerator>
+</parameters>

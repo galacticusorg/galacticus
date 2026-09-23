@@ -4077,6 +4077,7 @@
           <xs:enumeration value="catalogProjectedCorrelationFunction"/>
           <xs:enumeration value="comovingDistances"/>
           <xs:enumeration value="conditionalMassFunction"/>
+          <xs:enumeration value="emulatorDesign"/>
           <xs:enumeration value="evolveForests"/>
           <xs:enumeration value="excursionSets"/>
           <xs:enumeration value="haloMassFunction"/>
