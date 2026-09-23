@@ -1717,6 +1717,19 @@ jobs:
       runPath: ./testSuite
       cacheData: 1
     secrets: inherit
+  ### Emulator design
+  ## Generates an emulator design with the `emulatorDesign` task, checks the design file and change files against an
+  ## independent computation of the priors, validates runs by Galacticus dry runs (including rejection of a run which
+  ## violates a parameter bound), and runs two points of quickTest.xml through the campaign driver.
+  Emulator-Design:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-emulator-design.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      cacheData: 1
+    secrets: inherit
   ### Regressions
   Regressions:
     needs: Build-Executable-Linux
