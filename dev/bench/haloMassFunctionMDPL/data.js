@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790128314103,
+  "lastUpdate": 1790254818722,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (MDPL)": [
@@ -2044,6 +2044,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "Halo mass function - Likelihood - MDPL HugeMDPL CDM resolutionX1 z=3.037",
             "value": 44.42329516656287,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL MDPL2 CDM resolutionX1 z=0.000",
+            "value": 340.26458827991576,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL MDPL2 CDM resolutionX1 z=0.987",
+            "value": 283.8723965673446,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL MDPL2 CDM resolutionX1 z=3.127",
+            "value": 172.59611832138276,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL SMDPL CDM resolutionX1 z=0.000",
+            "value": 383.16106881425446,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL VSMDPL CDM resolutionX1 z=0.000",
+            "value": 399.1093968579319,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fad2612eb89e50031dba306ad741d66d73e77a25",
+          "message": "Merge pull request #1556 from galacticusorg/fix/descriptor-prior-perturber-lognormal\n\nfix: descriptors of objects built from renamed parameters, and of normal/log-normal distributions",
+          "timestamp": "2026-09-24T05:53:15Z",
+          "tree_id": "bcd5c87307a0a5df2563c5971d9fae3b64644f48",
+          "url": "https://github.com/galacticusorg/galacticus/commit/fad2612eb89e50031dba306ad741d66d73e77a25"
+        },
+        "date": 1790254817528,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - MDPL BigMDPL CDM resolutionX1 z=0.000",
+            "value": 265.84134720555204,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL HugeMDPL CDM resolutionX1 z=0.000",
+            "value": 232.03585701418214,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL HugeMDPL CDM resolutionX1 z=0.987",
+            "value": 155.14008626678827,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL HugeMDPL CDM resolutionX1 z=3.037",
+            "value": 44.4234255208135,
             "unit": "-logℒ"
           },
           {
