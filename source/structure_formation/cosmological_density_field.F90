@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which provides a class that implements critical overdensity.
 !!}
@@ -352,10 +354,11 @@ module Cosmological_Density_Field
     <type>void</type>
     <pass>yes</pass>
     <modules>Input_Parameters</modules>
-    <argument>type   (inputParameters), intent(inout)           :: descriptor                                </argument>
-    <argument>logical                 , intent(in   ), optional :: includeClass, includeFileModificationTimes</argument>
+    <argument>type     (inputParameters), intent(inout)           :: descriptor                                </argument>
+    <argument>logical                   , intent(in   ), optional :: includeClass, includeFileModificationTimes</argument>
+    <argument>character(len=*          ), intent(in   ), optional :: parameterName                             </argument>
     <code>
-      call self%descriptor(descriptor,includeClass,includeFileModificationTimes)
+      call self%descriptor(descriptor,includeClass,includeFileModificationTimes,parameterName)
     </code>
    </method>
    <method name="powerNormalization" >

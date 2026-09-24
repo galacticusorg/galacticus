@@ -1168,6 +1168,7 @@ jobs:
                       tests.random.exe,
                       tests.random.quasi.exe,
                       tests.posterior_sampling.samples_Sobol.exe,
+                      tests.model_parameter_descriptors.exe,
                       tests.arrays.exe,
                       tests.meshes.exe,
                       tests.convex_hulls.exe,

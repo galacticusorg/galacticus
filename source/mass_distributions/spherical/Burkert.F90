@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a Burkert :cite:p:`burkert_structure_1995` mass distribution class.
   !!}
@@ -882,20 +884,21 @@ contains
          return
   end function burkertEnergyPotential
   
-  subroutine burkertDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
+  subroutine burkertDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
     !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
-    use :: Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters, descriptorParameterName
     implicit none
     class    (massDistributionBurkert), intent(inout)           :: self
-    type     (inputParameters    ), intent(inout)           :: descriptor
-    logical                       , intent(in   ), optional :: includeClass  , includeFileModificationTimes
-    character(len=18             )                          :: parameterLabel
-    type     (inputParameters    )                          :: parameters
+    type     (inputParameters        ), intent(inout)           :: descriptor
+    logical                           , intent(in   ), optional :: includeClass  , includeFileModificationTimes
+    character(len=*                  ), intent(in   ), optional :: parameterName
+    character(len=18                 )                          :: parameterLabel
+    type     (inputParameters        )                          :: parameters
 
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('massDistribution','Burkert')
-    parameters=descriptor%subparameters('massDistribution')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('massDistribution',parameterName),'Burkert')
+    parameters=descriptor%subparameters(descriptorParameterName('massDistribution',parameterName))
     write (parameterLabel,'(e17.10)') self%densityNormalization
     call parameters%addParameter('densityNormalization',trim(adjustl(parameterLabel)))
     write (parameterLabel,'(e17.10)') self%scaleLength

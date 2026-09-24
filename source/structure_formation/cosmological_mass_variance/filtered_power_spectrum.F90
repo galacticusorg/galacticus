@@ -1806,37 +1806,39 @@ contains
     return
   end function filteredPowerRemakeTable
 
-  subroutine filteredPowerDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
+  subroutine filteredPowerDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
     !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
-    use :: Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters, descriptorParameterName
     implicit none
     class    (cosmologicalMassVarianceFilteredPower), intent(inout)           :: self
     type     (inputParameters                      ), intent(inout)           :: descriptor
-    logical                                         , intent(in   ), optional :: includeClass, includeFileModificationTimes
+    logical                                         , intent(in   ), optional :: includeClass , includeFileModificationTimes
+    character(len=*                                ), intent(in   ), optional :: parameterName
     type     (inputParameters                      )                          :: parameters
 
-    call self%descriptorNormalizationOnly(descriptor,includeClass,includeFileModificationTimes)
-    parameters=descriptor%subparameters('cosmologicalMassVariance')
+    call self%descriptorNormalizationOnly(descriptor,includeClass,includeFileModificationTimes,parameterName)
+    parameters=descriptor%subparameters(descriptorParameterName('cosmologicalMassVariance',parameterName))
     call self%powerSpectrumWindowFunction_%descriptor(parameters,includeClass,includeFileModificationTimes)
     return
   end subroutine filteredPowerDescriptor
 
-  subroutine filteredPowerDescriptorNormalizationOnly(self,descriptor,includeClass,includeFileModificationTimes)
+  subroutine filteredPowerDescriptorNormalizationOnly(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
     !!{RST
     Return an input parameter list descriptor which could be used to recreate this object, for power spectrum normalization usage only (i.e. we exclude the window function).
     !!}
-    use :: Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters, descriptorParameterName
     implicit none
     class    (cosmologicalMassVarianceFilteredPower), intent(inout)           :: self
     type     (inputParameters                      ), intent(inout)           :: descriptor
     logical                                         , intent(in   ), optional :: includeClass  , includeFileModificationTimes
+    character(len=*                                ), intent(in   ), optional :: parameterName
     character(len=18                               )                          :: parameterLabel
     type     (inputParameters                      )                          :: parameters    , referenceParameters
 
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('cosmologicalMassVariance','filteredPower')
-    parameters=descriptor%subparameters('cosmologicalMassVariance')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('cosmologicalMassVariance',parameterName),'filteredPower')
+    parameters=descriptor%subparameters(descriptorParameterName('cosmologicalMassVariance',parameterName))
     if (self%normalizationSigma8) then
        write (parameterLabel,'(e17.10)') self%sigma8Value
        call parameters%addParameter('sigma_8'                ,trim(adjustl(parameterLabel)))

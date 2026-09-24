@@ -932,8 +932,9 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
                                for o in potential_names.get('objects', [])):
                             descriptor_parameters.setdefault(
                                 'objects', []).append({
-                                    'name':   obj_name,
-                                    'source': d['source'],
+                                    'name':          obj_name,
+                                    'source':        d['source'],
+                                    'parameterName': d.get('parameterName'),
                                 })
                         elif obj_name in potential_names.get(
                                 'linkedListObjects', []):
@@ -1025,15 +1026,19 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
                 descriptor_code += " else\n"
                 descriptor_code += "  includeClass_=.true.\n"
                 descriptor_code += " end if\n"
+                # The object is added under `parameterName` if given (i.e. if it was built from a parameter whose name
+                # differs from that of its class), otherwise under the name of its class.
                 descriptor_code += (
                     f" if (includeClass_) call descriptor%addParameter"
-                    f"('{directive['name']}','{label}')\n"
+                    f"(descriptorParameterName('{directive['name']}',"
+                    f"parameterName),'{label}')\n"
                 )
                 if descriptor_parameters:
                     add_sub_parameters['parameters'] = True
                     descriptor_code += (
                         f"parameters=descriptor%subparameters"
-                        f"('{directive['name']}')\n"
+                        f"(descriptorParameterName('{directive['name']}',"
+                        f"parameterName))\n"
                     )
                     for sp_name in sorted(sub_parameters.keys()):
                         add_sub_parameters[sp_name] = True
@@ -1367,12 +1372,19 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
                                 )
 
                     for obj in descriptor_parameters.get('objects') or []:
+                        # An object built from a parameter whose name differs from that of its class must be described
+                        # under that name, or two objects of the same class (e.g. a prior and a perturber) collide.
+                        parameter_name = (
+                            f",parameterName='{obj['parameterName']}'"
+                            if obj.get('parameterName') else ''
+                        )
                         descriptor_code += (
                             f"if (associated(self%{obj['name']})) "
                             f"call self%{obj['name']}%descriptor"
                             f"(parameters,includeClass=.true.,"
                             f"includeFileModificationTimes="
-                            f"includeFileModificationTimes)\n"
+                            f"includeFileModificationTimes"
+                            f"{parameter_name})\n"
                         )
                     for linked in descriptor_parameters.get(
                             'linkedLists') or []:
@@ -1388,7 +1400,8 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
                         f"call self%{extension_of}%descriptor"
                         f"(descriptor,includeClass=.false.,"
                         f"includeFileModificationTimes="
-                        f"includeFileModificationTimes)\n"
+                        f"includeFileModificationTimes,"
+                        f"parameterName=parameterName)\n"
                     )
             elif (not declaration_matches
                     and 'descriptorSpecial' not in non_abstract):
@@ -1511,7 +1524,7 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
         descriptor_code = "logical :: includeClass_\n" + descriptor_code
     else:
         descriptor_code = (
-            " !$GLC attributes unused :: descriptor, includeClass\n"
+            " !$GLC attributes unused :: descriptor, includeClass, parameterName\n"
             + descriptor_code
         )
     if add_sub_parameters:
@@ -1543,6 +1556,7 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
             'type(inputParameters), intent(inout) :: descriptor',
             'logical, intent(in   ), optional :: includeClass, '
             'includeFileModificationTimes',
+            'character(len=*), intent(in   ), optional :: parameterName',
         ],
         'code':        descriptor_code,
     }
@@ -4089,13 +4103,14 @@ def _generate_recursive_shim(directive, methods, non_abstract_classes,
         f'   end function {shim_type}ObjectType\n\n'
     )
     post['content'] += (
-        f'   subroutine {shim_type}Descriptor(self,descriptor,includeClass,includeFileModificationTimes)\n'
+        f'   subroutine {shim_type}Descriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)\n'
         '      use Input_Parameters, only : inputParameters\n'
         '      implicit none\n'
         f'      class({shim_type}    ), intent(inout)           :: self\n'
         '      type (inputParameters), intent(inout)           :: descriptor\n'
         '      logical               , intent(in   ), optional :: includeClass, includeFileModificationTimes\n'
-        '      call self%recursiveSelf%descriptor(descriptor,includeClass,includeFileModificationTimes)\n'
+        '      character(len=*)      , intent(in   ), optional :: parameterName\n'
+        '      call self%recursiveSelf%descriptor(descriptor,includeClass,includeFileModificationTimes,parameterName)\n'
         f'   end subroutine {shim_type}Descriptor\n\n'
     )
     post['content'] += (

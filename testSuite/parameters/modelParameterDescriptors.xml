@@ -1,0 +1,59 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameters for the model parameter descriptor unit test (tests.model_parameter_descriptors.exe). -->
+
+<parameters>
+  <lastModified revision="e99e3876de518165c98e1b25d5c8d13ffb808fa4" time="2026-09-23T00:00:00"/>
+  <formatVersion>2</formatVersion>
+
+  <!-- A grid simulation, as a container for model parameters. It is not run. -->
+  <posteriorSampleSimulation value="grid">
+    <!-- A truncated log-normal prior, specified by its median and width. -->
+    <modelParameter value="active">
+      <name value="parameterLogNormalMedian"/>
+      <distributionFunction1DPrior value="logNormal">
+        <x0         value="250.0"/>
+        <sigma      value="0.5"/>
+        <limitLower value="25.0"/>
+        <limitUpper value="500.0"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="logarithm"/>
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0"/>
+        <scale value="1.0e-3"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+    <!-- A log-normal prior, specified by its mean and variance. -->
+    <modelParameter value="active">
+      <name value="parameterLogNormalMean"/>
+      <distributionFunction1DPrior value="logNormal">
+        <mean       value="3.0"/>
+        <variance   value="2.0"/>
+        <limitLower value="0.5"/>
+        <limitUpper value="20.0"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="logarithm"/>
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0"/>
+        <scale value="1.0e-3"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+    <!-- A normal prior with only a lower limit. -->
+    <modelParameter value="active">
+      <name value="parameterNormal"/>
+      <distributionFunction1DPrior value="normal">
+        <mean       value="0.25"/>
+        <variance   value="0.01"/>
+        <limitLower value="0.00"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0"/>
+        <scale value="1.0e-3"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+  </posteriorSampleSimulation>
+
+  <randomNumberGenerator value="GSL">
+    <seed value="42"/>
+  </randomNumberGenerator>
+</parameters>

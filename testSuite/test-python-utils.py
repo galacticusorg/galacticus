@@ -4811,8 +4811,10 @@ def test_functionclass_build_descriptor_methods():
     assert_equal('logical :: includeFileModificationTimes_' in d_code, True,
                  "descriptor emits includeFileModificationTimes_ decl")
     assert_equal("if (includeClass_) call descriptor%addParameter"
-                 "('testFoo','simple')" in d_code, True,
-                 "descriptor class header emitted under includeClass_")
+                 "(descriptorParameterName('testFoo',parameterName),'simple')" in d_code, True,
+                 "descriptor class header emitted under includeClass_ (named by parameterName if given)")
+    assert_equal(any('parameterName' in argument for argument in methods['descriptor']['argument']), True,
+                 "descriptor accepts an optional parameterName")
     assert_equal("write (parameterLabel,'(e17.10)') self%paramA" in d_code,
                  True, "double-precision param written with e17.10")
     assert_equal("call parameters%addParameter('paramA',"

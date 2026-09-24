@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of the :term:`IGM` state class for a simplistic model of instantaneous and full reionization.
   !!}
@@ -234,20 +236,21 @@ contains
     return
   end function simpleTemperature
 
-  subroutine simpleDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
+  subroutine simpleDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
     !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
-    use :: Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters, descriptorParameterName
     implicit none
     class    (intergalacticMediumStateSimple), intent(inout)           :: self
     type     (inputParameters               ), intent(inout)           :: descriptor
     logical                                  , intent(in   ), optional :: includeClass  , includeFileModificationTimes
+    character(len=*                         ), intent(in   ), optional :: parameterName
     character(len=18                        )                          :: parameterLabel
     type     (inputParameters               )                          :: parameters
 
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('intergalacticMediumState','simple')
-    parameters=descriptor%subparameters('intergalacticMediumState')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('intergalacticMediumState',parameterName),'simple')
+    parameters=descriptor%subparameters(descriptorParameterName('intergalacticMediumState',parameterName))
     write (parameterLabel,'(e17.10)') self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%reionizationTime          ))
     call parameters%addParameter('reionizationRedshift'      ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(e17.10)')                                                                                               self%reionizationTemperature
