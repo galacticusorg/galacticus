@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790128203672,
+  "lastUpdate": 1790254685001,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 10keV resolutionX1)": [
@@ -4043,6 +4043,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:10keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 6.439599060687395,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fad2612eb89e50031dba306ad741d66d73e77a25",
+          "message": "Merge pull request #1556 from galacticusorg/fix/descriptor-prior-perturber-lognormal\n\nfix: descriptors of objects built from renamed parameters, and of normal/log-normal distributions",
+          "timestamp": "2026-09-24T05:53:15Z",
+          "tree_id": "bcd5c87307a0a5df2563c5971d9fae3b64644f48",
+          "url": "https://github.com/galacticusorg/galacticus/commit/fad2612eb89e50031dba306ad741d66d73e77a25"
+        },
+        "date": 1790254683721,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:10keV resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": -1.1422138937551,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:10keV resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 0.023530374289681966,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:10keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 6.440115948488904,
             "unit": "-logℒ"
           }
         ]
