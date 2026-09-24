@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790128318871,
+  "lastUpdate": 1790254825298,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (Symphony LMC)": [
@@ -869,6 +869,35 @@ window.BENCHMARK_DATA = {
           {
             "name": "Halo mass function - Likelihood - Symphony LMC CDM resolutionX1 z=0.000 (38 realizations)",
             "value": 2003.4591848688378,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fad2612eb89e50031dba306ad741d66d73e77a25",
+          "message": "Merge pull request #1556 from galacticusorg/fix/descriptor-prior-perturber-lognormal\n\nfix: descriptors of objects built from renamed parameters, and of normal/log-normal distributions",
+          "timestamp": "2026-09-24T05:53:15Z",
+          "tree_id": "bcd5c87307a0a5df2563c5971d9fae3b64644f48",
+          "url": "https://github.com/galacticusorg/galacticus/commit/fad2612eb89e50031dba306ad741d66d73e77a25"
+        },
+        "date": 1790254824328,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - Symphony LMC CDM resolutionX1 z=0.000 (38 realizations)",
+            "value": 2003.4591936772104,
             "unit": "-logℒ"
           }
         ]
