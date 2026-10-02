@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "fad2612eb89e50031dba306ad741d66d73e77a25",
-        "message": "Merge pull request #1556 from galacticusorg/fix/descriptor-prior-perturber-lognormal\n\nfix: descriptors of objects built from renamed parameters, and of normal/log-normal distributions\n",
-        "timestamp": "2026-09-24 05:53:15+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/fad2612eb89e50031dba306ad741d66d73e77a25"
+        "id": "53612aaa592b64d52d06348a297c7ba12a8ac479",
+        "message": "Merge pull request #1558 from galacticusorg/update/bibliography-refresh\n\nfix: Refresh bibliography metadata\n",
+        "timestamp": "2026-10-01 16:49:31+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/53612aaa592b64d52d06348a297c7ba12a8ac479"
     },
     "surfaceDensity": {
         "percentageBelow": 42.857142857142854,
