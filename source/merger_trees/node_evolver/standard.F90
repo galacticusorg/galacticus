@@ -450,6 +450,7 @@ contains
     ! Set a pointer to the galactic structure solver. We do this to ensure that the solver we act on here is the same one as used
     ! by the calling function (which will therefore be called by various event hook triggers).
     self%galacticStructureSolver_ => galacticStructureSolver__
+    call self%nodeOperator_%galacticStructureSolverSet(self%galacticStructureSolver_)
     ! Ensure calculations are reset for this new step.
     call Calculations_Reset(node)
     interrupted=.false.
