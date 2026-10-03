@@ -26,7 +26,7 @@ Implements a binding-energy-conserving pseudo-angular momentum prescription for 
   !![
   <barInstabilitySpheroidAngularMomentum name="barInstabilitySpheroidAngularMomentumBindingEnergy" docformat="rst">
    <description>
-   Assigns pseudo-angular momentum to a spheroid such that the bar-instability contribution to the time derivative of a disk--spheroid binding-energy proxy is zero. The proxy is
+   Assigns pseudo-angular momentum to a spheroid by blending the retained-angular-momentum prescription for a nascent spheroid into a binding-energy-conserving prescription for an established spheroid. The binding-energy proxy is
 
    .. math::
 
@@ -34,7 +34,13 @@ Implements a binding-energy-conserving pseudo-angular momentum prescription for 
       + c_\mathrm{s}\frac{G M_\mathrm{s}^2}{R_\mathrm{s}}
       + f_\mathrm{int}\frac{G M_\mathrm{d}M_\mathrm{s}}{R_\mathrm{d}+R_\mathrm{s}},
 
-   where radii are baryonic half-mass radii. Total derivatives of this proxy include the response of the equilibrium structure solver to changes in component masses and pseudo-angular momenta.
+   where radii are baryonic half-mass radii. Total derivatives of this proxy include the response of the equilibrium structure solver to changes in component masses and pseudo-angular momenta. The interpolation coordinate is the baryonic spheroid fraction
+
+   .. math::
+
+      \mu_\mathrm{s}=\frac{M_\mathrm{s}}{M_\mathrm{d}+M_\mathrm{s}}.
+
+   The retained-angular-momentum prescription is used below ``spheroidBaryonFractionTransitionMinimum`` and the binding-energy prescription above ``spheroidBaryonFractionTransitionMaximum``. Between the two limits, their rates are combined using a cubic smoothstep. Equal limits give a sharp transition; the default limits of zero recover the original binding-energy model for every non-zero spheroid.
    </description>
    <deepCopy>
     <ignore variables="galacticStructureSolver_"/>
@@ -50,8 +56,10 @@ Implements a binding-energy-conserving pseudo-angular momentum prescription for 
      !!}
      private
      class           (galacticStructureSolverClass), pointer :: galacticStructureSolver_     => null()
-     double precision                                        :: finiteDifferenceStepRelative          , formFactorDisk         , &
-          &                                                     formFactorSpheroid                    , interactionEnergyFactor
+     double precision                                        :: finiteDifferenceStepRelative                , formFactorDisk                       , &
+          &                                                     formFactorSpheroid                          , interactionEnergyFactor              , &
+          &                                                     spheroidBaryonFractionTransitionMaximum     , &
+          &                                                     spheroidBaryonFractionTransitionMinimum
    contains
      procedure :: galacticStructureSolverSet => bindingEnergyGalacticStructureSolverSet
      procedure :: rate                       => bindingEnergyRate
@@ -72,10 +80,12 @@ contains
     implicit none
     type            (barInstabilitySpheroidAngularMomentumBindingEnergy)                :: self
     type            (inputParameters                                   ), intent(inout) :: parameters
-    double precision                                                                    :: finiteDifferenceStepRelative, &
-         &                                                                                 formFactorDisk              , &
-         &                                                                                 formFactorSpheroid          , &
-         &                                                                                 interactionEnergyFactor
+    double precision                                                                    :: finiteDifferenceStepRelative               , &
+         &                                                                                 formFactorDisk                             , &
+         &                                                                                 formFactorSpheroid                         , &
+         &                                                                                 interactionEnergyFactor                    , &
+         &                                                                                 spheroidBaryonFractionTransitionMaximum    , &
+         &                                                                                 spheroidBaryonFractionTransitionMinimum
 
     !![
     <inputParameter docformat="rst">
@@ -114,12 +124,34 @@ contains
       <source>parameters</source>
       <minimum>0.0</minimum>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>spheroidBaryonFractionTransitionMinimum</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>
+      The baryonic spheroid fraction below which the retained-angular-momentum prescription is used. The baryonic spheroid fraction includes both gas and stars in the disk and spheroid.
+      </description>
+      <source>parameters</source>
+      <minimum>0.0</minimum>
+      <maximum>1.0</maximum>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>spheroidBaryonFractionTransitionMaximum</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>
+      The baryonic spheroid fraction above which the binding-energy prescription is used. Between the minimum and maximum transition fractions, the two angular-momentum rates are blended with a cubic smoothstep. Setting this equal to the minimum gives a sharp transition.
+      </description>
+      <source>parameters</source>
+      <minimum>0.0</minimum>
+      <maximum>1.0</maximum>
+    </inputParameter>
     !!]
     self=barInstabilitySpheroidAngularMomentumBindingEnergy( &
          &                                                   finiteDifferenceStepRelative, &
          &                                                   formFactorDisk              , &
          &                                                   formFactorSpheroid          , &
-         &                                                   interactionEnergyFactor       &
+         &                                                   interactionEnergyFactor     , &
+         &                                                   spheroidBaryonFractionTransitionMinimum, &
+         &                                                   spheroidBaryonFractionTransitionMaximum  &
          &                                                  )
     !![
     <inputParametersValidate source="parameters"/>
@@ -127,20 +159,25 @@ contains
     return
   end function bindingEnergyConstructorParameters
 
-  function bindingEnergyConstructorInternal(finiteDifferenceStepRelative,formFactorDisk,formFactorSpheroid,interactionEnergyFactor) result(self)
+  function bindingEnergyConstructorInternal(finiteDifferenceStepRelative,formFactorDisk,formFactorSpheroid,interactionEnergyFactor,spheroidBaryonFractionTransitionMinimum,spheroidBaryonFractionTransitionMaximum) result(self)
     !!{RST
     Internal constructor for the binding-energy prescription.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     type            (barInstabilitySpheroidAngularMomentumBindingEnergy)                :: self
-    double precision                                                    , intent(in   ) :: finiteDifferenceStepRelative, &
-         &                                                                                 formFactorDisk              , &
-         &                                                                                 formFactorSpheroid          , &
-         &                                                                                 interactionEnergyFactor
+    double precision                                                    , intent(in   ) :: finiteDifferenceStepRelative               , &
+         &                                                                                 formFactorDisk                             , &
+         &                                                                                 formFactorSpheroid                         , &
+         &                                                                                 interactionEnergyFactor                    , &
+         &                                                                                 spheroidBaryonFractionTransitionMaximum    , &
+         &                                                                                 spheroidBaryonFractionTransitionMinimum
     !![
-    <constructorAssign variables="finiteDifferenceStepRelative, formFactorDisk, formFactorSpheroid, interactionEnergyFactor"/>
+    <constructorAssign variables="finiteDifferenceStepRelative, formFactorDisk, formFactorSpheroid, interactionEnergyFactor, spheroidBaryonFractionTransitionMinimum, spheroidBaryonFractionTransitionMaximum"/>
     !!]
 
+    if (self%spheroidBaryonFractionTransitionMaximum < self%spheroidBaryonFractionTransitionMinimum) &
+         & call Error_Report('the maximum baryonic spheroid-fraction transition must be greater than or equal to the minimum'//{introspection:location})
     self%galacticStructureSolver_ => null()
     return
   end function bindingEnergyConstructorInternal
@@ -159,7 +196,7 @@ contains
 
   double precision function bindingEnergyRate(self,node,rateMassGasTransfer,rateMassStellarTransfer,rateAngularMomentumDisk,rateAngularMomentumTransfer,fractionAngularMomentumRetainedSpheroid)
     !!{RST
-    Return the spheroid pseudo-angular momentum rate that conserves the binding-energy proxy along the bar-driven direction in state space.
+    Return the spheroid pseudo-angular momentum rate, blending from the retained-angular-momentum seed to the rate that conserves the binding-energy proxy along the bar-driven direction in state space.
     !!}
     use, intrinsic :: IEEE_Arithmetic    , only : ieee_is_finite
     use            :: Calculations_Resets, only : Calculations_Reset
@@ -178,6 +215,9 @@ contains
     logical                                                                                     :: perturbationDefined
     double precision                                                                            :: angularMomentumDisk                           , &
          &                                                                                         angularMomentumSpheroid                       , &
+         &                                                                                         baryonMassDisk                                , &
+         &                                                                                         baryonMassSpheroid                            , &
+         &                                                                                         baryonMassTotal                               , &
          &                                                                                         bindingEnergyInitial                          , &
          &                                                                                         bindingEnergyKnownDirection                   , &
          &                                                                                         bindingEnergySpheroidPerturbed                , &
@@ -189,7 +229,12 @@ contains
          &                                                                                         massStellarSpheroid                           , &
          &                                                                                         perturbationAngularMomentumSpheroid           , &
          &                                                                                         perturbationTime                              , &
-         &                                                                                         timescaleMinimum
+         &                                                                                         rateBindingEnergy                             , &
+         &                                                                                         rateRetained                                  , &
+         &                                                                                         spheroidBaryonFraction                        , &
+         &                                                                                         timescaleMinimum                              , &
+         &                                                                                         transitionCoordinate                         , &
+         &                                                                                         transitionWeight
 
     disk     => node%disk    ()
     spheroid => node%spheroid()
@@ -199,14 +244,24 @@ contains
     massGasSpheroid          =spheroid%massGas        ()
     massStellarDisk          =disk    %massStellar    ()
     massStellarSpheroid      =spheroid%massStellar    ()
+    baryonMassDisk           =massGasDisk    +massStellarDisk
+    baryonMassSpheroid       =massGasSpheroid+massStellarSpheroid
+    baryonMassTotal          =baryonMassDisk+baryonMassSpheroid
+    rateRetained             =fractionAngularMomentumRetainedSpheroid*rateAngularMomentumTransfer
 
-    ! Seed newly formed spheroids with the standard prescription. The derivative with respect to pseudo-angular momentum is not
-    ! well-defined for a zero-mass or zero-angular-momentum spheroid.
+    ! Seed nascent spheroids with the standard prescription. The binding-energy derivative is ill-conditioned while their
+    ! self-binding term is negligible, and is not defined for a zero-mass or zero-angular-momentum spheroid.
     if     (                                                   &
-         &   massGasSpheroid+massStellarSpheroid <= 0.0d0     &
-         &  .or. angularMomentumSpheroid          <= 0.0d0     &
+         &   baryonMassSpheroid         <= 0.0d0               &
+         &  .or. baryonMassTotal         <= 0.0d0               &
+         &  .or. angularMomentumSpheroid <= 0.0d0               &
          & ) then
-       bindingEnergyRate=fractionAngularMomentumRetainedSpheroid*rateAngularMomentumTransfer
+       bindingEnergyRate=rateRetained
+       return
+    end if
+    spheroidBaryonFraction=baryonMassSpheroid/baryonMassTotal
+    if (spheroidBaryonFraction <= self%spheroidBaryonFractionTransitionMinimum) then
+       bindingEnergyRate=rateRetained
        return
     end if
     if (.not.associated(self%galacticStructureSolver_)) &
@@ -214,7 +269,7 @@ contains
 
     bindingEnergyInitial=bindingEnergy(self,node)
     if (.not.ieee_is_finite(bindingEnergyInitial) .or. bindingEnergyInitial <= 0.0d0) then
-       bindingEnergyRate=fractionAngularMomentumRetainedSpheroid*rateAngularMomentumTransfer
+       bindingEnergyRate=rateRetained
        return
     end if
 
@@ -234,7 +289,7 @@ contains
        perturbationDefined=.true.
     end if
     if (.not.perturbationDefined .or. .not.ieee_is_finite(timescaleMinimum) .or. self%finiteDifferenceStepRelative <= 0.0d0) then
-       bindingEnergyRate=fractionAngularMomentumRetainedSpheroid*rateAngularMomentumTransfer
+       bindingEnergyRate=rateRetained
        return
     end if
     perturbationTime=self%finiteDifferenceStepRelative*timescaleMinimum
@@ -251,7 +306,7 @@ contains
 
     if (.not.ieee_is_finite(bindingEnergyKnownDirection) .or. bindingEnergyKnownDirection <= 0.0d0) then
        call restoreNode()
-       bindingEnergyRate=fractionAngularMomentumRetainedSpheroid*rateAngularMomentumTransfer
+       bindingEnergyRate=rateRetained
        return
     end if
 
@@ -268,7 +323,7 @@ contains
     call restoreNode()
 
     if (.not.ieee_is_finite(bindingEnergySpheroidPerturbed) .or. bindingEnergySpheroidPerturbed <= 0.0d0) then
-       bindingEnergyRate=fractionAngularMomentumRetainedSpheroid*rateAngularMomentumTransfer
+       bindingEnergyRate=rateRetained
        return
     end if
 
@@ -280,11 +335,22 @@ contains
          &  .or. abs(derivativeBindingEnergySpheroidAngularMomentum) <= epsilon(bindingEnergyInitial) &
          &       *max(abs(bindingEnergyInitial),1.0d0)/max(abs(angularMomentumSpheroid),1.0d0)          &
          & ) then
-       bindingEnergyRate=fractionAngularMomentumRetainedSpheroid*rateAngularMomentumTransfer
+       bindingEnergyRate=rateRetained
     else
-       bindingEnergyRate=-derivativeBindingEnergyKnown/derivativeBindingEnergySpheroidAngularMomentum
-       if (.not.ieee_is_finite(bindingEnergyRate)) &
-            & bindingEnergyRate=fractionAngularMomentumRetainedSpheroid*rateAngularMomentumTransfer
+       rateBindingEnergy=-derivativeBindingEnergyKnown/derivativeBindingEnergySpheroidAngularMomentum
+       if (.not.ieee_is_finite(rateBindingEnergy)) then
+          bindingEnergyRate=rateRetained
+       else
+          if (self%spheroidBaryonFractionTransitionMaximum <= self%spheroidBaryonFractionTransitionMinimum) then
+             transitionWeight=1.0d0
+          else
+             transitionCoordinate=(spheroidBaryonFraction-self%spheroidBaryonFractionTransitionMinimum) &
+                  &               /(self%spheroidBaryonFractionTransitionMaximum-self%spheroidBaryonFractionTransitionMinimum)
+             transitionCoordinate=max(0.0d0,min(1.0d0,transitionCoordinate))
+             transitionWeight=transitionCoordinate**2*(3.0d0-2.0d0*transitionCoordinate)
+          end if
+          bindingEnergyRate=(1.0d0-transitionWeight)*rateRetained+transitionWeight*rateBindingEnergy
+       end if
     end if
     return
 
