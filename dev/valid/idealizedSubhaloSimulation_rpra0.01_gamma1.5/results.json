@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "53612aaa592b64d52d06348a297c7ba12a8ac479",
-        "message": "Merge pull request #1558 from galacticusorg/update/bibliography-refresh\n\nfix: Refresh bibliography metadata\n",
-        "timestamp": "2026-10-01 16:49:31+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/53612aaa592b64d52d06348a297c7ba12a8ac479"
+        "id": "5e6aa06abe65c2c8d80ac7ad71d0d8e21a64cb9a",
+        "message": "Merge pull request #1557 from galacticusorg/perf/optimize-c-f77-sources\n\nperf(build): compile C, C++ and Fortran 77 sources with optimization\n",
+        "timestamp": "2026-10-05 08:34:36+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/5e6aa06abe65c2c8d80ac7ad71d0d8e21a64cb9a"
     },
     "results": [
         {
