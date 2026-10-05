@@ -51,7 +51,7 @@
      !!}
      private
      class           (dustAttenuationStellarMassRedshift), pointer :: dustAttenuation_        => null()
-     double precision                                             :: rootVarianceAttenuation
+     double precision                                              :: rootVarianceAttenuation
    contains
      final     ::                        attenuationScatterDestructor
      procedure :: operateScalar       => attenuationScatterOperateScalar
@@ -181,8 +181,8 @@ contains
             & distribution(i)=+cumulativeNormal((attenuationUpper-attenuationMean)/self%rootVarianceAttenuation) &
             &                 -cumulativeNormal((attenuationLower-attenuationMean)/self%rootVarianceAttenuation)
        ! The probability of zero attenuation is placed in the bin containing the unattenuated luminosity.
-       if (luminosityUnattenuated >= propertyValueMinimum(i) .and. luminosityUnattenuated < propertyValueMaximum(i))  &
-            & distribution(i)=+distribution(i)                                                                     &
+       if (luminosityUnattenuated >= propertyValueMinimum(i) .and. luminosityUnattenuated < propertyValueMaximum(i)) &
+            & distribution(i)=+distribution(i)                                                                       &
             &                 +cumulativeNormal(-attenuationMean/self%rootVarianceAttenuation)
     end do
     return

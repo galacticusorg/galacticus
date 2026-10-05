@@ -29,38 +29,38 @@ program Test_Dust_Attenuation_Stellar_Mass_Redshift
   on stellar mass, its transmission at the reference wavelength and (through the extinction curve) at other wavelengths, and
   that a negative mean attenuation gives no attenuation.
   !!}
-  use :: Cosmology_Functions        , only : cosmologyFunctionsClass
-  use :: Display                    , only : displayVerbositySet               , verbosityLevelStandard
+  use :: Cosmology_Functions         , only : cosmologyFunctionsClass
+  use :: Display                     , only : displayVerbositySet       , verbosityLevelStandard
   use :: Dust_Attenuation_Descriptors, only : emissionDescriptor
-  use :: Dust_Attenuations          , only : dustAttenuationClass              , dustAttenuationStellarMassRedshift
-  use :: Dust_Extinction_Curves     , only : dustExtinctionCurveClass
-  use :: Error                      , only : Error_Handler_Register
-  use :: Events_Hooks               , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities , only : Functions_Global_Set
-  use :: Galactic_Structure_Options , only : componentTypeAll                  , componentTypeDisk
-  use :: Galacticus_Nodes           , only : mergerTree                        , nodeClassHierarchyInitialize, nodeComponentBasic, nodeComponentDisk, &
-       &                                     treeNode
-  use :: Input_Parameters           , only : inputParameters
-  use :: Node_Components            , only : Node_Components_Initialize        , Node_Components_Thread_Initialize
-  use :: Unit_Tests                 , only : Assert                            , Unit_Tests_Begin_Group      , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Dust_Attenuations           , only : dustAttenuationClass      , dustAttenuationStellarMassRedshift
+  use :: Dust_Extinction_Curves      , only : dustExtinctionCurveClass
+  use :: Error                       , only : Error_Handler_Register
+  use :: Events_Hooks                , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities  , only : Functions_Global_Set
+  use :: Galactic_Structure_Options  , only : componentTypeAll          , componentTypeDisk
+  use :: Galacticus_Nodes            , only : mergerTree                , nodeClassHierarchyInitialize      , nodeComponentBasic  , nodeComponentDisk, &
+       &                                      treeNode
+  use :: Input_Parameters            , only : inputParameters
+  use :: Node_Components             , only : Node_Components_Initialize, Node_Components_Thread_Initialize
+  use :: Unit_Tests                  , only : Assert                    , Unit_Tests_Begin_Group            , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   ! The parameters of the attenuation, as set in the parameter file.
-  double precision                                    , parameter                 :: delta0            =+0.10d0   , deltaMass       =+0.20d0, &
-       &                                                                             deltaRedshift     =+0.30d0   , deltaMassRedshift=+0.40d0, &
-       &                                                                             redshiftPivot     = 1.00d0   , wavelengthHalpha =6564.61d0
-  double precision                                    , dimension(3), parameter   :: wavelengths       =[4862.68d0,5008.24d0,3728.49d0]
-  type            (inputParameters                   )                            :: parameters
-  class           (dustAttenuationClass              ), pointer                   :: dustAttenuation_
-  class           (cosmologyFunctionsClass           ), pointer                   :: cosmologyFunctions_
-  class           (dustExtinctionCurveClass          ), pointer                   :: dustExtinctionCurve_
-  type            (mergerTree                        ), target                    :: tree
-  type            (treeNode                          ), pointer                   :: node
-  type            (emissionDescriptor                ), dimension(4)              :: descriptors
-  double precision                                    , dimension(4)              :: transmission
-  double precision                                                                :: time              , redshift         , &
-       &                                                                             massLogarithmic   , redshiftTerm     , &
-       &                                                                             attenuationExpected, attenuationClipped
-  integer                                                                         :: i
+  double precision                                        , parameter :: delta0             =+0.10d0                        , deltaMass         =+0.20d0  , &
+       &                                                                 deltaRedshift      =+0.30d0                        , deltaMassRedshift =+0.40d0  , &
+       &                                                                 redshiftPivot      = 1.00d0                        , wavelengthHalpha  =6564.61d0
+  double precision                          , dimension(3), parameter :: wavelengths        =[4862.68d0,5008.24d0,3728.49d0]
+  type            (inputParameters         )                          :: parameters
+  class           (dustAttenuationClass    ), pointer                 :: dustAttenuation_
+  class           (cosmologyFunctionsClass ), pointer                 :: cosmologyFunctions_
+  class           (dustExtinctionCurveClass), pointer                 :: dustExtinctionCurve_
+  type            (mergerTree              ), target                  :: tree
+  type            (treeNode                ), pointer                 :: node
+  type            (emissionDescriptor      ), dimension(4)            :: descriptors
+  double precision                          , dimension(4)            :: transmission
+  double precision                                                    :: time                                               , redshift                   , &
+       &                                                                 massLogarithmic                                    , redshiftTerm               , &
+       &                                                                 attenuationExpected                                , attenuationClipped
+  integer                                                             :: i
 
   call displayVerbositySet(verbosityLevelStandard)
   call Error_Handler_Register()
@@ -85,28 +85,28 @@ program Test_Dust_Attenuation_Stellar_Mass_Redshift
   select type (dustAttenuation_)
   class is (dustAttenuationStellarMassRedshift)
      call Assert('applies to all components combined',dustAttenuation_%supportsComponent(componentTypeAll),.true.)
-     ! At the pivot redshift, and a stellar mass of 10^10 Msun, the attenuation is that of Garn & Best (2010) plus delta0.
+     ! At the pivot redshift, and a stellar mass of 10¹⁰ M☉, the attenuation is that of Garn & Best (2010) plus delta0.
      time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftPivot))
      call buildNode(1.0d10,time)
-     call Assert('mean attenuation at pivot'            ,dustAttenuation_%attenuationMean(node),0.91d0+delta0,relTol=1.0d-9)
+     call Assert('mean attenuation at pivot',dustAttenuation_%attenuationMean(node),0.91d0+delta0,relTol=1.0d-9)
      ! At another mass and redshift, every term contributes.
-     time           =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(2.0d0))
-     redshift       =cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%expansionFactor(time))
+     time           =cosmologyFunctions_%cosmicTime                 (cosmologyFunctions_%expansionFactorFromRedshift(2.0d0))
+     redshift       =cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%expansionFactor            (time ))
      massLogarithmic=log10(3.0d10/1.0d10)
      redshiftTerm   =log((1.0d0+redshift)/(1.0d0+redshiftPivot))
      attenuationExpected=+0.91d0+0.77d0*massLogarithmic+0.11d0*massLogarithmic**2-0.09d0*massLogarithmic**3 &
-          &              +delta0+deltaMass*massLogarithmic+deltaRedshift*redshiftTerm                     &
+          &              +delta0+deltaMass*massLogarithmic+deltaRedshift*redshiftTerm                       &
           &              +deltaMassRedshift*massLogarithmic*redshiftTerm
      call buildNode(3.0d10,time)
-     call Assert('mean attenuation at z=2, 3e10 Msun'   ,dustAttenuation_%attenuationMean(node),attenuationExpected,relTol=1.0d-9)
+     call Assert('mean attenuation at z=2, 3 ⨉ 10¹⁰ M☉',dustAttenuation_%attenuationMean(node),attenuationExpected,relTol=1.0d-9)
      ! Transmission at H-alpha is exactly that of the mean attenuation; at other wavelengths it scales with the extinction curve.
      transmission=dustAttenuation_%transmission(node,descriptors)
-     call Assert('transmission at H-alpha'              ,transmission(1),10.0d0**(-0.4d0*attenuationExpected),relTol=1.0d-9)
+     call Assert('transmission at Hα',transmission(1),10.0d0**(-0.4d0*attenuationExpected),relTol=1.0d-9)
      do i=1,3
-        call Assert('transmission scales with extinction curve',                                                                           &
-             &      transmission(i+1)                                                                                                     , &
+        call Assert('transmission scales with extinction curve',                                                                                                              &
+             &      transmission(i+1)                                                                                                                                       , &
              &      10.0d0**(-0.4d0*attenuationExpected*dustExtinctionCurve_%attenuationRelative(wavelengths(i))/dustExtinctionCurve_%attenuationRelative(wavelengthHalpha)), &
-             &      relTol=1.0d-9                                                                                                            &
+             &      relTol=1.0d-9                                                                                                                                             &
              &     )
      end do
      ! Stellar masses outside the range 10^8 to 10^11 Msun are treated as being at the limit of the range.

@@ -135,11 +135,11 @@ contains
           cycle
        end if
        do i=1,size(distribution)
-          randomErrorOperateDistribution(i)=+randomErrorOperateDistribution(i)                                          &
-               &                            +distribution(j)                                                            &
-               &                            *rootVariance                                                               &
-               &                            /widthBin                                                                   &
-               &                            *(                                                                          &
+          randomErrorOperateDistribution(i)=+randomErrorOperateDistribution(i)                                                          &
+               &                            +distribution(j)                                                                            &
+               &                            *rootVariance                                                                               &
+               &                            /widthBin                                                                                   &
+               &                            *(                                                                                          &
                &                              +normalCumulativeIntegral((propertyValueMaximum(i)-propertyValueMinimum(j))/rootVariance) &
                &                              -normalCumulativeIntegral((propertyValueMaximum(i)-propertyValueMaximum(j))/rootVariance) &
                &                              -normalCumulativeIntegral((propertyValueMinimum(i)-propertyValueMinimum(j))/rootVariance) &
@@ -158,8 +158,11 @@ contains
       implicit none
       double precision, intent(in   ) :: u
 
-      normalCumulativeIntegral=+u*0.5d0*erfc(-u/sqrt(2.0d0)) &
-           &                   +exp(-0.5d0*u**2)/sqrt(2.0d0*Pi)
+      normalCumulativeIntegral=+u                       &
+           &                   *0.5d0                   &
+           &                   *erfc(-u   /sqrt(2.0d0)) &
+           &                   +exp (-u**2/     2.0d0)  &
+           &                   /sqrt(2.0d0*Pi)
       return
     end function normalCumulativeIntegral
 

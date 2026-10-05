@@ -276,34 +276,34 @@ contains
     use :: IO_HDF5                 , only : hdf5File
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass
     implicit none
-    type            (outputAnalysisLuminosityFunctionHalpha )                              :: self
-    type            (varying_string                         ), intent(in   )               :: label                              , comment
-    character       (len=*                                  ), intent(in   )               :: fileName
-    logical                                                  , intent(in   )               :: includeNitrogenII
-    type            (varying_string                         ), intent(in   )               :: cloudyTableFileName
-    double precision                                         , intent(in   )               :: toleranceRelative
-    class           (galacticFilterClass                    ), intent(in   ) , target      :: galacticFilter_
-    class           (surveyGeometryClass                    ), intent(in   ) , target      :: surveyGeometry_
-    class           (cosmologyFunctionsClass                ), intent(in   ) , target      :: cosmologyFunctions_                , cosmologyFunctionsData
-    class           (outputTimesClass                       ), intent(inout) , target      :: outputTimes_
-    class           (outputAnalysisPropertyOperatorClass    ), intent(inout) , target      :: outputAnalysisPropertyOperator_
-    class           (outputAnalysisDistributionOperatorClass), intent(in   ) , target      :: outputAnalysisDistributionOperator_
-    class           (starFormationHistoryClass              ), intent(in   ) , target      :: starFormationHistory_
-    class           (hiiRegionLuminosityFunctionClass       ), intent(in   ) , target      :: hiiRegionLuminosityFunction_
-    class           (hiiRegionMassFunctionClass             ), intent(in   ) , target      :: hiiRegionMassFunction_
-    class           (hiiRegionDensityDistributionClass      ), intent(in   ) , target      :: hiiRegionDensityDistribution_
-    class           (hiiRegionEscapeFractionClass           ), intent(in   ) , target      :: hiiRegionEscapeFraction_
-    class           (dustAttenuationClass                   ), intent(in   ) , target      :: dustAttenuation_
-    double precision                                         , dimension(:  ), allocatable :: luminosities                       , functionValueTarget              , &
-         &                                                                                    functionErrorTarget
-    double precision                                         , dimension(:,:), allocatable :: functionCovarianceTarget
-    integer                                                  , intent(in   )               :: covarianceBinomialBinsPerDecade
-    double precision                                         , intent(in   )               :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
-    class           (nodePropertyExtractorClass             ), intent(inout) , target      , optional :: nodePropertyExtractorAGN_
-    integer                                                                                :: i
-    type            (hdf5File                               )                              :: dataFile
-    type            (varying_string                         )                              :: targetLabel
-    logical                                                                                :: haveTarget
+    type            (outputAnalysisLuminosityFunctionHalpha )                                        :: self
+    type            (varying_string                         ), intent(in   )                         :: label                              , comment
+    character       (len=*                                  ), intent(in   )                         :: fileName
+    logical                                                  , intent(in   )                         :: includeNitrogenII
+    type            (varying_string                         ), intent(in   )                         :: cloudyTableFileName
+    double precision                                         , intent(in   )                         :: toleranceRelative
+    class           (galacticFilterClass                    ), intent(in   ) , target                :: galacticFilter_
+    class           (surveyGeometryClass                    ), intent(in   ) , target                :: surveyGeometry_
+    class           (cosmologyFunctionsClass                ), intent(in   ) , target                :: cosmologyFunctions_                , cosmologyFunctionsData
+    class           (outputTimesClass                       ), intent(inout) , target                :: outputTimes_
+    class           (outputAnalysisPropertyOperatorClass    ), intent(inout) , target                :: outputAnalysisPropertyOperator_
+    class           (outputAnalysisDistributionOperatorClass), intent(in   ) , target                :: outputAnalysisDistributionOperator_
+    class           (starFormationHistoryClass              ), intent(in   ) , target                :: starFormationHistory_
+    class           (hiiRegionLuminosityFunctionClass       ), intent(in   ) , target                :: hiiRegionLuminosityFunction_
+    class           (hiiRegionMassFunctionClass             ), intent(in   ) , target                :: hiiRegionMassFunction_
+    class           (hiiRegionDensityDistributionClass      ), intent(in   ) , target                :: hiiRegionDensityDistribution_
+    class           (hiiRegionEscapeFractionClass           ), intent(in   ) , target                :: hiiRegionEscapeFraction_
+    class           (dustAttenuationClass                   ), intent(in   ) , target                :: dustAttenuation_
+    double precision                                         , dimension(:  ), allocatable           :: luminosities                       , functionValueTarget              , &
+         &                                                                                              functionErrorTarget
+    double precision                                         , dimension(:,:), allocatable           :: functionCovarianceTarget
+    integer                                                  , intent(in   )                         :: covarianceBinomialBinsPerDecade
+    double precision                                         , intent(in   )                         :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
+    class           (nodePropertyExtractorClass             ), intent(inout) , target     , optional :: nodePropertyExtractorAGN_
+    integer                                                                                          :: i
+    type            (hdf5File                               )                                        :: dataFile
+    type            (varying_string                         )                                        :: targetLabel
+    logical                                                                                          :: haveTarget
 
     !$ call hdf5Access%set()
     dataFile=hdf5File(fileName,readOnly=.true.)
@@ -326,9 +326,9 @@ contains
     !![
     <conditionalCall>
      <call>self=outputAnalysisLuminosityFunctionHalpha(label,comment,luminosities,includeNitrogenII,cloudyTableFileName,toleranceRelative,galacticFilter_,surveyGeometry_,dustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationHistory_,hiiRegionLuminosityFunction_,hiiRegionMassFunction_,hiiRegionDensityDistribution_,hiiRegionEscapeFraction_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
-     <argument name="targetLabel"              value="targetLabel"              condition="haveTarget"/>
-     <argument name="functionValueTarget"      value="functionValueTarget"      condition="haveTarget"/>
-     <argument name="functionCovarianceTarget" value="functionCovarianceTarget" condition="haveTarget"/>
+     <argument name="targetLabel"               value="targetLabel"               condition="haveTarget"                        />
+     <argument name="functionValueTarget"       value="functionValueTarget"       condition="haveTarget"                        />
+     <argument name="functionCovarianceTarget"  value="functionCovarianceTarget"  condition="haveTarget"                        />
      <argument name="nodePropertyExtractorAGN_" value="nodePropertyExtractorAGN_" condition="present(nodePropertyExtractorAGN_)"/>
     </conditionalCall>
     !!]
@@ -346,7 +346,7 @@ contains
     use :: Geometry_Surveys                        , only : surveyGeometryClass
     use :: ISO_Varying_String                      , only : var_str                                        , varying_string
     use :: Dust_Attenuations                       , only : dustAttenuationClass
-    use :: Node_Property_Extractors                , only : multiExtractorList                             , nodePropertyExtractorDustAttenuation        , nodePropertyExtractorLuminosityEmissionLine    , nodePropertyExtractorScalarizer, &
+    use :: Node_Property_Extractors                , only : multiExtractorList                             , nodePropertyExtractorDustAttenuation        , nodePropertyExtractorLuminosityEmissionLine    , nodePropertyExtractorScalarizer             , &
          &                                                  nodePropertyExtractorClass                     , nodePropertyExtractorTuple
     use :: Numerical_Constants_Astronomical        , only : megaParsec
     use :: Numerical_Constants_Units               , only : ergs
@@ -465,7 +465,7 @@ contains
        extractorsLines(iLine)%extractor_ => nodePropertyExtractorLines_
     end do
     ! Add emission from active galactic nuclei, if an extractor for it is given. It is attenuated together with the emission
-    ! from star formation, and so must, like each of those extractors, emit a single element: the H-alpha luminosity alone.
+    ! from star formation, and so must, like each of those extractors, emit a single element: the Hα luminosity alone.
     if (present(nodePropertyExtractorAGN_)) then
        if (includeNitrogenII) call Error_Report('emission from active galactic nuclei can not be included together with [NII] emission'//{introspection:location})
        select type (nodePropertyExtractorAGN_)

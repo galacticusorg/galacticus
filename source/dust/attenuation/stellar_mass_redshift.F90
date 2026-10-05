@@ -62,9 +62,9 @@
      !!}
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     double precision                                   :: delta0                       , deltaMass         , &
-          &                                                deltaRedshift                , deltaMassRedshift , &
-          &                                                redshiftPivot                , massStellarMinimum, &
+     double precision                                   :: delta0                       , deltaMass          , &
+          &                                                deltaRedshift                , deltaMassRedshift  , &
+          &                                                redshiftPivot                , massStellarMinimum , &
           &                                                massStellarMaximum           , wavelengthReference
    contains
      !![
@@ -100,10 +100,10 @@ contains
     type            (inputParameters                   ), intent(inout) :: parameters
     class           (dustExtinctionCurveClass          ), pointer       :: dustExtinctionCurve_
     class           (cosmologyFunctionsClass           ), pointer       :: cosmologyFunctions_
-    double precision                                                    :: delta0             , deltaMass         , &
-         &                                                                 deltaRedshift      , deltaMassRedshift , &
-         &                                                                 redshiftPivot      , massStellarMinimum, &
-         &                                                                 massStellarMaximum , wavelengthReference
+    double precision                                                    :: delta0              , deltaMass          , &
+         &                                                                 deltaRedshift       , deltaMassRedshift  , &
+         &                                                                 redshiftPivot       , massStellarMinimum , &
+         &                                                                 massStellarMaximum  , wavelengthReference
 
     !![
     <inputParameter docformat="rst">
@@ -194,9 +194,9 @@ contains
     use :: Error, only : Error_Report
     implicit none
     type            (dustAttenuationStellarMassRedshift)                        :: self
-    double precision                                    , intent(in   )         :: delta0              , deltaMass         , &
-         &                                                                         deltaRedshift       , deltaMassRedshift , &
-         &                                                                         redshiftPivot       , massStellarMinimum, &
+    double precision                                    , intent(in   )         :: delta0              , deltaMass          , &
+         &                                                                         deltaRedshift       , deltaMassRedshift  , &
+         &                                                                         redshiftPivot       , massStellarMinimum , &
          &                                                                         massStellarMaximum  , wavelengthReference
     class           (dustExtinctionCurveClass          ), intent(in   ), target :: dustExtinctionCurve_
     class           (cosmologyFunctionsClass           ), intent(in   ), target :: cosmologyFunctions_
@@ -238,8 +238,8 @@ contains
          &                                                                         redshift         , redshiftTerm
 
     ! Find the stellar mass, limited to the range over which the relation is applied.
-    massDistribution_ => node%massDistribution(massType=massTypeStellar)
-    massStellar       =  massDistribution_%massTotal()
+    massDistribution_ => node             %massDistribution(massType=massTypeStellar)
+    massStellar       =  massDistribution_%massTotal       (                        )
     !![
     <objectDestructor name="massDistribution_"/>
     !!]
@@ -250,13 +250,13 @@ contains
     redshift     =  self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(basic%time()))
     redshiftTerm =  log((1.0d0+redshift)/(1.0d0+self%redshiftPivot))
     ! Evaluate the mean attenuation.
-    attenuation=+0.91d0                                       &
-         &      +0.77d0*massLogarithmic                       &
-         &      +0.11d0*massLogarithmic**2                    &
-         &      -0.09d0*massLogarithmic**3                    &
-         &      +self%delta0                                  &
-         &      +self%deltaMass        *massLogarithmic       &
-         &      +self%deltaRedshift                *redshiftTerm &
+    attenuation=+0.91d0                                              &
+         &      +0.77d0*massLogarithmic                              &
+         &      +0.11d0*massLogarithmic**2                           &
+         &      -0.09d0*massLogarithmic**3                           &
+         &      +self%delta0                                         &
+         &      +self%deltaMass        *massLogarithmic              &
+         &      +self%deltaRedshift                    *redshiftTerm &
          &      +self%deltaMassRedshift*massLogarithmic*redshiftTerm
     return
   end function stellarMassRedshiftAttenuationMean
@@ -274,8 +274,8 @@ contains
 
     ! An attenuation of A magnitudes is an optical depth of A/(2.5 log10 e) = 0.4 A ln 10.
     depthOpticalV=+max(self%attenuationMean(node),0.0d0)                                   &
-         &        *0.4d0                                                                    &
-         &        *log(10.0d0)                                                              &
+         &        *0.4d0                                                                   &
+         &        *log(10.0d0)                                                             &
          &        /self%dustExtinctionCurve_%attenuationRelative(self%wavelengthReference)
     return
   end function stellarMassRedshiftDepthOpticalV

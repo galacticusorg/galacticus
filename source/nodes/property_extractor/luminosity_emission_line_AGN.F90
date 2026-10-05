@@ -633,7 +633,7 @@ contains
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
     implicit none
-    type (enumerationOutputAnalysisPropertyQuantityType)                :: quantity
+    type (enumerationOutputAnalysisPropertyQuantityType )                :: quantity
     class(nodePropertyExtractorLuminosityEmissionLineAGN), intent(inout) :: self
     !$GLC attributes unused :: self
 

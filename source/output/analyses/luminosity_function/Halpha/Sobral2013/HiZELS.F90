@@ -47,10 +47,10 @@ Implements a stellar mass function output analysis class.
      private
      class           (gravitationalLensingClass ), pointer                     :: gravitationalLensing_            => null()
      class           (nodePropertyExtractorClass), pointer                     :: nodePropertyExtractorAGN_        => null()
-     double precision                           , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient
-     integer                                                                  :: redshiftInterval
-     double precision                                                         :: randomErrorMinimum                        , randomErrorMaximum                  , &
-          &                                                                      sizeSourceLensing                         , rootVarianceAttenuation
+     double precision                            , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient
+     integer                                                                   :: redshiftInterval
+     double precision                                                          :: randomErrorMinimum                        , randomErrorMaximum                  , &
+          &                                                                       sizeSourceLensing                         , rootVarianceAttenuation
    contains
      final :: luminosityFunctionSobral2013HiZELSDestructor
   end type outputAnalysisLuminosityFunctionSobral2013HiZELS
@@ -254,50 +254,50 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`outputAnalysisLuminosityFunctionSobral2013HiZELS` output analysis class for internal use.
     !!}
-    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
-    use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
-    use :: Galactic_Filters                      , only : galacticFilterStellarMass
-    use :: Error                                 , only : Error_Report
-    use :: Input_Paths                           , only : inputPath                                      , pathTypeDataStatic
-    use :: Geometry_Surveys                      , only : surveyGeometryFullSky
-    use :: Gravitational_Lensing                 , only : gravitationalLensingClass
-    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGravitationalLensing, outputAnalysisDistributionOperatorRandomErrorPolynomial, outputAnalysisDistributionOperatorSequence, &
-         &                                                outputAnalysisDistributionOperatorAttenuationScatter
-    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystematicPolynomial
-    use :: String_Handling                       , only : operator(//)
+    use :: Cosmology_Functions                    , only : cosmologyFunctionsClass                             , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Parameters                   , only : cosmologyParametersSimple
+    use :: Galactic_Filters                       , only : galacticFilterStellarMass
+    use :: Error                                  , only : Error_Report
+    use :: Input_Paths                            , only : inputPath                                           , pathTypeDataStatic
+    use :: Geometry_Surveys                       , only : surveyGeometryFullSky
+    use :: Gravitational_Lensing                  , only : gravitationalLensingClass
+    use :: Output_Analysis_Distribution_Operators , only : distributionOperatorList                            , outputAnalysisDistributionOperatorGravitationalLensing, outputAnalysisDistributionOperatorRandomErrorPolynomial, outputAnalysisDistributionOperatorSequence, &
+         &                                                 outputAnalysisDistributionOperatorAttenuationScatter
+    use :: Output_Analysis_Property_Operators     , only : outputAnalysisPropertyOperatorSystematicPolynomial
+    use :: String_Handling                        , only : operator(//)
     implicit none
-    type            (outputAnalysisLuminosityFunctionSobral2013HiZELS   )                              :: self
-    class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_
-    class           (outputTimesClass                                   ), intent(inout), target       :: outputTimes_
-    class           (gravitationalLensingClass                          ), intent(in   ), target       :: gravitationalLensing_
-    class           (dustAttenuationClass                               ), intent(in   ), target       :: dustAttenuation_
-    type            (varying_string                                     ), intent(in   )               :: cloudyTableFileName
-    double precision                                                     , intent(in   )               :: toleranceRelative
-    class           (starFormationHistoryClass                          ), intent(in   ), target       :: starFormationHistory_
-    class           (hiiRegionLuminosityFunctionClass                   ), intent(in   ), target       :: hiiRegionLuminosityFunction_
-    class           (hiiRegionMassFunctionClass                         ), intent(in   ), target       :: hiiRegionMassFunction_
-    class           (hiiRegionDensityDistributionClass                  ), intent(in   ), target       :: hiiRegionDensityDistribution_
-    class           (hiiRegionEscapeFractionClass                       ), intent(in   ), target       :: hiiRegionEscapeFraction_
-    integer                                                              , intent(in   )               :: redshiftInterval
-    double precision                                                     , intent(in   )               :: randomErrorMinimum                                        , randomErrorMaximum                  , &
-         &                                                                                                sizeSourceLensing
-    double precision                                                     , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                          , systematicErrorPolynomialCoefficient
-    integer                                                              , intent(in   )               :: covarianceBinomialBinsPerDecade
-    double precision                                                     , intent(in   )               :: covarianceBinomialMassHaloMinimum                         , covarianceBinomialMassHaloMaximum
-    double precision                                                     , intent(in   )               :: rootVarianceAttenuation
-    class           (nodePropertyExtractorClass                         ), intent(inout), target, optional :: nodePropertyExtractorAGN_
-    type            (outputAnalysisDistributionOperatorAttenuationScatter)               , pointer      :: outputAnalysisDistributionOperatorAttenuationScatter_
-    type            (galacticFilterStellarMass                          )               , pointer      :: galacticFilter_
-    type            (surveyGeometryFullSky                              )               , pointer      :: surveyGeometry_
-    type            (outputAnalysisPropertyOperatorSystematicPolynomial    )               , pointer      :: outputAnalysisPropertyOperator_
-    type            (outputAnalysisDistributionOperatorRandomErrorPolynomial)               , pointer      :: outputAnalysisDistributionOperatorRandomErrorPolynomial_
-    type            (outputAnalysisDistributionOperatorGravitationalLensing      )               , pointer      :: outputAnalysisDistributionOperatorGravitationalLensing_
-    type            (outputAnalysisDistributionOperatorSequence         )               , pointer      :: outputAnalysisDistributionOperator_
-    type            (cosmologyParametersSimple                          )               , pointer      :: cosmologyParametersData
-    type            (cosmologyFunctionsMatterLambda                     )               , pointer      :: cosmologyFunctionsData
-    type            (distributionOperatorList                           )               , pointer      :: distributionOperatorSequence
-    double precision                                                                    , parameter    :: errorPolynomialZeroPoint                            =40.0d0
-    type            (varying_string                                     )                              :: fileName
+    type            (outputAnalysisLuminosityFunctionSobral2013HiZELS       )                                  :: self
+    class           (cosmologyFunctionsClass                                ), intent(in   ), target           :: cosmologyFunctions_
+    class           (outputTimesClass                                       ), intent(inout), target           :: outputTimes_
+    class           (gravitationalLensingClass                              ), intent(in   ), target           :: gravitationalLensing_
+    class           (dustAttenuationClass                                   ), intent(in   ), target           :: dustAttenuation_
+    type            (varying_string                                         ), intent(in   )                   :: cloudyTableFileName
+    double precision                                                         , intent(in   )                   :: toleranceRelative
+    class           (starFormationHistoryClass                              ), intent(in   ), target           :: starFormationHistory_
+    class           (hiiRegionLuminosityFunctionClass                       ), intent(in   ), target           :: hiiRegionLuminosityFunction_
+    class           (hiiRegionMassFunctionClass                             ), intent(in   ), target           :: hiiRegionMassFunction_
+    class           (hiiRegionDensityDistributionClass                      ), intent(in   ), target           :: hiiRegionDensityDistribution_
+    class           (hiiRegionEscapeFractionClass                           ), intent(in   ), target           :: hiiRegionEscapeFraction_
+    integer                                                                  , intent(in   )                   :: redshiftInterval
+    double precision                                                         , intent(in   )                   :: randomErrorMinimum                                        , randomErrorMaximum                  , &
+         &                                                                                                        sizeSourceLensing
+    double precision                                                         , intent(in   ), dimension(:)     :: randomErrorPolynomialCoefficient                          , systematicErrorPolynomialCoefficient
+    integer                                                                  , intent(in   )                   :: covarianceBinomialBinsPerDecade
+    double precision                                                         , intent(in   )                   :: covarianceBinomialMassHaloMinimum                         , covarianceBinomialMassHaloMaximum
+    double precision                                                         , intent(in   )                   :: rootVarianceAttenuation
+    class           (nodePropertyExtractorClass                             ), intent(inout), target, optional :: nodePropertyExtractorAGN_
+    type            (outputAnalysisDistributionOperatorAttenuationScatter   )               , pointer          :: outputAnalysisDistributionOperatorAttenuationScatter_
+    type            (galacticFilterStellarMass                              )               , pointer          :: galacticFilter_
+    type            (surveyGeometryFullSky                                  )               , pointer          :: surveyGeometry_
+    type            (outputAnalysisPropertyOperatorSystematicPolynomial     )               , pointer          :: outputAnalysisPropertyOperator_
+    type            (outputAnalysisDistributionOperatorRandomErrorPolynomial)               , pointer          :: outputAnalysisDistributionOperatorRandomErrorPolynomial_
+    type            (outputAnalysisDistributionOperatorGravitationalLensing )               , pointer          :: outputAnalysisDistributionOperatorGravitationalLensing_
+    type            (outputAnalysisDistributionOperatorSequence             )               , pointer          :: outputAnalysisDistributionOperator_
+    type            (cosmologyParametersSimple                              )               , pointer          :: cosmologyParametersData
+    type            (cosmologyFunctionsMatterLambda                         )               , pointer          :: cosmologyFunctionsData
+    type            (distributionOperatorList                               )               , pointer          :: distributionOperatorSequence
+    double precision                                                                        , parameter        :: errorPolynomialZeroPoint                            =40.0d0
+    type            (varying_string                                         )                                  :: fileName
     !![
     <constructorAssign variables="randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, redshiftInterval, randomErrorMinimum, randomErrorMaximum, sizeSourceLensing, rootVarianceAttenuation, *gravitationalLensing_"/>
     !!]
@@ -373,12 +373,12 @@ contains
     !![
     <referenceConstruct object="outputAnalysisDistributionOperatorRandomErrorPolynomial_">
      <constructor>
-      outputAnalysisDistributionOperatorRandomErrorPolynomial (                                  &amp;
-        &amp;                                              randomErrorMinimum              , &amp;
-        &amp;                                              randomErrorMaximum              , &amp;
-        &amp;                                              errorPolynomialZeroPoint        , &amp;
-        &amp;                                              randomErrorPolynomialCoefficient  &amp;
-        &amp;                                             )
+      outputAnalysisDistributionOperatorRandomErrorPolynomial(                                  &amp;
+        &amp;                                                 randomErrorMinimum              , &amp;
+        &amp;                                                 randomErrorMaximum              , &amp;
+        &amp;                                                 errorPolynomialZeroPoint        , &amp;
+        &amp;                                                 randomErrorPolynomialCoefficient  &amp;
+        &amp;                                                )
      </constructor>
     </referenceConstruct>
     !!]
@@ -387,11 +387,11 @@ contains
     !![
     <referenceConstruct object="outputAnalysisDistributionOperatorGravitationalLensing_">
      <constructor>
-      outputAnalysisDistributionOperatorGravitationalLensing       (                                  &amp;
-        &amp;                                              gravitationalLensing_           , &amp;
-        &amp;                                              outputTimes_                    , &amp;
-        &amp;                                              sizeSourceLensing                 &amp;
-        &amp;                                             )
+      outputAnalysisDistributionOperatorGravitationalLensing (                                  &amp;
+        &amp;                                                 gravitationalLensing_           , &amp;
+        &amp;                                                 outputTimes_                    , &amp;
+        &amp;                                                 sizeSourceLensing                 &amp;
+        &amp;                                                )
      </constructor>
     </referenceConstruct>
     !!]
@@ -455,13 +455,13 @@ contains
          &                                       )
     ! Clean up.
     !![
-    <objectDestructor name="surveyGeometry_"                                     />
-    <objectDestructor name="galacticFilter_"                                     />
-    <objectDestructor name="cosmologyParametersData"                             />
-    <objectDestructor name="cosmologyFunctionsData"                              />
-    <objectDestructor name="outputAnalysisPropertyOperator_"                     />
-    <objectDestructor name="outputAnalysisDistributionOperator_"                 />
-    <objectDestructor name="outputAnalysisDistributionOperatorGravitationalLensing_"      />
+    <objectDestructor name="surveyGeometry_"                                         />
+    <objectDestructor name="galacticFilter_"                                         />
+    <objectDestructor name="cosmologyParametersData"                                 />
+    <objectDestructor name="cosmologyFunctionsData"                                  />
+    <objectDestructor name="outputAnalysisPropertyOperator_"                         />
+    <objectDestructor name="outputAnalysisDistributionOperator_    "                 />
+    <objectDestructor name="outputAnalysisDistributionOperatorGravitationalLensing_" />
     <objectDestructor name="outputAnalysisDistributionOperatorRandomErrorPolynomial_"/>
     !!]
     if (associated(outputAnalysisDistributionOperatorAttenuationScatter_)) then

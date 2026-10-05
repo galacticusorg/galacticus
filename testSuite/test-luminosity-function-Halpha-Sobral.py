@@ -9,19 +9,20 @@ redshift interval (z=0.40), through the `luminosityFunctionSobral2013HiZELS` ana
 * with emission lines from active galactic nuclei added (`nodePropertyExtractorAGN`);
 * with scatter in the attenuation (`rootVarianceAttenuation`).
 
-It checks that each run populates the analysis, that adding AGN emission changes the luminosity function and can only
-increase the number of galaxies brighter than any luminosity (adding luminosity to every galaxy, with the same
-attenuation and observational error, can move none of them fainter---whereas the mean luminosity within the range of
-the analysis need not increase, as galaxies are brought into range at its faint end), and that scatter in the attenuation changes and broadens the luminosity function. (The number of
-galaxies within the range of the analysis is not conserved by the scatter---the truncated attenuation can only make a
-galaxy fainter than it is unattenuated, so galaxies are scattered out of the faint end---so conservation is tested
-instead, exactly, by the tests.output_analyses.attenuation_scatter unit test.)
+It checks that each run populates the analysis, that adding AGN emission changes the luminosity function and can only increase the
+number of galaxies brighter than any luminosity (adding luminosity to every galaxy, with the same attenuation and observational
+error, can move none of them fainter---whereas the mean luminosity within the range of the analysis need not increase, as galaxies
+are brought into range at its faint end), and that scatter in the attenuation changes and broadens the luminosity function. (The
+number of galaxies within the range of the analysis is not conserved by the scatter---the truncated attenuation can only make a
+galaxy fainter than it is unattenuated, so galaxies are scattered out of the faint end---so conservation is tested instead,
+exactly, by the tests.output_analyses.attenuation_scatter unit test.)
 
 Black holes in the base model accrete too little for their H-alpha emission (at most ~1e38 erg/s) to move any galaxy
 between luminosity bins, so Bondi-Hoyle accretion is made stronger (and not restricted to the hot mode), which makes it
 significant. This is applied to all three runs, which therefore differ only in the options of the analysis.
 
 Andrew Benson, Claude (23-September-2026).
+
 """
 
 import os
