@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790900305320,
+  "lastUpdate": 1791218967139,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (COZMIC)": [
@@ -1542,6 +1542,55 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/53612aaa592b64d52d06348a297c7ba12a8ac479"
         },
         "date": 1790900304018,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay FDM:25.9e-22eV resolutionX8 z=0.000",
+            "value": 81.56184333804991,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay IDM:1e-4GeV:envelope resolutionX8 z=0.000",
+            "value": 61.04888760001796,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV resolutionX8 z=0.000",
+            "value": 61.922997939547514,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV:bumpCutoff resolutionX8 z=0.000",
+            "value": 105.18532093016648,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV:f0.6 resolutionX8 z=0.000",
+            "value": 74.48277078992092,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5e6aa06abe65c2c8d80ac7ad71d0d8e21a64cb9a",
+          "message": "Merge pull request #1557 from galacticusorg/perf/optimize-c-f77-sources\n\nperf(build): compile C, C++ and Fortran 77 sources with optimization",
+          "timestamp": "2026-10-05T08:34:36Z",
+          "tree_id": "89db45942c747b563c666410e03e9cc5a7ee4c50",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5e6aa06abe65c2c8d80ac7ad71d0d8e21a64cb9a"
+        },
+        "date": 1791218965876,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
