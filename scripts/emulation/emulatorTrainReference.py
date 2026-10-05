@@ -1,22 +1,20 @@
 #!/usr/bin/env python3
 """Train emulators of Galacticus model predictions from a campaign of runs over an emulator design.
 
-The configuration is a Galacticus-style parameter file:
+The configuration is an XML file:
 
-  <parameters>
-    <task value="emulatorTrain">
-      <designFileName       value="design.hdf5"  />
-      <emulatorFileName     value="emulator.hdf5"/>
-      <pcaVarianceRetained  value="0.99"/>      <!-- optional -->
-      <restartsOptimizer    value="4"   />      <!-- optional -->
-      <foldsCrossValidation value="5"   />      <!-- optional; 0 disables cross-validation -->
-      <seed                 value="0"   />      <!-- optional -->
-      <storeCholesky        value="true"/>      <!-- optional -->
-      <collectOnly          value="false"/>     <!-- optional; write the training sets only -->
-      <observable label="massFunctionStellarTomczak2014ZFOURGEz0" transform="log10" floor="-6.64" rootVarianceFloored="0.5"/>
-      <observable label="massMetallicityBlanc2019" transform="identity" undefined="median" rootVarianceUndefined="5.0"/>
-    </task>
-  </parameters>
+  <emulatorTrain>
+    <designFileName       value="design.hdf5"  />
+    <emulatorFileName     value="emulator.hdf5"/>
+    <pcaVarianceRetained  value="0.99"/>      <!-- optional -->
+    <restartsOptimizer    value="4"   />      <!-- optional -->
+    <foldsCrossValidation value="5"   />      <!-- optional; 0 disables cross-validation -->
+    <seed                 value="0"   />      <!-- optional -->
+    <storeCholesky        value="true"/>      <!-- optional -->
+    <collectOnly          value="false"/>     <!-- optional; write the training sets only -->
+    <observable label="massFunctionStellarTomczak2014ZFOURGEz0" transform="log10" floor="-6.64" rootVarianceFloored="0.5"/>
+    <observable label="massMetallicityBlanc2019" transform="identity" undefined="median" rootVarianceUndefined="5.0"/>
+  </emulatorTrain>
 
 The outputs of the runs are those named in the design file, resolved relative to the working directory (or to
 --directory). The emulator file format is described in the "Emulator-Assisted Calibration" chapter of the user guide.
@@ -51,10 +49,9 @@ def _value(task, name, default=None, kind=str):
 
 def read_configuration(path):
     """Read a training configuration, returning a dictionary of options and a list of observables."""
-    root = ET.parse(path).getroot()
-    task = root.find("task[@value='emulatorTrain']")
-    if task is None:
-        raise ValueError(f"'{path}' contains no <task value=\"emulatorTrain\"> element")
+    task = ET.parse(path).getroot()
+    if task.tag != 'emulatorTrain':
+        raise ValueError(f"'{path}' is not an emulator training configuration (its root element must be <emulatorTrain>)")
     options = {
         'designFileName':       _value(task, 'designFileName'),
         'emulatorFileName':     _value(task, 'emulatorFileName'),
@@ -89,7 +86,7 @@ def read_configuration(path):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split('\n\n')[0], formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('configuration', help='the training configuration (a Galacticus-style parameter file)')
+    parser.add_argument('configuration', help='the training configuration (an XML file)')
     parser.add_argument('--directory', default='.', help='the directory relative to which the run outputs are resolved')
     parser.add_argument('--overwrite', action='store_true', help='replace an existing emulator file')
     args = parser.parse_args(argv)

@@ -230,16 +230,14 @@ def test_command_line(campaign, tmp_path, capsys):
     module = importlib.util.module_from_spec(specification)
     specification.loader.exec_module(module)
     configuration = tmp_path / 'train.xml'
-    configuration.write_text(f'''<parameters>
-  <task value="emulatorTrain">
-    <designFileName       value="{path / 'design.hdf5'}"/>
-    <emulatorFileName     value="{tmp_path / 'emulator.hdf5'}"/>
-    <restartsOptimizer    value="1"/>
-    <foldsCrossValidation value="3"/>
-    <observable label="numberDensity" transform="log10" floor="-6.0" rootVarianceFloored="0.5"/>
-    <observable label="relation" undefined="median" rootVarianceUndefined="5.0"/>
-  </task>
-</parameters>
+    configuration.write_text(f'''<emulatorTrain>
+  <designFileName       value="{path / 'design.hdf5'}"/>
+  <emulatorFileName     value="{tmp_path / 'emulator.hdf5'}"/>
+  <restartsOptimizer    value="1"/>
+  <foldsCrossValidation value="3"/>
+  <observable label="numberDensity" transform="log10" floor="-6.0" rootVarianceFloored="0.5"/>
+  <observable label="relation" undefined="median" rootVarianceUndefined="5.0"/>
+</emulatorTrain>
 ''')
     assert module.main([str(configuration), '--directory', str(path)]) == 0
     output = capsys.readouterr().out

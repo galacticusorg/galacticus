@@ -108,19 +108,17 @@ Training an emulator
 --------------------
 
 Emulators are trained by the script ``scripts/emulation/emulatorTrainReference.py``, which requires scikit-learn
-(``pip install -e '.[emulation-gp]'``). It reads a configuration in the style of a Galacticus parameter file:
+(``pip install -e '.[emulation-gp]'``). It reads a configuration file:
 
 .. code-block:: xml
 
-   <parameters>
-     <task value="emulatorTrain">
-       <designFileName       value="design.hdf5"  />
-       <emulatorFileName     value="emulator.hdf5"/>
-       <foldsCrossValidation value="5"/>
-       <observable label="massFunctionStellarTomczak2014ZFOURGEz0" transform="log10" floor="-6.64" rootVarianceFloored="0.5"/>
-       <observable label="massMetallicityBlanc2019" undefined="median" rootVarianceUndefined="5.0"/>
-     </task>
-   </parameters>
+   <emulatorTrain>
+     <designFileName       value="design.hdf5"  />
+     <emulatorFileName     value="emulator.hdf5"/>
+     <foldsCrossValidation value="5"/>
+     <observable label="massFunctionStellarTomczak2014ZFOURGEz0" transform="log10" floor="-6.64" rootVarianceFloored="0.5"/>
+     <observable label="massMetallicityBlanc2019" undefined="median" rootVarianceUndefined="5.0"/>
+   </emulatorTrain>
 
 For each ``observable`` it collects a training set from the ``analyses/{label}`` group written by the corresponding
 ``outputAnalysis`` in the output of each run of the design (as listed in the design file). Runs which failed are excluded
@@ -140,6 +138,25 @@ starts. With ``foldsCrossValidation`` greater than zero, each emulator is also c
 fold of the training set held out, and the held-out predictions are written to the ``validation`` group of the emulator
 file, along with per-bin statistics. A well-calibrated emulator has an RMS standardized residual near 1, and 1 and 2
 sigma coverage near 0.68 and 0.95. With ``collectOnly`` set to ``true``, only the training sets are written.
+
+.. _manual-sec-EmulatorEvaluation:
+
+Evaluating an emulator
+----------------------
+
+Within Galacticus an emulator is an object of the :galacticus-class:`emulatorClass` class. The
+:galacticus-class:`emulatorGaussianProcess` implementation reads the emulator of one observable from an emulator file:
+
+.. code-block:: xml
+
+   <emulator value="gaussianProcess">
+     <fileName value="emulator.hdf5"/>
+     <label    value="massFunctionStellarTomczak2014ZFOURGEz0"/>
+   </emulator>
+
+The :galacticus-class:`taskEmulatorPredict` task evaluates an emulator at a list of points (given as prior quantiles in an
+HDF5 file), writing the predicted mean and variance of each output, which is useful for checking an emulator against
+direct runs of the model.
 
 .. _manual-sec-EmulatorFileFormat:
 
