@@ -133,7 +133,7 @@ How to read a row
 Reference: all index datasets
 -----------------------------
 
-Only ``nodeIndex``, ``parentIndex``, ``siblingIndex``, ``satelliteIndex``, and ``nodeIsIsolated`` are output by default. The remaining datasets below are produced by property extractors which must be added to the ``nodePropertyExtractor`` parameter to appear in the output---their names are unambiguous, so they are a good choice if you would rather not have to test ``nodeIsIsolated`` in your analysis.
+Only ``nodeIndex``, ``parentIndex``, ``siblingIndex``, ``satelliteIndex``, and ``nodeIsIsolated`` are output by default. The remaining datasets below (except ``satelliteNodeIndex``, which is noted in the table) are produced by property extractors which must be added to the ``nodePropertyExtractor`` parameter to appear in the output---their names are unambiguous, so they are a good choice if you would rather not have to test ``nodeIsIsolated`` in your analysis.
 
 .. list-table::
    :header-rows: 1
@@ -175,6 +175,9 @@ Only ``nodeIndex``, ``parentIndex``, ``siblingIndex``, ``satelliteIndex``, and `
    * - ``nodeIndexBranchTip``
      - :galacticus-class:`nodePropertyExtractorIndexBranchTip`
      - The earliest progenitor along this node's branch. Requires the :galacticus-class:`nodeOperatorIndexBranchTip` node operator to record it.
+   * - ``satelliteNodeIndex``
+     - None: output by the satellite component when ``<componentSatellite value="preset"/>`` is used
+     - For a subhalo, the index (as listed in the merger tree file) of the subhalo at the snapshot closest to the current time. For an isolated halo, or a subhalo with no recorded index history, it is the node's own ``nodeIndex``. The history is recorded only for merger trees read from file with the ``presetSubhaloIndices`` parameter of ``<mergerTreeConstructor value="read">`` set to ``true`` (the default). See :ref:`sec-output-tree-structure-caveats` for why this differs from ``nodeIndex``.
 
 Recipes
 -------
@@ -274,6 +277,8 @@ Caveats
 * **An isolated halo's** ``parentIndex`` **points into the merger tree, not into the next output.** It is the halo into which this halo grows at the next timestep *of the tree*, and that timestep will generally fall between two output times, so no row with that ``nodeIndex`` need exist in any output. Use ``descendantIndex`` to move between outputs. By contrast, an isolated halo's ``siblingIndex``, and all of the links between a subhalo and its host, generally do refer to nodes which are present in the same output: those nodes are being evolved concurrently.
 
 * **A node's** ``nodeIndex`` **changes when it is promoted.** By default ``nodeIndex`` is the index of the node in the original merger tree, so when a galaxy's halo is promoted into its parent at a tree timestep the index changes, even though the galaxy is the same object. The ``indexShift`` node operator changes this behavior; both conventions are illustrated in the description of :galacticus-class:`nodePropertyExtractorNodeIndices`.
+
+* **A subhalo's** ``nodeIndex`` **is frozen at the time it became a subhalo.** Once a halo falls into a larger halo there is no further branch of the merger tree along which it can be promoted, so the node which goes on evolving as the subhalo keeps the ``nodeIndex`` of the last halo on its branch before infall. For a merger tree read from file, that is the halo at the last snapshot at which it was isolated. The subhalo continues to evolve (its mass, orbit, and galaxy all change), but its ``nodeIndex`` does not. A subhalo's ``nodeIndex`` therefore refers to a node of the merger tree at a time *earlier* than the output time, often by many snapshots. Trees built from extended Press-Schechter theory contain no subhalos, so this is the only possible behavior for them. N-body merger trees *do* contain the subhalo at each later snapshot, but Galacticus treats those entries as the history of the single subhalo node (its mass, position, and so on) rather than as separate nodes, so that subhalos behave in the same way for both kinds of tree. To find a subhalo in the original N-body merger tree at (or near) the output time, output ``satelliteNodeIndex`` (see :ref:`sec-output-tree-structure-reference`). It gives the index, as listed in the merger tree file, of the subhalo at the snapshot closest to the output time. For example, a subhalo in an output at expansion factor :math:`a=0.162` may have a ``nodeIndex`` which the merger tree file lists at :math:`a=0.104`, the last snapshot before it fell in, while its ``satelliteNodeIndex`` is the entry listed at :math:`a=0.162`.
 
 * **The** :math:`-1` **sentinel is not used consistently between extractors.** ``parentIndex``, ``siblingIndex``, and ``satelliteIndex`` are :math:`-1` when the corresponding link does not exist, but ``hostIndex`` reports the node's own index for an isolated halo, and ``descendantIndex`` reports the node's own index when the galaxy survives to the next output. This is deliberate: ``hostIndex`` follows the convention used for the same-named dataset in merger tree files (see :doc:`data/merger-tree-file-format`), in which a halo which is not a subhalo is its own host.
 

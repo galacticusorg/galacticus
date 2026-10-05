@@ -314,11 +314,12 @@ you can tell Galacticus to keep track of the indices of subhalos by setting:
      <presetSubhaloIndices value="true"  />
    </mergerTreeConstructor>
 
-The Galacticus output file will then contain ``satelliteNodeIndex``
-datasets which list the index (as given in the merger tree file) for all
-subhalos and halos. Without specifying this presetting, the index of
-subhalos is frozen at the index of the halo immediately prior to it
-becoming a subhalo.
+The ``nodeIndex`` of a subhalo is always frozen at the index of the
+halo just before it became a subhalo. With these settings the Galacticus output
+file also contains ``satelliteNodeIndex`` datasets. These give the index (as
+listed in the merger tree file) of each subhalo at the snapshot closest to the
+output time, and the ``nodeIndex`` of each isolated halo. See
+:ref:`sec-output-tree-structure-caveats` for details.
 
 The remainder of this section gives more detail about many of the
 parameters described above and how they affect handling of merger trees
@@ -467,9 +468,13 @@ node is updated accordingly.
 Subhalo Indices
 ~~~~~~~~~~~~~~~
 
-The indices of subhalos are usually frozen at the index of the halo just
-prior to becoming a subhalo. The index of the corresponding halo in the
-original tree (as read from file) can be tracked as follows:
+The ``nodeIndex`` of a subhalo is frozen at the index of the halo just
+before it became a subhalo. It does not change as the subhalo evolves, so
+looking up a subhalo's ``nodeIndex`` in the merger tree file finds the halo
+at an earlier snapshot than the output (see
+:ref:`sec-output-tree-structure-caveats`). The index of the corresponding
+subhalo in the original tree (as read from file) at each time can be tracked
+as follows:
 
 .. code-block:: xml
 
