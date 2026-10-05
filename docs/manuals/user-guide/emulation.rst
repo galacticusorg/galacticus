@@ -6,8 +6,8 @@ Emulator-Assisted Calibration
 .. note::
 
    Emulator-assisted calibration is under development. This chapter currently describes generating a design, running a
-   campaign of models over it, and the emulator file format; training emulators and sampling with them will be
-   described here as they are added.
+   campaign of models over it, training emulators, and the emulator file format; sampling with emulators will be
+   described here as it is added.
 
 Calibrating a model by Markov Chain Monte Carlo (see :doc:`tutorials/constraining-parameters`) requires the model to be
 run at every step of every chain. When a single model run is expensive this is impractical. Emulator-assisted
@@ -101,6 +101,45 @@ machine. A run is complete when Galacticus exited with status zero, its log cont
 ``fatal``, ``aborted``, ``ODE integration failed``, ``unrecognized parameter``), and its output file exists; ``status``
 reports the reason for each failure, and ``resubmit`` submits the failed runs again. The same operations are available
 from Python, in ``Galacticus.Emulation.campaign``, for use from other pipelines.
+
+.. _manual-sec-EmulatorTraining:
+
+Training an emulator
+--------------------
+
+Emulators are trained by the script ``scripts/emulation/emulatorTrainReference.py``, which requires scikit-learn
+(``pip install -e '.[emulation-gp]'``). It reads a configuration in the style of a Galacticus parameter file:
+
+.. code-block:: xml
+
+   <parameters>
+     <task value="emulatorTrain">
+       <designFileName       value="design.hdf5"  />
+       <emulatorFileName     value="emulator.hdf5"/>
+       <foldsCrossValidation value="5"/>
+       <observable label="massFunctionStellarTomczak2014ZFOURGEz0" transform="log10" floor="-6.64" rootVarianceFloored="0.5"/>
+       <observable label="massMetallicityBlanc2019" undefined="median" rootVarianceUndefined="5.0"/>
+     </task>
+   </parameters>
+
+For each ``observable`` it collects a training set from the ``analyses/{label}`` group written by the corresponding
+``outputAnalysis`` in the output of each run of the design (as listed in the design file). Runs which failed are excluded
+(and reported), and repeated realizations of a design point are averaged. Each observable may be transformed to
+:math:`\log_{10}` (``transform="log10"``), in which case values at or below :math:`10^\mathrm{floor}` (including empty bins)
+are set to the floor with root variance ``rootVarianceFloored`` (in dex); and bins which are undefined in some runs (as
+for a mean relation with no galaxies in a bin) may be replaced by the median of that bin over the other runs
+(``undefined="median"``), with root variance ``rootVarianceUndefined``. Values which have been floored or replaced are
+flagged in the ``mask`` of the training set.
+
+The emulator of each observable standardizes its bins, compresses them by principal components analysis (retaining a
+fraction ``pcaVarianceRetained`` of the variance, by default 0.99), and fits a Gaussian process to each standardized
+principal component coefficient. The finite-sampling uncertainty of each run, propagated to the coefficients, is
+included as heteroscedastic noise, and the hyperparameters (an amplitude and one length scale per input, in units of
+prior quantiles) are found by maximizing the marginal likelihood, from ``restartsOptimizer`` (by default 4) random
+starts. With ``foldsCrossValidation`` greater than zero, each emulator is also cross-validated: it is refitted with each
+fold of the training set held out, and the held-out predictions are written to the ``validation`` group of the emulator
+file, along with per-bin statistics. A well-calibrated emulator has an RMS standardized residual near 1, and 1 and 2
+sigma coverage near 0.68 and 0.95. With ``collectOnly`` set to ``true``, only the training sets are written.
 
 .. _manual-sec-EmulatorFileFormat:
 

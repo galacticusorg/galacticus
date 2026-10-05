@@ -57,8 +57,9 @@ jobs:
         # zstandard supplies zstd where the standard library has none (before
         # Python 3.14), so the launcher's archive tests do not depend on which
         # interpreter this job happens to resolve `3.x` to. numpy and h5py are
-        # needed by the emulator file-format tests (python/Galacticus/Emulation).
-        run: python -m pip install --upgrade pip pytest platformdirs requests lxml zstandard numpy h5py
+        # needed by the emulator file-format tests, and scikit-learn by the emulator
+        # training tests (python/Galacticus/Emulation), which would otherwise be skipped.
+        run: python -m pip install --upgrade pip pytest platformdirs requests lxml zstandard numpy h5py scikit-learn
       - name: Run Python regression tests
         run: |
           cd $GITHUB_WORKSPACE
