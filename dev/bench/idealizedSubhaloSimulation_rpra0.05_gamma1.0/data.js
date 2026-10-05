@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790900192388,
+  "lastUpdate": 1791218858844,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=1.0)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "f682b8da0987843912223dd0143d1faf77c71216",
-          "message": "Merge pull request #698 from galacticusorg/fixEmptyDirectiveLineParse\n\nIgnore empty lines when parsing directives",
-          "timestamp": "2024-09-11T03:48:21Z",
-          "tree_id": "724a11fd5782d3d1b5ec6befa6585ad3c271462f",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f682b8da0987843912223dd0143d1faf77c71216"
-        },
-        "date": 1726049892353,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteBoundMass",
-            "value": "69.36737845286848",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "39.245729892367294",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteVelocityMaximum",
-            "value": "32.23649324777072",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9922,6 +9883,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/53612aaa592b64d52d06348a297c7ba12a8ac479"
         },
         "date": 1790900191100,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": -69.36737886359857,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -39.24572993020891,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": -32.23649322970738,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5e6aa06abe65c2c8d80ac7ad71d0d8e21a64cb9a",
+          "message": "Merge pull request #1557 from galacticusorg/perf/optimize-c-f77-sources\n\nperf(build): compile C, C++ and Fortran 77 sources with optimization",
+          "timestamp": "2026-10-05T08:34:36Z",
+          "tree_id": "89db45942c747b563c666410e03e9cc5a7ee4c50",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5e6aa06abe65c2c8d80ac7ad71d0d8e21a64cb9a"
+        },
+        "date": 1791218857714,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
