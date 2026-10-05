@@ -30,7 +30,7 @@ Each of the following make variables (settable on the command line or from the e
    ``no`` (default) or ``yes``: a shared-library build of ``libgalacticus.so``. Adds ``-fPIC`` and heap trampolines, and activates the library-interface generators (see Section :galacticus-ref:`buildLibraryInterface`).
 
 ``PROFILER``
-   ``none`` (default), ``gprof``, or ``perf``: instrument the code for a profiler, with ``-pg`` for gprof, or frame pointers (``-fno-omit-frame-pointer``) for perf.
+   ``none`` (default), ``gprof``, or ``perf``: instrument the code for a profiler, with ``-pg`` for ``gprof``, or frame pointers (``-fno-omit-frame-pointer``) for ``perf``.
 
 ``ODEPROFILE``
    ``no`` (default) or ``yes``: profile the ODE solver (``-DPROFILE``).
