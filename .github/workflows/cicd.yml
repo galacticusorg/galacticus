@@ -1733,6 +1733,17 @@ jobs:
       runPath: ./testSuite
       cacheData: 1
     secrets: inherit
+  ### Emulator predictions
+  ## Builds an emulator file in Python and checks that the Galacticus Gaussian process emulator (via the `emulatorPredict`
+  ## task) reproduces the predictions of the reference implementation, with and without stored Cholesky factors.
+  Emulator-Predict:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-emulator-predict.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+    secrets: inherit
   ### Regressions
   Regressions:
     needs: Build-Executable-Linux
