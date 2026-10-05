@@ -123,7 +123,7 @@ jobs:
           # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
           # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
-          make GALACTICUS_BUILD_OPTION=compileprof -j2 Galacticus.exe 2>&1 | tee build.log
+          make BUILDPROFILE=yes -j2 Galacticus.exe 2>&1 | tee build.log
           set +o pipefail
           python3 ./scripts/build/buildProfiler.py build.log buildProfile.html --durationMinimum 20
           grep -vqzi error:          build.log || (echo "FAIL: errors found in build.log"          && false)
@@ -215,13 +215,10 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          export GALACTICUS_FCFLAGS="$GALACTICUS_FCFLAGS -pg"
-          export GALACTICUS_CFLAGS="$GALACTICUS_CFLAGS -pg"
-          export GALACTICUS_CPPFLAGS="$GALACTICUS_CPPFLAGS -pg"
           # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
           # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
-          make -j2 Galacticus.exe
+          make -j2 PROFILER=gprof SUFFIX= Galacticus.exe
       - name: Upload executables
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -284,7 +281,7 @@ jobs:
           # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
           # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
-          make -j2 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
+          make -j2 MPI=yes SUFFIX= Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -312,7 +309,6 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-          echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -DDEBUGGING" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the code
         run: |
@@ -321,7 +317,7 @@ jobs:
           # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
           # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
-          make -j2 Galacticus.exe tests.debugging.exe
+          make -j2 DEBUGGING=yes SUFFIX= Galacticus.exe tests.debugging.exe
       - name: Upload test code executables
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -361,7 +357,7 @@ jobs:
           # does not bound the peak of a single oversized compile. LTO on the library is only a performance
           # optimization (the downstream Python-interface test just needs a working libgalacticus.so), so we
           # disable it here to cut peak memory, and cap parallelism at -j2 to limit concurrent compiles.
-          make -j2 LTO=disabled GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+          make -j2 LTO=disabled LIBRARY=yes libgalacticus.so
       - name: Package the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -786,7 +782,7 @@ jobs:
           sudo port select --set python3 python312
       - name: Build Galacticus
         run: |
-          make -j`sysctl -n hw.activecpu` USEGIT2=no GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+          make -j`sysctl -n hw.activecpu` USEGIT2=no LIBRARY=yes libgalacticus.so
       - name: Package the code
         run: |
           cd $GALACTICUS_EXEC_PATH

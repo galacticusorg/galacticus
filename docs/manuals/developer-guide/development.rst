@@ -18,22 +18,35 @@ A build proceeds, conceptually, in four phases:
 The Makefile
 ~~~~~~~~~~~~
 
-Files generated during the build (with the exception of final executables) are written to the directory specified by the ``BUILDPATH`` variable. This is normally ``work/build/`` (and is set by the ``Makefile``) unless a special build configuration is requested via ``GALACTICUS_BUILD_OPTION``:
+Build options
+^^^^^^^^^^^^^
 
-``default``
-   Standard build (``BUILDPATH=./work/build``).
+Each of the following make variables (settable on the command line or from the environment) controls a single aspect of the build, and they may be combined freely:
 
 ``MPI``
-   MPI-enabled build (``BUILDPATH=./work/buildMPI``); compilers default to ``mpif90``/``mpicc``/``mpic++`` (overridable via ``MPIFCCOMPILER`` etc.) and ``-DUSEMPI`` is defined.
+   ``no`` (default) or ``yes``: an MPI-enabled build. ``-DUSEMPI`` is defined, and the compilers default to ``mpif90``/``mpicc``/``mpic++`` (overridable via ``MPIFCCOMPILER`` etc.).
 
-``lib``
-   Shared-library build of ``libgalacticus.so`` (``BUILDPATH=./work/buildLib``); adds ``-fPIC`` and heap trampolines, and activates the library-interface generators (see Section :galacticus-ref:`buildLibraryInterface`).
+``LIBRARY``
+   ``no`` (default) or ``yes``: a shared-library build of ``libgalacticus.so``. Adds ``-fPIC`` and heap trampolines, and activates the library-interface generators (see Section :galacticus-ref:`buildLibraryInterface`).
 
-``gprof``, ``perf``, ``odeprof``
-   Profiling variants (``-pg``, ``-fno-omit-frame-pointer``, and ``-DPROFILE`` respectively), each with its own build directory and executable ``SUFFIX``.
+``PROFILER``
+   ``none`` (default), ``gprof``, or ``perf``: instrument the code for a profiler, with ``-pg`` for gprof, or frame pointers (``-fno-omit-frame-pointer``) for perf.
 
-``compileprof``
-   Build-profiling mode: every recipe is run through the ``profiler.sh`` wrapper SHELL to collect timing and memory data (see Section :galacticus-ref:`buildProfiling`).
+``ODEPROFILE``
+   ``no`` (default) or ``yes``: profile the ODE solver (``-DPROFILE``).
+
+``DEBUGGING``
+   ``no`` (default) or ``yes``: a debugging build. ``-DDEBUGGING`` is added to ``GALACTICUS_FCFLAGS`` (and exported), as the build's code generators and dependency scanner read it from there.
+
+``BUILDPROFILE``
+   ``no`` (default) or ``yes``: profile the build itself. Every recipe is run through the ``profiler.sh`` wrapper SHELL to collect timing and memory data (see Section :galacticus-ref:`buildProfiling`). This does not change the code built.
+
+Files generated during the build (with the exception of final executables) are written to the directory specified by the ``BUILDPATH`` variable. Each of the above options that changes the code built adds a tag to both this directory and the suffix (``SUFFIX``) given to executables, so that each combination of options is built separately, and the results can coexist: the tags are ``MPI``, ``Lib``, ``Debug``, ``ODEProf``, ``GProf``, and ``Perf``, in that order. For example, ``make MPI=yes PROFILER=perf Galacticus.exe`` builds in ``work/buildMPIPerf/`` and produces ``Galacticus.exe_MPIPerf``. With none of these options, ``BUILDPATH`` is ``work/build/`` and the suffix is empty. Setting ``BUILDPATH`` or ``SUFFIX`` explicitly overrides the derived value - for example, ``make MPI=yes SUFFIX= Galacticus.exe`` produces plain ``Galacticus.exe``.
+
+Every preprocessed source and object also depends on a build configuration stamp, ``$(BUILDPATH)/buildConfiguration.stamp``, which records the compilers and all compiler flags. Its rule rewrites it only when they change, so that any change in configuration not reflected in the build directory - such as ``LTO``, ``GALACTICUS_FCFLAGS``, or a newly detected library - rebuilds everything, rather than linking objects built under the old configuration with those built under the new. Because ``make -n`` cannot know that the stamp will not change, it always reports a full rebuild.
+
+``GALACTICUS_BUILD_OPTION`` (deprecated)
+   The former way to select a build configuration, which allowed only one of a fixed set: ``default``, ``MPI``, ``lib``, ``gprof``, ``perf``, ``odeprof``, or ``compileprof``. It is still accepted, with a warning, and is mapped onto the options above. It keeps its original executable suffixes (none for ``MPI``; ``_lib``, ``_gprof``, ``_perf``, and ``_odeProf`` for the others) so that existing command lines produce the same files.
 
 .. _manual-sec-buildKnobs:
 
@@ -325,7 +338,7 @@ Diagnostics are written to a file and postprocessed *after* capturing the compil
 The Shared-Library Interface
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Library builds (``GALACTICUS_BUILD_OPTION=lib``) generate C-interoperable Fortran wrappers, and a Python ``ctypes`` interface, for every ``functionClass`` registered in ``source/libraryClasses.xml``:
+Library builds (``LIBRARY=yes``) generate C-interoperable Fortran wrappers, and a Python ``ctypes`` interface, for every ``functionClass`` registered in ``source/libraryClasses.xml``:
 
 ``scripts/build/libraryInterfaces.py``
    The generator. Parses each implementation file once, classifies every constructor and method argument/return type against the rules in ``python/LibraryInterfaces/Classification.py`` (skipping, with a warning, anything the pipeline cannot translate), and emits: ``$(BUILDPATH)/libgalacticus.Inc`` (the library's initialization core), per-class wrapper units ``$(BUILDPATH)/libgalacticus/<class>.F90`` plus per-implementation constructor wrappers ``<class>__<impl>.F90`` (split so gfortran gets small compilation units), and the Python interface ``galacticus.py``. Wrapper units are written only-if-changed, so catalog changes recompile only genuinely affected wrappers.
@@ -498,11 +511,11 @@ Generated files (all under ``$(BUILDPATH)`` unless noted):
 Profiling the Build
 ~~~~~~~~~~~~~~~~~~~
 
-Tooling is provided to help profile the build process. This is useful to identify bottlenecks during build. Profiling can be switched on using the ``compileprof`` build option. For example:
+Tooling is provided to help profile the build process. This is useful to identify bottlenecks during build. Profiling can be switched on using the ``BUILDPROFILE`` build option. For example:
 
 .. code-block:: none
 
-   make -j16 GALACTICUS_BUILD_OPTION=compileprof Galacticus.exe >& build.log
+   make -j16 BUILDPROFILE=yes Galacticus.exe >& build.log
 
 Every command run by ``Make`` will be timed, its peak memory usage measured, and the results output. In the above these outputs are collected to the ``build.log`` file. Result lines have the form::
 
