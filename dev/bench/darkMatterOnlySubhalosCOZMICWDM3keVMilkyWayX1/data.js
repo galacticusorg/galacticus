@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790900092092,
+  "lastUpdate": 1791218762073,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 3keV resolutionX1)": [
@@ -5673,6 +5673,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 0.5558078147187735,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5e6aa06abe65c2c8d80ac7ad71d0d8e21a64cb9a",
+          "message": "Merge pull request #1557 from galacticusorg/perf/optimize-c-f77-sources\n\nperf(build): compile C, C++ and Fortran 77 sources with optimization",
+          "timestamp": "2026-10-05T08:34:36Z",
+          "tree_id": "89db45942c747b563c666410e03e9cc5a7ee4c50",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5e6aa06abe65c2c8d80ac7ad71d0d8e21a64cb9a"
+        },
+        "date": 1791218760887,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": -1.3619477710828354,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 0.6190111300452315,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 0.6456923822575618,
             "unit": "-logℒ"
           }
         ]
