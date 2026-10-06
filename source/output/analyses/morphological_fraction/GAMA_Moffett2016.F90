@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements a stellar vs halo mass relation analysis class.
   !!}
@@ -208,6 +210,7 @@ contains
     dataFile=hdf5File(inputPath(pathTypeDataStatic)//"observations/morphology/earlyTypeFractionGAMA.hdf5",readOnly=.true.)
     call dataFile%readDataset("mass"      ,masses               )
     call dataFile%readDataset("countEarly",self%countEarlyTarget)
+    call dataFile%readDataset("countAll"  ,self%countAllTarget  )
     !$ call hdf5Access%unset()
     binCount=size(masses,kind=c_size_t)
     ! Compute confidence intervals on data. In each mass bin the quantity of interest is the probability, p, of a galaxy being
