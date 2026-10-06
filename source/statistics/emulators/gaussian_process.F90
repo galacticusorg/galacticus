@@ -54,7 +54,7 @@
      type            (varying_string                  )                              :: fileName         , label
      type            (varying_string                  ), allocatable, dimension(:  ) :: inputNames_
      double precision                                  , allocatable, dimension(:,:) :: inputs           , pcaComponents   , &
-          &                                                                             covarianceTarget_
+          &                                                                             covarianceTarget_, values
      double precision                                  , allocatable, dimension(:  ) :: binMean          , binScale        , &
           &                                                                             coefficientMean  , coefficientScale, &
           &                                                                             x_               , yTarget_
@@ -65,7 +65,8 @@
      procedure :: inputNames   => gaussianProcessInputNames
      procedure :: countOutputs => gaussianProcessCountOutputs
      procedure :: outputs      => gaussianProcessOutputs
-     procedure :: target       => gaussianProcessTarget
+     procedure :: target         => gaussianProcessTarget
+     procedure :: trainingPoints => gaussianProcessTrainingPoints
      procedure :: predict      => gaussianProcessPredict
   end type emulatorGaussianProcess
 
@@ -116,16 +117,21 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`emulatorGaussianProcess` emulator class: read the emulator from file.
     !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5File     , hdf5Group
-    use :: ISO_Varying_String, only : char         , operator(//), operator(/=)   , var_str
-    use :: Linear_Algebra    , only : assignment(=), matrix      , matrixCholesky
-    use :: String_Handling   , only : operator(//)
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: Error             , only : Error_Report
+    use            :: HDF5_Access       , only : hdf5Access
+    use            :: IO_HDF5           , only : hdf5File     , hdf5Group
+    use            :: ISO_Varying_String, only : char         , operator(//), operator(/=)   , operator(==), &
+         &                                       var_str
+    use            :: Linear_Algebra    , only : assignment(=), matrix      , matrixCholesky
+    use            :: String_Handling   , only : operator(//)
     implicit none
     type            (emulatorGaussianProcess)                              :: self
     type            (varying_string         ), intent(in   )               :: fileName       , label
-    double precision                         , allocatable, dimension(:,:) :: covariance     , factor
+    double precision                         , allocatable, dimension(:,:) :: covariance     , factor         , &
+         &                                                                    valuesDesign
+    integer         (c_size_t               ), allocatable, dimension(:  ) :: pointIndex
+    type            (varying_string         ), allocatable, dimension(:  ) :: namesDesign
     double precision                         , allocatable, dimension(:  ) :: logLengthScales, noiseVariance
     type            (varying_string         )                              :: formatName     , kernel
     integer                                                                :: formatVersion  , countComponents, &
@@ -163,6 +169,13 @@ contains
       call trainingSetGroup%readDataset('x'               ,self%x_               )
       call trainingSetGroup%readDataset('yTarget'         ,self%yTarget_         )
       call trainingSetGroup%readDataset('covarianceTarget',self%covarianceTarget_)
+      call trainingSetGroup%readDataset('pointIndex'      ,pointIndex            )
+      block
+        type(hdf5Group) :: designGroup
+        designGroup=file%openGroup('design')
+        call designGroup%readDataset('parameterNames',namesDesign )
+        call designGroup%readDataset('values'        ,valuesDesign)
+      end block
       allocate(self%components(countComponents))
       do k=1,countComponents
          block
@@ -203,6 +216,18 @@ contains
     if (size(self%inputNames_) /= size(self%inputs,dim=1)) call Error_Report('inconsistent number of inputs'//{introspection:location})
     if (size(self%pcaComponents,dim=1) /= size(self%binMean) .or. size(self%pcaComponents,dim=2) /= countComponents) &
          & call Error_Report('inconsistent shape of principal components'//{introspection:location})
+    if (size(pointIndex) /= size(self%inputs,dim=2)) call Error_Report('inconsistent number of training points'//{introspection:location})
+    ! Extract the parameter values at the training points, in the order of the emulator's inputs. (Point indices are
+    ! zero-based.)
+    allocate(self%values(size(self%inputNames_),size(pointIndex)))
+    do i=1,size(self%inputNames_)
+       j=0
+       do k=1,size(namesDesign)
+          if (namesDesign(k) == self%inputNames_(i)) j=k
+       end do
+       if (j == 0) call Error_Report("emulator input '"//self%inputNames_(i)//"' is not a parameter of the design"//{introspection:location})
+       self%values(i,:)=valuesDesign(j,pointIndex+1_c_size_t)
+    end do
     return
   end function gaussianProcessConstructorInternal
 
@@ -288,6 +313,19 @@ contains
     covarianceTarget=self%covarianceTarget_
     return
   end subroutine gaussianProcessTarget
+
+  subroutine gaussianProcessTrainingPoints(self,quantiles,values)
+    !!{RST
+    Return the prior quantiles of the emulator's inputs, and the corresponding parameter values, at each training point.
+    !!}
+    implicit none
+    class           (emulatorGaussianProcess), intent(inout)                              :: self
+    double precision                         , intent(  out), allocatable, dimension(:,:) :: quantiles, values
+
+    quantiles=self%inputs
+    values   =self%values
+    return
+  end subroutine gaussianProcessTrainingPoints
 
   subroutine gaussianProcessPredict(self,quantiles,mean,variance)
     !!{RST

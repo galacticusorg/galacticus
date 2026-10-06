@@ -81,6 +81,16 @@ module Statistics_Emulators
     <argument>double precision, intent(  out), allocatable, dimension(:  ) :: yTarget</argument>
     <argument>double precision, intent(  out), allocatable, dimension(:,:) :: covarianceTarget</argument>
    </method>
+   <method name="trainingPoints" >
+    <description>
+    Return the prior ``quantiles`` of the emulator's inputs (in the order of ``inputNames``) at each point on which the emulator
+    was trained, and the corresponding parameter ``values``. Both arrays have shape ``(countInputs, countPoints)``. These allow
+    a user of the emulator to check that its priors are those under which the emulator was trained.
+    </description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(  out), allocatable, dimension(:,:) :: quantiles, values</argument>
+   </method>
    <method name="predict" >
     <description>
     Predict the mean and variance of the emulated observable, in each of its bins, given the prior ``quantiles`` of the

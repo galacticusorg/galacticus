@@ -158,6 +158,34 @@ The :galacticus-class:`taskEmulatorPredict` task evaluates an emulator at a list
 HDF5 file), writing the predicted mean and variance of each output, which is useful for checking an emulator against
 direct runs of the model.
 
+Sampling the posterior with emulators
+-------------------------------------
+
+The :galacticus-class:`posteriorSampleLikelihoodEmulated` likelihood replaces runs of the model by predictions of
+emulators, so that any of the posterior sampling simulations (see :galacticus-class:`taskPosteriorSample`) can explore
+the posterior at the cost of evaluating the emulators. It takes one ``emulator`` for each observable, and compares each
+emulator's prediction with the target data stored with it in the emulator file:
+
+.. code-block:: xml
+
+   <posteriorSampleLikelihood value="emulated">
+     <emulator value="gaussianProcess">
+       <fileName value="emulator.hdf5"/>
+       <label    value="massFunctionStellarTomczak2014ZFOURGEz0"/>
+     </emulator>
+     <emulator value="gaussianProcess">
+       <fileName value="emulator.hdf5"/>
+       <label    value="massMetallicityBlanc2019"/>
+     </emulator>
+     <likelihoodForms         value="gaussianDiagonal gaussianCovariance"/>
+     <includeEmulatorVariance value="true"/>
+   </posteriorSampleLikelihood>
+
+The active parameters of the simulation must be those of the design: each emulator input is supplied by the active
+parameter of the same name, and their priors must be those under which the emulators were trained (this is checked when
+the likelihood is first evaluated). The emulators may also be checked by evaluating the emulated likelihood on a design
+with the ``grid`` simulation, and comparing with the likelihoods of direct runs of the model.
+
 .. _manual-sec-EmulatorFileFormat:
 
 Emulator File Format
