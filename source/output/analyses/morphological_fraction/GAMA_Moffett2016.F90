@@ -163,7 +163,7 @@ contains
     use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
     use :: Output_Times                          , only : outputTimesClass
-    use :: Statistics_Distributions              , only : distributionFunction1DBeta
+    use :: Statistics_Distributions              , only : distributionFunction1DBeta                         , distributionFunction1DNormal
     use :: ISO_Varying_String                    , only : operator(//)
     implicit none
     type            (outputAnalysisMorphologicalFractionGAMAMoffett2016   )                                :: self
@@ -197,6 +197,7 @@ contains
     double precision                                                       , parameter                     :: alpha                                           = 1.0d0-confidenceLevel
     integer         (c_size_t                                             ), parameter                     :: bufferCount                                     =10
     type            (distributionFunction1DBeta                           )                                :: betaDistributionLower                                                  , betaDistributionUpper
+    type            (distributionFunction1DNormal                         )                                :: normalDistributionStandard
     integer         (c_size_t                                             )                                :: iBin                                                                   , binCount
     type            (hdf5File                                             )                                :: dataFile
     double precision                                                                                       :: probit                                                                 , sqrtArg
@@ -225,6 +226,9 @@ contains
     allocate(self%functionErrorUpperTarget(binCount         ))
     allocate(     functionCovarianceTarget(binCount,binCount))
     functionCovarianceTarget=0.0d0
+    ! Find the standard normal deviate corresponding to our confidence level, as needed by the Wilson score interval.
+    normalDistributionStandard=distributionFunction1DNormal(mean=0.0d0,variance=1.0d0)
+    probit                    =normalDistributionStandard%inverse(1.0d0-alpha/2.0d0)
     do iBin=1,binCount
        functionValueTarget          (iBin)=+self%countEarlyTarget(iBin) &
             &                              /self%countAllTarget  (iBin)
@@ -247,7 +251,6 @@ contains
           ! Use Wilson score interval with continuity correction: Newcombe, R. G. (1998), Statistics in Medicine. 17 (8):
           ! 857–872. doi:10.1002/(SICI)1097-0258(19980430)17:8<857::AID-SIM777>3.0.CO;2-E. ;
           ! https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval#Wilson_score_interval_with_continuity_correction)
-          probit=1.0d0-alpha/2.0d0
           sqrtArg=probit**2-1.0d0/self%countAllTarget(iBin)+4.0d0*self%countAllTarget(iBin)*functionValueTarget(iBin)*(1.0d0-functionValueTarget(iBin))+(4.0d0*functionValueTarget(iBin)-2.0d0)
           if (sqrtArg >= 0.0d0) then
              self%functionErrorLowerTarget(iBin)=max(0.0d0,(2*self%countAllTarget(iBin)*functionValueTarget(iBin)+probit**2-(probit*sqrt(sqrtArg)+1.0d0))/2.0d0/(self%countAllTarget(iBin)+probit**2))
