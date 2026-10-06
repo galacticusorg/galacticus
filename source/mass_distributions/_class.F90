@@ -27,11 +27,11 @@ module Mass_Distributions
   !!{RST
   Implements a class that provides mass distributions.
   !!}
-  use :: Coordinates               , only : coordinate                       , coordinateCartesian
-  use :: Galactic_Structure_Options, only : enumerationComponentTypeType     , enumerationMassTypeType, massTypeAll           , massTypeDark                     , &
-       &                                    massTypeBaryonic                 , massTypeGalactic       , massTypeGaseous       , massTypeStellar                  , &
-       &                                    massTypeBlackHole                , componentTypeAll       , componentTypeUnknown  , massTypeUnknown                  , &
-       &                                    componentTypeDisk                , componentTypeSpheroid  , componentTypeBlackHole, enumerationStructureErrorCodeType
+  use :: Coordinates               , only : coordinate                    , coordinateCartesian
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType  , enumerationMassTypeType, massTypeAll           , massTypeDark                     , &
+       &                                    massTypeBaryonic              , massTypeGalactic       , massTypeGaseous       , massTypeStellar                  , &
+       &                                    massTypeBlackHole             , componentTypeAll       , componentTypeUnknown  , massTypeUnknown                  , &
+       &                                    componentTypeDisk             , componentTypeSpheroid  , componentTypeBlackHole, enumerationStructureErrorCodeType
   use :: Numerical_Random_Numbers  , only : randomNumberGeneratorClass
   use :: Tensors                   , only : tensorRank2Dimension3Symmetric
   use :: Numerical_Interpolation   , only : interpolator
@@ -475,11 +475,11 @@ module Mass_Distributions
     <argument>double precision, intent(in   ), optional :: radiusGuess</argument>
     <code>
       type            (rootFinder), pointer   :: finder
-      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-3
+      double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
       double precision                        :: radiusGuess_
 
-      radiusGuess_                                    =     self%radiusEnclosingDensityPrevious__
-      if (present(radiusGuess)) radiusGuess_=radiusGuess
+      radiusGuess_                          =self%radiusEnclosingDensityPrevious__
+      if (present(radiusGuess)) radiusGuess_=     radiusGuess
       call self%solverSet  (densityTarget=density)
       if (.not.associated(massSolvers(massSolversCount)%finderDensityEnclosed)) then
          allocate(massSolvers(massSolversCount)%finderDensityEnclosed,source=rootFinder(                    &amp;
@@ -528,8 +528,8 @@ module Mass_Distributions
       double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
       double precision                        :: radiusGuess_
 
-      radiusGuess_=self%radiusEnclosingDensitySurfacePrevious__
-      if (present(radiusGuess)) radiusGuess_=radiusGuess
+      radiusGuess_                          =self%radiusEnclosingDensitySurfacePrevious__
+      if (present(radiusGuess)) radiusGuess_=     radiusGuess
       call self%solverSet  (densitySurfaceTarget=densitySurface)
       if (.not.associated(massSolvers(massSolversCount)%finderDensitySurfaceEnclosed)) then
          allocate(massSolvers(massSolversCount)%finderDensitySurfaceEnclosed,source=rootFinder(              &amp;
@@ -573,7 +573,7 @@ module Mass_Distributions
     <argument>double precision, intent(in   ) :: angularMomentumSpecific</argument>
     <code>
       type            (rootFinder), pointer   :: finder
-      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
+      double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
 
       if (angularMomentumSpecific &lt;= 0.0d0) then
          massDistributionRadiusFromSpecificAngularMomentumNumerical=+0.0d0
@@ -646,8 +646,8 @@ module Mass_Distributions
     <modules>Root_Finder Error</modules>
     <code>
       type            (rootFinder), pointer   :: finder
-      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-06, &amp;
-         &amp;                                   radiusTiny       =1.0d-9 , radiusHuge       =1.0d+30
+      double precision            , parameter :: toleranceAbsolute=0.0d+0, toleranceRelative=1.0d-06, &amp;
+         &amp;                                   radiusTiny       =1.0d-9, radiusHuge       =1.0d+30
       integer                                 :: status
       
       call self%solverSet  ()
@@ -1088,10 +1088,10 @@ module Mass_Distributions
   ! first use).
   type :: massSolver
      class           (massDistributionClass), pointer      :: self                          => null()
-     double precision                       , dimension(3) :: position1                               , position2           , &
+     double precision                       , dimension(3) :: position1                               , position2                              , &
           &                                                   vectorUnit
-     double precision                                      :: massTarget                              , densityTarget       , &
-          &                                                   angularMomentumSpecificTarget           , densitySurfaceTarget, &
+     double precision                                      :: massTarget                              , densityTarget                          , &
+          &                                                   angularMomentumSpecificTarget           , densitySurfaceTarget                   , &
           &                                                   separation
      type            (rootFinder           ), pointer      :: finderMassEnclosed            => null(), finderMassEnclosedCylindrical  => null(), &
           &                                                   finderDensityEnclosed         => null(), finderDensitySurfaceEnclosed   => null(), &

@@ -100,7 +100,7 @@
      ! Quantities used in solving the initial radius root function.
      double precision                                                                                                    :: baryonicFinalTerm                      , baryonicFinalTermDerivative         , &
           &                                                                                                                 darkMatterDistributedFraction          , massFractionInitial                 , &
-          &                                                                                                                 radiusFinal                            , radiusFinalMean            ,          &
+          &                                                                                                                 radiusFinal                            , radiusFinalMean                     , &
           &                                                                                                                 darkMatterFraction                     , radiusVirial                        , &
           &                                                                                                                 toleranceRelative                      , massTotal_
      ! Call-back function and arguments used for as-needed initialization of the baryonic component.
@@ -140,14 +140,14 @@
   ! Module-scope quantities used in solving the initial radius root function. The root finder is shared by all instances (on each
   ! thread), rather than being constructed for each instance, as instances are created and destroyed frequently. This is safe as
   ! the root function relies on the single "self_" pointer, so solutions for different instances can not be nested in any case.
-  double precision                                              , parameter   :: toleranceAbsolute  =0.0d0
+  double precision                                              , parameter   :: toleranceAbsolute                 =0.0d0
   class           (massDistributionSphericalAdiabaticGnedin2004), pointer     :: self_
   type            (rootFinder                                  ), allocatable :: sphericalAdiabaticGnedin2004Finder
   !$omp threadprivate(self_,sphericalAdiabaticGnedin2004Finder)
 
   ! Module-scope shared fast exponentiator.
   type            (fastExponentiator                           ), allocatable :: radiusExponentiator
-  double precision                                                            :: omegaPrevious      =-huge(0.0d0)
+  double precision                                                            :: omegaPrevious                     =-huge(0.0d0)
   !$omp threadprivate(radiusExponentiator,omegaPrevious)
 
   abstract interface 
@@ -331,8 +331,8 @@ contains
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
     ! Evaluate the original total mass.
-    self%massTotal_=self%massDistribution_%massEnclosedBySphere(radiusVirial)
-    self%dimensionless=self%massDistribution_%isDimensionless()
+    self%massTotal_   =self%massDistribution_%massEnclosedBySphere(radiusVirial)
+    self%dimensionless=self%massDistribution_%isDimensionless     (            )
     ! Initialize state.
     self%radiusPreviousIndex       = 0
     self%radiusPreviousIndexMaximum= 0
