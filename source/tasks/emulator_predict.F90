@@ -145,11 +145,11 @@ contains
     use :: IO_HDF5           , only : hdf5File
     use :: ISO_Varying_String, only : char
     implicit none
-    class           (taskEmulatorPredict), intent(inout), target                 :: self
-    integer                              , intent(  out), optional               :: status
-    double precision                     , allocatable  , dimension(:,:)         :: quantiles, mean, &
-         &                                                                          variance
-    integer                                                                      :: i
+    class           (taskEmulatorPredict), intent(inout), target         :: self
+    integer                              , intent(  out), optional       :: status
+    double precision                     , allocatable  , dimension(:,:) :: quantiles, mean, &
+         &                                                                  variance
+    integer                                                              :: i
 
     call displayIndent('Begin task: emulator predictions')
     !$ call hdf5Access%set()
@@ -169,7 +169,7 @@ contains
     block
       type(hdf5File) :: file
       file=hdf5File(char(self%outputFileName),overWrite=.true.,readOnly=.false.)
-      call file%writeDataset(self%emulator_%outputs(),'x'       ,'The abscissae of the outputs.'                  )
+      call file%writeDataset(self%emulator_%outputs(),'x'       ,'The abscissae of the outputs.'                       )
       call file%writeDataset(mean                    ,'mean'    ,'The predicted mean of each output at each point.'    )
       call file%writeDataset(variance                ,'variance','The predicted variance of each output at each point.')
     end block

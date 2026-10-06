@@ -27,11 +27,11 @@
      !!{RST
      A Gaussian process emulating one principal component coefficient.
      !!}
-     double precision                                :: amplitude
-     double precision, allocatable, dimension(:    ) :: lengthScales, alpha
+     double precision                              :: amplitude
+     double precision, allocatable, dimension(:  ) :: lengthScales    , alpha
      ! The transpose of the lower-triangular Cholesky factor, L, of the covariance matrix of the training data (so that
      ! factorTransposed(:,i) holds row i of L, and the triangular solve accesses memory contiguously).
-     double precision, allocatable, dimension(:,:  ) :: factorTransposed
+     double precision, allocatable, dimension(:,:) :: factorTransposed
   end type emulatorGaussianProcessComponent
 
   !![
@@ -51,13 +51,13 @@
      A Gaussian process emulator read from an emulator file.
      !!}
      private
-     type            (varying_string                  )                              :: fileName        , label
+     type            (varying_string                  )                              :: fileName         , label
      type            (varying_string                  ), allocatable, dimension(:  ) :: inputNames_
-     double precision                                  , allocatable, dimension(:,:) :: inputs          , pcaComponents     , &
+     double precision                                  , allocatable, dimension(:,:) :: inputs           , pcaComponents   , &
           &                                                                             covarianceTarget_
-     double precision                                  , allocatable, dimension(:  ) :: binMean         , binScale          , &
-          &                                                                             coefficientMean , coefficientScale  , &
-          &                                                                             x_              , yTarget_
+     double precision                                  , allocatable, dimension(:  ) :: binMean          , binScale        , &
+          &                                                                             coefficientMean  , coefficientScale, &
+          &                                                                             x_               , yTarget_
      type            (emulatorGaussianProcessComponent), allocatable, dimension(:  ) :: components
      double precision                                                                :: jitter
    contains
@@ -118,18 +118,18 @@ contains
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5File      , hdf5Group
-    use :: ISO_Varying_String, only : char          , operator(//), operator(/=), var_str
-    use :: Linear_Algebra    , only : assignment(=) , matrix      , matrixCholesky
+    use :: IO_HDF5           , only : hdf5File     , hdf5Group
+    use :: ISO_Varying_String, only : char         , operator(//), operator(/=)   , var_str
+    use :: Linear_Algebra    , only : assignment(=), matrix      , matrixCholesky
     use :: String_Handling   , only : operator(//)
     implicit none
     type            (emulatorGaussianProcess)                              :: self
-    type            (varying_string         ), intent(in   )               :: fileName           , label
-    double precision                         , allocatable, dimension(:,:) :: covariance         , factor
-    double precision                         , allocatable, dimension(:  ) :: logLengthScales    , noiseVariance
-    type            (varying_string         )                              :: formatName         , kernel
-    integer                                                                :: formatVersion      , countComponents, &
-         &                                                                    k                  , i              , &
+    type            (varying_string         ), intent(in   )               :: fileName       , label
+    double precision                         , allocatable, dimension(:,:) :: covariance     , factor
+    double precision                         , allocatable, dimension(:  ) :: logLengthScales, noiseVariance
+    type            (varying_string         )                              :: formatName     , kernel
+    integer                                                                :: formatVersion  , countComponents, &
+         &                                                                    k              , i              , &
          &                                                                    j
     double precision                                                       :: logAmplitude
     logical                                                                :: hasFactor
@@ -212,13 +212,13 @@ contains
     :math:`k = A (1 + \sqrt{5} r + 5 r^2/3) \exp(-\sqrt{5} r)`, with :math:`r^2 = \sum_i [(u_i-u^\prime_i)/\ell_i]^2`.
     !!}
     implicit none
-    double precision, intent(in   ), dimension(:) :: input1   , input2, &
+    double precision, intent(in   ), dimension(:) :: input1      , input2, &
          &                                           lengthScales
     double precision, intent(in   )               :: amplitude
     double precision                              :: radius
 
     radius=sqrt(sum(((input1-input2)/lengthScales)**2))
-    kernel=+amplitude                                         &
+    kernel=+amplitude                                        &
          & *(1.0d0+sqrt(5.0d0)*radius+5.0d0*radius**2/3.0d0) &
          & *exp(-sqrt(5.0d0)*radius)
     return
@@ -268,8 +268,8 @@ contains
     Return the abscissae of the outputs of the emulator.
     !!}
     implicit none
-    double precision                         , allocatable, dimension(:) :: outputs
-    class           (emulatorGaussianProcess), intent(inout)              :: self
+    double precision                         , allocatable  , dimension(:) :: outputs
+    class           (emulatorGaussianProcess), intent(inout)               :: self
 
     outputs=self%x_
     return
@@ -298,17 +298,18 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class           (emulatorGaussianProcess), intent(inout)                :: self
+    class           (emulatorGaussianProcess), intent(inout)               :: self
     double precision                         , intent(in   ), dimension(:) :: quantiles
-    double precision                         , intent(  out), dimension(:) :: mean                     , variance
-    double precision                         , allocatable  , dimension(:) :: covarianceCross          , solved
-    double precision                                                       :: meanComponent            , varianceComponent, &
-         &                                                                    coefficient              , varianceCoefficient
-    integer                                                                :: k                        , i                , &
+    double precision                         , intent(  out), dimension(:) :: mean           , variance
+    double precision                         , allocatable  , dimension(:) :: covarianceCross, solved
+    double precision                                                       :: meanComponent  , varianceComponent  , &
+         &                                                                    coefficient    , varianceCoefficient
+    integer                                                                :: k              , i                  , &
          &                                                                    countPoints
 
-    if (size(quantiles) /= size(self%inputNames_)) call Error_Report('incorrect number of inputs'           //{introspection:location})
-    if (size(mean) /= size(self%binMean) .or. size(variance) /= size(self%binMean)) &
+    if (size(quantiles) /= size(self%inputNames_)                                          ) &
+         & call Error_Report('incorrect number of inputs' //{introspection:location})
+    if (size(mean     ) /= size(self%binMean    ) .or. size(variance) /= size(self%binMean)) &
          & call Error_Report('incorrect number of outputs'//{introspection:location})
     countPoints=size(self%inputs,dim=2)
     allocate(covarianceCross(countPoints))
@@ -321,12 +322,12 @@ contains
           covarianceCross(i)=gaussianProcessKernel(quantiles,self%inputs(:,i),self%components(k)%amplitude,self%components(k)%lengthScales)
        end do
        meanComponent=dot_product(covarianceCross,self%components(k)%alpha)
-       ! Solve L v = k* by forward substitution; the variance is A - |v|^2.
+       ! Solve L v = k* by forward substitution; the variance is A - |v|².
        do i=1,countPoints
-          solved(i)=+(                                                                                     &
-               &      +covarianceCross(i)                                                                  &
-               &      -dot_product(self%components(k)%factorTransposed(1:i-1,i),solved(1:i-1))           &
-               &     )                                                                                     &
+          solved(i)=+(                                                                         &
+               &      +covarianceCross(i)                                                      &
+               &      -dot_product(self%components(k)%factorTransposed(1:i-1,i),solved(1:i-1)) &
+               &     )                                                                         &
                &    /self%components(k)%factorTransposed(i,i)
        end do
        varianceComponent  =max(self%components(k)%amplitude-dot_product(solved,solved),0.0d0)
