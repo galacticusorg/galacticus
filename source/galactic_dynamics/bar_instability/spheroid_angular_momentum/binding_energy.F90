@@ -40,7 +40,7 @@ Implements a binding-energy-conserving pseudo-angular momentum prescription for 
 
       \mu_\mathrm{s}=\frac{M_\mathrm{s}}{M_\mathrm{d}+M_\mathrm{s}}.
 
-   The retained-angular-momentum prescription is used below ``spheroidBaryonFractionTransitionMinimum`` and the binding-energy prescription above ``spheroidBaryonFractionTransitionMaximum``. Between the two limits, their rates are combined using a cubic smoothstep. Equal limits give a sharp transition; the default limits of zero recover the original binding-energy model for every non-zero spheroid.
+   The retained-angular-momentum prescription is used below ``spheroidBaryonFractionTransitionMinimum`` and the binding-energy prescription above ``spheroidBaryonFractionTransitionMaximum``. Between the two limits, their rates are combined using a cubic smoothstep. The default limits are 0.003 and 0.010. Equal limits give a sharp transition; explicitly setting both limits to zero recovers the unregularized energy prescription for non-zero spheroids where the energy derivative is well defined. This is not recommended for production runs because the derivative becomes poorly conditioned for nascent spheroids. See :doc:`/manuals/user-guide/bar-instability-spheroid-sizes` for the method and its limitations.
    </description>
    <deepCopy>
     <ignore variables="galacticStructureSolver_"/>
@@ -126,7 +126,7 @@ contains
     </inputParameter>
     <inputParameter docformat="rst">
       <name>spheroidBaryonFractionTransitionMinimum</name>
-      <defaultValue>0.0d0</defaultValue>
+      <defaultValue>3.0d-3</defaultValue>
       <description>
       The baryonic spheroid fraction below which the retained-angular-momentum prescription is used. The baryonic spheroid fraction includes both gas and stars in the disk and spheroid.
       </description>
@@ -136,7 +136,7 @@ contains
     </inputParameter>
     <inputParameter docformat="rst">
       <name>spheroidBaryonFractionTransitionMaximum</name>
-      <defaultValue>0.0d0</defaultValue>
+      <defaultValue>1.0d-2</defaultValue>
       <description>
       The baryonic spheroid fraction above which the binding-energy prescription is used. Between the minimum and maximum transition fractions, the two angular-momentum rates are blended with a cubic smoothstep. Setting this equal to the minimum gives a sharp transition.
       </description>
