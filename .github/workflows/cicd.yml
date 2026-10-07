@@ -1496,6 +1496,7 @@ jobs:
                 test-luminosity-function-Halpha.py,
                 test-dust-analyses-SDSS.py,
                 test-outputAnalysisLikelihoods.py,
+                test-morphologicalFractionGAMAMoffett2016.py,
                 test-dust-emission-energy-balance.py,
                 test-inactive_luminosities.py,
                 test-interoutput-star-formation-rate.py,

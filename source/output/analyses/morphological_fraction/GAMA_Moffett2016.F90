@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements a stellar vs halo mass relation analysis class.
   !!}
@@ -144,61 +146,62 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`outputAnalysisMorphologicalFractionGAMAMoffett2016` output analysis class for internal use.
     !!}
-    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                               , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
     use :: Galactic_Filters                      , only : galacticFilterStellarMass
-    use :: Input_Paths                           , only : inputPath                                          , pathTypeDataStatic
+    use :: Input_Paths                           , only : inputPath                                              , pathTypeDataStatic
     use :: Geometry_Surveys                      , only : surveyGeometryBaldry2012GAMA
     use :: HDF5_Access                           , only : hdf5Access
     use :: IO_HDF5                               , only : hdf5File
-    use :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar                   , nodePropertyExtractorMassStellarMorphology
+    use :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar                       , nodePropertyExtractorMassStellarMorphology
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPolynomial
-    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorNormal, &
-          &                                               outputAnalysisPropertyOperatorSequence             , outputAnalysisPropertyOperatorSystematicPolynomial, propertyOperatorList
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10                , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   , outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorNormal, &
+          &                                               outputAnalysisPropertyOperatorSequence                 , outputAnalysisPropertyOperatorSystematicPolynomial, propertyOperatorList
     use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
     use :: Output_Times                          , only : outputTimesClass
-    use :: Statistics_Distributions              , only : distributionFunction1DBeta
+    use :: Statistics_Distributions              , only : distributionFunction1DBeta                             , distributionFunction1DNormal
     use :: ISO_Varying_String                    , only : operator(//)
     implicit none
-    type            (outputAnalysisMorphologicalFractionGAMAMoffett2016   )                                :: self
-    double precision                                                       , intent(in   )                 :: ratioEarlyType                                                         , ratioEarlyTypeError                     , &
-         &                                                                                                    randomErrorMinimum                                                     , randomErrorMaximum
-    double precision                                                       , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient                                   , randomErrorPolynomialCoefficient
-    class           (cosmologyFunctionsClass                              ), intent(inout), target         :: cosmologyFunctions_
-    class           (outputTimesClass                                     ), intent(inout), target         :: outputTimes_
-    integer                                                                , parameter                     :: covarianceBinomialBinsPerDecade                 =10
-    double precision                                                       , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.000d08             , covarianceBinomialMassHaloMaximum=1.0d16
-    double precision                                                       , allocatable  , dimension(:  ) :: masses                                                                 , functionValueTarget
-    double precision                                                       , allocatable  , dimension(:,:) :: outputWeight                                                           , functionCovarianceTarget
-    type            (galacticFilterStellarMass                            ), pointer                       :: galacticFilter_
-    type            (outputAnalysisDistributionOperatorRandomErrorPolynomial  ), pointer                       :: outputAnalysisDistributionOperator_
-    type            (outputAnalysisWeightOperatorIdentity                 ), pointer                       :: outputAnalysisWeightOperator_
-    type            (outputAnalysisPropertyOperatorSequence               ), pointer                       :: outputAnalysisPropertyOperator_
-    type            (outputAnalysisPropertyOperatorLog10                  ), pointer                       :: outputAnalysisPropertyOperatorLog10_
-    type            (outputAnalysisPropertyOperatorAntiLog10              ), pointer                       :: outputAnalysisPropertyUnoperator_
-    type            (outputAnalysisPropertyOperatorNormal                 ), pointer                       :: outputAnalysisWeightPropertyOperator_
-    type            (nodePropertyExtractorMassStellar                     ), pointer                       :: nodePropertyExtractor_
-    type            (nodePropertyExtractorMassStellarMorphology           ), pointer                       :: outputAnalysisWeightPropertyExtractor_
-    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc      ), pointer                       :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
-    type            (outputAnalysisPropertyOperatorSystematicPolynomial      ), pointer                       :: outputAnalysisPropertyOperatorSystematicPolynomial_
-    type            (cosmologyParametersSimple                            ), pointer                       :: cosmologyParametersData
-    type            (cosmologyFunctionsMatterLambda                       ), pointer                       :: cosmologyFunctionsData
-    type            (propertyOperatorList                                 ), pointer                       :: propertyOperators_
-    type            (surveyGeometryBaldry2012GAMA                         ), pointer                       :: surveyGeometry_
-    logical                                                                , parameter                     :: likelihoodNormalize                             =.false.
-    double precision                                                       , parameter                     :: errorPolynomialZeroPoint                        =11.300d00
-    double precision                                                       , parameter                     :: confidenceLevel                                 = 0.683d00 ! 1-sigma confidence level
-    double precision                                                       , parameter                     :: alpha                                           = 1.0d0-confidenceLevel
-    integer         (c_size_t                                             ), parameter                     :: bufferCount                                     =10
-    type            (distributionFunction1DBeta                           )                                :: betaDistributionLower                                                  , betaDistributionUpper
-    integer         (c_size_t                                             )                                :: iBin                                                                   , binCount
-    type            (hdf5File                                             )                                :: dataFile
-    double precision                                                                                       :: probit                                                                 , sqrtArg
-    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
+    type            (outputAnalysisMorphologicalFractionGAMAMoffett2016     )                                :: self
+    double precision                                                         , intent(in   )                 :: ratioEarlyType                                                         , ratioEarlyTypeError                     , &
+         &                                                                                                      randomErrorMinimum                                                     , randomErrorMaximum
+    double precision                                                         , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient                                   , randomErrorPolynomialCoefficient
+    class           (cosmologyFunctionsClass                                ), intent(inout), target         :: cosmologyFunctions_
+    class           (outputTimesClass                                       ), intent(inout), target         :: outputTimes_
+    integer                                                                  , parameter                     :: covarianceBinomialBinsPerDecade                 =10
+    double precision                                                         , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.000d08             , covarianceBinomialMassHaloMaximum=1.0d16
+    double precision                                                         , allocatable  , dimension(:  ) :: masses                                                                 , functionValueTarget
+    double precision                                                         , allocatable  , dimension(:,:) :: outputWeight                                                           , functionCovarianceTarget
+    type            (galacticFilterStellarMass                              ), pointer                       :: galacticFilter_
+    type            (outputAnalysisDistributionOperatorRandomErrorPolynomial), pointer                       :: outputAnalysisDistributionOperator_
+    type            (outputAnalysisWeightOperatorIdentity                   ), pointer                       :: outputAnalysisWeightOperator_
+    type            (outputAnalysisPropertyOperatorSequence                 ), pointer                       :: outputAnalysisPropertyOperator_
+    type            (outputAnalysisPropertyOperatorLog10                    ), pointer                       :: outputAnalysisPropertyOperatorLog10_
+    type            (outputAnalysisPropertyOperatorAntiLog10                ), pointer                       :: outputAnalysisPropertyUnoperator_
+    type            (outputAnalysisPropertyOperatorNormal                   ), pointer                       :: outputAnalysisWeightPropertyOperator_
+    type            (nodePropertyExtractorMassStellar                       ), pointer                       :: nodePropertyExtractor_
+    type            (nodePropertyExtractorMassStellarMorphology             ), pointer                       :: outputAnalysisWeightPropertyExtractor_
+    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc        ), pointer                       :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
+    type            (outputAnalysisPropertyOperatorSystematicPolynomial     ), pointer                       :: outputAnalysisPropertyOperatorSystematicPolynomial_
+    type            (cosmologyParametersSimple                              ), pointer                       :: cosmologyParametersData
+    type            (cosmologyFunctionsMatterLambda                         ), pointer                       :: cosmologyFunctionsData
+    type            (propertyOperatorList                                   ), pointer                       :: propertyOperators_
+    type            (surveyGeometryBaldry2012GAMA                           ), pointer                       :: surveyGeometry_
+    logical                                                                  , parameter                     :: likelihoodNormalize                             =.false.
+    double precision                                                         , parameter                     :: errorPolynomialZeroPoint                        =11.300d00
+    double precision                                                         , parameter                     :: confidenceLevel                                 = 0.683d00 ! 1-sigma confidence level
+    double precision                                                         , parameter                     :: alpha                                           = 1.0d0-confidenceLevel
+    integer         (c_size_t                                               ), parameter                     :: bufferCount                                     =10
+    type            (distributionFunction1DBeta                             )                                :: betaDistributionLower                                                  , betaDistributionUpper
+    type            (distributionFunction1DNormal                           )                                :: normalDistributionStandard
+    integer         (c_size_t                                               )                                :: iBin                                                                   , binCount
+    type            (hdf5File                                               )                                :: dataFile
+    double precision                                                                                         :: probit                                                                 , sqrtArg
+    type            (outputAnalysisTargetDataStandard                       )                                :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="ratioEarlyType, ratioEarlyTypeError, systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_"/>
     !!]
@@ -208,6 +211,7 @@ contains
     dataFile=hdf5File(inputPath(pathTypeDataStatic)//"observations/morphology/earlyTypeFractionGAMA.hdf5",readOnly=.true.)
     call dataFile%readDataset("mass"      ,masses               )
     call dataFile%readDataset("countEarly",self%countEarlyTarget)
+    call dataFile%readDataset("countAll"  ,self%countAllTarget  )
     !$ call hdf5Access%unset()
     binCount=size(masses,kind=c_size_t)
     ! Compute confidence intervals on data. In each mass bin the quantity of interest is the probability, p, of a galaxy being
@@ -222,6 +226,9 @@ contains
     allocate(self%functionErrorUpperTarget(binCount         ))
     allocate(     functionCovarianceTarget(binCount,binCount))
     functionCovarianceTarget=0.0d0
+    ! Find the standard normal deviate corresponding to our confidence level, as needed by the Wilson score interval.
+    normalDistributionStandard=distributionFunction1DNormal(mean=0.0d0,variance=1.0d0)
+    probit                    =normalDistributionStandard%inverse(1.0d0-alpha/2.0d0)
     do iBin=1,binCount
        functionValueTarget          (iBin)=+self%countEarlyTarget(iBin) &
             &                              /self%countAllTarget  (iBin)
@@ -244,7 +251,6 @@ contains
           ! Use Wilson score interval with continuity correction: Newcombe, R. G. (1998), Statistics in Medicine. 17 (8):
           ! 857–872. doi:10.1002/(SICI)1097-0258(19980430)17:8<857::AID-SIM777>3.0.CO;2-E. ;
           ! https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval#Wilson_score_interval_with_continuity_correction)
-          probit=1.0d0-alpha/2.0d0
           sqrtArg=probit**2-1.0d0/self%countAllTarget(iBin)+4.0d0*self%countAllTarget(iBin)*functionValueTarget(iBin)*(1.0d0-functionValueTarget(iBin))+(4.0d0*functionValueTarget(iBin)-2.0d0)
           if (sqrtArg >= 0.0d0) then
              self%functionErrorLowerTarget(iBin)=max(0.0d0,(2*self%countAllTarget(iBin)*functionValueTarget(iBin)+probit**2-(probit*sqrt(sqrtArg)+1.0d0))/2.0d0/(self%countAllTarget(iBin)+probit**2))
