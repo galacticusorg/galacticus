@@ -223,14 +223,14 @@ contains
       call analysisGroup%writeAttribute('yTarget'           ,'yDatasetTarget'   )
       call analysisGroup%writeAttribute('yCovarianceTarget' ,'yCovarianceTarget')
       call analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood'    )
-      call analysisGroup%writeDataset  (self%x                      ,'x'          ,'The abscissae.'                      )
-      call analysisGroup%writeDataset  (self%intercept+self%slope*self%x,'y'      ,'The linear function.'                )
-      call analysisGroup%writeDataset  (covariance                  ,'yCovariance','The covariance of the linear function.')
-      call analysisGroup%writeDataset  (self%yTarget                ,'yTarget'    ,'The target data.'                    )
+      call analysisGroup%writeDataset  (self%x                          ,'x'                ,'The abscissae.'                        )
+      call analysisGroup%writeDataset  (self%intercept+self%slope*self%x,'y'                ,'The linear function.'                  )
+      call analysisGroup%writeDataset  (covariance                      ,'yCovariance'      ,'The covariance of the linear function.')
+      call analysisGroup%writeDataset  (self%yTarget                    ,'yTarget'          ,'The target data.'                      )
       do i=1,size(self%x)
          covariance(i,i)=self%varianceTarget(i)
       end do
-      call analysisGroup%writeDataset  (covariance                  ,'yCovarianceTarget','The covariance of the target data.')
+      call analysisGroup%writeDataset  (covariance                      ,'yCovarianceTarget','The covariance of the target data.'    )
     end block
     !$ call hdf5Access%unset()
     return
@@ -244,10 +244,10 @@ contains
     implicit none
     class(outputAnalysisSyntheticLinear), intent(inout) :: self
 
-    syntheticLinearLogLikelihood=-0.5d0                                                                 &
-         &                       *sum(                                                                  &
+    syntheticLinearLogLikelihood=-0.5d0                                                                       &
+         &                       *sum(                                                                        &
          &                            +(self%yTarget-self%intercept-self%slope*self%x)**2/self%varianceTarget &
-         &                            +log(2.0d0*Pi*self%varianceTarget)                                &
-         &                           )
+         &                            +log(2.0d0*Pi*self%varianceTarget)                                      &
+         &                            )
     return
   end function syntheticLinearLogLikelihood
