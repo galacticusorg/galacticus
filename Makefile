@@ -106,6 +106,13 @@ FCFLAGS += -Wall -fbacktrace -ffpe-trap=invalid,zero,overflow -fdump-core
 FCFLAGS_NOOPT := $(FCFLAGS)
 # Optimization flags.
 FCFLAGS += -O3 -ffinite-math-only -fno-math-errno
+# C, C++ and Fortran 77 sources (vendored GSL ODE stepper, GSL interface wrappers, ANN, FFTlog, Genz) need their own
+# optimization level - without one they are compiled at -O0. The finite-math flags are deliberately not applied here, as
+# these sources test for infinities and NaNs. These precede ${GALACTICUS_CFLAGS} and ${GALACTICUS_CPPFLAGS} (added below),
+# so an optimization level set there takes precedence.
+CFLAGS   += -O3
+CPPFLAGS += -O3
+F77FLAGS += -O2
 # For OpenMP compilation.
 FCFLAGS  += -fopenmp
 CFLAGS   += -fopenmp
