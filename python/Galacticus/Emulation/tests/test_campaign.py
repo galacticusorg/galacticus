@@ -39,6 +39,9 @@ if 'FAILEXIT' in text:
     sys.exit(3)
 if 'MARKER' in text:
     print('an aborted evolution')
+if 'MPISUFFIX' in text:
+    # As written by an MPI build of Galacticus.
+    output = output.replace('.hdf5', ':MPI0000.hdf5')
 if 'NOOUTPUT' not in text:
     open(output, 'w').write('model')
 sys.exit(0)
@@ -148,6 +151,32 @@ def test_run_local_statuses(workspace):
     campaign.run_local()
     runs = cm.Campaign.load('campaign.json').runs
     assert [run.attempts for run in runs] == [1, 2, 2, 2, 1, 1]
+
+
+def test_output_file_path(tmp_path):
+    path = str(tmp_path / 'model.hdf5')
+    # A missing file, with no MPI variant, is returned unchanged.
+    assert cm.output_file_path(path) == path
+    # The output of process 0 of a single-process MPI run is found.
+    (tmp_path / 'model:MPI0000.hdf5').write_text('model')
+    assert cm.output_file_path(path) == str(tmp_path / 'model:MPI0000.hdf5')
+    # But not if the run used several processes, whose outputs are each partial.
+    (tmp_path / 'model:MPI0001.hdf5').write_text('model')
+    assert cm.output_file_path(path) == path
+    # A file which exists is always returned unchanged.
+    (tmp_path / 'model.hdf5').write_text('model')
+    assert cm.output_file_path(path) == path
+    # Names without the .hdf5 extension are handled.
+    (tmp_path / 'other:MPI0000').write_text('model')
+    assert cm.output_file_path(str(tmp_path / 'other')) == str(tmp_path / 'other:MPI0000')
+
+
+def test_run_local_mpi_output(workspace):
+    path, campaign, _ = workspace
+    _mark(path, 0, 'MPISUFFIX')
+    campaign.run_local(indices=[0])
+    run = cm.Campaign.load('campaign.json').runs[0]
+    assert run.status == 'complete', run.message
 
 
 def test_refresh_in_progress(workspace):

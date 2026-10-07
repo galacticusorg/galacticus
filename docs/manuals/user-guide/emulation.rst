@@ -102,6 +102,10 @@ machine. A run is complete when Galacticus exited with status zero, its log cont
 reports the reason for each failure, and ``resubmit`` submits the failed runs again. The same operations are available
 from Python, in ``Galacticus.Emulation.campaign``, for use from other pipelines.
 
+Each run is a single Galacticus process. An MPI build of Galacticus may be used: it appends the label of its process to
+the name of its output file (``point0000.hdf5`` becomes ``point0000:MPI0000.hdf5``), and that file is then accepted as the
+run's output, both here and when training.
+
 .. _manual-sec-EmulatorTraining:
 
 Training an emulator
