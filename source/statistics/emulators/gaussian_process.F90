@@ -61,13 +61,13 @@
      type            (emulatorGaussianProcessComponent), allocatable, dimension(:  ) :: components
      double precision                                                                :: jitter
    contains
-     procedure :: countInputs  => gaussianProcessCountInputs
-     procedure :: inputNames   => gaussianProcessInputNames
-     procedure :: countOutputs => gaussianProcessCountOutputs
-     procedure :: outputs      => gaussianProcessOutputs
+     procedure :: countInputs    => gaussianProcessCountInputs
+     procedure :: inputNames     => gaussianProcessInputNames
+     procedure :: countOutputs   => gaussianProcessCountOutputs
+     procedure :: outputs        => gaussianProcessOutputs
      procedure :: target         => gaussianProcessTarget
      procedure :: trainingPoints => gaussianProcessTrainingPoints
-     procedure :: predict      => gaussianProcessPredict
+     procedure :: predict        => gaussianProcessPredict
   end type emulatorGaussianProcess
 
   interface emulatorGaussianProcess
@@ -121,7 +121,7 @@ contains
     use            :: Error             , only : Error_Report
     use            :: HDF5_Access       , only : hdf5Access
     use            :: IO_HDF5           , only : hdf5File     , hdf5Group
-    use            :: ISO_Varying_String, only : char         , operator(//), operator(/=)   , operator(==), &
+    use            :: ISO_Varying_String, only : char         , operator(//), operator(/=)  , operator(==), &
          &                                       var_str
     use            :: Linear_Algebra    , only : assignment(=), matrix      , matrixCholesky
     use            :: String_Handling   , only : operator(//)

@@ -284,8 +284,8 @@ contains
          &                                                                                n
 
     ! Count emulators.
-    countEmulators=0
-    emulator_ => self%emulators
+    countEmulators =  0
+    emulator_      => self%emulators
     do while (associated(emulator_))
        countEmulators=countEmulators+1
        emulator_ => emulator_%next
@@ -294,7 +294,7 @@ contains
     allocate(self%states(countEmulators))
     allocate(used(size(modelParametersActive_)))
     used=.false.
-    k        =  0
+    k         =  0
     emulator_ => self%emulators
     do while (associated(emulator_))
        k=k+1
@@ -315,20 +315,20 @@ contains
          do i=1,size(names)
             differenceMaximum=0.0d0
             do j=1,size(quantiles,dim=2)
-               differenceMaximum=max(                                                                                                  &
-                    &                differenceMaximum                                                                               , &
-                    &                abs(                                                                                              &
-                    &                    +modelParametersActive_(state%indexParameter(i))%modelParameter_%priorCumulative(values(i,j)) &
+               differenceMaximum=max(                                                                                                     &
+                    &                differenceMaximum                                                                                  , &
+                    &                abs(                                                                                                 &
+                    &                    +modelParametersActive_(state%indexParameter(i))%modelParameter_%priorCumulative(values   (i,j)) &
                     &                    -                                                                                quantiles(i,j)  &
-                    &                   )                                                                                              &
+                    &                   )                                                                                                 &
                     &               )
             end do
             if (differenceMaximum > emulatedToleranceQuantile) then
                write (label,'(e12.4)') differenceMaximum
-               call Error_Report(                                                                                                &
-                    &            var_str("the prior of parameter '")//names(i)//"' differs from that under which the emulator " // &
-                    &            "was trained (the prior quantiles of training points differ by up to "//trim(adjustl(label))// &
-                    &            ")"//{introspection:location}                                                                     &
+               call Error_Report(                                                                                                 &
+                    &            var_str("the prior of parameter '")//names(i)//"' differs from that under which the emulator "// &
+                    &            "was trained (the prior quantiles of training points differ by up to "//trim(adjustl(label))  // &
+                    &            ")"//{introspection:location}                                                                    &
                     &           )
             end if
          end do
@@ -416,14 +416,14 @@ contains
                varianceTotal=state%covarianceTarget(i,i)
                if (self%includeEmulatorVariance) varianceTotal=varianceTotal+variance(i)
                if (varianceTotal <= 0.0d0) cycle
-               emulatedEvaluate     =+emulatedEvaluate                                    &
-                    &                -0.5d0                                               &
-                    &                *(                                                   &
-                    &                  +(state%yTarget(i)-mean(i))**2/varianceTotal       &
-                    &                  +log(2.0d0*Pi*varianceTotal)                       &
+               emulatedEvaluate     =+emulatedEvaluate                              &
+                    &                -0.5d0                                         &
+                    &                *(                                             &
+                    &                  +(state%yTarget(i)-mean(i))**2/varianceTotal &
+                    &                  +log(2.0d0*Pi*varianceTotal)                 &
                     &                 )
-               varianceLogLikelihood=+varianceLogLikelihood                               &
-                    &                +((state%yTarget(i)-mean(i))/varianceTotal)**2       &
+               varianceLogLikelihood=+varianceLogLikelihood                         &
+                    &                +((state%yTarget(i)-mean(i))/varianceTotal)**2 &
                     &                *variance(i)
             end do
          else
@@ -449,15 +449,15 @@ contains
                  type(matrixCholesky) :: decomposition
                  decomposition=matrixCholesky(matrix(covariance))
                  gradient     =decomposition%squareSystemSolve(vector(residual))
-                 emulatedEvaluate=+emulatedEvaluate                                &
-                      &           -0.5d0                                           &
-                      &           *(                                               &
-                      &             +dot_product(residual,gradient)                &
-                      &             +decomposition%logarithmicDeterminant()        &
-                      &             +dble(size(indices))*log(2.0d0*Pi)             &
+                 emulatedEvaluate=+emulatedEvaluate                         &
+                      &           -0.5d0                                    &
+                      &           *(                                        &
+                      &             +dot_product(residual,gradient)         &
+                      &             +decomposition%logarithmicDeterminant() &
+                      &             +dble(size(indices))*log(2.0d0*Pi)      &
                       &            )
                end block
-               varianceLogLikelihood=+varianceLogLikelihood                        &
+               varianceLogLikelihood=+varianceLogLikelihood                 &
                     &                +sum(gradient**2*variance(indices))
                deallocate(covariance,residual,gradient)
             end if
