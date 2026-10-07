@@ -2883,6 +2883,7 @@
           <xs:enumeration value="subhaloRadialDistribution"/>
           <xs:enumeration value="subhaloVMaxVsMass"/>
           <xs:enumeration value="sunyaevZeldovichPlanck2013"/>
+          <xs:enumeration value="syntheticLinear"/>
           <xs:enumeration value="tidalTracksVelocityMaximum"/>
           <xs:enumeration value="volumeFunction1D"/>
          </xs:restriction>
