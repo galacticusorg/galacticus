@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791218883025,
+  "lastUpdate": 1791432673566,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.4; γ=0.0)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "3f3d9a2af2b05c0a279e4aa3602f89fd682665cc",
-          "message": "Merge pull request #700 from galacticusorg/featEvaluateTextParameters\n\nAllow evaluation of text parameters",
-          "timestamp": "2024-09-13T14:34:09Z",
-          "tree_id": "fe36ba6ba2a8362e4a8047b2455fadb2f7feec20",
-          "url": "https://github.com/galacticusorg/galacticus/commit/3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"
-        },
-        "date": 1726260385166,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteBoundMass",
-            "value": "26.852654205320327",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "12.856529960953935",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
-            "value": "11.53561922700073",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9922,6 +9883,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/5e6aa06abe65c2c8d80ac7ad71d0d8e21a64cb9a"
         },
         "date": 1791218882218,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": -26.852061400954035,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -12.85648005380441,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": -11.535713509200107,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e9606ddc51855123a4811f05bf8f77274657db56",
+          "message": "Merge pull request #1567 from galacticusorg/fix/gama-morphology-countAll-1565\n\nfix(outputAnalyses): GAMA morphological fraction segfault and Wilson interval",
+          "timestamp": "2026-10-07T19:54:32Z",
+          "tree_id": "bfcb5a43c114c77dfded27ee94d00bf1e5d27487",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e9606ddc51855123a4811f05bf8f77274657db56"
+        },
+        "date": 1791432672893,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
