@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791218738212,
+  "lastUpdate": 1791432557639,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "b14516f47e2d6cb206f604507c35752cd433b17d",
-          "message": "Merge pull request #892 from galacticusorg/fixUniverseLock\n\nAvoid attempts to finalize uninitialized OpenMP locks",
-          "timestamp": "2025-08-05T14:15:51Z",
-          "tree_id": "5b6aa8112066a71e6a55882b4063d86a442f8939",
-          "url": "https://github.com/galacticusorg/galacticus/commit/b14516f47e2d6cb206f604507c35752cd433b17d"
-        },
-        "date": 1754427285695,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 60.971,
-            "unit": "seconds",
-            "range": 0.104013941372186
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8804,6 +8774,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 14480.796016778644,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e9606ddc51855123a4811f05bf8f77274657db56",
+          "message": "Merge pull request #1567 from galacticusorg/fix/gama-morphology-countAll-1565\n\nfix(outputAnalyses): GAMA morphological fraction segfault and Wilson interval",
+          "timestamp": "2026-10-07T19:54:32Z",
+          "tree_id": "bfcb5a43c114c77dfded27ee94d00bf1e5d27487",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e9606ddc51855123a4811f05bf8f77274657db56"
+        },
+        "date": 1791432553451,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 24.876,
+            "range": "0.06550114502815949",
+            "unit": "seconds"
           }
         ]
       }
