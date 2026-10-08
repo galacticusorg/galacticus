@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791218744206,
+  "lastUpdate": 1791432571802,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX1)": [
@@ -5712,6 +5712,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 21.59404664634083,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e9606ddc51855123a4811f05bf8f77274657db56",
+          "message": "Merge pull request #1567 from galacticusorg/fix/gama-morphology-countAll-1565\n\nfix(outputAnalyses): GAMA morphological fraction segfault and Wilson interval",
+          "timestamp": "2026-10-07T19:54:32Z",
+          "tree_id": "bfcb5a43c114c77dfded27ee94d00bf1e5d27487",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e9606ddc51855123a4811f05bf8f77274657db56"
+        },
+        "date": 1791432570864,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": -2.5899971359464704,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": -3.221849969045208,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 21.549905591661023,
             "unit": "-logℒ"
           }
         ]
