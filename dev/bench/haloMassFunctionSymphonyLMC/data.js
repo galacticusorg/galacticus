@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791218931475,
+  "lastUpdate": 1791432708402,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (Symphony LMC)": [
@@ -951,6 +951,35 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/5e6aa06abe65c2c8d80ac7ad71d0d8e21a64cb9a"
         },
         "date": 1791218930161,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - Symphony LMC CDM resolutionX1 z=0.000 (38 realizations)",
+            "value": 2003.4594654544492,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e9606ddc51855123a4811f05bf8f77274657db56",
+          "message": "Merge pull request #1567 from galacticusorg/fix/gama-morphology-countAll-1565\n\nfix(outputAnalyses): GAMA morphological fraction segfault and Wilson interval",
+          "timestamp": "2026-10-07T19:54:32Z",
+          "tree_id": "bfcb5a43c114c77dfded27ee94d00bf1e5d27487",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e9606ddc51855123a4811f05bf8f77274657db56"
+        },
+        "date": 1791432707829,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
