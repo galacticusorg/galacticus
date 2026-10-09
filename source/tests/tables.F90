@@ -34,6 +34,7 @@ program Test_Tables
   use :: Tables          , only : table                       , table1D                          , table1DNonUniformLinearLogarithmic, table1DLinearLinear, &
           &                       table1DLinearMonotoneCSpline, table1DLogarithmicLinear         , table1DLinearCSpline              , table2DLogLogLin   , &
           &                       table1DLogarithmicCSpline   , table1DLogarithmicMonotoneCSpline, table2D                           , table2DLinLinLin
+  use :: Table_Labels    , only : extrapolationTypeFix
   use :: Unit_Tests      , only : Assert                      , Unit_Tests_Begin_Group           , Unit_Tests_End_Group              , Unit_Tests_Finish
   implicit none
   class           (table           ), allocatable                 :: myTable
@@ -58,6 +59,7 @@ program Test_Tables
        &                                                             interpolatedDirect
   double precision                  , allocatable, dimension(:,:) :: yValuesSpline
   class           (table2D         ), allocatable                 :: myTable2DGeneric
+  class           (table1D         ), allocatable                 :: myRangeTable
   type            (table2DLinLinLin)                              :: myTable2DLinearExtend
   double precision                  , allocatable, dimension(:,:) :: zValuesNarrowLinear2D, zValuesWideLinear2D
 
@@ -421,6 +423,36 @@ program Test_Tables
   deallocate(myTable2DGeneric)
   call Unit_Tests_End_Group()
 
+  ! Test values and gradients of logarithmic tables beyond their range, with "fix" extrapolation.
+  call Unit_Tests_Begin_Group("Logarithmic table range")
+  do i=1,3
+     select case (i)
+     case (1)
+        allocate(table1DLogarithmicLinear          :: myRangeTable)
+     case (2)
+        allocate(table1DLogarithmicCSpline         :: myRangeTable)
+     case (3)
+        allocate(table1DLogarithmicMonotoneCSpline :: myRangeTable)
+     end select
+     select type (myRangeTable)
+     type is (table1DLogarithmicLinear         )
+        call myRangeTable%create  (1.0d0,1.0d3,7,extrapolationType=[extrapolationTypeFix,extrapolationTypeFix])
+        call myRangeTable%populate([1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0]                                )
+        call Test_Table_Logarithmic_Range('logarithmic linear'         ,myRangeTable)
+     type is (table1DLogarithmicCSpline        )
+        call myRangeTable%create  (1.0d0,1.0d3,7,extrapolationType=[extrapolationTypeFix,extrapolationTypeFix])
+        call myRangeTable%populate([1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0]                                )
+        call Test_Table_Logarithmic_Range('logarithmic cubic spline'   ,myRangeTable)
+     type is (table1DLogarithmicMonotoneCSpline)
+        call myRangeTable%create  (1.0d0,1.0d3,7,extrapolationType=[extrapolationTypeFix,extrapolationTypeFix])
+        call myRangeTable%populate([1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0]                                )
+        call Test_Table_Logarithmic_Range('logarithmic monotone spline',myRangeTable)
+     end select
+     call myRangeTable%destroy()
+     deallocate(myRangeTable)
+  end do
+  call Unit_Tests_End_Group()
+
   ! Test extension of tables onto an absolute lattice.
   call Unit_Tests_Begin_Group("Table extension")
 
@@ -628,6 +660,30 @@ program Test_Tables
   call Unit_Tests_Finish   ()
 
 contains
+
+  subroutine Test_Table_Logarithmic_Range(label,table_)
+    !!{RST
+    Run a set of assertions over a logarithmic one-dimensional table, spanning :math:`1 \le x \le 1000` with "fix"
+    extrapolation at both ends, and populated with :math:`y=1,\ldots,7` at its seven points. Those values are linear in
+    :math:`\log x`, so that every interpolant reproduces :math:`y = 1 + s \log x` exactly, with gradient :math:`s/x`, where
+    :math:`s=6/\log(1000)`. Beyond the range of the table the value is fixed at that at the boundary, and the gradient is that at
+    the boundary.
+    !!}
+    implicit none
+    character       (len=*  ), intent(in   ) :: label
+    class           (table1D), intent(inout) :: table_
+    double precision         , parameter     :: xMinimum=1.0d0, xMaximum=1.0d3
+    double precision                         :: slope
+
+    slope=6.0d0/log(xMaximum/xMinimum)
+    call Assert(label//': value within range'                                ,table_%interpolate        (1.0d+2),1.0d0+slope*log(1.0d2),relTol=1.0d-6)
+    call Assert(label//': value above range is that at the upper boundary'   ,table_%interpolate        (2.0d+3),7.0d0                 ,relTol=1.0d-6)
+    call Assert(label//': value below range is that at the lower boundary'   ,table_%interpolate        (5.0d-1),1.0d0                 ,relTol=1.0d-6)
+    call Assert(label//': gradient within range'                             ,table_%interpolateGradient(1.0d+2),slope/1.0d2           ,relTol=1.0d-6)
+    call Assert(label//': gradient above range is that at the upper boundary',table_%interpolateGradient(2.0d+3),slope/xMaximum        ,relTol=1.0d-6)
+    call Assert(label//': gradient below range is that at the lower boundary',table_%interpolateGradient(5.0d-1),slope/xMinimum        ,relTol=1.0d-6)
+    return
+  end subroutine Test_Table_Logarithmic_Range
 
   subroutine Test_Table_2D(label,table_)
     !!{RST

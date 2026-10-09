@@ -121,7 +121,7 @@ module Tables
        <method description="Return the ``i``\ :math:`^\mathrm{th}` :math:`y`-value. If ``table`` is specified then the ``table``\ :math:`^\mathrm{th}` table is used for the :math:`y`-values, otherwise the first table is used." method="y" />
        <method description="Return an array of all :math:`x`-values." method="xs" />
        <method description="Return an array of all :math:`y`-values. If ``table`` is specified then the ``table``\ :math:`^\mathrm{th}` table is used for the :math:`y`-values, otherwise the first table is used." method="ys" />
-       <method description="Return the effective value of :math:`x` to use in table interpolations." method="xEffective"/>
+       <method description="Return the effective value of :math:`x` to use in table interpolations. Both the argument and the result are in the internal coordinate of the table (i.e. :math:`\log x` for logarithmic tables)." method="xEffective"/>
        <method description="Return the weights to be applied to the table to integrate (using the trapezium rule) between ``x0`` and ``x1``." method="integrationWeights" />
        <method description="Extend the table onto the given absolute lattice (creating it if it does not yet exist), preserving any previously computed values. On return ``isComputed`` is true for those points whose values were preserved, and false for those which the caller must now evaluate. The new lattice must be commensurate with, and must contain, the lattice on which the table is currently tabulated." method="extend" />
        <method description="Assign ``table1d`` objects." method="assignment(=)" />
@@ -1621,13 +1621,25 @@ contains
     double precision                          , intent(in   )           :: x
     integer                                   , intent(in   ), optional :: table
     integer                                   , intent(  out), optional :: status
+    double precision                                                    :: xEffective, xLogarithmicEffective
 
     if (.not.self%previousSet .or. x /= self%xLinearPrevious) then
        self%previousSet         =.true.
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
     end if
-    Table_Logarithmic_1D_Interpolate_Gradient=self%table1DLinearLinear%interpolateGradient(self%xLogarithmicPrevious,table,status)/self%xEffective(x,status)
+    Table_Logarithmic_1D_Interpolate_Gradient=self%table1DLinearLinear%interpolateGradient(self%xLogarithmicPrevious,table,status)
+    ! Convert from the gradient with respect to log(x) to that with respect to x. This must use the effective value of x at which
+    ! the gradient was evaluated - if x was clamped to the range of the table (for "fix" extrapolation) then the gradient is
+    ! that at the boundary of the table. The effective value is found from log(x), as range checks are made on the internal
+    ! (logarithmic) coordinate of the table.
+    xLogarithmicEffective=self%xEffective(self%xLogarithmicPrevious,status)
+    if (xLogarithmicEffective == self%xLogarithmicPrevious) then
+       xEffective=    x
+    else
+       xEffective=exp(xLogarithmicEffective)
+    end if
+    Table_Logarithmic_1D_Interpolate_Gradient=Table_Logarithmic_1D_Interpolate_Gradient/xEffective
     return
   end function Table_Logarithmic_1D_Interpolate_Gradient
 
@@ -2282,13 +2294,25 @@ contains
     double precision                           , intent(in   )           :: x
     integer                                    , intent(in   ), optional :: table
     integer                                    , intent(  out), optional :: status
+    double precision                                                     :: xEffective, xLogarithmicEffective
 
     if (.not.self%previousSet .or. x /= self%xLinearPrevious) then
        self%previousSet         =.true.
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
     end if
-    Table_Logarithmic_CSpline_1D_Interpolate_Gradient=self%table1DLinearCSpline%interpolateGradient(self%xLogarithmicPrevious,table,status)/self%xEffective(x,status)
+    Table_Logarithmic_CSpline_1D_Interpolate_Gradient=self%table1DLinearCSpline%interpolateGradient(self%xLogarithmicPrevious,table,status)
+    ! Convert from the gradient with respect to log(x) to that with respect to x. This must use the effective value of x at which
+    ! the gradient was evaluated - if x was clamped to the range of the table (for "fix" extrapolation) then the gradient is
+    ! that at the boundary of the table. The effective value is found from log(x), as range checks are made on the internal
+    ! (logarithmic) coordinate of the table.
+    xLogarithmicEffective=self%xEffective(self%xLogarithmicPrevious,status)
+    if (xLogarithmicEffective == self%xLogarithmicPrevious) then
+       xEffective=    x
+    else
+       xEffective=exp(xLogarithmicEffective)
+    end if
+    Table_Logarithmic_CSpline_1D_Interpolate_Gradient=Table_Logarithmic_CSpline_1D_Interpolate_Gradient/xEffective
     return
   end function Table_Logarithmic_CSpline_1D_Interpolate_Gradient
 
@@ -2600,7 +2624,7 @@ contains
           Table1D_Find_Effective_X=0.0d0
           call    Error_Report('x is below range - unknown extrapolation method'                    //{introspection:location})
        end select
-    else if (x > self%x(self%xCount)) then
+    else if (x > self%xv(self%xCount)) then
        select case (self%extrapolationType(2)%ID)
        case (extrapolationTypeExtrapolate%ID,extrapolationTypeZero%ID)
           Table1D_Find_Effective_X=     x
@@ -3596,13 +3620,25 @@ contains
     double precision                                   , intent(in   )           :: x
     integer                                            , intent(in   ), optional :: table
     integer                                            , intent(  out), optional :: status
+    double precision                                                             :: xEffective, xLogarithmicEffective
 
     if (.not.self%previousSet .or. x /= self%xLinearPrevious) then
        self%previousSet         =.true.
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
     end if
-    Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient=self%table1DLinearMonotoneCSpline%interpolateGradient(self%xLogarithmicPrevious,table,status)/self%xEffective(x,status)
+    Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient=self%table1DLinearMonotoneCSpline%interpolateGradient(self%xLogarithmicPrevious,table,status)
+    ! Convert from the gradient with respect to log(x) to that with respect to x. This must use the effective value of x at which
+    ! the gradient was evaluated - if x was clamped to the range of the table (for "fix" extrapolation) then the gradient is
+    ! that at the boundary of the table. The effective value is found from log(x), as range checks are made on the internal
+    ! (logarithmic) coordinate of the table.
+    xLogarithmicEffective=self%xEffective(self%xLogarithmicPrevious,status)
+    if (xLogarithmicEffective == self%xLogarithmicPrevious) then
+       xEffective=    x
+    else
+       xEffective=exp(xLogarithmicEffective)
+    end if
+    Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient=Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient/xEffective
     return
   end function Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient
 
