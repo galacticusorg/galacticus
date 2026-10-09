@@ -27,14 +27,15 @@ module Mass_Distributions
   !!{RST
   Implements a class that provides mass distributions.
   !!}
-  use :: Coordinates               , only : coordinate                       , coordinateCartesian
-  use :: Galactic_Structure_Options, only : enumerationComponentTypeType     , enumerationMassTypeType, massTypeAll           , massTypeDark                     , &
-       &                                    massTypeBaryonic                 , massTypeGalactic       , massTypeGaseous       , massTypeStellar                  , &
-       &                                    massTypeBlackHole                , componentTypeAll       , componentTypeUnknown  , massTypeUnknown                  , &
-       &                                    componentTypeDisk                , componentTypeSpheroid  , componentTypeBlackHole, enumerationStructureErrorCodeType
+  use :: Coordinates               , only : coordinate                    , coordinateCartesian
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType  , enumerationMassTypeType, massTypeAll           , massTypeDark                     , &
+       &                                    massTypeBaryonic              , massTypeGalactic       , massTypeGaseous       , massTypeStellar                  , &
+       &                                    massTypeBlackHole             , componentTypeAll       , componentTypeUnknown  , massTypeUnknown                  , &
+       &                                    componentTypeDisk             , componentTypeSpheroid  , componentTypeBlackHole, enumerationStructureErrorCodeType
   use :: Numerical_Random_Numbers  , only : randomNumberGeneratorClass
   use :: Tensors                   , only : tensorRank2Dimension3Symmetric
   use :: Numerical_Interpolation   , only : interpolator
+  use :: Root_Finder               , only : rootFinder
   private
   public  :: massDistributionMatches_, massDistributionListAcquire, massDistributionListRelease
   
@@ -357,7 +358,7 @@ module Mass_Distributions
     <modules>Root_Finder</modules>
     <argument>double precision, intent(in   ), optional :: mass, massFractional</argument>
     <code>
-      type            (rootFinder)            :: finder
+      type            (rootFinder), pointer   :: finder
       double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
       double precision                        :: massTarget
 
@@ -373,18 +374,21 @@ module Mass_Distributions
        massDistributionRadiusEnclosingMassNumerical=0.0d0
        return
       end if
-      finder      =rootFinder(                                                             &amp;
-            &amp;             rootFunction                 =massEnclosedRoot             , &amp;
-            &amp;             toleranceAbsolute            =toleranceAbsolute            , &amp;
-            &amp;             toleranceRelative            =toleranceRelative            , &amp;
-            &amp;             solverType                   =GSL_Root_fSolver_Brent       , &amp;
-            &amp;             rangeExpandUpward            =2.0d0                        , &amp;
-            &amp;             rangeExpandDownward          =0.5d0                        , &amp;
-            &amp;             rangeExpandType              =rangeExpandMultiplicative    , &amp;
-            &amp;             rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
-            &amp;             rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
-            &amp;            )
       call self%solverSet  (massTarget=massTarget)
+      if (.not.associated(massSolvers(massSolversCount)%finderMassEnclosed)) then
+         allocate(massSolvers(massSolversCount)%finderMassEnclosed,source=rootFinder(                         &amp;
+               &amp;                             rootFunction                 =massEnclosedRoot             , &amp;
+               &amp;                             toleranceAbsolute            =toleranceAbsolute            , &amp;
+               &amp;                             toleranceRelative            =toleranceRelative            , &amp;
+               &amp;                             solverType                   =GSL_Root_fSolver_Brent       , &amp;
+               &amp;                             rangeExpandUpward            =2.0d0                        , &amp;
+               &amp;                             rangeExpandDownward          =0.5d0                        , &amp;
+               &amp;                             rangeExpandType              =rangeExpandMultiplicative    , &amp;
+               &amp;                             rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
+               &amp;                             rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
+               &amp;                            ))
+      end if
+      finder => massSolvers(massSolversCount)%finderMassEnclosed
       massDistributionRadiusEnclosingMassNumerical=finder%find(rootGuess=1.0d0)
       call self%solverUnset(                     )
     </code>
@@ -411,7 +415,7 @@ module Mass_Distributions
     <modules>Root_Finder</modules>
     <argument>double precision, intent(in   ), optional :: mass, massFractional</argument>
     <code>
-      type            (rootFinder)            :: finder
+      type            (rootFinder), pointer   :: finder
       double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
       double precision                        :: massTarget
 
@@ -427,18 +431,21 @@ module Mass_Distributions
        massDistributionRadiusCylindricalEnclosingMassNumerical=0.0d0
        return
       end if
-      finder      =rootFinder(                                                             &amp;
-            &amp;             rootFunction                 =massEnclosedCylindricalRoot  , &amp;
-            &amp;             toleranceAbsolute            =toleranceAbsolute            , &amp;
-            &amp;             toleranceRelative            =toleranceRelative            , &amp;
-            &amp;             solverType                   =GSL_Root_fSolver_Brent       , &amp;
-            &amp;             rangeExpandUpward            =2.0d0                        , &amp;
-            &amp;             rangeExpandDownward          =0.5d0                        , &amp;
-            &amp;             rangeExpandType              =rangeExpandMultiplicative    , &amp;
-            &amp;             rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
-            &amp;             rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
-            &amp;            )
       call self%solverSet  (massTarget=massTarget)
+      if (.not.associated(massSolvers(massSolversCount)%finderMassEnclosedCylindrical)) then
+         allocate(massSolvers(massSolversCount)%finderMassEnclosedCylindrical,source=rootFinder(              &amp;
+               &amp;                             rootFunction                 =massEnclosedCylindricalRoot  , &amp;
+               &amp;                             toleranceAbsolute            =toleranceAbsolute            , &amp;
+               &amp;                             toleranceRelative            =toleranceRelative            , &amp;
+               &amp;                             solverType                   =GSL_Root_fSolver_Brent       , &amp;
+               &amp;                             rangeExpandUpward            =2.0d0                        , &amp;
+               &amp;                             rangeExpandDownward          =0.5d0                        , &amp;
+               &amp;                             rangeExpandType              =rangeExpandMultiplicative    , &amp;
+               &amp;                             rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
+               &amp;                             rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
+               &amp;                            ))
+      end if
+      finder => massSolvers(massSolversCount)%finderMassEnclosedCylindrical
       massDistributionRadiusCylindricalEnclosingMassNumerical=finder%find(rootGuess=1.0d0)
       call self%solverUnset(                     )
     </code>
@@ -467,24 +474,27 @@ module Mass_Distributions
     <argument>double precision, intent(in   )           :: density    </argument>
     <argument>double precision, intent(in   ), optional :: radiusGuess</argument>
     <code>
-      type            (rootFinder)            :: finder
-      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-3
+      type            (rootFinder), pointer   :: finder
+      double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
       double precision                        :: radiusGuess_
 
-      finder    =rootFinder(                                                             &amp;
-           &amp;            rootFunction                 =densityEnclosedRoot          , &amp;
-           &amp;            toleranceAbsolute            =toleranceAbsolute            , &amp;
-           &amp;            toleranceRelative            =toleranceRelative            , &amp;
-           &amp;            solverType                   =GSL_Root_fSolver_Brent       , &amp;
-           &amp;            rangeExpandUpward            =2.0d0                        , &amp;
-           &amp;            rangeExpandDownward          =0.5d0                        , &amp;
-           &amp;            rangeExpandType              =rangeExpandMultiplicative    , &amp;
-           &amp;            rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &amp;
-           &amp;            rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &amp;
-           &amp;           )
-      radiusGuess_                                    =     self%radiusEnclosingDensityPrevious__
-      if (present(radiusGuess)) radiusGuess_=radiusGuess
+      radiusGuess_                          =self%radiusEnclosingDensityPrevious__
+      if (present(radiusGuess)) radiusGuess_=     radiusGuess
       call self%solverSet  (densityTarget=density)
+      if (.not.associated(massSolvers(massSolversCount)%finderDensityEnclosed)) then
+         allocate(massSolvers(massSolversCount)%finderDensityEnclosed,source=rootFinder(                    &amp;
+              &amp;                            rootFunction                 =densityEnclosedRoot          , &amp;
+              &amp;                            toleranceAbsolute            =toleranceAbsolute            , &amp;
+              &amp;                            toleranceRelative            =toleranceRelative            , &amp;
+              &amp;                            solverType                   =GSL_Root_fSolver_Brent       , &amp;
+              &amp;                            rangeExpandUpward            =2.0d0                        , &amp;
+              &amp;                            rangeExpandDownward          =0.5d0                        , &amp;
+              &amp;                            rangeExpandType              =rangeExpandMultiplicative    , &amp;
+              &amp;                            rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &amp;
+              &amp;                            rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &amp;
+              &amp;                           ))
+      end if
+      finder => massSolvers(massSolversCount)%finderDensityEnclosed
       massDistributionRadiusEnclosingDensityNumerical =     finder%find(rootGuess=radiusGuess_)
       call self%solverUnset(                     )
       self%radiusEnclosingDensityPrevious__           =     massDistributionRadiusEnclosingDensityNumerical
@@ -514,24 +524,27 @@ module Mass_Distributions
     <argument>double precision, intent(in   )           :: densitySurface</argument>
     <argument>double precision, intent(in   ), optional :: radiusGuess   </argument>
     <code>
-      type            (rootFinder)            :: finder
+      type            (rootFinder), pointer   :: finder
       double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
       double precision                        :: radiusGuess_
 
-      finder     =rootFinder(                                                             &amp;
-           &amp;             rootFunction                 =densitySurfaceEnclosedRoot   , &amp;
-           &amp;             toleranceAbsolute            =toleranceAbsolute            , &amp;
-           &amp;             toleranceRelative            =toleranceRelative            , &amp;
-           &amp;             solverType                   =GSL_Root_fSolver_Brent       , &amp;
-           &amp;             rangeExpandUpward            =2.0d0                        , &amp;
-           &amp;             rangeExpandDownward          =0.5d0                        , &amp;
-           &amp;             rangeExpandType              =rangeExpandMultiplicative    , &amp;
-           &amp;             rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &amp;
-           &amp;             rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &amp;
-           &amp;            )
-      radiusGuess_=self%radiusEnclosingDensitySurfacePrevious__
-      if (present(radiusGuess)) radiusGuess_=radiusGuess
+      radiusGuess_                          =self%radiusEnclosingDensitySurfacePrevious__
+      if (present(radiusGuess)) radiusGuess_=     radiusGuess
       call self%solverSet  (densitySurfaceTarget=densitySurface)
+      if (.not.associated(massSolvers(massSolversCount)%finderDensitySurfaceEnclosed)) then
+         allocate(massSolvers(massSolversCount)%finderDensitySurfaceEnclosed,source=rootFinder(              &amp;
+              &amp;                             rootFunction                 =densitySurfaceEnclosedRoot   , &amp;
+              &amp;                             toleranceAbsolute            =toleranceAbsolute            , &amp;
+              &amp;                             toleranceRelative            =toleranceRelative            , &amp;
+              &amp;                             solverType                   =GSL_Root_fSolver_Brent       , &amp;
+              &amp;                             rangeExpandUpward            =2.0d0                        , &amp;
+              &amp;                             rangeExpandDownward          =0.5d0                        , &amp;
+              &amp;                             rangeExpandType              =rangeExpandMultiplicative    , &amp;
+              &amp;                             rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &amp;
+              &amp;                             rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &amp;
+              &amp;                            ))
+      end if
+      finder => massSolvers(massSolversCount)%finderDensitySurfaceEnclosed
       massDistributionRadiusEnclosingSurfaceDensityNumerical=finder%find(rootGuess=radiusGuess_)
       call self%solverUnset(                                   )
       self%radiusEnclosingDensitySurfacePrevious__          =massDistributionRadiusEnclosingSurfaceDensityNumerical
@@ -559,24 +572,27 @@ module Mass_Distributions
     <modules>Root_Finder</modules>
     <argument>double precision, intent(in   ) :: angularMomentumSpecific</argument>
     <code>
-      type            (rootFinder)            :: finder
-      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
+      type            (rootFinder), pointer   :: finder
+      double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
 
       if (angularMomentumSpecific &lt;= 0.0d0) then
          massDistributionRadiusFromSpecificAngularMomentumNumerical=+0.0d0
       else         
-         finder     =rootFinder(                                                             &amp;
-              &amp;             rootFunction                 =specificAngularMomentumRoot  , &amp;
-              &amp;             toleranceAbsolute            =toleranceAbsolute            , &amp;
-              &amp;             toleranceRelative            =toleranceRelative            , &amp;
-              &amp;             solverType                   =GSL_Root_fSolver_Brent       , &amp;
-              &amp;             rangeExpandUpward            =2.0d0                        , &amp;
-              &amp;             rangeExpandDownward          =0.5d0                        , &amp;
-              &amp;             rangeExpandType              =rangeExpandMultiplicative    , &amp;
-              &amp;             rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
-              &amp;             rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
-              &amp;            )
          call self%solverSet  (angularMomentumSpecificTarget=angularMomentumSpecific)
+         if (.not.associated(massSolvers(massSolversCount)%finderAngularMomentumSpecific)) then
+            allocate(massSolvers(massSolversCount)%finderAngularMomentumSpecific,source=rootFinder(             &amp;
+                 &amp;                             rootFunction                 =specificAngularMomentumRoot  , &amp;
+                 &amp;                             toleranceAbsolute            =toleranceAbsolute            , &amp;
+                 &amp;                             toleranceRelative            =toleranceRelative            , &amp;
+                 &amp;                             solverType                   =GSL_Root_fSolver_Brent       , &amp;
+                 &amp;                             rangeExpandUpward            =2.0d0                        , &amp;
+                 &amp;                             rangeExpandDownward          =0.5d0                        , &amp;
+                 &amp;                             rangeExpandType              =rangeExpandMultiplicative    , &amp;
+                 &amp;                             rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
+                 &amp;                             rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
+                 &amp;                            ))
+         end if
+         finder => massSolvers(massSolversCount)%finderAngularMomentumSpecific
          massDistributionRadiusFromSpecificAngularMomentumNumerical =     finder%find(rootGuess=1.0d0)
          call self%solverUnSet(                                                     )
       end if
@@ -629,25 +645,28 @@ module Mass_Distributions
     <selfTarget>yes</selfTarget>
     <modules>Root_Finder Error</modules>
     <code>
-      type            (rootFinder)            :: finder
-      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-06, &amp;
-         &amp;                                   radiusTiny       =1.0d-9 , radiusHuge       =1.0d+30
+      type            (rootFinder), pointer   :: finder
+      double precision            , parameter :: toleranceAbsolute=0.0d+0, toleranceRelative=1.0d-06, &amp;
+         &amp;                                   radiusTiny       =1.0d-9, radiusHuge       =1.0d+30
       integer                                 :: status
       
-      finder     =rootFinder(                                                              &amp;
-           &amp;             rootFunction                 =rotationCurveMaximumRoot      , &amp;
-           &amp;             toleranceAbsolute            =toleranceAbsolute             , &amp;
-           &amp;             toleranceRelative            =toleranceRelative             , &amp;
-           &amp;             solverType                   =GSL_Root_fSolver_Brent        , &amp;
-           &amp;             rangeExpandUpward            =2.0d0                         , &amp;
-           &amp;             rangeExpandDownward          =0.5d0                         , &amp;
-           &amp;             rangeExpandType              =rangeExpandMultiplicative     , &amp;
-           &amp;             rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive , &amp;
-           &amp;             rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative , &amp;
-           &amp;             rangeDownwardLimit           =radiusTiny                    , &amp;
-           &amp;             rangeUpwardLimit             =radiusHuge                      &amp;
-           &amp;            )
       call self%solverSet  ()
+      if (.not.associated(massSolvers(massSolversCount)%finderRotationCurveMaximum)) then
+         allocate(massSolvers(massSolversCount)%finderRotationCurveMaximum,source=rootFinder(                 &amp;
+              &amp;                             rootFunction                 =rotationCurveMaximumRoot      , &amp;
+              &amp;                             toleranceAbsolute            =toleranceAbsolute             , &amp;
+              &amp;                             toleranceRelative            =toleranceRelative             , &amp;
+              &amp;                             solverType                   =GSL_Root_fSolver_Brent        , &amp;
+              &amp;                             rangeExpandUpward            =2.0d0                         , &amp;
+              &amp;                             rangeExpandDownward          =0.5d0                         , &amp;
+              &amp;                             rangeExpandType              =rangeExpandMultiplicative     , &amp;
+              &amp;                             rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive , &amp;
+              &amp;                             rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative , &amp;
+              &amp;                             rangeDownwardLimit           =radiusTiny                    , &amp;
+              &amp;                             rangeUpwardLimit             =radiusHuge                      &amp;
+              &amp;                            ))
+      end if
+      finder => massSolvers(massSolversCount)%finderRotationCurveMaximum
       massDistributionRadiusRotationCurveMaximumNumerical =     finder%find(rootGuess=1.0d0,status=status)
       call self%solverUnset()
       if (status /= errorStatusSuccess .and. .not.self%tolerateVelocityMaximumFailure) &amp;
@@ -1059,14 +1078,24 @@ module Mass_Distributions
   integer                                              :: solversCount    = 0
   !$omp threadprivate(solvers,solversCount)
   
-  ! Module-scope pointers used in integrand functions and root finding.
+  ! Module-scope pointers used in integrand functions and root finding. The root finders are built on first use at each depth of
+  ! the stack and then retained (they are not released by "solverUnset"), so that the numerical radius solvers do not construct
+  ! and destroy a root finder (and its GSL solver) on every call. A finder is only ever used at its own depth, so this is safe
+  ! under recursion. They are held by pointer so that they remain at fixed addresses when the stack is grown. They are created
+  ! using "allocate(...,source=rootFinder(...))" because gfortran 16 miscompiles intrinsic assignment of a constructor result to
+  ! a pointer target of this type (writing through a null pointer). The bitwise copy made by "source=" bypasses reference
+  ! counting, which is safe here as a newly-constructed root finder holds no managed resources (its GSL objects are created on
+  ! first use).
   type :: massSolver
      class           (massDistributionClass), pointer      :: self                          => null()
-     double precision                       , dimension(3) :: position1                               , position2           , &
+     double precision                       , dimension(3) :: position1                               , position2                              , &
           &                                                   vectorUnit
-     double precision                                      :: massTarget                              , densityTarget       , &
-          &                                                   angularMomentumSpecificTarget           , densitySurfaceTarget, &
+     double precision                                      :: massTarget                              , densityTarget                          , &
+          &                                                   angularMomentumSpecificTarget           , densitySurfaceTarget                   , &
           &                                                   separation
+     type            (rootFinder           ), pointer      :: finderMassEnclosed            => null(), finderMassEnclosedCylindrical  => null(), &
+          &                                                   finderDensityEnclosed         => null(), finderDensitySurfaceEnclosed   => null(), &
+          &                                                   finderAngularMomentumSpecific => null(), finderRotationCurveMaximum     => null()
   end type massSolver
   type   (massSolver), allocatable, dimension(:) :: massSolvers
   integer            , parameter                 :: massSolversIncrement=10

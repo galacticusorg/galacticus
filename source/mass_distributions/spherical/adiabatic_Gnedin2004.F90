@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements an adiabatically-contracted spherical mass distribution.
   !!}
@@ -89,7 +91,6 @@
      !!}
      private
      class           (massDistributionClass                  ), pointer                                                  :: massDistributionBaryonic      => null()
-     type            (rootFinder                             )                                                           :: finder
      ! Parameters of the adiabatic contraction algorithm.
      double precision                                                                                                    :: A                                      , omega                               , &
           &                                                                                                                 radiusFractionalPivot
@@ -99,7 +100,7 @@
      ! Quantities used in solving the initial radius root function.
      double precision                                                                                                    :: baryonicFinalTerm                      , baryonicFinalTermDerivative         , &
           &                                                                                                                 darkMatterDistributedFraction          , massFractionInitial                 , &
-          &                                                                                                                 radiusFinal                            , radiusFinalMean            ,          &
+          &                                                                                                                 radiusFinal                            , radiusFinalMean                     , &
           &                                                                                                                 darkMatterFraction                     , radiusVirial                        , &
           &                                                                                                                 toleranceRelative                      , massTotal_
      ! Call-back function and arguments used for as-needed initialization of the baryonic component.
@@ -136,14 +137,17 @@
      module procedure sphericalAdiabaticGnedin2004ConstructorInternal
   end interface massDistributionSphericalAdiabaticGnedin2004
     
-  ! Module-scope quantities used in solving the initial radius root function.
-  double precision                                              , parameter   :: toleranceAbsolute  =0.0d0
+  ! Module-scope quantities used in solving the initial radius root function. The root finder is shared by all instances (on each
+  ! thread), rather than being constructed for each instance, as instances are created and destroyed frequently. This is safe as
+  ! the root function relies on the single "self_" pointer, so solutions for different instances can not be nested in any case.
+  double precision                                              , parameter   :: toleranceAbsolute                 =0.0d0
   class           (massDistributionSphericalAdiabaticGnedin2004), pointer     :: self_
-  !$omp threadprivate(self_)
+  type            (rootFinder                                  ), allocatable :: sphericalAdiabaticGnedin2004Finder
+  !$omp threadprivate(self_,sphericalAdiabaticGnedin2004Finder)
 
   ! Module-scope shared fast exponentiator.
   type            (fastExponentiator                           ), allocatable :: radiusExponentiator
-  double precision                                                            :: omegaPrevious      =-huge(0.0d0)
+  double precision                                                            :: omegaPrevious                     =-huge(0.0d0)
   !$omp threadprivate(radiusExponentiator,omegaPrevious)
 
   abstract interface 
@@ -327,14 +331,8 @@ contains
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
     ! Evaluate the original total mass.
-    self%massTotal_=self%massDistribution_%massEnclosedBySphere(radiusVirial)
-    ! Construct a root finder.
-    self%finder=rootFinder(                                                      &
-         &                 rootFunction     =sphericalAdiabaticGnedin2004Solver, &
-         &                 toleranceAbsolute=toleranceAbsolute                 , &
-         &                 toleranceRelative=toleranceRelative                   &
-         &                )    
-    self%dimensionless=self%massDistribution_%isDimensionless()
+    self%massTotal_   =self%massDistribution_%massEnclosedBySphere(radiusVirial)
+    self%dimensionless=self%massDistribution_%isDimensionless     (            )
     ! Initialize state.
     self%radiusPreviousIndex       = 0
     self%radiusPreviousIndexMaximum= 0
@@ -475,6 +473,16 @@ contains
           end if
        end do
     end if
+    ! Construct the root finder if necessary, and set the tolerance for this instance.
+    if (.not.allocated(sphericalAdiabaticGnedin2004Finder)) then
+       allocate(sphericalAdiabaticGnedin2004Finder)
+       sphericalAdiabaticGnedin2004Finder=rootFinder(                                                      &
+            &                                        rootFunction     =sphericalAdiabaticGnedin2004Solver, &
+            &                                        toleranceAbsolute=toleranceAbsolute                 , &
+            &                                        toleranceRelative=self%toleranceRelative              &
+            &                                       )
+    end if
+    call sphericalAdiabaticGnedin2004Finder%tolerance(toleranceAbsolute=toleranceAbsolute,toleranceRelative=self%toleranceRelative)
     ! Find the solution for initial radius.
     if (j == -1) then
        ! No previous solution to use as an initial guess. Instead, we make an estimate of the initial radius under the
@@ -497,29 +505,29 @@ contains
        else
           radiusUpperBound=radius
        end if
-       call self%finder%rangeExpand(                                                             &
-            &                       rangeExpandUpward            =1.1d0                        , &
-            &                       rangeExpandDownward          =0.9d0                        , &
-            &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                       rangeExpandType              =rangeExpandMultiplicative      &
-            &                      )
-       sphericalAdiabaticGnedin2004RadiusInitial=self%finder%find(rootRange=[radius,radiusUpperBound])
+       call sphericalAdiabaticGnedin2004Finder%rangeExpand(                                                             &
+            &                                              rangeExpandUpward            =1.1d0                        , &
+            &                                              rangeExpandDownward          =0.9d0                        , &
+            &                                              rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+            &                                              rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+            &                                              rangeExpandType              =rangeExpandMultiplicative      &
+            &                                             )
+       sphericalAdiabaticGnedin2004RadiusInitial=sphericalAdiabaticGnedin2004Finder%find(rootRange=[radius,radiusUpperBound])
     else
        ! Use previous solution as an initial guess.
-       call self%finder%rangeExpand(                                                                        &
-            &                       rangeExpandDownward          =1.0d0/sqrt(1.0d0+self%toleranceRelative), &
-            &                       rangeExpandUpward            =1.0d0*sqrt(1.0d0+self%toleranceRelative), &
-            &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative           , &
-            &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive           , &
-            &                       rangeExpandType              =rangeExpandMultiplicative                 &
-            &                      )
-       sphericalAdiabaticGnedin2004RadiusInitial=self%finder%find(                                                                             &
-            &                                                     rootRange=[                                                                  &
-            &                                                                self%radiusInitialPrevious(j)/sqrt(1.0d0+self%toleranceRelative), &
-            &                                                                self%radiusInitialPrevious(j)*sqrt(1.0d0+self%toleranceRelative)  &
-            &                                                               ]                                                                  &
-            &                                                    )
+       call sphericalAdiabaticGnedin2004Finder%rangeExpand(                                                                        &
+            &                                              rangeExpandDownward          =1.0d0/sqrt(1.0d0+self%toleranceRelative), &
+            &                                              rangeExpandUpward            =1.0d0*sqrt(1.0d0+self%toleranceRelative), &
+            &                                              rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative           , &
+            &                                              rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive           , &
+            &                                              rangeExpandType              =rangeExpandMultiplicative                 &
+            &                                             )
+       sphericalAdiabaticGnedin2004RadiusInitial=sphericalAdiabaticGnedin2004Finder%find(                                                                             &
+            &                                                                            rootRange=[                                                                  &
+            &                                                                                       self%radiusInitialPrevious(j)/sqrt(1.0d0+self%toleranceRelative), &
+            &                                                                                       self%radiusInitialPrevious(j)*sqrt(1.0d0+self%toleranceRelative)  &
+            &                                                                                      ]                                                                  &
+            &                                                                           )
     end if
     ! Store this solution.
     self%radiusPreviousIndex                                 =modulo(self%radiusPreviousIndex         ,sphericalAdiabaticGnedin2004StoreCount)+1
