@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameters for the stellar mass- and redshift-dependent dust attenuation unit test          -->
+<!-- (tests.dust.attenuation_stellar_mass_redshift.exe). Only a disk component is needed - the  -->
+<!-- test sets its stellar mass directly.                                                        -->
+
+<parameters>
+  <lastModified revision="e99e3876de518165c98e1b25d5c8d13ffb808fa4" time="2026-09-23T00:00:00"/>
+  <formatVersion>2</formatVersion>
+
+  <!-- Component selection -->
+  <componentBasic     value="standard"      />
+  <componentDisk      value="verySimpleSize">
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
+  </componentDisk>
+  <componentSpheroid  value="null"          />
+  <componentHotHalo   value="null"          />
+  <componentBlackHole value="null"          />
+
+  <!-- Cosmology -->
+  <cosmologyFunctions  value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="70.0"/>
+    <OmegaMatter     value="0.3" />
+    <OmegaDarkEnergy value="0.7" />
+    <OmegaBaryon     value="0.05"/>
+    <temperatureCMB  value="2.72548"/>
+  </cosmologyParameters>
+
+  <!-- The attenuation under test, with non-zero values of every free parameter. -->
+  <dustAttenuation value="stellarMassRedshift">
+    <delta0            value="+0.10"/>
+    <deltaMass         value="+0.20"/>
+    <deltaRedshift     value="+0.30"/>
+    <deltaMassRedshift value="+0.40"/>
+    <redshiftPivot     value="1.0"  />
+    <dustExtinctionCurve value="calzetti2000"/>
+  </dustAttenuation>
+</parameters>

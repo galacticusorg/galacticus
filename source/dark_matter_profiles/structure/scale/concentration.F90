@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo profile scale radii in which radii are computed from the concentration.
   !!}
@@ -27,6 +29,7 @@
   use :: Dark_Matter_Profiles_Concentration, only : darkMatterProfileConcentration, darkMatterProfileConcentrationClass
   use :: Dark_Matter_Profiles_DMO          , only : darkMatterProfileDMO          , darkMatterProfileDMOClass
   use :: Galacticus_Nodes                  , only : nodeComponentBasic            , nodeComponentDarkMatterProfile     , treeNode
+  use :: Root_Finder                       , only : rootFinder
   use :: Virial_Density_Contrast           , only : virialDensityContrast         , virialDensityContrastClass
 
   !![
@@ -69,12 +72,18 @@
      module procedure concentrationConstructorInternal
   end interface darkMatterProfileScaleRadiusConcentration
 
-  ! Container type used to maintain a stack of state.
+  ! Container type used to maintain a stack of state. The root finder is built on first use at each depth of the stack and then
+  ! retained (it is not released when the stack is popped), so that a root finder is not constructed and destroyed on every
+  ! call. It is held by pointer so that it remains at a fixed address when the stack is grown. It is created using
+  ! "allocate(...,source=rootFinder(...))" because gfortran 16 miscompiles intrinsic assignment of a constructor result to a
+  ! pointer target of this type (writing through a null pointer). The bitwise copy made by "source=" bypasses reference counting,
+  ! which is safe here as a newly-constructed root finder holds no managed resources (its GSL objects are created on first use).
   type :: concentrationState
      class           (darkMatterProfileScaleRadiusConcentration), pointer :: self                  => null()
      type            (treeNode                                 ), pointer :: nodeWork              => null(), node => null()
      class           (nodeComponentBasic                       ), pointer :: basic                 => null()
      class           (nodeComponentDarkMatterProfile           ), pointer :: darkMatterProfile     => null()
+     type            (rootFinder                               ), pointer :: finder                => null()
      double precision                                                     :: concentrationOriginal          , mass
   end type concentrationState
 
@@ -193,14 +202,14 @@ contains
     !!}
     use :: Calculations_Resets , only : Calculations_Reset
     use :: Numerical_Comparison, only : Values_Differ
-    use :: Root_Finder         , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Root_Finder         , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     class           (darkMatterProfileScaleRadiusConcentration), intent(inout), target        :: self
     type            (treeNode                                 ), intent(inout), target        :: node
     class           (nodeComponentBasic                       ), pointer                      :: basic
     double precision                                           , parameter                    :: massRatioBuffer      =1.1d0, massRatioShrink=0.99d0
     type            (concentrationState                       ), allocatable   , dimension(:) :: concentrationStateTmp
-    type            (rootFinder                               )                               :: finder
+    type            (rootFinder                               ), pointer                      :: finder
     double precision                                                                          :: concentration              , massDefinition        , &
          &                                                                                       massRatio
     integer                                                                                   :: i
@@ -249,16 +258,22 @@ contains
           state_(stateCount)%darkMatterProfile          => state_(stateCount)%nodeWork%darkMatterProfile(autoCreate=.true.)
           call state_(stateCount)%basic%timeSet            (basic%time())
           call state_(stateCount)%basic%timeLastIsolatedSet(basic%time())
-          ! The finder is initialized each time as it is allocated on the stack - this allows this function to be called recursively.
-          finder=rootFinder(                                                             &
-               &            rootFunction                 =concentrationMassRoot        , &
-               &            toleranceRelative            =1.0d-3                       , &
-               &            rangeExpandUpward            =1.0d0*self%massRatioPrevious , &
-               &            rangeExpandDownward          =1.0d0/self%massRatioPrevious , &
-               &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-               &            rangeExpandType              =rangeExpandMultiplicative      &
-               &           )
+          ! Use the finder at this depth of the state stack - this allows this function to be called recursively. The range
+          ! expansion depends on the previous mass ratio, so is set on each call.
+          if (.not.associated(state_(stateCount)%finder)) then
+             allocate(state_(stateCount)%finder,source=rootFinder(                                         &
+                  &                                               rootFunction     =concentrationMassRoot, &
+                  &                                               toleranceRelative=1.0d-3                 &
+                  &                                              ))
+          end if
+          finder => state_(stateCount)%finder
+          call finder%rangeExpand(                                                             &
+               &                  rangeExpandUpward            =1.0d0*self%massRatioPrevious , &
+               &                  rangeExpandDownward          =1.0d0/self%massRatioPrevious , &
+               &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                  rangeExpandType              =rangeExpandMultiplicative      &
+               &                 )
           massDefinition=finder%find(rootGuess=state_(stateCount)%mass)
           ! Find the ratio of the recovered mass under the given definition to the input mass, defined to be always greater than
           ! unity. This will be used as the basis of the range expansion for the next solution.

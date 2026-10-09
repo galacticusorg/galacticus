@@ -61,6 +61,7 @@ module Chemical_Abundances_Structure
        <method description="Serialize a chemical abundances object to an array." method="serialize" />
        <method description="Deserialize a chemical abundances object from an array." method="deserialize" />
        <method description="Increment a chemical abundances object." method="increment" />
+       <method description="Add a chemical abundances object directly into a serialized chemical abundances vector (e.g. a slice of the ODE rate vector) in place, avoiding the deserialize/increment/serialize round-trip." method="incrementSerialized" />
        <method description="Returns the abundance of a chemical given its index." method="abundance" />
        <method description="Sets the abundance of a chemical given its index." method="abundanceSet" />
        <method description="Resets abundances to zero." method="reset" />
@@ -82,38 +83,39 @@ module Chemical_Abundances_Structure
        <method description="Specify the names of chemical abundance object properties for output." method="outputNames" />
      </methods>
      !!]
-     procedure         ::                    Chemical_Abundances_Add
-     procedure         ::                    Chemical_Abundances_Subtract
-     procedure         ::                    Chemical_Abundances_Multiply
-     procedure         ::                    Chemical_Abundances_Divide
-     generic           :: operator(+)     => Chemical_Abundances_Add
-     generic           :: operator(-)     => Chemical_Abundances_Subtract
-     generic           :: operator(*)     => Chemical_Abundances_Multiply
-     generic           :: operator(/)     => Chemical_Abundances_Divide
-     procedure         :: nonStaticSizeOf => Chemicals_Non_Static_Size_Of
-     procedure, nopass :: serializeCount  => Chemicals_Property_Count
-     procedure         :: serialize       => Chemical_Abundances_Serialize
-     procedure         :: deserialize     => Chemical_Abundances_Deserialize
-     procedure         :: increment       => Chemical_Abundances_Increment
-     procedure         :: scale           => Chemical_Abundances_Scale
-     procedure         :: abundance       => Chemicals_Abundances
-     procedure         :: abundanceSet    => Chemicals_Abundances_Set
-     procedure         :: reset           => Chemicals_Abundances_Reset
-     procedure         :: setToUnity      => Chemicals_Abundances_Set_To_Unity
-     procedure         :: isZero          => Chemicals_Abundances_Is_Zero
-     procedure         :: destroy         => Chemicals_Abundances_Destroy
-     procedure         :: numberToMass    => Chemicals_Number_To_Mass
-     procedure         :: massToNumber    => Chemicals_Mass_To_Number
-     procedure         :: enforcePositive => Chemicals_Enforce_Positive
-     procedure         :: sumOver         => Chemicals_Sum_Over
-     procedure         :: builder         => Chemicals_Builder
-     procedure         :: dump            => Chemicals_Dump
-     procedure         :: dumpRaw         => Chemicals_Dump_Raw
-     procedure         :: readRaw         => Chemicals_Read_Raw
-     procedure         :: output          => Chemicals_Output
-     procedure         :: postOutput      => Chemicals_Post_Output
-     procedure         :: outputCount     => Chemicals_Output_Count
-     procedure         :: outputNames     => Chemicals_Output_Names
+     procedure         ::                        Chemical_Abundances_Add
+     procedure         ::                        Chemical_Abundances_Subtract
+     procedure         ::                        Chemical_Abundances_Multiply
+     procedure         ::                        Chemical_Abundances_Divide
+     generic           :: operator(+)         => Chemical_Abundances_Add
+     generic           :: operator(-)         => Chemical_Abundances_Subtract
+     generic           :: operator(*)         => Chemical_Abundances_Multiply
+     generic           :: operator(/)         => Chemical_Abundances_Divide
+     procedure         :: nonStaticSizeOf     => Chemicals_Non_Static_Size_Of
+     procedure, nopass :: serializeCount      => Chemicals_Property_Count
+     procedure         :: serialize           => Chemical_Abundances_Serialize
+     procedure         :: deserialize         => Chemical_Abundances_Deserialize
+     procedure         :: increment           => Chemical_Abundances_Increment
+     procedure         :: incrementSerialized => Chemical_Abundances_Increment_Serialized
+     procedure         :: scale               => Chemical_Abundances_Scale
+     procedure         :: abundance           => Chemicals_Abundances
+     procedure         :: abundanceSet        => Chemicals_Abundances_Set
+     procedure         :: reset               => Chemicals_Abundances_Reset
+     procedure         :: setToUnity          => Chemicals_Abundances_Set_To_Unity
+     procedure         :: isZero              => Chemicals_Abundances_Is_Zero
+     procedure         :: destroy             => Chemicals_Abundances_Destroy
+     procedure         :: numberToMass        => Chemicals_Number_To_Mass
+     procedure         :: massToNumber        => Chemicals_Mass_To_Number
+     procedure         :: enforcePositive     => Chemicals_Enforce_Positive
+     procedure         :: sumOver             => Chemicals_Sum_Over
+     procedure         :: builder             => Chemicals_Builder
+     procedure         :: dump                => Chemicals_Dump
+     procedure         :: dumpRaw             => Chemicals_Dump_Raw
+     procedure         :: readRaw             => Chemicals_Read_Raw
+     procedure         :: output              => Chemicals_Output
+     procedure         :: postOutput          => Chemicals_Post_Output
+     procedure         :: outputCount         => Chemicals_Output_Count
+     procedure         :: outputNames         => Chemicals_Output_Names
   end type chemicalAbundances
 
   ! Count of the number of elements being tracked.
@@ -277,6 +279,24 @@ contains
     self%chemicalValue=self%chemicalValue+increment%chemicalValue
     return
   end subroutine Chemical_Abundances_Increment
+
+  subroutine Chemical_Abundances_Increment_Serialized(self,chemicalAbundancesArray,increment)
+    !!{RST
+    Accumulate ``increment`` directly into a *serialized* chemical abundances object held in ``chemicalAbundancesArray`` (for
+    example, a slice of the ODE rate vector), using the same layout as ``serialize`` and ``deserialize``. This avoids the
+    deserialize/increment/serialize round-trip and its copies. An unallocated ``increment`` is treated as zero (as ``serialize``
+    does).
+    !!}
+    implicit none
+    class           (chemicalAbundances), intent(in   )               :: self
+    double precision                    , intent(inout), dimension(:) :: chemicalAbundancesArray
+    class           (chemicalAbundances), intent(in   )               :: increment
+    !$GLC attributes unused :: self
+
+    if (.not.allocated(increment%chemicalValue)) return
+    chemicalAbundancesArray=chemicalAbundancesArray+increment%chemicalValue
+    return
+  end subroutine Chemical_Abundances_Increment_Serialized
 
   logical function Chemicals_Abundances_Is_Zero(self)
     !!{RST
