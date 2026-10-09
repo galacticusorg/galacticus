@@ -6,8 +6,8 @@ Emulator-Assisted Calibration
 .. note::
 
    Emulator-assisted calibration is under development. This chapter currently describes generating a design, running a
-   campaign of models over it, and the emulator file format; training emulators and sampling with them will be
-   described here as they are added.
+   campaign of models over it, training emulators, and the emulator file format; sampling with emulators will be
+   described here as it is added.
 
 Calibrating a model by Markov Chain Monte Carlo (see :doc:`tutorials/constraining-parameters`) requires the model to be
 run at every step of every chain. When a single model run is expensive this is impractical. Emulator-assisted
@@ -101,6 +101,90 @@ machine. A run is complete when Galacticus exited with status zero, its log cont
 ``fatal``, ``aborted``, ``ODE integration failed``, ``unrecognized parameter``), and its output file exists; ``status``
 reports the reason for each failure, and ``resubmit`` submits the failed runs again. The same operations are available
 from Python, in ``Galacticus.Emulation.campaign``, for use from other pipelines.
+
+.. _manual-sec-EmulatorTraining:
+
+Training an emulator
+--------------------
+
+Emulators are trained by the script ``scripts/emulation/emulatorTrainReference.py``, which requires scikit-learn
+(``pip install -e '.[emulation-gp]'``). It reads a configuration file:
+
+.. code-block:: xml
+
+   <emulatorTrain>
+     <designFileName       value="design.hdf5"  />
+     <emulatorFileName     value="emulator.hdf5"/>
+     <foldsCrossValidation value="5"/>
+     <observable label="massFunctionStellarTomczak2014ZFOURGEz0" transform="log10" floor="-6.64" rootVarianceFloored="0.5"/>
+     <observable label="massMetallicityBlanc2019" undefined="median" rootVarianceUndefined="5.0"/>
+   </emulatorTrain>
+
+For each ``observable`` it collects a training set from the ``analyses/{label}`` group written by the corresponding
+``outputAnalysis`` in the output of each run of the design (as listed in the design file). Runs which failed are excluded
+(and reported), and repeated realizations of a design point are averaged. Each observable may be transformed to
+:math:`\log_{10}` (``transform="log10"``), in which case values at or below :math:`10^\mathrm{floor}` (including empty bins)
+are set to the floor with root variance ``rootVarianceFloored`` (in dex); and bins which are undefined in some runs (as
+for a mean relation with no galaxies in a bin) may be replaced by the median of that bin over the other runs
+(``undefined="median"``), with root variance ``rootVarianceUndefined``. Values which have been floored or replaced are
+flagged in the ``mask`` of the training set.
+
+The emulator of each observable standardizes its bins, compresses them by principal components analysis (retaining a
+fraction ``pcaVarianceRetained`` of the variance, by default 0.99), and fits a Gaussian process to each standardized
+principal component coefficient. The finite-sampling uncertainty of each run, propagated to the coefficients, is
+included as heteroscedastic noise, and the hyperparameters (an amplitude and one length scale per input, in units of
+prior quantiles) are found by maximizing the marginal likelihood, from ``restartsOptimizer`` (by default 4) random
+starts. With ``foldsCrossValidation`` greater than zero, each emulator is also cross-validated: it is refitted with each
+fold of the training set held out, and the held-out predictions are written to the ``validation`` group of the emulator
+file, along with per-bin statistics. A well-calibrated emulator has an RMS standardized residual near 1, and 1 and 2
+sigma coverage near 0.68 and 0.95. With ``collectOnly`` set to ``true``, only the training sets are written.
+
+.. _manual-sec-EmulatorEvaluation:
+
+Evaluating an emulator
+----------------------
+
+Within Galacticus an emulator is an object of the :galacticus-class:`emulatorClass` class. The
+:galacticus-class:`emulatorGaussianProcess` implementation reads the emulator of one observable from an emulator file:
+
+.. code-block:: xml
+
+   <emulator value="gaussianProcess">
+     <fileName value="emulator.hdf5"/>
+     <label    value="massFunctionStellarTomczak2014ZFOURGEz0"/>
+   </emulator>
+
+The :galacticus-class:`taskEmulatorPredict` task evaluates an emulator at a list of points (given as prior quantiles in an
+HDF5 file), writing the predicted mean and variance of each output, which is useful for checking an emulator against
+direct runs of the model.
+
+Sampling the posterior with emulators
+-------------------------------------
+
+The :galacticus-class:`posteriorSampleLikelihoodEmulated` likelihood replaces runs of the model by predictions of
+emulators, so that any of the posterior sampling simulations (see :galacticus-class:`taskPosteriorSample`) can explore
+the posterior at the cost of evaluating the emulators. It takes one ``emulator`` for each observable, and compares each
+emulator's prediction with the target data stored with it in the emulator file:
+
+.. code-block:: xml
+
+   <posteriorSampleLikelihood value="emulated">
+     <emulator value="gaussianProcess">
+       <fileName value="emulator.hdf5"/>
+       <label    value="massFunctionStellarTomczak2014ZFOURGEz0"/>
+     </emulator>
+     <emulator value="gaussianProcess">
+       <fileName value="emulator.hdf5"/>
+       <label    value="massMetallicityBlanc2019"/>
+     </emulator>
+     <likelihoodForms         value="gaussianDiagonal gaussianCovariance"/>
+     <includeEmulatorVariance value="true"/>
+   </posteriorSampleLikelihood>
+
+The active parameters of the simulation must be those of the design: each emulator input is supplied by the active
+parameter of the same name, and their priors must be those under which the emulators were trained (this is checked when
+the likelihood is first evaluated). The emulators may also be checked by evaluating the emulated likelihood on a design
+with the ``grid`` simulation, and comparing with the likelihoods of direct runs of the model.
 
 .. _manual-sec-EmulatorFileFormat:
 

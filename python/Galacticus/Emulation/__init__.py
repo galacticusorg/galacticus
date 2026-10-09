@@ -4,4 +4,5 @@
   implementation of emulator evaluation.
 * :mod:`Galacticus.Emulation.design` -- reading design files written by the ``emulatorDesign`` task.
 * :mod:`Galacticus.Emulation.campaign` -- running and tracking a campaign of model runs over a design.
+* :mod:`Galacticus.Emulation.train` -- collecting training sets from a campaign, and training emulators of them.
 """

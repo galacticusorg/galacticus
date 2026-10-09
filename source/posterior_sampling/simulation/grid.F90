@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a posterior sampling simulation class which implements a simple grid search.
   !!}
@@ -38,12 +40,12 @@
      Implementation of a posterior sampling simulation class which implements a simple grid search.
      !!}
      private
-     type   (modelParameterList            ), pointer, dimension(:) :: modelParametersActive_     => null(), modelParametersInactive_ => null()
-     class  (posteriorSampleLikelihoodClass), pointer               :: posteriorSampleLikelihood_ => null()
-     class  (posteriorSamplesClass         ), pointer               :: posteriorSamples_          => null()
-     integer                                                        :: parameterCount                      , logFlushCount
-     logical                                                        :: appendLogs                          , outputLikelihoods
-     type   (varying_string                )                        :: logFileRoot
+     type   (modelParameterList            ), allocatable, dimension(:) :: modelParametersActive_                , modelParametersInactive_
+     class  (posteriorSampleLikelihoodClass), pointer                   :: posteriorSampleLikelihood_ => null()
+     class  (posteriorSamplesClass         ), pointer                   :: posteriorSamples_          => null()
+     integer                                                            :: parameterCount                        , logFlushCount
+     logical                                                            :: appendLogs                            , outputLikelihoods
+     type   (varying_string                )                            :: logFileRoot
    contains
      !![
      <methods docformat="rst">
@@ -215,14 +217,16 @@ contains
 
     allocate(self%modelParametersActive_  (size(modelParametersActive_  )))
     allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
-    self%modelParametersActive_  =modelParametersActive_
-    self%modelParametersInactive_=modelParametersInactive_
     do i=1,size(modelParametersActive_  )
+       self%modelParametersActive_  (i)                 =  modelParameterList      ( )
+       self%modelParametersActive_  (i)%modelParameter_ => modelParametersActive_  (i)%modelParameter_
        !![
        <referenceCountIncrement owner="self%modelParametersActive_  (i)" object="modelParameter_"/>
        !!]
     end do
     do i=1,size(modelParametersInactive_)
+       self%modelParametersInactive_(i)                 =  modelParameterList      ( )
+       self%modelParametersInactive_(i)%modelParameter_ => modelParametersInactive_(i)%modelParameter_
        !![
        <referenceCountIncrement owner="self%modelParametersInactive_(i)" object="modelParameter_"/>
        !!]
@@ -243,14 +247,14 @@ contains
     <objectDestructor name="self%posteriorSampleLikelihood_"/>
     <objectDestructor name="self%posteriorSamples_"         />
     !!]
-    if (associated(self%modelParametersActive_  )) then
+    if (allocated (self%modelParametersActive_  )) then
        do i=1,size(self%modelParametersActive_  )
           !![
 	  <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
           !!]
        end do
     end if
-    if (associated(self%modelParametersInactive_)) then
+    if (allocated (self%modelParametersInactive_)) then
        do i=1,size(self%modelParametersInactive_)
           !![
 	  <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
@@ -395,12 +399,12 @@ contains
     type   (inputParameters              ), intent(inout) :: descriptor
     integer                                               :: i
     
-    if (associated(self%modelParametersActive_  )) then
+    if (allocated (self%modelParametersActive_  )) then
        do i=1,size(self%modelParametersActive_  )
           call self%modelParametersActive_  (i)%modelParameter_%descriptor(descriptor)
        end do
     end if
-    if (associated(self%modelParametersInactive_)) then
+    if (allocated (self%modelParametersInactive_)) then
        do i=1,size(self%modelParametersInactive_)
           call self%modelParametersInactive_(i)%modelParameter_%descriptor(descriptor)
        end do

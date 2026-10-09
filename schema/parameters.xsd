@@ -1060,6 +1060,21 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="emulator">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="gaussianProcess"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="evolveForestsWorkShare">
    <xs:complexType mixed="true">
     <xs:sequence>
@@ -3107,6 +3122,7 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="SEDFit"/>
           <xs:enumeration value="baseParameters"/>
+          <xs:enumeration value="emulated"/>
           <xs:enumeration value="galaxyPopulation"/>
           <xs:enumeration value="gaussianRegression"/>
           <xs:enumeration value="haloMassFunction"/>
@@ -4082,6 +4098,7 @@
           <xs:enumeration value="comovingDistances"/>
           <xs:enumeration value="conditionalMassFunction"/>
           <xs:enumeration value="emulatorDesign"/>
+          <xs:enumeration value="emulatorPredict"/>
           <xs:enumeration value="evolveForests"/>
           <xs:enumeration value="excursionSets"/>
           <xs:enumeration value="haloMassFunction"/>
@@ -4748,6 +4765,22 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="luminosity"/>
           <xs:enumeration value="size"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="likelihoodForms">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="gaussianCovariance"/>
+          <xs:enumeration value="gaussianDiagonal"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>

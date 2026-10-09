@@ -56,6 +56,11 @@ emulation = [
     "mcfit",
     "samana",
 ]
+# Training Gaussian-process emulators of model predictions (python/Galacticus/Emulation/train.py,
+# scripts/emulation/emulatorTrainReference.py). Kept opt-in: nothing else depends on scikit-learn.
+emulation-gp = [
+    "scikit-learn",
+]
 test = [
     "pytest",
 ]
