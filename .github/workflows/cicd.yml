@@ -1202,6 +1202,7 @@ jobs:
                       tests.make_ranges.exe,
                       tests.tabulations_inverse.exe,
                       tests.cosmology_functions.exe,
+                      tests.survey_geometry_martin2010_alfalfa.exe,
                       tests.mass_distributions.exe,
                       tests.mass_distributions.tabulated.exe,
                       tests.kinematic_distributions.NFW.exe,

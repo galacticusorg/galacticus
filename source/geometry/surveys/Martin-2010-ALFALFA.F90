@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Robertson, Codex.
+
 !!{RST
 Implements the survey geometry used by :cite:t:`martin_arecibo_2010`.
 !!}
@@ -158,20 +160,25 @@ contains
     if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the maximum distance.
     if (present(mass)) then
-       ! Get the logarithm of the mass.
-       logarithmicMass=log10(mass)
-       ! Find the median line width for this mass. (See
-       ! constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/lineWidthMassRelation.py for details.)
-       lineWidth=10.0d0**(lineWidthCoefficient0+lineWidthCoefficient1*logarithmicMass)
-       ! Compute the limiting integrated flux using equation (A1) of Martin et al. (2010).
-       if (lineWidth < lineWidthCharacteristic) then
-          integratedFluxLimit=integratedFluxLimitNormalization*signalToNoise*sqrt(lineWidth/lineWidthCharacteristic)
+       if (mass > 0.0d0) then
+          ! Get the logarithm of the mass.
+          logarithmicMass=log10(mass)
+          ! Find the median line width for this mass. (See
+          ! constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/lineWidthMassRelation.py for details.)
+          lineWidth=10.0d0**(lineWidthCoefficient0+lineWidthCoefficient1*logarithmicMass)
+          ! Compute the limiting integrated flux using equation (A1) of Martin et al. (2010).
+          if (lineWidth < lineWidthCharacteristic) then
+             integratedFluxLimit=integratedFluxLimitNormalization*signalToNoise*sqrt(lineWidth/lineWidthCharacteristic)
+          else
+             integratedFluxLimit=integratedFluxLimitNormalization*signalToNoise*    (lineWidth/lineWidthCharacteristic)
+          end if
+          ! Convert from mass and limiting integrated flux to maximum distance using relation given in text of section 2.2 of Martin et
+          ! al. (2010). Limit by the maximum velocity allowed for galaxies to make it into the sample.
+          martin2010ALFALFADistanceMaximum=min(sqrt(mass/massNormalization/integratedFluxLimit),sampleVelocityMaximum/self%cosmologyParameters_%hubbleConstant())
        else
-          integratedFluxLimit=integratedFluxLimitNormalization*signalToNoise*    (lineWidth/lineWidthCharacteristic)
+          ! A source with no atomic hydrogen is not observable by an HI-selected survey.
+          martin2010ALFALFADistanceMaximum=0.0d0
        end if
-       ! Convert from mass and limiting integrated flux to maximum distance using relation given in text of section 2.2 of Martin et
-       ! al. (2010). Limit by the maximum velocity allowed for galaxies to make it into the sample.
-       martin2010ALFALFADistanceMaximum=min(sqrt(mass/massNormalization/integratedFluxLimit),sampleVelocityMaximum/self%cosmologyParameters_%hubbleConstant())
     else
        martin2010ALFALFADistanceMaximum=                                                     sampleVelocityMaximum/self%cosmologyParameters_%hubbleConstant()
     end if
