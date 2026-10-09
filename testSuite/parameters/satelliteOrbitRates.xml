@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Parameter file used by tests.satellite_orbit_rates.exe, which validates the two rates driving satellite orbital evolution
-     against independently computed reference values (galacticusDevTools/satelliteOrbitRates.py).
+     against independently computed reference values (galacticusDevTools/physicsReferences/satelliteOrbitRates.py).
 
      Every class is declared here rather than constructed in the test program. The satellite classes reach the host and satellite
      mass distributions through the node, and the node builds its `darkMatterProfile` through an `<objectBuilder>` reading these

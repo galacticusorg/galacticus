@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Model used by test-satellite-orbit-evolution.py, which integrates one satellite's orbit and mass loss in a static host
-     potential and compares the trajectory against an independent reference (galacticusDevTools/satelliteOrbitEvolution.py).
+     potential and compares the trajectory against an independent reference (galacticusDevTools/physicsReferences/satelliteOrbitEvolution.py).
 
      This is the companion to tests.satellite_orbit_rates.exe. That test verifies the two rates pointwise; this one verifies
      that they are assembled correctly into the orbital differential equations, which a pointwise comparison cannot do.
