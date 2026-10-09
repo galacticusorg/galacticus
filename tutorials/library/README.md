@@ -25,7 +25,7 @@ Two options:
    dependencies):
 
    ```sh
-   make GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+   make LIBRARY=yes libgalacticus.so
    mkdir -p galacticus/lib && cp libgalacticus.so galacticus/lib/
    ```
 
