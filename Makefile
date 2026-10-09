@@ -378,31 +378,6 @@ SOURCEDIRS := source $(call rsubdirs,source)
 # catch.
 PYTHONSOURCES := $(call rwildcard,python,*.py)
 
-# Build configuration stamp. Nothing else records the compilers and flags with which a build directory was built, so
-# changing them (e.g. LTO, GALACTICUS_FCFLAGS, or a newly detected library) would otherwise leave objects, and code
-# generated according to them (e.g. for `-DDEBUGGING`), from the previous configuration in place, to be silently linked
-# with the new. This file records the configuration, and every preprocessed source and object depends on it. Its rule runs
-# on every build, but rewrites the file only if the configuration has changed, so that only then is everything rebuilt.
-# (One consequence: `make -n` cannot know that the file will not change, so always reports a full rebuild.)
-define BUILDCONFIGURATION
-FCCOMPILER=$(FCCOMPILER)
-CCOMPILER=$(CCOMPILER)
-CPPCOMPILER=$(CPPCOMPILER)
-FCFLAGS=$(FCFLAGS)
-FCFLAGS_LINK=$(FCFLAGS_LINK)
-F77FLAGS=$(F77FLAGS)
-CFLAGS=$(CFLAGS)
-CPPFLAGS=$(CPPFLAGS)
-endef
-# The configuration reaches the recipe through the environment, which avoids quoting the flags for the shell (and the
-# `file` function, which GNU make 3.81, as shipped with macOS, lacks).
-$(BUILDCONFIGURATIONSTAMP): export BUILDCONFIGURATIONTEXT = $(BUILDCONFIGURATION)
-$(BUILDCONFIGURATIONSTAMP): FORCE
-	@mkdir -p $(BUILDPATH)
-	@printf '%s\n' "$$BUILDCONFIGURATIONTEXT" > $@.new
-	@if cmp -s $@.new $@; then rm -f $@.new; else mv $@.new $@; fi
-FORCE:
-
 # General suffix rules: i.e. rules for making a file of one suffix from files of another suffix.
 
 # Object (*.o) files are built by preprocessing and then compiling Fortran 90 (*.F90) source
@@ -1051,3 +1026,18 @@ parameters-schema:
 # from scripts/build/hooks/pre-commit).
 parameters-schema-check:
 	+./scripts/build/parameterSchema.py `pwd` schema/parameters.xsd --check
+
+# Build configuration stamp. Nothing else records the compilers and flags with which a build directory was built, so
+# changing them (e.g. LTO, GALACTICUS_FCFLAGS, or a newly detected library) would otherwise leave objects, and code
+# generated according to them (e.g. for `-DDEBUGGING`), from the previous configuration in place, to be silently linked
+# with the new. This file records the configuration, and every preprocessed source and object depends on it. It is
+# written here, once the whole Makefile (including the library-probe results) has been read, but only if its contents
+# have changed, so that only then is everything rebuilt. It is an ordinary file with no rule of its own - deliberately so:
+# an earlier version written by a rule run on every build (via a FORCE prerequisite), on which thousands of targets
+# depended, hung the macOS CI builds, which use GNU make 3.81. Invocations which only run utility targets (cleaning, the
+# parameter schema and catalog) do not rewrite it, other than to create it if missing.
+BUILDCONFIGURATIONUTILITYGOALS := clean tidy parameters-catalog parameters-schema parameters-schema-check
+BUILDCONFIGURATIONQUOTE         = '$(subst ','\'',$(1))'
+ifneq ($(if $(MAKECMDGOALS),$(filter-out $(BUILDCONFIGURATIONUTILITYGOALS),$(MAKECMDGOALS)),build)$(if $(wildcard $(BUILDCONFIGURATIONSTAMP)),,missing),)
+BUILDCONFIGURATIONSTATUS := $(shell mkdir -p $(BUILDPATH) && printf '%s\n' $(call BUILDCONFIGURATIONQUOTE,FCCOMPILER=$(FCCOMPILER)) $(call BUILDCONFIGURATIONQUOTE,CCOMPILER=$(CCOMPILER)) $(call BUILDCONFIGURATIONQUOTE,CPPCOMPILER=$(CPPCOMPILER)) $(call BUILDCONFIGURATIONQUOTE,FCFLAGS=$(FCFLAGS)) $(call BUILDCONFIGURATIONQUOTE,FCFLAGS_LINK=$(FCFLAGS_LINK)) $(call BUILDCONFIGURATIONQUOTE,F77FLAGS=$(F77FLAGS)) $(call BUILDCONFIGURATIONQUOTE,CFLAGS=$(CFLAGS)) $(call BUILDCONFIGURATIONQUOTE,CPPFLAGS=$(CPPFLAGS)) > $(BUILDCONFIGURATIONSTAMP).new && { cmp -s $(BUILDCONFIGURATIONSTAMP).new $(BUILDCONFIGURATIONSTAMP) || mv $(BUILDCONFIGURATIONSTAMP).new $(BUILDCONFIGURATIONSTAMP); }; rm -f $(BUILDCONFIGURATIONSTAMP).new)
+endif
