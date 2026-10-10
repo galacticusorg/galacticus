@@ -278,12 +278,12 @@ contains
     class           (posteriorSampleSimulationGrid), intent(inout)                               :: self
     double precision                               , dimension(self%parameterCount)              :: stateVector
     type            (posteriorSampleStateSimple   ), dimension(                  :), allocatable :: stateSamples
-    real                                                                                         :: timeEvaluate, timePreEvaluate, &
+    real                                                                                         :: timeEvaluate    , timePreEvaluate, &
          &                                                                                          timePostEvaluate
-    double precision                                                                             :: logPosterior, logLikelihood
-    type            (varying_string               )                                              :: logFileName , message 
+    double precision                                                                             :: logPosterior    , logLikelihood
+    type            (varying_string               )                                              :: logFileName     , message 
     integer                                                                                      :: logFileUnit
-    integer         (c_size_t                     )                                              :: i           , j
+    integer         (c_size_t                     )                                              :: i               , j
 
     ! Write start-up message.
     message="Process "//mpiSelf%rankLabel()//" [PID: "

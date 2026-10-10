@@ -195,7 +195,7 @@ contains
     <objectBuilder class="galacticFilter"                       name="galacticFilter_"                       source="parameters"          />
     <objectBuilder class="outputTimes"                          name="outputTimes_"                          source="parameters"          />
     !!]
-    allocate(binCenter   (int(parameters%count('binCenter'))                          ))
+    allocate(binCenter   (int(parameters%count('binCenter'))                     ))
     allocate(outputWeight(int(parameters%count('binCenter'))*outputTimes_%count()))
     if (parameters%count('outputWeight') /= parameters%count('binCenter')*outputTimes_%count()) &
          & call Error_Report('incorrect number of output weights provided'//{introspection:location})

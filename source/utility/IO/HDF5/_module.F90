@@ -1858,9 +1858,8 @@ contains
     Open the named character scalar attribute in ``self`` and write to it by delegating to the attribute object.
     !!}
     use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T       , h5tclose_f   , h5tcopy_f, &
-          &                           h5tset_size_f       , size_t       , &
-          &                           h5tset_strpad_f     , H5T_STR_NULLTERM_F
+    use :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T       , h5tclose_f     , h5tcopy_f         , &
+          &                           h5tset_size_f       , size_t      , h5tset_strpad_f, H5T_STR_NULLTERM_F
     use :: ISO_Varying_String, only : assignment(=)       , operator(//), trim
     implicit none
     class    (hdf5AttributableObject), intent(inout)           :: self
@@ -1943,10 +1942,10 @@ contains
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_null_char
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T       , HSIZE_T      , h5awrite_f, &
-          &                                      h5tclose_f          , h5tcopy_f   , h5tset_size_f, size_t       , &
+    use            :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T             , HSIZE_T      , h5awrite_f, &
+          &                                      h5tclose_f          , h5tcopy_f         , h5tset_size_f, size_t    , &
           &                                      h5tset_strpad_f     , H5T_STR_NULLTERM_F
-    use            :: ISO_Varying_String, only : assignment(=)       , operator(//), trim
+    use            :: ISO_Varying_String, only : assignment(=)       , operator(//)      , trim
     implicit none
     class    (hdf5Attribute ), intent(inout) :: self
     character(len=*         ), intent(in   ) :: attributeValue
@@ -2012,9 +2011,9 @@ contains
     Open the named character 1-D array attribute in ``self`` and write to it by delegating to the attribute object.
     !!}
     use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T        , HSIZE_T, h5tclose_f, &
-          &                           h5tcopy_f           , h5tset_size_f, size_t       , &
-          &                           h5tset_strpad_f     , H5T_STR_NULLTERM_F
+    use :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T        , HSIZE_T, h5tclose_f     , &
+          &                           h5tcopy_f           , h5tset_size_f, size_t , h5tset_strpad_f,  &
+          &                           H5T_STR_NULLTERM_F
     use :: ISO_Varying_String, only : assignment(=)       , operator(//) , trim
     implicit none
     class    (hdf5AttributableObject)              , intent(inout)           :: self
@@ -2099,10 +2098,10 @@ contains
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_null_char
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T        , HSIZE_T, h5awrite_f, &
-          &                                      h5tclose_f          , h5tcopy_f    , h5tset_size_f, size_t       , &
+    use            :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T             , HSIZE_T      , h5awrite_f, &
+          &                                      h5tclose_f          , h5tcopy_f         , h5tset_size_f, size_t    , &
           &                                      h5tset_strpad_f     , H5T_STR_NULLTERM_F
-    use            :: ISO_Varying_String, only : assignment(=)       , operator(//) , trim
+    use            :: ISO_Varying_String, only : assignment(=)       , operator(//)      , trim
     implicit none
     class    (hdf5Attribute )              , intent(inout) :: self
     character(len=*         ), dimension(:), intent(in   ) :: attributeValue
