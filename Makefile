@@ -890,7 +890,7 @@ $(BUILDPATH)/libgalacticus.preprocessed.inc :
 endif
 
 # Ensure that we don't delete object files which make considers to be intermediate
-.PRECIOUS: $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.p.F90.up $(BUILDPATH)/%.Inc $(BUILDPATH)/%.Inc.up $(BUILDPATH)/%.d
+.PRECIOUS: $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.p.F90.up $(BUILDPATH)/%.Inc $(BUILDPATH)/%.Inc.up $(BUILDPATH)/%.p.Inc $(BUILDPATH)/%.p.Inc.up $(BUILDPATH)/%.d
 
 # Cancel all builtin rules.
 .SUFFIXES:
