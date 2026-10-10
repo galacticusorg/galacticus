@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "e9606ddc51855123a4811f05bf8f77274657db56",
-        "message": "Merge pull request #1567 from galacticusorg/fix/gama-morphology-countAll-1565\n\nfix(outputAnalyses): GAMA morphological fraction segfault and Wilson interval\n",
-        "timestamp": "2026-10-07 19:54:32+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/e9606ddc51855123a4811f05bf8f77274657db56"
+        "id": "3e7063745070d484d2686884bf8b6998e11b4a68",
+        "message": "Merge pull request #1561 from galacticusorg/refactor/build-options\n\nfeat(build): replace GALACTICUS_BUILD_OPTION with individual build options\n",
+        "timestamp": "2026-10-09 19:37:14+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/3e7063745070d484d2686884bf8b6998e11b4a68"
     },
     "results": [
         {
@@ -189,7 +189,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Symphony (Nadler et al. 2023)",
                 "comment": "Subhalo mean maximum velocity vs. bound mass relation",
                 "description": "Subhalo mean maximum velocity vs. bound mass relation",
-                "logLikelihood": "-21.549905591661023",
+                "logLikelihood": "-21.549905591660945",
                 "type": "function1D",
                 "xDataset": "massBound",
                 "yCovariance": "velocityMaximumMeanCovariance",
@@ -221,13 +221,13 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     26.93895242411964,
-                    30.928442227694738,
+                    30.928442227694735,
                     35.96162097530354,
                     42.017572191586005,
-                    47.697287345203634,
+                    47.69728734520362,
                     53.935032534653224,
                     61.5234616120523,
-                    72.32316724803921,
+                    72.3231672480392,
                     76.69565762507767,
                     89.26926836337522,
                     104.36919163177672,
@@ -266,7 +266,7 @@ window.ANALYSES_DATA = {
                     0.2933517743105131,
                     0.417897680019963,
                     0.5653169416138585,
-                    0.6994779056317753,
+                    0.6994779056317828,
                     1.0905152353742074,
                     1.3747313463096382,
                     2.194693862160911,
