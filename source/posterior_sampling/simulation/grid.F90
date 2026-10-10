@@ -278,7 +278,8 @@ contains
     class           (posteriorSampleSimulationGrid), intent(inout)                               :: self
     double precision                               , dimension(self%parameterCount)              :: stateVector
     type            (posteriorSampleStateSimple   ), dimension(                  :), allocatable :: stateSamples
-    real                                                                                         :: timeEvaluate
+    real                                                                                         :: timeEvaluate, timePreEvaluate, &
+         &                                                                                          timePostEvaluate
     double precision                                                                             :: logPosterior, logLikelihood
     type            (varying_string               )                                              :: logFileName , message 
     integer                                                                                      :: logFileUnit
@@ -302,8 +303,13 @@ contains
     do j=1,size(stateSamples)
        call stateSamples(j)%countSet(int(j))
        if (mod(j,mpiSelf%count()) /= mpiSelf%rank()) cycle
-       ! Evaluate the posterior in the initial state.
+       ! Evaluate the posterior in the initial state. If the likelihood does not report the time taken to evaluate it, the CPU
+       ! time taken is used.
+       timeEvaluate=-1.0
+       call CPU_Time(timePreEvaluate )
        call self%posterior(stateSamples(j),logPosterior,logLikelihood,timeEvaluate)
+       call CPU_Time(timePostEvaluate)
+       if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
        ! Unmap parameters and write to log file.
        stateVector=stateSamples(j)%get()
        do i=1,size(stateVector)
