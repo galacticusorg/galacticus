@@ -4,7 +4,8 @@
 Builds an emulator file (with numpy only, as in `test-emulator-predict.py`) holding emulators of two observables over a
 design in three parameters with uniform, log-uniform, and normal priors. The emulators take their inputs in an order
 different from that of the design and of the active parameters, and one uses only a subset of the parameters, so that any
-confusion in mapping parameters to inputs shows. The target data include bins which must be excluded: a missing datum, a
+confusion in mapping parameters to inputs shows. The parameter names differ in length, so that they are padded when stored
+as fixed-length strings in the emulator file. The target data include bins which must be excluded: a missing datum, a
 datum which is minus infinity (as for an empty bin after a logarithmic transformation), and a datum with zero variance
 (which is included only if the emulator variance is). A `grid` posterior simulation then evaluates the likelihood at a set
 of points, and the log-likelihoods it reports are compared with those computed in Python from
@@ -48,14 +49,14 @@ parameters = [
      'cumulative': lambda x: x / 2.0, 'invert': lambda f: 2.0 * f},
     {'name': 'p/b', 'prior': 'logUniform', 'options': {'limitLower': 1.0e-2, 'limitUpper': 1.0e+1}, 'mapper': 'logarithm',
      'cumulative': lambda x: math.log(x / 1.0e-2) / math.log(1.0e3), 'invert': lambda f: 1.0e-2 * 1.0e3 ** f},
-    {'name': 'p/c', 'prior': 'normal', 'options': {'mean': 0.5, 'variance': 0.04}, 'mapper': 'identity',
+    {'name': 'p/cLonger', 'prior': 'normal', 'options': {'mean': 0.5, 'variance': 0.04}, 'mapper': 'identity',
      'cumulative': normal.cdf, 'invert': normal.inv_cdf},
 ]
 names = [parameter['name'] for parameter in parameters]
 
 # The observables: the names of their inputs (in the emulator's order), and their target data.
 countBins = {'observableDiagonal': 6, 'observableCovariance': 5}
-inputNames = {'observableDiagonal': ['p/c', 'p/a', 'p/b'], 'observableCovariance': ['p/b', 'p/a']}
+inputNames = {'observableDiagonal': ['p/cLonger', 'p/a', 'p/b'], 'observableCovariance': ['p/b', 'p/a']}
 
 
 def targets():

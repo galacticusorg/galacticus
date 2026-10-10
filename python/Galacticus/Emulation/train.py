@@ -32,6 +32,7 @@ import h5py
 import numpy as np
 
 from Galacticus.Emulation import emulatorFile as ef
+from Galacticus.Emulation.campaign import output_file_path
 from Galacticus.Emulation.design import read_design
 
 __all__ = [
@@ -152,7 +153,8 @@ def collect(design_file, observables, model_files=None, directory='.'):
     """Collect a training set for each observable from the outputs of a campaign.
 
     ``model_files`` lists the output file of each run of the design (in run order); by default these are the output files
-    named in the design file, resolved relative to ``directory``. A run whose output is missing or lacks an observable is
+    named in the design file, resolved relative to ``directory`` (or, for a single-process run of an MPI build, the output
+    of its process 0; see :func:`Galacticus.Emulation.campaign.output_file_path`). A run whose output is missing or lacks an observable is
     excluded from that observable's training set. Repeated realizations of a design point are averaged, and the variance
     of the average is that of a single realization divided by the number averaged.
 
@@ -178,7 +180,7 @@ def collect(design_file, observables, model_files=None, directory='.'):
         for index, path in enumerate(model_files):
             point = int(runs['pointIndex'][index])
             try:
-                xRun, y, covariance, yTargetRun, covarianceTargetRun, _ = _read_analysis(path, observable.label)
+                xRun, y, covariance, yTargetRun, covarianceTargetRun, _ = _read_analysis(output_file_path(path), observable.label)
             except (OSError, KeyError, ValueError) as error:
                 failed[index] = str(error)
                 continue

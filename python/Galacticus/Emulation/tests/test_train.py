@@ -1,5 +1,7 @@
 """Tests for `Galacticus.Emulation.train` (collecting training sets, and training emulators)."""
 
+import os
+
 import h5py
 import numpy as np
 import pytest
@@ -126,6 +128,15 @@ def test_collect(campaign):
     np.testing.assert_allclose(np.sqrt(np.diag(density.covariance_target)), 0.1 / np.log(10.0), rtol=1.0e-12)
     assert density.attributes == {'transform': 'log10', 'floor': -6.0, 'rootVarianceFloored': 0.5}
     assert design.names == ['a/b', 'c/d']
+
+
+def test_collect_mpi_output(campaign):
+    # The output of a single-process run of an MPI build of Galacticus carries the label of its process.
+    path, _, observables = campaign
+    os.rename(path / 'models' / 'run0.hdf5', path / 'models' / 'run0:MPI0000.hdf5')
+    _, training_sets, reports = collect(path / 'design.hdf5', observables, directory=path)
+    assert reports['numberDensity'].points_missing == [3]
+    assert 0 in training_sets['numberDensity'].point_index
 
 
 def test_collect_averages_realizations(tmp_path):

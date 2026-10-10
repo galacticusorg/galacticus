@@ -160,6 +160,7 @@ contains
       call emulatorGroup%readAttribute('countComponents',countComponents)
       if (kernel /= 'matern52ARD') call Error_Report("unsupported kernel '"//kernel//"'"//{introspection:location})
       call emulatorGroup   %readDataset('inputNames'      ,self%inputNames_      )
+      call gaussianProcessNamesUnpad(self%inputNames_)
       call emulatorGroup   %readDataset('inputs'          ,self%inputs           )
       call emulatorGroup   %readDataset('binMean'         ,self%binMean          )
       call emulatorGroup   %readDataset('binScale'        ,self%binScale         )
@@ -174,6 +175,7 @@ contains
         type(hdf5Group) :: designGroup
         designGroup=file%openGroup('design')
         call designGroup%readDataset('parameterNames',namesDesign )
+        call gaussianProcessNamesUnpad(namesDesign)
         call designGroup%readDataset('values'        ,valuesDesign)
       end block
       allocate(self%components(countComponents))
@@ -230,6 +232,24 @@ contains
     end do
     return
   end function gaussianProcessConstructorInternal
+
+  subroutine gaussianProcessNamesUnpad(names)
+    !!{RST
+    Remove the padding from names read from fixed-length strings. Strings in emulator files are null-padded, so each name is
+    truncated at its first null character (and any trailing blanks removed).
+    !!}
+    use :: ISO_Varying_String, only : extract, index, trim
+    implicit none
+    type   (varying_string), intent(inout), dimension(:) :: names
+    integer                                              :: i    , position
+
+    do i=1,size(names)
+       position=index(names(i),char(0))
+       if (position > 0) names(i)=extract(names(i),1,position-1)
+       names(i)=trim(names(i))
+    end do
+    return
+  end subroutine gaussianProcessNamesUnpad
 
   double precision function gaussianProcessKernel(input1,input2,amplitude,lengthScales) result(kernel)
     !!{RST

@@ -36,6 +36,7 @@ __all__ = [
     'Campaign',
     'ValidationResult',
     'run_status_from_log',
+    'output_file_path',
 ]
 
 MANIFEST_FORMAT = 'galacticusCampaign'
@@ -77,6 +78,20 @@ class ValidationResult:
     message: str = ''
 
 
+def output_file_path(path):
+    """Return the path of the output file actually written for a run whose output file is named ``path``.
+
+    An MPI build of Galacticus appends the label of its MPI process to the name of its output file (``model.hdf5`` becomes
+    ``model:MPI0000.hdf5``), even when run as a single process. So if ``path`` does not exist, but the output file of process
+    0 of a single-process MPI run does, that file is returned. Otherwise ``path`` is returned unchanged.
+    """
+    if os.path.exists(path):
+        return path
+    prefix, extension = (path[:-5], '.hdf5') if path.endswith('.hdf5') else (path, '')
+    pathMPI = f'{prefix}:MPI0000{extension}'
+    return pathMPI if os.path.exists(pathMPI) and not os.path.exists(f'{prefix}:MPI0001{extension}') else path
+
+
 def run_status_from_log(run):
     """Determine a run's status (and exit status, and a message) from its log and output files.
 
@@ -102,7 +117,7 @@ def run_status_from_log(run):
         return FAILED, exit_status, f'exited with status {exit_status}'
     if markers:
         return FAILED, exit_status, 'log contains failure markers: ' + ', '.join(markers)
-    if not os.path.exists(run.output_file):
+    if not os.path.exists(output_file_path(run.output_file)):
         return FAILED, exit_status, 'output file is missing'
     return COMPLETE, exit_status, ''
 
