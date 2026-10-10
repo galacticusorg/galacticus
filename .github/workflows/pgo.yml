@@ -1,0 +1,300 @@
+name: 'PGO Build'
+# Build a profile-guided optimization (PGO) Galacticus executable and publish it as a release asset alongside the standard
+# one. A PGO build runs in three phases - an instrumented build, training runs of that build, then a build using the
+# profiles they record (see the `PGO` build option in the Makefile and the developer guide) - which take several hours in
+# all. So it runs here, outside the CI/CD workflow: nothing else waits on it, and merges to master (which cancel CI/CD runs
+# in progress) do not cancel it.
+#
+# What is built, and where it is published:
+#   * scheduled and manually-dispatched runs build the commit that the `bleeding-edge` release currently points to, and
+#     publish to that release - skipping the work if it already carries a PGO executable for that commit (unless `force`
+#     is set), or if that commit predates the `PGO` build option;
+#   * version tag pushes build the tagged commit, and publish to its versioned release (created by `publish.yml`);
+#   * pushes to this workflow's development branch build that branch, and publish nothing.
+# The executable is published as `Galacticus.exe_PGO`, with `Galacticus.exe_PGO.sha256` (its checksum) and
+# `Galacticus.exe_PGO.commit` (the commit it was built from). It is deliberately not listed in `SHA256SUMS`, which the
+# CI/CD `Deploy` job rewrites, nor mirrored by `publish.yml`, whose asset list is fixed.
+on:
+  schedule:
+    # Weekly, Sundays at 06:00 UTC.
+    - cron: '0 6 * * 0'
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+    branches:
+      - 'ci/pgo-workflow'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Build even if bleeding-edge already carries a PGO executable for its commit'
+        type: boolean
+        default: false
+# Queue rather than cancel: each run takes hours, and a newer one should not discard an older one's work.
+concurrency:
+  group: pgo-${{ github.ref }}
+  cancel-in-progress: false
+defaults:
+  run:
+    shell: bash
+# Read-only by default; the `Publish` job requests write access to upload release assets.
+permissions:
+  contents: read
+jobs:
+  Select-Commit:
+    runs-on: ubuntu-latest
+    outputs:
+      sha:     ${{ steps.select.outputs.sha     }}
+      release: ${{ steps.select.outputs.release }}
+      build:   ${{ steps.select.outputs.build   }}
+    steps:
+      - name: Select the commit to build, and the release to publish to
+        id: select
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          set -euo pipefail
+          if [[ "${EVENT}" == "push" && "${REF_TYPE}" == "tag" ]]; then
+            sha="${SHA}"
+            release="${REF_NAME}"
+          elif [[ "${EVENT}" == "push" ]]; then
+            # A development-branch push: build the branch, publish nothing.
+            sha="${SHA}"
+            release=""
+          else
+            # The commit `bleeding-edge` points to (dereferencing an annotated tag if necessary).
+            refs=$(git ls-remote "https://github.com/${REPOSITORY}" 'refs/tags/bleeding-edge' 'refs/tags/bleeding-edge^{}')
+            sha=$(echo "${refs}" | awk '$2 ~ /\^\{\}$/ {print $1}')
+            [[ -n "${sha}" ]] || sha=$(echo "${refs}" | awk '{print $1}')
+            release="bleeding-edge"
+            if [[ "${FORCE}" != "true" ]]; then
+              published=$(gh release download bleeding-edge --repo "${REPOSITORY}" --pattern 'Galacticus.exe_PGO.commit' --output - 2>/dev/null || true)
+              if [[ "${published}" == "${sha}" ]]; then
+                echo "bleeding-edge already carries a PGO executable for ${sha} - nothing to do." | tee -a "${GITHUB_STEP_SUMMARY}"
+                echo "build=false" >> "${GITHUB_OUTPUT}"
+                exit 0
+              fi
+            fi
+          fi
+          # Builds of commits from before the `PGO` build option existed would fail - skip them.
+          # (Download first: `curl | grep -q` under pipefail fails whenever grep exits before curl has finished writing.)
+          curl -sSfL "https://raw.githubusercontent.com/${REPOSITORY}/${sha}/Makefile" -o Makefile.selected
+          if ! grep -q '^PGO *?= *no' Makefile.selected; then
+            echo "Commit ${sha} predates the PGO build option - nothing to do." | tee -a "${GITHUB_STEP_SUMMARY}"
+            echo "build=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+          echo "Building ${sha}; publishing to '${release:-(nothing)}'." | tee -a "${GITHUB_STEP_SUMMARY}"
+          echo "sha=${sha}"         >> "${GITHUB_OUTPUT}"
+          echo "release=${release}" >> "${GITHUB_OUTPUT}"
+          echo "build=true"         >> "${GITHUB_OUTPUT}"
+  Build-Instrumented:
+    needs: Select-Commit
+    if: ${{ needs.Select-Commit.outputs.build == 'true' }}
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    timeout-minutes: 330
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.Select-Commit.outputs.sha }}
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -static" >> $GITHUB_ENV
+      - name: Build the instrumented executable
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          set -o pipefail
+          # As for the release build (see `Build-Executable-Linux` in `cicd.yml`), cap at -j2 to bound peak memory.
+          # `SUFFIX=` names the executable `Galacticus.exe` rather than `Galacticus.exe_PGOInstrumented`.
+          make -j2 PGO=generate SUFFIX= Galacticus.exe 2>&1 | tee build.log
+          set +o pipefail
+          grep -vqzi error:   build.log || (echo "FAIL: errors found in build.log"   && false)
+          grep -vqzi warning: build.log || (echo "FAIL: warnings found in build.log" && false)
+      - name: Upload the instrumented executable
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: galacticus-exec-pgo-instrumented
+          path: 'Galacticus.exe'
+  Train:
+    needs: [Select-Commit, Build-Instrumented]
+    runs-on: ubuntu-latest
+    # The same container as the build: the instrumented executable writes its profiles to the (absolute) paths of the
+    # object files it was built from, which must therefore be the same here as in the `Build-*` jobs.
+    container: ghcr.io/galacticusorg/buildenv:latest
+    timeout-minutes: 330
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.Select-Commit.outputs.sha }}
+      - name: Check out repository datasets
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download the instrumented executable
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: galacticus-exec-pgo-instrumented
+      - name: Run the training models
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u+x Galacticus.exe
+          mkdir -p testSuite/outputs
+          # Both models run at once (the runner has four cores): the dark matter-only model on one thread, the galaxy
+          # formation model (two trees) on two. Profile counters are updated atomically and profile files are merged
+          # under a lock, so concurrent runs are safe.
+          OMP_NUM_THREADS=1 ./Galacticus.exe testSuite/parameters/pgo/darkMatterOnlySubHalos.xml > train.darkMatterOnlySubHalos.log 2>&1 &
+          pidDMO=$!
+          OMP_NUM_THREADS=2 ./Galacticus.exe testSuite/parameters/pgo/galaxyFormation.xml        > train.galaxyFormation.log        2>&1 &
+          pidGalaxies=$!
+          status=0
+          wait $pidDMO      || { echo "FAIL: darkMatterOnlySubHalos training run failed"; status=1; }
+          wait $pidGalaxies || { echo "FAIL: galaxyFormation training run failed";        status=1; }
+          # A run that evolves no trees trains nothing, yet exits successfully - so check that every one evolved some.
+          for model in darkMatterOnlySubHalos galaxyFormation; do
+            tail -n 20 train.$model.log
+            count=$(grep -c 'Evolving tree' train.$model.log || true)
+            echo "$model: evolved $count tree(s)"
+            [ "$count" -gt 0 ] || { echo "FAIL: $model training run evolved no trees"; status=1; }
+          done
+          [ $status -eq 0 ] || exit 1
+          find work/buildPGO -name '*.gcda' > profiles.list
+          echo "Profiles recorded: $(wc -l < profiles.list)"
+          [ -s profiles.list ] || { echo "FAIL: no profiles were recorded"; exit 1; }
+          tar cf profiles.tar -T profiles.list
+      - name: Upload the profiles
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: galacticus-pgo-profiles
+          path: 'profiles.tar'
+  Build-PGO:
+    needs: [Select-Commit, Train]
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    timeout-minutes: 330
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.Select-Commit.outputs.sha }}
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -static" >> $GITHUB_ENV
+      - name: Download the profiles
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: galacticus-pgo-profiles
+      - name: Build the PGO executable
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          tar xf profiles.tar
+          rm profiles.tar
+          set -o pipefail
+          make -j2 PGO=use SUFFIX= Galacticus.exe 2>&1 | tee build.log
+          set +o pipefail
+          grep -vqzi error:   build.log || (echo "FAIL: errors found in build.log"   && false)
+          grep -vqzi warning: build.log || (echo "FAIL: warnings found in build.log" && false)
+      - name: Upload the PGO executable
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: galacticus-exec-pgo
+          path: 'Galacticus.exe'
+  Validate:
+    needs: [Select-Commit, Build-PGO]
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      matrix:
+        # The Milky Way model checks that a full galaxy formation model runs; the baryonic suppression model checks its
+        # results against targets. Both validate the standard release executable in `cicd.yml`.
+        file: [ validate-milkyWay.py, validate-baryonicSuppression.py ]
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.Select-Commit.outputs.sha }}
+      - name: Check out repository datasets
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
+      - name: Download the PGO executable
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: galacticus-exec-pgo
+      - name: Install packages
+        run: |
+          apt -y update
+          apt -y install python3 python3-h5py python3-numpy python3-git
+      - name: Run the validation model
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u+x Galacticus.exe
+          cd testSuite
+          set -o pipefail
+          python3 ${{ matrix.file }} 2>&1 | tee validate.log
+          set +o pipefail
+          ! grep -q FAIL validate.log
+  Publish:
+    needs: [Select-Commit, Build-PGO, Validate]
+    if: ${{ needs.Select-Commit.outputs.release != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # required to upload release assets
+    steps:
+      - name: Download the PGO executable
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: galacticus-exec-pgo
+      - name: Upload the PGO executable to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          RELEASE: ${{ needs.Select-Commit.outputs.release }}
+          SHA: ${{ needs.Select-Commit.outputs.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "${RELEASE}" == "bleeding-edge" ]]; then
+            # `bleeding-edge` may have moved on while this run was building: publishing then would pair this executable
+            # with the newer commit's other assets. The next scheduled run will build the newer commit instead.
+            refs=$(git ls-remote "https://github.com/${REPOSITORY}" 'refs/tags/bleeding-edge' 'refs/tags/bleeding-edge^{}')
+            current=$(echo "${refs}" | awk '$2 ~ /\^\{\}$/ {print $1}')
+            [[ -n "${current}" ]] || current=$(echo "${refs}" | awk '{print $1}')
+            if [[ "${current}" != "${SHA}" ]]; then
+              echo "bleeding-edge has moved from ${SHA} to ${current} since this run started - not publishing." | tee -a "${GITHUB_STEP_SUMMARY}"
+              exit 0
+            fi
+          elif ! gh release view "${RELEASE}" --repo "${REPOSITORY}" > /dev/null 2>&1; then
+            echo "FAIL: release ${RELEASE} does not exist (it is created by publish.yml)"
+            exit 1
+          fi
+          mv Galacticus.exe Galacticus.exe_PGO
+          chmod u+x Galacticus.exe_PGO
+          sha256sum Galacticus.exe_PGO > Galacticus.exe_PGO.sha256
+          echo "${SHA}" > Galacticus.exe_PGO.commit
+          gh release upload "${RELEASE}" --repo "${REPOSITORY}" Galacticus.exe_PGO Galacticus.exe_PGO.sha256 Galacticus.exe_PGO.commit --clobber
+          echo "Published the PGO executable for ${SHA} to ${RELEASE}." | tee -a "${GITHUB_STEP_SUMMARY}"
