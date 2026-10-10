@@ -202,16 +202,19 @@ A companion repository,
 holds maintenance/development utilities that are *not* part of the model. It is
 a separate checkout and is **optional** — never assume it is present; check
 first, and either clone it or fall back to doing the job by hand if it is not.
-Its `ReadMe.md` is the authoritative description of each tool; the ones most
-likely to be useful when working in this repo:
+Its tools are grouped into directories by purpose (`maintenance/`,
+`debugging/`, `codeAudits/`, `dataPreparation/`, `physicsReferences/`). The
+top-level `ReadMe.md` indexes them, and each directory's `ReadMe.md` is the
+authoritative description of its tools. Paths below are relative to the
+repository root. The ones most likely to be useful when working in this repo:
 
-- **`GPLerize.py <sourceDir>`** — adds or refreshes the standard Galacticus GPL
+- **`maintenance/GPLerize.py <sourceDir>`** — adds or refreshes the standard Galacticus GPL
   header on every Fortran (`.f`, `.f90`, `.inc`) and C/C++ (`.c`, `.cpp`, `.h`)
   file in a directory, with the copyright year range generated dynamically. Use
   it instead of hand-copying headers into new source files (see *Commits &
   attribution* below). It rewrites files in place and leaves `~`-suffixed
   backups — so run it on a clean tree, and remember to delete the backups.
-- **`migrateAllParameterFiles.py`** — run from the root of a Galacticus checkout
+- **`maintenance/migrateAllParameterFiles.py`** — run from the root of a Galacticus checkout
   (with `GALACTICUS_EXEC_PATH` set); walks `parameters/`, `constraints/`, and
   `testSuite/` and runs `scripts/aux/parametersMigrate.py` in place on every XML
   parameter file. Use this after a change that renames/restructures parameters,
@@ -219,7 +222,7 @@ likely to be useful when working in this repo:
   `testSuite/.../strictOutdated.xml` and `unstrictOutdated.xml`, which must stay
   out of date to exercise the "outdated parameter file" paths - do not migrate
   them by hand either.
-- **`deltaTestCaseReducer/delta.sh`** — wrapper around the
+- **`debugging/deltaTestCaseReducer/delta.sh`** — wrapper around the
   [Delta](https://github.com/dsw/delta) debugging tool; reduces a source file to
   a minimal case that still reproduces an error (compiler ICE, runtime crash,
   …) by successively deleting lines:
@@ -230,22 +233,25 @@ likely to be useful when working in this repo:
   `testScriptExample.sh`). Reach for this when a compiler bug or crash needs a
   minimal reproducer for an upstream report — not for routine debugging, as each
   iteration recompiles and the reduction is slow.
-- **`runBenchmarks.sh -e <exe> [-e <exe> …] [-r <repeats>]`** — runs executables
+- **`debugging/runBenchmarks.sh -e <exe> [-e <exe> …] [-r <repeats>]`** — runs executables
   alternately, `taskset`-pinned to a single CPU, and (given `sudo`) pins the
   governor to `performance` with turbo disabled, to make micro-benchmark timings
   comparable. Use it for before/after timings of a performance change; do not
   use it for ordinary test runs. Note it hard-codes CPU 3 and touches system
   CPU-frequency settings via `sudo`, so confirm with the user before running it.
-- **`retrieveGHPagesArtifacts.sh <runID>`** — pulls validation, benchmark, and
+- **`maintenance/retrieveGHPagesArtifacts.sh <runID>`** — pulls validation, benchmark, and
   build-profile artifacts from a CI/CD run into a local `gh-pages` checkout so a
   PR's metric pages can be inspected before merge. Requires the `gh` CLI, and
   must be run from a directory with Galacticus' `gh-pages` branch checked out
   (not this working tree). It opens pages in a browser at the end.
 
 Two further tools are for data/model maintenance rather than day-to-day work:
-`extractSDSSBPTData.py` (rebuilds the SDSS DR8 emission-line constraint HDF5
-datasets under `GALACTICUS_DATA_PATH`) and `promptCusps.py` (independent Python
-reference values for validating `source/tests.prompt_cusps.F90`).
+`dataPreparation/extractSDSSBPTData.py` (rebuilds the SDSS DR8 emission-line
+constraint HDF5 datasets under `GALACTICUS_DATA_PATH`) and
+`physicsReferences/promptCusps.py` (independent Python reference values for
+validating `source/tests.prompt_cusps.F90`). `physicsReferences/` also holds
+the independent reference scripts that many unit tests in `source/tests/` cite
+by name.
 
 ## Commits & attribution
 
