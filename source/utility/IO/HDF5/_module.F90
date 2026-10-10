@@ -1859,7 +1859,8 @@ contains
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T       , h5tclose_f   , h5tcopy_f, &
-          &                           h5tset_size_f       , size_t
+          &                           h5tset_size_f       , size_t       , &
+          &                           h5tset_strpad_f     , H5T_STR_NULLTERM_F
     use :: ISO_Varying_String, only : assignment(=)       , operator(//), trim
     implicit none
     class    (hdf5AttributableObject), intent(inout)           :: self
@@ -1893,10 +1894,18 @@ contains
        message="unable to make custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-    call h5tset_size_f(dataTypeID,int(len(attributeValue),size_t),errorCode)
+    call h5tset_size_f(dataTypeID,int(max(len(attributeValue),1),size_t),errorCode)
     if (errorCode < 0) then
        message="unable to set datatype size for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
+    end if
+    if (len(attributeValue) == 0) then
+       ! HDF5 does not permit zero-size strings, so an empty string is written as a single null terminator.
+       call h5tset_strpad_f(dataTypeID,H5T_STR_NULLTERM_F,errorCode)
+       if (errorCode < 0) then
+          message="unable to set datatype padding for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
     end if
 
     ! Check that an attribute name was supplied.
@@ -1932,10 +1941,12 @@ contains
     !!{RST
     Write a character scalar attribute to ``self`` (an attribute object).
     !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T       , HSIZE_T      , h5awrite_f, &
-          &                           h5tclose_f          , h5tcopy_f   , h5tset_size_f, size_t
-    use :: ISO_Varying_String, only : assignment(=)       , operator(//), trim
+    use, intrinsic :: ISO_C_Binding     , only : c_null_char
+    use            :: Error             , only : Error_Report
+    use            :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T       , HSIZE_T      , h5awrite_f, &
+          &                                      h5tclose_f          , h5tcopy_f   , h5tset_size_f, size_t       , &
+          &                                      h5tset_strpad_f     , H5T_STR_NULLTERM_F
+    use            :: ISO_Varying_String, only : assignment(=)       , operator(//), trim
     implicit none
     class    (hdf5Attribute ), intent(inout) :: self
     character(len=*         ), intent(in   ) :: attributeValue
@@ -1959,17 +1970,29 @@ contains
        message="unable to make custom datatype for attribute '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-    call h5tset_size_f(dataTypeID,int(len(attributeValue),size_t),errorCode)
+    call h5tset_size_f(dataTypeID,int(max(len(attributeValue),1),size_t),errorCode)
     if (errorCode < 0) then
        message="unable to set datatype size for attribute '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
+    end if
+    if (len(attributeValue) == 0) then
+       ! HDF5 does not permit zero-size strings, so an empty string is written as a single null terminator.
+       call h5tset_strpad_f(dataTypeID,H5T_STR_NULLTERM_F,errorCode)
+       if (errorCode < 0) then
+          message="unable to set datatype padding for attribute '"//self%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
     end if
 
     ! Check that the object is a scalar character.
     call self%assertAttributeType([dataTypeID],0)
 
     ! Write the attribute.
-    call h5awrite_f(self%objectID,dataTypeID,attributeValue,attributeDimensions,errorCode)
+    if (len(attributeValue) == 0) then
+       call h5awrite_f(self%objectID,dataTypeID,c_null_char   ,attributeDimensions,errorCode)
+    else
+       call h5awrite_f(self%objectID,dataTypeID,attributeValue,attributeDimensions,errorCode)
+    end if
     if (errorCode /= 0) then
        message="unable to write attribute '"//self%objectName//"' in object"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -1990,7 +2013,8 @@ contains
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T        , HSIZE_T, h5tclose_f, &
-          &                           h5tcopy_f           , h5tset_size_f, size_t
+          &                           h5tcopy_f           , h5tset_size_f, size_t       , &
+          &                           h5tset_strpad_f     , H5T_STR_NULLTERM_F
     use :: ISO_Varying_String, only : assignment(=)       , operator(//) , trim
     implicit none
     class    (hdf5AttributableObject)              , intent(inout)           :: self
@@ -2025,10 +2049,18 @@ contains
        message="unable to make custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-    call h5tset_size_f(dataTypeID,int(len(attributeValue),size_t),errorCode)
+    call h5tset_size_f(dataTypeID,int(max(len(attributeValue),1),size_t),errorCode)
     if (errorCode < 0) then
        message="unable to set datatype size for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
+    end if
+    if (len(attributeValue) == 0) then
+       ! HDF5 does not permit zero-size strings, so an empty string is written as a single null terminator.
+       call h5tset_strpad_f(dataTypeID,H5T_STR_NULLTERM_F,errorCode)
+       if (errorCode < 0) then
+          message="unable to set datatype padding for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
     end if
 
     ! Check that an attribute name was supplied.
@@ -2065,10 +2097,12 @@ contains
     !!{RST
     Write a character 1-D array attribute to ``self`` (an attribute object).
     !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T        , HSIZE_T, h5awrite_f, &
-          &                           h5tclose_f          , h5tcopy_f    , h5tset_size_f, size_t
-    use :: ISO_Varying_String, only : assignment(=)       , operator(//) , trim
+    use, intrinsic :: ISO_C_Binding     , only : c_null_char
+    use            :: Error             , only : Error_Report
+    use            :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T        , HSIZE_T, h5awrite_f, &
+          &                                      h5tclose_f          , h5tcopy_f    , h5tset_size_f, size_t       , &
+          &                                      h5tset_strpad_f     , H5T_STR_NULLTERM_F
+    use            :: ISO_Varying_String, only : assignment(=)       , operator(//) , trim
     implicit none
     class    (hdf5Attribute )              , intent(inout) :: self
     character(len=*         ), dimension(:), intent(in   ) :: attributeValue
@@ -2092,10 +2126,18 @@ contains
        message="unable to make custom datatype for attribute '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-    call h5tset_size_f(dataTypeID,int(len(attributeValue),size_t),errorCode)
+    call h5tset_size_f(dataTypeID,int(max(len(attributeValue),1),size_t),errorCode)
     if (errorCode < 0) then
        message="unable to set datatype size for attribute '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
+    end if
+    if (len(attributeValue) == 0) then
+       ! HDF5 does not permit zero-size strings, so an empty string is written as a single null terminator.
+       call h5tset_strpad_f(dataTypeID,H5T_STR_NULLTERM_F,errorCode)
+       if (errorCode < 0) then
+          message="unable to set datatype padding for attribute '"//self%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
     end if
 
     ! Check that the object is a 1D character.
@@ -2103,7 +2145,11 @@ contains
 
     ! Write the attribute.
     attributeDimensions=shape(attributeValue)
-    call h5awrite_f(self%objectID,dataTypeID,attributeValue,attributeDimensions,errorCode)
+    if (len(attributeValue) == 0) then
+       call h5awrite_f(self%objectID,dataTypeID,spread(c_null_char,1,size(attributeValue)),attributeDimensions,errorCode)
+    else
+       call h5awrite_f(self%objectID,dataTypeID,attributeValue                             ,attributeDimensions,errorCode)
+    end if
     if (errorCode /= 0) then
        message="unable to write attribute '"//self%objectName//"' in object"
        call Error_Report(message//self%locationReport()//{introspection:location})

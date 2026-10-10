@@ -85,8 +85,7 @@ def writeBase():
     common = [('xAxisLabel', 'M_star'), ('xAxisIsLog', 'true'), ('propertyLabel', 'massStellar'),
               ('propertyComment', 'Stellar mass'), ('propertyUnits', 'Msun'), ('propertyQuantity', 'solMass'),
               ('propertyIsComoving', 'false'), ('propertyUnitsInSI', '1.98847e30'), ('binCenter', values(massBins)),
-              ('bufferCount', '0'), ('outputWeight', values(np.ones(massBins.size))), ('covarianceModel', 'poisson'),
-              ('targetLabel', 'synthetic')]
+              ('bufferCount', '0'), ('outputWeight', values(np.ones(massBins.size))), ('covarianceModel', 'poisson')]
 
     def operators(analysis):
         ET.SubElement(analysis, 'nodePropertyExtractor', value='massStellar')
@@ -99,7 +98,7 @@ def writeBase():
 
     volume = ET.SubElement(analyses, 'outputAnalysis', value='volumeFunction1D')
     addElements(volume, [('label', labelVolume), ('comment', 'Stellar mass function'), ('yAxisLabel', 'phi'),
-                         ('yAxisIsLog', 'true')] + common
+                         ('yAxisIsLog', 'true'), ('targetLabel', 'synthetic')] + common
                 + [('distributionLabel', 'massFunction'), ('distributionComment', 'Mass function'),
                    ('distributionUnits', 'Mpc^-3'), ('distributionQuantity', 'Mpc**-3'), ('distributionIsComoving', 'true'),
                    ('distributionUnitsInSI', '3.4036771916e-68'), ('functionValueTarget', values(target[labelVolume][0])),
@@ -109,6 +108,7 @@ def writeBase():
     unoperator = ET.SubElement(volume, 'unoperatorParameters')
     ET.SubElement(unoperator, 'outputAnalysisPropertyOperator', value='antiLog10')
 
+    # The mean function analysis is given no target label, so that writing the default (empty) label is tested.
     mean = ET.SubElement(analyses, 'outputAnalysis', value='meanFunction1D')
     addElements(mean, [('label', labelMean), ('comment', 'Mean halo mass'), ('yAxisLabel', 'M_halo'),
                        ('yAxisIsLog', 'false')] + common
@@ -235,8 +235,8 @@ def run(command, logName):
 
 
 def directLikelihoods(path):
-    """Read the log-likelihood of each analysis, and the largest off-diagonal element of its model covariance relative to the
-    diagonal, from a model output."""
+    """Read the log-likelihood of each analysis, the largest off-diagonal element of its model covariance relative to the
+    diagonal, and its target label, from a model output."""
     results = {}
     with h5py.File(path, 'r') as file:
         for label in (labelVolume, labelMean):
@@ -247,7 +247,9 @@ def directLikelihoods(path):
             offDiagonal = covariance - np.diag(np.diag(covariance))
             with np.errstate(divide='ignore', invalid='ignore'):
                 ratio = np.where(diagonal > 0.0, np.abs(offDiagonal) / diagonal, np.abs(offDiagonal))
-            results[label] = (float(group.attrs['logLikelihood']), float(np.max(ratio)))
+            targetLabel = group.attrs['targetLabel']
+            results[label] = (float(group.attrs['logLikelihood']), float(np.max(ratio)),
+                              targetLabel.decode() if isinstance(targetLabel, bytes) else str(targetLabel))
     return results
 
 
@@ -293,12 +295,16 @@ def main():
     for run_ in campaign.runs:
         point = run_.point
         direct = directLikelihoods(output_file_path(run_.output_file))
-        for label, (_, offDiagonal) in direct.items():
+        for label, expected in ((labelVolume, 'synthetic'), (labelMean, '')):
+            if direct[label][2] != expected:
+                print(f'FAILED: the target label of {label} at point {point} is {direct[label][2]!r}, expected {expected!r}')
+                return
+        for label, (_, offDiagonal, _) in direct.items():
             if offDiagonal > 1.0e-12:
                 print(f'FAILED: the model covariance of {label} at point {point} is not diagonal (off-diagonal elements up to '
                       f'{offDiagonal:.1e} of the diagonal), so the parity test is not valid')
                 return
-        for label, (logLikelihood, _) in direct.items():
+        for label, (logLikelihood, _, _) in direct.items():
             print(f'point {point}: direct log-likelihood of {label} is {logLikelihood:.10g}')
         # Construct the exact emulators of this point.
         emulators = {}
