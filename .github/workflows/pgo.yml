@@ -9,8 +9,7 @@ name: 'PGO Build'
 #   * scheduled and manually-dispatched runs build the commit that the `bleeding-edge` release currently points to, and
 #     publish to that release - skipping the work if it already carries a PGO executable for that commit (unless `force`
 #     is set), or if that commit predates the `PGO` build option;
-#   * version tag pushes build the tagged commit, and publish to its versioned release (created by `publish.yml`);
-#   * pushes to this workflow's development branch build that branch, and publish nothing.
+#   * version tag pushes build the tagged commit, and publish to its versioned release (created by `publish.yml`).
 # The executable is published as `Galacticus.exe_PGO`, with `Galacticus.exe_PGO.sha256` (its checksum) and
 # `Galacticus.exe_PGO.commit` (the commit it was built from). It is deliberately not listed in `SHA256SUMS`, which the
 # CI/CD `Deploy` job rewrites, nor mirrored by `publish.yml`, whose asset list is fixed.
@@ -21,8 +20,6 @@ on:
   push:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
-    branches:
-      - 'ci/pgo-workflow'
   workflow_dispatch:
     inputs:
       force:
@@ -62,10 +59,6 @@ jobs:
           if [[ "${EVENT}" == "push" && "${REF_TYPE}" == "tag" ]]; then
             sha="${SHA}"
             release="${REF_NAME}"
-          elif [[ "${EVENT}" == "push" ]]; then
-            # A development-branch push: build the branch, publish nothing.
-            sha="${SHA}"
-            release=""
           else
             # The commit `bleeding-edge` points to (dereferencing an annotated tag if necessary).
             refs=$(git ls-remote "https://github.com/${REPOSITORY}" 'refs/tags/bleeding-edge' 'refs/tags/bleeding-edge^{}')
