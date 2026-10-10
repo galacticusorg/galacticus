@@ -1,0 +1,93 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Profile-guided optimization training model: galaxy formation. The physics of the Milky Way validation model           -->
+<!-- (testSuite/parameters/validate_milkyWay.xml), with two changes so that training exercises typical galaxy formation     -->
+<!-- runs rather than that model alone:                                                                                     -->
+<!--  * its LMC-analog merger tree filter is omitted - that filter discards most trees before they are evolved, so a small -->
+<!--    run could evolve none at all;                                                                                        -->
+<!--  * trees span two halo masses, and galaxy properties are output in addition to the Local Group analyses.                -->
+<!-- Run with an executable built with `make PGO=generate` (see the Makefile).                                               -->
+
+<parameters>
+  <lastModified revision="fad2612eb89e50031dba306ad741d66d73e77a25" time="2026-09-29T00:00:00"/>
+  <formatVersion>2</formatVersion>
+
+  <!-- Include required parameters -->
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/darkMatterParticleCDM.xml"       xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/cosmology.xml"                   xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/powerSpectrum.xml"               xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/structureFormation.xml"          xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/darkMatterHalosProfile.xml"      xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/darkMatterHalosTidalHeating.xml" xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/darkMatterHalosStructure.xml"    xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/subhaloOrbits.xml"               xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/mergerTrees.xml"                 xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/evolutionGalaxyFormation.xml"    xpointer="xpointer(parameters/*)" />
+
+  <verbosityLevel value="standard"/>
+
+  <!-- Random number generation - a seed differing from that of the validation model. -->
+  <randomNumberGenerator value="GSL">
+    <seed value="7349"/>
+  </randomNumberGenerator>
+
+  <!-- Task -->
+  <task                   value="evolveForests"/>
+  <evolveForestsWorkShare value="cyclic"       />
+
+  <!-- Merger tree building options: one Milky Way-mass tree, and one of lower mass. -->
+  <mergerTreeBuildMasses value="fixedMass">
+    <massTree  value="1.52e12 3.0e11"/>
+    <treeCount value="1       1"     />
+  </mergerTreeBuildMasses>
+  <mergerTreeMassResolution value="fixed">
+    <massResolution value="8.0e7"/>
+  </mergerTreeMassResolution>
+
+  <!-- Output epochs -->
+  <outputTimes value="list">
+    <redshifts value="0.0"/>
+  </outputTimes>
+
+  <!-- Luminosities -->
+  <luminosityFilter   value="Buser_V"/>
+  <luminosityType     value="rest"   />
+  <luminosityRedshift value="0.0"    />
+
+  <!-- Outputs: galaxy properties, plus the Local Group analyses of the validation model. -->
+  <mergerTreeOutputter value="multi">
+    <mergerTreeOutputter value="standard">
+      <outputReferences value="false"/>
+    </mergerTreeOutputter>
+    <mergerTreeOutputter value="analyzer"/>
+  </mergerTreeOutputter>
+  <outputAnalysis value="multi">
+    <outputAnalysis value="localGroupStellarMassFunction">
+      <positionType      value="orbital"/>
+      <logLikelihoodZero value="0.0"    />
+    </outputAnalysis>
+    <outputAnalysis value="localGroupLuminosityFunction">
+      <positionType      value="orbital"/>
+      <logLikelihoodZero value="0.0"    />
+    </outputAnalysis>
+    <outputAnalysis value="localGroupMassMetallicityRelation">
+      <positionType value="orbital"/>
+    </outputAnalysis>
+    <outputAnalysis value="localGroupMassSizeRelation">
+      <positionType value="orbital"/>
+    </outputAnalysis>
+    <outputAnalysis value="localGroupMassVelocityDispersionRelation">
+      <positionType value="orbital"/>
+    </outputAnalysis>
+    <outputAnalysis value="localGroupStellarMassHaloMassRelation">
+      <positionType value="orbital"/>
+    </outputAnalysis>
+    <outputAnalysis value="localGroupOccupationFraction">
+      <positionType value="orbital"/>
+    </outputAnalysis>
+  </outputAnalysis>
+  <elementsToTrack value="Fe"/>
+
+  <!-- Output file -->
+  <outputFileName value="testSuite/outputs/pgo_galaxyFormation.hdf5"/>
+
+</parameters>
