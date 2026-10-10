@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Contains a module which implements a concentration distribution output analysis class for dark matter halo time formation distribution.
   !!}
@@ -313,6 +315,8 @@ contains
        end if
        if (parameters%isPresent('functionValueTarget')) then
           if (parameters%isPresent('functionCovarianceTarget')) then
+             allocate(functionValueTarget       (parameters%count('functionValueTarget'     )))
+             allocate(functionCovarianceTarget1D(parameters%count('functionCovarianceTarget')))
              !![
              <inputParameter docformat="rst">
                <name>functionValueTarget</name>

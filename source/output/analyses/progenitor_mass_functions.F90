@@ -377,6 +377,8 @@ contains
        end if
        if (parameters%isPresent('functionValueTarget')) then
           if (parameters%isPresent('functionCovarianceTarget')) then
+             allocate(functionValueTarget       (parameters%count('functionValueTarget'     )))
+             allocate(functionCovarianceTarget1D(parameters%count('functionCovarianceTarget')))
              !![
              <inputParameter docformat="rst">
                <name>functionValueTarget</name>
@@ -407,6 +409,7 @@ contains
           if (parameters%isPresent('functionCovariance')) call Error_Report('functionTarget must be specified if functionCovariance is present'//{introspection:location})
        end if
        if (parameters%isPresent('functionCountTarget')) then
+          allocate(functionCountTarget(parameters%count('functionCountTarget')))
           !![
           <inputParameter docformat="rst">
             <name>functionCountTarget</name>
