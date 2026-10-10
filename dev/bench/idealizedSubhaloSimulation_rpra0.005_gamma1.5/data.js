@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791432642428,
+  "lastUpdate": 1791608761477,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "3b9f0bbd09c0f9d040b77e4e105a24f915df5df4",
-          "message": "feat: Memoize calculations to speed up evaluation of decaying dark matter heating",
-          "timestamp": "2024-09-13T22:24:30Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/3b9f0bbd09c0f9d040b77e4e105a24f915df5df4"
-        },
-        "date": 1726290513537,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteBoundMass",
-            "value": "48.57678428813709",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "35.054778180166466",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteVelocityMaximum",
-            "value": "23.749122714076858",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9922,6 +9885,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/e9606ddc51855123a4811f05bf8f77274657db56"
         },
         "date": 1791432641507,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": -48.178534851693755,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -35.33233179258223,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": -23.791741281728402,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3e7063745070d484d2686884bf8b6998e11b4a68",
+          "message": "Merge pull request #1561 from galacticusorg/refactor/build-options\n\nfeat(build): replace GALACTICUS_BUILD_OPTION with individual build options",
+          "timestamp": "2026-10-09T19:37:14Z",
+          "tree_id": "e761bd65ece38482e9d6e902612bb7396304cc5b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3e7063745070d484d2686884bf8b6998e11b4a68"
+        },
+        "date": 1791608760566,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
