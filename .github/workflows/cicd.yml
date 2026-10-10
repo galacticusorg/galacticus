@@ -1863,6 +1863,15 @@ jobs:
       # The emulator is trained with scikit-learn.
       install: python3-sklearn
     secrets: inherit
+  MPI-Emulator-Parity:
+    needs: Build-Executables-MPI-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-emulator-parity_MPI.py
+      artifact: galacticus-exec-MPI
+      runPath: ./testSuite
+      options: --processesPerNode 4 --allowRunAsRoot yes
+    secrets: inherit
   MPI-Posterior-Sample-Proposal-Log:
     needs: Build-Executables-MPI-Linux
     uses: ./.github/workflows/testModel.yml
