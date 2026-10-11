@@ -20,19 +20,19 @@
 !+    Contributions to this file made by: Andrew Robertson, Codex.
 
 !!{RST
-Implements the standard retained-angular-momentum prescription for spheroids formed by bar instabilities.
+Implements the standard angular-momentum-transfer prescription for spheroids formed by bar instabilities.
 !!}
 
   !![
-  <barInstabilitySpheroidAngularMomentum name="barInstabilitySpheroidAngularMomentumRetained" docformat="rst">
+  <barInstabilitySpheroidAngularMomentum name="barInstabilitySpheroidAngularMomentumRetained" alias="angularMomentumTransfer" docformat="rst">
    <description>
-   Assigns to the spheroid a fixed fraction of the angular momentum transfer rate associated with a bar instability. This reproduces the historical Galacticus prescription.
+   Assigns to the spheroid a fixed fraction of the angular momentum transfer rate associated with a bar instability. This reproduces the historical Galacticus prescription. The earlier selector ``retained`` remains accepted for compatibility.
    </description>
   </barInstabilitySpheroidAngularMomentum>
   !!]
   type, extends(barInstabilitySpheroidAngularMomentumClass) :: barInstabilitySpheroidAngularMomentumRetained
      !!{RST
-     Standard retained-angular-momentum prescription for a bar-built spheroid.
+     Standard angular-momentum-transfer prescription for a bar-built spheroid.
      !!}
    contains
      procedure :: rate => retainedRate
@@ -46,7 +46,7 @@ contains
 
   function retainedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the retained-angular-momentum prescription from a parameter set.
+    Constructor for the angular-momentum-transfer prescription from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

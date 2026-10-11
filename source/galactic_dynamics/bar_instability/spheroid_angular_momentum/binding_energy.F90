@@ -26,7 +26,7 @@ Implements a binding-energy-conserving pseudo-angular momentum prescription for 
   !![
   <barInstabilitySpheroidAngularMomentum name="barInstabilitySpheroidAngularMomentumBindingEnergy" docformat="rst">
    <description>
-   Assigns pseudo-angular momentum to a spheroid by blending the retained-angular-momentum prescription for a nascent spheroid into a binding-energy-conserving prescription for an established spheroid. The binding-energy proxy is
+   Assigns pseudo-angular momentum to a spheroid by blending the angular-momentum-transfer prescription for a nascent spheroid into a binding-energy-conserving prescription for an established spheroid. The binding-energy proxy is
 
    .. math::
 
@@ -40,7 +40,7 @@ Implements a binding-energy-conserving pseudo-angular momentum prescription for 
 
       \mu_\mathrm{s}=\frac{M_\mathrm{s}}{M_\mathrm{d}+M_\mathrm{s}}.
 
-   The retained-angular-momentum prescription is used below ``spheroidBaryonFractionTransitionMinimum`` and the binding-energy prescription above ``spheroidBaryonFractionTransitionMaximum``. Between the two limits, their rates are combined using a cubic smoothstep. The default limits are 0.003 and 0.010. Equal limits give a sharp transition; explicitly setting both limits to zero recovers the unregularized energy prescription for non-zero spheroids where the energy derivative is well defined. This is not recommended for production runs because the derivative becomes poorly conditioned for nascent spheroids. See :doc:`/manuals/user-guide/bar-instability-spheroid-sizes` for the method and its limitations.
+   The angular-momentum-transfer prescription is used below ``spheroidBaryonFractionTransitionMinimum`` and the binding-energy prescription above ``spheroidBaryonFractionTransitionMaximum``. Between the two limits, their rates are combined using a cubic smoothstep. The default limits are 0.003 and 0.010. Equal limits give a sharp transition; explicitly setting both limits to zero recovers the unregularized energy prescription for non-zero spheroids where the energy derivative is well defined. This is not recommended for production runs because the derivative becomes poorly conditioned for nascent spheroids. See :doc:`/manuals/user-guide/bar-instability-spheroid-sizes` for the method and its limitations.
    </description>
    <deepCopy>
     <ignore variables="galacticStructureSolver_"/>
@@ -128,7 +128,7 @@ contains
       <name>spheroidBaryonFractionTransitionMinimum</name>
       <defaultValue>3.0d-3</defaultValue>
       <description>
-      The baryonic spheroid fraction below which the retained-angular-momentum prescription is used. The baryonic spheroid fraction includes both gas and stars in the disk and spheroid.
+      The baryonic spheroid fraction below which the angular-momentum-transfer prescription is used. The baryonic spheroid fraction includes both gas and stars in the disk and spheroid.
       </description>
       <source>parameters</source>
       <minimum>0.0</minimum>

@@ -225,7 +225,7 @@ contains
     call                                      disk    %massStellarRate         (-                                                rateMassStellarTransfer                            )
     call                                      spheroid%massStellarRate         (+                                                rateMassStellarTransfer,interrupt,functionInterrupt)
     ! Angular momentum. We remove from the disk only its non-retained fraction. The selected spheroid model determines its
-    ! pseudo-angular-momentum rate; the default retained model reproduces the historical retained-fraction prescription.
+    ! pseudo-angular-momentum rate; the default angularMomentumTransfer model reproduces the historical retained-fraction prescription.
     rateAngularMomentumTransfer=max(         0.0d0         ,disk    %angularMomentum     ())/barInstabilityTimescale
     rateAngularMomentumDisk    =-(1.0d0-fractionAngularMomentumRetainedDisk)*rateAngularMomentumTransfer
     rateAngularMomentumSpheroid=self%barInstabilitySpheroidAngularMomentum_%rate(                  &
