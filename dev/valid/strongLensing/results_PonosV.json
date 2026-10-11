@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "137e680d586938600d3f52331839ed16509923ec",
-        "message": "Merge pull request #1574 from galacticusorg/feat/emulator-mcmc-test\n\ntest(emulation): test emulator-assisted calibration end to end\n",
-        "timestamp": "2026-10-10 18:05:59+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/137e680d586938600d3f52331839ed16509923ec"
+        "id": "4cfef566eeb3aeb6cffb3f920429dc41afff43cb",
+        "message": "Merge pull request #1575 from galacticusorg/perf/ode-flag-first-element\n\nperf(nodes): test ODE solver flags in O(1) instead of scanning slices\n",
+        "timestamp": "2026-10-11 15:30:07+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/4cfef566eeb3aeb6cffb3f920429dc41afff43cb"
     },
     "surfaceDensity": {
         "percentageBelow": 42.857142857142854,
