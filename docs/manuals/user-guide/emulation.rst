@@ -190,6 +190,29 @@ parameter of the same name, and their priors must be those under which the emula
 the likelihood is first evaluated). The emulators may also be checked by evaluating the emulated likelihood on a design
 with the ``grid`` simulation, and comparing with the likelihoods of direct runs of the model.
 
+An observable compared to counts, such as a progenitor mass function (the ``progenitorMassFunction`` analysis, with
+``likelihoodInCounts`` true), uses the ``poissonCounts`` likelihood form. The analysis writes its target counts, and the
+factors converting its values to counts, which are collected into the training set. The likelihood is then a negative
+binomial distribution, whose over-dispersion combines the fractional root variance of counts (``rootVarianceTargetFractional``)
+with the fractional variance of the emulator's prediction. If that root variance is itself a parameter of the calibration,
+it is given by an active parameter named by ``rootVarianceTargetFractionalParameter``, and is then a parameter of the
+likelihood rather than an input to the emulator:
+
+.. code-block:: xml
+
+   <posteriorSampleLikelihood value="emulated">
+     <emulator value="gaussianProcess">
+       <fileName value="emulator.hdf5"/>
+       <label    value="progenitorMassFunctionM0Z1"/>
+     </emulator>
+     <likelihoodForms                       value="poissonCounts"/>
+     <rootVarianceTargetFractionalParameter value="progenitorMassFunctionParameters/rootVarianceTargetFractional"/>
+   </posteriorSampleLikelihood>
+
+Only parameters which change the likelihood without changing the model prediction can be handled in this way. Parameters
+of the model of N-body halo mass errors (``nbodyHaloMassError``), for example, change the progenitor mass function itself
+(through its convolution with those errors), so must be parameters of the design, and inputs to the emulator.
+
 .. _manual-sec-EmulatorFileFormat:
 
 Emulator File Format
@@ -272,6 +295,11 @@ observable (normally the label of the ``outputAnalysis`` which produced it). Att
    The data to which the observable is compared, and its covariance.
 ``yRaw`` (:math:`N \times B`), ``covarianceRaw`` (:math:`N \times B \times B`)
    Optional. The model prediction and its covariance before any transform.
+``countTarget`` (:math:`B`), ``countPerValue`` (:math:`B`)
+   Optional, and present only for an observable compared to counts. The target count in each bin (not-a-number for bins
+   excluded from the likelihood), and the factor converting the untransformed model prediction in each bin to an expected
+   count. These are collected from the ``countTarget`` and ``countPerValue`` datasets of the analysis output, with bins
+   outside the range given by its ``xLikelihoodMinimum`` and ``xLikelihoodMaximum`` attributes excluded.
 
 ``emulators/{label}``
 ~~~~~~~~~~~~~~~~~~~~~

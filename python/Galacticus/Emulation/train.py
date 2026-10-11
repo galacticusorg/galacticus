@@ -104,7 +104,10 @@ class CollectionReport:
 
 
 def _read_analysis(path, label):
-    """Read the ``analyses/<label>`` group of a model output: (x, y, covariance, yTarget, covarianceTarget, attributes)."""
+    """Read the ``analyses/<label>`` group of a model output: (x, y, covariance, yTarget, covarianceTarget, counts,
+    attributes). ``counts`` is ``None``, or (for an analysis providing a counts-based likelihood) a tuple of the target count
+    and the factor converting the model value to a count in each bin, with the count set to not-a-number for bins outside
+    the range used in the likelihood."""
     with h5py.File(path, 'r') as file:
         if 'analyses' not in file or label not in file['analyses']:
             raise KeyError(f"no analysis '{label}' in '{path}'")
@@ -117,8 +120,15 @@ def _read_analysis(path, label):
             key = attributes.get(name)
             return group[key][()] if key is not None and key in group else None
 
-        return (dataset('xDataset'), dataset('yDataset'), dataset('yCovariance'), dataset('yDatasetTarget'),
-                dataset('yCovarianceTarget'), attributes)
+        x = dataset('xDataset')
+        counts = None
+        if 'countTarget' in group and 'countPerValue' in group:
+            countTarget = np.array(group['countTarget'][()], dtype=float)
+            outside = (x <= attributes.get('xLikelihoodMinimum', -np.inf)) | (x >= attributes.get('xLikelihoodMaximum', np.inf))
+            countTarget[outside] = np.nan
+            counts = (countTarget, np.array(group['countPerValue'][()], dtype=float))
+        return (x, dataset('yDataset'), dataset('yCovariance'), dataset('yDatasetTarget'), dataset('yCovarianceTarget'),
+                counts, attributes)
 
 
 def _transform(observable, y, variance, mask):
@@ -176,20 +186,24 @@ def collect(design_file, observables, model_files=None, directory='.'):
     for observable in observables:
         sums = {}
         failed = {}
-        x = yTarget = covarianceTarget = None
+        x = yTarget = covarianceTarget = counts = None
         for index, path in enumerate(model_files):
             point = int(runs['pointIndex'][index])
             try:
-                xRun, y, covariance, yTargetRun, covarianceTargetRun, _ = _read_analysis(output_file_path(path), observable.label)
+                xRun, y, covariance, yTargetRun, covarianceTargetRun, countsRun, _ = _read_analysis(output_file_path(path), observable.label)
             except (OSError, KeyError, ValueError) as error:
                 failed[index] = str(error)
                 continue
             if x is None:
-                x, yTarget, covarianceTarget = xRun, yTargetRun, covarianceTargetRun
+                x, yTarget, covarianceTarget, counts = xRun, yTargetRun, covarianceTargetRun, countsRun
             elif xRun.shape != x.shape or not np.allclose(xRun, x, rtol=1.0e-10, atol=0.0):
                 raise ValueError(f"observable '{observable.label}': bins of run {index} differ from those of other runs")
             elif yTargetRun is not None and not np.allclose(yTargetRun, yTarget, rtol=1.0e-10, atol=0.0):
                 raise ValueError(f"observable '{observable.label}': target data of run {index} differ from those of other runs")
+            elif (countsRun is None) != (counts is None) or (counts is not None and not (
+                    np.allclose(countsRun[0], counts[0], rtol=1.0e-10, atol=0.0, equal_nan=True)
+                    and np.allclose(countsRun[1], counts[1], rtol=1.0e-10, atol=0.0))):
+                raise ValueError(f"observable '{observable.label}': target counts of run {index} differ from those of other runs")
             variance = np.diag(covariance) if covariance is not None else np.zeros_like(y)
             entry = sums.setdefault(point, [np.zeros_like(y), np.zeros_like(y), 0, np.zeros_like(y, dtype=bool)])
             undefined = ~np.isfinite(y) | ((y == 0.0) & (variance == 0.0)) if observable.undefined is not None else np.zeros_like(y, dtype=bool)
@@ -232,6 +246,8 @@ def collect(design_file, observables, model_files=None, directory='.'):
             y_target=np.asarray(yTargetTransformed, dtype=float),
             covariance_target=np.asarray(covarianceTargetTransformed, dtype=float),
             y_raw=yRaw,
+            count_target=None if counts is None else counts[0],
+            count_per_value=None if counts is None else counts[1],
             attributes=observable.attributes(),
         )
         reports[observable.label] = CollectionReport(

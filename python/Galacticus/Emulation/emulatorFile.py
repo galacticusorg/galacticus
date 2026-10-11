@@ -135,6 +135,10 @@ class TrainingSet:
     (``y_raw``, ``covariance_raw``) are optional. ``attributes`` records the transform
     (``transform``, ``floor``, ``rootVarianceFloored``, ``undefined``, ``rootVarianceUndefined``,
     ``xAxisIsLog``, ``yAxisIsLog``, ...).
+
+    For an observable compared to counts (the ``poissonCounts`` likelihood form), ``count_target`` (B)
+    gives the target count in each bin (not-a-number for bins excluded from the likelihood), and
+    ``count_per_value`` (B) the factor converting the untransformed model value in each bin to a count.
     """
 
     x: np.ndarray
@@ -146,6 +150,8 @@ class TrainingSet:
     covariance_target: np.ndarray
     y_raw: np.ndarray | None = None
     covariance_raw: np.ndarray | None = None
+    count_target: np.ndarray | None = None
+    count_per_value: np.ndarray | None = None
     attributes: dict = field(default_factory=dict)
 
     def validate(self, count_points):
@@ -164,6 +170,11 @@ class TrainingSet:
             raise ValueError('training set: yRaw has the wrong shape')
         if self.covariance_raw is not None and self.covariance_raw.shape != (count_used, count_bins, count_bins):
             raise ValueError('training set: covarianceRaw has the wrong shape')
+        if (self.count_target is None) != (self.count_per_value is None):
+            raise ValueError('training set: countTarget and countPerValue must be given together')
+        for name in ('count_target', 'count_per_value'):
+            if getattr(self, name) is not None and getattr(self, name).shape != (count_bins,):
+                raise ValueError(f'training set: {name} must have shape ({count_bins},)')
 
 
 @dataclass

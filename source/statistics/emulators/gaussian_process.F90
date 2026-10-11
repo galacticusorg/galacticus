@@ -51,13 +51,15 @@
      A Gaussian process emulator read from an emulator file.
      !!}
      private
-     type            (varying_string                  )                              :: fileName         , label
+     type            (varying_string                  )                              :: fileName         , label           , &
+          &                                                                             transform_
      type            (varying_string                  ), allocatable, dimension(:  ) :: inputNames_
      double precision                                  , allocatable, dimension(:,:) :: inputs           , pcaComponents   , &
           &                                                                             covarianceTarget_, values
      double precision                                  , allocatable, dimension(:  ) :: binMean          , binScale        , &
           &                                                                             coefficientMean  , coefficientScale, &
-          &                                                                             x_               , yTarget_
+          &                                                                             x_               , yTarget_        , &
+          &                                                                             countTarget_     , countPerValue_
      type            (emulatorGaussianProcessComponent), allocatable, dimension(:  ) :: components
      double precision                                                                :: jitter
    contains
@@ -66,6 +68,8 @@
      procedure :: countOutputs   => gaussianProcessCountOutputs
      procedure :: outputs        => gaussianProcessOutputs
      procedure :: target         => gaussianProcessTarget
+     procedure :: transform      => gaussianProcessTransform
+     procedure :: counts         => gaussianProcessCounts
      procedure :: trainingPoints => gaussianProcessTrainingPoints
      procedure :: predict        => gaussianProcessPredict
   end type emulatorGaussianProcess
@@ -122,7 +126,7 @@ contains
     use            :: HDF5_Access       , only : hdf5Access
     use            :: IO_HDF5           , only : hdf5File     , hdf5Group
     use            :: ISO_Varying_String, only : char         , operator(//), operator(/=)  , operator(==), &
-         &                                       var_str
+         &                                       var_str      , assignment(=)
     use            :: Linear_Algebra    , only : assignment(=), matrix      , matrixCholesky
     use            :: String_Handling   , only : operator(//)
     implicit none
@@ -171,6 +175,18 @@ contains
       call trainingSetGroup%readDataset('yTarget'         ,self%yTarget_         )
       call trainingSetGroup%readDataset('covarianceTarget',self%covarianceTarget_)
       call trainingSetGroup%readDataset('pointIndex'      ,pointIndex            )
+      ! The transform is recorded as an attribute of the training set - if absent, no transform was applied.
+      if (trainingSetGroup%hasAttribute('transform')) then
+         call trainingSetGroup%readAttribute('transform',self%transform_)
+      else
+         self%transform_='identity'
+      end if
+      if (self%transform_ /= 'identity' .and. self%transform_ /= 'log10') call Error_Report("unsupported transform '"//self%transform_//"'"//{introspection:location})
+      ! Counts are present only for observables compared to counts.
+      if (trainingSetGroup%hasDataset('countTarget')) then
+         call trainingSetGroup%readDataset('countTarget'  ,self%countTarget_  )
+         call trainingSetGroup%readDataset('countPerValue',self%countPerValue_)
+      end if
       block
         type(hdf5Group) :: designGroup
         designGroup=file%openGroup('design')
@@ -333,6 +349,34 @@ contains
     covarianceTarget=self%covarianceTarget_
     return
   end subroutine gaussianProcessTarget
+
+  function gaussianProcessTransform(self) result(transform)
+    !!{RST
+    Return the transform applied to the observable before it was emulated.
+    !!}
+    implicit none
+    type (varying_string         )                :: transform
+    class(emulatorGaussianProcess), intent(inout) :: self
+
+    transform=self%transform_
+    return
+  end function gaussianProcessTransform
+
+  subroutine gaussianProcessCounts(self,countTarget,countPerValue)
+    !!{RST
+    Return the target counts of the emulated observable, and the factors converting its values to counts.
+    !!}
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : operator(//)
+    implicit none
+    class           (emulatorGaussianProcess), intent(inout)                            :: self
+    double precision                         , intent(  out), allocatable, dimension(:) :: countTarget, countPerValue
+
+    if (.not.allocated(self%countTarget_)) call Error_Report("the training set of emulator '"//self%label//"' has no counts"//{introspection:location})
+    countTarget  =self%countTarget_
+    countPerValue=self%countPerValue_
+    return
+  end subroutine gaussianProcessCounts
 
   subroutine gaussianProcessTrainingPoints(self,quantiles,values)
     !!{RST
