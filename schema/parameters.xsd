@@ -1676,6 +1676,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="gnedin2000"/>
+          <xs:enumeration value="internal"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>

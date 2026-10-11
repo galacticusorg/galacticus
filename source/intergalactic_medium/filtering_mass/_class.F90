@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which provides a class for filtering masses.
 !!}
@@ -58,6 +60,15 @@ module Intergalactic_Medium_Filtering_Masses
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass, time</argument>
+    <code>
+     intergalacticMediumFilteringMassFractionBaryons=+1.0d0                                &amp;
+      &amp;                                          /(                                    &amp;
+      &amp;                                            +1.0d0                              &amp;
+      &amp;                                            +coefficientFractionBaryons         &amp;
+      &amp;                                            *self%massFiltering(time)           &amp;
+      &amp;                                            /mass                               &amp;
+      &amp;                                           )**3
+    </code>
    </method>
    <method name="fractionBaryonsGradientMass" >
     <description>
@@ -66,6 +77,12 @@ module Intergalactic_Medium_Filtering_Masses
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass, time</argument>
+    <code>
+     intergalacticMediumFilteringMassFractionBaryonsGradientMass=-coefficientFractionBaryons                  &amp;
+      &amp;                                                      *self%massFiltering  (     time)             &amp;
+      &amp;                                                      /     mass                      **2          &amp;
+      &amp;                                                      *self%fractionBaryons(mass,time)**(4.0d0/3.0d0)
+    </code>
    </method>
    <method name="fractionBaryonsRateOfChange" >
     <description>
@@ -74,8 +91,19 @@ module Intergalactic_Medium_Filtering_Masses
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass, time</argument>
+    <code>
+     intergalacticMediumFilteringMassFractionBaryonsRateOfChange=-3.0d0                                          &amp;
+      &amp;                                                      *coefficientFractionBaryons                     &amp;
+      &amp;                                                      *self%massFilteringRateOfChange(     time)      &amp;
+      &amp;                                                      /     mass                                      &amp;
+      &amp;                                                      *self%fractionBaryons          (mass,time)**(4.0d0/3.0d0)
+    </code>
    </method>
   </functionClass>
   !!]
+
+  ! Coefficient, (2^⅓-1)×8, in the Gnedin (2000) relation between the filtering mass and the fraction of baryons accreted,
+  ! f_b(M,t) = [1+(2^⅓-1)×8 M_F(t)/M]⁻³, in which 8 is the ratio of the characteristic to the filtering mass.
+  double precision, parameter :: coefficientFractionBaryons=(2.0d0**(1.0d0/3.0d0)-1.0d0)*8.0d0
 
 end module Intergalactic_Medium_Filtering_Masses
