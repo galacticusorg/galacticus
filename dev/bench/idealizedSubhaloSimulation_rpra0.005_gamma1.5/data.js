@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791608761477,
+  "lastUpdate": 1791677897187,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "60ed585bb332898b6689bb3921dbbff11b883695",
-          "message": "feat: Support tolerating failures of potential integration and velocity maximum seeking",
-          "timestamp": "2024-09-14T16:28:41Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/60ed585bb332898b6689bb3921dbbff11b883695"
-        },
-        "date": 1726354182422,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteBoundMass",
-            "value": "48.57678428813709",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "35.054778180166466",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteVelocityMaximum",
-            "value": "23.749122714076858",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9924,6 +9887,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/3e7063745070d484d2686884bf8b6998e11b4a68"
         },
         "date": 1791608760566,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": -48.178534851693755,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -35.33233179258223,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": -23.791741281728402,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "137e680d586938600d3f52331839ed16509923ec",
+          "message": "Merge pull request #1574 from galacticusorg/feat/emulator-mcmc-test\n\ntest(emulation): test emulator-assisted calibration end to end",
+          "timestamp": "2026-10-10T18:05:59Z",
+          "tree_id": "8ee0f9caaaf8ef8a70004429e9567b0001109863",
+          "url": "https://github.com/galacticusorg/galacticus/commit/137e680d586938600d3f52331839ed16509923ec"
+        },
+        "date": 1791677896259,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
