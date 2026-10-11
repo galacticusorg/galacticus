@@ -75,7 +75,7 @@ jobs:
       # generating its own, which costs tens of seconds of CPU on the user's first `galacticus run`. Built here from the very
       # commit being deployed, so it matches the source archive the launcher unpacks alongside it.
       - name: Upload artifacts (parameter catalog)
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-parameter-catalog
           path: parameters.catalog.json
@@ -131,12 +131,12 @@ jobs:
           grep -vqzi warning:        build.log || (echo "FAIL: warnings found in build.log"        && false)
           grep -vqzi 'is up to date' build.log || (echo "FAIL: 'is up to date' found in build.log" && false)
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec
           path: 'Galacticus.exe'
       - name: Upload build profile
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: build-profile
           path: 'buildProfile.html'
@@ -185,12 +185,12 @@ jobs:
           ! grep -n Warning: build.log
           ! grep -v 'is up to date' build.log | grep -n -C 5 make:
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec-non-static
           path: 'Galacticus.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: test-execs
           path: 'tests.*.exe'
@@ -221,7 +221,7 @@ jobs:
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
           make -j2 PROFILER=gprof SUFFIX= Galacticus.exe
       - name: Upload executables
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec-instrumented
           path: 'Galacticus.exe'
@@ -253,7 +253,7 @@ jobs:
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
           make -j2 Galacticus.exe
       - name: Upload executables
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec-dmo
           path: 'Galacticus.exe'
@@ -284,12 +284,12 @@ jobs:
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
           make -j2 MPI=yes SUFFIX= Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec-MPI
           path: 'Galacticus.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: test-execs-MPI
           path: 'tests.*.exe'
@@ -320,12 +320,12 @@ jobs:
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
           make -j2 DEBUGGING=yes SUFFIX= Galacticus.exe tests.debugging.exe
       - name: Upload test code executables
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: test-execs-debugging
           path: 'tests.*.exe'
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec-debugging
           path: 'Galacticus.exe'
@@ -372,7 +372,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
           tar cvfj libgalacticus.tar.bz2 galacticus
       - name: Upload library
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-library
           path: 'libgalacticus.tar.bz2'
@@ -502,7 +502,7 @@ jobs:
             dynamic/mangle-${mangleVersion}/bin/harmonize \
             | zstd -12 -T0 -q -o tools.tar.zst
       - name: Upload tools
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-tools
           # Already compressed: re-zipping it in the artifact costs minutes and saves nothing.
@@ -544,7 +544,7 @@ jobs:
           tar cf - --exclude=./.git . | zstd -12 -T0 -q -o "${GITHUB_WORKSPACE}/datasets.tar.zst"
           ls -lh "${GITHUB_WORKSPACE}/datasets.tar.zst"
       - name: Upload datasets snapshot
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-datasets
           # Already compressed: re-zipping it in the artifact costs minutes and saves nothing.
@@ -598,19 +598,19 @@ jobs:
         run: |
           zip Galacticus_MacOS-M1.zip Galacticus_MacOS-M1.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec-MacOS-M1
           path: |
             Galacticus_MacOS-M1.exe
             Galacticus_MacOS-M1.zip
       - name: Upload test code executables
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: test-execs-MacOS-M1
           path: 'tests.*.exe'
       - name: Upload Galacticus debug symbols
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-debug-MacOS-M1
           path: 'debugSymbolsMacOS-M1.zip'
@@ -739,7 +739,7 @@ jobs:
           working_directory: ${{ env.GALACTICUS_DATA_PATH }}
           macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
       - name: Upload tool executables
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-tools-MacOS-M1
           # Already compressed: re-zipping them in the artifact costs minutes and saves nothing.
@@ -799,7 +799,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
           zip -r libgalacticusMacOS.zip galacticus
       - name: Upload library
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-library-MacOS
           path: 'libgalacticusMacOS.zip'
@@ -834,7 +834,7 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.MACOS_APP_SPECIFIC_PASSWORD }}
         run: python3 ./scripts/aux/notarizationSubmit.py
       - name: Upload notarization request metadata
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: notarization-requests
           path: 'notarization-requests-${{ github.sha }}.json'
