@@ -446,7 +446,7 @@ jobs:
         # is already present.
         run: apt-get install --yes zstd || { apt-get update && apt-get install --yes zstd ; }
       - name: Download executables
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-exec
       - name: Build tools
@@ -820,11 +820,11 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Download artifacts (executable-macos-m1)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-exec-MacOS-M1
       - name: Download artifacts (tools-macos-m1)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-tools-MacOS-M1
       - name: Submit macOS artifacts for notarization
@@ -2014,7 +2014,7 @@ jobs:
           apt -y update && apt -y upgrade
           apt -y install python3 python3-numpy
       - name: Download library
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-library
       - name: Test interface
@@ -2406,15 +2406,15 @@ jobs:
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifacts (validate-PonosV)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: validate-PonosV
       - name: Download artifacts (validate-baryonicSuppression)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: validate-baryonicSuppression
       - name: Download artifacts (build-profile)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: build-profile
       - name: Push validation results
@@ -2574,15 +2574,15 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Download artifacts (executable-linux)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-exec
       - name: Download artifacts (library-linux)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-library
       - name: Download artifacts (tools-linux)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-tools
       - name: Upload assets to release
@@ -2597,7 +2597,7 @@ jobs:
           sha256sum Galacticus.exe tools.tar.zst >> "${GITHUB_WORKSPACE}/SHA256SUMS"
           rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.zst
       - name: Download artifacts (datasets)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-datasets
       - name: Upload datasets snapshot to release
@@ -2608,23 +2608,23 @@ jobs:
           sha256sum datasets.tar.zst datasets.ref >> "${GITHUB_WORKSPACE}/SHA256SUMS"
           rm ./datasets.tar.zst ./datasets.ref
       - name: Download artifacts (executable-macos-m1)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-exec-MacOS-M1
       - name: Download artifacts (debug-macos-m1)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-debug-MacOS-M1
       - name: Download artifacts (library-macos)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-library-MacOS
       - name: Download artifacts (tools-macos-m1)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-tools-MacOS-M1
       - name: Download artifacts (notarization metadata)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: notarization-requests
       - name: Upload assets to release
@@ -2638,27 +2638,27 @@ jobs:
           sha256sum Galacticus_MacOS-M1.exe toolsMacOSM1.tar.zst >> "${GITHUB_WORKSPACE}/SHA256SUMS"
           rm -f ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOSM1.zip ./toolsMacOSM1.tar.zst ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json
       - name: Download artifacts (perf-darkMatterOnlySubHalos)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: perf-darkMatterOnlySubHalos
       - name: Download artifacts (perf-milkyWay)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: perf-milkyWay
       - name: Download artifacts (perf-milkyWay_SIDM)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: perf-milkyWay_SIDM
       - name: Download artifacts (perf-darkMatterOnlySubHalos-gprof)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: perf-darkMatterOnlySubHalos-gprof
       - name: Download artifacts (perf-milkyWay-gprof)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: perf-milkyWay-gprof
       - name: Download artifacts (perf-milkyWay_SIDM-gprof)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: perf-milkyWay_SIDM-gprof
       - name: Upload assets to release
@@ -2668,7 +2668,7 @@ jobs:
           gh release upload bleeding-edge ./darkMatterOnlySubHalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubHalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2 --clobber
           rm ./darkMatterOnlySubHalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubHalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2
       - name: Download artifacts (parameter catalog)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-parameter-catalog
       - name: Upload assets to release
