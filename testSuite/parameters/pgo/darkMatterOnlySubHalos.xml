@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Profile-guided optimization training model: dark matter-only subhalo evolution. This is the reference dark matter-only -->
+<!-- subhalo model (parameters/reference/darkMatterOnlySubHalos.xml) with two trees and a different random seed, so that   -->
+<!-- training does not use exactly the trees on which the benchmarks are run. Run with an executable built with            -->
+<!-- `make PGO=generate` (see the Makefile).                                                                                 -->
+
+<parameters>
+  <lastModified revision="fad2612eb89e50031dba306ad741d66d73e77a25" time="2026-09-29T00:00:00"/>
+  <formatVersion>2</formatVersion>
+
+  <!-- Include required parameters -->
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/cosmology.xml"                   xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/powerSpectrum.xml"               xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/structureFormation.xml"          xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/darkMatterParticleCDM.xml"       xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/darkMatterHalosProfile.xml"      xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/darkMatterHalosTidalHeating.xml" xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/darkMatterHalosStructure.xml"    xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/subhaloOrbits.xml"               xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/mergerTrees.xml"                 xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../parameters/reference/evolutionDarkMatterOnly.xml"     xpointer="xpointer(parameters/*)" />
+
+  <verbosityLevel value="standard"/>
+
+  <!-- Random number generation - a seed differing from that of the reference model. -->
+  <randomNumberGenerator value="GSL">
+    <seed value="5171"/>
+  </randomNumberGenerator>
+
+  <!-- Task -->
+  <task                   value="evolveForests"/>
+  <evolveForestsWorkShare value="cyclic"       />
+
+  <!-- Merger tree building options -->
+  <mergerTreeBuildMasses value="fixedMass">
+    <massTree  value="1.0e13"/>
+    <treeCount value="2"     />
+  </mergerTreeBuildMasses>
+  <mergerTreeMassResolution value="fixed">
+    <massResolution value="1.0e8"/>
+  </mergerTreeMassResolution>
+
+  <!-- Output options -->
+  <outputFileName value="testSuite/outputs/pgo_darkMatterOnlySubHalos.hdf5"/>
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+  <outputTimes value="list">
+    <redshifts value="0.0"/>
+  </outputTimes>
+
+</parameters>

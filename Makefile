@@ -17,7 +17,8 @@ endif
 #   PROFILER=gprof|perf instrument for a profiler: `-pg` for gprof, or frame pointers for perf;
 #   ODEPROFILE=yes      profile the ODE solver (`-DPROFILE`);
 #   DEBUGGING=yes       a debugging build (`-DDEBUGGING`);
-#   BUILDPROFILE=yes    profile the build itself - its time and memory use - rather than the code built.
+#   BUILDPROFILE=yes    profile the build itself - its time and memory use - rather than the code built;
+#   PGO=generate|use    the two phases of a profile-guided optimization build (see the PGO section below).
 # Further options, documented where they are used below, are LTO, OFDLOCKS, USEGIT2, and GALACTICUS_OBJECTS_DEBUG.
 #
 # Options which change the code built each add a tag (e.g. `MPI`, `Perf`) to the build directory and to the suffix of
@@ -32,6 +33,7 @@ PROFILER     ?= none
 ODEPROFILE   ?= no
 DEBUGGING    ?= no
 BUILDPROFILE ?= no
+PGO          ?= no
 
 # GALACTICUS_BUILD_OPTION is deprecated - it selected one of a fixed set of combinations of the above. It is mapped onto
 # the individual options, and keeps its original executable suffixes so that existing command lines produce the same
@@ -88,16 +90,21 @@ endif
 ifeq ($(filter $(BUILDPROFILE),yes no),)
 $(error BUILDPROFILE must be 'yes' or 'no', not '$(BUILDPROFILE)')
 endif
+ifeq ($(filter $(PGO),no generate use),)
+$(error PGO must be 'no', 'generate', or 'use', not '$(PGO)')
+endif
 
 # Build directory and executable suffix, derived from the tags of the options which change the code built. With no such
 # option the build directory is ./work/build, and the suffix is empty.
-BUILDTAGS := $(if $(filter yes,$(MPI)),MPI)$(if $(filter yes,$(LIBRARY)),Lib)$(if $(filter yes,$(DEBUGGING)),Debug)$(if $(filter yes,$(ODEPROFILE)),ODEProf)$(if $(filter gprof,$(PROFILER)),GProf)$(if $(filter perf,$(PROFILER)),Perf)
+BUILDTAGS := $(if $(filter yes,$(MPI)),MPI)$(if $(filter yes,$(LIBRARY)),Lib)$(if $(filter yes,$(DEBUGGING)),Debug)$(if $(filter yes,$(ODEPROFILE)),ODEProf)$(if $(filter gprof,$(PROFILER)),GProf)$(if $(filter perf,$(PROFILER)),Perf)$(if $(filter generate use,$(PGO)),PGO)
 ifdef  BUILDPATH
  override BUILDPATH := $(patsubst %/,%,$(BUILDPATH))
 endif
 export BUILDPATH ?= ./work/build$(BUILDTAGS)
+# The two phases of a PGO build must share a build directory (profiles are located by object file path), so the
+# instrumented executable of the first is distinguished by its suffix alone.
 ifeq ($(origin SUFFIX),undefined)
-SUFFIX := $(if $(BUILDTAGS),_$(BUILDTAGS))
+SUFFIX := $(if $(BUILDTAGS),_$(BUILDTAGS)$(if $(filter generate,$(PGO)),Instrumented))
 endif
 export SUFFIX
 
@@ -211,6 +218,32 @@ ifeq '$(LTO)' 'enabled'
 FCFLAGS  += -flto=jobserver
 CFLAGS   += -flto=jobserver
 CPPFLAGS += -flto=jobserver
+endif
+# Profile-guided optimization (PGO). A two-phase build, both phases in the same build directory (e.g. ./work/buildPGO):
+#   1. `make PGO=generate Galacticus.exe` builds an instrumented executable, Galacticus.exe_PGOInstrumented. Each run of it
+#      adds execution counts to `*.gcda` profile files written next to the object files. The training models in
+#      testSuite/parameters/pgo/ are intended for this. Counters are updated atomically, so training runs may use multiple
+#      OpenMP threads.
+#   2. `make PGO=use Galacticus.exe` rebuilds using those profiles, producing Galacticus.exe_PGO.
+# Profiles match only the exact source and flags they were generated from. The build configuration stamp (see the end of
+# this file) makes switching phase recompile everything, deletes the profiles whenever the configuration of a `generate`
+# build changes, and in the `use` phase rebuilds if any profile is newer than the last build. `PGO=use` stops with an
+# error if there are no profiles. `-fprofile-partial-training` keeps code which training did not reach optimized as in a
+# normal build, rather than optimized for size as never-executed code.
+ifeq '$(PGO)' 'generate'
+FCFLAGS  += -fprofile-generate -fprofile-update=prefer-atomic
+CFLAGS   += -fprofile-generate -fprofile-update=prefer-atomic
+CPPFLAGS += -fprofile-generate -fprofile-update=prefer-atomic
+F77FLAGS += -fprofile-generate -fprofile-update=prefer-atomic
+else ifeq '$(PGO)' 'use'
+FCFLAGS  += -fprofile-use -fprofile-partial-training -Wno-missing-profile
+CFLAGS   += -fprofile-use -fprofile-partial-training -Wno-missing-profile
+CPPFLAGS += -fprofile-use -fprofile-partial-training -Wno-missing-profile
+F77FLAGS += -fprofile-use -fprofile-partial-training -Wno-missing-profile
+# Profile-driven inlining exposes more false positives of the kind described for -Wstringop-overread below: the LTO
+# middle-end warns of a memcpy of ~2^64 bytes when concatenating a literal with `char(varying_string)`, as it cannot prove
+# the computed length non-negative. Like that flag, this applies only at the LTO link step.
+FCFLAGS_LINK += -Wno-stringop-overflow
 endif
 # Detect static compilation
 STATIC=$(findstring -static,${FCFLAGS})
@@ -857,7 +890,7 @@ $(BUILDPATH)/libgalacticus.preprocessed.inc :
 endif
 
 # Ensure that we don't delete object files which make considers to be intermediate
-.PRECIOUS: $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.p.F90.up $(BUILDPATH)/%.Inc $(BUILDPATH)/%.Inc.up $(BUILDPATH)/%.d
+.PRECIOUS: $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.p.F90.up $(BUILDPATH)/%.Inc $(BUILDPATH)/%.Inc.up $(BUILDPATH)/%.p.Inc $(BUILDPATH)/%.p.Inc.up $(BUILDPATH)/%.d
 
 # Cancel all builtin rules.
 .SUFFIXES:
@@ -1037,7 +1070,19 @@ parameters-schema-check:
 # depended, hung the macOS CI builds, which use GNU make 3.81. Invocations which only run utility targets (cleaning, the
 # parameter schema and catalog) do not rewrite it, other than to create it if missing.
 BUILDCONFIGURATIONUTILITYGOALS := clean tidy parameters-catalog parameters-schema parameters-schema-check
+# For PGO builds (see the PGO section above): a changed configuration in the `generate` phase invalidates any existing
+# profiles, so delete them; in the `use` phase, profiles newer than the stamp (i.e. further training since the last build)
+# require a rebuild, so touch it. And the `use` phase requires profiles.
+BUILDCONFIGURATIONPGODELETE  := $(if $(filter generate,$(PGO)),; find $(BUILDPATH) -name '*.gcda' -exec rm -f {} +)
+BUILDCONFIGURATIONPGOTRAINED := $(if $(filter use,$(PGO)),; [ -z "$$(find $(BUILDPATH) -name '*.gcda' -newer $(BUILDCONFIGURATIONSTAMP) | head -n 1)" ] || touch $(BUILDCONFIGURATIONSTAMP))
+ifeq '$(PGO)' 'use'
+ifneq ($(if $(MAKECMDGOALS),$(filter-out $(BUILDCONFIGURATIONUTILITYGOALS),$(MAKECMDGOALS)),build),)
+ifeq ($(call rwildcard,$(BUILDPATH),*.gcda),)
+$(error PGO=use: no profiles (*.gcda) were found in $(BUILDPATH) - build with PGO=generate and run the training models first)
+endif
+endif
+endif
 BUILDCONFIGURATIONQUOTE         = '$(subst ','\'',$(1))'
 ifneq ($(if $(MAKECMDGOALS),$(filter-out $(BUILDCONFIGURATIONUTILITYGOALS),$(MAKECMDGOALS)),build)$(if $(wildcard $(BUILDCONFIGURATIONSTAMP)),,missing),)
-BUILDCONFIGURATIONSTATUS := $(shell mkdir -p $(BUILDPATH) && printf '%s\n' $(call BUILDCONFIGURATIONQUOTE,FCCOMPILER=$(FCCOMPILER)) $(call BUILDCONFIGURATIONQUOTE,CCOMPILER=$(CCOMPILER)) $(call BUILDCONFIGURATIONQUOTE,CPPCOMPILER=$(CPPCOMPILER)) $(call BUILDCONFIGURATIONQUOTE,FCFLAGS=$(FCFLAGS)) $(call BUILDCONFIGURATIONQUOTE,FCFLAGS_LINK=$(FCFLAGS_LINK)) $(call BUILDCONFIGURATIONQUOTE,F77FLAGS=$(F77FLAGS)) $(call BUILDCONFIGURATIONQUOTE,CFLAGS=$(CFLAGS)) $(call BUILDCONFIGURATIONQUOTE,CPPFLAGS=$(CPPFLAGS)) > $(BUILDCONFIGURATIONSTAMP).new && { cmp -s $(BUILDCONFIGURATIONSTAMP).new $(BUILDCONFIGURATIONSTAMP) || mv $(BUILDCONFIGURATIONSTAMP).new $(BUILDCONFIGURATIONSTAMP); }; rm -f $(BUILDCONFIGURATIONSTAMP).new)
+BUILDCONFIGURATIONSTATUS := $(shell mkdir -p $(BUILDPATH) && printf '%s\n' $(call BUILDCONFIGURATIONQUOTE,FCCOMPILER=$(FCCOMPILER)) $(call BUILDCONFIGURATIONQUOTE,CCOMPILER=$(CCOMPILER)) $(call BUILDCONFIGURATIONQUOTE,CPPCOMPILER=$(CPPCOMPILER)) $(call BUILDCONFIGURATIONQUOTE,FCFLAGS=$(FCFLAGS)) $(call BUILDCONFIGURATIONQUOTE,FCFLAGS_LINK=$(FCFLAGS_LINK)) $(call BUILDCONFIGURATIONQUOTE,F77FLAGS=$(F77FLAGS)) $(call BUILDCONFIGURATIONQUOTE,CFLAGS=$(CFLAGS)) $(call BUILDCONFIGURATIONQUOTE,CPPFLAGS=$(CPPFLAGS)) > $(BUILDCONFIGURATIONSTAMP).new && { cmp -s $(BUILDCONFIGURATIONSTAMP).new $(BUILDCONFIGURATIONSTAMP) || { mv $(BUILDCONFIGURATIONSTAMP).new $(BUILDCONFIGURATIONSTAMP)$(BUILDCONFIGURATIONPGODELETE); }; }; rm -f $(BUILDCONFIGURATIONSTAMP).new$(BUILDCONFIGURATIONPGOTRAINED))
 endif
