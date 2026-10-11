@@ -12,6 +12,12 @@ of points, and the log-likelihoods it reports are compared with those computed i
 `Galacticus.Emulation.emulatorFile.predict`, for each likelihood form and with and without the emulator variance. Finally,
 a run with a prior differing from that under which the emulators were trained must be rejected.
 
+The composition of the emulated likelihood with others is also checked: an `independentLikelihoods` likelihood combining the
+emulated likelihood with a `multivariateNormal` likelihood of a further parameter, each given its own parameters by a
+`parameterMap` (with the further parameter listed first, and the emulated likelihood's parameters in a different order from
+that of the active parameters), must return the sum of the two log-likelihoods, and the same wrapped in a `heated`
+likelihood must return that sum divided by the temperature.
+
 Posterior sampling requires an MPI build of Galacticus, so the simulations are run under `mpirun`, with the grid points
 divided between the processes.
 
@@ -53,6 +59,11 @@ parameters = [
      'cumulative': normal.cdf, 'invert': normal.inv_cdf},
 ]
 names = [parameter['name'] for parameter in parameters]
+# A further parameter, used by a `multivariateNormal` likelihood in the composition checks, with the mean and variance of that
+# likelihood.
+parameterFurther = {'name': 'p/m', 'prior': 'uniform', 'options': {'limitLower': -1.0, 'limitUpper': 1.0}, 'mapper': 'identity'}
+meanFurther, varianceFurther = 0.2, 0.09
+temperature = 2.5
 
 # The observables: the names of their inputs (in the emulator's order), and their target data.
 countBins = {'observableDiagonal': 6, 'observableCovariance': 5}
@@ -154,10 +165,12 @@ def logLikelihoodExpected(content, values, forms, includeEmulatorVariance):
     return logLikelihood
 
 
-def parameterFile(name, forms, includeEmulatorVariance, limitUpperA=2.0):
-    """Write a parameter file for a grid simulation of the emulated likelihood."""
+def parameterFile(name, forms, includeEmulatorVariance, limitUpperA=2.0, composition=None):
+    """Write a parameter file for a grid simulation of the emulated likelihood. If ``composition`` is ``'independent'`` the
+    emulated likelihood is combined with a `multivariateNormal` likelihood of a further parameter in an `independentLikelihoods`
+    likelihood; if it is ``'heated'`` that combination is also heated."""
     modelParameters = ''
-    for parameter in parameters:
+    for parameter in ([parameterFurther] if composition else []) + parameters:
         options = dict(parameter['options'])
         if parameter['name'] == 'p/a':
             options['limitUpper'] = limitUpperA
@@ -179,6 +192,28 @@ def parameterFile(name, forms, includeEmulatorVariance, limitUpperA=2.0):
       <label    value="{label}"/>
     </emulator>
 ''' for label in countBins)
+    likelihood = f'''<posteriorSampleLikelihood value="emulated">
+{emulators}    <likelihoodForms         value="{' '.join(forms)}"/>
+    <includeEmulatorVariance value="{'true' if includeEmulatorVariance else 'false'}"/>
+  </posteriorSampleLikelihood>
+'''
+    if composition:
+        likelihood = f'''<posteriorSampleLikelihood value="independentLikelihoods">
+  {likelihood.replace(chr(10), chr(10) + '  ').rstrip()}
+    <parameterMap value="p/cLonger p/a p/b"/>
+    <posteriorSampleLikelihood value="multivariateNormal">
+      <means      value="{meanFurther}"/>
+      <covariance value="{varianceFurther}"/>
+    </posteriorSampleLikelihood>
+    <parameterMap value="{parameterFurther['name']}"/>
+  </posteriorSampleLikelihood>
+'''
+    if composition == 'heated':
+        likelihood = f'''<posteriorSampleLikelihood value="heated">
+    <temperature value="{temperature}"/>
+  {likelihood.replace(chr(10), chr(10) + '  ').rstrip()}
+  </posteriorSampleLikelihood>
+'''
     path = f'{directory}/{name}.xml'
     with open(path, 'w') as file:
         file.write(f'''<parameters>
@@ -187,11 +222,7 @@ def parameterFile(name, forms, includeEmulatorVariance, limitUpperA=2.0):
   <task value="posteriorSample">
     <initializeNodeClassHierarchy value="false"/>
   </task>
-  <posteriorSampleLikelihood value="emulated">
-{emulators}    <likelihoodForms         value="{' '.join(forms)}"/>
-    <includeEmulatorVariance value="{'true' if includeEmulatorVariance else 'false'}"/>
-  </posteriorSampleLikelihood>
-  <posteriorSampleSimulation value="grid">
+  {likelihood}  <posteriorSampleSimulation value="grid">
     <logFileRoot       value="{directory}/{name}"/>
     <logFlushCount     value="1"/>
     <appendLogs        value="false"/>
@@ -209,9 +240,9 @@ def parameterFile(name, forms, includeEmulatorVariance, limitUpperA=2.0):
     return path
 
 
-def run(name, forms, includeEmulatorVariance, limitUpperA=2.0):
+def run(name, forms, includeEmulatorVariance, limitUpperA=2.0, composition=None):
     """Run a grid simulation, returning its exit status, and the path of its log."""
-    path = parameterFile(name, forms, includeEmulatorVariance, limitUpperA)
+    path = parameterFile(name, forms, includeEmulatorVariance, limitUpperA, composition)
     logPath = f'{directory}/{name}.out'
     for stale in glob.glob(f'{directory}/{name}_*.log'):
         os.remove(stale)
@@ -221,8 +252,8 @@ def run(name, forms, includeEmulatorVariance, limitUpperA=2.0):
     return status, logPath
 
 
-def check(content, name, forms, includeEmulatorVariance):
-    status, logPath = run(name, forms, includeEmulatorVariance)
+def check(content, name, forms, includeEmulatorVariance, composition=None):
+    status, logPath = run(name, forms, includeEmulatorVariance, composition=composition)
     if status != 0:
         print(f'FAILED: grid simulation ({name}) exited with status {status} (see {logPath})')
         return
@@ -236,8 +267,17 @@ def check(content, name, forms, includeEmulatorVariance):
         print(f'FAILED: grid simulation ({name}) evaluated {len(rows)} states, expected 16')
         return
     formsAll = forms if len(forms) == len(countBins) else forms * len(countBins)
-    errors = [abs(logLikelihood - logLikelihoodExpected(content, values, formsAll, includeEmulatorVariance))
-              / max(abs(logLikelihood), 1.0) for logLikelihood, values in rows]
+    errors = []
+    for logLikelihood, values in rows:
+        if composition:
+            # The further parameter is first. Its likelihood is a normal distribution, without normalization.
+            expected = (logLikelihoodExpected(content, values[1:], formsAll, includeEmulatorVariance)
+                        - 0.5 * (values[0] - meanFurther) ** 2 / varianceFurther)
+            if composition == 'heated':
+                expected /= temperature
+        else:
+            expected = logLikelihoodExpected(content, values, formsAll, includeEmulatorVariance)
+        errors.append(abs(logLikelihood - expected) / max(abs(logLikelihood), 1.0))
     error = max(errors)
     message = f'log-likelihoods ({name}; maximum relative difference {error:.1e})'
     print(f'SUCCESS: {message}' if error < 1.0e-9 else f'FAILED: {message}')
@@ -257,6 +297,9 @@ def main():
     check(content, 'diagonalCovariance', ['gaussianDiagonal', 'gaussianCovariance'], True)
     check(content, 'diagonalCovarianceNoVariance', ['gaussianDiagonal', 'gaussianCovariance'], False)
     check(content, 'covarianceAll', ['gaussianCovariance'], True)
+    # Composition with other likelihoods.
+    check(content, 'independent', ['gaussianDiagonal', 'gaussianCovariance'], True, composition='independent')
+    check(content, 'heated', ['gaussianDiagonal', 'gaussianCovariance'], True, composition='heated')
     # A prior differing from that under which the emulators were trained must be rejected.
     status, logPath = run('priorMismatch', ['gaussianDiagonal'], True, limitUpperA=2.5)
     with open(logPath) as file:

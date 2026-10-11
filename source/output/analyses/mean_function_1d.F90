@@ -150,6 +150,8 @@ contains
          &                                                                                    propertyIsComoving                   , meanIsComoving                        , &
          &                                                                                    likelihoodNormalize
 
+    unoperatorParameters=parameters%subParameters('unoperator',requireValue=.false.)
+    weightParameters    =parameters%subParameters('weight'    ,requireValue=.false.)
     !![
     <objectBuilder class="nodePropertyExtractor"                name="nodePropertyExtractor_"                 source="parameters"          />
     <objectBuilder class="nodePropertyExtractor"                name="outputAnalysisWeightPropertyExtractor_" source="weightParameters"    />
@@ -161,8 +163,6 @@ contains
     <objectBuilder class="galacticFilter"                       name="galacticFilter_"                        source="parameters"          />
     <objectBuilder class="outputTimes"                          name="outputTimes_"                           source="parameters"          />
     !!]
-    unoperatorParameters=parameters%subParameters('unoperator',requireValue=.false.)
-    weightParameters    =parameters%subParameters('weight'    ,requireValue=.false.)
     allocate(binCenter   (int(parameters%count('binCenter'))                     ))
     allocate(outputWeight(int(parameters%count('binCenter'))*outputTimes_%count()))
     if (parameters%count('outputWeight') /= parameters%count('binCenter')*outputTimes_%count()) &
@@ -402,6 +402,8 @@ contains
     ! `outputAnalysisTargetDataStandard` from those fields and pass it to the internal constructor.
     if (parameters%isPresent('meanValueTarget')) then
        if (parameters%isPresent('meanCovarianceTarget')) then
+          allocate(meanValueTarget       (parameters%count('meanValueTarget'     )))
+          allocate(meanCovarianceTarget1D(parameters%count('meanCovarianceTarget')))
           !![
           <inputParameter docformat="rst">
             <name>meanValueTarget</name>

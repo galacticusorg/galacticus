@@ -195,9 +195,9 @@ contains
     <objectBuilder class="galacticFilter"                       name="galacticFilter_"                       source="parameters"          />
     <objectBuilder class="outputTimes"                          name="outputTimes_"                          source="parameters"          />
     !!]
-    allocate(binCenter   (int(parameters%count('binCenter'))                          ))
-    allocate(outputWeight(int(parameters%count('binCenter'))*self%outputTimes_%count()))
-    if (parameters%count('outputWeight') /= parameters%count('binCenter')*self%outputTimes_%count()) &
+    allocate(binCenter   (int(parameters%count('binCenter'))                     ))
+    allocate(outputWeight(int(parameters%count('binCenter'))*outputTimes_%count()))
+    if (parameters%count('outputWeight') /= parameters%count('binCenter')*outputTimes_%count()) &
          & call Error_Report('incorrect number of output weights provided'//{introspection:location})
     !![
     <inputParameter docformat="rst">
@@ -421,6 +421,8 @@ contains
     !!]
     if (parameters%isPresent('functionValueTarget')) then
        if (parameters%isPresent('functionCovarianceTarget')) then
+          allocate(functionValueTarget       (parameters%count('functionValueTarget'     )))
+          allocate(functionCovarianceTarget1D(parameters%count('functionCovarianceTarget')))
           !![
           <inputParameter docformat="rst">
             <name>functionValueTarget</name>
@@ -491,7 +493,7 @@ contains
            &amp;                          distributionUnitsInSI                                                                             , &amp;
            &amp;                          binCenter                                                                                         , &amp;
            &amp;                          bufferCount                                                                                       , &amp;
-           &amp;                          reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),self%outputTimes_%count()]), &amp;
+           &amp;                          reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),outputTimes_%count()])     , &amp;
            &amp;                          nodePropertyExtractor_                                                                            , &amp;
            &amp;                          outputAnalysisPropertyOperator_                                                                   , &amp;
            &amp;                          outputAnalysisPropertyUnoperator_                                                                 , &amp;
