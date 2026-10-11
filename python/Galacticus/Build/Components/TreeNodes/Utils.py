@@ -480,7 +480,6 @@ _MASS_DISTRIBUTION_TAIL = """   allocate(massDistributionComposite :: massDistri
    ! Simply use the next slot, unless it is occupied by a parent node massDistribution (unless we have no choice because we have run out of slots).
    do i=1,massDistributionsCount+1
     massDistributionsLast=mod(massDistributionsLast,massDistributionsCount)+1
-    massDistributionsLast=mod(massDistributionsLast,massDistributionsCount)+1
     ! But never replace the all/all distribution.
     if   (                                                                              &
        &   massDistributions__(massDistributionsLast)%uniqueID      == uniqueID         &
