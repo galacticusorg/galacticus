@@ -22,6 +22,10 @@ def parameters(name, directory):
     root.find("galacticStructureSolver").set("value", "equilibrium")
     root.find("outputFileName").set("value", str(directory / (name + ".hdf5")))
     bar = root.find("nodeOperator/nodeOperator[@value='barInstability']")
+    # The simple-size fixture uses 0.7 for stars, which leaves this disk stable
+    # with equilibrium sizes. Use the usual stellar threshold in every variant.
+    dynamics = bar.find("galacticDynamicsBarInstability")
+    dynamics.find("stabilityThresholdStellar").set("value", "1.1")
     if name != "legacy":
         selector = {"retained": "retained", "angular_momentum_transfer": "angularMomentumTransfer"}.get(name, "bindingEnergy")
         model = ET.SubElement(bar, "barInstabilitySpheroidAngularMomentum", value=selector)
@@ -62,7 +66,9 @@ def main():
             assert np.all(np.isfinite(values)) and np.all(values >= 0), name
         spheroid = results[name]["spheroidMassStellar"] + results[name]["spheroidMassGas"]
         disk = results[name]["diskMassStellar"] + results[name]["diskMassGas"]
-        assert np.any(spheroid > 0.01 * (spheroid + disk)), "Test did not build an established spheroid"
+        fraction = np.divide(spheroid, spheroid + disk, out=np.zeros_like(spheroid), where=(spheroid + disk) > 0)
+        print(f"{name}: baryonic B/T = {fraction}", flush=True)
+        assert np.any(spheroid > 0.01 * (spheroid + disk)), f"{name}: test did not build an established spheroid; B/T={fraction}"
         assert np.all(results[name]["spheroidRadius"][spheroid > 0] > 0), name
     for left, right in (("legacy", "angular_momentum_transfer"), ("legacy", "retained"),
                         ("hybrid_default", "hybrid_explicit")):
