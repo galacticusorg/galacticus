@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791608671497,
+  "lastUpdate": 1791677801303,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "38f59d3f27b7708e28d6c5be09c7ba286e282c0b",
-          "message": "Merge pull request #888 from galacticusorg/featObjectMetaData\n\nStore the file name for SED matrix files in the Parameters group",
-          "timestamp": "2025-08-08T02:55:52Z",
-          "tree_id": "2f99ae6c739eeb3f393fcdef730812f6b1103b35",
-          "url": "https://github.com/galacticusorg/galacticus/commit/38f59d3f27b7708e28d6c5be09c7ba286e282c0b"
-        },
-        "date": 1754645349779,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 59.621,
-            "unit": "seconds",
-            "range": 0.133367537279372
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8804,6 +8774,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 14480.796016778646,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "137e680d586938600d3f52331839ed16509923ec",
+          "message": "Merge pull request #1574 from galacticusorg/feat/emulator-mcmc-test\n\ntest(emulation): test emulator-assisted calibration end to end",
+          "timestamp": "2026-10-10T18:05:59Z",
+          "tree_id": "8ee0f9caaaf8ef8a70004429e9567b0001109863",
+          "url": "https://github.com/galacticusorg/galacticus/commit/137e680d586938600d3f52331839ed16509923ec"
+        },
+        "date": 1791677796432,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 31.634999999999998,
+            "range": "0.05578978401105334",
+            "unit": "seconds"
           }
         ]
       }
