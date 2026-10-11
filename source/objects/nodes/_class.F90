@@ -486,10 +486,10 @@ module Galacticus_Nodes
     class(nodeEvent), intent(inout), pointer :: newEvent
     class(nodeEvent)               , pointer :: event
 
-    !$omp critical (nodeEventIncrement)
+    !$omp atomic capture
     eventID       =  eventID+1
     newEvent%ID   =  eventID
-    !$omp end critical (nodeEventIncrement)
+    !$omp end atomic
     newEvent%next => null()
     if (associated(self%event)) then
        event => self%event
@@ -794,7 +794,7 @@ module Galacticus_Nodes
     !!{RST
     Remove ``self`` from the linked list of its host node's satellites.
     !!}
-    use :: Display           , only : displayMessage, verbosityLevelInfo
+    use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelInfo
     use :: ISO_Varying_String, only : assignment(=) , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
@@ -806,9 +806,11 @@ module Galacticus_Nodes
     ! Remove from the mergee list of any merge target.
     if (associated(self%mergeTarget)) then
        nodeHost => self%mergeTarget
-       message='Mergee node ['
-       message=message//self%index()//'] being removed from merge target ['//nodeHost%index()//']'
-       call displayMessage(message,verbosityLevelInfo)
+       if (displayVerbosity() >= verbosityLevelInfo) then
+          message='Mergee node ['
+          message=message//self%index()//'] being removed from merge target ['//nodeHost%index()//']'
+          call displayMessage(message,verbosityLevelInfo)
+       end if
        if (associated(nodeHost%firstMergee,self)) then
           ! This is the first mergee, unlink it, and link to any sibling.
           nodeHost%firstMergee => self%siblingMergee
@@ -1541,10 +1543,10 @@ module Galacticus_Nodes
 
     allocate(eventNew)
     nullify(eventNew%next)
-    !$omp critical (nodeEventIncrement)
-    eventID=eventID+1
+    !$omp atomic capture
+    eventID    =eventID+1
     eventNew%ID=eventID
-    !$omp end critical (nodeEventIncrement)
+    !$omp end atomic
     if (associated(self%event)) then
        event => self%event
        do while (associated(event%next))
@@ -1707,10 +1709,10 @@ module Galacticus_Nodes
 
     allocate(newEvent)
     nullify(newEvent%next)
-    !$omp critical (nodeEventIncrement)
-    eventID=eventID+1
+    !$omp atomic capture
+    eventID    =eventID+1
     newEvent%ID=eventID
-    !$omp end critical (nodeEventIncrement)
+    !$omp end atomic
     if (associated(self%event)) then
        event => self%event
        do while (associated(event%next))

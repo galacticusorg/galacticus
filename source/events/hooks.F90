@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains module which handles hooking of objects into events.
 !!}
@@ -270,7 +272,7 @@ contains
     !!{RST
     Attach an object to an event hook.
     !!}
-    use    :: Display           , only : displayMessage             , verbosityLevelInfo
+    use    :: Display           , only : displayMessage             , displayVerbosity, verbosityLevelInfo
     use    :: Error             , only : Error_Report
     use    :: ISO_Varying_String, only : varying_string             , var_str           , assignment(=), operator(//)
     use    :: String_Handling   , only : operator(//)
@@ -321,9 +323,10 @@ contains
     else
        hook_%label=""
     end if
-    !$omp atomic
+    !$omp atomic capture
     eventID            =eventID+1
     hook_      %eventID=eventID
+    !$omp end atomic
     threadLabel        =""
     !$ threadLabel=" from thread "
     !$ ompLevelEffective=OMP_Get_Level()
@@ -345,7 +348,8 @@ contains
     self%count_=self%count_+1
     call self%resolveDependencies(hook_,dependencies)
     ! Report
-    call displayMessage(var_str("attaching '")//trim(hook_%label)//"' ["//hook_%eventID//"] to event "//trim(self%label)//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
+    if (displayVerbosity() >= verbosityLevelInfo) &
+         & call displayMessage(var_str("attaching '")//trim(hook_%label)//"' ["//hook_%eventID//"] to event "//trim(self%label)//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
     !$ if (self%isGlobal) call self%unlock()
     return
   end subroutine eventHookUnspecifiedAttach
@@ -485,9 +489,9 @@ contains
     !!{RST
     Attach an object to an event hook.
     !!}
-    use    :: Display           , only : displayMessage             , verbosityLevelInfo
+    use    :: Display           , only : displayMessage             , displayVerbosity, verbosityLevelInfo
     use    :: Error             , only : Error_Report
-    use    :: ISO_Varying_String, only : varying_string             , var_str           , assignment(=), operator(//)
+    use    :: ISO_Varying_String, only : varying_string             , var_str         , assignment(=)     , operator(//)
     use    :: String_Handling   , only : operator(//)
     !$ use :: OMP_Lib           , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
     implicit none
@@ -505,13 +509,15 @@ contains
           type is (hookUnspecified)
              if (associated(hook_%object_,object_).and.associated(hook_%function_,function_)) then
                 ! Report
-                threadLabel   =""
-                !$ threadLabel=" from thread "
-                !$ do j=0,OMP_Get_Level()
-                !$    if (j > 0) threadLabel=threadLabel//" -> "
-                !$    threadLabel=threadLabel//OMP_Get_Ancestor_Thread_Num(j)
-                !$ end do
-                call displayMessage(var_str("detaching '")//trim(self%hooks_(i)%hook_%label)//"' ["//self%hooks_(i)%hook_%eventID//"] from event"//trim(self%label)//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
+                if (displayVerbosity() >= verbosityLevelInfo) then
+                   threadLabel   =""
+                   !$ threadLabel=" from thread "
+                   !$ do j=0,OMP_Get_Level()
+                   !$    if (j > 0) threadLabel=threadLabel//" -> "
+                   !$    threadLabel=threadLabel//OMP_Get_Ancestor_Thread_Num(j)
+                   !$ end do
+                   call displayMessage(var_str("detaching '")//trim(self%hooks_(i)%hook_%label)//"' ["//self%hooks_(i)%hook_%eventID//"] from event"//trim(self%label)//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
+                end if
                 deallocate(self%hooks_(i)%hook_)
                 if (self%count_ > 1) then
                    call move_alloc(self%hooks_,hooksTmp)

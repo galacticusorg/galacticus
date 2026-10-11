@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements outputting of formatted, indented messages at various verbosity levels from Galacticus.
 !!}
@@ -198,25 +200,26 @@ contains
     type     (enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
     integer                                                           :: threadNumber
 
+    ! The verbosity level is set at start-up (and otherwise changed only just before reporting a fatal error), so test it before
+    ! taking the lock. This avoids serializing all threads on messages which will not be displayed.
+    if (.not.showMessage(verbosity)) return
     !$omp critical(Display_Lock)
     call initialize()
-    if (showMessage(verbosity)) then
-       !$ if (omp_in_parallel()) then
-       !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
-       !$ else
-       !$    write (output_unit,masterFormat)                      ": "
-       !$ end if
-       threadNumber=1
-       !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
-       write (output_unit,indentationFormatNoNewLine(threadNumber)) '-> '
-       write (output_unit,'(a)') trim(message)
-       !$ if (omp_in_parallel()) then
-       !$    indentationLevel(omp_get_thread_num()+1)=indentationLevel(omp_get_thread_num()+1)+1
-       !$ else
-             indentationLevel=indentationLevel+1
-       !$ end if
-       call formatIndentationCreate()
-    end if
+    !$ if (omp_in_parallel()) then
+    !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
+    !$ else
+    !$    write (output_unit,masterFormat)                      ": "
+    !$ end if
+    threadNumber=1
+    !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
+    write (output_unit,indentationFormatNoNewLine(threadNumber)) '-> '
+    write (output_unit,'(a)') trim(message)
+    !$ if (omp_in_parallel()) then
+    !$    indentationLevel(omp_get_thread_num()+1)=indentationLevel(omp_get_thread_num()+1)+1
+    !$ else
+          indentationLevel=indentationLevel+1
+    !$ end if
+    call formatIndentationCreate()
     !$omp end critical(Display_Lock)
     return
   end subroutine displayIndentChar
@@ -245,25 +248,26 @@ contains
     type     (enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
     integer                                                           :: threadNumber
 
+    ! The verbosity level is set at start-up (and otherwise changed only just before reporting a fatal error), so test it before
+    ! taking the lock. This avoids serializing all threads on messages which will not be displayed.
+    if (.not.showMessage(verbosity)) return
     !$omp critical(Display_Lock)
     call initialize()
-    if (showMessage(verbosity)) then
-       !$ if (omp_in_parallel()) then
-       !$    indentationLevel(omp_get_thread_num()+1)=max(indentationLevel(omp_get_thread_num()+1)-1,0)
-       !$ else
-       indentationLevel=max(indentationLevel-1,0)
-       !$ end if
-       call formatIndentationCreate()
-       !$ if (omp_in_parallel()) then
-       !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
-       !$ else
-       !$    write (output_unit,masterFormat)                      ": "
-       !$ end if
-       threadNumber=1
-       !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
-       write (output_unit,indentationFormatNoNewLine(threadNumber)) '<- '
-       write (output_unit,'(a)') trim(message)
-    end if
+    !$ if (omp_in_parallel()) then
+    !$    indentationLevel(omp_get_thread_num()+1)=max(indentationLevel(omp_get_thread_num()+1)-1,0)
+    !$ else
+    indentationLevel=max(indentationLevel-1,0)
+    !$ end if
+    call formatIndentationCreate()
+    !$ if (omp_in_parallel()) then
+    !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
+    !$ else
+    !$    write (output_unit,masterFormat)                      ": "
+    !$ end if
+    threadNumber=1
+    !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
+    write (output_unit,indentationFormatNoNewLine(threadNumber)) '<- '
+    write (output_unit,'(a)') trim(message)
     !$omp end critical(Display_Lock)
     return
   end subroutine displayUnindentChar
@@ -279,20 +283,21 @@ contains
     type     (enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
     integer                                                           :: threadNumber
 
+    ! The verbosity level is set at start-up (and otherwise changed only just before reporting a fatal error), so test it before
+    ! taking the lock. This avoids serializing all threads on messages which will not be displayed.
+    if (.not.showMessage(verbosity)) return
     !$omp critical(Display_Lock)
     call initialize()
-    if (showMessage(verbosity)) then
-       if (barVisible) call counterClearLockless()
-       !$ if (omp_in_parallel()) then
-       !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
-       !$ else
-       !$    write (output_unit,masterFormat)                      ": "
-       !$ end if
-       threadNumber=1
-       !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
-       write (output_unit,indentationFormat(threadNumber)) trim(message)
-       if (barVisible) call displayCounterLockless(barPercentage,.true.)
-    end if
+    if (barVisible) call counterClearLockless()
+    !$ if (omp_in_parallel()) then
+    !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
+    !$ else
+    !$    write (output_unit,masterFormat)                      ": "
+    !$ end if
+    threadNumber=1
+    !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
+    write (output_unit,indentationFormat(threadNumber)) trim(message)
+    if (barVisible) call displayCounterLockless(barPercentage,.true.)
     !$omp end critical(Display_Lock)
     return
   end subroutine displayMessageChar
@@ -309,20 +314,21 @@ contains
     type   (enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
     integer                                                         :: threadNumber
 
+    ! The verbosity level is set at start-up (and otherwise changed only just before reporting a fatal error), so test it before
+    ! taking the lock. This avoids serializing all threads on messages which will not be displayed.
+    if (.not.showMessage(verbosity)) return
     !$omp critical(Display_Lock)
     call initialize()
-    if (showMessage(verbosity)) then
-       if (barVisible) call counterClearLockless()
-       !$ if (omp_in_parallel()) then
-       !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
-       !$ else
-       !$    write (output_unit,masterFormat)                      ": "
-       !$ end if
-       threadNumber=1
-       !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
-       write (output_unit,indentationFormat(threadNumber)) char(message)
-       if (barVisible) call displayCounterLockless(barPercentage,.true.)
-    end if
+    if (barVisible) call counterClearLockless()
+    !$ if (omp_in_parallel()) then
+    !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
+    !$ else
+    !$    write (output_unit,masterFormat)                      ": "
+    !$ end if
+    threadNumber=1
+    !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
+    write (output_unit,indentationFormat(threadNumber)) char(message)
+    if (barVisible) call displayCounterLockless(barPercentage,.true.)
     !$omp end critical(Display_Lock)
     return
   end subroutine displayMessageVarStr
