@@ -225,6 +225,26 @@ jobs:
       - name: Check test scripts against the outcome-marker convention
         run: |
           python3 scripts/aux/auditTestMarkers.py --check
+  # Check that every parameter file's `lastModified` revision, and every commit registered in `scripts/aux/migrations.xml`,
+  # is an ancestor of HEAD. These hashes drive parameter migration, and are lost when the branch which recorded them is
+  # rebased or amended before merging - a missing `lastModified` revision makes migration fail, and a missing migration
+  # commit makes that migration silently never fire. The full history is needed, hence `fetch-depth: 0`.
+  Validate-Revisions:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Mark directory safe
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+      - name: Check parameter file and migration revisions are in the history
+        run: |
+          python3 scripts/aux/auditRevisions.py --check
   # Fortran static analysis
   Fortran-Static-Analysis:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
