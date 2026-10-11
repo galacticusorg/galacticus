@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Parameter file used by tests.galactic_structure_equilibrium.exe, which validates the equilibrium galactic structure solver
-     against independently computed reference values (galacticusDevTools/galacticStructureEquilibrium.py).
+     against independently computed reference values (galacticusDevTools/physicsReferences/galacticStructureEquilibrium.py).
 
      Every class is declared here rather than constructed in the test program. This is not a stylistic choice: the dark matter
      profile component builds its `darkMatterProfile` through an `<objectBuilder>` reading these parameters, so the contracted

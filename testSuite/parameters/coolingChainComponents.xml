@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Parameter file used by tests.cooling_chain.exe, which validates the chain of calculations leading to the rate at which gas
-     cools out of a hot halo against independently computed reference values (galacticusDevTools/coolingChain.py).
+     cools out of a hot halo against independently computed reference values (galacticusDevTools/physicsReferences/coolingChain.py).
 
      The virial density contrast is pinned to a *fixed* value of 200 relative to the *mean* matter density. The default is
      `sphericalCollapseClsnlssMttrCsmlgclCnstnt`, which would make the virial radius depend on the spherical collapse solver;

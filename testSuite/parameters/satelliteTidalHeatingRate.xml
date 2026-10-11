@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Parameter file used by tests.satellite_tidal_heating_rate.exe, which validates the Gnedin, Hernquist & Ostriker (1999)
      satellite tidal heating rate against independently computed reference values
-     (galacticusDevTools/satelliteTidalHeatingRate.py).
+     (galacticusDevTools/physicsReferences/satelliteTidalHeatingRate.py).
 
      Every class is declared here rather than constructed in the test program. The heating rate reaches the host and satellite
      mass distributions through the node, and the node builds its `darkMatterProfile` through an `<objectBuilder>` reading these
