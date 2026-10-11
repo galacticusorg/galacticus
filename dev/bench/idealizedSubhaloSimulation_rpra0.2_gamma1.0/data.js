@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791677927085,
+  "lastUpdate": 1791758853165,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=1.0)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "61a6ae9fe2e535e74ec71d3f97df5412f04d3921",
-          "message": "Merge pull request #702 from galacticusorg/fixConcentrationMeanSchneider2015\n\nfix: Correctly compute the mean concentration when using the `schneider2015` class",
-          "timestamp": "2024-09-17T01:31:21Z",
-          "tree_id": "0eee35b2f4bed4160d6a3b384bfa93bcdfb56bed",
-          "url": "https://github.com/galacticusorg/galacticus/commit/61a6ae9fe2e535e74ec71d3f97df5412f04d3921"
-        },
-        "date": 1726559799011,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
-            "value": "30.592137854501512",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "16.757775541961518",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
-            "value": "17.516318637183158",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9926,6 +9887,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/137e680d586938600d3f52331839ed16509923ec"
         },
         "date": 1791677925969,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": -30.5921383172611,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -16.75777556449338,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": -17.516318652451318,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4cfef566eeb3aeb6cffb3f920429dc41afff43cb",
+          "message": "Merge pull request #1575 from galacticusorg/perf/ode-flag-first-element\n\nperf(nodes): test ODE solver flags in O(1) instead of scanning slices",
+          "timestamp": "2026-10-11T15:30:07Z",
+          "tree_id": "0102fd1f8c73eebdb4062ca82266f50b49a30ed8",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4cfef566eeb3aeb6cffb3f920429dc41afff43cb"
+        },
+        "date": 1791758852291,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
