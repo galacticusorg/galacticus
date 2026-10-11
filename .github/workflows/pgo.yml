@@ -219,18 +219,18 @@ jobs:
           # Training on a cold cache therefore takes hours, and profiles mostly that one-off work rather than the tree
           # evolution that a PGO build should be optimized for.
           chmod u+x standard/Galacticus.exe
-          run warmup standard/Galacticus.exe darkMatterOnlySubHalos 1 120m &
+          run warmup standard/Galacticus.exe darkMatterOnlySubHalos 1 150m &
           pidDMO=$!
-          run warmup standard/Galacticus.exe galaxyFormation        2 120m &
+          run warmup standard/Galacticus.exe galaxyFormation        2 150m &
           pidGalaxies=$!
           status=0
           wait $pidDMO      || { echo "FAIL: darkMatterOnlySubHalos warm-up run failed (status $?; 124 means it timed out)"; status=1; }
           wait $pidGalaxies || { echo "FAIL: galaxyFormation warm-up run failed (status $?; 124 means it timed out)";        status=1; }
           [ $status -eq 0 ] || { kill $heartbeat 2> /dev/null || true; exit 1; }
           # Then train.
-          run train ./Galacticus.exe darkMatterOnlySubHalos 1 150m &
+          run train ./Galacticus.exe darkMatterOnlySubHalos 1 120m &
           pidDMO=$!
-          run train ./Galacticus.exe galaxyFormation        2 150m &
+          run train ./Galacticus.exe galaxyFormation        2 120m &
           pidGalaxies=$!
           wait $pidDMO      || { echo "FAIL: darkMatterOnlySubHalos training run failed (status $?; 124 means it timed out)"; status=1; }
           wait $pidGalaxies || { echo "FAIL: galaxyFormation training run failed (status $?; 124 means it timed out)";        status=1; }
