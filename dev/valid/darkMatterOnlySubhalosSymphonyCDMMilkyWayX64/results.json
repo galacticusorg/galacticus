@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "3e7063745070d484d2686884bf8b6998e11b4a68",
-        "message": "Merge pull request #1561 from galacticusorg/refactor/build-options\n\nfeat(build): replace GALACTICUS_BUILD_OPTION with individual build options\n",
-        "timestamp": "2026-10-09 19:37:14+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/3e7063745070d484d2686884bf8b6998e11b4a68"
+        "id": "137e680d586938600d3f52331839ed16509923ec",
+        "message": "Merge pull request #1574 from galacticusorg/feat/emulator-mcmc-test\n\ntest(emulation): test emulator-assisted calibration end to end\n",
+        "timestamp": "2026-10-10 18:05:59+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/137e680d586938600d3f52331839ed16509923ec"
     },
     "results": [
         {
@@ -53,9 +53,9 @@ window.ANALYSES_DATA = {
                     859.2178817918602,
                     400.7719786180906,
                     187.2916666666507,
-                    94.0416666666706,
+                    94.04166666667058,
                     48.63541666666574,
-                    25.291666666666853,
+                    25.291666666666856,
                     13.072916666666629,
                     6.88541666666667,
                     3.583333333333333,
@@ -133,7 +133,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Symphony (Nadler et al. 2023)",
                 "comment": "Analysis of subhalo mass functions",
                 "description": "Subhalo radial distribution",
-                "logLikelihood": "-17.64823780629071",
+                "logLikelihood": "-17.648237806290698",
                 "type": "function1D",
                 "xDataset": "radiusFractional",
                 "yCovariance": "radialDistributionCovariance",
@@ -159,12 +159,12 @@ window.ANALYSES_DATA = {
                     0.16666666666666666,
                     1.0705179272007153,
                     4.8158780359207665,
-                    18.475531976932427,
-                    63.385607653813686,
+                    18.475531976932423,
+                    63.38560765381369,
                     180.8205528643977,
                     429.04315162338105,
                     807.3919445091005,
-                    1196.6882965436444
+                    1196.6882965436441
                 ],
                 "yDatasetTarget": [
                     0.0,
@@ -186,7 +186,7 @@ window.ANALYSES_DATA = {
                     0.4603891794719236,
                     0.8893725056309305,
                     1.5479442200129574,
-                    2.593388623710054,
+                    2.5933886237100534,
                     3.8722414474751314,
                     5.04465522241582
                 ],

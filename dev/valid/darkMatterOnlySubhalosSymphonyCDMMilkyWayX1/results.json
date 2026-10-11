@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "3e7063745070d484d2686884bf8b6998e11b4a68",
-        "message": "Merge pull request #1561 from galacticusorg/refactor/build-options\n\nfeat(build): replace GALACTICUS_BUILD_OPTION with individual build options\n",
-        "timestamp": "2026-10-09 19:37:14+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/3e7063745070d484d2686884bf8b6998e11b4a68"
+        "id": "137e680d586938600d3f52331839ed16509923ec",
+        "message": "Merge pull request #1574 from galacticusorg/feat/emulator-mcmc-test\n\ntest(emulation): test emulator-assisted calibration end to end\n",
+        "timestamp": "2026-10-10 18:05:59+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/137e680d586938600d3f52331839ed16509923ec"
     },
     "results": [
         {
@@ -189,7 +189,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Symphony (Nadler et al. 2023)",
                 "comment": "Subhalo mean maximum velocity vs. bound mass relation",
                 "description": "Subhalo mean maximum velocity vs. bound mass relation",
-                "logLikelihood": "-21.549905591660945",
+                "logLikelihood": "-21.549905591660938",
                 "type": "function1D",
                 "xDataset": "massBound",
                 "yCovariance": "velocityMaximumMeanCovariance",
@@ -221,7 +221,7 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     26.93895242411964,
-                    30.928442227694735,
+                    30.928442227694738,
                     35.96162097530354,
                     42.017572191586005,
                     47.69728734520362,
