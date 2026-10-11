@@ -2,10 +2,12 @@
 
 Andrew Benson (ported to Python 2026)
 
-Eight hooks total — seven implementationIteratedFunctions plus one
-top-level `functions` hook (Implementation_ODE_Rate_Variables).
+Nine hooks total — seven implementationIteratedFunctions plus two
+top-level `functions` hooks (Implementation_ODE_Rate_Variables and
+Implementation_ODE_Flags_Are).
 """
 
+import os
 
 
 from Galacticus.Build.Components.Utils                  import (
@@ -150,18 +152,18 @@ def Implementation_ODE_Name_From_Index(build, class_dict, member):
         offset = offset_name('all', class_dict, member, prop)
         content += (
             f"{cond_open}\n"
-            " if (                                                                                                               &\n"
-            f"  &                                                all(.not.nodeAnalytics({offset}:{offset}+{count_expr}-1))  &\n"
-            "  &  .and.                                                                                                          &\n"
-            "  &  (                                                                                                              &\n"
-            "  &     propertyType == propertyTypeAll                                                                             &\n"
-            "  &   .or.                                                                                                          &\n"
-            f"  &    (propertyType == propertyTypeActive   .and. all(.not.nodeInactives({offset}:{offset}+{count_expr}-1))) &\n"
-            "  &   .or.                                                                                                          &\n"
-            f"  &    (propertyType == propertyTypeInactive .and. all(     nodeInactives({offset}:{offset}+{count_expr}-1))) &\n"
-            "  &   .or.                                                                                                          &\n"
-            "  &     propertyType == propertyTypeNumerics                                                                        &\n"
-            "  &  )                                                                                                              &\n"
+            " if (                                                                                                          &\n"
+            f"  &                                                nodeFlagsAre(nodeAnalytics,{offset},{count_expr},.false.)  &\n"
+            "  &  .and.                                                                                                     &\n"
+            "  &  (                                                                                                         &\n"
+            "  &     propertyType == propertyTypeAll                                                                        &\n"
+            "  &   .or.                                                                                                     &\n"
+            f"  &    (propertyType == propertyTypeActive   .and. nodeFlagsAre(nodeInactives,{offset},{count_expr},.false.)) &\n"
+            "  &   .or.                                                                                                     &\n"
+            f"  &    (propertyType == propertyTypeInactive .and. nodeFlagsAre(nodeInactives,{offset},{count_expr},.true. )) &\n"
+            "  &   .or.                                                                                                     &\n"
+            "  &     propertyType == propertyTypeNumerics                                                                   &\n"
+            "  &  )                                                                                                         &\n"
             f"  & ) count=count-{count_expr}\n"
             f"{cond_close}\n"
             "if (count <= 0) then\n"
@@ -274,7 +276,7 @@ def Implementation_ODE_Serialize_Count(build, class_dict, member):
             f"{cond_open}\n"
             "if (propertyType == propertyTypeAll) then\n"
             f" {impl_type}SerializeCount={impl_type}SerializeCount+count\n"
-            f"else if (((propertyType == propertyTypeActive .and. all(.not.nodeInactives({offset}:{offset}+count-1))) .or. (propertyType == propertyTypeInactive .and. all(nodeInactives({offset}:{offset}+count-1))) .or. propertyType == propertyTypeNumerics) .and. all(.not.nodeAnalytics({offset}:{offset}+count-1))) then\n"
+            f"else if (((propertyType == propertyTypeActive .and. nodeFlagsAre(nodeInactives,{offset},count,.false.)) .or. (propertyType == propertyTypeInactive .and. nodeFlagsAre(nodeInactives,{offset},count,.true.)) .or. propertyType == propertyTypeNumerics) .and. nodeFlagsAre(nodeAnalytics,{offset},count,.false.)) then\n"
             f" {impl_type}SerializeCount={impl_type}SerializeCount+count\n"
             "end if\n"
             f"{cond_close}\n"
@@ -396,7 +398,7 @@ def Implementation_ODE_Serialize_Values(build, class_dict, member):
             else:
                 content += (
                     f"count=self%{prop['name']}Data%serializeCount()\n"
-                    f"if (all(.not.nodeAnalytics({offset}:{offset}+count-1)) .and. (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. all(.not.nodeInactives({offset}:{offset}+count-1))) .or. (propertyType == propertyTypeInactive .and. all(nodeInactives({offset}:{offset}+count-1))) .or. propertyType == propertyTypeNumerics)) then\n"
+                    f"if (nodeFlagsAre(nodeAnalytics,{offset},count,.false.) .and. (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. nodeFlagsAre(nodeInactives,{offset},count,.false.)) .or. (propertyType == propertyTypeInactive .and. nodeFlagsAre(nodeInactives,{offset},count,.true.)) .or. propertyType == propertyTypeNumerics)) then\n"
                     f" if (count > 0) call self%{prop['name']}Data%serialize(array(offset:offset+count-1))\n"
                     " offset=offset+count\n"
                     "end if\n"
@@ -405,7 +407,7 @@ def Implementation_ODE_Serialize_Values(build, class_dict, member):
             content += (
                 f"if (allocated(self%{prop['name']}Data)) then\n"
                 f"   count=size(self%{prop['name']}Data)\n"
-                f"   if (all(.not.nodeAnalytics({offset}:{offset}+count-1)) .and. (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. all(.not.nodeInactives({offset}:{offset}+count-1))) .or. (propertyType == propertyTypeInactive .and. all(nodeInactives({offset}:{offset}+count-1))) .or. propertyType == propertyTypeNumerics)) then\n"
+                f"   if (nodeFlagsAre(nodeAnalytics,{offset},count,.false.) .and. (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. nodeFlagsAre(nodeInactives,{offset},count,.false.)) .or. (propertyType == propertyTypeInactive .and. nodeFlagsAre(nodeInactives,{offset},count,.true.)) .or. propertyType == propertyTypeNumerics)) then\n"
                 f"    array(offset:offset+count-1)=reshape(self%{prop['name']}Data,[count])\n"
                 "    offset=offset+count\n"
                 "   end if\n"
@@ -517,7 +519,7 @@ def Implementation_ODE_Deserialize_Values(build, class_dict, member):
             else:
                 content += (
                     f"count=self%{prop['name']}Data%serializeCount()\n"
-                    f"if (all(.not.nodeAnalytics({offset}:{offset}+count-1)) .and. (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. all(.not.nodeInactives({offset}:{offset}+count-1))) .or. (propertyType == propertyTypeInactive .and. all(nodeInactives({offset}:{offset}+count-1))) .or. propertyType == propertyTypeNumerics)) then\n"
+                    f"if (nodeFlagsAre(nodeAnalytics,{offset},count,.false.) .and. (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. nodeFlagsAre(nodeInactives,{offset},count,.false.)) .or. (propertyType == propertyTypeInactive .and. nodeFlagsAre(nodeInactives,{offset},count,.true.)) .or. propertyType == propertyTypeNumerics)) then\n"
                     f" if (count > 0) call self%{prop['name']}Data%deserialize(array(offset:offset+count-1))\n"
                     " offset=offset+count\n"
                     "end if\n"
@@ -526,7 +528,7 @@ def Implementation_ODE_Deserialize_Values(build, class_dict, member):
             content += (
                 f"if (allocated(self%{prop['name']}Data)) then\n"
                 f"   count=size(self%{prop['name']}Data)\n"
-                f"   if (all(.not.nodeAnalytics({offset}:{offset}+count-1)) .and. (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. all(.not.nodeInactives({offset}:{offset}+count-1))) .or. (propertyType == propertyTypeInactive .and. all(nodeInactives({offset}:{offset}+count-1))) .or. propertyType == propertyTypeNumerics)) then\n"
+                f"   if (nodeFlagsAre(nodeAnalytics,{offset},count,.false.) .and. (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. nodeFlagsAre(nodeInactives,{offset},count,.false.)) .or. (propertyType == propertyTypeInactive .and. nodeFlagsAre(nodeInactives,{offset},count,.true.)) .or. propertyType == propertyTypeNumerics)) then\n"
                 f"    self%{prop['name']}Data=reshape(array(offset:offset+count-1),shape(self%{prop['name']}Data))\n"
                 "    offset=offset+count\n"
                 "   end if\n"
@@ -633,7 +635,7 @@ def Implementation_ODE_Serialize_NonNegative(build, class_dict, member):
             else:
                 content += (
                     f"count=self%{prop['name']}Data%serializeCount()\n"
-                    f"if (all(.not.nodeAnalytics({offset}:{offset}+count-1)) .and. all(.not.nodeInactives({offset}:{offset}+count-1))) then\n"
+                    f"if (nodeFlagsAre(nodeAnalytics,{offset},count,.false.) .and. nodeFlagsAre(nodeInactives,{offset},count,.false.)) then\n"
                     f" if (count > 0) array(offset:offset+count-1)={is_non_negative}\n"
                     " offset=offset+count\n"
                     "end if\n"
@@ -642,7 +644,7 @@ def Implementation_ODE_Serialize_NonNegative(build, class_dict, member):
             content += (
                 f"if (allocated(self%{prop['name']}Data)) then\n"
                 f"   count=size(self%{prop['name']}Data)\n"
-                f"   if (all(.not.nodeAnalytics({offset}:{offset}+count-1)) .and. all(.not.nodeInactives({offset}:{offset}+count-1))) then\n"
+                f"   if (nodeFlagsAre(nodeAnalytics,{offset},count,.false.) .and. nodeFlagsAre(nodeInactives,{offset},count,.false.)) then\n"
                 f"    array(offset:offset+count-1)={is_non_negative}\n"
                 "    offset=offset+count\n"
                 "   end if\n"
@@ -853,6 +855,70 @@ def Implementation_ODE_Rate_Variables(build):
     ])
 
 
+def Implementation_ODE_Flags_Are(build):
+    """Generate `nodeFlagsAre`, which tests whether the `nodeInactives` or
+    `nodeAnalytics` flags of a property's serialized slice all equal a
+    given value.
+
+    These flags are only ever set for a property's whole slice at once (or
+    for a single scalar), and are reset for the whole array at the start of
+    each ODE step, so they are uniform within a slice. Testing the first
+    element is then equivalent to `all(...)` over the slice, but costs O(1)
+    rather than O(count) - which matters for large properties (e.g. star
+    formation histories) on every right-hand-side evaluation. An empty
+    slice returns true, matching `all()` of an empty array. Debugging
+    builds verify the uniformity.
+    """
+    content = (
+        "if (count <= 0) then\n"
+        " nodeFlagsAre=.true.\n"
+        "else\n"
+        " nodeFlagsAre=flags(offset) .eqv. value\n"
+    )
+    if _is_debugging():
+        content += (
+            " if (count > 1) then\n"
+            "  if (any(flags(offset+1:offset+count-1) .neqv. flags(offset))) "
+            "call Error_Report('ODE solver flags are not uniform within a property'//{introspection:location})\n"
+            " end if\n"
+        )
+    content += "end if\n"
+    function = {
+        'type':        'logical',
+        'name':        'nodeFlagsAre',
+        'description': (
+            "Return true if the ODE solver flags ``flags`` for the serialized slice "
+            "``offset:offset+count-1`` of a property all equal ``value``."
+        ),
+        'variables':   [
+            {
+                'intrinsic':  'logical',
+                'attributes': ['dimension(:)', 'intent(in   )'],
+                'variables':  ['flags'],
+            },
+            {
+                'intrinsic':  'integer',
+                'attributes': ['intent(in   )'],
+                'variables':  ['offset', 'count'],
+            },
+            {
+                'intrinsic':  'logical',
+                'attributes': ['intent(in   )'],
+                'variables':  ['value'],
+            },
+        ],
+        'content':     content,
+    }
+    if _is_debugging():
+        function['modules'] = ['Error, only : Error_Report']
+    build.setdefault('functions', []).append(function)
+
+
+def _is_debugging():
+    flags = os.environ.get('GALACTICUS_FCFLAGS', '')
+    return any(tok == '-DDEBUGGING' for tok in flags.split())
+
+
 # Hook registrations land at the end of this file once every hook is
 # defined.
 register('implementationODESolver', 'implementationIteratedFunctions',
@@ -871,3 +937,5 @@ register('implementationODESolver', 'implementationIteratedFunctions',
          Implementation_ODE_Offset_Variables)
 register('implementationODESolver', 'functions',
          Implementation_ODE_Rate_Variables)
+register('implementationODESolver', 'functions',
+         Implementation_ODE_Flags_Are)
