@@ -127,8 +127,38 @@ jobs:
         with:
           name: galacticus-exec-pgo-instrumented
           path: 'Galacticus.exe'
+  Build-Standard:
+    # A standard (uninstrumented) build of the same commit, used only to warm the dynamic-data cache before training (see
+    # `Train`). It runs alongside `Build-Instrumented`, so costs runner time but not wall-clock time.
+    needs: Select-Commit
+    if: ${{ needs.Select-Commit.outputs.build == 'true' }}
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    timeout-minutes: 330
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.Select-Commit.outputs.sha }}
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -static" >> $GITHUB_ENV
+      - name: Build the standard executable
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          set -o pipefail
+          make -j2 Galacticus.exe 2>&1 | tee build.log
+          set +o pipefail
+          grep -vqzi error:   build.log || (echo "FAIL: errors found in build.log"   && false)
+      - name: Upload the standard executable
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: galacticus-exec-pgo-standard
+          path: 'Galacticus.exe'
   Train:
-    needs: [Select-Commit, Build-Instrumented]
+    needs: [Select-Commit, Build-Instrumented, Build-Standard]
     runs-on: ubuntu-latest
     # The same container as the build: the instrumented executable writes its profiles to the (absolute) paths of the
     # object files it was built from, which must therefore be the same here as in the `Build-*` jobs.
@@ -152,6 +182,11 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-exec-pgo-instrumented
+      - name: Download the standard executable
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: galacticus-exec-pgo-standard
+          path: standard
       - name: Run the training models
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -160,25 +195,43 @@ jobs:
           echo "Runner: $(nproc) CPUs, $(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2-), $(free -g | awk '/Mem:/ {print $2}') GB"
           # Both models run at once (the runner has four cores): the dark matter-only model on one thread, the galaxy
           # formation model (two trees) on two. Profile counters are updated atomically and profile files are merged
-          # under a lock, so concurrent runs are safe. Each run's output streams into this log, prefixed with its name
-          # and a timestamp, and is kept in a file for the artifact uploaded below. Each run is limited to well within
-          # the job's time limit, so that a run which overruns still leaves its logs.
-          train() {
-            model=$1
-            threads=$2
-            OMP_NUM_THREADS=$threads timeout 270m ./Galacticus.exe testSuite/parameters/pgo/$model.xml 2>&1 \
-              | while IFS= read -r line; do echo "[$(date -u +%H:%M:%S) $model] $line"; done | tee train.$model.log
+          # under a lock, so concurrent runs are safe. Each run's output streams into this log, prefixed with a
+          # timestamp, its phase and its name, and is kept in a file for the artifact uploaded below. Each run is limited
+          # to well within the job's time limit, so that a run which overruns still leaves its logs.
+          run() {
+            phase=$1
+            executable=$2
+            model=$3
+            threads=$4
+            limit=$5
+            OMP_NUM_THREADS=$threads timeout $limit $executable testSuite/parameters/pgo/$model.xml 2>&1 \
+              | while IFS= read -r line; do echo "[$(date -u +%H:%M:%S) $phase $model] $line"; done | tee $phase.$model.log
             return ${PIPESTATUS[0]}
           }
           # A heartbeat: every ten minutes, record the load and the training processes' CPU use, to tell a slow run
           # from a stalled one.
           ( while true; do sleep 600; echo "[$(date -u +%H:%M:%S) heartbeat] load: $(cut -d' ' -f1-3 /proc/loadavg)"; ps -C Galacticus.exe -o pid=,etime=,time=,pcpu=,rss= | sed "s/^/[heartbeat]   /"; done ) &
           heartbeat=$!
-          train darkMatterOnlySubHalos 1 &
+          # First warm the dynamic-data cache, by running both models with the standard executable. Starting from a fresh
+          # checkout of the datasets, a model must first build every table it needs - for the galaxy formation model this
+          # includes downloading, building and running FSPS for every metallicity, and tabulating stellar populations
+          # and luminosities from its output - all serial, and several times slower in the instrumented executable.
+          # Training on a cold cache therefore takes hours, and profiles mostly that one-off work rather than the tree
+          # evolution that a PGO build should be optimized for.
+          chmod u+x standard/Galacticus.exe
+          run warmup standard/Galacticus.exe darkMatterOnlySubHalos 1 120m &
           pidDMO=$!
-          train galaxyFormation        2 &
+          run warmup standard/Galacticus.exe galaxyFormation        2 120m &
           pidGalaxies=$!
           status=0
+          wait $pidDMO      || { echo "FAIL: darkMatterOnlySubHalos warm-up run failed (status $?; 124 means it timed out)"; status=1; }
+          wait $pidGalaxies || { echo "FAIL: galaxyFormation warm-up run failed (status $?; 124 means it timed out)";        status=1; }
+          [ $status -eq 0 ] || { kill $heartbeat 2> /dev/null || true; exit 1; }
+          # Then train.
+          run train ./Galacticus.exe darkMatterOnlySubHalos 1 150m &
+          pidDMO=$!
+          run train ./Galacticus.exe galaxyFormation        2 150m &
+          pidGalaxies=$!
           wait $pidDMO      || { echo "FAIL: darkMatterOnlySubHalos training run failed (status $?; 124 means it timed out)"; status=1; }
           wait $pidGalaxies || { echo "FAIL: galaxyFormation training run failed (status $?; 124 means it timed out)";        status=1; }
           kill $heartbeat 2> /dev/null || true
@@ -198,7 +251,9 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-pgo-training-logs
-          path: 'train.*.log'
+          path: |
+            warmup.*.log
+            train.*.log
       - name: Upload the profiles
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
