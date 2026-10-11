@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791677812350,
+  "lastUpdate": 1791758734099,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "79e9402720115057c0ebaa7b765a71432bd88e62",
-          "message": "Merge pull request #896 from galacticusorg/featTabulateRadiusEnclosingDensity\n\nAdd tabulation of the radius enclosing a given mean density",
-          "timestamp": "2025-08-12T15:05:13Z",
-          "tree_id": "2bd5eeeb7a05b40f8759d33d001fc70aa98716f9",
-          "url": "https://github.com/galacticusorg/galacticus/commit/79e9402720115057c0ebaa7b765a71432bd88e62"
-        },
-        "date": 1755034662885,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 60.033,
-            "unit": "seconds",
-            "range": 0.0604491521866538
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8804,6 +8774,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 14480.796016778677,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4cfef566eeb3aeb6cffb3f920429dc41afff43cb",
+          "message": "Merge pull request #1575 from galacticusorg/perf/ode-flag-first-element\n\nperf(nodes): test ODE solver flags in O(1) instead of scanning slices",
+          "timestamp": "2026-10-11T15:30:07Z",
+          "tree_id": "0102fd1f8c73eebdb4062ca82266f50b49a30ed8",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4cfef566eeb3aeb6cffb3f920429dc41afff43cb"
+        },
+        "date": 1791758729155,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 24.937999999999995,
+            "range": "0.053419097708590955",
+            "unit": "seconds"
           }
         ]
       }
