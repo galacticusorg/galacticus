@@ -9,7 +9,9 @@ name: 'PGO Build'
 #   * scheduled and manually-dispatched runs build the commit that the `bleeding-edge` release currently points to, and
 #     publish to that release - skipping the work if it already carries a PGO executable for that commit (unless `force`
 #     is set), or if that commit predates the `PGO` build option;
-#   * version tag pushes build the tagged commit, and publish to its versioned release (created by `publish.yml`).
+#   * version tag pushes build the tagged commit, and publish to its versioned release (created by `publish.yml`);
+#   * manual dispatches with `test` set build the commit of the ref dispatched on, and publish nothing - for testing
+#     changes to this workflow on a branch (`gh workflow run pgo.yml --ref <branch> -f test=true`).
 # The executable is published as `Galacticus.exe_PGO`, with `Galacticus.exe_PGO.sha256` (its checksum) and
 # `Galacticus.exe_PGO.commit` (the commit it was built from). It is deliberately not listed in `SHA256SUMS`, which the
 # CI/CD `Deploy` job rewrites, nor mirrored by `publish.yml`, whose asset list is fixed.
@@ -24,6 +26,10 @@ on:
     inputs:
       force:
         description: 'Build even if bleeding-edge already carries a PGO executable for its commit'
+        type: boolean
+        default: false
+      test:
+        description: 'Build the commit of the ref dispatched on, and publish nothing (for testing this workflow)'
         type: boolean
         default: false
 # Queue rather than cancel: each run takes hours, and a newer one should not discard an older one's work.
@@ -54,11 +60,15 @@ jobs:
           REF_NAME: ${{ github.ref_name }}
           SHA: ${{ github.sha }}
           FORCE: ${{ inputs.force }}
+          TEST: ${{ inputs.test }}
         run: |
           set -euo pipefail
           if [[ "${EVENT}" == "push" && "${REF_TYPE}" == "tag" ]]; then
             sha="${SHA}"
             release="${REF_NAME}"
+          elif [[ "${EVENT}" == "workflow_dispatch" && "${TEST}" == "true" ]]; then
+            sha="${SHA}"
+            release=""
           else
             # The commit `bleeding-edge` points to (dereferencing an annotated tag if necessary).
             refs=$(git ls-remote "https://github.com/${REPOSITORY}" 'refs/tags/bleeding-edge' 'refs/tags/bleeding-edge^{}')
@@ -147,19 +157,33 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u+x Galacticus.exe
           mkdir -p testSuite/outputs
+          echo "Runner: $(nproc) CPUs, $(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2-), $(free -g | awk '/Mem:/ {print $2}') GB"
           # Both models run at once (the runner has four cores): the dark matter-only model on one thread, the galaxy
           # formation model (two trees) on two. Profile counters are updated atomically and profile files are merged
-          # under a lock, so concurrent runs are safe.
-          OMP_NUM_THREADS=1 ./Galacticus.exe testSuite/parameters/pgo/darkMatterOnlySubHalos.xml > train.darkMatterOnlySubHalos.log 2>&1 &
+          # under a lock, so concurrent runs are safe. Each run's output streams into this log, prefixed with its name
+          # and a timestamp, and is kept in a file for the artifact uploaded below. Each run is limited to well within
+          # the job's time limit, so that a run which overruns still leaves its logs.
+          train() {
+            model=$1
+            threads=$2
+            OMP_NUM_THREADS=$threads timeout 270m ./Galacticus.exe testSuite/parameters/pgo/$model.xml 2>&1 \
+              | while IFS= read -r line; do echo "[$(date -u +%H:%M:%S) $model] $line"; done | tee train.$model.log
+            return ${PIPESTATUS[0]}
+          }
+          # A heartbeat: every ten minutes, record the load and the training processes' CPU use, to tell a slow run
+          # from a stalled one.
+          ( while true; do sleep 600; echo "[$(date -u +%H:%M:%S) heartbeat] load: $(cut -d' ' -f1-3 /proc/loadavg)"; ps -C Galacticus.exe -o pid=,etime=,time=,pcpu=,rss= | sed "s/^/[heartbeat]   /"; done ) &
+          heartbeat=$!
+          train darkMatterOnlySubHalos 1 &
           pidDMO=$!
-          OMP_NUM_THREADS=2 ./Galacticus.exe testSuite/parameters/pgo/galaxyFormation.xml        > train.galaxyFormation.log        2>&1 &
+          train galaxyFormation        2 &
           pidGalaxies=$!
           status=0
-          wait $pidDMO      || { echo "FAIL: darkMatterOnlySubHalos training run failed"; status=1; }
-          wait $pidGalaxies || { echo "FAIL: galaxyFormation training run failed";        status=1; }
+          wait $pidDMO      || { echo "FAIL: darkMatterOnlySubHalos training run failed (status $?; 124 means it timed out)"; status=1; }
+          wait $pidGalaxies || { echo "FAIL: galaxyFormation training run failed (status $?; 124 means it timed out)";        status=1; }
+          kill $heartbeat 2> /dev/null || true
           # A run that evolves no trees trains nothing, yet exits successfully - so check that every one evolved some.
           for model in darkMatterOnlySubHalos galaxyFormation; do
-            tail -n 20 train.$model.log
             count=$(grep -c 'Evolving tree' train.$model.log || true)
             echo "$model: evolved $count tree(s)"
             [ "$count" -gt 0 ] || { echo "FAIL: $model training run evolved no trees"; status=1; }
@@ -169,6 +193,12 @@ jobs:
           echo "Profiles recorded: $(wc -l < profiles.list)"
           [ -s profiles.list ] || { echo "FAIL: no profiles were recorded"; exit 1; }
           tar cf profiles.tar -T profiles.list
+      - name: Upload the training logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: galacticus-pgo-training-logs
+          path: 'train.*.log'
       - name: Upload the profiles
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
