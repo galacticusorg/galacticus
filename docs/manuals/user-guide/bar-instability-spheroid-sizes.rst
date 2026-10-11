@@ -5,7 +5,8 @@ Galacticus transfers mass from an unstable disk to a spheroid continuously.
 The optional ``barInstabilitySpheroidAngularMomentum`` model specifies the
 associated rate of change of the spheroid's pseudo-angular momentum. It does
 not change the instability criterion or make the transfer a discrete event.
-The default model, ``retained``, preserves the historical prescription.
+The default model, ``angularMomentumTransfer``, preserves the historical
+prescription. The earlier selector ``retained`` remains accepted.
 
 Motivation
 ----------
@@ -58,8 +59,15 @@ remain free to change :math:`\mathcal B`; it is not conserved over the entire
 galaxy history. The derivatives include the equilibrium radii's response.
 They are evaluated by finite perturbations of the component state and
 repeated structure solves, after which the original state is restored.
-``finiteDifferenceStepRelative`` defaults to 0.01. Its convergence should be
-tested together with the evolution tolerances for the application of interest.
+``finiteDifferenceStepRelative`` defaults to 0.01 and controls two independent
+forward-difference probes. For the known bar-driven changes, the trial interval
+is chosen so that the largest fractional change among disk gas mass, disk
+stellar mass and disk angular momentum is 1%. The separate spheroid probe
+increases total spheroid pseudo-angular momentum by 1%, with all other
+properties fixed. These probes do not advance the galaxy in time. Transferring
+1% of the disk can change a small spheroid's mass by much more than 1%, so
+convergence should be checked together with the evolution tolerances,
+particularly near the transition described below.
 
 Nascent spheroids
 -----------------
@@ -71,19 +79,19 @@ pseudo-angular momentum becomes poorly conditioned. Define
 
    \mu_\mathrm s={M_\mathrm s\over M_\mathrm d+M_\mathrm s}.
 
-Below :math:`\mu_\mathrm s=0.003`, use the historical retained rate.
+Below :math:`\mu_\mathrm s=0.003`, use the historical angular-momentum-transfer rate.
 Above :math:`\mu_\mathrm s=0.010`, use the energy rate. Between these limits,
 with :math:`x=(\mu_\mathrm s-0.003)/(0.010-0.003)`, interpolate as
 
 .. math::
 
-   \dot J_\mathrm s=(1-w)\dot J_\mathrm{s,retained}+w\dot J_\mathrm{s,E},
+   \dot J_\mathrm s=(1-w)\dot J_\mathrm{s,transfer}+w\dot J_\mathrm{s,E},
    \qquad w=3x^2-2x^3.
 
 This regularization is a modelling choice, not a consequence of energy
 conservation. The blended rate does not in general conserve the proxy.
 Zero-mass or zero-angular-momentum spheroids, and invalid or numerically
-degenerate energy derivatives, fall back to the retained prescription.
+degenerate energy derivatives, fall back to the angular-momentum-transfer prescription.
 Consequently the spheroid retention factor still controls seeding and
 fallbacks even when the established-spheroid energy rate is insensitive to it.
 
@@ -111,14 +119,21 @@ of the spheroid factor; the value below is an example, not a calibration.
    </nodeOperator>
 
 The transition parameters shown explicitly are the defaults. Omitting
-``barInstabilitySpheroidAngularMomentum`` altogether still selects ``retained``.
+``barInstabilitySpheroidAngularMomentum`` altogether selects
+``angularMomentumTransfer`` and preserves the previous prescription. Existing
+parameter files need no modification to retain that behaviour. Explicit
+``value="retained"`` also remains accepted, and the existing disk and spheroid
+retention parameters keep their names and meanings.
 Changing this prescription changes the physical model and may require
 recalibration; agreement with observations is not guaranteed at parameters
 calibrated with another size model.
 
-Only two ratios of the three energy coefficients affect the ideal energy
-rate: a common positive multiplier cancels between numerator and denominator.
-For calibration, one coefficient should therefore remain fixed. Numerical
-safeguards can break this invariance at extreme normalizations. The direction
-and magnitude of the size response to either ratio should be measured rather
-than interpreted as a direct multiplicative radius adjustment.
+Multiplying all three energy coefficients by the same positive constant leaves
+the ideal energy-conserving angular-momentum rate unchanged. Only their ratios
+matter, so at least one coefficient should remain fixed during calibration.
+For example, fixing :math:`c_\mathrm d` leaves :math:`c_\mathrm s/c_\mathrm d`
+and :math:`f_\mathrm{int}/c_\mathrm d` as the two independent parameters.
+These change the relative contributions of spheroid self-binding and
+disk-spheroid interaction energy; they do not simply multiply the resulting
+spheroid radius by a constant. At extreme coefficient normalizations, numerical
+fallbacks can affect this scale invariance.

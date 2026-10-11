@@ -39,7 +39,7 @@ module Bar_Instability_Spheroid_Angular_Momenta
    <description>
    Class providing models for the rate at which pseudo-angular momentum is assigned to a spheroid as disk material is transferred to it by a bar instability.
    </description>
-   <default>retained</default>
+   <default>angularMomentumTransfer</default>
    <method name="rate">
     <description>
     Return the bar-instability contribution to the spheroid pseudo-angular momentum rate.

@@ -23,8 +23,8 @@ def parameters(name, directory):
     root.find("outputFileName").set("value", str(directory / (name + ".hdf5")))
     bar = root.find("nodeOperator/nodeOperator[@value='barInstability']")
     if name != "legacy":
-        model = ET.SubElement(bar, "barInstabilitySpheroidAngularMomentum",
-                              value="retained" if name == "retained" else "bindingEnergy")
+        selector = {"retained": "retained", "angular_momentum_transfer": "angularMomentumTransfer"}.get(name, "bindingEnergy")
+        model = ET.SubElement(bar, "barInstabilitySpheroidAngularMomentum", value=selector)
         if name == "hybrid_explicit":
             ET.SubElement(model, "spheroidBaryonFractionTransitionMinimum", value="0.003")
             ET.SubElement(model, "spheroidBaryonFractionTransitionMaximum", value="0.010")
@@ -40,7 +40,7 @@ def main():
     args = parser.parse_args()
     directory = ROOT / "testSuite/outputs/barBindingEnergy"
     directory.mkdir(parents=True, exist_ok=True)
-    names = ("legacy", "retained", "hybrid_default", "hybrid_explicit")
+    names = ("legacy", "angular_momentum_transfer", "retained", "hybrid_default", "hybrid_explicit")
     paths = {name: parameters(name, directory) for name in names}
     if args.prepare_only:
         print("Prepared test inputs only; no compiled-model tests have run.")
@@ -49,6 +49,7 @@ def main():
               "spheroidMassGas", "diskRadius", "spheroidRadius")
     results = {}
     for name, path in paths.items():
+        print(f"Running {name}; log: {directory / (name + '.log')}", flush=True)
         with (directory / (name + ".log")).open("w") as log:
             subprocess.run([str(args.executable.resolve()), str(path)], cwd=ROOT,
                            env={**os.environ, "OMP_NUM_THREADS": "1"},
@@ -63,11 +64,12 @@ def main():
         disk = results[name]["diskMassStellar"] + results[name]["diskMassGas"]
         assert np.any(spheroid > 0.01 * (spheroid + disk)), "Test did not build an established spheroid"
         assert np.all(results[name]["spheroidRadius"][spheroid > 0] > 0), name
-    for left, right in (("legacy", "retained"), ("hybrid_default", "hybrid_explicit")):
+    for left, right in (("legacy", "angular_momentum_transfer"), ("legacy", "retained"),
+                        ("hybrid_default", "hybrid_explicit")):
         for field in fields:
             np.testing.assert_allclose(results[left][field], results[right][field], rtol=1e-9, atol=0,
                                        err_msg=f"{left} vs {right}: {field}")
-    print("SUCCESS: bar prescription defaults, explicit selection, and finite spheroid properties")
+    print("SUCCESS: bar prescription defaults, angularMomentumTransfer/retained compatibility, and finite spheroid properties")
 
 
 if __name__ == "__main__":
