@@ -16,6 +16,9 @@ The configuration is an XML file:
     <observable label="massMetallicityBlanc2019" transform="identity" undefined="median" rootVarianceUndefined="5.0"/>
   </emulatorTrain>
 
+Each observable may also give ``rootVarianceZero`` (the root variance given to values whose root variance is zero) and
+``rootVarianceTargetMinimum`` (a floor on the root variance of the target data).
+
 The outputs of the runs are those named in the design file, resolved relative to the working directory (or to
 --directory). The emulator file format is described in the "Emulator-Assisted Calibration" chapter of the user guide.
 
@@ -76,6 +79,8 @@ def read_configuration(path):
             root_variance_floored=number('rootVarianceFloored'),
             undefined=element.get('undefined'),
             root_variance_undefined=number('rootVarianceUndefined'),
+            root_variance_zero=number('rootVarianceZero'),
+            root_variance_target_minimum=number('rootVarianceTargetMinimum'),
         )
         observable.validate()
         observables.append(observable)

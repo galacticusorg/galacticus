@@ -131,7 +131,9 @@ For each ``observable`` it collects a training set from the ``analyses/{label}``
 are set to the floor with root variance ``rootVarianceFloored`` (in dex); and bins which are undefined in some runs (as
 for a mean relation with no galaxies in a bin) may be replaced by the median of that bin over the other runs
 (``undefined="median"``), with root variance ``rootVarianceUndefined``. Values which have been floored or replaced are
-flagged in the ``mask`` of the training set.
+flagged in the ``mask`` of the training set. Values whose root variance is zero (as for a mean relation measured from a
+single galaxy) may be given root variance ``rootVarianceZero``, and the root variance of the target data may be floored
+at ``rootVarianceTargetMinimum`` (both in the units of the transformed observable).
 
 The emulator of each observable standardizes its bins, compresses them by principal components analysis (retaining a
 fraction ``pcaVarianceRetained`` of the variance, by default 0.99), and fits a Gaussian process to each standardized
@@ -189,6 +191,41 @@ The active parameters of the simulation must be those of the design: each emulat
 parameter of the same name, and their priors must be those under which the emulators were trained (this is checked when
 the likelihood is first evaluated). The emulators may also be checked by evaluating the emulated likelihood on a design
 with the ``grid`` simulation, and comparing with the likelihoods of direct runs of the model.
+
+.. _manual-sec-EmulatorGalacticEmu:
+
+Importing a GalacticEmu campaign
+--------------------------------
+
+`GalacticEmu <https://github.com/Andrew-Robertson/Galacticus-emulation>`_ calibrates Galacticus with emulators trained on a
+Sobol design of model runs, as in :cite:t:`robertson_emulator_2026`. The script ``scripts/emulation/galacticEmu.py``
+imports such a campaign so that it can be emulated and sampled with Galacticus' own tools, and checks the results against
+GalacticEmu:
+
+.. code-block:: bash
+
+   # Import the design (samples.csv and campaign_design.json) as a Galacticus design file.
+   scripts/emulation/galacticEmu.py design campaign/ design.hdf5
+   # Write a training configuration reproducing GalacticEmu's treatment of each observable, and an MCMC parameter file.
+   scripts/emulation/galacticEmu.py configure campaign/ design.hdf5 --observables smf_z0,mzr_blanc2019 \
+       --emulator emulator.hdf5 --training train.xml --mcmc mcmc.xml
+   scripts/emulation/emulatorTrainReference.py train.xml
+   # Compare training sets, emulators, and the emulated likelihood with those of GalacticEmu.
+   scripts/emulation/galacticEmu.py parity-training  campaign/ design.hdf5 --observables smf_z0,mzr_blanc2019
+   scripts/emulation/galacticEmu.py parity-emulators bundle.joblib emulator.hdf5 --observables smf_z0,mzr_blanc2019
+   scripts/emulation/galacticEmu.py parity-likelihood bundle.joblib mcmc_inputs.joblib emulator.hdf5 --results mcmc_results.hdf5
+
+Importing the design needs only the campaign's files: the priors (uniform, and log-normal truncated in :math:`\ln x`) are
+converted to the equivalent Galacticus distributions, and the value of every parameter at every design point is checked
+against that implied by its quantile. Parameters with log-normal priors are sampled in their logarithm. The other
+subcommands require GalacticEmu itself. For the standard observables of :cite:t:`robertson_emulator_2026` (its reduced
+1024-run campaign), the training sets collected by Galacticus are identical to GalacticEmu's; the retrained emulators
+retain the same principal components, with Gaussian-process marginal likelihoods agreeing to 0.1 and predictions agreeing
+to a small fraction of the emulator uncertainty; and the emulated log-likelihoods agree to about 1 near the posterior
+(0.14 at the published maximum a posteriori point), with larger differences, of up to about 0.5%, only where the model
+fits the data very poorly. Sampling the posterior with the ``differentialEvolution`` simulation recovers the
+published posterior. GalacticEmu clips target data at its floor (:math:`10^{-7}` for functions emulated in their
+logarithm), whereas Galacticus keeps their true values, which matters only for targets below the floor.
 
 .. _manual-sec-EmulatorFileFormat:
 

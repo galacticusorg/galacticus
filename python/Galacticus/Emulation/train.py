@@ -59,6 +59,10 @@ class Observable:
     (in dex). If ``undefined`` is ``median``, a bin whose value is undefined in a run (non-finite, or zero with zero
     variance, as for a mean relation with no galaxies in that bin) is set to the median of the bin over the runs in which
     it is defined, with root variance ``rootVarianceUndefined``.
+
+    Optionally, values whose root variance is zero (as for a mean relation measured from a single galaxy) are given root
+    variance ``rootVarianceZero``, and the root variance of the target data is floored at ``rootVarianceTargetMinimum``
+    (both in the units of the transformed observable).
     """
 
     label: str
@@ -67,6 +71,8 @@ class Observable:
     root_variance_floored: float | None = None
     undefined: str | None = None
     root_variance_undefined: float | None = None
+    root_variance_zero: float | None = None
+    root_variance_target_minimum: float | None = None
 
     def validate(self):
         if self.transform not in ('identity', 'log10'):
@@ -77,6 +83,9 @@ class Observable:
             raise ValueError(f"observable '{self.label}': unknown treatment of undefined bins '{self.undefined}'")
         if self.undefined == 'median' and self.root_variance_undefined is None:
             raise ValueError(f"observable '{self.label}': `rootVarianceUndefined` is required with `undefined=median`")
+        for name, value in (('rootVarianceZero', self.root_variance_zero), ('rootVarianceTargetMinimum', self.root_variance_target_minimum)):
+            if value is not None and not value > 0.0:
+                raise ValueError(f"observable '{self.label}': `{name}` must be positive")
 
     def attributes(self):
         """The attributes recording this transform in a training set."""
@@ -85,6 +94,10 @@ class Observable:
             attributes.update({'floor': self.floor, 'rootVarianceFloored': self.root_variance_floored})
         if self.undefined is not None:
             attributes.update({'undefined': self.undefined, 'rootVarianceUndefined': self.root_variance_undefined})
+        if self.root_variance_zero is not None:
+            attributes['rootVarianceZero'] = self.root_variance_zero
+        if self.root_variance_target_minimum is not None:
+            attributes['rootVarianceTargetMinimum'] = self.root_variance_target_minimum
         return attributes
 
 
@@ -217,12 +230,18 @@ def collect(design_file, observables, model_files=None, directory='.'):
                 y[undefined, bin_] = np.median(y[defined, bin_])
                 rootVariance[undefined, bin_] = observable.root_variance_undefined
                 mask[undefined, bin_] = True
+        if observable.root_variance_zero is not None:
+            rootVariance = np.where(np.isfinite(rootVariance) & (rootVariance > 0.0), rootVariance, observable.root_variance_zero)
         yTargetTransformed, covarianceTargetTransformed = _transform_target(observable, yTarget, covarianceTarget)
         if yTargetTransformed is None:
             yTargetTransformed = np.full(x.shape, np.nan)
             covarianceTargetTransformed = np.full((x.size, x.size), np.nan)
         elif covarianceTargetTransformed is None:
             covarianceTargetTransformed = np.full((x.size, x.size), np.nan)
+        elif observable.root_variance_target_minimum is not None:
+            covarianceTargetTransformed = np.array(covarianceTargetTransformed, dtype=float)
+            diagonal = np.diag_indices_from(covarianceTargetTransformed)
+            covarianceTargetTransformed[diagonal] = np.maximum(covarianceTargetTransformed[diagonal], observable.root_variance_target_minimum ** 2)
         training_sets[observable.label] = ef.TrainingSet(
             x=np.asarray(x, dtype=float),
             y=y,
