@@ -179,6 +179,10 @@ jobs:
           # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
           # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          # Preprocess first, at full parallelism: preprocessing needs only ~100 MB per process, so the -j2 cap
+          # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
+          # as the build itself, since they select the build directory and configuration.
+          make -j$(nproc) LTO=disabled preprocess
           make -j2 LTO=disabled all 2>&1 | tee build.log
           set +o pipefail
           ! grep -n Error: build.log
@@ -219,6 +223,10 @@ jobs:
           # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
           # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          # Preprocess first, at full parallelism: preprocessing needs only ~100 MB per process, so the -j2 cap
+          # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
+          # as the build itself, since they select the build directory and configuration.
+          make -j$(nproc) PROFILER=gprof SUFFIX= preprocess
           make -j2 PROFILER=gprof SUFFIX= Galacticus.exe
       - name: Upload executables
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -251,6 +259,10 @@ jobs:
           # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
           # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          # Preprocess first, at full parallelism: preprocessing needs only ~100 MB per process, so the -j2 cap
+          # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
+          # as the build itself, since they select the build directory and configuration.
+          make -j$(nproc) preprocess
           make -j2 Galacticus.exe
       - name: Upload executables
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -282,6 +294,10 @@ jobs:
           # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
           # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          # Preprocess first, at full parallelism: preprocessing needs only ~100 MB per process, so the -j2 cap
+          # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
+          # as the build itself, since they select the build directory and configuration.
+          make -j$(nproc) MPI=yes SUFFIX= preprocess
           make -j2 MPI=yes SUFFIX= Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -318,6 +334,10 @@ jobs:
           # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
           # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          # Preprocess first, at full parallelism: preprocessing needs only ~100 MB per process, so the -j2 cap
+          # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
+          # as the build itself, since they select the build directory and configuration.
+          make -j$(nproc) DEBUGGING=yes SUFFIX= preprocess
           make -j2 DEBUGGING=yes SUFFIX= Galacticus.exe tests.debugging.exe
       - name: Upload test code executables
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -358,6 +378,10 @@ jobs:
           # does not bound the peak of a single oversized compile. LTO on the library is only a performance
           # optimization (the downstream Python-interface test just needs a working libgalacticus.so), so we
           # disable it here to cut peak memory, and cap parallelism at -j2 to limit concurrent compiles.
+          # Preprocess first, at full parallelism: preprocessing needs only ~100 MB per process, so the -j2 cap
+          # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
+          # as the build itself, since they select the build directory and configuration.
+          make -j$(nproc) LTO=disabled LIBRARY=yes preprocess
           make -j2 LTO=disabled LIBRARY=yes libgalacticus.so
       - name: Package the code
         run: |
