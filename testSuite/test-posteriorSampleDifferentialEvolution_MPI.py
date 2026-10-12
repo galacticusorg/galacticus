@@ -3,9 +3,13 @@
 
 The likelihood is a multivariate normal distribution in eight dimensions, with unequal widths and one strong correlation,
 and the priors are uniform and much wider than it, so the posterior is that normal distribution. The posterior is sampled
-with sixteen chains (one per MPI process; the likelihood is cheap, so the processes are oversubscribed as needed). When a
-chain could use its own state in constructing its proposal (an asymmetric proposal) the sampled widths were only about 0.6
-of their true values with eight chains, and 0.75 with sixteen.
+twice (with one chain per MPI process; the likelihood is cheap, so the processes are oversubscribed as needed):
+
+1. with sixteen chains, constructing proposals from the current states of other chains. When a chain could use its own state
+   in constructing its proposal (an asymmetric proposal) the sampled widths were only about 0.6 of their true values with
+   eight chains, and 0.75 with sixteen;
+2. with only four chains (fewer than the number of parameters), constructing proposals from an archive of past states of all
+   chains (``proposalArchive``).
 
 Andrew Benson, Claude (12-October-2026).
 """
@@ -25,7 +29,6 @@ os.chdir(root)
 
 directory = 'testSuite/outputs/posteriorSampleDifferentialEvolution'
 countParameters = 8
-countChains = 16
 countSteps = 20000
 # The posterior: unequal widths, and a correlation of 0.8 between the first two parameters.
 sigmaTrue = np.linspace(0.5, 2.0, countParameters)
@@ -39,7 +42,7 @@ def values(array):
     return ' '.join(f'{value:.17g}' for value in np.ravel(array))
 
 
-def writeParameters():
+def writeParameters(name, archive):
     modelParameters = ''.join(f'''    <modelParameter value="active">
       <name value="p/x{i}"/>
       <distributionFunction1DPrior value="uniform">
@@ -53,11 +56,15 @@ def writeParameters():
       </distributionFunction1DPerturber>
     </modelParameter>
 ''' for i in range(countParameters))
-    path = f'{directory}/sampler.xml'
+    archiveParameters = '''    <proposalArchive     value="true"/>
+    <archiveThinning     value="10"/>
+    <archiveInitialCount value="80"/>
+''' if archive else ''
+    path = f'{directory}/{name}.xml'
     with open(path, 'w') as file:
         file.write(f'''<parameters>
   <formatVersion>2</formatVersion>
-  <outputFileName value="{directory}/sampler.hdf5"/>
+  <outputFileName value="{directory}/{name}.hdf5"/>
   <task value="posteriorSample">
     <initializeNodeClassHierarchy value="false"/>
   </task>
@@ -69,11 +76,11 @@ def writeParameters():
     <stepsMaximum           value="{countSteps}"/>
     <acceptanceAverageCount value="10"/>
     <stateSwapCount         value="100"/>
-    <logFileRoot            value="{directory}/chains"/>
+    <logFileRoot            value="{directory}/{name}_chains"/>
     <reportCount            value="1000"/>
     <sampleOutliers         value="false"/>
     <logFlushCount          value="1000"/>
-{modelParameters}    <posteriorSampleState value="correlation">
+{archiveParameters}{modelParameters}    <posteriorSampleState value="correlation">
       <acceptedStateCount value="100"/>
     </posteriorSampleState>
     <posteriorSampleStateInitialize value="latinHypercube">
@@ -87,7 +94,7 @@ def writeParameters():
       <outlierSignificance        value="0.95"/>
       <outlierLogLikelihoodOffset value="60"/>
       <reportCount                value="10"/>
-      <logFileName                value="{directory}/convergence.log"/>
+      <logFileName                value="{directory}/{name}_convergence.log"/>
     </posteriorSampleConvergence>
     <posteriorSampleStoppingCriterion value="stepCount">
       <stopAfterCount value="{countSteps}"/>
@@ -101,7 +108,7 @@ def writeParameters():
       <acceptanceRateMinimum value="0.1"/>
       <acceptanceRateMaximum value="0.9"/>
       <updateCount           value="10"/>
-      <logFileName           value="{directory}/proposalSize.log"/>
+      <logFileName           value="{directory}/{name}_proposalSize.log"/>
     </posteriorSampleDffrntlEvltnProposalSize>
   </posteriorSampleSimulation>
   <randomNumberGenerator value="GSL">
@@ -121,15 +128,22 @@ def main():
     allowRunAsRoot = ['--allow-run-as-root'] if args.allowRunAsRoot == 'yes' else []
     shutil.rmtree(directory, ignore_errors=True)
     os.makedirs(directory)
-    with open(f'{directory}/sampler.log', 'w') as log:
-        status = subprocess.run(['mpirun', '--oversubscribe', '-np', str(countChains)] + allowRunAsRoot + ['./Galacticus.exe', writeParameters()],
+    for name, countChains, archive in (('current', 16, False), ('archive', 4, True)):
+        check(name, countChains, archive, allowRunAsRoot)
+
+
+def check(name, countChains, archive, allowRunAsRoot):
+    """Sample the posterior, and check the sampled mean, widths, and correlation against their true values."""
+    label = f'{countChains} chains, proposals from {"an archive of past states" if archive else "current states"}'
+    with open(f'{directory}/{name}.log', 'w') as log:
+        status = subprocess.run(['mpirun', '--oversubscribe', '-np', str(countChains)] + allowRunAsRoot + ['./Galacticus.exe', writeParameters(name, archive)],
                                 stdout=log, stderr=subprocess.STDOUT, env=dict(os.environ, OMP_NUM_THREADS='1')).returncode
     if status != 0:
-        print(f'FAILED: posterior sampling failed (see {directory}/sampler.log)')
+        print(f'FAILED: posterior sampling ({label}) failed (see {directory}/{name}.log)')
         return
     # Gather the converged states from the chains.
     states = []
-    for path in sorted(glob.glob(f'{directory}/chains_[0-9][0-9][0-9][0-9].log')):
+    for path in sorted(glob.glob(f'{directory}/{name}_chains_[0-9][0-9][0-9][0-9].log')):
         with open(path) as file:
             for line in file:
                 if line.startswith('#'):
@@ -139,7 +153,7 @@ def main():
                     states.append([float(value) for value in columns[6:6 + countParameters]])
     states = np.array(states)
     if states.shape[0] < 10000:
-        print(f'FAILED: only {states.shape[0]} converged states were found in the chains (see {directory}/convergence.log)')
+        print(f'FAILED: only {states.shape[0]} converged states ({label}) were found in the chains (see {directory}/{name}_convergence.log)')
         return
     meanMCMC = states.mean(axis=0)
     covarianceMCMC = np.cov(states.T)
@@ -147,14 +161,13 @@ def main():
     offset = np.abs(meanMCMC - meanTrue) / sigmaTrue
     ratio = sigmaMCMC / sigmaTrue
     correlationMCMC = covarianceMCMC[0, 1] / (sigmaMCMC[0] * sigmaMCMC[1])
-    print(f'{states.shape[0]} converged states')
-    message = f'posterior means are within {offset.max():.3f} sigma of the true values'
+    print(f'{label}: {states.shape[0]} converged states')
+    message = f'{label}: posterior means are within {offset.max():.3f} sigma of the true values'
     print(f'SUCCESS: {message}' if offset.max() < 0.25 else f'FAILED: {message} (tolerance 0.25)')
-    message = f'posterior widths are {ratio.min():.3f} to {ratio.max():.3f} times the true values'
+    message = f'{label}: posterior widths are {ratio.min():.3f} to {ratio.max():.3f} times the true values'
     print(f'SUCCESS: {message}' if 0.9 < ratio.min() and ratio.max() < 1.1 else f'FAILED: {message} (tolerance 0.9-1.1)')
-    message = f'posterior correlation is {correlationMCMC:.3f} (true value {correlationTrue:.3f})'
+    message = f'{label}: posterior correlation is {correlationMCMC:.3f} (true value {correlationTrue:.3f})'
     print(f'SUCCESS: {message}' if abs(correlationMCMC - correlationTrue) < 0.05 else f'FAILED: {message} (tolerance 0.05)')
-
 
 if __name__ == '__main__':
     try:

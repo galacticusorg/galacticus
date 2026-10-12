@@ -51,6 +51,15 @@
 
    ``[sampleOutliers]``
       If set to ``false`` then proposals for non-outlier chains post-convergence are constructed only from other non-outlier chains. Otherwise, proposals for non-outlier chains post-convergence are constructed from all other chains.
+
+   ``[proposalArchive]``
+      If set to ``true`` then the two states from which each proposal is constructed are drawn from an archive of past states of all chains, rather than from the current states of other chains (the "DE-MCz" algorithm of :cite:t:`ter_braak_differential_2008`). All chains are updated simultaneously, one per :term:`MPI` process, so when proposals are constructed from the current states of other chains those states are themselves being updated, and the sampled distribution is slightly biased (too narrow by a few percent when the number of chains is comparable to the number of parameters). The archive is unchanged during each update, so proposals constructed from it are unbiased. The archive also allows far fewer chains to be used (as few as three), as its states span the parameter space even when the chains do not.
+
+   ``[archiveThinning]``
+      The states of all chains are added to the archive every ``[archiveThinning]`` steps.
+
+   ``[archiveInitialCount]``
+      The number of states drawn from the prior with which to initialize the archive (in addition to the initial states of the chains). :cite:t:`ter_braak_differential_2008` suggest ten times the number of active parameters.
    </description>
    <descriptorSpecial>descriptorSpecial</descriptorSpecial>
   </posteriorSampleSimulation>
@@ -63,13 +72,16 @@
      integer                                                                                   :: parameterCount                                    , stepsMaximum            , &
           &                                                                                       stateSwapCount                                    , acceptanceAverageCount  , &
           &                                                                                       logFlushCount                                     , reportCount             , &
-          &                                                                                       recomputeCount                                    , slowStepCount
+          &                                                                                       recomputeCount                                    , slowStepCount           , &
+          &                                                                                       archiveThinning                                   , archiveInitialCount     , &
+          &                                                                                       archiveCount
      double precision                                                                          :: logPosterior                                      , logPrior
      logical                                                                                   :: isConverged                                       , sampleOutliers          , &
           &                                                                                       isInteractive                                     , appendLogs              , &
           &                                                                                       loadBalance                                       , ignoreChainNumberAdvice , &
-          &                                                                                       logProposals
+          &                                                                                       logProposals                                      , proposalArchive
      logical                                                       , allocatable, dimension(:) :: modelParametersActiveIsSlow
+     double precision                                              , allocatable, dimension(:,:) :: archive
      type            (modelParameterList                          ), allocatable, dimension(:) :: modelParametersActive_                            , modelParametersInactive_
      class           (posteriorSampleLikelihoodClass              ), pointer                   :: posteriorSampleLikelihood_               => null()
      class           (posteriorSampleConvergenceClass             ), pointer                   :: posteriorSampleConvergence_              => null()
@@ -90,6 +102,8 @@
        <method method="acceptProposal"    description="Return true if the proposed state should be accepted."                                              />
        <method method="stepSize"          description="Return the step size parameter, :math:`\gamma`, for the differential evolution proposal vector."          />
        <method method="chainSelect"       description="Select a chain."                                                                                    />
+       <method method="archiveAppend"     description="Append states to the archive of past states."                                                       />
+       <method method="archiveSelect"     description="Select two distinct states at random from the archive of past states."                             />
        <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."                                                />
      </methods>
      !!]
@@ -102,6 +116,8 @@
      procedure :: acceptProposal    => differentialEvolutionAcceptProposal
      procedure :: temperature       => differentialEvolutionTemperature
      procedure :: chainSelect       => differentialEvolutionChainSelect
+     procedure :: archiveAppend     => differentialEvolutionArchiveAppend
+     procedure :: archiveSelect     => differentialEvolutionArchiveSelect
      procedure :: descriptorSpecial => differentialEvolutionDescriptorSpecial
   end type posteriorSampleSimulationDifferentialEvolution
 
@@ -143,11 +159,12 @@ contains
          &                                                                                  reportCount                             , activeParameterCount    , &
          &                                                                                  inactiveParameterCount                  , i                       , &
          &                                                                                  iActive                                 , iInactive               , &
-         &                                                                                  recomputeCount                          , slowStepCount
+         &                                                                                  recomputeCount                          , slowStepCount           , &
+         &                                                                                  archiveThinning                         , archiveInitialCount
     type   (varying_string                                )                              :: logFileRoot                             , interactionRoot         , &
          &                                                                                  message
     logical                                                                              :: sampleOutliers                          , appendLogs              , &
-         &                                                                                  logProposals                                                      , &
+         &                                                                                  logProposals                            , proposalArchive         , &
          &                                                                                  loadBalance                             , ignoreChainNumberAdvice
 
     !![
@@ -271,6 +288,31 @@ contains
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>proposalArchive</name>
+      <description>
+      If true, construct proposals from pairs of states drawn from an archive of past states of all chains, rather than from
+      the current states of other chains.
+      </description>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>archiveThinning</name>
+      <description>
+      The number of steps between additions of the states of all chains to the archive of past states.
+      </description>
+      <source>parameters</source>
+      <defaultValue>10</defaultValue>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>archiveInitialCount</name>
+      <description>
+      The number of states drawn from the prior with which to initialize the archive of past states.
+      </description>
+      <source>parameters</source>
+      <defaultValue>0</defaultValue>
+    </inputParameter>
     <objectBuilder class="posteriorSampleLikelihood"               name="posteriorSampleLikelihood_"               source="parameters"/>
     <objectBuilder class="posteriorSampleConvergence"              name="posteriorSampleConvergence_"              source="parameters"/>
     <objectBuilder class="posteriorSampleStoppingCriterion"        name="posteriorSampleStoppingCriterion_"        source="parameters"/>
@@ -330,7 +372,7 @@ contains
        <objectDestructor name="modelParameter_"/>
        !!]
     end do
-    self=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,slowStepCount,recomputeCount,char(logFileRoot),sampleOutliers,logFlushCount,reportCount,char(interactionRoot),appendLogs,loadBalance,ignoreChainNumberAdvice,logProposals)
+    self=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,slowStepCount,recomputeCount,char(logFileRoot),sampleOutliers,logFlushCount,reportCount,char(interactionRoot),appendLogs,loadBalance,ignoreChainNumberAdvice,logProposals,proposalArchive,archiveThinning,archiveInitialCount)
     !![
     <inputParametersValidate source="parameters" multiParameters="modelParameter"/>
     <objectDestructor name="posteriorSampleLikelihood_"              />
@@ -357,10 +399,11 @@ contains
     return
   end function differentialEvolutionConstructorParameters
   
-  function differentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,slowStepCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,logProposals) result(self)
+  function differentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,slowStepCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,logProposals,proposalArchive,archiveThinning,archiveInitialCount) result(self)
     !!{RST
     Internal constructor for the "differentialEvolution" simulation class.
     !!}
+    use :: Error           , only : Error_Report
     use :: Model_Parameters, only : modelParameterActive
     implicit none
     type     (posteriorSampleSimulationDifferentialEvolution)                              :: self
@@ -381,6 +424,8 @@ contains
     logical                                                  , intent(in   )               :: sampleOutliers                          , appendLogs              , &
          &                                                                                     logProposals                                                    , &
          &                                                                                    loadBalance                             , ignoreChainNumberAdvice
+    logical                                                  , intent(in   ), optional     :: proposalArchive
+    integer                                                  , intent(in   ), optional     :: archiveThinning                         , archiveInitialCount
     integer                                                                                :: i
     !![
     <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *posteriorSampleDffrntlEvltnProposalSize_, *posteriorSampleDffrntlEvltnRandomJump_, *randomNumberGenerator_, stepsMaximum, acceptanceAverageCount, stateSwapCount, slowStepCount, recomputeCount, logFlushCount, reportCount, sampleOutliers, logFileRoot, interactionRoot, appendLogs, loadBalance, ignoreChainNumberAdvice, logProposals"/>
@@ -407,6 +452,15 @@ contains
        <referenceCountIncrement owner="self%modelParametersInactive_(i)" object="modelParameter_"/>
        !!]
     end do
+    self%proposalArchive    =.false.
+    self%archiveThinning    =10
+    self%archiveInitialCount= 0
+    self%archiveCount       = 0
+    if (present(proposalArchive    )) self%proposalArchive    =proposalArchive
+    if (present(archiveThinning    )) self%archiveThinning    =archiveThinning
+    if (present(archiveInitialCount)) self%archiveInitialCount=archiveInitialCount
+    if (self%archiveThinning     < 1) call Error_Report('[archiveThinning] must be positive'      //{introspection:location})
+    if (self%archiveInitialCount < 0) call Error_Report('[archiveInitialCount] must be non-negative'//{introspection:location})
     self%parameterCount=size(modelParametersActive_)
     self%isInteractive =trim(interactionRoot) /= "none"
     call self%posteriorSampleState_%parameterCountSet(self%parameterCount)
@@ -482,11 +536,14 @@ contains
          &                                                                                                ioStatus              , interactionFile              , &
          &                                                                                                proposalFileUnit
     double precision                                               , allocatable, dimension(:)         :: stateVectorProposedLog
+    double precision                                               , allocatable, dimension(:,:)       :: archiveInitial
+    integer                                                                                            :: j
     logical                                                                                               forceAcceptance       , proposalAccepted
     character       (len=32                                        )                                   :: label
 
-    ! Check that we have sufficient chains for differential evolution.
-    if (.not.self%ignoreChainNumberAdvice) then
+    ! Check that we have sufficient chains for differential evolution. (With an archive of past states, proposals are drawn from
+    ! the archive, which spans the parameter space even when the chains do not.)
+    if (.not.self%ignoreChainNumberAdvice .and. .not.self%proposalArchive) then
        if      (mpiSelf%count() <    size(self%modelParametersActive_)) then
           call Error_Report('the number of chains should at least equal the number of active parameters, otherwise it may not be possible to sample the full posterior distribution'               //{introspection:location})
        else if (mpiSelf%count() <  2*size(self%modelParametersActive_)) then
@@ -521,6 +578,24 @@ contains
     timeEvaluatePrevious=timeEvaluate
     ! Check for impossible state.
     if (self%logPosterior <= logImpossible) call Error_Report('impossible initial state'//{introspection:location})
+    ! Initialize the archive of past states with states drawn from the prior (drawn on one process, so that the archive is the
+    ! same on all processes), and the initial states of all chains.
+    if (self%proposalArchive) then
+       if (self%archiveInitialCount > 0) then
+          allocate(archiveInitial(self%parameterCount,self%archiveInitialCount))
+          if (mpiSelf%rank() == 0) then
+             do j=1,self%archiveInitialCount
+                do i=1,self%parameterCount
+                   archiveInitial(i,j)=self%modelParametersActive_(i)%modelParameter_%map(self%modelParametersActive_(i)%modelParameter_%priorSample())
+                end do
+             end do
+          end if
+          call mpiSelf%broadcastData(0,archiveInitial)
+          call self%archiveAppend(archiveInitial)
+          deallocate(archiveInitial)
+       end if
+       call self%archiveAppend(mpiSelf%gather(self%posteriorSampleState_%get()))
+    end if
     ! If the initializer returned a non-impossible likelihood, use it instead.
     if (logLikelihoodInitial > logImpossible) then
        logLikelihood    =logLikelihoodInitial
@@ -576,14 +651,19 @@ contains
          &   )
        ! Initialize likelihood acceptance condition.
        forceAcceptance=.false.
-       ! Pick two random processes, other than this one, to use for proposal. Allowing this chain to be chosen would make the
-       ! proposal asymmetric (an expansion away from, or contraction toward, the other chosen chain), biasing the sampled
-       ! distribution.
-       chainPair(1)=self%chainSelect([mpiSelf%rank()              ])
-       chainPair(2)=self%chainSelect([mpiSelf%rank(),chainPair(1)])
-       ! Receive states from selected chains.
        stateVector=self%posteriorSampleState_%get()
-       statePair  =mpiSelf%requestData(chainPair,stateVector)
+       if (self%proposalArchive) then
+          ! Pick two distinct states from the archive of past states to use for proposal.
+          statePair=self%archiveSelect()
+       else
+          ! Pick two random processes, other than this one, to use for proposal. Allowing this chain to be chosen would make the
+          ! proposal asymmetric (an expansion away from, or contraction toward, the other chosen chain), biasing the sampled
+          ! distribution.
+          chainPair(1)=self%chainSelect([mpiSelf%rank()              ])
+          chainPair(2)=self%chainSelect([mpiSelf%rank(),chainPair(1)])
+          ! Receive states from selected chains.
+          statePair  =mpiSelf%requestData(chainPair,stateVector)
+       end if
        ! Generate proposal.
        stateVectorProposed= stateVector                    &
             &              +self%stepSize(forceAcceptance) &
@@ -680,6 +760,9 @@ contains
           proposalAccepted     =.false.
        end if
        call self%update(stateVector)
+       ! Add the states of all chains to the archive of past states.
+       if (self%proposalArchive .and. mod(self%posteriorSampleState_%count(),self%archiveThinning) == 0) &
+            & call self%archiveAppend(mpiSelf%gather(stateVector))
        ! Unmap parameters and write to log file.
        do i=1,size(stateVector)
           stateVector(i)=self%modelParametersActive_(i)%modelParameter_%unmap(stateVector(i))
@@ -784,6 +867,48 @@ contains
     end do
     return
   end function differentialEvolutionChainSelect
+
+  subroutine differentialEvolutionArchiveAppend(self,states)
+    !!{RST
+    Append states (one per column of ``states``) to the archive of past states.
+    !!}
+    implicit none
+    class           (posteriorSampleSimulationDifferentialEvolution), intent(inout)                 :: self
+    double precision                                                , intent(in   ), dimension(:,:) :: states
+    double precision                                                , allocatable  , dimension(:,:) :: archive
+
+    if (.not.allocated(self%archive)) then
+       allocate(self%archive(self%parameterCount,max(1024,2*size(states,dim=2))))
+    else if (self%archiveCount+size(states,dim=2) > size(self%archive,dim=2)) then
+       call move_alloc(self%archive,archive)
+       allocate(self%archive(self%parameterCount,max(2*size(archive,dim=2),self%archiveCount+size(states,dim=2))))
+       self%archive(:,1:self%archiveCount)=archive(:,1:self%archiveCount)
+       deallocate(archive)
+    end if
+    self%archive(:,self%archiveCount+1:self%archiveCount+size(states,dim=2))=states
+    self%archiveCount                                                       =self%archiveCount+size(states,dim=2)
+    return
+  end subroutine differentialEvolutionArchiveAppend
+
+  function differentialEvolutionArchiveSelect(self) result(statePair)
+    !!{RST
+    Select two distinct states at random from the archive of past states.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (posteriorSampleSimulationDifferentialEvolution), intent(inout)                    :: self
+    double precision                                                , dimension(self%parameterCount,2) :: statePair
+    integer                                                         , dimension(                    2) :: indices
+
+    if (self%archiveCount < 2) call Error_Report('at least two states are needed in the archive'//{introspection:location})
+    indices(1)=min(int(dble(self%archiveCount  )*self%randomNumberGenerator_%uniformSample())+1,self%archiveCount  )
+    indices(2)=min(int(dble(self%archiveCount-1)*self%randomNumberGenerator_%uniformSample())+1,self%archiveCount-1)
+    ! Draw the second index from the remaining states, so that the two are distinct.
+    if (indices(2) >= indices(1)) indices(2)=indices(2)+1
+    statePair(:,1)=self%archive(:,indices(1))
+    statePair(:,2)=self%archive(:,indices(2))
+    return
+  end function differentialEvolutionArchiveSelect
 
   logical function differentialEvolutionLogging(self)
     !!{RST
