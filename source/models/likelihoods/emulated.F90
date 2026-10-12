@@ -138,13 +138,13 @@
      Implementation of a posterior sampling likelihood class which evaluates the likelihood using emulators of model predictions.
      !!}
      private
-     type   (emulatedEmulatorList                 ), pointer                   :: emulators               => null()
+     type   (emulatedEmulatorList                 ), pointer                   :: emulators                             => null()
      type   (enumerationEmulatedLikelihoodFormType), allocatable, dimension(:) :: likelihoodForms
      type   (emulatedEmulatorState                ), allocatable, dimension(:) :: states
      double precision                              , allocatable, dimension(:) :: rootVarianceTargetFractional
      type   (varying_string                       )                            :: rootVarianceTargetFractionalParameter
      integer                                                                   :: indexRootVarianceTargetFractional
-     logical                                                                   :: includeEmulatorVariance              , initialized
+     logical                                                                   :: includeEmulatorVariance                        , initialized
    contains
      !![
      <methods docformat="rst">
@@ -182,14 +182,14 @@ contains
     implicit none
     type            (posteriorSampleLikelihoodEmulated    )                              :: self
     type            (inputParameters                      ), intent(inout)               :: parameters
-    type            (emulatedEmulatorList                 ), pointer                     :: emulators                   , emulator_
+    type            (emulatedEmulatorList                 ), pointer                     :: emulators                            , emulator_
     type            (varying_string                       ), allocatable  , dimension(:) :: likelihoodForms
     type            (enumerationEmulatedLikelihoodFormType), allocatable  , dimension(:) :: likelihoodForms_
     double precision                                       , allocatable  , dimension(:) :: rootVarianceTargetFractional
     type            (varying_string                       )                              :: rootVarianceTargetFractionalParameter
     logical                                                                              :: includeEmulatorVariance
-    integer                                                                              :: countEmulators              , countForms, &
-         &                                                                                  countRootVariances          , i
+    integer                                                                              :: countEmulators                       , countForms, &
+         &                                                                                  countRootVariances                   , i
 
     countEmulators=parameters%copiesCount('emulator',zeroIfNotPresent=.true.)
     if (countEmulators < 1) call Error_Report('at least one emulator must be given'//{introspection:location})
@@ -304,8 +304,8 @@ contains
        !!]
        emulator_ => emulator_%next
     end do
-    if (size(likelihoodForms             ) /= countEmulators) call Error_Report('a likelihood form must be given for each emulator'                         //{introspection:location})
-    if (size(rootVarianceTargetFractional) /= countEmulators) call Error_Report('a fractional root variance of counts must be given for each emulator'//{introspection:location})
+    if (size(likelihoodForms             ) /= countEmulators ) call Error_Report('a likelihood form must be given for each emulator'                   //{introspection:location})
+    if (size(rootVarianceTargetFractional) /= countEmulators ) call Error_Report('a fractional root variance of counts must be given for each emulator'//{introspection:location})
     if (any (rootVarianceTargetFractional  <  0.0d0         )) call Error_Report('fractional root variances of counts must be non-negative'            //{introspection:location})
     self%indexRootVarianceTargetFractional=0
     self%initialized=.false.
@@ -338,7 +338,7 @@ contains
     the emulators were trained, and find the bins of each target dataset to include in the likelihood.
     !!}
     use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : operator(//)  , operator(==), var_str, len
+    use :: ISO_Varying_String, only : operator(//), operator(==), var_str, len
     use :: String_Handling   , only : operator(//)
     implicit none
     class           (posteriorSampleLikelihoodEmulated), intent(inout)                 :: self
@@ -413,11 +413,11 @@ contains
             call emulator_%emulator_%counts(state%countTarget,state%countPerValue)
             if (size(state%countTarget) /= n .or. size(state%countPerValue) /= n) call Error_Report('target counts have the wrong number of bins'//{introspection:location})
             do i=1,n
-               state%included(i)=emulatedIsFinite(state%countTarget(i)) .and. emulatedIsFinite(state%countPerValue(i))
+               state%included(i)=emulatedIsFinite(state%countTarget(i)) .and. emulatedIsFinite(state%countPerValue   (i  ))
             end do
          else
             do i=1,n
-               state%included(i)=emulatedIsFinite(state%yTarget(i)) .and. emulatedIsFinite(state%covarianceTarget(i,i))
+               state%included(i)=emulatedIsFinite(state%yTarget    (i)) .and. emulatedIsFinite(state%covarianceTarget(i,i))
             end do
          end if
          if (self%likelihoodForms(k) == emulatedLikelihoodFormGaussianCovariance) then
@@ -439,7 +439,7 @@ contains
        do j=1,size(modelParametersActive_)
           if (modelParametersActive_(j)%modelParameter_%name() == self%rootVarianceTargetFractionalParameter) self%indexRootVarianceTargetFractional=j
        end do
-       if (self%indexRootVarianceTargetFractional == 0) call Error_Report(var_str("parameter '")//self%rootVarianceTargetFractionalParameter//"' (giving the fractional root variance of counts) is not an active parameter"//{introspection:location})
+       if (self%indexRootVarianceTargetFractional == 0) call Error_Report(var_str("parameter '")//self%rootVarianceTargetFractionalParameter//"' (giving the fractional root variance of counts) is not an active parameter"      //{introspection:location})
        if (used(self%indexRootVarianceTargetFractional)) call Error_Report(var_str("parameter '")//self%rootVarianceTargetFractionalParameter//"' gives the fractional root variance of counts, so can not also be an input to an emulator"//{introspection:location})
        if (.not.any([(self%likelihoodForms(i) == emulatedLikelihoodFormPoissonCounts,i=1,size(self%likelihoodForms))])) call Error_Report('`rootVarianceTargetFractionalParameter` is given, but no emulator uses the `poissonCounts` likelihood form'//{introspection:location})
        used(self%indexRootVarianceTargetFractional)=.true.
@@ -571,7 +571,7 @@ contains
                     &     +rootVarianceFractional**2*varianceFractional
                if (dispersion > 0.0d0) then
                   ! Negative binomial distribution, with stopping-time parameter r=1/dispersion.
-                  emulatedEvaluate=+emulatedEvaluate                                                                         &
+                  emulatedEvaluate=+emulatedEvaluate                                                                             &
                        &           +countTarget                     *log                       (                countExpected  ) &
                        &           -                                 Logarithmic_Factorial     (nint(countTarget)              ) &
                        &           +                                 Gamma_Function_Logarithmic(1.0d0/dispersion+countTarget   ) &
@@ -581,14 +581,14 @@ contains
                   gradientCount   =+countTarget/countExpected-(countTarget+1.0d0/dispersion)/(countExpected+1.0d0/dispersion)
                else
                   ! Poisson distribution.
-                  emulatedEvaluate=+emulatedEvaluate                                            &
+                  emulatedEvaluate=+emulatedEvaluate                                        &
                        &           +countTarget*log                  (     countExpected  ) &
                        &           -            Logarithmic_Factorial(nint(countTarget   )) &
                        &           -                                       countExpected
                   gradientCount   =+countTarget/countExpected-1.0d0
                end if
-               varianceLogLikelihood=+varianceLogLikelihood               &
-                    &                +(gradientCount*derivativeCount)**2  &
+               varianceLogLikelihood=+varianceLogLikelihood              &
+                    &                +(gradientCount*derivativeCount)**2 &
                     &                *variance(i)
             end do
          else

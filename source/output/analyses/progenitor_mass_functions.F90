@@ -1072,7 +1072,7 @@ contains
     if (allocated(self%functionCountTarget)) then
        call analysisGroup%writeAttribute(self%massRatioLikelihoodMinimum,'xLikelihoodMinimum')
        call analysisGroup%writeAttribute(self%massRatioLikelihoodMaximum,'xLikelihoodMaximum')
-       call analysisGroup%writeDataset  (dble(self%functionCountTarget)                     ,'countTarget'  ,'Target counts in each bin'                               )
+       call analysisGroup%writeDataset  (dble(self%functionCountTarget)                     ,'countTarget'  ,'Target counts in each bin'                                  )
        call analysisGroup%writeDataset  (     self%countConversionFactor/self%massRatios    ,'countPerValue','Factor converting the function value in each bin to a count')
     end if
     return

@@ -125,9 +125,9 @@ contains
     use            :: Error             , only : Error_Report
     use            :: HDF5_Access       , only : hdf5Access
     use            :: IO_HDF5           , only : hdf5File     , hdf5Group
-    use            :: ISO_Varying_String, only : char         , operator(//), operator(/=)  , operator(==), &
+    use            :: ISO_Varying_String, only : char         , operator(//) , operator(/=)  , operator(==), &
          &                                       var_str      , assignment(=)
-    use            :: Linear_Algebra    , only : assignment(=), matrix      , matrixCholesky
+    use            :: Linear_Algebra    , only : assignment(=), matrix       , matrixCholesky
     use            :: String_Handling   , only : operator(//)
     implicit none
     type            (emulatorGaussianProcess)                              :: self
