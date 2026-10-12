@@ -54,15 +54,13 @@ def get_fortran_line(file_obj: IO[str]) -> tuple[str, str, str]:
         # and not when '!' is followed by '$' (OpenMP directive).
         if '!' not in tmp_line:
             comment_position = -1
-        elif _fast_comment_check(tmp_line):
+        else:
             # The regex checks for '!' before any quote or brace, not followed by '$'.
             m = _COMMENT_START_RE.match(tmp_line)
             if m:
                 comment_position = len(m.group(1))
             else:
                 comment_position = _find_comment_position(tmp_line)
-        else:
-            comment_position = _find_comment_position(tmp_line)
 
         raw_line += line
         # Strip trailing newline from processed_line before appending the next chunk.
@@ -76,16 +74,18 @@ def get_fortran_line(file_obj: IO[str]) -> tuple[str, str, str]:
             comment_text = line[comment_position + 1:]
             buffered_comments += comment_text.rstrip('\n')
 
-        # Strip leading continuation marker from continuation lines.
-        code_part = _LEADING_CONTINUATION_RE.sub('', code_part)
-        code_part = _LEADING_OPENMP_CONTINUATION_RE.sub('', code_part)
+        # Strip leading continuation marker from continuation lines. (Every continuation pattern requires an `&`, so
+        # the cheap membership tests here and below skip the regexes for the great majority of lines.)
+        if '&' in code_part:
+            code_part = _LEADING_CONTINUATION_RE.sub('', code_part)
+            code_part = _LEADING_OPENMP_CONTINUATION_RE.sub('', code_part)
 
         if processed_line:
             processed_line += ' '
         processed_line += code_part
 
         # If the processed line ends with '&', it continues onto the next line.
-        if _TRAILING_CONTINUATION_RE.search(processed_line):
+        if '&' in processed_line and _TRAILING_CONTINUATION_RE.search(processed_line):
             processed_line = _TRAILING_CONTINUATION_STRIP_RE.sub('', processed_line)
         elif not first_line and (line.startswith('#') or _PLAIN_COMMENT_RE.match(line)):
             # Preprocessor directive or plain comment inside continuation — concatenate.
@@ -96,11 +96,6 @@ def get_fortran_line(file_obj: IO[str]) -> tuple[str, str, str]:
         first_line = False
 
     return raw_line, processed_line, buffered_comments
-
-
-def _fast_comment_check(line: str) -> bool:
-    """Return True if the line may need the full comment-position scan."""
-    return bool(_COMMENT_START_RE.match(line))
 
 
 def _find_comment_position(line: str) -> int:
