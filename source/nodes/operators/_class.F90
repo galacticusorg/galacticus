@@ -25,7 +25,8 @@ module Nodes_Operators
   !!{RST
   Provides a class that implements physical processes.
   !!}
-  use :: Galacticus_Nodes, only : treeNode, interruptTask
+  use :: Galactic_Structure_Solvers, only : galacticStructureSolverClass
+  use :: Galacticus_Nodes           , only : treeNode, interruptTask
   private
 
   !![
@@ -208,6 +209,17 @@ module Nodes_Operators
       <argument>integer          , intent(inout) :: status</argument>
       <code>
 	!$GLC attributes unused :: self, node, status
+      </code>
+    </method>
+    <method name="galacticStructureSolverSet" >
+      <description>
+      Provide the galactic structure solver used during node evolution to operators which require structural response calculations.
+      </description>
+      <type>void</type>
+      <pass>yes</pass>
+      <argument>class(galacticStructureSolverClass), intent(inout), target :: galacticStructureSolver</argument>
+      <code>
+	!$GLC attributes unused :: self, galacticStructureSolver
       </code>
     </method>
   </functionClass>
