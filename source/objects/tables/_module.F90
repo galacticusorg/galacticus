@@ -494,6 +494,11 @@ module Tables
 
      ``tablePrevious`` and ``dTablePrevious`` are negative unless the corresponding quantity has been computed, so
      ``interpolationReset`` invalidates both by setting them so.
+
+     Beyond the tabulated range of an axis its extrapolation type is honored: ``fix`` holds the interpolant at its value on the
+     boundary, ``zero`` makes it zero, and ``abort`` is an error. In the first two cases the interpolation factors record (in
+     ``xClamped`` or ``yClamped``) that the gradient with respect to that axis is zero, and in the second (in ``xZeroed`` or
+     ``yZeroed``) that the interpolant, and so every gradient, is zero.
      !!}
      integer          :: i                   , j                   , &
           &              tablePrevious       , dTablePrevious      , &
@@ -505,7 +510,9 @@ module Tables
           &              zPrevious           , dzPrevious          , &
           &              xPrevious           , yPrevious           , &
           &              dxPrevious          , dyPrevious
-     logical          :: xPreviousSet        , yPreviousSet
+     logical          :: xPreviousSet        , yPreviousSet        , &
+          &              xClamped            , yClamped            , &
+          &              xZeroed             , yZeroed
    contains
      !![
      <methods docformat="rst">
@@ -3219,9 +3226,14 @@ contains
        self%xPrevious    =x
        self%yPrevious    =y
        self%tablePrevious=tableActual
-       self%zPrevious    =                                                                                                           &
-            & +(self%zv(self%i,self%j  ,tableActual)*(1.0d0-self%hx)+self%zv(self%i+1,self%j  ,tableActual)*self%hx)*(1.0d0-self%hy) &
-            & +(self%zv(self%i,self%j+1,tableActual)*(1.0d0-self%hx)+self%zv(self%i+1,self%j+1,tableActual)*self%hx)*       self%hy
+       if (self%xZeroed .or. self%yZeroed) then
+          ! Beyond the range of an axis with "zero" extrapolation the interpolant is zero.
+          self%zPrevious=0.0d0
+       else
+          self%zPrevious=                                                                                                           &
+               & +(self%zv(self%i,self%j  ,tableActual)*(1.0d0-self%hx)+self%zv(self%i+1,self%j  ,tableActual)*self%hx)*(1.0d0-self%hy) &
+               & +(self%zv(self%i,self%j+1,tableActual)*(1.0d0-self%hx)+self%zv(self%i+1,self%j+1,tableActual)*self%hx)*       self%hy
+       end if
     end if
     ! Return the stored value.
     Table_2DLogLogLin_Interpolate=self%zPrevious
@@ -3247,24 +3259,35 @@ contains
     if (.not.(x == self%dxPrevious .and. y == self%dyPrevious .and. tableActual == self%dTablePrevious .and. dim == self%dimPrevious)) then
        ! Update interpolation factors.
        call self%interpolationFactors(x,y)
-       ! Perform the interpolation.
+       ! Perform the interpolation. Beyond the range of an axis with "fix" or "zero" extrapolation the interpolant is independent
+       ! of that coordinate, so the gradient with respect to it is zero, and the interpolation factors have already been pinned
+       ! to the boundary so the gradient with respect to the other coordinate needs no such treatment. Under "zero" extrapolation
+       ! the interpolant is zero, and so is its gradient with respect to either coordinate. (A zeroed axis is always clamped too.)
        select case (dim)
        case (1)
-          self%dzPrevious=                                                                                         &
-               & +(                                                                                                &
-               &   +(-self%zv(self%i,self%j  ,tableActual)+self%zv(self%i+1,self%j  ,tableActual))*(1.0d0-self%hy) &
-               &   +(-self%zv(self%i,self%j+1,tableActual)+self%zv(self%i+1,self%j+1,tableActual))*       self%hy  &
-               &  )                                                                                                &
-               & *self%inverseDeltaX                                                                               &
-               & /self%xLinearPrevious
+          if (self%xClamped .or. self%yZeroed) then
+             self%dzPrevious=0.0d0
+          else
+             self%dzPrevious=                                                                                         &
+                  & +(                                                                                                &
+                  &   +(-self%zv(self%i,self%j  ,tableActual)+self%zv(self%i+1,self%j  ,tableActual))*(1.0d0-self%hy) &
+                  &   +(-self%zv(self%i,self%j+1,tableActual)+self%zv(self%i+1,self%j+1,tableActual))*       self%hy  &
+                  &  )                                                                                                &
+                  & *self%inverseDeltaX                                                                               &
+                  & /self%xLinearPrevious
+          end if
        case (2)
-          self%dzPrevious=                                                                                         &
-               & +(                                                                                                &
-               &   +(-self%zv(self%i  ,self%j,tableActual)+self%zv(self%i  ,self%j+1,tableActual))*(1.0d0-self%hx) &
-               &   +(-self%zv(self%i+1,self%j,tableActual)+self%zv(self%i+1,self%j+1,tableActual))*       self%hx  &
-               &  )                                                                                                &
-               & *self%inverseDeltaY                                                                               &
-               & /self%yLinearPrevious
+          if (self%yClamped .or. self%xZeroed) then
+             self%dzPrevious=0.0d0
+          else
+             self%dzPrevious=                                                                                         &
+                  & +(                                                                                                &
+                  &   +(-self%zv(self%i  ,self%j,tableActual)+self%zv(self%i  ,self%j+1,tableActual))*(1.0d0-self%hx) &
+                  &   +(-self%zv(self%i+1,self%j,tableActual)+self%zv(self%i+1,self%j+1,tableActual))*       self%hx  &
+                  &  )                                                                                                &
+                  & *self%inverseDeltaY                                                                               &
+                  & /self%yLinearPrevious
+          end if
        case default
           call Error_Report('1 ≤ dim ≤ 2 is required'//{introspection:location})
        end select
@@ -3290,35 +3313,77 @@ contains
        self%xPreviousSet        =.true.
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
-       ! Determine the location in the table.
-       if      (self%xLogarithmicPrevious <  self%xv(          1)) then
-          self%i=1
-       else if (self%xLogarithmicPrevious >= self%xv(self%xCount)) then
-          self%i=self%xCount-1
-       else
-          self%i=int((self%xLogarithmicPrevious-self%xv(1))*self%inverseDeltaX)+1
-       end if
-       ! Compute interpolation factor.
-       self%hx=(self%xLogarithmicPrevious-self%xv(self%i))*self%inverseDeltaX
+       call Table_2DLogLogLin_Axis_Factors(self%xLogarithmicPrevious,self%xv,self%inverseDeltaX,self%extrapolationTypeX,'x',self%i,self%hx,self%xClamped,self%xZeroed)
     end if
     ! Update interpolation factors for y if necessary.
     if (.not.self%yPreviousSet .or. y /= self%yLinearPrevious) then
        self%yPreviousSet        =.true.
        self%yLinearPrevious     =    y
        self%yLogarithmicPrevious=log(y)
-       ! Determine the location in the table.
-       if      (self%yLogarithmicPrevious <  self%yv(          1)) then
-          self%j=1
-       else if (self%yLogarithmicPrevious >= self%yv(self%yCount)) then
-          self%j=self%yCount-1
-       else
-          self%j=int((self%yLogarithmicPrevious-self%yv(1))*self%inverseDeltaY)+1
-       end if
-       ! Compute interpolation factor.
-       self%hy=(self%yLogarithmicPrevious-self%yv(self%j))*self%inverseDeltaY
+       call Table_2DLogLogLin_Axis_Factors(self%yLogarithmicPrevious,self%yv,self%inverseDeltaY,self%extrapolationTypeY,'y',self%j,self%hy,self%yClamped,self%yZeroed)
     end if
     return
   end subroutine Table_2DLogLogLin_Interpolation_Factors
+
+  subroutine Table_2DLogLogLin_Axis_Factors(coordinate,abscissae,inverseDelta,extrapolationType,label,i,h,isClamped,isZeroed)
+    !!{RST
+    Find the bracketing index, ``i``, and interpolation factor, ``h``, along one axis of a 2D log-log-linear table at internal
+    coordinate ``coordinate``, applying the extrapolation type of that axis beyond its tabulated range. ``isClamped`` is
+    returned true if the interpolant is independent of the coordinate there (under ``fix`` or ``zero`` extrapolation), and
+    ``isZeroed`` if it is zero (under ``zero`` extrapolation).
+    !!}
+    use :: Error       , only : Error_Report
+    use :: Table_Labels, only : extrapolationTypeExtrapolate, extrapolationTypeFix, extrapolationTypeZero, extrapolationTypeAbort
+    implicit none
+    double precision                                  , intent(in   )               :: coordinate       , inverseDelta
+    double precision                                  , intent(in   ), dimension(:) :: abscissae
+    type            (enumerationExtrapolationTypeType), intent(in   )               :: extrapolationType
+    character       (len=1                           ), intent(in   )               :: label
+    integer                                           , intent(  out)               :: i
+    double precision                                  , intent(  out)               :: h
+    logical                                           , intent(  out)               :: isClamped        , isZeroed
+    integer                                                                         :: count
+
+    count    =size(abscissae)
+    isClamped=.false.
+    isZeroed =.false.
+    ! Determine the location in the table. Within the range the index is limited so that the upper end of the range falls in
+    ! the final interval.
+    if      (coordinate < abscissae(    1)) then
+       i=1
+    else if (coordinate > abscissae(count)) then
+       i=count-1
+    else
+       i=min(int((coordinate-abscissae(1))*inverseDelta)+1,count-1)
+    end if
+    ! Compute interpolation factor.
+    h=(coordinate-abscissae(i))*inverseDelta
+    ! Apply the extrapolation type beyond the range.
+    if (coordinate < abscissae(1) .or. coordinate > abscissae(count)) then
+       select case (extrapolationType%ID)
+       case (extrapolationTypeExtrapolate%ID)
+          ! Nothing to do - the interpolation factor extrapolates linearly from the final interval.
+       case (extrapolationTypeFix        %ID,extrapolationTypeZero%ID)
+          ! Pin the interpolation factor to the boundary.
+          if (coordinate < abscissae(1)) then
+             h=0.0d0
+          else
+             h=1.0d0
+          end if
+          isClamped=.true.
+          isZeroed =extrapolationType == extrapolationTypeZero
+       case (extrapolationTypeAbort      %ID)
+          if (coordinate < abscissae(1)) then
+             call Error_Report(label//' is below range - extrapolation type "abort" forbids extrapolation'//{introspection:location})
+          else
+             call Error_Report(label//' is above range - extrapolation type "abort" forbids extrapolation'//{introspection:location})
+          end if
+       case default
+          call Error_Report(label//' is out of range - unknown extrapolation method'//{introspection:location})
+       end select
+    end if
+    return
+  end subroutine Table_2DLogLogLin_Axis_Factors
 
   subroutine Table_2DLogLogLin_Interpolation_Reset(self)
     !!{RST

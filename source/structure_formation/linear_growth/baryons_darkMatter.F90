@@ -298,7 +298,7 @@ contains
     use    :: Numerical_ODE_Solvers, only : odeSolver
     use    :: Numerical_Ranges     , only : Range_Pinned                    , Range_Lattice_Offset, gridSchemePerDecade
     !$ use :: OMP_Lib              , only : omp_lock_kind
-    use    :: Table_Labels         , only : extrapolationTypeAbort          , extrapolationTypeFix
+    use    :: Table_Labels         , only : extrapolationTypeExtrapolate    , extrapolationTypeFix
     use    :: Tables               , only : table1DGeneric
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout)               :: self
@@ -439,7 +439,10 @@ contains
           call Move_Alloc(self%valueBaryonsFinal        ,valueBaryonsPrevious             )
           call Move_Alloc(self%derivativeBaryonsFinal   ,derivativeBaryonsPrevious        )
        end if
-       call self%growthFactor%extend(latticeTime,latticeWavenumber,isComputed,tableCount=2,extrapolationTypeX=extrapolationTypeAbort,extrapolationTypeY=extrapolationTypeFix)
+       ! The growth factor is extrapolated to times before the initial epoch, as some callers (the initial conditions of the
+       ! Gnedin (2000) filtering mass, and σ(M) tabulated to early times) request it there. Beyond the tabulated range of
+       ! wavenumber it is held fixed at its value on the boundary, where it becomes independent of wavenumber.
+       call self%growthFactor%extend(latticeTime,latticeWavenumber,isComputed,tableCount=2,extrapolationTypeX=extrapolationTypeExtrapolate,extrapolationTypeY=extrapolationTypeFix)
        self%latticeTime           =latticeTime
        self%latticeWavenumber     =latticeWavenumber
        growthTableNumberPoints    =latticeTime      %count
@@ -819,7 +822,7 @@ contains
     use :: IO_HDF5         , only : hdf5File
     use :: Numerical_Ranges, only : gridSchemePerDecade
     use :: Table_Caches    , only : Table_Cache_Lattice_Read
-    use :: Table_Labels    , only : extrapolationTypeAbort  , extrapolationTypeFix
+    use :: Table_Labels    , only : extrapolationTypeExtrapolate, extrapolationTypeFix
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout)               :: self
     double precision                               , dimension(:,:), allocatable :: growthFactorDarkMatter, growthFactorBaryons
@@ -873,14 +876,15 @@ contains
          & ) return
     if (self%tableInitialized) call self%growthFactor%destroy()
     ! Build the table on the lattices recorded in the file, rather than by subdividing the ranges they span, so that its
-    ! abscissae are bit-identical to those of any other tabulation built on the same lattices.
-    call self%growthFactor%extend  (                                           &
-         &                                              latticeTime          , &
-         &                                              latticeWavenumber    , &
-         &                                              isComputed           , &
-         &                          tableCount        =2                     , &
-         &                          extrapolationTypeX=extrapolationTypeAbort, &
-         &                          extrapolationTypeY=extrapolationTypeFix    &
+    ! abscissae are bit-identical to those of any other tabulation built on the same lattices. The extrapolation types are
+    ! those of a table built by retabulation (see `baryonsDarkMatterRetabulate`).
+    call self%growthFactor%extend  (                                                 &
+         &                                              latticeTime                , &
+         &                                              latticeWavenumber          , &
+         &                                              isComputed                 , &
+         &                          tableCount        =2                           , &
+         &                          extrapolationTypeX=extrapolationTypeExtrapolate, &
+         &                          extrapolationTypeY=extrapolationTypeFix          &
          &                         )
     call self%growthFactor%populate(growthFactorDarkMatter,table=indexDarkMatter)
     call self%growthFactor%populate(growthFactorBaryons   ,table=indexBaryons   )

@@ -500,6 +500,48 @@ program Test_Tables
   end do
   call Unit_Tests_End_Group()
 
+  ! Test values and gradients of 2D tables beyond their range, as for the 1D tables above.
+  call Unit_Tests_Begin_Group("2D table range")
+  do i=1,4
+     if (i == 1 .or. i == 3) then
+        extrapolationRange=extrapolationTypeFix
+        labelExtrapolation='fix'
+     else
+        extrapolationRange=extrapolationTypeZero
+        labelExtrapolation='zero'
+     end if
+     logarithmic=i <= 2
+     if (logarithmic) then
+        allocate(table2DLogLogLin :: myTable2DGeneric)
+     else
+        allocate(table2DLinLinLin :: myTable2DGeneric)
+     end if
+     select type (myTable2DGeneric)
+     type is (table2DLogLogLin)
+        call myTable2DGeneric%create(1.0d0,1.0d3,7,1.0d0,1.0d3,7,extrapolationTypeX=extrapolationRange,extrapolationTypeY=extrapolationRange)
+        do j=1,7
+           do offset=1,7
+              call myTable2DGeneric%populate(log(myTable2DGeneric%x(j))+2.0d0*log(myTable2DGeneric%y(offset)),j,offset)
+           end do
+        end do
+     type is (table2DLinLinLin)
+        call myTable2DGeneric%create(Make_Range(1.0d0,7.0d0,7,rangeType=rangeTypeLinear),Make_Range(1.0d0,7.0d0,7,rangeType=rangeTypeLinear),extrapolationTypeX=extrapolationRange,extrapolationTypeY=extrapolationRange)
+        do j=1,7
+           do offset=1,7
+              call myTable2DGeneric%populate(myTable2DGeneric%x(j)+2.0d0*myTable2DGeneric%y(offset),j,offset)
+           end do
+        end do
+     end select
+     if (logarithmic) then
+        call Test_Table_2D_Range('logLogLin ('//trim(labelExtrapolation)//')',myTable2DGeneric,logarithmic,extrapolationRange == extrapolationTypeZero)
+     else
+        call Test_Table_2D_Range('linLinLin ('//trim(labelExtrapolation)//')',myTable2DGeneric,logarithmic,extrapolationRange == extrapolationTypeZero)
+     end if
+     call myTable2DGeneric%destroy()
+     deallocate(myTable2DGeneric)
+  end do
+  call Unit_Tests_End_Group()
+
   ! Test extension of tables onto an absolute lattice.
   call Unit_Tests_Begin_Group("Table extension")
 
@@ -783,6 +825,75 @@ contains
     call Assert(label//': gradient below range' ,table_%interpolateGradient(xBelow ),0.0d0         ,absTol=absTol,relTol=relTol)
     return
   end subroutine Test_Table_Range
+
+  subroutine Test_Table_2D_Range(label,table_,logarithmic,zero)
+    !!{RST
+    Run a set of assertions over a two-dimensional table populated with :math:`z=f(x)+2f(y)` at its :math:`7\times 7` points. A
+    linear table spans :math:`1 \le x,y \le 7` with :math:`f(x)=x`. A logarithmic table spans :math:`1 \le x,y \le 1000` with
+    :math:`f(x)=\log x`. Every interpolant reproduces these exactly within the range. Beyond the range of an axis, with "fix"
+    extrapolation the value is that at the boundary of that axis and the gradient with respect to that axis is zero, while the
+    gradient with respect to the other axis is unchanged. With "zero" extrapolation (``zero`` is true) the value and both
+    gradients are zero.
+    !!}
+    implicit none
+    character       (len=*  ), intent(in   ) :: label
+    class           (table2D), intent(inout) :: table_
+    logical                  , intent(in   ) :: logarithmic   , zero
+    double precision                         :: xWithin       , yWithin       , &
+         &                                      xAbove        , fWithinX      , &
+         &                                      fWithinY      , fMinimum      , &
+         &                                      fMaximum      , gradientX     , &
+         &                                      gradientY     , beyond
+    double precision         , parameter     :: xBelow=0.5d0
+    double precision         , parameter     :: absTol=1.0d-12, relTol=1.0d-6
+
+    if (logarithmic) then
+       xWithin  =1.0d2
+       yWithin  =3.0d1
+       xAbove   =2.0d3
+       fWithinX =log(xWithin)
+       fWithinY =log(yWithin)
+       fMinimum =0.0d0
+       fMaximum =log(1.0d3)
+       gradientX=1.0d0/xWithin
+       gradientY=2.0d0/yWithin
+    else
+       xWithin  =4.5d0
+       yWithin  =2.5d0
+       xAbove   =1.0d1
+       fWithinX =xWithin
+       fWithinY =yWithin
+       fMinimum =1.0d0
+       fMaximum =7.0d0
+       gradientX=1.0d0
+       gradientY=2.0d0
+    end if
+    ! Beyond the range every expected result is multiplied by this factor - unity under "fix" extrapolation, zero under "zero".
+    if (zero) then
+       beyond=0.0d0
+    else
+       beyond=1.0d0
+    end if
+    call Assert(label//': value within range'               ,table_%interpolate        (xWithin,yWithin  ),       fWithinX+2.0d0*fWithinY ,absTol=absTol,relTol=relTol)
+    call Assert(label//': x-gradient within range'          ,table_%interpolateGradient(xWithin,yWithin,1),       gradientX               ,absTol=absTol,relTol=relTol)
+    call Assert(label//': y-gradient within range'          ,table_%interpolateGradient(xWithin,yWithin,2),       gradientY               ,absTol=absTol,relTol=relTol)
+    call Assert(label//': value with x above range'         ,table_%interpolate        (xAbove ,yWithin  ),beyond*(fMaximum+2.0d0*fWithinY),absTol=absTol,relTol=relTol)
+    call Assert(label//': x-gradient with x above range'    ,table_%interpolateGradient(xAbove ,yWithin,1),0.0d0                          ,absTol=absTol,relTol=relTol)
+    call Assert(label//': y-gradient with x above range'    ,table_%interpolateGradient(xAbove ,yWithin,2),beyond*gradientY               ,absTol=absTol,relTol=relTol)
+    call Assert(label//': value with x below range'         ,table_%interpolate        (xBelow ,yWithin  ),beyond*(fMinimum+2.0d0*fWithinY),absTol=absTol,relTol=relTol)
+    call Assert(label//': x-gradient with x below range'    ,table_%interpolateGradient(xBelow ,yWithin,1),0.0d0                          ,absTol=absTol,relTol=relTol)
+    call Assert(label//': y-gradient with x below range'    ,table_%interpolateGradient(xBelow ,yWithin,2),beyond*gradientY               ,absTol=absTol,relTol=relTol)
+    call Assert(label//': value with y above range'         ,table_%interpolate        (xWithin,xAbove   ),beyond*(fWithinX+2.0d0*fMaximum),absTol=absTol,relTol=relTol)
+    call Assert(label//': x-gradient with y above range'    ,table_%interpolateGradient(xWithin,xAbove ,1),beyond*gradientX               ,absTol=absTol,relTol=relTol)
+    call Assert(label//': y-gradient with y above range'    ,table_%interpolateGradient(xWithin,xAbove ,2),0.0d0                          ,absTol=absTol,relTol=relTol)
+    call Assert(label//': value with y below range'         ,table_%interpolate        (xWithin,xBelow   ),beyond*(fWithinX+2.0d0*fMinimum),absTol=absTol,relTol=relTol)
+    call Assert(label//': x-gradient with y below range'    ,table_%interpolateGradient(xWithin,xBelow ,1),beyond*gradientX               ,absTol=absTol,relTol=relTol)
+    call Assert(label//': y-gradient with y below range'    ,table_%interpolateGradient(xWithin,xBelow ,2),0.0d0                          ,absTol=absTol,relTol=relTol)
+    call Assert(label//': value with x above, y below range',table_%interpolate        (xAbove ,xBelow   ),beyond*(fMaximum+2.0d0*fMinimum),absTol=absTol,relTol=relTol)
+    call Assert(label//': x-gradient with x above, y below' ,table_%interpolateGradient(xAbove ,xBelow ,1),0.0d0                          ,absTol=absTol,relTol=relTol)
+    call Assert(label//': y-gradient with x above, y below' ,table_%interpolateGradient(xAbove ,xBelow ,2),0.0d0                          ,absTol=absTol,relTol=relTol)
+    return
+  end subroutine Test_Table_2D_Range
 
   subroutine Test_Table_2D(label,table_)
     !!{RST
