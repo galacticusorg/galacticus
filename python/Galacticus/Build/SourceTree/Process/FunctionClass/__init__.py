@@ -20,12 +20,12 @@ Andrew Benson (ported to Python 2026)
 
 import os
 import re
-import xml.etree.ElementTree as ET
 
 
 from List.ExtraUtils                                         import as_array
 from Sort.Topo                                               import sort as topo_sort
-from XML.Utils                                               import xml_to_dict, xml_escape
+from XML.Utils                                               import xml_escape
+from Galacticus.Build                                        import Catalogs
 from Galacticus.Build.StateStorables                         import (
     function_class_names    as _shared_function_class_names,
     function_class_instances as _shared_function_class_instances,
@@ -158,7 +158,7 @@ def _load_xml(name, cache_attr):
     if not os.path.exists(path):
         cache_attr['value'] = {}
         return cache_attr['value']
-    cache_attr['value'] = xml_to_dict(ET.parse(path).getroot())
+    cache_attr['value'] = Catalogs.load(path)
     return cache_attr['value']
 
 

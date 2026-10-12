@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 
 
 from XML.Utils import xml_to_dict
+from Galacticus.Build import Catalogs
 
 try:
     from lxml import etree as _lxml_etree  # type: ignore[import-not-found]
@@ -17,15 +18,12 @@ except ImportError:
     _lxml_etree = None
     _HAS_LXML = False
 
-# Cached stateStorables.xml content, loaded lazily from $BUILDPATH.
 # Patterns applied to every line of a node's content when splitting out directives.
 _EMBEDDED_PREFIX_RE = re.compile(r'^\s*!<\s*')
 _XML_OPEN_RE        = re.compile(r'^\s*!!\[')
 _XML_CLOSE_RE       = re.compile(r'^\s*!!\]')
 _XML_ROOT_TAG_RE    = re.compile(r'^\s*<([^\s>/]+)')
 
-_state_storables = None
-_state_storables_loaded = False
 
 # Define the directory where schemas are stored
 EXEC_PATH = os.environ.get('GALACTICUS_EXEC_PATH')
@@ -51,14 +49,10 @@ if _HAS_LXML:
             return None
 
 def _load_state_storables():
-    """Load $BUILDPATH/stateStorables.xml once and cache it.
+    """Load $BUILDPATH/stateStorables.xml (cached by `Galacticus.Build.Catalogs`).
 
     Returns None if BUILDPATH is unset or the file is missing.
     """
-    global _state_storables, _state_storables_loaded
-    if _state_storables_loaded:
-        return _state_storables
-    _state_storables_loaded = True
     build_path = os.environ.get('BUILDPATH')
     if not build_path:
         return None
@@ -66,11 +60,9 @@ def _load_state_storables():
     if not os.path.exists(path):
         return None
     try:
-        root = ET.parse(path).getroot()
+        return Catalogs.load(path)
     except ET.ParseError:
         return None
-    _state_storables = xml_to_dict(root)
-    return _state_storables
 
 
 # XSD schema templates.  `{name}` is filled in with the directive name.

@@ -12,7 +12,7 @@ import re
 import xml.etree.ElementTree as ET
 
 
-from XML.Utils                                      import xml_to_dict
+from Galacticus.Build                               import Catalogs
 from Galacticus.Build.StateStorables                import function_class_entries
 from Galacticus.Build.Capabilities                  import parse_withholds
 from Galacticus.Build.SourceTree                    import (
@@ -37,7 +37,7 @@ def _load_state_storables():
     if not build_path:
         raise RuntimeError("process_object_builder: BUILDPATH is not set")
     path = os.path.join(build_path, 'stateStorables.xml')
-    _STATE_STORABLES = xml_to_dict(ET.parse(path).getroot())
+    _STATE_STORABLES = Catalogs.load(path)
     return _STATE_STORABLES
 
 

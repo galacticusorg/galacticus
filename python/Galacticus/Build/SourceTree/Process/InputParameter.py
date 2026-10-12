@@ -9,54 +9,11 @@ a fatal error if the value read violates the bound.
 Andrew Benson (ported to Python 2026)
 """
 
-import os
 import re
-import xml.etree.ElementTree as ET
 
-
-from XML.Utils                                    import xml_to_dict
 from Galacticus.Build.SourceTree                  import walk_tree, insert_after_node
 from Galacticus.Build.SourceTree.Process          import register_process
 from Galacticus.Build.SourceTree.Parse.ModuleUses import add_uses
-
-
-def _read_executables(build_path):
-    """Return the list of non-test executables listed on `all_exes = …` of
-    `$BUILDPATH/Makefile_All_Execs`.
-    """
-    path = os.path.join(build_path, 'Makefile_All_Execs')
-    executables = []
-    with open(path, 'r', errors='replace') as fh:
-        for line in fh:
-            m = re.match(r'^all_exes\s+=\s+(.*)', line)
-            if m:
-                executables = [
-                    token for token in m.group(1).split()
-                    if not token.startswith('tests.')
-                ]
-                break
-    return executables
-
-
-def _read_dependencies(build_path, executables):
-    """For each executable, parse `<exe>.d` and collect its object-file stems.
-
-    Missing `.d` files are silently skipped.  The returned shape is
-    `{exe: {stem: True}}`.
-    """
-    dependencies = {}
-    for executable in executables:
-        dep_name = re.sub(r'\.exe$', '.d', executable)
-        dep_path = os.path.join(build_path, dep_name)
-        if not os.path.exists(dep_path):
-            continue
-        dependencies[executable] = {}
-        with open(dep_path, 'r', errors='replace') as fh:
-            for line in fh:
-                m = re.search(r'([^/]+)\.o$', line.rstrip('\n'))
-                if m:
-                    dependencies[executable][m.group(1)] = True
-    return dependencies
 
 
 def _bound(raw):
@@ -90,19 +47,6 @@ def _double_literal(text, parameter):
 
 def process_input_parameters(tree, options):
     """Process `inputParameter` directives in the tree."""
-    build_path = os.environ.get('BUILDPATH')
-    if not build_path:
-        raise RuntimeError(
-            "process_input_parameters: BUILDPATH is not set")
-
-    # The executables/dependencies/directiveLocations reads are deliberately
-    # performed even when no inputParameter directives exist.
-    executables  = _read_executables(build_path)
-    _dependencies = _read_dependencies(build_path, executables)
-    _directive_locations_path = os.path.join(build_path, 'directiveLocations.xml')
-    if os.path.exists(_directive_locations_path):
-        xml_to_dict(ET.parse(_directive_locations_path).getroot())
-
     for node in walk_tree(tree):
         if node.get('type') != 'inputParameter':
             continue
