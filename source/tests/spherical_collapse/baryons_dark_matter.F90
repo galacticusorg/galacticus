@@ -242,7 +242,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   ! Test gradients with respect to mass against finite differences. These are evaluated at z=3, at a mass close to the
   ! filtering mass where the fraction of baryons accreted, and so the critical overdensity, depends strongly on mass.
   call Unit_Tests_Begin_Group("Spherical collapse: gradients with respect to mass")
-  criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgyBaryons_=criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy(                                                             &
+  criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgyBaryons_=criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy(                                                                                  &
        &                                                                                                              cosmologyParameters_             =cosmologyParametersBaryons_                   , &
        &                                                                                                              cosmologyFunctions_              =cosmologyFunctionsMatterLambda_               , &
        &                                                                                                              cosmologicalMassVariance_        =cosmologicalMassVarianceFilteredPower_        , &
@@ -268,7 +268,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
        &                  *stepMassFractional                                                                                           &
        &                 )
   call Assert('fraction of baryons accreted [z = 3.0]'  ,gradientMass,gradientMassNumerical,relTol=1.0d-6)
-  gradientMass         =+criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgyBaryons_%gradientMass(time=time,mass=mass                               )
+  gradientMass         =+criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgyBaryons_%gradientMass(time=time,mass=mass                           )
   gradientMassNumerical=+(                                                                                                                       &
        &                  +criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgyBaryons_%value     (time=time,mass=mass*(1.0d0+stepMassFractional)) &
        &                  -criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgyBaryons_%value     (time=time,mass=mass*(1.0d0-stepMassFractional)) &
