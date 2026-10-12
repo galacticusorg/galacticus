@@ -174,6 +174,18 @@ jobs:
         with:
           repository: galacticusorg/datasets
           path: datasets
+      - name: Cache dynamically-generated datasets
+        # The tables the training models build (and the FSPS and CAMB builds, as the tools path defaults to the same
+        # directory) are restored from the most recent successful run, so the warm-up below need only fill any gaps. The
+        # key is unique to each run, so each successful run saves its (possibly extended) cache, which the next restores
+        # by prefix; nothing is saved if the job fails. The prefix includes the training models, so changing them starts
+        # afresh.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ${{ github.workspace }}/datasets/dynamic
+          key: pgo-dynamic-${{ hashFiles('testSuite/parameters/pgo/*.xml') }}-${{ github.run_id }}
+          restore-keys: |
+            pgo-dynamic-${{ hashFiles('testSuite/parameters/pgo/*.xml') }}-
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -314,6 +326,16 @@ jobs:
         with:
           repository: galacticusorg/datasets
           path: datasets
+      - name: Restore dynamically-generated datasets
+        # Restore-only: reuse the cache which CI/CD's `testModel.yml` keeps for the same validation script (where one
+        # exists - see its `cacheData` input), without saving another copy.
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ${{ github.workspace }}/datasets/dynamic
+          key: dynamic-${{ matrix.file }}-${{ hashFiles(matrix.file, format('**/{0}',matrix.file)) }}-${{ github.run_id }}
+          restore-keys: |
+            dynamic-${{ matrix.file }}-${{ hashFiles(matrix.file, format('**/{0}',matrix.file)) }}-
+            dynamic-${{ matrix.file }}-
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
