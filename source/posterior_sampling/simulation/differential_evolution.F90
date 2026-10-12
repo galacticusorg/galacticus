@@ -17,6 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
   !!{RST
   Implementation of a posterior sampling simulation class which implements the differential evolution algorithm.
   !!}
@@ -575,9 +576,11 @@ contains
          &   )
        ! Initialize likelihood acceptance condition.
        forceAcceptance=.false.
-       ! Pick two random processes to use for proposal.
-       chainPair(1)=self%chainSelect(              )
-       chainPair(2)=self%chainSelect([chainPair(1)])
+       ! Pick two random processes, other than this one, to use for proposal. Allowing this chain to be chosen would make the
+       ! proposal asymmetric (an expansion away from, or contraction toward, the other chosen chain), biasing the sampled
+       ! distribution.
+       chainPair(1)=self%chainSelect([mpiSelf%rank()              ])
+       chainPair(2)=self%chainSelect([mpiSelf%rank(),chainPair(1)])
        ! Receive states from selected chains.
        stateVector=self%posteriorSampleState_%get()
        statePair  =mpiSelf%requestData(chainPair,stateVector)
@@ -760,7 +763,7 @@ contains
     integer                                                , intent(in   ), dimension(:), optional :: blockedChains
     logical                                                                                        :: accept
 
-    if (mpiSelf%count() < 2) call Error_Report('at least two chains are needed for differential evolution'//{introspection:location})
+    if (mpiSelf%count() < 3) call Error_Report('at least three chains are needed for differential evolution'//{introspection:location})
     accept=.false.
     do while (.not.accept)
        differentialEvolutionChainSelect=min(                                                  &
