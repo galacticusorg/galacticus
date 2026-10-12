@@ -175,13 +175,17 @@ jobs:
           repository: galacticusorg/datasets
           path: datasets
       - name: Cache dynamically-generated datasets
-        # The tables the training models build (and the FSPS and CAMB builds, as the tools path defaults to the same
-        # directory) are restored from the most recent successful run, so the warm-up below need only fill any gaps. The
-        # key is unique to each run, so each successful run saves its (possibly extended) cache, which the next restores
-        # by prefix; nothing is saved if the job fails. The prefix includes the training models, so changing them starts
-        # afresh. FSPS itself (its ~1 GB tarball, and the ~2.6 GB source tree holding its spectral and isochrone libraries)
-        # is excluded: once the tables built from its output exist, nothing needs FSPS, so caching it would only make each
-        # entry ~3 GB rather than ~0.1 GB.
+        # The tables the training models build (and the CAMB build, as the tools path defaults to the same directory) are
+        # restored from the most recent successful run, so the warm-up below need only fill any gaps. The key is unique to
+        # each run, so each successful run saves its (possibly extended) cache, which the next restores by prefix; nothing
+        # is saved if the job fails. The prefix includes the training models, so changing them starts afresh.
+        #
+        # Entries are scoped to the branch that saved them, and the repository's cache budget is shared with (and usually
+        # filled by) the CI/CD workflow's caches, so an entry may well be evicted before the next weekly run. It saves time
+        # chiefly when runs are close together (test dispatches, or a release soon after a scheduled run), and costs
+        # nothing when it misses. FSPS itself (its ~1 GB tarball, and the ~2.6 GB source tree holding its spectral and
+        # isochrone libraries) is excluded: once the tables built from its output exist nothing needs FSPS, so caching it
+        # would only make each entry ~3 GB rather than ~0.1 GB.
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
@@ -331,16 +335,6 @@ jobs:
         with:
           repository: galacticusorg/datasets
           path: datasets
-      - name: Restore dynamically-generated datasets
-        # Restore-only: reuse the cache which CI/CD's `testModel.yml` keeps for the same validation script (where one
-        # exists - see its `cacheData` input), without saving another copy.
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
-        with:
-          path: ${{ github.workspace }}/datasets/dynamic
-          key: dynamic-${{ matrix.file }}-${{ hashFiles(matrix.file, format('**/{0}',matrix.file)) }}-${{ github.run_id }}
-          restore-keys: |
-            dynamic-${{ matrix.file }}-${{ hashFiles(matrix.file, format('**/{0}',matrix.file)) }}-
-            dynamic-${{ matrix.file }}-
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
