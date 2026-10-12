@@ -3230,7 +3230,7 @@ contains
           ! Beyond the range of an axis with "zero" extrapolation the interpolant is zero.
           self%zPrevious=0.0d0
        else
-          self%zPrevious=                                                                                                           &
+          self%zPrevious=                                                                                                               &
                & +(self%zv(self%i,self%j  ,tableActual)*(1.0d0-self%hx)+self%zv(self%i+1,self%j  ,tableActual)*self%hx)*(1.0d0-self%hy) &
                & +(self%zv(self%i,self%j+1,tableActual)*(1.0d0-self%hx)+self%zv(self%i+1,self%j+1,tableActual)*self%hx)*       self%hy
        end if

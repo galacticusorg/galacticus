@@ -27,45 +27,45 @@ program Test_Tables
   !!{RST
   Tests that tables work correctly.
   !!}
-  use :: Array_Utilities , only : directionDecreasing         , directionIncreasing
-  use :: Display         , only : displayVerbositySet         , verbosityLevelStandard
-  use :: Numerical_Ranges, only : Range_Pinned                , rangeLattice                     , gridSchemePerOctave               , gridSchemePerDecade, &
-          &                       gridSchemePerUnit           , Make_Range                       , rangeTypeLinear
-  use :: Tables          , only : table                       , table1D                          , table1DNonUniformLinearLogarithmic, table1DLinearLinear, &
-          &                       table1DLinearMonotoneCSpline, table1DLogarithmicLinear         , table1DLinearCSpline              , table2DLogLogLin   , &
-          &                       table1DLogarithmicCSpline   , table1DLogarithmicMonotoneCSpline, table2D                           , table2DLinLinLin   , &
-          &                       table1DGeneric              , table1DMonotoneCSpline
-  use :: Table_Labels    , only : enumerationExtrapolationTypeType, extrapolationTypeFix, extrapolationTypeZero
-  use :: Unit_Tests      , only : Assert                      , Unit_Tests_Begin_Group           , Unit_Tests_End_Group              , Unit_Tests_Finish
+  use :: Array_Utilities , only : directionDecreasing             , directionIncreasing
+  use :: Display         , only : displayVerbositySet             , verbosityLevelStandard
+  use :: Numerical_Ranges, only : Range_Pinned                    , rangeLattice                     , gridSchemePerOctave               , gridSchemePerDecade, &
+          &                       gridSchemePerUnit               , Make_Range                       , rangeTypeLinear
+  use :: Tables          , only : table                           , table1D                          , table1DNonUniformLinearLogarithmic, table1DLinearLinear, &
+          &                       table1DLinearMonotoneCSpline    , table1DLogarithmicLinear         , table1DLinearCSpline              , table2DLogLogLin   , &
+          &                       table1DLogarithmicCSpline       , table1DLogarithmicMonotoneCSpline, table2D                           , table2DLinLinLin   , &
+          &                       table1DGeneric                  , table1DMonotoneCSpline
+  use :: Table_Labels    , only : enumerationExtrapolationTypeType, extrapolationTypeFix             , extrapolationTypeZero
+  use :: Unit_Tests      , only : Assert                          , Unit_Tests_Begin_Group           , Unit_Tests_End_Group              , Unit_Tests_Finish
   implicit none
-  class           (table           ), allocatable                 :: myTable
-  class           (table1D         ), allocatable                 :: myReversedTable
-  type            (table2DLogLogLin)                              :: myTable2D
-  type            (rangeLattice    )                              :: latticeNarrow        , latticeWide
-  integer                                                         :: i                    , j                   , &
-       &                                                             offset
-  double precision                                                :: x                    , y                   , &
-       &                                                             yPrevious
-  logical                                                         :: isMonotonic
-  logical                           , allocatable, dimension(:  ) :: isComputed
-  double precision                  , allocatable, dimension(:  ) :: xValuesNarrow        , xValuesWide         , &
-       &                                                             xValuesDirect
-  double precision                  , allocatable, dimension(:,:) :: yValuesNarrow        , yValuesWide         , &
-       &                                                             yValuesDirect
-  type            (table2DLogLogLin)                              :: myTable2DExtend
-  type            (rangeLattice    )                              :: latticeX2D           , latticeY2D
-  logical                           , allocatable, dimension(:,:) :: isComputed2D
-  double precision                  , allocatable, dimension(:,:) :: zValuesNarrow2D      , zValuesWide2D
-  double precision                  , allocatable, dimension(:  ) :: xValuesSpline        , interpolatedExtended, &
-       &                                                             interpolatedDirect
-  double precision                  , allocatable, dimension(:,:) :: yValuesSpline
-  class           (table2D         ), allocatable                 :: myTable2DGeneric
-  class           (table1D         ), allocatable                 :: myRangeTable
+  class           (table                           ), allocatable                 :: myTable
+  class           (table1D                         ), allocatable                 :: myReversedTable
+  type            (table2DLogLogLin                )                              :: myTable2D
+  type            (rangeLattice                    )                              :: latticeNarrow        , latticeWide
+  integer                                                                         :: i                    , j                   , &
+       &                                                                             offset
+  double precision                                                                :: x                    , y                   , &
+       &                                                                             yPrevious
+  logical                                                                         :: isMonotonic
+  logical                                           , allocatable, dimension(:  ) :: isComputed
+  double precision                                  , allocatable, dimension(:  ) :: xValuesNarrow        , xValuesWide         , &
+       &                                                                             xValuesDirect
+  double precision                                  , allocatable, dimension(:,:) :: yValuesNarrow        , yValuesWide         , &
+       &                                                                             yValuesDirect
+  type            (table2DLogLogLin                )                              :: myTable2DExtend
+  type            (rangeLattice                    )                              :: latticeX2D           , latticeY2D
+  logical                                           , allocatable, dimension(:,:) :: isComputed2D
+  double precision                                  , allocatable, dimension(:,:) :: zValuesNarrow2D      , zValuesWide2D
+  double precision                                  , allocatable, dimension(:  ) :: xValuesSpline        , interpolatedExtended, &
+       &                                                                             interpolatedDirect
+  double precision                                  , allocatable, dimension(:,:) :: yValuesSpline
+  class           (table2D                         ), allocatable                 :: myTable2DGeneric
+  class           (table1D                         ), allocatable                 :: myRangeTable
   type            (enumerationExtrapolationTypeType)              :: extrapolationRange
-  character       (len=32          )                              :: labelExtrapolation
-  logical                                                         :: logarithmic
-  type            (table2DLinLinLin)                              :: myTable2DLinearExtend
-  double precision                  , allocatable, dimension(:,:) :: zValuesNarrowLinear2D, zValuesWideLinear2D
+  character       (len=32                          )                              :: labelExtrapolation
+  logical                                                                         :: logarithmic
+  type            (table2DLinLinLin                )                              :: myTable2DLinearExtend
+  double precision                                  , allocatable, dimension(:,:) :: zValuesNarrowLinear2D, zValuesWideLinear2D
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -792,12 +792,12 @@ contains
     implicit none
     character       (len=*  ), intent(in   ) :: label
     class           (table1D), intent(inout) :: table_
-    logical                  , intent(in   ) :: logarithmic   , zero
-    double precision                         :: xWithin       , yWithin  , &
-         &                                      gradientWithin, xAbove   , &
-         &                                      yAbove        , yBelow
-    double precision         , parameter     :: xBelow  =0.5d0
-    double precision         , parameter     :: absTol  =1.0d-12, relTol=1.0d-6
+    logical                  , intent(in   ) :: logarithmic           , zero
+    double precision                         :: xWithin               , yWithin       , &
+         &                                      gradientWithin        , xAbove        , &
+         &                                      yAbove                , yBelow
+    double precision         , parameter     :: xBelow        =0.5d0
+    double precision         , parameter     :: absTol        =1.0d-12, relTol =1.0d-6
 
     if (logarithmic) then
        xWithin       =1.0d2
@@ -838,14 +838,14 @@ contains
     implicit none
     character       (len=*  ), intent(in   ) :: label
     class           (table2D), intent(inout) :: table_
-    logical                  , intent(in   ) :: logarithmic   , zero
-    double precision                         :: xWithin       , yWithin       , &
-         &                                      xAbove        , fWithinX      , &
-         &                                      fWithinY      , fMinimum      , &
-         &                                      fMaximum      , gradientX     , &
-         &                                      gradientY     , beyond
-    double precision         , parameter     :: xBelow=0.5d0
-    double precision         , parameter     :: absTol=1.0d-12, relTol=1.0d-6
+    logical                  , intent(in   ) :: logarithmic        , zero
+    double precision                         :: xWithin            , yWithin         , &
+         &                                      xAbove             , fWithinX        , &
+         &                                      fWithinY           , fMinimum        , &
+         &                                      fMaximum           , gradientX       , &
+         &                                      gradientY          , beyond
+    double precision         , parameter     :: xBelow     =0.5d0
+    double precision         , parameter     :: absTol     =1.0d-12, relTol   =1.0d-6
 
     if (logarithmic) then
        xWithin  =1.0d2
@@ -874,24 +874,24 @@ contains
     else
        beyond=1.0d0
     end if
-    call Assert(label//': value within range'               ,table_%interpolate        (xWithin,yWithin  ),       fWithinX+2.0d0*fWithinY ,absTol=absTol,relTol=relTol)
-    call Assert(label//': x-gradient within range'          ,table_%interpolateGradient(xWithin,yWithin,1),       gradientX               ,absTol=absTol,relTol=relTol)
-    call Assert(label//': y-gradient within range'          ,table_%interpolateGradient(xWithin,yWithin,2),       gradientY               ,absTol=absTol,relTol=relTol)
+    call Assert(label//': value within range'               ,table_%interpolate        (xWithin,yWithin  ),       fWithinX+2.0d0*fWithinY  ,absTol=absTol,relTol=relTol)
+    call Assert(label//': x-gradient within range'          ,table_%interpolateGradient(xWithin,yWithin,1),       gradientX                ,absTol=absTol,relTol=relTol)
+    call Assert(label//': y-gradient within range'          ,table_%interpolateGradient(xWithin,yWithin,2),       gradientY                ,absTol=absTol,relTol=relTol)
     call Assert(label//': value with x above range'         ,table_%interpolate        (xAbove ,yWithin  ),beyond*(fMaximum+2.0d0*fWithinY),absTol=absTol,relTol=relTol)
-    call Assert(label//': x-gradient with x above range'    ,table_%interpolateGradient(xAbove ,yWithin,1),0.0d0                          ,absTol=absTol,relTol=relTol)
-    call Assert(label//': y-gradient with x above range'    ,table_%interpolateGradient(xAbove ,yWithin,2),beyond*gradientY               ,absTol=absTol,relTol=relTol)
+    call Assert(label//': x-gradient with x above range'    ,table_%interpolateGradient(xAbove ,yWithin,1),0.0d0                           ,absTol=absTol,relTol=relTol)
+    call Assert(label//': y-gradient with x above range'    ,table_%interpolateGradient(xAbove ,yWithin,2),beyond*gradientY                ,absTol=absTol,relTol=relTol)
     call Assert(label//': value with x below range'         ,table_%interpolate        (xBelow ,yWithin  ),beyond*(fMinimum+2.0d0*fWithinY),absTol=absTol,relTol=relTol)
-    call Assert(label//': x-gradient with x below range'    ,table_%interpolateGradient(xBelow ,yWithin,1),0.0d0                          ,absTol=absTol,relTol=relTol)
-    call Assert(label//': y-gradient with x below range'    ,table_%interpolateGradient(xBelow ,yWithin,2),beyond*gradientY               ,absTol=absTol,relTol=relTol)
+    call Assert(label//': x-gradient with x below range'    ,table_%interpolateGradient(xBelow ,yWithin,1),0.0d0                           ,absTol=absTol,relTol=relTol)
+    call Assert(label//': y-gradient with x below range'    ,table_%interpolateGradient(xBelow ,yWithin,2),beyond*gradientY                ,absTol=absTol,relTol=relTol)
     call Assert(label//': value with y above range'         ,table_%interpolate        (xWithin,xAbove   ),beyond*(fWithinX+2.0d0*fMaximum),absTol=absTol,relTol=relTol)
-    call Assert(label//': x-gradient with y above range'    ,table_%interpolateGradient(xWithin,xAbove ,1),beyond*gradientX               ,absTol=absTol,relTol=relTol)
-    call Assert(label//': y-gradient with y above range'    ,table_%interpolateGradient(xWithin,xAbove ,2),0.0d0                          ,absTol=absTol,relTol=relTol)
+    call Assert(label//': x-gradient with y above range'    ,table_%interpolateGradient(xWithin,xAbove ,1),beyond*gradientX                ,absTol=absTol,relTol=relTol)
+    call Assert(label//': y-gradient with y above range'    ,table_%interpolateGradient(xWithin,xAbove ,2),0.0d0                           ,absTol=absTol,relTol=relTol)
     call Assert(label//': value with y below range'         ,table_%interpolate        (xWithin,xBelow   ),beyond*(fWithinX+2.0d0*fMinimum),absTol=absTol,relTol=relTol)
-    call Assert(label//': x-gradient with y below range'    ,table_%interpolateGradient(xWithin,xBelow ,1),beyond*gradientX               ,absTol=absTol,relTol=relTol)
-    call Assert(label//': y-gradient with y below range'    ,table_%interpolateGradient(xWithin,xBelow ,2),0.0d0                          ,absTol=absTol,relTol=relTol)
+    call Assert(label//': x-gradient with y below range'    ,table_%interpolateGradient(xWithin,xBelow ,1),beyond*gradientX                ,absTol=absTol,relTol=relTol)
+    call Assert(label//': y-gradient with y below range'    ,table_%interpolateGradient(xWithin,xBelow ,2),0.0d0                           ,absTol=absTol,relTol=relTol)
     call Assert(label//': value with x above, y below range',table_%interpolate        (xAbove ,xBelow   ),beyond*(fMaximum+2.0d0*fMinimum),absTol=absTol,relTol=relTol)
-    call Assert(label//': x-gradient with x above, y below' ,table_%interpolateGradient(xAbove ,xBelow ,1),0.0d0                          ,absTol=absTol,relTol=relTol)
-    call Assert(label//': y-gradient with x above, y below' ,table_%interpolateGradient(xAbove ,xBelow ,2),0.0d0                          ,absTol=absTol,relTol=relTol)
+    call Assert(label//': x-gradient with x above, y below' ,table_%interpolateGradient(xAbove ,xBelow ,1),0.0d0                           ,absTol=absTol,relTol=relTol)
+    call Assert(label//': y-gradient with x above, y below' ,table_%interpolateGradient(xAbove ,xBelow ,2),0.0d0                           ,absTol=absTol,relTol=relTol)
     return
   end subroutine Test_Table_2D_Range
 
@@ -998,7 +998,7 @@ contains
     ! returns the tabulated value exactly.
     valueDiscarded   =table_%interpolate        (table_%x(4),table_%y(3)  ,table=1)
     gradientDiscarded=table_%interpolateGradient(table_%x(6),table_%y(5),1,table=1)
-    call Assert(label//': a value is not memoized across a gradient taken at another point'                   , &
+    call Assert(label//': a value is not memoized across a gradient taken at another point'                    , &
          &      table_%interpolate        (table_%x(6),table_%y(5)  ,table=1)                                  , &
          &      table_%z                  (         6 ,         5   ,table=1)                                  , &
          &      absTol=1.0d-9                                                                                    &
@@ -1010,7 +1010,7 @@ contains
     call table_%populate(table_%z(1,1,table=1),1,1,table=1)
     gradientDiscarded=table_%interpolateGradient(table_%x(4),table_%y(3),1,table=1)
     valueDiscarded   =table_%interpolate        (table_%x(6),table_%y(5)  ,table=1)
-    call Assert(label//': a gradient is not memoized across a value taken at another point'                   , &
+    call Assert(label//': a gradient is not memoized across a value taken at another point'                    , &
          &      table_%interpolateGradient(table_%x(6),table_%y(5),1,table=1)                                  , &
          &      gradientReference                                                                                &
          &     )

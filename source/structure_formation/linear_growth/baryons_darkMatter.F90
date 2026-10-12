@@ -816,7 +816,7 @@ contains
     !!{RST
     Read tabulated data on linear growth factor from file.
     !!}
-    use :: Display         , only : displayMessage          , verbosityLevelWorking
+    use :: Display         , only : displayMessage              , verbosityLevelWorking
     use :: File_Utilities  , only : File_Exists
     use :: HDF5_Access     , only : hdf5Access
     use :: IO_HDF5         , only : hdf5File
