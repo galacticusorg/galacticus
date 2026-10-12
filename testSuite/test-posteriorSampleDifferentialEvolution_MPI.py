@@ -5,11 +5,11 @@ The likelihood is a multivariate normal distribution in eight dimensions, with u
 and the priors are uniform and much wider than it, so the posterior is that normal distribution. The posterior is sampled
 twice (with one chain per MPI process; the likelihood is cheap, so the processes are oversubscribed as needed):
 
-1. with sixteen chains, constructing proposals from the current states of other chains. When a chain could use its own state
-   in constructing its proposal (an asymmetric proposal) the sampled widths were only about 0.6 of their true values with
-   eight chains, and 0.75 with sixteen;
+1. with sixteen chains, constructing proposals from the current states of other chains (``proposalArchive=false``). When a
+   chain could use its own state in constructing its proposal (an asymmetric proposal) the sampled widths were only about
+   0.6 of their true values with eight chains, and 0.75 with sixteen;
 2. with only four chains (fewer than the number of parameters), constructing proposals from an archive of past states of all
-   chains (``proposalArchive``).
+   chains (``proposalArchive``, the default), limited in size so that its oldest states are replaced.
 
 Andrew Benson, Claude (12-October-2026).
 """
@@ -56,10 +56,13 @@ def writeParameters(name, archive):
       </distributionFunction1DPerturber>
     </modelParameter>
 ''' for i in range(countParameters))
+    # The archive is limited to fewer states than are added to it over the run, so that the oldest states are replaced.
     archiveParameters = '''    <proposalArchive     value="true"/>
     <archiveThinning     value="10"/>
     <archiveInitialCount value="80"/>
-''' if archive else ''
+    <archiveSizeMaximum  value="2000"/>
+''' if archive else '''    <proposalArchive     value="false"/>
+'''
     path = f'{directory}/{name}.xml'
     with open(path, 'w') as file:
         file.write(f'''<parameters>
