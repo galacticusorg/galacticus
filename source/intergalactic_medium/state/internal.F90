@@ -54,9 +54,9 @@
        <method description="Return the rate of change of the filtering mass at the given ``time``, as solved for along with the state of the :term:`IGM`." method="massFilteringRateOfChange" />
      </methods>
      !!]
-     procedure :: autoHook                    => internalAutoHook
-     procedure :: massFiltering               => internalMassFiltering
-     procedure :: massFilteringRateOfChange   => internalMassFilteringRateOfChange
+     procedure :: autoHook                  => internalAutoHook
+     procedure :: massFiltering             => internalMassFiltering
+     procedure :: massFilteringRateOfChange => internalMassFilteringRateOfChange
   end type intergalacticMediumStateInternal
 
   interface intergalacticMediumStateInternal
@@ -366,7 +366,7 @@ contains
     double precision                                  , dimension(0:1) :: h
     integer         (c_size_t                        )                 :: i   , j
 
-    call internalStateRequired       (self,'the filtering mass')
+    call internalStateRequired       (self     ,'the filtering mass')
     call internalExtrapolationLimited(self,time,'the filtering mass')
     if (size(self%time) > 1) then
        i=self%interpolator_%locate(time)
@@ -399,19 +399,19 @@ contains
     double precision                                  , intent(in   ) :: time
     integer         (c_size_t                        )                :: i
 
-    call internalStateRequired       (self,'the rate of change of the filtering mass')
+    call internalStateRequired       (self     ,'the rate of change of the filtering mass')
     call internalExtrapolationLimited(self,time,'the rate of change of the filtering mass')
     internalMassFilteringRateOfChange=0.0d0
     if (size(self%time) == 1 .or. self%massFiltering(time) <= 0.0d0) return
     i=self%interpolator_%locate(time)
-    if (self%time(i+1)-self%time(i) > 0.0d0)                                       &
-         & internalMassFilteringRateOfChange=+(                                    &
-         &                                     +self%massFilteringIGM(i+1)         &
-         &                                     -self%massFilteringIGM(i  )         &
-         &                                    )                                    &
-         &                                   /(                                    &
-         &                                     +self%time         (i+1)            &
-         &                                     -self%time         (i  )            &
+    if (self%time(i+1)-self%time(i) > 0.0d0)                               &
+         & internalMassFilteringRateOfChange=+(                            &
+         &                                     +self%massFilteringIGM(i+1) &
+         &                                     -self%massFilteringIGM(i  ) &
+         &                                    )                            &
+         &                                   /(                            &
+         &                                     +self%time            (i+1) &
+         &                                     -self%time            (i  ) &
          &                                    )
     return
   end function internalMassFilteringRateOfChange

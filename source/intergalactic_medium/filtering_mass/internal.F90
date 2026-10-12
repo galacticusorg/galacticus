@@ -104,14 +104,14 @@ contains
     type is (intergalacticMediumStateInternal)
        ! This is the required class.
     class default
-       call Error_Report(                                                                                                      &
+       call Error_Report(                                                                                                          &
             &            '[intergalacticMediumFilteringMass]=internal requires [intergalacticMediumState]=internal, but found ['// &
-            &            char(self%intergalacticMediumState_%objectType())//']'//char(10)                                      // &
-            &            displayGreen()//'HELP:'//displayReset()                                                               // &
-            &            ' set [intergalacticMediumState]=internal and [universeOperator]=intergalacticMediumStateEvolve to'   // &
-            &            ' solve for the filtering mass along with the IGM state, or choose another'                           // &
-            &            ' [intergalacticMediumFilteringMass], such as `gnedin2000`'                                           // &
-            &            {introspection:location}                                                                                 &
+            &            char(self%intergalacticMediumState_%objectType())//']'//char(10)                                       // &
+            &            displayGreen()//'HELP:'//displayReset()                                                                // &
+            &            ' set [intergalacticMediumState]=internal and [universeOperator]=intergalacticMediumStateEvolve to'    // &
+            &            ' solve for the filtering mass along with the IGM state, or choose another'                            // &
+            &            ' [intergalacticMediumFilteringMass], such as `gnedin2000`'                                            // &
+            &            {introspection:location}                                                                                  &
             &           )
     end select
     return

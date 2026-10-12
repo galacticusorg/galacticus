@@ -61,12 +61,12 @@ module Intergalactic_Medium_Filtering_Masses
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass, time</argument>
     <code>
-     intergalacticMediumFilteringMassFractionBaryons=+1.0d0                                &amp;
-      &amp;                                          /(                                    &amp;
-      &amp;                                            +1.0d0                              &amp;
-      &amp;                                            +coefficientFractionBaryons         &amp;
-      &amp;                                            *self%massFiltering(time)           &amp;
-      &amp;                                            /mass                               &amp;
+     intergalacticMediumFilteringMassFractionBaryons=+1.0d0                        &amp;
+      &amp;                                          /(                            &amp;
+      &amp;                                            +1.0d0                      &amp;
+      &amp;                                            +coefficientFractionBaryons &amp;
+      &amp;                                            *self%massFiltering(time)   &amp;
+      &amp;                                            /mass                       &amp;
       &amp;                                           )**3
     </code>
    </method>
@@ -78,9 +78,9 @@ module Intergalactic_Medium_Filtering_Masses
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass, time</argument>
     <code>
-     intergalacticMediumFilteringMassFractionBaryonsGradientMass=-coefficientFractionBaryons                  &amp;
-      &amp;                                                      *self%massFiltering  (     time)             &amp;
-      &amp;                                                      /     mass                      **2          &amp;
+     intergalacticMediumFilteringMassFractionBaryonsGradientMass=-coefficientFractionBaryons                     &amp;
+      &amp;                                                      *self%massFiltering  (     time)                &amp;
+      &amp;                                                      /     mass                      **2             &amp;
       &amp;                                                      *self%fractionBaryons(mass,time)**(4.0d0/3.0d0)
     </code>
    </method>
@@ -92,10 +92,10 @@ module Intergalactic_Medium_Filtering_Masses
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass, time</argument>
     <code>
-     intergalacticMediumFilteringMassFractionBaryonsRateOfChange=-3.0d0                                          &amp;
-      &amp;                                                      *coefficientFractionBaryons                     &amp;
-      &amp;                                                      *self%massFilteringRateOfChange(     time)      &amp;
-      &amp;                                                      /     mass                                      &amp;
+     intergalacticMediumFilteringMassFractionBaryonsRateOfChange=-3.0d0                                                    &amp;
+      &amp;                                                      *coefficientFractionBaryons                               &amp;
+      &amp;                                                      *self%massFilteringRateOfChange(     time)                &amp;
+      &amp;                                                      /     mass                                                &amp;
       &amp;                                                      *self%fractionBaryons          (mass,time)**(4.0d0/3.0d0)
     </code>
    </method>

@@ -62,13 +62,13 @@
        <method description="Return the early-epoch solution for the filtering mass." method="massFilteringEarlyEpoch" />
      </methods>
      !!]
-     final     ::                                gnedin2000Destructor
-     procedure :: massFiltering               => gnedin2000MassFiltering
-     procedure :: massFilteringRateOfChange   => gnedin2000MassFilteringRateOfChange
-     procedure :: tabulate                    => gnedin2000Tabulate
-     procedure :: conditionsInitialODEs       => gnedin2000ConditionsInitialODEs
-     procedure :: coefficientsEarlyEpoch      => gnedin2000CoefficientsEarlyEpoch
-     procedure :: massFilteringEarlyEpoch     => gnedin2000MassFilteringEarlyEpoch
+     final     ::                              gnedin2000Destructor
+     procedure :: massFiltering             => gnedin2000MassFiltering
+     procedure :: massFilteringRateOfChange => gnedin2000MassFilteringRateOfChange
+     procedure :: tabulate                  => gnedin2000Tabulate
+     procedure :: conditionsInitialODEs     => gnedin2000ConditionsInitialODEs
+     procedure :: coefficientsEarlyEpoch    => gnedin2000CoefficientsEarlyEpoch
+     procedure :: massFilteringEarlyEpoch   => gnedin2000MassFilteringEarlyEpoch
   end type intergalacticMediumFilteringMassGnedin2000
 
   interface intergalacticMediumFilteringMassGnedin2000
@@ -253,13 +253,13 @@ contains
     ! those solved for. Furthermore, the tabulation is cached on disk under a name which does not reflect the solved state.
     select type (intergalacticMediumState_ => self%intergalacticMediumState_)
     type is (intergalacticMediumStateInternal)
-       call Error_Report(                                                                                                 &
+       call Error_Report(                                                                                                           &
             &            '[intergalacticMediumFilteringMass]=gnedin2000 can not be used with [intergalacticMediumState]=internal'// &
-            &            char(10)                                                                                            // &
-            &            displayGreen()//'HELP:'//displayReset()                                                             // &
-            &            ' set [intergalacticMediumFilteringMass]=internal, which uses the filtering mass solved for'        // &
-            &            ' self-consistently with the IGM state by [universeOperator]=intergalacticMediumStateEvolve'        // &
-            &            {introspection:location}                                                                               &
+            &            char(10)                                                                                                // &
+            &            displayGreen()//'HELP:'//displayReset()                                                                 // &
+            &            ' set [intergalacticMediumFilteringMass]=internal, which uses the filtering mass solved for'            // &
+            &            ' self-consistently with the IGM state by [universeOperator]=intergalacticMediumStateEvolve'            // &
+            &            {introspection:location}                                                                                   &
             &           )
     end select
     ! Merge in any tabulation already cached on disk, then re-evaluate the range required in the light of it.
