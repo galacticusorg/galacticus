@@ -78,7 +78,8 @@ module Intergalactic_Medium_Filtering_Masses
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass, time</argument>
     <code>
-     intergalacticMediumFilteringMassFractionBaryonsGradientMass=-coefficientFractionBaryons                     &amp;
+     intergalacticMediumFilteringMassFractionBaryonsGradientMass=+3.0d0                                          &amp;
+      &amp;                                                      *coefficientFractionBaryons                     &amp;
       &amp;                                                      *self%massFiltering  (     time)                &amp;
       &amp;                                                      /     mass                      **2             &amp;
       &amp;                                                      *self%fractionBaryons(mass,time)**(4.0d0/3.0d0)
