@@ -477,9 +477,9 @@ contains
     if (present(archiveThinning    )) self%archiveThinning    =archiveThinning
     if (present(archiveInitialCount)) self%archiveInitialCount=archiveInitialCount
     if (present(archiveSizeMaximum )) self%archiveSizeMaximum =archiveSizeMaximum
-    if (self%archiveThinning     < 1) call Error_Report('[archiveThinning] must be positive'       //{introspection:location})
+    if (self%archiveThinning     < 1) call Error_Report('[archiveThinning] must be positive'        //{introspection:location})
     if (self%archiveInitialCount < 0) call Error_Report('[archiveInitialCount] must be non-negative'//{introspection:location})
-    if (self%archiveSizeMaximum  < 2) call Error_Report('[archiveSizeMaximum] must be at least 2'  //{introspection:location})
+    if (self%archiveSizeMaximum  < 2) call Error_Report('[archiveSizeMaximum] must be at least 2'   //{introspection:location})
     self%parameterCount=size(modelParametersActive_)
     self%isInteractive =trim(interactionRoot) /= "none"
     call self%posteriorSampleState_%parameterCountSet(self%parameterCount)
