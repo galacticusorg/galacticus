@@ -171,12 +171,23 @@ def walk_tree(node):
 
     Yields every node exactly once
     in pre-order (parent before children).
+
+    Iterative rather than recursive (a recursive generator costs a generator frame per node per level of nesting), but
+    reads each link at the same moment the recursive form would — a node's `firstChild` just after the node is yielded,
+    and its `sibling` once its subtree is exhausted — so callers that modify the tree mid-walk see identical behavior.
     """
     yield node
+    stack = []
     child = node.get('firstChild')
-    while child:
-        yield from walk_tree(child)
-        child = child.get('sibling')
+    while True:
+        if child:
+            yield child
+            stack.append(child)
+            child = child.get('firstChild')
+        elif stack:
+            child = stack.pop().get('sibling')
+        else:
+            return
 
 
 def children(node):
@@ -225,33 +236,40 @@ def _build_tree(root):
     _pass_visibilities(root)
     _pass_openmp(root)
 
+_LATEX_OPEN_RE       = re.compile(r'^\s*!!\{')
+_LATEX_CLOSE_RE      = re.compile(r'^\s*!!\}')
+_XML_OPEN_RE         = re.compile(r'^\s*!!\[')
+_XML_CLOSE_RE        = re.compile(r'^\s*!!\]')
+_EMBEDDED_COMMENT_RE = re.compile(r'^\s*\!<')
+
+
 def _comment_embedded(content):
     """Comment out embedded LaTeX and XML blocks so that they are not processed as Fortran code"""
 
     import io
     fh = io.StringIO(content)
 
-    code_commented = ""
+    code_commented = []
     in_LaTeX = False
     in_XML = False
     for line in fh:
         # Detect the end of a LaTeX section and change state.
-        if re.match(r'^\s*!!\}',line):
+        if _LATEX_CLOSE_RE.match(line):
             in_LaTeX = False
         # Detect the end of an XML section and change state.
-        if re.match(r'^\s*!!\]',line):
+        if _XML_CLOSE_RE.match(line):
             in_XML = False
         # Comment out LaTeX and XML, unless it is already commented out.
-        if ( in_LaTeX or in_XML ) and not re.match(r'^\s*\!<',line):
+        if ( in_LaTeX or in_XML ) and not _EMBEDDED_COMMENT_RE.match(line):
             line = "!< "+line
-        code_commented = code_commented + line
+        code_commented.append(line)
         # Detect the start of a LaTeX section and change state.
-        if re.match(r'^\s*!!\{',line):
+        if _LATEX_OPEN_RE.match(line):
             in_LaTeX = True
         # Detect the start of an XML section and change state.
-        if re.match(r'^\s*!!\[',line):
+        if _XML_OPEN_RE.match(line):
             in_XML = True
-    return code_commented
+    return ''.join(code_commented)
 
 
 def uncomment_embedded(content):
@@ -320,6 +338,11 @@ def _make_code_node(content, source, line, parent=None):
         'source':     source,
         'line':       line,
     }
+
+
+# Keywords of which at least one appears in every `UNIT_OPENERS` pattern (`module` also covers `submodule` and
+# `module procedure`).
+_UNIT_OPENER_KEYWORDS_RE = re.compile(r'module|program|subroutine|function|interface|type|contains', re.IGNORECASE)
 
 
 def _parse_units(parent, first_line=None):
@@ -409,7 +432,10 @@ def _parse_units(parent, first_line=None):
 
         # ---- check for an opener ----
         matched_opener = False
-        for unit_type, spec in UNIT_OPENERS.items():
+        # Every opener pattern contains one of a few keywords, so a single search for those rejects most lines
+        # without trying each opener pattern in turn.
+        openers = UNIT_OPENERS.items() if _UNIT_OPENER_KEYWORDS_RE.search(processed_line) else ()
+        for unit_type, spec in openers:
             m = spec['regex'].match(processed_line)
             if not m:
                 continue
@@ -969,8 +995,8 @@ def _serialize(node, annotate, strip_mappings):
     """Internal helper: always returns (source, mappings) and tracks the
     cumulative output line number across the sibling chain.
     """
-    serialization = ''
-    mappings      = ''
+    serialization = []
+    mappings      = []
     line_number   = 0
     current       = node
 
@@ -982,9 +1008,9 @@ def _serialize(node, annotate, strip_mappings):
         # arithmetic needs every entry on the same basis.
         if annotate and 'source' in current and 'line' in current:
             if strip_mappings:
-                mappings += f'!--> {current["line"]} {line_number + 1} "{current["source"]}"\n'
+                mappings.append(f'!--> {current["line"]} {line_number + 1} "{current["source"]}"\n')
             else:
-                serialization += f'!--> {current["line"]} {line_number} "{current["source"]}"\n'
+                serialization.append(f'!--> {current["line"]} {line_number} "{current["source"]}"\n')
                 line_number   += 1
 
         # Serialize this node's own content.
@@ -1001,22 +1027,22 @@ def _serialize(node, annotate, strip_mappings):
             node_text += current.get('closer') or ''
 
         if strip_mappings:
-            stripped = ''
+            stripped = []
             for line in node_text.splitlines(keepends=True):
                 m = _MAPPING_RE.match(line)
                 if m:
-                    mappings += f'!--> {m.group(1)} {line_number + 1} "{m.group(3)}"\n'
+                    mappings.append(f'!--> {m.group(1)} {line_number + 1} "{m.group(3)}"\n')
                 else:
                     line_number += 1
-                    stripped    += line
-            node_text = stripped
+                    stripped.append(line)
+            node_text = ''.join(stripped)
         else:
             line_number += node_text.count('\n')
 
-        serialization += node_text
-        current        = current.get('sibling')
+        serialization.append(node_text)
+        current = current.get('sibling')
 
-    return serialization, mappings
+    return ''.join(serialization), ''.join(mappings)
 
 
 def analyze_tree(tree, options=None):

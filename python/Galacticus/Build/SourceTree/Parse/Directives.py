@@ -18,6 +18,12 @@ except ImportError:
     _HAS_LXML = False
 
 # Cached stateStorables.xml content, loaded lazily from $BUILDPATH.
+# Patterns applied to every line of a node's content when splitting out directives.
+_EMBEDDED_PREFIX_RE = re.compile(r'^\s*!<\s*')
+_XML_OPEN_RE        = re.compile(r'^\s*!!\[')
+_XML_CLOSE_RE       = re.compile(r'^\s*!!\]')
+_XML_ROOT_TAG_RE    = re.compile(r'^\s*<([^\s>/]+)')
+
 _state_storables = None
 _state_storables_loaded = False
 
@@ -402,9 +408,9 @@ def parse_directives(tree):
             new_nodes.append(pending_dir)
 
         for raw_line in content.splitlines(keepends=True):
-            stripped = re.sub(r'^\s*!<\s*', '', raw_line)
+            stripped = _EMBEDDED_PREFIX_RE.sub('', raw_line)
 
-            if re.match(r'^\s*!!\]', raw_line):
+            if _XML_CLOSE_RE.match(raw_line):
                 # Block is closing.  Flush any directive that didn't have its
                 # own end tag (rare — usually directives self-close before this).
                 if raw_dir_buf:
@@ -430,7 +436,7 @@ def parse_directives(tree):
                 current_line  += 1
                 continue
 
-            if re.match(r'^\s*!!\[', raw_line):
+            if _XML_OPEN_RE.match(raw_line):
                 # Close the current code run here: the marker line (and any
                 # non-directive XML block it opens) is dropped from the
                 # output, so code resuming after the block must start a new
@@ -445,7 +451,7 @@ def parse_directives(tree):
                 continue
 
             if in_xml:
-                m = re.match(r'^\s*<([^\s>/]+)', stripped)
+                m = _XML_ROOT_TAG_RE.match(stripped)
                 if m and not in_directive:
                     directive_root = m.group(1)
                     in_directive   = True

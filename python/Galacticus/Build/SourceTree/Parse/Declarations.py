@@ -10,6 +10,15 @@ from Fortran.Utils import INTRINSIC_DECLARATIONS, extract_variables
 from Galacticus.Build.FortranUtils import extract_bracketed
 
 
+# Match: [!$] intrinsic-type [attributes/type-spec] :: variables
+_DECLARATION_RE = re.compile(
+    r'^\s*(!\$)?\s*'  # Optional OpenMP marker
+    r'(integer|real|double\s+precision|double\s+complex|logical|character|type|class|procedure|generic|final|complex)'  # intrinsic
+    r'(.*)$',  # Everything else
+    re.IGNORECASE
+)
+
+
 def parse_declaration(line):
     """Parse a single Fortran variable declaration line.
 
@@ -34,14 +43,7 @@ def parse_declaration(line):
     """
     # Use a unified approach: match declaration pattern, then split manually
     # This avoids complex capture group indexing issues.
-    # Match: [!$] intrinsic-type [attributes/type-spec] :: variables
-    decl_pattern = re.compile(
-        r'^\s*(!\$)?\s*'  # Optional OpenMP marker
-        r'(integer|real|double\s+precision|double\s+complex|logical|character|type|class|procedure|generic|final|complex)'  # intrinsic
-        r'(.*)$',  # Everything else
-        re.IGNORECASE
-    )
-    m = decl_pattern.match(line)
+    m = _DECLARATION_RE.match(line)
     if not m or '::' not in line:
         return None
 

@@ -131,6 +131,25 @@ def _stack_it(root, initial_depth=-1):
     return result
 
 
+def _detached_deepcopy(node):
+    """Deep-copy the subtree rooted at `node`, with its `parent` and `sibling`
+    links set to `None` in the copy.
+
+    A plain `copy.deepcopy(node)` follows those back/forward pointers and so
+    copies the *entire* tree on every call — quadratic over a file.  Seeding the
+    memo maps both linked nodes to `None`, so they are never visited.
+    """
+    memo = {}
+    for link in ('parent', 'sibling'):
+        linked = node.get(link)
+        if linked is not None:
+            memo[id(linked)] = None
+    node_copy = copy.deepcopy(node, memo)
+    node_copy['parent']  = None
+    node_copy['sibling'] = None
+    return node_copy
+
+
 def _reparse_declaration(code_node):
     """If `code_node` is the raw-text child of a `declaration` node, re-run
     the declarations parser over its content so the structured `declarations`
@@ -139,9 +158,7 @@ def _reparse_declaration(code_node):
     parent = code_node.get('parent')
     if parent is None or parent.get('type') != 'declaration':
         return
-    node_copy = copy.deepcopy(code_node)
-    node_copy['parent']     = None
-    node_copy['sibling']    = None
+    node_copy = _detached_deepcopy(code_node)
     tree_tmp = {
         'type':       'null',
         'firstChild': node_copy,
@@ -278,9 +295,7 @@ def _expand_subtree(sub_node, identifier, instances, tree_name):
     """
     copies = []
     for instance in instances:
-        copied = copy.deepcopy(sub_node)
-        copied['parent']  = None
-        copied['sibling'] = None
+        copied = _detached_deepcopy(sub_node)
 
         # Walk the cloned subtree, substituting in every opener/closer/name
         # field and in every code-content field.
