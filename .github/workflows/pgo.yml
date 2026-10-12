@@ -331,6 +331,9 @@ jobs:
       - name: Run the validation model
         run: |
           cd $GALACTICUS_EXEC_PATH
+          # The validation scripts read the commit from the repository (as in `testModel.yml`), which git refuses in the
+          # container unless the checkout is marked safe.
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u+x Galacticus.exe
           cd testSuite
           set -o pipefail
