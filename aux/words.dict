@@ -655,6 +655,7 @@ polycyclic
 polygamma
 polylogarithm
 polylogarithms
+posteriori
 postprocess
 postprocesses
 postprocessing
@@ -1176,6 +1177,7 @@ strided
 structurE
 Stéphane
 subcommand
+subcommands
 symlink
 templated
 tensorRank
