@@ -4154,8 +4154,8 @@ def test_functionclass_load_and_sort_classes(tmp_source_write=None):
             fh.write(
                 "module core_mod\n"
                 "  !![\n"
-                "  <myFoo>\n"
-                "   <name>myFooCore</name>\n"
+                "  <myFoo name=\"myFooCore\">\n"
+                "   <description>A test class.</description>\n"
                 "  </myFoo>\n"
                 "  !!]\n"
                 "  type, extends(myFooClass) :: myFooCore\n"
@@ -4166,8 +4166,8 @@ def test_functionclass_load_and_sort_classes(tmp_source_write=None):
             fh.write(
                 "module adv_mod\n"
                 "  !![\n"
-                "  <myFoo>\n"
-                "   <name>myFooAdv</name>\n"
+                "  <myFoo name=\"myFooAdv\">\n"
+                "   <description>A test class.</description>\n"
                 "  </myFoo>\n"
                 "  !!]\n"
                 "  type, extends(myFooCore) :: myFooAdv\n"
