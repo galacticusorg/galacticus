@@ -21,6 +21,7 @@ Andrew Benson, Claude (2026)
 
 from __future__ import annotations
 
+import csv
 import json
 import os
 
@@ -81,13 +82,13 @@ def import_design(campaign_root, log_parameters=None, output_file_name='galactic
     to be sampled in their logarithm (``logarithm`` mapper); by default, those with log-normal priors. The output of each run
     is ``evaluations/<evaluation_id>/<output_file_name>`` under ``campaign_root``.
     """
-    import pandas as pd
     specification = json.load(open(os.path.join(campaign_root, 'campaign_design.json')))
-    samples = pd.read_csv(os.path.join(campaign_root, 'samples.csv'))
+    with open(os.path.join(campaign_root, 'samples.csv'), newline='') as file:
+        samples = list(csv.DictReader(file))
     free = specification['free_parameters']
     short_names = [parameter['short_name'] for parameter in free]
-    quantiles = samples[[f'{name}_quantile' for name in short_names]].to_numpy(dtype=float)
-    values = samples[short_names].to_numpy(dtype=float)
+    quantiles = np.array([[float(row[f'{name}_quantile']) for name in short_names] for row in samples])
+    values = np.array([[float(row[name]) for name in short_names] for row in samples])
     priors, mappers = [], []
     for j, parameter in enumerate(free):
         prior_class, parameters = _prior(parameter['prior'])
@@ -108,7 +109,7 @@ def import_design(campaign_root, log_parameters=None, output_file_name='galactic
         values=values,
         attributes={'type': 'sobol', 'seed': int(specification.get('seed', -1)), 'importedFrom': 'GalacticEmu'},
     )
-    identifiers = samples['evaluation_id'].tolist()
+    identifiers = [row['evaluation_id'] for row in samples]
     count = len(identifiers)
     root = os.path.abspath(campaign_root)
     runs = {

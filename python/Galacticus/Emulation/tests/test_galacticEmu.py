@@ -1,10 +1,10 @@
 """Tests for `Galacticus.Emulation.galacticEmu` (importing GalacticEmu campaigns). These need neither GalacticEmu nor a
 real campaign: a small campaign is written in GalacticEmu's layout."""
 
+import csv
 import json
 
 import numpy as np
-import pandas as pd
 import pytest
 from scipy import stats
 
@@ -31,8 +31,11 @@ def write_campaign(path, count=16, perturb=False):
     if perturb:
         velocity[3] *= 1.01
     identifiers = [f'campaign-eval-{i:04d}' for i in range(count)]
-    pd.DataFrame({'evaluation_id': identifiers, 'velocity_quantile': quantiles[:, 0], 'exponent_quantile': quantiles[:, 1],
-                  'velocity': velocity, 'exponent': exponent}).to_csv(path / 'samples.csv', index=False)
+    with open(path / 'samples.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['evaluation_id', 'velocity_quantile', 'exponent_quantile', 'velocity', 'exponent'])
+        for row in zip(identifiers, quantiles[:, 0], quantiles[:, 1], velocity, exponent):
+            writer.writerow([row[0]] + [repr(float(value)) for value in row[1:]])
     json.dump({'seed': 42, 'free_parameters': PRIORS}, open(path / 'campaign_design.json', 'w'))
     return quantiles, np.column_stack([velocity, exponent]), identifiers
 
@@ -42,8 +45,7 @@ def test_import_design(tmp_path):
     design_file = ge.import_design(tmp_path)
     design = design_file.design
     assert design.names == [prior['path'] for prior in PRIORS]
-    # (Values pass through a CSV file, so may differ in their last bit.)
-    assert np.allclose(design.quantiles, quantiles, rtol=1.0e-14, atol=0.0) and np.allclose(design.values, values, rtol=1.0e-14, atol=0.0)
+    assert np.array_equal(design.quantiles, quantiles) and np.array_equal(design.values, values)
     assert [prior.class_name for prior in design.priors] == ['logNormal', 'uniform']
     # Parameters with log-normal priors are sampled in their logarithm by default.
     assert design.mappers == ['logarithm', 'identity']
