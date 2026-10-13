@@ -162,11 +162,11 @@ contains
     class           (mergerTreeInitializorClass   ), pointer       :: mergerTreeInitializor_
     class           (mergerTreeEvolveProfilerClass), pointer       :: mergerTreeEvolveProfiler_
     class           (metaTreeProcessingTimeClass  ), pointer       :: metaTreeProcessingTime_
-    logical                                                        :: allTreesExistAtFinalTime        , dumpTreeStructure         , &
-         &                                                            backtrackToSatellites           , profileSteps
-    double precision                                               :: timestepHostRelative            , timestepHostAbsolute      , &
+    logical                                                        :: allTreesExistAtFinalTime                , dumpTreeStructure   , &
+         &                                                            backtrackToSatellites                   , profileSteps
+    double precision                                               :: timestepHostRelative                    , timestepHostAbsolute, &
          &                                                            fractionTimestepSatelliteMinimum
-    logical                                        , save          :: warnedSatelliteDeferral  =.false.
+    logical                                        , save          :: warnedSatelliteDeferral         =.false.
 
     !![
     <inputParameter docformat="rst">
