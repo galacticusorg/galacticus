@@ -49,7 +49,8 @@
      generic   :: assignment(=)     =>  outputGroupAssign
   end type outputGroup
 
-  ! Parameters controlling the size of output data.
+  ! Parameters controlling the size of output data. `standardBufferSizeIncrement` is the number of elements allocated for the
+  ! property buffers initially; subsequent growth is geometric (doubling) - see `standardExtendIntegerBuffer`.
   !![
   <scoping>
    <module variables="standardBufferSizeIncrement"/>
@@ -304,10 +305,10 @@ contains
           !$ call hdf5Access%set()
           referenceLength(1)=max(self%integerPropertiesWritten,self%doublePropertiesWritten)
           if      (allocated(self%integerProperty).and.size(self%integerProperty) > 0.and.self%outputGroups(indexOutput)%nodeDataGroup%hasDataset(self%integerProperty(1)%name)) then
-             toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerProperty(1)%name)
+             toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerProperty(1)%name,preExistedIn=.true.)
              referenceStart(1)=toDataset%size(1)-referenceLength(1)
           else if (allocated(self% doubleProperty).and.size(self% doubleProperty) > 0.and.self%outputGroups(indexOutput)%nodeDataGroup%hasDataset(self% doubleProperty(1)%name)) then
-             toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self% doubleProperty(1)%name)
+             toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self% doubleProperty(1)%name,preExistedIn=.true.)
              referenceStart(1)=toDataset%size(1)-referenceLength(1)
           else
              ! Datasets do not yet exist therefore the start reference must be zero.
@@ -320,13 +321,13 @@ contains
              ! Create references for this tree.
              if (self%integerPropertyCount > 0 .and. self%integerPropertiesWritten > 0) then
                 do iProperty=1,self%integerPropertyCount
-                   toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerProperty(iProperty)%name)
+                   toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerProperty(iProperty)%name,preExistedIn=.true.)
                    call currentTree%hdf5Group%createReference1D(toDataset,self%integerProperty(iProperty)%name,referenceStart+1,referenceLength)
                 end do
              end if
              if (self%doublePropertyCount > 0  .and. self%doublePropertiesWritten  > 0) then
                 do iProperty=1,self%doublePropertyCount
-                   toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%doubleProperty(iProperty)%name)
+                   toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%doubleProperty(iProperty)%name,preExistedIn=.true.)
                    call currentTree%hdf5Group%createReference1D(toDataset,self%doubleProperty(iProperty)%name,referenceStart+1,referenceLength)
                 end do
              end if
@@ -767,7 +768,7 @@ contains
                   &                                                        )
           end if
           if (.not.self%outputGroups(indexOutput)% integerAttributesWritten.and. self%integerProperty(iProperty)%units%unitsInSI /= 0.0d0) then
-             dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerProperty(iProperty)%name)
+             dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerProperty(iProperty)%name,preExistedIn=.true.)
              call dataset%writeAttribute(self%integerProperty(iProperty)%units,"units")
              do iMetaDatum=1,self%integerProperty(iProperty)%metaDataRank0%size()
                 call     dataset%writeAttribute(self%integerProperty(iProperty)%metaDataRank0%value(iMetaDatum),char(self%integerProperty(iProperty)%metaDataRank0%key(iMetaDatum)))
@@ -833,7 +834,7 @@ contains
                   &                                                        )
           end if
           if (.not.self%outputGroups(indexOutput)% doubleAttributesWritten.and. self%doubleProperty(iProperty)%units%unitsInSI /= 0.0d0) then
-             dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%doubleProperty(iProperty)%name)
+             dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%doubleProperty(iProperty)%name,preExistedIn=.true.)
              call        dataset%writeAttribute(self%doubleProperty(iProperty)%units            ,"units"            )
              do iMetaDatum=1,self%doubleProperty(iProperty)%metaDataRank0%size()
                 call     dataset%writeAttribute(self%doubleProperty(iProperty)%metaDataRank0%value(iMetaDatum),char(self%doubleProperty(iProperty)%metaDataRank0%key(iMetaDatum)))
@@ -854,7 +855,7 @@ contains
                      &                                                         trim(self%doubleProperty(iProperty)%name                  )//"ColumnValues"          , &
                      &                                                         char(self%doubleProperty(iProperty)%rank1DescriptorComment)                            &
                      &                                                        )
-                dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(trim(self%doubleProperty(iProperty)%name)//"ColumnValues")
+                dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(trim(self%doubleProperty(iProperty)%name)//"ColumnValues",preExistedIn=.true.)
                 call dataset%writeAttribute(self%doubleProperty(iProperty)%rank1DescriptorUnits    ,"units"    )
              end if
           end if
@@ -877,24 +878,29 @@ contains
     integer(kind_int8                  ), allocatable  , dimension(:  ) :: scalarTemporary
     integer(kind_int8                  ), allocatable  , dimension(:,:) :: rank1Temporary
     type   (hdf5VarInteger8            ), allocatable  , dimension(:  ) :: rank1VarLenTemporary
-    integer                                                             :: i                   , j
+    integer                                                             :: i                   , j, &
+         &                                                                 bufferSizeNew
 
+    ! Grow the buffer geometrically. Every extension copies the whole buffer, so growing by a fixed increment would make the total
+    ! cost of filling a buffer which ends up holding N elements scale as N² - and the buffer is dumped only once the tree has been
+    ! output, so a tree with many nodes at an output time really does extend it that many times.
+    bufferSizeNew=2*self%integerBufferSize
     do i=1,size(self%integerProperty)
        if (allocated(self%integerProperty(i)%scalar)) then
           call move_alloc(self%integerProperty(i)%scalar,scalarTemporary)
-          allocate(self%integerProperty(i)%scalar(                           self%integerBufferSize+standardBufferSizeIncrement))
+          allocate(self%integerProperty(i)%scalar(                           bufferSizeNew))
           self%integerProperty(i)%scalar(  1:self%integerBufferSize)=scalarTemporary
           deallocate(scalarTemporary)
        end if
        if (allocated(self%integerProperty(i)%rank1)) then
           call move_alloc(self%integerProperty(i)%rank1 ,rank1Temporary )
-          allocate(self%integerProperty(i)%rank1 (size(rank1Temporary,dim=1),self%integerBufferSize+standardBufferSizeIncrement))
+          allocate(self%integerProperty(i)%rank1 (size(rank1Temporary,dim=1),bufferSizeNew))
           self%integerProperty(i)%rank1(:,1:self%integerBufferSize)=rank1Temporary
           deallocate(rank1Temporary )
        end if
        if (allocated(self%integerProperty(i)%rank1VarLen)) then
           call move_alloc(self%integerProperty(i)%rank1VarLen,rank1VarLenTemporary)
-          allocate(self%integerProperty(i)%rank1VarLen(                           self%integerBufferSize+standardBufferSizeIncrement))
+          allocate(self%integerProperty(i)%rank1VarLen(                           bufferSizeNew))
           self%integerProperty(i)%rank1VarLen(  1:self%integerBufferSize)=rank1VarLenTemporary
           ! Nullify row pointers in the temporary array to avoid the associated data being destroyed when our temporary array is
           ! deallocated.
@@ -904,7 +910,7 @@ contains
           deallocate(rank1VarLenTemporary)
        end if
     end do
-    self%integerBufferSize=self%integerBufferSize+standardBufferSizeIncrement
+    self%integerBufferSize=bufferSizeNew
     return
   end subroutine standardExtendIntegerBuffer
 
@@ -919,24 +925,27 @@ contains
     double precision                             , allocatable  , dimension(:,:) :: rank1Temporary
     type            (hdf5VarDouble              ), allocatable  , dimension(:  ) :: rank1VarLenTemporary
     type            (hdf5VarDouble2D            ), allocatable  , dimension(:  ) :: rank2VarLenTemporary
-    integer                                                                      :: i                   , j
+    integer                                                                      :: i                   , j, &
+         &                                                                          bufferSizeNew
 
+    ! Grow the buffer geometrically - see `standardExtendIntegerBuffer` for why.
+    bufferSizeNew=2*self%doubleBufferSize
     do i=1,size(self%doubleProperty)
        if (allocated(self%doubleProperty(i)%scalar    )) then
           call move_alloc(self%doubleProperty(i)%scalar    ,scalarTemporary)
-          allocate(self%doubleProperty(i)%scalar    (                           self%doubleBufferSize+standardBufferSizeIncrement))
+          allocate(self%doubleProperty(i)%scalar    (                           bufferSizeNew))
           self%doubleProperty(i)%scalar    (  1:self%doubleBufferSize)=scalarTemporary
           deallocate(scalarTemporary)
        end if
        if (allocated(self%doubleProperty(i)%rank1     )) then
           call move_alloc(self%doubleProperty(i)%rank1     ,rank1Temporary )
-          allocate(self%doubleProperty(i)%rank1     (size(rank1Temporary,dim=1),self%doubleBufferSize+standardBufferSizeIncrement))
+          allocate(self%doubleProperty(i)%rank1     (size(rank1Temporary,dim=1),bufferSizeNew))
           self%doubleProperty(i)%rank1     (:,1:self%doubleBufferSize)=rank1Temporary
           deallocate(rank1Temporary )
        end if
        if (allocated(self%doubleProperty(i)%rank1VarLen)) then
           call move_alloc(self%doubleProperty(i)%rank1VarLen,rank1VarLenTemporary)
-          allocate(self%doubleProperty(i)%rank1VarLen(                           self%doubleBufferSize+standardBufferSizeIncrement))
+          allocate(self%doubleProperty(i)%rank1VarLen(                           bufferSizeNew))
           self%doubleProperty(i)%rank1VarLen(  1:self%doubleBufferSize)=rank1VarLenTemporary
           ! Nullify row pointers in the temporary array to avoid the associated data being destroyed when our temporary array is
           ! deallocated.
@@ -947,7 +956,7 @@ contains
        end if
        if (allocated(self%doubleProperty(i)%rank2VarLen)) then
           call move_alloc(self%doubleProperty(i)%rank2VarLen,rank2VarLenTemporary)
-          allocate(self%doubleProperty(i)%rank2VarLen(                           self%doubleBufferSize+standardBufferSizeIncrement))
+          allocate(self%doubleProperty(i)%rank2VarLen(                           bufferSizeNew))
           self%doubleProperty(i)%rank2VarLen(  1:self%doubleBufferSize)=rank2VarLenTemporary
           ! Nullify row pointers in the temporary array to avoid the associated data being destroyed when our temporary array is
           ! deallocated.
@@ -957,7 +966,7 @@ contains
           deallocate(rank2VarLenTemporary)
        end if
     end do
-    self%doubleBufferSize=self%doubleBufferSize+standardBufferSizeIncrement
+    self%doubleBufferSize=bufferSizeNew
     return
   end subroutine standardExtendDoubleBuffer
 
@@ -1254,9 +1263,11 @@ contains
     double precision                                                              :: expansionFactor      , distanceComoving
     integer                                                                       :: i
     
-    !$ call hdf5Access%set()
-    ! Ensure group ID space is large enough.
+    ! Ensure group ID space is large enough. `hdf5Access` is taken only when there is work to do here, rather than for every call:
+    ! the group table is grown at most once per `standardOutputGroupsIncrement` outputs, whereas this routine is called for every
+    ! tree at every output - and, for node and trajectory output, for every node.
     if (indexOutput > self%outputGroupsCount) then
+       !$ call hdf5Access%set()
        if (allocated(self%outputGroups)) then
           call Move_Alloc(self%outputGroups,outputGroupsTemporary)
           self%outputGroupsCount=max(self%outputGroupsCount+standardOutputGroupsIncrement,(indexOutput/standardOutputGroupsIncrement+1)*standardOutputGroupsIncrement)
@@ -1287,13 +1298,15 @@ contains
           self%outputGroups%integerAttributesWritten=.false.
           self%outputGroups%doubleAttributesWritten =.false.
        end if
+       !$ call hdf5Access%unset()
     end if
     ! Make the enclosing group if it has not been created.
     if (.not.self%outputsGroupOpened) then
+       !$ call hdf5Access%set()
        self%outputsGroup      =outputTo%openGroup(char(self%outputsGroupName),'Contains all outputs from Galacticus.')
+       !$ call hdf5Access%unset()
        self%outputsGroupOpened=.true.
     end if
-    !$ call hdf5Access%unset()
     ! Create the group if it has not been created.
     if (.not.self%outputGroups(indexOutput)%opened) then
        ! Create a name and comment for the group. Trajectory output groups accumulate records for a single node over many times, so
