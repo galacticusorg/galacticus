@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a program to test mass distributions.
 !!}
@@ -92,7 +94,8 @@ program Test_Mass_Distributions
   integer                                                                                                    :: i                                                                                                                       , referenceCountDiscard
   double precision                                                                                           :: radiusInProjection                                                                                                      , radius                                           , &
        &                                                                                                        rotationCurveGradientAnalytic                                                                                           , rotationCurveGradientNumerical                   , &
-       &                                                                                                        massFraction                                                                                                            , time
+       &                                                                                                        massFraction                                                                                                            , time                                             , &
+       &                                                                                                        radiusCylindrical                                                                                                       , height
   ! Parameters and reference values for the black hole re-initialization (pool re-use) test.
   double precision                                         , parameter                                       :: massBlackHoleA                       =1.0d+6                                                                            , massBlackHoleB                             =4.0d8, &
        &                                                                                                        radiusBlackHoleTest                  =1.0d-3
@@ -100,6 +103,7 @@ program Test_Mass_Distributions
        &                                                                                                        rotationReferenceA                                                                                                      , rotationReferenceB
   double precision                                         , parameter                                       :: epsilonFiniteDifference              =0.01d0
   character       (len=4                                  )                                                  :: label
+  character       (len=5                                  )                                                  :: labelHeight
   double precision                                         , dimension(3,3)                                  :: tidalTensorComponents                                                                                                   , tidalTensorSphericalComponents
   double precision                                         , dimension(3,3)                                  :: tidalTensorScalerReference                                                                                              , tidalTensorScalerDisplaced
   double precision                                         , dimension(3  )                                  :: acceleration                                                                                                            , accelerationReference
@@ -450,6 +454,71 @@ program Test_Mass_Distributions
      position=[radius,Pi/2.0d0,-Pi/2.0d0]
      accelerationReference=massDistribution_%acceleration(position)
      call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",accelerationReference,[0.0d0,+1.0d0,0.0d0]*massDistribution_%rotationCurve(radius)**2/radius,absTol=1.0d-6,relTol=1.0d-1)
+     call Unit_Tests_End_Group()
+     ! Test that the tabulated tidal tensor satisfies the Poisson equation. The tidal tensor is T = -∇∇Φ, so its trace must equal
+     ! -4πGρ (with G=1 for this dimensionless disk). This is tested close to the disk plane, where the vertical structure of the
+     ! disk dominates the trace.
+     call Unit_Tests_Begin_Group("Tidal tensor satisfies the Poisson equation")
+     do i=1,4
+        select case (i)
+        case (1)
+           radiusCylindrical=0.5d0
+           height           =0.010d0
+        case (2)
+           radiusCylindrical=1.0d0
+           height           =0.010d0
+        case (3)
+           radiusCylindrical=1.0d0
+           height           =0.020d0
+        case (4)
+           radiusCylindrical=2.0d0
+           height           =0.015d0
+        end select
+        write (label      ,'(f3.1)') radiusCylindrical
+        write (labelHeight,'(f5.3)') height
+        position             =[sqrt(radiusCylindrical**2+height**2),atan2(radiusCylindrical,height),0.0d0]
+        tidalTensorComponents=massDistribution_%tidalTensor(position)
+        call Assert(                                               &
+             &      "R="//trim(label)//", z="//labelHeight       , &
+             &      +tidalTensorComponents(1,1)                    &
+             &      +tidalTensorComponents(2,2)                    &
+             &      +tidalTensorComponents(3,3)                  , &
+             &      -4.0d0*Pi*massDistribution_%density(position), &
+             &      relTol=5.0d-2                                  &
+             &     )
+     end do
+     call Unit_Tests_End_Group()
+     ! Test the acceleration against reference values. These were computed by the `exponentialDiskAccelerations.py` script in
+     ! the galacticusDevTools repository (physicsReferences/), as Hankel transforms of the surface density, with the vertical
+     ! kernel evaluated by direct quadrature of the convolution of the sech² vertical density profile with exp(-k|z-z'|) - i.e.
+     ! independently of the form of the kernel used in the tabulation. The tolerance allows for the bilinear interpolation in the
+     ! tabulated solution.
+     call Unit_Tests_Begin_Group("Acceleration matches reference values")
+     do i=1,4
+        select case (i)
+        case (1)
+           radiusCylindrical    =1.0d0
+           height               =0.01d0
+           accelerationReference=[-2.73856896d-01,0.0d0,-2.77960050d-01]
+        case (2)
+           radiusCylindrical    =1.0d0
+           height               =0.10d0
+           accelerationReference=[-2.43542857d-01,0.0d0,-3.45809193d-01]
+        case (3)
+           radiusCylindrical    =0.5d0
+           height               =0.03d0
+           accelerationReference=[-2.55934175d-01,0.0d0,-5.83951896d-01]
+        case (4)
+           radiusCylindrical    =2.0d0
+           height               =0.30d0
+           accelerationReference=[-1.55488612d-01,0.0d0,-1.30061903d-01]
+        end select
+        write (label      ,'(f3.1)') radiusCylindrical
+        write (labelHeight,'(f5.3)') height
+        position    =[sqrt(radiusCylindrical**2+height**2),atan2(radiusCylindrical,height),0.0d0]
+        acceleration=massDistribution_%acceleration(position)
+        call Assert("R="//trim(label)//", z="//labelHeight,acceleration,accelerationReference,absTol=1.0d-6,relTol=2.0d-3)
+     end do
      call Unit_Tests_End_Group()
   class default
      call Error_Report('unknown mass distribution'//{introspection:location})
