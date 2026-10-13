@@ -131,7 +131,10 @@ For each ``observable`` it collects a training set from the ``analyses/{label}``
 are set to the floor with root variance ``rootVarianceFloored`` (in dex); and bins which are undefined in some runs (as
 for a mean relation with no galaxies in a bin) may be replaced by the median of that bin over the other runs
 (``undefined="median"``), with root variance ``rootVarianceUndefined``. Values which have been floored or replaced are
-flagged in the ``mask`` of the training set.
+flagged in the ``mask`` of the training set. With ``likelihoodRangeOnly="true"``, only the bins inside the range used in the
+analysis's likelihood (recorded by the analysis as the ``xLikelihoodMinimum`` and ``xLikelihoodMaximum`` attributes of its
+group, as for the ``progenitorMassFunction`` analysis) are collected. Bins which the likelihood never uses are then not
+emulated, which avoids spending principal components on them; for a mass function they are often empty, and so floored.
 
 The emulator of each observable standardizes its bins, compresses them by principal components analysis (retaining a
 fraction ``pcaVarianceRetained`` of the variance, by default 0.99), and fits a Gaussian process to each standardized
@@ -142,6 +145,11 @@ starts. With ``foldsCrossValidation`` greater than zero, each emulator is also c
 fold of the training set held out, and the held-out predictions are written to the ``validation`` group of the emulator
 file, along with per-bin statistics. A well-calibrated emulator has an RMS standardized residual near 1, and 1 and 2
 sigma coverage near 0.68 and 0.95. With ``collectOnly`` set to ``true``, only the training sets are written.
+
+The fit of each emulator, and of each fold of its cross-validation, is independent of the others, so with many observables
+training parallelizes well: ``--processes N`` makes the fits in :math:`N` processes (each using a single thread, since
+threading within a fit gains little), with results identical to those of a serial run. The cost of each fit grows steeply with the number of training points
+(about fourfold for each doubling, between 256 and 1024 points in ten dimensions).
 
 .. _manual-sec-EmulatorEvaluation:
 
