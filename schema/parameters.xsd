@@ -4784,6 +4784,7 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="gaussianCovariance"/>
           <xs:enumeration value="gaussianDiagonal"/>
+          <xs:enumeration value="logNormalFloored"/>
           <xs:enumeration value="poissonCounts"/>
          </xs:restriction>
         </xs:simpleType>

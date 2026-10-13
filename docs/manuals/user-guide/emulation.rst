@@ -213,6 +213,14 @@ Only parameters which change the likelihood without changing the model predictio
 of the model of N-body halo mass errors (``nbodyHaloMassError``), for example, change the progenitor mass function itself
 (through its convolution with those errors), so must be parameters of the design, and inputs to the emulator.
 
+A number density emulated in its logarithm with a floor (``transform="log10"`` with a ``floor``) may use the
+``logNormalFloored`` form, which treats bins at or below the floor - in the target data, or in the model prediction - as in
+training: they are set to the floor, with the root variance of floored values. Empty bins then contribute to the likelihood
+softly, rather than being excluded (as in ``gaussianDiagonal``, for which the logarithm of an empty target bin is
+:math:`-\infty`). With ``pathSamples`` set, the predictions of each emulator at every evaluation are written to a file
+(``<pathSamples>/<label>_<process>.txt``), keyed by simulation step and chain index, for checking the emulators along the
+chains.
+
 .. _manual-sec-EmulatorFileFormat:
 
 Emulator File Format

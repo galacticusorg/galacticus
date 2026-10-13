@@ -61,7 +61,9 @@
           &                                                                             x_               , yTarget_        , &
           &                                                                             countTarget_     , countPerValue_
      type            (emulatorGaussianProcessComponent), allocatable, dimension(:  ) :: components
-     double precision                                                                :: jitter
+     double precision                                                                :: jitter           , floor_          , &
+          &                                                                             rootVarianceFloored_
+     logical                                                                         :: hasFloor
    contains
      procedure :: countInputs    => gaussianProcessCountInputs
      procedure :: inputNames     => gaussianProcessInputNames
@@ -69,6 +71,8 @@
      procedure :: outputs        => gaussianProcessOutputs
      procedure :: target         => gaussianProcessTarget
      procedure :: transform      => gaussianProcessTransform
+     procedure :: labelObservable => gaussianProcessLabelObservable
+     procedure :: floor          => gaussianProcessFloor
      procedure :: counts         => gaussianProcessCounts
      procedure :: trainingPoints => gaussianProcessTrainingPoints
      procedure :: predict        => gaussianProcessPredict
@@ -182,6 +186,15 @@ contains
          self%transform_='identity'
       end if
       if (self%transform_ /= 'identity' .and. self%transform_ /= 'log10') call Error_Report("unsupported transform '"//self%transform_//"'"//{introspection:location})
+      ! A floor is recorded only for observables emulated in their logarithm with a floor.
+      self%hasFloor=trainingSetGroup%hasAttribute('floor') .and. trainingSetGroup%hasAttribute('rootVarianceFloored')
+      if (self%hasFloor) then
+         call trainingSetGroup%readAttribute('floor'              ,self%floor_              )
+         call trainingSetGroup%readAttribute('rootVarianceFloored',self%rootVarianceFloored_)
+      else
+         self%floor_              =0.0d0
+         self%rootVarianceFloored_=0.0d0
+      end if
       ! Counts are present only for observables compared to counts.
       if (trainingSetGroup%hasDataset('countTarget')) then
          call trainingSetGroup%readDataset('countTarget'  ,self%countTarget_  )
@@ -361,6 +374,34 @@ contains
     transform=self%transform_
     return
   end function gaussianProcessTransform
+
+  function gaussianProcessLabelObservable(self) result(label)
+    !!{RST
+    Return the label of the emulated observable within the emulator file.
+    !!}
+    implicit none
+    type (varying_string         )                :: label
+    class(emulatorGaussianProcess), intent(inout) :: self
+
+    label=self%label
+    return
+  end function gaussianProcessLabelObservable
+
+  subroutine gaussianProcessFloor(self,floor,rootVarianceFloored)
+    !!{RST
+    Return the floor of the emulated observable, and the root variance given to floored values in training.
+    !!}
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : operator(//)
+    implicit none
+    class           (emulatorGaussianProcess), intent(inout) :: self
+    double precision                         , intent(  out) :: floor, rootVarianceFloored
+
+    if (.not.self%hasFloor) call Error_Report("the training set of emulator '"//self%label//"' records no floor"//{introspection:location})
+    floor              =self%floor_
+    rootVarianceFloored=self%rootVarianceFloored_
+    return
+  end subroutine gaussianProcessFloor
 
   subroutine gaussianProcessCounts(self,countTarget,countPerValue)
     !!{RST

@@ -23,6 +23,11 @@ The `poissonCounts` form is checked by treating the first observable as the loga
 root variance given by an active parameter which is not an input to any emulator. Including the emulator variance must widen
 the likelihood of the counts, and a root variance parameter which is also an emulator input must be rejected.
 
+The `logNormalFloored` form is checked by giving the first observable a floor (with targets below the floor, finite and
+minus infinity, and model predictions below it at some states). With that form, the predictions written to `pathSamples`
+files must equal those computed in Python at the corresponding states. Finally, a `differentialEvolution` simulation with
+proposals logged must evaluate the likelihood (writing predictions) only for proposals within the support of the prior.
+
 Posterior sampling requires an MPI build of Galacticus, so the simulations are run under `mpirun`, with the grid points
 divided between the processes.
 
@@ -80,6 +85,9 @@ inputNames = {'observableDiagonal': ['p/cLonger', 'p/a', 'p/b'], 'observableCova
 # bin excluded), and factors converting the number density to a count.
 countTarget = np.array([5.0, 0.0, np.nan, 12.0, 3.0, 40.0])
 countPerValue = np.array([10.0, 12.0, 10.0, 8.0, 15.0, 20.0])
+# For the `logNormalFloored` form, the first observable has a floor (below which its first target datum, and its fifth, minus
+# infinity, lie), and the root variance of floored values.
+floor, rootVarianceFloored = -0.25, 0.5
 
 
 def targets():
@@ -145,7 +153,8 @@ def buildFile():
             x=np.arange(countBins[label], dtype=float), y=y, root_variance=np.full(y.shape, 0.03),
             mask=np.zeros(y.shape, dtype=np.int8), point_index=np.arange(countPoints), y_target=yTarget,
             covariance_target=covarianceTarget, count_target=countTarget if counts else None,
-            count_per_value=countPerValue if counts else None, attributes={'transform': 'log10'} if counts else {},
+            count_per_value=countPerValue if counts else None,
+            attributes={'transform': 'log10', 'floor': floor, 'rootVarianceFloored': rootVarianceFloored} if counts else {},
         )
         emulators[label] = buildEmulator(inputNames[label], inputs, y, seed)
     content = ef.EmulatorFile(design=design, training_sets=trainingSets, emulators=emulators)
@@ -173,6 +182,29 @@ def logLikelihoodCounts(mean, variance, includeEmulatorVariance, rootVarianceFra
     return logLikelihood
 
 
+def logLikelihoodFloored(y, covariance, mean, variance, includeEmulatorVariance):
+    """The `logNormalFloored` log-likelihood: target data and model predictions at or below the floor are set to the floor,
+    with the variance of floored values."""
+    logLikelihood = 0.0
+    for i in range(mean.size):
+        if np.isnan(y[i]) or not np.isfinite(covariance[i, i]):
+            continue
+        if y[i] <= floor:
+            target, varianceTotal = floor, rootVarianceFloored ** 2
+        else:
+            target, varianceTotal = y[i], covariance[i, i]
+        if mean[i] > floor:
+            model = mean[i]
+        else:
+            model, varianceTotal = floor, varianceTotal + rootVarianceFloored ** 2
+        if includeEmulatorVariance:
+            varianceTotal += variance[i]
+        if varianceTotal <= 0.0:
+            continue
+        logLikelihood += -0.5 * ((target - model) ** 2 / varianceTotal + math.log(2.0 * math.pi * varianceTotal))
+    return logLikelihood
+
+
 def logLikelihoodExpected(content, values, forms, includeEmulatorVariance, rootVarianceFractional=0.0, labels=None):
     """Compute the log-likelihood at the given parameter values, using the emulators of the given observables (by default,
     all)."""
@@ -190,6 +222,8 @@ def logLikelihoodExpected(content, values, forms, includeEmulatorVariance, rootV
         residual = (y - mean)[included]
         if form == 'poissonCounts':
             logLikelihood += logLikelihoodCounts(mean, variance, includeEmulatorVariance, rootVarianceFractional)
+        elif form == 'logNormalFloored':
+            logLikelihood += logLikelihoodFloored(y, covariance, mean, variance, includeEmulatorVariance)
         elif form == 'gaussianDiagonal':
             logLikelihood += -0.5 * np.sum(residual ** 2 / varianceTotal[included] + np.log(2.0 * np.pi * varianceTotal[included]))
         else:
@@ -202,12 +236,15 @@ def logLikelihoodExpected(content, values, forms, includeEmulatorVariance, rootV
     return logLikelihood
 
 
-def parameterFile(name, forms, includeEmulatorVariance, limitUpperA=2.0, composition=None, rootVariance=None, labels=None):
+def parameterFile(name, forms, includeEmulatorVariance, limitUpperA=2.0, composition=None, rootVariance=None, labels=None,
+                  pathSamples=None, simulation='grid'):
     """Write a parameter file for a grid simulation of the emulated likelihood. If ``composition`` is ``'independent'`` the
     emulated likelihood is combined with a `multivariateNormal` likelihood of a further parameter in an `independentLikelihoods`
     likelihood; if it is ``'heated'`` that combination is also heated. ``rootVariance`` is the fractional root variance of
     counts for the `poissonCounts` form: a number, or the name of the active parameter giving it. ``labels`` lists the
-    observables whose emulators are used (by default, all)."""
+    observables whose emulators are used (by default, all). If ``pathSamples`` is given, predictions are written there. If
+    ``simulation`` is ``'differentialEvolution'``, a short differential evolution simulation is run (with proposals logged)
+    in place of the grid."""
     modelParameters = ''
     extra = [parameterFurther] if composition else []
     if rootVariance == parameterDispersion['name']:
@@ -237,7 +274,7 @@ def parameterFile(name, forms, includeEmulatorVariance, limitUpperA=2.0, composi
     likelihood = f'''<posteriorSampleLikelihood value="emulated">
 {emulators}    <likelihoodForms         value="{' '.join(forms)}"/>
     <includeEmulatorVariance value="{'true' if includeEmulatorVariance else 'false'}"/>
-{rootVarianceElement(rootVariance)}  </posteriorSampleLikelihood>
+{rootVarianceElement(rootVariance)}{f'    <pathSamples             value="{pathSamples}"/>' + chr(10) if pathSamples else ''}  </posteriorSampleLikelihood>
 '''
     if composition:
         likelihood = f'''<posteriorSampleLikelihood value="independentLikelihoods">
@@ -264,7 +301,19 @@ def parameterFile(name, forms, includeEmulatorVariance, limitUpperA=2.0, composi
   <task value="posteriorSample">
     <initializeNodeClassHierarchy value="false"/>
   </task>
-  {likelihood}  <posteriorSampleSimulation value="grid">
+  {likelihood}{simulationElement(name, simulation, modelParameters)}  <randomNumberGenerator value="GSL">
+    <seed value="7"/>
+{'    <mpiRankOffset value="true"/>' + chr(10) if simulation != 'grid' else ''}  </randomNumberGenerator>
+</parameters>
+''')
+    return path
+
+
+def simulationElement(name, simulation, modelParameters):
+    """The posterior sampling simulation: a grid of 16 points, or a short differential evolution simulation (with a large
+    initial step size, so that some proposals lie outside the prior), logging its proposals."""
+    if simulation == 'grid':
+        return f'''  <posteriorSampleSimulation value="grid">
     <logFileRoot       value="{directory}/{name}"/>
     <logFlushCount     value="1"/>
     <appendLogs        value="false"/>
@@ -274,12 +323,31 @@ def parameterFile(name, forms, includeEmulatorVariance, limitUpperA=2.0, composi
       <randomShift  value="true"/>
     </posteriorSamples>
   </posteriorSampleSimulation>
-  <randomNumberGenerator value="GSL">
-    <seed value="7"/>
-  </randomNumberGenerator>
-</parameters>
-''')
-    return path
+'''
+    return f'''  <posteriorSampleSimulation value="differentialEvolution">
+    <stepsMaximum            value="100"/>
+    <acceptanceAverageCount  value="10"/>
+    <stateSwapCount          value="10"/>
+    <logFileRoot             value="{directory}/{name}"/>
+    <logFlushCount           value="1"/>
+    <reportCount             value="1000"/>
+    <sampleOutliers          value="false"/>
+    <logProposals            value="true"/>
+    <ignoreChainNumberAdvice value="true"/>
+{modelParameters}    <posteriorSampleState value="correlation">
+      <acceptedStateCount value="100"/>
+    </posteriorSampleState>
+    <posteriorSampleStateInitialize value="latinHypercube">
+      <maximinTrialCount value="10"/>
+    </posteriorSampleStateInitialize>
+    <posteriorSampleConvergence value="never"/>
+    <posteriorSampleStoppingCriterion value="never"/>
+    <posteriorSampleDffrntlEvltnRandomJump value="simple"/>
+    <posteriorSampleDffrntlEvltnProposalSize value="fixed">
+      <proposalSize value="1.5"/>
+    </posteriorSampleDffrntlEvltnProposalSize>
+  </posteriorSampleSimulation>
+'''
 
 
 def rootVarianceElement(rootVariance):
@@ -291,9 +359,10 @@ def rootVarianceElement(rootVariance):
     return f'    <rootVarianceTargetFractional          value="{rootVariance}"/>\n'
 
 
-def run(name, forms, includeEmulatorVariance, limitUpperA=2.0, composition=None, rootVariance=None, labels=None):
-    """Run a grid simulation, returning its exit status, and the path of its log."""
-    path = parameterFile(name, forms, includeEmulatorVariance, limitUpperA, composition, rootVariance, labels)
+def run(name, forms, includeEmulatorVariance, limitUpperA=2.0, composition=None, rootVariance=None, labels=None, pathSamples=None,
+        simulation='grid'):
+    """Run a simulation (by default, a grid), returning its exit status, and the path of its log."""
+    path = parameterFile(name, forms, includeEmulatorVariance, limitUpperA, composition, rootVariance, labels, pathSamples, simulation)
     logPath = f'{directory}/{name}.out'
     for stale in glob.glob(f'{directory}/{name}_*.log'):
         os.remove(stale)
@@ -339,6 +408,89 @@ def check(content, name, forms, includeEmulatorVariance, composition=None, rootV
     return [logLikelihood for logLikelihood, _ in rows]
 
 
+def readSamples(pathSamples, label):
+    """Read the predictions of an emulator written to `pathSamples` files: a dictionary mapping (step, chain) to the mean and
+    variance."""
+    samples = {}
+    for path in sorted(glob.glob(f'{pathSamples}/{label}_*.txt')):
+        with open(path) as file:
+            for line in file:
+                if line.startswith('#') or line.lstrip().startswith('#'):
+                    continue
+                columns = line.split()
+                values = np.array([float(value) for value in columns[2:]])
+                samples[(int(columns[0]), int(columns[1]))] = (values[:countBins[label]], values[countBins[label]:])
+    return samples
+
+
+def checkSamples(content, name, forms):
+    """Check that the predictions written to `pathSamples` files equal those computed in Python at the corresponding states of a
+    grid simulation (and that some predictions of the floored observable lie at or below its floor)."""
+    pathSamples = f'{directory}/{name}Samples'
+    status, logPath = run(name, forms, True, pathSamples=pathSamples)
+    if status != 0:
+        print(f'FAILED: grid simulation ({name}) exited with status {status} (see {logPath})')
+        return
+    states = []
+    for path in sorted(glob.glob(f'{directory}/{name}_*.log')):
+        with open(path) as file:
+            for line in file:
+                columns = line.split()
+                states.append(((int(columns[0]), int(columns[1])), [float(value) for value in columns[6:]]))
+    errors, belowFloor, missing = [], 0, 0
+    for label in countBins:
+        samples = readSamples(pathSamples, label)
+        emulator = content.emulators[label]
+        for key, values in states:
+            if key not in samples:
+                missing += 1
+                continue
+            quantilesAll = {parameter['name']: parameter['cumulative'](value) for parameter, value in zip(parameters, values)}
+            mean, variance = ef.predict(emulator, np.array([quantilesAll[name_] for name_ in emulator.input_names]))
+            errors.append(max(np.max(np.abs(samples[key][0] - mean.ravel())), np.max(np.abs(samples[key][1] / variance.ravel() - 1.0))))
+            if label == 'observableDiagonal':
+                belowFloor += int(np.sum(mean.ravel() <= floor))
+    if missing or not errors:
+        print(f'FAILED: predictions ({name}) were not written for {missing} of {len(states) * len(countBins)} evaluations')
+        return
+    message = f'predictions written to pathSamples ({name}; maximum difference {max(errors):.1e})'
+    print(f'SUCCESS: {message}' if max(errors) < 1.0e-9 else f'FAILED: {message}')
+    message = f'{belowFloor} predictions of the floored observable lie at or below its floor'
+    print(f'SUCCESS: {message}' if belowFloor > 0 else f'FAILED: {message} (the floored form is not exercised)')
+
+
+def checkWillEvaluate():
+    """Check that a differential evolution simulation evaluates the likelihood (writing predictions) only for proposals within
+    the support of the prior: one evaluation of the initial state of each chain, plus one per such proposal."""
+    name = 'willEvaluate'
+    pathSamples = f'{directory}/{name}Samples'
+    for stale in glob.glob(f'{pathSamples}/*.txt') + glob.glob(f'{directory}/{name}Proposals_*.log'):
+        os.remove(stale)
+    status, logPath = run(name, ['gaussianDiagonal'], True, pathSamples=pathSamples, simulation='differentialEvolution')
+    if status != 0:
+        print(f'FAILED: differential evolution simulation ({name}) exited with status {status} (see {logPath})')
+        return
+    inside, outside = 0, 0
+    for path in sorted(glob.glob(f'{directory}/{name}Proposals_*.log')):
+        with open(path) as file:
+            for line in file:
+                if line.startswith('#'):
+                    continue
+                values = [float(value) for value in line.split()[5:]]
+                a, b = values[names.index('p/a')], values[names.index('p/b')]
+                if 0.0 <= a <= 2.0 and 1.0e-2 <= b <= 1.0e1:
+                    inside += 1
+                else:
+                    outside += 1
+    rows = 0
+    for path in glob.glob(f'{pathSamples}/observableDiagonal_*.txt'):
+        with open(path) as file:
+            rows += sum(1 for line in file if not line.lstrip().startswith('#'))
+    message = (f'the likelihood is evaluated only within the prior ({rows} evaluations for {inside} proposals within the prior, '
+               f'{outside} outside it, and {processes} initial states)')
+    print(f'SUCCESS: {message}' if rows == inside + processes and outside > 0 else f'FAILED: {message}')
+
+
 def main():
     global processes, allowRunAsRoot
     parser = argparse.ArgumentParser()
@@ -371,6 +523,13 @@ def main():
         message = (f'the emulator variance widens the likelihood (log-likelihoods span {spanWidened:.4g} with it, '
                    f'{spanNarrow:.4g} without)')
         print(f'SUCCESS: {message}' if spanWidened < spanNarrow else f'FAILED: {message}')
+    # The floored form (with and without the emulator variance), the predictions written to file, and evaluation only within
+    # the prior.
+    formsFloored = ['logNormalFloored', 'gaussianCovariance']
+    check(content, 'floored', formsFloored, True)
+    check(content, 'flooredNoVariance', formsFloored, False)
+    checkSamples(content, 'flooredSamples', formsFloored)
+    checkWillEvaluate()
     # A parameter giving the fractional root variance of counts must not also be an input to an emulator.
     status, logPath = run('countsParameterInput', formsCounts, True, rootVariance='p/a')
     with open(logPath) as file:
