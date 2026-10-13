@@ -36,15 +36,15 @@
      its target data (and, for the ``poissonCounts`` form, target counts and the factors converting values to counts), whether
      it emulates the logarithm of the observable, and which bins of the target data are included in the likelihood.
      !!}
-     integer         , allocatable, dimension(:  ) :: indexParameter
-     double precision, allocatable, dimension(:  ) :: yTarget         , countTarget, &
-          &                                           countPerValue
-     double precision, allocatable, dimension(:,:) :: covarianceTarget
-     logical         , allocatable, dimension(:  ) :: included
-     logical                                       :: transformLog
-     double precision                              :: floor           , rootVarianceFloored
-     integer                                       :: unitSamples
-     type            (varying_string)              :: fileNameSamples
+     integer                         , allocatable, dimension(:  ) :: indexParameter
+     double precision                , allocatable, dimension(:  ) :: yTarget         , countTarget, &
+          &                                                           countPerValue
+     double precision                , allocatable, dimension(:,:) :: covarianceTarget
+     logical                         , allocatable, dimension(:  ) :: included
+     logical                                                       :: transformLog
+     double precision                                              :: floor           , rootVarianceFloored
+     integer                                                       :: unitSamples
+     type            (varying_string)                              :: fileNameSamples
   end type emulatedEmulatorState
 
   !![

@@ -51,31 +51,31 @@
      A Gaussian process emulator read from an emulator file.
      !!}
      private
-     type            (varying_string                  )                              :: fileName         , label           , &
+     type            (varying_string                  )                              :: fileName            , label           , &
           &                                                                             transform_
      type            (varying_string                  ), allocatable, dimension(:  ) :: inputNames_
-     double precision                                  , allocatable, dimension(:,:) :: inputs           , pcaComponents   , &
-          &                                                                             covarianceTarget_, values
-     double precision                                  , allocatable, dimension(:  ) :: binMean          , binScale        , &
-          &                                                                             coefficientMean  , coefficientScale, &
-          &                                                                             x_               , yTarget_        , &
-          &                                                                             countTarget_     , countPerValue_
+     double precision                                  , allocatable, dimension(:,:) :: inputs              , pcaComponents   , &
+          &                                                                             covarianceTarget_   , values
+     double precision                                  , allocatable, dimension(:  ) :: binMean             , binScale        , &
+          &                                                                             coefficientMean     , coefficientScale, &
+          &                                                                             x_                  , yTarget_        , &
+          &                                                                             countTarget_        , countPerValue_
      type            (emulatorGaussianProcessComponent), allocatable, dimension(:  ) :: components
-     double precision                                                                :: jitter           , floor_          , &
+     double precision                                                                :: jitter              , floor_          , &
           &                                                                             rootVarianceFloored_
      logical                                                                         :: hasFloor
    contains
-     procedure :: countInputs    => gaussianProcessCountInputs
-     procedure :: inputNames     => gaussianProcessInputNames
-     procedure :: countOutputs   => gaussianProcessCountOutputs
-     procedure :: outputs        => gaussianProcessOutputs
-     procedure :: target         => gaussianProcessTarget
-     procedure :: transform      => gaussianProcessTransform
+     procedure :: countInputs     => gaussianProcessCountInputs
+     procedure :: inputNames      => gaussianProcessInputNames
+     procedure :: countOutputs    => gaussianProcessCountOutputs
+     procedure :: outputs         => gaussianProcessOutputs
+     procedure :: target          => gaussianProcessTarget
+     procedure :: transform       => gaussianProcessTransform
      procedure :: labelObservable => gaussianProcessLabelObservable
-     procedure :: floor          => gaussianProcessFloor
-     procedure :: counts         => gaussianProcessCounts
-     procedure :: trainingPoints => gaussianProcessTrainingPoints
-     procedure :: predict        => gaussianProcessPredict
+     procedure :: floor           => gaussianProcessFloor
+     procedure :: counts          => gaussianProcessCounts
+     procedure :: trainingPoints  => gaussianProcessTrainingPoints
+     procedure :: predict         => gaussianProcessPredict
   end type emulatorGaussianProcess
 
   interface emulatorGaussianProcess
