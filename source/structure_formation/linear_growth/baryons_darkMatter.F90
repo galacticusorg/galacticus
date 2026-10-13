@@ -717,8 +717,8 @@ contains
        ! matter, which follows the background cosmology to arbitrarily early times. The shape of the wavenumber dependence is
        ! held at that of the initial epoch.
        baryonsDarkMatterValue=+self%growthFactor                    %interpolate(self%tableTimeMinimum,wavenumber_,table=indexDarkMatter) &
-            &                 *self%linearGrowthCollisionlessMatter_%value      (     time_                                          ) &
-            &                 /self%linearGrowthCollisionlessMatter_%value      (self%tableTimeMinimum                               )
+            &                 *self%linearGrowthCollisionlessMatter_%value      (     time_                                             ) &
+            &                 /self%linearGrowthCollisionlessMatter_%value      (self%tableTimeMinimum                                  )
     else
        baryonsDarkMatterValue=+self%growthFactor                    %interpolate(     time_           ,wavenumber_,table=indexDarkMatter)
     end if
@@ -836,7 +836,7 @@ contains
     !!{RST
     Read tabulated data on linear growth factor from file.
     !!}
-    use :: Display         , only : displayMessage              , verbosityLevelWorking
+    use :: Display         , only : displayMessage          , verbosityLevelWorking
     use :: File_Utilities  , only : File_Exists
     use :: HDF5_Access     , only : hdf5Access
     use :: IO_HDF5         , only : hdf5File

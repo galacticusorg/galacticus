@@ -125,16 +125,16 @@ program Tests_Linear_Growth_EdS_Baryons
   ! by z ≈ 10, and the continuation carries that difference to earlier times. Its growth is therefore checked through the ratio of
   ! growth factors at two early epochs.
   do i=1,size(redshiftEarly)
-     expansionFactor           =cosmologyFunctions_%expansionFactorFromRedshift         (                  redshiftEarly(i)                                    )
-     linearGrowthFactorEarly(i)=linearGrowth_      %value                               (wavenumber=1.0d-3,expansionFactor=expansionFactor,component=componentDarkMatter)
-     expansionFactorEarly   (i)=                                                                           expansionFactor
+     expansionFactor           =cosmologyFunctions_%expansionFactorFromRedshift         (                                  redshiftEarly  (i)                              )
+     linearGrowthFactorEarly(i)=linearGrowth_      %value                               (wavenumber=1.0d-3,expansionFactor=expansionFactor   ,component=componentDarkMatter)
+     expansionFactorEarly   (i)=                                                                                           expansionFactor
      write (message,'(a,f6.1,a)') "dark matter linear growth factor [k ⟶ 0 ; z = ",redshiftEarly(i),"; before initial epoch]"
      call Assert(trim(message),linearGrowthFactorEarly(i),expansionFactor,relTol=1.0d-2)
      linearGrowthFactor        =linearGrowth_      %logarithmicDerivativeExpansionFactor(wavenumber=1.0d-3,expansionFactor=expansionFactor,component=componentDarkMatter)
-     write (message,'(a,f6.1,a)') "dark matter d log D / d log a [k ⟶ 0 ; z = ",redshiftEarly(i),"; before initial epoch]"
+     write (message,'(a,f6.1,a)') "dark matter d log D / d log a [k ⟶ 0 ; z = "   ,redshiftEarly(i),"; before initial epoch]"
      call Assert(trim(message),linearGrowthFactor,1.0d0,relTol=1.0d-3)
   end do
-  call Assert(                                                                                       &
+  call Assert(                                                                                               &
        &             "dark matter linear growth factor ratio [k ⟶ 0 ; z = 400 / 200; before initial epoch]", &
        &             linearGrowthFactorEarly(2)/linearGrowthFactorEarly(1)                                 , &
        &             expansionFactorEarly   (2)/expansionFactorEarly   (1)                                 , &
