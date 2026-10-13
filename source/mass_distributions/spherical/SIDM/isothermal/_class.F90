@@ -86,7 +86,7 @@
      A mass distribution implementing the "isothermal" approximation to the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023`.
      !!}
      private
-     double precision                                              :: velocityDispersionCentral     , densityInteraction      , &
+     double precision                                              :: velocityDispersionCentral     , densityInteraction           , &
           &                                                           massInteraction               , velocityDispersionInteraction
      type            (interpolator), allocatable                   :: interpolatorRadiiDimensionless
      ! The dimensionless profiles are held only for the two values of ξ which bracket that of this halo - the trailing dimension
