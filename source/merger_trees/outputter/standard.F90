@@ -55,6 +55,12 @@
      generic   :: assignment(=)     =>  outputDatasetAssign
   end type outputDataset
 
+  ! Positions of the per-tree scalar datasets in the `treeDataset` handle table of an output group.
+  integer         , parameter :: treeDatasetIndexIndex        =1, treeDatasetIndexStart =2, &
+       &                         treeDatasetIndexCount        =3, treeDatasetIndexWeight=4, &
+       &                         treeDatasetIndexSeed         =5
+  integer         , parameter :: treeDatasetsCount            =5
+
   type outputGroup
      !!{RST
      Type used for output group information.
@@ -67,6 +73,10 @@
      ! position of the property in the buffer arrays, and each is validated against the name of the property occupying that
      ! position before use, so that a change in the set of properties being output cannot direct an append to the wrong dataset.
      type   (outputDataset                 ), allocatable, dimension(:) :: integerDataset         , doubleDataset
+     ! Handles to the five per-tree scalar datasets of this output - the tree index, the start and length of its block of node
+     ! data, its volume weight and its random number seed - held open for the same reason as the property datasets above. These
+     ! live in the output group itself rather than in its `nodeData` group.
+     type   (outputDataset                 ), allocatable, dimension(:) :: treeDataset
    contains
      !![
      <methods docformat="rst">
@@ -361,12 +371,14 @@ contains
                 end do
              end if
           end if
-          ! Store the start position and length of the node data for this tree, along with its volume weight.
-          call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%index]                        ,"mergerTreeIndex"     ,"Index of each merger tree."                                  ,appendTo=.true.)
-          call self%outputGroups(indexOutput)%hdf5Group%writeDataset(referenceStart                             ,"mergerTreeStartIndex","Index in nodeData datasets at which each merger tree begins.",appendTo=.true.)
-          call self%outputGroups(indexOutput)%hdf5Group%writeDataset(referenceLength                            ,"mergerTreeCount"     ,"Number of nodes in nodeData datasets for each merger tree."  ,appendTo=.true.)
-          call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%volumeWeight                 ],"mergerTreeWeight"    ,"Number density of each tree [Mpc⁻³]."                        ,appendTo=.true.)
-          call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%randomNumberGenerator_%seed()],"mergerTreeSeed"      ,"Random number seed of each merger tree."                     ,appendTo=.true.)
+          ! Store the start position and length of the node data for this tree, along with its volume weight. These go through
+          ! handles held open for the lifetime of the output group, as the property datasets do.
+          call standardDatasetsAllocate           (self%outputGroups(indexOutput)%treeDataset,treeDatasetsCount                                                                                                                       )
+          call standardTreeDatasetAppendInteger8  (self%outputGroups(indexOutput)            ,treeDatasetIndexIndex ,[currentTree%index]                        ,"mergerTreeIndex"     ,"Index of each merger tree."                   )
+          call standardTreeDatasetAppendInteger8  (self%outputGroups(indexOutput)            ,treeDatasetIndexStart ,referenceStart                             ,"mergerTreeStartIndex","Index in nodeData datasets at which each merger tree begins.")
+          call standardTreeDatasetAppendInteger8  (self%outputGroups(indexOutput)            ,treeDatasetIndexCount ,referenceLength                            ,"mergerTreeCount"     ,"Number of nodes in nodeData datasets for each merger tree."  )
+          call standardTreeDatasetAppendDouble    (self%outputGroups(indexOutput)            ,treeDatasetIndexWeight,[currentTree%volumeWeight                 ],"mergerTreeWeight"    ,"Number density of each tree [Mpc⁻³]."         )
+          call standardTreeDatasetAppendInteger8  (self%outputGroups(indexOutput)            ,treeDatasetIndexSeed  ,[currentTree%randomNumberGenerator_%seed()],"mergerTreeSeed"      ,"Random number seed of each merger tree."      )
           !$ call hdf5Access%unset()
           if (treeLock%ownedByThread()) call treeLock%unset()
        end if
@@ -1463,6 +1475,12 @@ contains
           to% doubleDataset(i)=from% doubleDataset(i)
        end do
     end if
+    if (allocated(from%   treeDataset)) then
+       allocate(to%   treeDataset(size(from%   treeDataset)))
+       do i=1,size(from%   treeDataset)
+          to%   treeDataset(i)=from%   treeDataset(i)
+       end do
+    end if
     return
   end subroutine outputGroupAssign
 
@@ -1540,6 +1558,66 @@ contains
     dataset_%written=preExisted
     return
   end subroutine standardDatasetPrepare
+
+  subroutine standardTreeDatasetAppendInteger8(outputGroup_,indexDataset,values,name,comment)
+    !!{RST
+    Append to one of the per-tree scalar integer datasets of ``outputGroup_``, through a handle held open for it. Must be called
+    with ``hdf5Access`` held.
+    !!}
+    use :: HDF5   , only : hsize_t
+    use :: IO_HDF5, only : hdf5DataTypeInteger8
+    implicit none
+    type     (outputGroup), intent(inout)                :: outputGroup_
+    integer               , intent(in   )                :: indexDataset
+    integer  (kind_int8  ), intent(in   ), dimension(:  ) :: values
+    character(len=*      ), intent(in   )                :: name        , comment
+
+    call standardDatasetPrepare(                                                          &
+         &                      outputGroup_%treeDataset(indexDataset)                  , &
+         &                      outputGroup_%hdf5Group                                  , &
+         &                      name                                                    , &
+         &                      comment                                                 , &
+         &                      hdf5DataTypeInteger8                                    , &
+         &                      [int(size(values),kind=hsize_t)]                          &
+         &                     )
+    call outputGroup_%treeDataset(indexDataset)%dataset%writeDataset(                                                          &
+         &                                                                       values                                      , &
+         &                                                          appendTo    =.true.                                       , &
+         &                                                          preExistedIn=outputGroup_%treeDataset(indexDataset)%written  &
+         &                                                         )
+    outputGroup_%treeDataset(indexDataset)%written=.true.
+    return
+  end subroutine standardTreeDatasetAppendInteger8
+
+  subroutine standardTreeDatasetAppendDouble(outputGroup_,indexDataset,values,name,comment)
+    !!{RST
+    Append to one of the per-tree scalar double precision datasets of ``outputGroup_``, through a handle held open for it. Must be
+    called with ``hdf5Access`` held.
+    !!}
+    use :: HDF5   , only : hsize_t
+    use :: IO_HDF5, only : hdf5DataTypeDouble
+    implicit none
+    type            (outputGroup), intent(inout)                :: outputGroup_
+    integer                      , intent(in   )                :: indexDataset
+    double precision             , intent(in   ), dimension(:  ) :: values
+    character       (len=*      ), intent(in   )                :: name        , comment
+
+    call standardDatasetPrepare(                                                          &
+         &                      outputGroup_%treeDataset(indexDataset)                  , &
+         &                      outputGroup_%hdf5Group                                  , &
+         &                      name                                                    , &
+         &                      comment                                                 , &
+         &                      hdf5DataTypeDouble                                      , &
+         &                      [int(size(values),kind=hsize_t)]                          &
+         &                     )
+    call outputGroup_%treeDataset(indexDataset)%dataset%writeDataset(                                                          &
+         &                                                                       values                                      , &
+         &                                                          appendTo    =.true.                                       , &
+         &                                                          preExistedIn=outputGroup_%treeDataset(indexDataset)%written  &
+         &                                                         )
+    outputGroup_%treeDataset(indexDataset)%written=.true.
+    return
+  end subroutine standardTreeDatasetAppendDouble
 
   function standardDatasetExtent(datasets,propertyCount) result(extent_)
     !!{RST
