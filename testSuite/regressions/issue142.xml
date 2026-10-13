@@ -468,6 +468,8 @@
 
   <!-- Halo accretion options -->
   <accretionHalo value="naozBarkana2007"/>
+  <!-- Use the filtering mass solved for along with the IGM state -->
+  <intergalacticMediumFilteringMass value="internal"/>
 
   <!-- Output options -->
   <mergerTreeOutputter value="multi">
