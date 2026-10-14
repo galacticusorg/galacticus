@@ -1398,6 +1398,39 @@ def chandrasekhar_suppress_extended_mass(input_doc, parameters, is_grid):
     _suppress_extended_mass_disable(profile)
 
 
+def dynamical_friction_gaseous(input_doc, parameters, is_grid):
+    """Retain the collisionless treatment of dynamical friction from gaseous components.
+
+    Commit b3ff1596d6 introduced the `dynamicalFrictionGaseous` class, used to compute dynamical friction
+    from collisional (gaseous) components such as the hot halo, with a default (`kimKim2007`) that
+    differs from the collisionless Chandrasekhar (1943) formula previously applied to them. Parameter
+    files predating that commit expect the prior behavior, so we explicitly select
+    `dynamicalFrictionGaseous=chandrasekhar1943`, which reproduces it.
+
+    The option matters only where dynamical friction is computed (by a `satelliteDynamicalFriction`
+    node operator, or any non-`zero` `satelliteDynamicalFriction` class) *and* a gaseous component is
+    present (i.e. `componentHotHalo` is not `null` - the default is `standard`). Elsewhere it would have
+    no effect, so we do not add it.
+    """
+    if len(parameters.xpath(".//dynamicalFrictionGaseous[@value]")) > 0:
+        return
+    friction = parameters.xpath(".//satelliteDynamicalFriction[@value]")
+    operator = parameters.xpath(".//nodeOperator[@value='satelliteDynamicalFriction']")
+    if len(friction) == 0 and len(operator) == 0:
+        return
+    if len(friction) > 0 and all(element.get("value") == "zero" for element in friction):
+        return
+    hot_halo = parameters.xpath(".//componentHotHalo[@value]")
+    if len(hot_halo) > 0 and all(element.get("value") == "null" for element in hot_halo):
+        return
+    print("   insert dynamicalFrictionGaseous chandrasekhar1943 to retain collisionless dynamical friction from gas")
+    gaseous = etree.Element("dynamicalFrictionGaseous")
+    gaseous.set("value", "chandrasekhar1943")
+    if is_grid:
+        gaseous.set("iterable", "no")
+    parameters.append(gaseous)
+
+
 def vitvitska_subresolution_method(input_doc, parameters, is_grid):
     """Special handling to preserve the sub-resolution angular momentum method across the default flip."""
     nodes = parameters.xpath(".//nodeOperator[@value='haloAngularMomentumVitvitska2002']")
@@ -1722,6 +1755,7 @@ SPECIAL_FUNCTIONS = {
     "splashback_radius_accretion_flow": splashback_radius_accretion_flow,
     "johnson2021_correlated_branches": johnson2021_correlated_branches,
     "chandrasekhar_suppress_extended_mass": chandrasekhar_suppress_extended_mass,
+    "dynamical_friction_gaseous": dynamical_friction_gaseous,
 }
 
 
