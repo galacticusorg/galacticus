@@ -23,7 +23,8 @@
 Tests of the dimensionless drag force for dynamical friction in a gaseous medium. Reference values for the
 :cite:t:`kim_dynamical_2007` class are evaluated directly from their fitting formulae (their eqn. 15), and for the
 :cite:t:`chandrasekhar_dynamical_1943` class from the collisionless formula. The Chandrasekhar integral of a collisional
-spherical mass distribution is also checked against the drag computed directly from the sound speed of the gas.
+spherical mass distribution is also checked against the drag computed directly from the sound speed of the gas, and that of
+an isothermal distribution flagged as collisionless against the collisionless formula, whichever gaseous drag is supplied.
 !!}
 
 program Tests_Dynamical_Friction_Gaseous
@@ -46,8 +47,10 @@ program Tests_Dynamical_Friction_Gaseous
        &                                                                       kimKim2007
   type            (dynamicalFrictionGaseousChandrasekhar1943)               :: chandrasekhar1943
   type            (massDistributionIsothermal               )               :: massDistributionHost            , &
-       &                                                                       massDistributionPerturber
-  type            (kinematicsDistributionIsothermal         )               :: kinematicsDistributionGas
+       &                                                                       massDistributionPerturber       , &
+       &                                                                       massDistributionHostCollisionless
+  type            (kinematicsDistributionIsothermal         )               :: kinematicsDistributionGas       , &
+       &                                                                       kinematicsDistributionCollisionless
   type            (coordinateCartesian                      )               :: position                        , &
        &                                                                       velocity                        , &
        &                                                                       integral
@@ -57,7 +60,8 @@ program Tests_Dynamical_Friction_Gaseous
        &                                                                       soundSpeed                      , &
        &                                                                       density                         , &
        &                                                                       speed
-  double precision                                           , parameter    :: offsetMachNumber         =1.0d-9, &
+  double precision                                           , parameter    :: velocityDispersion       =2.0d+2, &
+       &                                                                       offsetMachNumber         =1.0d-9, &
        &                                                                       logarithmCoulomb         =2.5d0 , &
        &                                                                       machNumber               =1.5d0 , &
        &                                                                       massPerturber            =1.0d+9
@@ -105,7 +109,7 @@ program Tests_Dynamical_Friction_Gaseous
   ! Chandrasekhar integral of a collisional (gaseous) spherical distribution. The perturber is much more compact than its own
   ! enclosed mass at the position considered, so that no suppression due to its extent is applied. The integral must then be
   ! -rho v I(M,lnL)/V^3, with the Mach number found from the sound speed of the gas.
-  kinematicsDistributionGas=kinematicsDistributionIsothermal(velocityDispersion_=200.0d0                       )
+  kinematicsDistributionGas=kinematicsDistributionIsothermal(velocityDispersion_=velocityDispersion             )
   massDistributionHost     =massDistributionIsothermal      (mass               =1.0d12 ,lengthReference=0.30d0)
   massDistributionPerturber=massDistributionIsothermal      (mass               =1.0d10 ,lengthReference=0.01d0)
   call massDistributionHost%setKinematicsDistribution(kinematicsDistributionGas)
@@ -120,6 +124,18 @@ program Tests_Dynamical_Friction_Gaseous
   integral  =massDistributionHost%chandrasekharIntegral(massDistributionHost,massDistributionPerturber,massPerturber,position,velocity,logarithmCoulomb,chandrasekhar1943)
   integralVector=integral
   call Assert("Chandrasekhar integral, collisional, Chandrasekhar (1943)",integralVector,[0.0d0,-density*chandrasekhar1943%forceFactor(machNumber,logarithmCoulomb)/speed**2,0.0d0],relTol=1.0d-9)
+  ! Chandrasekhar integral of the same distribution flagged as collisionless (as used for isothermal dark matter halos). The
+  ! gaseous drag must then be ignored, and the integral must be the collisionless result, -rho v lnL [erf(X)-2X exp(-X^2)/sqrt(pi)]/V^3
+  ! with X=V/sqrt(2)/sigma - which is the Chandrasekhar (1943) drag factor evaluated at V/sigma.
+  kinematicsDistributionCollisionless=kinematicsDistributionIsothermal(velocityDispersion_=velocityDispersion,collisional=.false.)
+  massDistributionHostCollisionless  =massDistributionIsothermal      (mass               =1.0d12            ,lengthReference=0.30d0)
+  call massDistributionHostCollisionless%setKinematicsDistribution(kinematicsDistributionCollisionless)
+  integral  =massDistributionHostCollisionless%chandrasekharIntegral(massDistributionHostCollisionless,massDistributionPerturber,massPerturber,position,velocity,logarithmCoulomb,kimKim2007)
+  integralVector=integral
+  call Assert("Chandrasekhar integral, collisionless, Kim & Kim (2007)"   ,integralVector,[0.0d0,-density*chandrasekhar1943%forceFactor(speed/velocityDispersion,logarithmCoulomb)/speed**2,0.0d0],relTol=1.0d-9)
+  integral  =massDistributionHostCollisionless%chandrasekharIntegral(massDistributionHostCollisionless,massDistributionPerturber,massPerturber,position,velocity,logarithmCoulomb,chandrasekhar1943)
+  integralVector=integral
+  call Assert("Chandrasekhar integral, collisionless, Chandrasekhar (1943)",integralVector,[0.0d0,-density*chandrasekhar1943%forceFactor(speed/velocityDispersion,logarithmCoulomb)/speed**2,0.0d0],relTol=1.0d-9)
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
 end program Tests_Dynamical_Friction_Gaseous
