@@ -50,6 +50,7 @@ program Test_Mass_Distributions
        &                                                                                                        massDistributionWrappedCylindrical
   ! Dedicated objects for the spherical scaler memoization tests, so that those tests do not disturb (or
   ! depend on the allocation state of) the shared objects above.
+  class           (massDistributionClass                  )                                    , pointer     :: massDistributionMomentInner
   class           (massDistributionClass                  )                                    , allocatable :: massDistributionScalerTest                                                                                              , massDistributionScalerInner
   class           (massDistributionClass                  )                                    , pointer     :: massDistributionDisk_                                                                                                   , massDistributionSpheroid_       , &
        &                                                                                                        massDistributionAll_                                                                                                    , massDistributionDiskAgain_
@@ -202,6 +203,73 @@ program Test_Mass_Distributions
      call Assert("Mass within cylinder      (r=2.0rₛ; dimensionful )",massDistribution_%massEnclosedByCylinder(4.0d0   ),8.0d0/3.0d0*(+1.0d0-Pi/3.0d0                    /sqrt(3.0d0)),absTol=1.0d-6)
   end select
   deallocate(massDistribution_)
+  call Unit_Tests_End_Group()
+
+  ! Radial moments. Reference values were computed by direct numerical quadrature (scipy.integrate.quad) of ρ(r) rᵐ (or
+  ! Σ(R) Rᵐ) for the dimensionful profiles. Over the full range, ∫ 4π ρ r² dr = M and ∫ 2π Σ R dR = M.
+  call Unit_Tests_Begin_Group("Radial moments")
+  allocate(massDistributionHernquist :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionHernquist)
+     massDistribution_=massDistributionHernquist(dimensionless=.false.,mass=2.0d0,scaleLength=2.0d0)
+  end select
+  select type (massDistribution_)
+  class is (massDistributionSpherical)
+     call Assert("Hernquist: m=2, r=[0,∞)    ",massDistribution_%densityRadialMoment(2.0d0                                        ),2.0d0/4.0d0/Pi                                                   ,relTol=1.0d-6)
+     call Assert("Hernquist: m=1, r=[0.5,3]  ",massDistribution_%densityRadialMoment(1.0d0,radiusMinimum=0.5d0,radiusMaximum=3.0d0),0.03819718634205488d0                                            ,relTol=1.0d-6)
+     call Assert("Hernquist: m=2, r=[0.5,3]  ",massDistribution_%densityRadialMoment(2.0d0,radiusMinimum=0.5d0,radiusMaximum=3.0d0),0.050929581789406514d0                                           ,relTol=1.0d-6)
+     call Assert("Hernquist: m=3, r=[0.5,3]  ",massDistribution_%densityRadialMoment(3.0d0,radiusMinimum=0.5d0,radiusMaximum=3.0d0),0.08476412777945765d0                                            ,relTol=1.0d-6)
+     call Assert("Hernquist: m=1, r=[1,∞)    ",massDistribution_%densityRadialMoment(1.0d0,radiusMinimum=1.0d0                    ),0.0353677651315323d0                                             ,relTol=1.0d-6)
+     call Assert("Hernquist: m=2.5, r=[0.5,3]",massDistribution_%densityRadialMoment(2.5d0,radiusMinimum=0.5d0,radiusMaximum=3.0d0),massDistribution_%densityRadialMomentNumerical(2.5d0,0.5d0,3.0d0),relTol=1.0d-3)
+  end select
+  allocate(massDistributionHernquist :: massDistributionMomentInner)
+  select type (massDistributionMomentInner)
+  type is (massDistributionHernquist)
+     massDistributionMomentInner=massDistributionHernquist(dimensionless=.true.)
+  end select
+  allocate(massDistributionSphericalScaler :: massDistributionScalerTest)
+  select type (massDistributionScalerTest)
+  type is (massDistributionSphericalScaler)
+     select type (massDistributionMomentInner)
+     class is (massDistributionSpherical)
+        massDistributionScalerTest=massDistributionSphericalScaler(factorScalingLength=2.0d0,factorScalingMass=2.0d0,massDistribution_=massDistributionMomentInner)
+     end select
+  end select
+  select type (massDistributionScalerTest)
+  class is (massDistributionSpherical)
+     call Assert("Scaled Hernquist: m=2, r=[0,∞)  ",massDistributionScalerTest%densityRadialMoment(2.0d0                                        ),2.0d0/4.0d0/Pi       ,relTol=1.0d-6)
+     call Assert("Scaled Hernquist: m=3, r=[0.5,3]",massDistributionScalerTest%densityRadialMoment(3.0d0,radiusMinimum=0.5d0,radiusMaximum=3.0d0),0.08476412777945765d0,relTol=1.0d-6)
+  end select
+  ! The scaler holds a counted reference to `massDistributionMomentInner` and destroys it in its own destructor, so only the
+  ! scaler itself is deallocated here.
+  deallocate(massDistribution_          )
+  deallocate(massDistributionScalerTest )
+  allocate(massDistributionExponentialDisk :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionExponentialDisk)
+     massDistribution_=massDistributionExponentialDisk(mass=2.0d0,radiusScale=2.0d0,scaleHeight=0.01d0)
+  end select
+  call Assert("Exponential disk: m=1, R=[0,∞)",massDistribution_%surfaceDensityRadialMoment(1.0d0                                        ),2.0d0/2.0d0/Pi      ,relTol=1.0d-6)
+  call Assert("Exponential disk: m=2, R=[1,3]",massDistribution_%surfaceDensityRadialMoment(2.0d0,radiusMinimum=1.0d0,radiusMaximum=3.0d0),0.2250648139159444d0,relTol=1.0d-6)
+  allocate(massDistributionExponentialDisk :: massDistributionMomentInner)
+  select type (massDistributionMomentInner)
+  type is (massDistributionExponentialDisk)
+     massDistributionMomentInner=massDistributionExponentialDisk(scaleHeight=0.005d0,dimensionless=.true.)
+  end select
+  allocate(massDistributionCylindricalScaler :: massDistributionScalerTest)
+  select type (massDistributionScalerTest)
+  type is (massDistributionCylindricalScaler)
+     select type (massDistributionMomentInner)
+     class is (massDistributionCylindrical)
+        massDistributionScalerTest=massDistributionCylindricalScaler(factorScalingLength=2.0d0,factorScalingMass=2.0d0,massDistribution_=massDistributionMomentInner)
+     end select
+  end select
+  call Assert("Scaled exponential disk: m=1, R=[0,∞)",massDistributionScalerTest%surfaceDensityRadialMoment(1.0d0                                        ),2.0d0/2.0d0/Pi      ,relTol=1.0d-6)
+  call Assert("Scaled exponential disk: m=2, R=[1,3]",massDistributionScalerTest%surfaceDensityRadialMoment(2.0d0,radiusMinimum=1.0d0,radiusMaximum=3.0d0),0.2250648139159444d0,relTol=1.0d-6)
+  ! The scaler holds a counted reference to `massDistributionMomentInner` and destroys it in its own destructor, so only the
+  ! scaler itself is deallocated here.
+  deallocate(massDistribution_          )
+  deallocate(massDistributionScalerTest )
   call Unit_Tests_End_Group()
 
   ! Sersic profile.
