@@ -2589,6 +2589,7 @@
           <xs:enumeration value="testInactivePropertyRead"/>
           <xs:enumeration value="tidalHeatingSpheroids"/>
           <xs:enumeration value="tidalMassLossDisks"/>
+          <xs:enumeration value="tidalMassLossNuclearStarClusters"/>
           <xs:enumeration value="tidalMassLossSpheroids"/>
           <xs:enumeration value="timeFirstInfall"/>
           <xs:enumeration value="trackOutflowedMass"/>
@@ -4135,6 +4136,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="simple"/>
+          <xs:enumeration value="zentner2005"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
