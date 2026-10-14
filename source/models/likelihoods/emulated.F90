@@ -36,12 +36,15 @@
      its target data (and, for the ``poissonCounts`` form, target counts and the factors converting values to counts), whether
      it emulates the logarithm of the observable, and which bins of the target data are included in the likelihood.
      !!}
-     integer         , allocatable, dimension(:  ) :: indexParameter
-     double precision, allocatable, dimension(:  ) :: yTarget         , countTarget, &
-          &                                           countPerValue
-     double precision, allocatable, dimension(:,:) :: covarianceTarget
-     logical         , allocatable, dimension(:  ) :: included
-     logical                                       :: transformLog
+     integer                         , allocatable, dimension(:  ) :: indexParameter
+     double precision                , allocatable, dimension(:  ) :: yTarget         , countTarget, &
+          &                                                           countPerValue
+     double precision                , allocatable, dimension(:,:) :: covarianceTarget
+     logical                         , allocatable, dimension(:  ) :: included
+     logical                                                       :: transformLog
+     double precision                                              :: floor           , rootVarianceFloored
+     integer                                                       :: unitSamples
+     type            (varying_string)                              :: fileNameSamples
   end type emulatedEmulatorState
 
   !![
@@ -54,6 +57,7 @@
    <entry label="gaussianDiagonal"  />
    <entry label="gaussianCovariance"/>
    <entry label="poissonCounts"     />
+   <entry label="logNormalFloored"  />
   </enumeration>
   !!]
 
@@ -121,6 +125,22 @@
      ``[rootVarianceTargetFractionalParameter]`` is given, :math:`C` is instead the value of the active parameter of that
      name, which is then a parameter of the likelihood rather than an input to any emulator.
 
+   ``logNormalFloored``
+     A Gaussian likelihood, neglecting covariance between bins, of an observable emulated in its logarithm with a floor,
+     :math:`F`, at which values were set in training (with root variance :math:`\sigma_F`; both are recorded in the training
+     set). Bins at or below the floor, in the target data or in the model, are treated as in training: the target datum is
+     :math:`y_i = \max(\log_{10} D_i, F)` and the model prediction :math:`m_i = \max(\mu_i, F)`, so that
+
+     .. math::
+
+        \log \mathcal{L} = -{1 \over 2} \sum_i \left[ {(y_i - m_i)^2 \over s_i^2} + \log (2 \pi s_i^2) \right],
+
+     with :math:`s_i^2 = \mathsf{C}_{ii} + \sigma_i^2`, plus :math:`\sigma_F^2` if the model prediction is at the floor (an
+     "empty" prediction is only an upper limit). A target datum at or below the floor (including a bin in which nothing was
+     observed, whose logarithm is :math:`-\infty`) is given variance :math:`\sigma_F^2` in place of :math:`\mathsf{C}_{ii}`.
+     Bins with no target datum (not-a-number) are excluded. Empty bins therefore contribute softly, rather than being
+     excluded (as in ``gaussianDiagonal``) or dominating the likelihood.
+
    If ``[includeEmulatorVariance]`` is false, the variance of the emulator's prediction, :math:`\sigma_i^2`, is omitted from
    :math:`s_i^2` and :math:`\mathsf{S}` (and :math:`v_i=0`). Bins whose target datum or variance is not finite (for example,
    bins of a mass function in which no galaxies were observed, after a logarithmic transformation), or whose total variance
@@ -129,6 +149,16 @@
    The variance of the log-likelihood due to the uncertainty of the emulation is estimated to first order as
    :math:`\sum_i g_i^2 \sigma_i^2`, where :math:`g_i` is the derivative of the log-likelihood with respect to the predicted
    mean in bin :math:`i` (:math:`\mathbf{g} = \mathsf{S}^{-1} \Delta` for the Gaussian forms).
+
+   The likelihood is not evaluated for states outside the support of the prior (at which the prior quantiles, the inputs to
+   the emulators, are undefined).
+
+   If ``[pathSamples]`` is not ``none``, the predictions of each emulator at every evaluation are written to a file
+   ``[pathSamples]/&lt;label&gt;_&lt;process&gt;.txt`` (one per emulator, labeled by its observable, per :term:`MPI` process), one row
+   per evaluation: the simulation step and chain index, then the predicted mean of each bin, then its variance (in the space
+   in which the observable is emulated). Rows are written for every evaluated proposal, not only for accepted states (the
+   state proposed at a rejected step appears in no other output unless ``[logProposals]`` is set on the simulation), and
+   must be attributed using the chain index rather than the file name.
    </description>
    <linkedList type="emulatedEmulatorList" variable="emulators" next="next" object="emulator_" objectType="emulatorClass"/>
   </posteriorSampleLikelihood>
@@ -144,7 +174,9 @@
      double precision                              , allocatable, dimension(:) :: rootVarianceTargetFractional
      type   (varying_string                       )                            :: rootVarianceTargetFractionalParameter
      integer                                                                   :: indexRootVarianceTargetFractional
-     logical                                                                   :: includeEmulatorVariance                        , initialized
+     logical                                                                   :: includeEmulatorVariance                        , initialized          , &
+          &                                                                       appendSamples
+     type   (varying_string                       )                            :: pathSamples
    contains
      !![
      <methods docformat="rst">
@@ -153,6 +185,7 @@
      !!]
      final     ::                    emulatedDestructor
      procedure :: evaluate        => emulatedEvaluate
+     procedure :: willEvaluate    => emulatedWillEvaluate
      procedure :: functionChanged => emulatedFunctionChanged
      procedure :: initialize      => emulatedInitialize
   end type posteriorSampleLikelihoodEmulated
@@ -186,8 +219,8 @@ contains
     type            (varying_string                       ), allocatable  , dimension(:) :: likelihoodForms
     type            (enumerationEmulatedLikelihoodFormType), allocatable  , dimension(:) :: likelihoodForms_
     double precision                                       , allocatable  , dimension(:) :: rootVarianceTargetFractional
-    type            (varying_string                       )                              :: rootVarianceTargetFractionalParameter
-    logical                                                                              :: includeEmulatorVariance
+    type            (varying_string                       )                              :: rootVarianceTargetFractionalParameter, pathSamples
+    logical                                                                              :: includeEmulatorVariance              , appendSamples
     integer                                                                              :: countEmulators                       , countForms, &
          &                                                                                  countRootVariances                   , i
 
@@ -218,8 +251,9 @@ contains
        <inputParameter docformat="rst">
          <name>likelihoodForms</name>
          <description>
-         The form of the likelihood (``gaussianDiagonal``, ``gaussianCovariance``, or ``poissonCounts``) for each emulator, in
-         order. A single value applies to every emulator. If not given, ``gaussianDiagonal`` is used for every emulator.
+         The form of the likelihood (``gaussianDiagonal``, ``gaussianCovariance``, ``poissonCounts``, or ``logNormalFloored``)
+         for each emulator, in order. A single value applies to every emulator. If not given, ``gaussianDiagonal`` is used for
+         every emulator.
          </description>
          <source>parameters</source>
        </inputParameter>
@@ -268,19 +302,40 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>pathSamples</name>
+      <defaultValue>var_str('none')</defaultValue>
+      <description>
+      The path into which the predictions of the emulators at each evaluation should be written. If ``none``, they are not
+      written.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>appendSamples</name>
+      <defaultValue>.false.</defaultValue>
+      <description>
+      If true, append to existing files of predictions (see ``[pathSamples]``) rather than replacing them.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
-    self=posteriorSampleLikelihoodEmulated(emulators,likelihoodForms_,includeEmulatorVariance,rootVarianceTargetFractional,rootVarianceTargetFractionalParameter)
+    self=posteriorSampleLikelihoodEmulated(emulators,likelihoodForms_,includeEmulatorVariance,rootVarianceTargetFractional,rootVarianceTargetFractionalParameter,pathSamples,appendSamples)
     !![
     <inputParametersValidate source="parameters" multiParameters="emulator"/>
     !!]
     return
   end function emulatedConstructorParameters
 
-  function emulatedConstructorInternal(emulators,likelihoodForms,includeEmulatorVariance,rootVarianceTargetFractional,rootVarianceTargetFractionalParameter) result(self)
+  function emulatedConstructorInternal(emulators,likelihoodForms,includeEmulatorVariance,rootVarianceTargetFractional,rootVarianceTargetFractionalParameter,pathSamples,appendSamples) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`posteriorSampleLikelihoodEmulated` posterior sampling likelihood class.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
+    use :: File_Utilities    , only : Directory_Make
+    use :: ISO_Varying_String, only : operator(//)  , operator(/=), char, &
+         &                            assignment(=)
+    use :: MPI_Utilities     , only : mpiSelf
     implicit none
     type            (posteriorSampleLikelihoodEmulated    )                              :: self
     type            (emulatedEmulatorList                 ), intent(in   ), target       :: emulators
@@ -288,8 +343,13 @@ contains
     logical                                                , intent(in   )               :: includeEmulatorVariance
     double precision                                       , intent(in   ), dimension(:) :: rootVarianceTargetFractional
     type            (varying_string                       ), intent(in   )               :: rootVarianceTargetFractionalParameter
+    type            (varying_string                       ), intent(in   ), optional     :: pathSamples
+    logical                                                , intent(in   ), optional     :: appendSamples
     type            (emulatedEmulatorList                 ), pointer                     :: emulator_
-    integer                                                                              :: countEmulators
+    double precision                                       , allocatable  , dimension(:) :: outputs
+    type            (varying_string                       )                              :: rankLabel
+    integer                                                                              :: countEmulators                       , k   , &
+         &                                                                                  unitSamples
     !![
     <constructorAssign variables="likelihoodForms, includeEmulatorVariance, rootVarianceTargetFractional, rootVarianceTargetFractionalParameter"/>
     !!]
@@ -309,6 +369,33 @@ contains
     if (any (rootVarianceTargetFractional  <  0.0d0         )) call Error_Report('fractional root variances of counts must be non-negative'            //{introspection:location})
     self%indexRootVarianceTargetFractional=0
     self%initialized=.false.
+    self%pathSamples  ='none'
+    self%appendSamples=.false.
+    if (present(pathSamples  )) self%pathSamples  =pathSamples
+    if (present(appendSamples)) self%appendSamples=appendSamples
+    allocate(self%states(countEmulators))
+    ! Initialize the files of predictions, if needed.
+    if (self%pathSamples /= 'none') then
+       call Directory_Make(self%pathSamples)
+       rankLabel=mpiSelf%rankLabel()
+       emulator_ => emulators
+       k         =  0
+       do while (associated(emulator_))
+          k=k+1
+          self%states(k)%fileNameSamples=self%pathSamples//'/'//emulator_%emulator_%labelObservable()//'_'//rankLabel//'.txt'
+          if (.not.self%appendSamples) then
+             outputs=emulator_%emulator_%outputs()
+             open(newUnit=unitSamples,file=char(self%states(k)%fileNameSamples),form='formatted',status='unknown')
+             write (unitSamples,'(a,a,a,a)') '# Emulated predictions of ',char(emulator_%emulator_%labelObservable()),' written by process ',char(rankLabel)
+             write (unitSamples,'(a,i6,a)' ) '# One row per likelihood evaluation. Columns: simulation step, chain index, then the predicted mean of each of the ',size(outputs),' bins below,'
+             write (unitSamples,'(a)'      ) '# then the variance of each, in the space in which the observable is emulated. Records must be attributed using the'
+             write (unitSamples,'(a)'      ) '# chain index, not the file name, as any process may evaluate any chain.'
+             write (unitSamples,*          ) '# Abscissae: ',outputs
+             close(unitSamples)
+          end if
+          emulator_ => emulator_%next
+       end do
+    end if
     return
   end function emulatedConstructorInternal
 
@@ -352,6 +439,7 @@ contains
     integer                                                                            :: countEmulators        , k     , &
          &                                                                                i                     , j     , &
          &                                                                                n
+    type            (varying_string                   ), allocatable  , dimension(:  ) :: fileNamesSamples
 
     ! Count emulators.
     countEmulators =  0
@@ -360,8 +448,14 @@ contains
        countEmulators=countEmulators+1
        emulator_ => emulator_%next
     end do
-    if (allocated(self%states)) deallocate(self%states)
+    ! Reset the states of the emulators, retaining the names of their files of predictions (set on construction).
+    allocate(fileNamesSamples(countEmulators))
+    if (allocated(self%states)) then
+       if (size(self%states) == countEmulators) fileNamesSamples=self%states%fileNameSamples
+       deallocate(self%states)
+    end if
     allocate(self%states(countEmulators))
+    self%states%fileNameSamples=fileNamesSamples
     allocate(used(size(modelParametersActive_)))
     used=.false.
     k         =  0
@@ -415,6 +509,15 @@ contains
             do i=1,n
                state%included(i)=emulatedIsFinite(state%countTarget(i)) .and. emulatedIsFinite(state%countPerValue   (i  ))
             end do
+         else if (self%likelihoodForms(k) == emulatedLikelihoodFormLogNormalFloored) then
+            ! For the floored form, the observable must be emulated in its logarithm with a floor. Bins whose target is at or below
+            ! the floor (including those in which nothing was observed, whose logarithm is -infinity) are included - only bins
+            ! with no target datum (not-a-number) are excluded.
+            if (.not.state%transformLog) call Error_Report(var_str('the `logNormalFloored` form requires an observable emulated in its logarithm, but emulator ')//k//' is not'//{introspection:location})
+            call emulator_%emulator_%floor(state%floor,state%rootVarianceFloored)
+            do i=1,n
+               state%included(i)=.not.emulatedIsNotANumber(state%yTarget(i)) .and. emulatedIsFinite(state%covarianceTarget(i,i))
+            end do
          else
             do i=1,n
                state%included(i)=emulatedIsFinite(state%yTarget    (i)) .and. emulatedIsFinite(state%covarianceTarget(i,i))
@@ -458,8 +561,9 @@ contains
     !!}
     use :: Factorials                    , only : Logarithmic_Factorial
     use :: Gamma_Functions               , only : Gamma_Function_Logarithmic
+    use :: ISO_Varying_String            , only : char                           , operator(/=)
     use :: Linear_Algebra                , only : assignment(=)                  , matrix, matrixCholesky, vector
-    use :: Models_Likelihoods_Constants  , only : logImprobable
+    use :: Models_Likelihoods_Constants  , only : logImpossible                  , logImprobable
     use :: Numerical_Constants_Math      , only : Pi                             , ln10
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
@@ -483,10 +587,20 @@ contains
          &                                                                                rootVarianceFractional, countExpected           , &
          &                                                                                varianceFractional    , dispersion              , &
          &                                                                                valueMean             , derivativeCount         , &
-         &                                                                                countTarget           , gradientCount
+         &                                                                                countTarget           , gradientCount           , &
+         &                                                                                valueTarget           , valueModel              , &
+         &                                                                                derivativeModel
+    logical                                                                            :: targetFloored
     integer                                                                            :: i                     , k
-    !$GLC attributes unused :: timeEvaluate, temperature, simulationConvergence, logPriorProposed, logPriorCurrent, logLikelihoodCurrent, modelParametersInactive_, forceAcceptance
+    !$GLC attributes unused :: timeEvaluate, temperature, simulationConvergence, logPriorCurrent, logLikelihoodCurrent, modelParametersInactive_, forceAcceptance
 
+    ! States outside the support of the prior are not evaluated - the prior quantiles, the inputs to the emulators, are undefined
+    ! there.
+    if (.not.self%willEvaluate(simulationState,modelParametersActive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)) then
+       emulatedEvaluate=logImpossible
+       if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
+       return
+    end if
     if (.not.self%initialized) call self%initialize(modelParametersActive_)
     ! Find the physical values of the parameters.
     allocate(stateArray(simulationState%dimension()))
@@ -509,6 +623,12 @@ contains
          allocate(mean    (size(state%yTarget)))
          allocate(variance(size(state%yTarget)))
          call emulator_%emulator_%predict(quantiles,mean,variance)
+         ! Write the predictions to file if needed.
+         if (self%pathSamples /= 'none') then
+            open(newUnit=state%unitSamples,file=char(state%fileNameSamples),form='formatted',status='unknown',position='append')
+            write (state%unitSamples,*) simulationState%count(),simulationState%chainIndex(),mean,variance
+            close(state%unitSamples)
+         end if
          if (self%likelihoodForms(k) == emulatedLikelihoodFormGaussianDiagonal) then
             do i=1,size(state%yTarget)
                if (.not.state%included(i)) cycle
@@ -523,6 +643,42 @@ contains
                     &                 )
                varianceLogLikelihood=+varianceLogLikelihood                         &
                     &                +((state%yTarget(i)-mean(i))/varianceTotal)**2 &
+                    &                *variance(i)
+            end do
+         else if (self%likelihoodForms(k) == emulatedLikelihoodFormLogNormalFloored) then
+            do i=1,size(state%yTarget)
+               if (.not.state%included(i)) cycle
+               ! The target datum, floored. (The target may be -infinity, so is compared with the floor only once known to be
+               ! finite - with -ffinite-math-only the comparison of an infinity can not be relied upon.)
+               targetFloored=.true.
+               if (emulatedIsFinite(state%yTarget(i))) targetFloored=state%yTarget(i) <= state%floor
+               if (targetFloored) then
+                  valueTarget   =state%floor
+                  varianceTotal =state%rootVarianceFloored**2
+               else
+                  valueTarget   =state%yTarget(i)
+                  varianceTotal =state%covarianceTarget(i,i)
+               end if
+               ! The model prediction, floored. A prediction at the floor is only an upper limit, so has the variance of floored
+               ! values in training.
+               if (mean(i) > state%floor) then
+                  valueModel    =mean(i)
+                  derivativeModel=1.0d0
+               else
+                  valueModel    =state%floor
+                  derivativeModel=0.0d0
+                  varianceTotal =varianceTotal+state%rootVarianceFloored**2
+               end if
+               if (self%includeEmulatorVariance) varianceTotal=varianceTotal+variance(i)
+               if (varianceTotal <= 0.0d0) cycle
+               emulatedEvaluate     =+emulatedEvaluate                                    &
+                    &                -0.5d0                                               &
+                    &                *(                                                   &
+                    &                  +(valueTarget-valueModel)**2/varianceTotal          &
+                    &                  +log(2.0d0*Pi*varianceTotal)                       &
+                    &                 )
+               varianceLogLikelihood=+varianceLogLikelihood                               &
+                    &                +((valueTarget-valueModel)/varianceTotal*derivativeModel)**2 &
                     &                *variance(i)
             end do
          else if (self%likelihoodForms(k) == emulatedLikelihoodFormPoissonCounts) then
@@ -635,6 +791,40 @@ contains
     if (present(logLikelihoodVariance)) logLikelihoodVariance=varianceLogLikelihood
     return
   end function emulatedEvaluate
+
+  elemental logical function emulatedIsNotANumber(x)
+    !!{RST
+    Return true if ``x`` is not-a-number, examining its bits directly (see :func:`emulatedIsFinite`): its exponent bits are all
+    set, and its mantissa is non-zero.
+    !!}
+    use, intrinsic :: ISO_Fortran_Env, only : int64
+    implicit none
+    double precision, intent(in   ) :: x
+
+    emulatedIsNotANumber=ibits(transfer(x,0_int64),52,11) == 2047_int64 .and. ibits(transfer(x,0_int64),0,52) /= 0_int64
+    return
+  end function emulatedIsNotANumber
+
+  logical function emulatedWillEvaluate(self,simulationState,modelParameters_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+    !!{RST
+    Return true if the log-likelihood will be evaluated: only states within the support of the prior are evaluated, as the
+    prior quantiles (the inputs to the emulators) are undefined outside it.
+    !!}
+    use :: Models_Likelihoods_Constants  , only : logImpossible
+    use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
+    use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
+    implicit none
+    class           (posteriorSampleLikelihoodEmulated), intent(inout)               :: self
+    class           (posteriorSampleStateClass        ), intent(inout)               :: simulationState
+    type            (modelParameterList               ), intent(in   ), dimension(:) :: modelParameters_
+    class           (posteriorSampleConvergenceClass  ), intent(inout)               :: simulationConvergence
+    double precision                                   , intent(in   )               :: temperature          , logLikelihoodCurrent, &
+         &                                                                              logPriorCurrent      , logPriorProposed
+    !$GLC attributes unused :: self, simulationState, modelParameters_, simulationConvergence, temperature, logLikelihoodCurrent, logPriorCurrent
+
+    emulatedWillEvaluate=logPriorProposed > logImpossible
+    return
+  end function emulatedWillEvaluate
 
   elemental logical function emulatedIsFinite(x)
     !!{RST

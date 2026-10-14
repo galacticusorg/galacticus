@@ -89,6 +89,23 @@ module Statistics_Emulators
     <type>type(varying_string)</type>
     <pass>yes</pass>
    </method>
+   <method name="labelObservable" >
+    <description>
+    Return a label identifying the emulated observable.
+    </description>
+    <type>type(varying_string)</type>
+    <pass>yes</pass>
+   </method>
+   <method name="floor" >
+    <description>
+    For an observable emulated in its logarithm with a floor, return the ``floor`` (in the transformed space) at or below which
+    values of the observable were set to the floor in training, and the root variance, ``rootVarianceFloored``, given to such
+    values. It is an error to call this method for an emulator whose training set records no floor.
+    </description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(  out) :: floor, rootVarianceFloored</argument>
+   </method>
    <method name="counts" >
     <description>
     For an observable compared to counts, return the target count in each bin (not-a-number for bins excluded from the
