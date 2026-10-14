@@ -185,11 +185,13 @@ jobs:
         # chiefly when runs are close together (test dispatches, or a release soon after a scheduled run), and costs
         # nothing when it misses. FSPS itself (its ~1 GB tarball, and the ~2.6 GB source tree holding its spectral and
         # isochrone libraries) is excluded: once the tables built from its output exist nothing needs FSPS, so caching it
-        # would only make each entry ~3 GB rather than ~0.1 GB.
+        # would only make each entry ~3 GB rather than ~0.1 GB. The path lists the directory's entries (`dynamic/*`), not
+        # the directory itself: actions/cache resolves paths without implicit descendants and archives each resolved path
+        # whole, so with `dynamic` alone the exclusions below would match nothing and FSPS would be cached anyway.
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
-            ${{ github.workspace }}/datasets/dynamic
+            ${{ github.workspace }}/datasets/dynamic/*
             !${{ github.workspace }}/datasets/dynamic/fsps*
             !${{ github.workspace }}/datasets/dynamic/FSPS_*
           key: pgo-dynamic-${{ hashFiles('testSuite/parameters/pgo/*.xml') }}-${{ github.run_id }}
