@@ -2,6 +2,8 @@
 """Update a Galacticus parameter file from its last modified revision to the current revision."""
 
 import argparse
+import difflib
+import html
 import os
 import re
 import subprocess
@@ -55,6 +57,77 @@ def preprocess_multiline_attributes(input_filename):
     return tmp_filename
 
 
+# Tokens of an XML document: comments, CDATA sections, processing instructions (including the XML declaration), tags
+# (allowing for quoted attribute values which contain `>`), and runs of text.
+_TOKEN = re.compile(r"<!--.*?-->|<!\[CDATA\[.*?\]\]>|<\?.*?\?>|<(?:[^>\"']|\"[^\"]*\"|'[^']*')*>|[^<]+", re.DOTALL)
+_TAG = re.compile(r"<([?/]?)([^\s/>?!]+)(.*?)\s*([/?]?)>\Z", re.DOTALL)
+_ATTRIBUTE = re.compile(r"([^\s=]+)\s*=\s*(\"[^\"]*\"|'[^']*')")
+
+
+def _token_key(token):
+    """Return a normalized form of an XML token, such that tokens which differ only in formatting compare equal.
+
+    Whitespace runs are collapsed, attributes are sorted, attribute values are compared with entities and quoting
+    resolved. Comments and CDATA are compared verbatim, up to whitespace.
+    """
+    if token.startswith("<!"):
+        return " ".join(token.split())
+    match = _TAG.match(token)
+    if match is None:
+        return html.unescape(" ".join(token.split()))
+    attributes = sorted((name, html.unescape(" ".join(value[1:-1].split()))) for name, value in _ATTRIBUTE.findall(match.group(3)))
+    return (match.group(1), match.group(2), tuple(attributes), match.group(4))
+
+
+def _tokenize(text):
+    """Split an XML document into a list of (whitespace, token) pairs, where `whitespace` is the whitespace preceding
+    the token, and return these along with any trailing whitespace."""
+    tokens = []
+    whitespace = ""
+    for match in _TOKEN.finditer(text):
+        token = match.group(0)
+        if not token.startswith("<"):
+            stripped = token.lstrip()
+            whitespace += token[:len(token) - len(stripped)]
+            token = stripped.rstrip()
+            if not token:
+                continue
+            trailing = stripped[len(token):]
+        else:
+            trailing = ""
+        tokens.append((whitespace, token))
+        whitespace = trailing
+    return tokens, whitespace
+
+
+def merge_unchanged_formatting(original, migrated):
+    """Return the migrated document, with every token unchanged by the migration taken verbatim from the original.
+
+    Serialization by `lxml` reformats content which the migration did not touch (attribute order and quoting, the XML
+    declaration, line breaks between adjacent tags). To keep the changes to a migrated file to a minimum, the two
+    documents are compared token by token, ignoring such formatting. Tokens which compare equal are written exactly as
+    they appear in the original, along with their preceding whitespace; only tokens which the migration inserted or
+    changed are taken from the migrated document. An XML declaration is not added to a document which had none.
+    """
+    tokens_original, trailing_original = _tokenize(original)
+    tokens_migrated, trailing_migrated = _tokenize(migrated)
+    if not any(token.startswith("<?xml") for _, token in tokens_original):
+        tokens_migrated = [(whitespace, token) for whitespace, token in tokens_migrated if not token.startswith("<?xml")]
+    matcher = difflib.SequenceMatcher(
+        None,
+        [_token_key(token) for _, token in tokens_original],
+        [_token_key(token) for _, token in tokens_migrated],
+        autojunk=False,
+    )
+    merged = []
+    for operation, i1, i2, j1, j2 in matcher.get_opcodes():
+        if operation == "equal":
+            merged.extend(tokens_original[i1:i2])
+        else:
+            merged.extend(tokens_migrated[j1:j2])
+    return "".join(whitespace + token for whitespace, token in merged) + trailing_original
+
+
 def restore_multiline_attributes(input_filename, output_filename):
     """Restore %%NEWLINE%% placeholders back to actual newlines."""
     with open(input_filename, "r") as fin, open(output_filename, "w") as fout:
@@ -105,6 +178,19 @@ def parse_migrations(path):
             }
         )
     return migrations
+
+
+def append_indented(parent, new_node):
+    """Append a node to a parent, on a new line indented as for the parent's first child."""
+    indent = parent.text if parent.text is not None and parent.text.strip() == "" and "\n" in parent.text else "\n  "
+    if len(parent) > 0:
+        last = parent[-1]
+        new_node.tail = last.tail
+        last.tail = indent
+    else:
+        new_node.tail = parent.text
+        parent.text = indent
+    parent.append(new_node)
 
 
 def insert_after(parent, new_node, ref_node):
@@ -1428,7 +1514,7 @@ def dynamical_friction_gaseous(input_doc, parameters, is_grid):
     gaseous.set("value", "chandrasekhar1943")
     if is_grid:
         gaseous.set("iterable", "no")
-    parameters.append(gaseous)
+    append_indented(parameters, gaseous)
 
 
 def vitvitska_subresolution_method(input_doc, parameters, is_grid):
@@ -1814,19 +1900,13 @@ def main():
         tmp_output = f.name
         f.write(serialized)
 
-    # If requested, ignore whitespace changes.
+    # If requested, ignore whitespace (and other formatting) changes, keeping the original formatting of all unchanged
+    # content.
     if options.ignoreWhiteSpaceChanges == "yes":
-        # Make a patch from the old to the new file, but ignoring changes in whitespace.
-        with tempfile.NamedTemporaryFile(mode='w') as patch_file:
-            subprocess.run(
-                ["diff", "-w", "-u", tmp_input, tmp_output],
-                stdout=patch_file,
-            )
-            # Apply the patch to the old file.
-            subprocess.run(
-                ["patch", tmp_input, patch_file.name, f"--output={tmp_output}"],
-                stdout=subprocess.DEVNULL,
-            )
+        with open(tmp_input, "r") as f:
+            original = f.read()
+        with open(tmp_output, "w") as f:
+            f.write(merge_unchanged_formatting(original, serialized))
 
     # Undo any split line reformatting that we previously applied.
     restore_multiline_attributes(tmp_output, options.outputFile)
