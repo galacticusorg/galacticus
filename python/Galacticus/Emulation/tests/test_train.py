@@ -356,3 +356,35 @@ def test_command_line(campaign, tmp_path, capsys):
     content = ef.read(tmp_path / 'emulator.hdf5')
     assert set(content.emulators) == {'numberDensity', 'relation'}
     assert set(content.validation) == {'numberDensity', 'relation'}
+
+
+def test_collect_zero_and_target_floors(tmp_path):
+    """Values with zero root variance are given `root_variance_zero`, and the target root variance is floored at
+    `root_variance_target_minimum`; without these options both are left unchanged."""
+    countPoints = 6
+    quantiles = np.random.default_rng(3).uniform(size=(countPoints, 2))
+    write_design(tmp_path / 'design.hdf5', quantiles, np.arange(countPoints), np.zeros(countPoints))
+    (tmp_path / 'models').mkdir()
+    x = np.arange(3, dtype=float)
+    yTarget = np.array([1.0, 2.0, 3.0])
+    covarianceTarget = np.diag([1.0e-4, 0.0, 4.0e-6])
+    for i in range(countPoints):
+        y = np.array([1.0, 2.0, 3.0]) + quantiles[i, 0]
+        variance = np.array([1.0e-2, 0.0 if i == 2 else 1.0e-2, 1.0e-2])
+        with h5py.File(tmp_path / 'models' / f'run{i}.hdf5', 'w') as file:
+            write_analysis(file, 'relation', x, y, np.diag(variance), yTarget, covarianceTarget)
+    _, plain, _ = collect(tmp_path / 'design.hdf5', [Observable('relation')], directory=tmp_path)
+    assert plain['relation'].root_variance[2, 1] == 0.0
+    assert np.diag(plain['relation'].covariance_target)[1] == 0.0
+    observable = Observable('relation', root_variance_zero=1.0e-3, root_variance_target_minimum=3.0e-3)
+    _, floored, _ = collect(tmp_path / 'design.hdf5', [observable], directory=tmp_path)
+    training_set = floored['relation']
+    # Only the zero root variance is replaced.
+    assert training_set.root_variance[2, 1] == 1.0e-3
+    assert np.allclose(np.delete(training_set.root_variance.ravel(), 2 * 3 + 1), 0.1)
+    # Target root variances below the minimum are raised to it; others are unchanged.
+    assert np.allclose(np.sqrt(np.diag(training_set.covariance_target)), [1.0e-2, 3.0e-3, 3.0e-3])
+    assert training_set.attributes['rootVarianceZero'] == 1.0e-3
+    assert training_set.attributes['rootVarianceTargetMinimum'] == 3.0e-3
+    with pytest.raises(ValueError):
+        Observable('relation', root_variance_zero=0.0).validate()
