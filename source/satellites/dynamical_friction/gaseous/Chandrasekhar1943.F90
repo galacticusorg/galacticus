@@ -82,8 +82,8 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (dynamicalFrictionGaseousChandrasekhar1943), intent(inout) :: self
-    double precision                                           , intent(in   ) :: machNumber          , logarithmCoulomb
-    double precision                                           , parameter     :: xMaximum     =10.0d0
+    double precision                                           , intent(in   ) :: machNumber       , logarithmCoulomb
+    double precision                                           , parameter     :: xMaximum  =10.0d0
     double precision                                                           :: x
     !$GLC attributes unused :: self
 

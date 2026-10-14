@@ -140,9 +140,9 @@ contains
     !!}
     implicit none
     class           (dynamicalFrictionGaseousKimKim2007), intent(inout) :: self
-    double precision                                    , intent(in   ) :: machNumber           , logarithmCoulomb
-    double precision                                                    :: machNumberLower      , machNumberUpper , &
-         &                                                                 forceFactorLower     , forceFactorUpper
+    double precision                                    , intent(in   ) :: machNumber      , logarithmCoulomb
+    double precision                                                    :: machNumberLower , machNumberUpper , &
+         &                                                                 forceFactorLower, forceFactorUpper
 
     if      (machNumber < kimKim2007MachNumberTransonic -self%widthTransition) then
        forceFactor=self%forceFactorSubsonic  (machNumber                 )

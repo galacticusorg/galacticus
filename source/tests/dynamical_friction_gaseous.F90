@@ -27,26 +27,40 @@ spherical mass distribution is also checked against the drag computed directly f
 !!}
 
 program Tests_Dynamical_Friction_Gaseous
-  use :: Coordinates                         , only : assignment(=)                            , coordinateCartesian
-  use :: Display                             , only : displayVerbositySet                      , verbosityLevelStandard
+  use :: Coordinates                         , only : assignment(=)                            , &
+  &                                                   coordinateCartesian
+  use :: Display                             , only : displayVerbositySet                      , &
+  &                                                   verbosityLevelStandard
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: Ideal_Gases_Thermodynamics          , only : Ideal_Gas_Sound_Speed
-  use :: Mass_Distributions                  , only : kinematicsDistributionIsothermal         , massDistributionIsothermal
-  use :: Satellite_Dynamical_Friction_Gaseous, only : dynamicalFrictionGaseousChandrasekhar1943, dynamicalFrictionGaseousKimKim2007
-  use :: Unit_Tests                          , only : Assert                                   , Unit_Tests_Begin_Group           , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Mass_Distributions                  , only : kinematicsDistributionIsothermal         , &
+  &                                                   massDistributionIsothermal
+  use :: Satellite_Dynamical_Friction_Gaseous, only : dynamicalFrictionGaseousChandrasekhar1943, &
+  &                                                   dynamicalFrictionGaseousKimKim2007
+  use :: Unit_Tests                          , only : Assert                                   , &
+  &                                                   Unit_Tests_Begin_Group                   , &
+  &                                                   Unit_Tests_End_Group                     , &
+  &                                                   Unit_Tests_Finish
   implicit none
-  type            (dynamicalFrictionGaseousKimKim2007       )               :: kimKim2007Exact               , kimKim2007
+  type            (dynamicalFrictionGaseousKimKim2007       )               :: kimKim2007Exact                 , &
+       &                                                                       kimKim2007
   type            (dynamicalFrictionGaseousChandrasekhar1943)               :: chandrasekhar1943
-  type            (massDistributionIsothermal               )               :: massDistributionHost          , massDistributionPerturber
+  type            (massDistributionIsothermal               )               :: massDistributionHost            , &
+       &                                                                       massDistributionPerturber
   type            (kinematicsDistributionIsothermal         )               :: kinematicsDistributionGas
-  type            (coordinateCartesian                      )               :: position                      , velocity                 , &
+  type            (coordinateCartesian                      )               :: position                        , &
+       &                                                                       velocity                        , &
        &                                                                       integral
   double precision                                           , dimension(3) :: integralVector
-  double precision                                                          :: forceFactorBelow              , forceFactorAbove         , &
-       &                                                                       soundSpeed                    , density                  , &
+  double precision                                                          :: forceFactorBelow                , &
+       &                                                                       forceFactorAbove                , &
+       &                                                                       soundSpeed                      , &
+       &                                                                       density                         , &
        &                                                                       speed
-  double precision                                           , parameter    :: offsetMachNumber       =1.0d-9, logarithmCoulomb  =2.5d0  , &
-       &                                                                       machNumber             =1.5d0 , massPerturber     =1.0d+9
+  double precision                                           , parameter    :: offsetMachNumber         =1.0d-9, &
+       &                                                                       logarithmCoulomb         =2.5d0 , &
+       &                                                                       machNumber               =1.5d0 , &
+       &                                                                       massPerturber            =1.0d+9
 
   call displayVerbositySet  (verbosityLevelStandard)
   call eventsHooksInitialize(                      )
