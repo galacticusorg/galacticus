@@ -27,15 +27,16 @@ module Mass_Distributions
   !!{RST
   Implements a class that provides mass distributions.
   !!}
-  use :: Coordinates               , only : coordinate                    , coordinateCartesian
-  use :: Galactic_Structure_Options, only : enumerationComponentTypeType  , enumerationMassTypeType, massTypeAll           , massTypeDark                     , &
-       &                                    massTypeBaryonic              , massTypeGalactic       , massTypeGaseous       , massTypeStellar                  , &
-       &                                    massTypeBlackHole             , componentTypeAll       , componentTypeUnknown  , massTypeUnknown                  , &
-       &                                    componentTypeDisk             , componentTypeSpheroid  , componentTypeBlackHole, enumerationStructureErrorCodeType
-  use :: Numerical_Random_Numbers  , only : randomNumberGeneratorClass
-  use :: Tensors                   , only : tensorRank2Dimension3Symmetric
-  use :: Numerical_Interpolation   , only : interpolator
-  use :: Root_Finder               , only : rootFinder
+  use :: Coordinates                         , only : coordinate                    , coordinateCartesian
+  use :: Galactic_Structure_Options          , only : enumerationComponentTypeType  , enumerationMassTypeType, massTypeAll           , massTypeDark                     , &
+       &                                              massTypeBaryonic              , massTypeGalactic       , massTypeGaseous       , massTypeStellar                  , &
+       &                                              massTypeBlackHole             , componentTypeAll       , componentTypeUnknown  , massTypeUnknown                  , &
+       &                                              componentTypeDisk             , componentTypeSpheroid  , componentTypeBlackHole, enumerationStructureErrorCodeType
+  use :: Numerical_Random_Numbers            , only : randomNumberGeneratorClass
+  use :: Tensors                             , only : tensorRank2Dimension3Symmetric
+  use :: Numerical_Interpolation             , only : interpolator
+  use :: Root_Finder                         , only : rootFinder
+  use :: Satellite_Dynamical_Friction_Gaseous, only : dynamicalFrictionGaseousClass
   private
   public  :: massDistributionMatches_, massDistributionListAcquire, massDistributionListRelease
   
@@ -712,17 +713,20 @@ module Mass_Distributions
    </method>
    <method name="chandrasekharIntegral" >
     <description>
-    Return the Chandrasekhar integral of the distribution. The ``velocity`` is a Cartesian velocity vector (a
-    ``coordinateCartesian`` object); this is the only representation the implementations support and typing it
-    explicitly avoids the silent, incorrect point-transformation of a velocity expressed in a non-Cartesian
-    basis (see issue #75).
+    Return the Chandrasekhar integral of the distribution, including the Coulomb logarithm, ``logarithmCoulomb``. The
+    ``velocity`` is a Cartesian velocity vector (a ``coordinateCartesian`` object); this is the only representation the
+    implementations support and typing it explicitly avoids the silent, incorrect point-transformation of a velocity
+    expressed in a non-Cartesian basis (see issue #75). For collisional (gaseous) distributions the drag is computed
+    using ``dynamicalFrictionGaseous_`` in place of the collisionless :cite:t:`chandrasekhar_dynamical_1943` formula.
     </description>
     <type>type(coordinateCartesian)</type>
     <pass>yes</pass>
-    <argument>class           (massDistributionClass), intent(inout) :: massDistributionEmbedding, massDistributionPerturber</argument>
-    <argument>double precision                       , intent(in   ) :: massPerturber                                       </argument>
-    <argument>class           (coordinate           ), intent(in   ) :: coordinates                                         </argument>
-    <argument>type            (coordinateCartesian  ), intent(in   ) :: velocity                                            </argument>
+    <argument>class           (massDistributionClass        ), intent(inout) :: massDistributionEmbedding, massDistributionPerturber</argument>
+    <argument>double precision                               , intent(in   ) :: massPerturber                                       </argument>
+    <argument>class           (coordinate                   ), intent(in   ) :: coordinates                                         </argument>
+    <argument>type            (coordinateCartesian          ), intent(in   ) :: velocity                                            </argument>
+    <argument>double precision                               , intent(in   ) :: logarithmCoulomb                                    </argument>
+    <argument>class           (dynamicalFrictionGaseousClass), intent(inout) :: dynamicalFrictionGaseous_                           </argument>
    </method>
    <method name="radiusFreefall" >
     <description>

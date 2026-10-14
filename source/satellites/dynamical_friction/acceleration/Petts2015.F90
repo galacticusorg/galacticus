@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a satellite dynamical friction class which uses the model of :cite:t:`petts_semi-analytic_2015` for the Coulomb logarithm.
   !!}
@@ -63,6 +65,7 @@ contains
     class  (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
     class  (darkMatterProfileDMOClass          ), pointer       :: darkMatterProfileDMO_
     class  (cosmologyParametersClass           ), pointer       :: cosmologyParameters_
+    class  (dynamicalFrictionGaseousClass      ), pointer       :: dynamicalFrictionGaseous_
     logical                                                     :: logarithmCoulombApproximate
     
     !![
@@ -74,21 +77,23 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
-    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
+    <objectBuilder class="dynamicalFrictionGaseous" name="dynamicalFrictionGaseous_" source="parameters"/>
     !!]
-    self=satelliteDynamicalFrictionPetts2015(logarithmCoulombApproximate,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_)
+    self=satelliteDynamicalFrictionPetts2015(logarithmCoulombApproximate,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,dynamicalFrictionGaseous_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterHaloScale_" />
-    <objectDestructor name="darkMatterProfileDMO_"/>
-    <objectDestructor name="cosmologyParameters_" />
+    <objectDestructor name="darkMatterHaloScale_"     />
+    <objectDestructor name="darkMatterProfileDMO_"    />
+    <objectDestructor name="cosmologyParameters_"     />
+    <objectDestructor name="dynamicalFrictionGaseous_"/>
     !!]
     return
   end function petts2015ConstructorParameters
 
-  function petts2015ConstructorInternal(logarithmCoulombApproximate,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
+  function petts2015ConstructorInternal(logarithmCoulombApproximate,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,dynamicalFrictionGaseous_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`satelliteDynamicalFrictionPetts2015` satellite dynamical friction class.
     !!}
@@ -97,9 +102,10 @@ contains
     class  (cosmologyParametersClass           ), intent(in   ), target :: cosmologyParameters_
     class  (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
     class  (darkMatterProfileDMOClass          ), intent(in   ), target :: darkMatterProfileDMO_
+    class  (dynamicalFrictionGaseousClass      ), intent(in   ), target :: dynamicalFrictionGaseous_
     logical                                     , intent(in   )         :: logarithmCoulombApproximate
     !![
-    <constructorAssign variables="logarithmCoulombApproximate, *cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="logarithmCoulombApproximate, *cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *dynamicalFrictionGaseous_"/>
     !!]
 
     return
