@@ -1008,6 +1008,13 @@ tidy:
 -include $(BUILDPATH)/Makefile_All_Execs
 all: deps $(all_exes)
 
+# Rule for preprocessing every Fortran source file without compiling anything. Preprocessing needs only ~100 MB per
+# process, so it can run at a much higher parallelism than compilation, whose large generated `_class` units can each
+# take gigabytes. A two-phase build exploits this - e.g. `make -j$(nproc) preprocess` followed by `make -j2
+# Galacticus.exe`, as CI does. Files that no executable uses are preprocessed too, at a small cost in CPU time.
+.PHONY: preprocess
+preprocess: $(patsubst source/%.F90,$(BUILDPATH)/%.p.F90,$(call rwildcard,source,*.F90))
+
 # Rules for building dependency Makefiles.
 $(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.py $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(ALLSOURCESINC) $(SOURCEDIRS)
 	@mkdir -p $(BUILDPATH)
