@@ -95,7 +95,7 @@ contains
     !!{RST
     Evaluate the Coulomb logarithm for the :cite:t:`lancaster_dynamical_2020` dynamical friction model.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentSatellite, treeNode
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite        , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Vectors                         , only : Vector_Magnitude
     implicit none

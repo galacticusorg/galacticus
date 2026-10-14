@@ -1063,28 +1063,28 @@ contains
        else
           machNumber=+huge(0.0d0)
        end if
-       integralVector=+integralVector                                                   &
+       integralVector=+integralVector                                                     &
             &         *dynamicalFrictionGaseous_%forceFactor(machNumber,logarithmCoulomb)
     else
        ! Collisionless medium - use the Chandrasekhar (1943) formula.
        velocityDispersion=self%kinematicsDistribution_%velocityDispersion1D(coordinates,self,massDistributionEmbedding)
        if (velocityDispersion > 0.0d0) then
-          xV             =+velocity_             &
-               &          /velocityDispersion    &
+          xV             =+velocity_          &
+               &          /velocityDispersion &
                &          /sqrt(2.0d0)
        else
           xV             =+huge(0.0d0)
        end if
-       integralVector    =+integralVector        &
+       integralVector    =+integralVector     &
             &             *logarithmCoulomb
-       if (Xv <= XvMaximum)                      &
-            & integralVector=+integralVector     &
-            &             *(                     &
-            &               +erf ( xV   )        &
-            &               -2.0d0               &
-            &               *      xV            &
-            &               *exp (-xV**2)        &
-            &               /sqrt( Pi   )        &
+       if (Xv <= XvMaximum)                   &
+            & integralVector=+integralVector  &
+            &             *(                  &
+            &               +erf ( xV   )     &
+            &               -2.0d0            &
+            &               *      xV         &
+            &               *exp (-xV**2)     &
+            &               /sqrt( Pi   )     &
             &              )
     end if
     ! Compute suppression factor due to satellite being an extended mass distribution. This is largely untested - it is meant to

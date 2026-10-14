@@ -21,49 +21,35 @@
 
 !!{RST
 Tests of the dimensionless drag force for dynamical friction in a gaseous medium. Reference values for the
-:cite:t:`kim_dynamical_2007` class are evaluated directly from their fitting formulae (their eqn. 15), and for the
+:cite:t:`kim_dynamical_2007` class are evaluated directly from their fitting formulae (their eqn. 12b), and for the
 :cite:t:`chandrasekhar_dynamical_1943` class from the collisionless formula. The Chandrasekhar integral of a collisional
 spherical mass distribution is also checked against the drag computed directly from the sound speed of the gas, and that of
 an isothermal distribution flagged as collisionless against the collisionless formula, whichever gaseous drag is supplied.
 !!}
 
 program Tests_Dynamical_Friction_Gaseous
-  use :: Coordinates                         , only : assignment(=)                            , &
-  &                                                   coordinateCartesian
-  use :: Display                             , only : displayVerbositySet                      , &
-  &                                                   verbosityLevelStandard
+  use :: Coordinates                         , only : assignment(=)                            , coordinateCartesian
+  use :: Display                             , only : displayVerbositySet                      , verbosityLevelStandard
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: Ideal_Gases_Thermodynamics          , only : Ideal_Gas_Sound_Speed
-  use :: Mass_Distributions                  , only : kinematicsDistributionIsothermal         , &
-  &                                                   massDistributionIsothermal
-  use :: Satellite_Dynamical_Friction_Gaseous, only : dynamicalFrictionGaseousChandrasekhar1943, &
-  &                                                   dynamicalFrictionGaseousKimKim2007
-  use :: Unit_Tests                          , only : Assert                                   , &
-  &                                                   Unit_Tests_Begin_Group                   , &
-  &                                                   Unit_Tests_End_Group                     , &
-  &                                                   Unit_Tests_Finish
+  use :: Mass_Distributions                  , only : kinematicsDistributionIsothermal         , massDistributionIsothermal
+  use :: Satellite_Dynamical_Friction_Gaseous, only : dynamicalFrictionGaseousChandrasekhar1943, dynamicalFrictionGaseousKimKim2007
+  use :: Unit_Tests                          , only : Assert                                   , Unit_Tests_Begin_Group            , &
+  &                                                   Unit_Tests_End_Group                     , Unit_Tests_Finish
   implicit none
-  type            (dynamicalFrictionGaseousKimKim2007       )               :: kimKim2007Exact                 , &
-       &                                                                       kimKim2007
+  type            (dynamicalFrictionGaseousKimKim2007       )               :: kimKim2007Exact                  , kimKim2007
   type            (dynamicalFrictionGaseousChandrasekhar1943)               :: chandrasekhar1943
-  type            (massDistributionIsothermal               )               :: massDistributionHost            , &
-       &                                                                       massDistributionPerturber       , &
+  type            (massDistributionIsothermal               )               :: massDistributionHost             , massDistributionPerturber                 , &
        &                                                                       massDistributionHostCollisionless
-  type            (kinematicsDistributionIsothermal         )               :: kinematicsDistributionGas       , &
-       &                                                                       kinematicsDistributionCollisionless
-  type            (coordinateCartesian                      )               :: position                        , &
-       &                                                                       velocity                        , &
+  type            (kinematicsDistributionIsothermal         )               :: kinematicsDistributionGas        , kinematicsDistributionCollisionless
+  type            (coordinateCartesian                      )               :: position                         , velocity                                  , &
        &                                                                       integral
   double precision                                           , dimension(3) :: integralVector
-  double precision                                                          :: forceFactorBelow                , &
-       &                                                                       forceFactorAbove                , &
-       &                                                                       soundSpeed                      , &
-       &                                                                       density                         , &
+  double precision                                                          :: forceFactorBelow                 , forceFactorAbove                          , &
+       &                                                                       soundSpeed                       , density                                   , &
        &                                                                       speed
-  double precision                                           , parameter    :: velocityDispersion       =2.0d+2, &
-       &                                                                       offsetMachNumber         =1.0d-9, &
-       &                                                                       logarithmCoulomb         =2.5d0 , &
-       &                                                                       machNumber               =1.5d0 , &
+  double precision                                           , parameter    :: velocityDispersion       =2.0d+2 , offsetMachNumber                   =1.0d-9, &
+       &                                                                       logarithmCoulomb         =2.5d+0 , machNumber                         =1.5d+0, &
        &                                                                       massPerturber            =1.0d+9
 
   call displayVerbositySet  (verbosityLevelStandard)
@@ -74,15 +60,15 @@ program Tests_Dynamical_Friction_Gaseous
   chandrasekhar1943=dynamicalFrictionGaseousChandrasekhar1943(                      )
   ! Kim & Kim (2007) fitting formulae, without interpolation, in each regime.
   call Assert("Kim & Kim (2007): subsonic, M=0.5"              ,kimKim2007Exact%forceFactor(0.5d0,3.0d0),5.0495103738251834d-2,relTol=1.0d-9)
-  call Assert("Kim & Kim (2007): transonic, M=2.0, lnL=3"      ,kimKim2007Exact%forceFactor(2.0d0,3.0d0),3.6152961537931320d+0,relTol=1.0d-9)
-  call Assert("Kim & Kim (2007): supersonic, M=6.0, lnL=3"     ,kimKim2007Exact%forceFactor(6.0d0,3.0d0),2.1627524754662977d+0,relTol=1.0d-9)
+  call Assert("Kim & Kim (2007): transonic, M=2.0, lnΛ=3"      ,kimKim2007Exact%forceFactor(2.0d0,3.0d0),3.6152961537931320d+0,relTol=1.0d-9)
+  call Assert("Kim & Kim (2007): supersonic, M=6.0, lnΛ=3"     ,kimKim2007Exact%forceFactor(6.0d0,3.0d0),2.1627524754662977d+0,relTol=1.0d-9)
   ! Outside of the transition intervals, interpolation must have no effect.
   call Assert("Kim & Kim (2007): interpolation leaves M=0.5"   ,kimKim2007%forceFactor(0.5d0,3.0d0),kimKim2007Exact%forceFactor(0.5d0,3.0d0),relTol=1.0d-12)
   call Assert("Kim & Kim (2007): interpolation leaves M=2.0"   ,kimKim2007%forceFactor(2.0d0,3.0d0),kimKim2007Exact%forceFactor(2.0d0,3.0d0),relTol=1.0d-12)
   ! Within the transition intervals, the force is interpolated linearly between the fits at the interval boundaries.
-  call Assert("Kim & Kim (2007): interpolated, M=1.00, lnL=3"  ,kimKim2007%forceFactor(1.00d0,3.0d0),1.4319659526659578d+0,relTol=1.0d-9)
-  call Assert("Kim & Kim (2007): interpolated, M=0.97, lnL=3"  ,kimKim2007%forceFactor(0.97d0,3.0d0),9.9461055306357540d-1,relTol=1.0d-9)
-  call Assert("Kim & Kim (2007): interpolated, M=4.40, lnL=3"  ,kimKim2007%forceFactor(4.40d0,3.0d0),2.1721912802761930d+0,relTol=1.0d-9)
+  call Assert("Kim & Kim (2007): interpolated, M=1.00, lnΛ=3"  ,kimKim2007%forceFactor(1.00d0,3.0d0),1.4319659526659578d+0,relTol=1.0d-9)
+  call Assert("Kim & Kim (2007): interpolated, M=0.97, lnΛ=3"  ,kimKim2007%forceFactor(0.97d0,3.0d0),9.9461055306357540d-1,relTol=1.0d-9)
+  call Assert("Kim & Kim (2007): interpolated, M=4.40, lnΛ=3"  ,kimKim2007%forceFactor(4.40d0,3.0d0),2.1721912802761930d+0,relTol=1.0d-9)
   ! The interpolated force must be continuous at the boundaries of each transition interval.
   forceFactorBelow=kimKim2007%forceFactor(0.95d0-offsetMachNumber,3.0d0)
   forceFactorAbove=kimKim2007%forceFactor(0.95d0+offsetMachNumber,3.0d0)
@@ -96,19 +82,19 @@ program Tests_Dynamical_Friction_Gaseous
   forceFactorBelow=kimKim2007%forceFactor(4.45d0-offsetMachNumber,3.0d0)
   forceFactorAbove=kimKim2007%forceFactor(4.45d0+offsetMachNumber,3.0d0)
   call Assert("Kim & Kim (2007): continuous at M=4.45"         ,forceFactorAbove,forceFactorBelow,relTol=1.0d-6)
-  ! Without interpolation the fits are discontinuous at M=1 for lnL=3.
+  ! Without interpolation the fits are discontinuous at M=1 for lnΛ=3.
   forceFactorBelow=kimKim2007Exact%forceFactor(1.0d0-offsetMachNumber,3.0d0)
   forceFactorAbove=kimKim2007Exact%forceFactor(1.0d0+offsetMachNumber,3.0d0)
   call Assert("Kim & Kim (2007): discontinuous at M=1 if exact",abs(forceFactorAbove-forceFactorBelow) > 0.5d0,.true.)
   ! The force is limited to be non-negative where the fits become negative.
   call Assert("Kim & Kim (2007): non-negative, M=0.01"         ,kimKim2007%forceFactor(1.0d-2,2.0d0),0.0d0)
-  call Assert("Kim & Kim (2007): non-negative, M=1000, lnL=2"  ,kimKim2007%forceFactor(1.0d+3,2.0d0),0.0d0)
+  call Assert("Kim & Kim (2007): non-negative, M=1000, lnΛ=2"  ,kimKim2007%forceFactor(1.0d+3,2.0d0),0.0d0)
   ! Chandrasekhar (1943) formula.
-  call Assert("Chandrasekhar (1943): M=1, lnL=2"               ,chandrasekhar1943%forceFactor(1.0d0,2.0d0),3.9749608619759813d-1,relTol=1.0d-9)
-  call Assert("Chandrasekhar (1943): M=100, lnL=2"             ,chandrasekhar1943%forceFactor(1.0d2,2.0d0),2.0d0                ,relTol=1.0d-9)
+  call Assert("Chandrasekhar (1943): M=1, lnΛ=2"               ,chandrasekhar1943%forceFactor(1.0d0,2.0d0),3.9749608619759813d-1,relTol=1.0d-9)
+  call Assert("Chandrasekhar (1943): M=100, lnΛ=2"             ,chandrasekhar1943%forceFactor(1.0d2,2.0d0),2.0000000000000000d+0,relTol=1.0d-9)
   ! Chandrasekhar integral of a collisional (gaseous) spherical distribution. The perturber is much more compact than its own
   ! enclosed mass at the position considered, so that no suppression due to its extent is applied. The integral must then be
-  ! -rho v I(M,lnL)/V^3, with the Mach number found from the sound speed of the gas.
+  ! -ρ v I(M,lnΛ)/V³, with the Mach number found from the sound speed of the gas.
   kinematicsDistributionGas=kinematicsDistributionIsothermal(velocityDispersion_=velocityDispersion             )
   massDistributionHost     =massDistributionIsothermal      (mass               =1.0d12 ,lengthReference=0.30d0)
   massDistributionPerturber=massDistributionIsothermal      (mass               =1.0d10 ,lengthReference=0.01d0)
@@ -125,7 +111,7 @@ program Tests_Dynamical_Friction_Gaseous
   integralVector=integral
   call Assert("Chandrasekhar integral, collisional, Chandrasekhar (1943)",integralVector,[0.0d0,-density*chandrasekhar1943%forceFactor(machNumber,logarithmCoulomb)/speed**2,0.0d0],relTol=1.0d-9)
   ! Chandrasekhar integral of the same distribution flagged as collisionless (as used for isothermal dark matter halos). The
-  ! gaseous drag must then be ignored, and the integral must be the collisionless result, -rho v lnL [erf(X)-2X exp(-X^2)/sqrt(pi)]/V^3
+  ! gaseous drag must then be ignored, and the integral must be the collisionless result, -ρ v lnΛ [erf(X)-2X exp(-X²)/sqrt(π)]/V³
   ! with X=V/sqrt(2)/sigma - which is the Chandrasekhar (1943) drag factor evaluated at V/sigma.
   kinematicsDistributionCollisionless=kinematicsDistributionIsothermal(velocityDispersion_=velocityDispersion,collisional=.false.)
   massDistributionHostCollisionless  =massDistributionIsothermal      (mass               =1.0d12            ,lengthReference=0.30d0)

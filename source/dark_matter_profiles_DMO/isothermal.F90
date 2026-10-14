@@ -146,9 +146,9 @@ contains
     !![
     <referenceConstruct object="kinematicsDistribution_">
       <constructor>
-        kinematicsDistributionIsothermal(                                                                                &amp;
+        kinematicsDistributionIsothermal(                                                                                 &amp;
         &amp;                            velocityDispersion_=self %darkMatterHaloScale_%velocityVirial(node)/sqrt(2.0d0), &amp;
-        &amp;                            collisional        =.false.                                                  &amp;
+        &amp;                            collisional        =.false.                                                      &amp;
         &amp;                           )
 	 </constructor>
     </referenceConstruct>

@@ -27,7 +27,7 @@
   !![
   <dynamicalFrictionGaseous name="dynamicalFrictionGaseousKimKim2007" docformat="rst">
    <description>
-   A gaseous dynamical friction class which uses the fitting formula of :cite:t:`kim_dynamical_2007` (their eqn. 15) for the
+   A gaseous dynamical friction class which uses the fitting formula of :cite:t:`kim_dynamical_2007` (their eqn. 12b) for the
    azimuthal drag force on a perturber moving on a circular orbit of radius :math:`R_\mathrm{p}` through a uniform gaseous
    medium:
 
@@ -62,9 +62,9 @@
    contains
      !![
      <methods docformat="rst">
-       <method method="forceFactorSubsonic"     description="Return the fitting formula for the dimensionless drag force for subsonic perturbers."                                 />
-       <method method="forceFactorTransonic"    description="Return the fitting formula for the dimensionless drag force for perturbers with :math:`1 \le \mathcal{M} &lt; 4.4`."/>
-       <method method="forceFactorSupersonic"   description="Return the fitting formula for the dimensionless drag force for perturbers with :math:`\mathcal{M} \ge 4.4`."      />
+       <method method="forceFactorSubsonic"   description="Return the fitting formula for the dimensionless drag force for subsonic perturbers."                               />
+       <method method="forceFactorTransonic"  description="Return the fitting formula for the dimensionless drag force for perturbers with :math:`1 \le \mathcal{M} &lt; 4.4`."/>
+       <method method="forceFactorSupersonic" description="Return the fitting formula for the dimensionless drag force for perturbers with :math:`\mathcal{M} \ge 4.4`."       />
      </methods>
      !!]
      procedure :: forceFactor           => kimKim2007ForceFactor
@@ -152,9 +152,9 @@ contains
        machNumberUpper =kimKim2007MachNumberTransonic+self%widthTransition
        forceFactorLower=self%forceFactorSubsonic (machNumberLower                 )
        forceFactorUpper=self%forceFactorTransonic(machNumberUpper,logarithmCoulomb)
-       forceFactor     =+forceFactorLower                         &
-            &           +(forceFactorUpper-forceFactorLower)      &
-            &           *(machNumber      -machNumberLower )      &
+       forceFactor     =+                  forceFactorLower  &
+            &           +(forceFactorUpper-forceFactorLower) &
+            &           *(machNumber      -machNumberLower ) &
             &           /(machNumberUpper -machNumberLower )
     else if (machNumber < kimKim2007MachNumberSupersonic-self%widthTransition) then
        forceFactor=self%forceFactorTransonic (machNumber,logarithmCoulomb)
@@ -164,9 +164,9 @@ contains
        machNumberUpper =kimKim2007MachNumberSupersonic+self%widthTransition
        forceFactorLower=self%forceFactorTransonic (machNumberLower,logarithmCoulomb)
        forceFactorUpper=self%forceFactorSupersonic(machNumberUpper,logarithmCoulomb)
-       forceFactor     =+forceFactorLower                         &
-            &           +(forceFactorUpper-forceFactorLower)      &
-            &           *(machNumber      -machNumberLower )      &
+       forceFactor     =+forceFactorLower                    &
+            &           +(forceFactorUpper-forceFactorLower) &
+            &           *(machNumber      -machNumberLower ) &
             &           /(machNumberUpper -machNumberLower )
     else
        forceFactor=self%forceFactorSupersonic(machNumber,logarithmCoulomb)
@@ -178,7 +178,7 @@ contains
 
   double precision function kimKim2007ForceFactorSubsonic(self,machNumber) result(forceFactor)
     !!{RST
-    Return the :cite:t:`kim_dynamical_2007` fitting formula for the dimensionless drag force for subsonic perturbers.
+    Return the :cite:t:`kim_dynamical_2007` fitting formula (their eqn. 12b) for the dimensionless drag force for subsonic perturbers.
     !!}
     implicit none
     class           (dynamicalFrictionGaseousKimKim2007), intent(inout) :: self
@@ -197,7 +197,7 @@ contains
 
   double precision function kimKim2007ForceFactorTransonic(self,machNumber,logarithmCoulomb) result(forceFactor)
     !!{RST
-    Return the :cite:t:`kim_dynamical_2007` fitting formula for the dimensionless drag force for perturbers with
+    Return the :cite:t:`kim_dynamical_2007` fitting formula (their eqn. 12b) for the dimensionless drag force for perturbers with
     :math:`1 \le \mathcal{M} < 4.4`.
     !!}
     implicit none
@@ -205,16 +205,16 @@ contains
     double precision                                    , intent(in   ) :: machNumber, logarithmCoulomb
     !$GLC attributes unused :: self
 
-    forceFactor=+logarithmCoulomb                   &
-         &      +log(330.0d0)                       &
-         &      +5.72d0*log(machNumber-0.71d0)      &
+    forceFactor=+logarithmCoulomb              &
+         &      +log(330.0d0)                  &
+         &      +5.72d0*log(machNumber-0.71d0) &
          &      -9.58d0*log(machNumber       )
     return
   end function kimKim2007ForceFactorTransonic
 
   double precision function kimKim2007ForceFactorSupersonic(self,machNumber,logarithmCoulomb) result(forceFactor)
     !!{RST
-    Return the :cite:t:`kim_dynamical_2007` fitting formula for the dimensionless drag force for perturbers with
+    Return the :cite:t:`kim_dynamical_2007` fitting formula (their eqn. 12b) for the dimensionless drag force for perturbers with
     :math:`\mathcal{M} \ge 4.4`.
     !!}
     implicit none
@@ -222,7 +222,7 @@ contains
     double precision                                    , intent(in   ) :: machNumber, logarithmCoulomb
     !$GLC attributes unused :: self
 
-    forceFactor=+logarithmCoulomb                   &
+    forceFactor=+logarithmCoulomb              &
          &      -log(0.11d0*machNumber+1.65d0)
     return
   end function kimKim2007ForceFactorSupersonic

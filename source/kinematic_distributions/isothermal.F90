@@ -134,7 +134,6 @@ contains
     !!]
 
     self%collisional=collisional_
-
     if (present(velocityDispersion_) .and. present(temperature_)) then
        call Error_Report('can not provide both [temperature] and [velocityDispersion]'//{introspection:location})
     else if (present(temperature_       )) then
@@ -150,11 +149,11 @@ contains
        if (     present(massAtomicMean)) call Error_Report('[massAtomicMean] must not be provided'//{introspection:location})
        self%massAtomicMean     =+1.0d0
        self%temperature_       =+(                     &
-            &                    +velocityDispersion_ &
-            &                    *kilo                &
-            &                   )**2                  &
-            &                  *atomicMassUnit        &
-            &                  /boltzmannsConstant
+            &                     +velocityDispersion_ &
+            &                     *kilo                &
+            &                    )**2                  &
+            &                   *atomicMassUnit        &
+            &                   /boltzmannsConstant
     else
        call Error_Report('either [temperature] or [velocityDispersion] must be supplied'//{introspection:location})
     end if

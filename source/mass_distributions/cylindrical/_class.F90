@@ -91,7 +91,7 @@ contains
     type            (coordinateCartesian              ), intent(in   )  :: velocity
     class           (dynamicalFrictionGaseousClass    ), intent(inout)  :: dynamicalFrictionGaseous_
     double precision                                   , dimension(3  ) :: velocityCartesian_                                  , integralVector                  , &
-         &                                                                  accelerationArray
+         &                                                                 accelerationArray
     double precision                                   , parameter      :: toomreQRadiusHalfMass                        =1.50d0  ! The Toomre Q-parameter at the disk half-mass radius (Benson et al.,
     ! 2004 , https://ui.adsabs.harvard.edu/abs/2004MNRAS.351.1215B, Appendix A).
     double precision                                   , parameter      :: toomreQFactor                                =3.36d0  ! The factor appearing in the definition of the Toomre Q-parameter for

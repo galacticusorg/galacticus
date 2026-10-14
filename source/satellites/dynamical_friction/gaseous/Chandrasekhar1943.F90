@@ -90,13 +90,13 @@ contains
     ! For large x the bracketed term is unity to within machine precision.
     x=machNumber/sqrt(2.0d0)
     if (x <= xMaximum) then
-       forceFactor=+logarithmCoulomb      &
-            &      *(                     &
-            &        +erf ( x   )         &
-            &        -2.0d0               &
-            &        *      x             &
-            &        *exp (-x**2)         &
-            &        /sqrt( Pi  )         &
+       forceFactor=+logarithmCoulomb &
+            &      *(                &
+            &        +erf ( x   )    &
+            &        -2.0d0          &
+            &        *      x        &
+            &        *exp (-x**2)    &
+            &        /sqrt( Pi  )    &
             &       )
     else
        forceFactor=+logarithmCoulomb

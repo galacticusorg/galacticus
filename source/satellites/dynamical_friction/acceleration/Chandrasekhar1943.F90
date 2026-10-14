@@ -99,7 +99,7 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
     <objectBuilder class="dynamicalFrictionGaseous" name="dynamicalFrictionGaseous_" source="parameters"/>
     !!]
@@ -181,8 +181,8 @@ contains
     ! the satellite's bound mass - also a total mass. The default mass distribution is normalized to only the dark matter
     ! fraction of that mass, so the factor saturated at that fraction instead of at unity, suppressing the acceleration of every
     ! satellite by the baryon fraction regardless of how compact it was.
-    massDistribution_             =>  node                 %massDistribution     (componentTypeDarkMatterOnly,massTypeDark                               )
-    massDistributionHost_         =>  nodeHost             %massDistribution     (                                                                       )
+    massDistribution_             =>  node    %massDistribution(componentTypeDarkMatterOnly,massTypeDark)
+    massDistributionHost_         =>  nodeHost%massDistribution(                                        )
     ! The Coulomb logarithm is passed into the Chandrasekhar integral since, for gaseous components, it does not appear as a
     ! simple multiplicative factor.
     chandrasekharIntegral         =   massDistributionHost_%chandrasekharIntegral(massDistributionHost_,massDistribution_,massSatellite,position,velocity,self%coulombLogarithm(node),self%dynamicalFrictionGaseous_)
