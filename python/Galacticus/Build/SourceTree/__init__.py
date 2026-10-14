@@ -822,6 +822,9 @@ def _pass_module_uses(tree):
 # Parse pass 3: declarations
 # ---------------------------------------------------------------------------
 
+_IMPLICIT_NONE_RE = re.compile(r'^\s*implicit\s+none\s*$', re.IGNORECASE)
+
+
 def _pass_declarations(tree):
     """Walk code nodes extracting declaration lines into declaration nodes."""
     nodes_to_replace = []
@@ -885,7 +888,7 @@ def _pass_declarations(tree):
             start_line = current_line
 
             is_decl = False
-            if re.match(r'^\s*implicit\s+none\s*$', processed_line, re.IGNORECASE):
+            if _IMPLICIT_NONE_RE.match(processed_line):
                 is_decl       = True
                 implicit_none = True
 

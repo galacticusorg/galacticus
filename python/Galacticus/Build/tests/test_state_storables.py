@@ -189,6 +189,15 @@ def test_instances_list_of_strings():
     assert function_class_instances(state) == ['inst1', 'inst2', 'inst3']
 
 
+def test_instances_cached_list_cannot_be_corrupted_by_callers():
+    """The instance list is cached per `stateStorables` dict; each call must
+    hand out its own copy, so a caller modifying it cannot affect the next."""
+    state = {'functionClassInstances': ['inst1', 'inst2']}
+    first = function_class_instances(state)
+    first.append('intruder')
+    assert function_class_instances(state) == ['inst1', 'inst2']
+
+
 def test_instances_list_with_dict_entries():
     """Mixed list: instance written as dict gets its `name` (or `content`)
     field extracted; bare strings pass through."""

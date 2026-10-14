@@ -115,8 +115,23 @@ def function_class_entry(state_storables: dict | None, class_name: str) -> dict 
     return _lookups(state_storables)[1].get(class_name)
 
 
+# The most recently queried ``stateStorables`` dict and its instance names (see `_lookup_cache` above).
+_instances_cache = (None, None)
+
+
 def function_class_instances(state_storables: dict | None) -> list[str]:
     """List of every concrete ``functionClass`` instance name."""
+    global _instances_cache
+    cached, instances = _instances_cache
+    if cached is None or cached is not state_storables:
+        instances        = _function_class_instances(state_storables)
+        _instances_cache = (state_storables, instances)
+    # Return a copy, so that a caller modifying its list cannot corrupt the cache.
+    return list(instances)
+
+
+def _function_class_instances(state_storables: dict | None) -> list[str]:
+    """Uncached implementation of `function_class_instances()`."""
     raw = (state_storables or {}).get('functionClassInstances')
     if raw is None:
         return []

@@ -17,6 +17,7 @@ _DECLARATION_RE = re.compile(
     r'(.*)$',  # Everything else
     re.IGNORECASE
 )
+_WHITESPACE_RUN_RE = re.compile(r'\s+')
 
 
 def parse_declaration(line):
@@ -55,7 +56,7 @@ def parse_declaration(line):
     openmp_marker = m.group(1)
     intrinsic_raw = m.group(2).lower()
     # Normalize whitespace in intrinsic (e.g. double   precision -> double precision)
-    intrinsic_raw = re.sub(r'\s+', ' ', intrinsic_raw)
+    intrinsic_raw = _WHITESPACE_RUN_RE.sub(' ', intrinsic_raw)
 
     # Extract type/attributes from before :: delimiter
     type_attrs_raw = before_decl.split(m.group(2), 1)[1].strip() if m.group(2) else ''

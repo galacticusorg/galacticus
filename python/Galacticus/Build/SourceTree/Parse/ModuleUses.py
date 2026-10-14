@@ -30,6 +30,7 @@ _MODULE_USE_RE = re.compile(
     r'\s*(,\s*only\s*:)?\s*([a-zA-Z0-9_()/=*\-+.,\s]+)?\s*$',
     re.IGNORECASE,
 )
+_LEADING_SPACE_RE = re.compile(r'^(\s*)')
 
 
 # Preprocessor directives which `update_uses` is able to *rebuild* from an
@@ -478,7 +479,7 @@ def update_uses(uses_node):
         if not raw_line and not processed_line:
             break
         if _MODULE_USE_RE.match(processed_line):
-            indents.append(re.match(r'^(\s*)', raw_line).group(1))
+            indents.append(_LEADING_SPACE_RE.match(raw_line).group(1))
     indent = min(indents, key=len) if indents else ""
 
     module_use  = uses_node.get('moduleUse', {})
