@@ -1058,7 +1058,11 @@ contains
 
   subroutine exponentialDiskAccelerationTabulate(self)
     !!{RST
-    Tabulate the acceleration (and tidal tensor) due to the exponential disk mass distribution. Uses the approach of :cite:t:`kuijken_mass_1989`. The tabulation is built for a dimensionless disk.
+    Tabulate the acceleration (and tidal tensor) due to the exponential disk mass distribution. Uses the approach of
+    :cite:t:`kuijken_mass_1989`, expressing each quantity as a Hankel transform of the surface density multiplied by a vertical
+    kernel, :math:`K(k,z)`, which accounts for the :math:`\mathrm{sech}^2` vertical structure of the disk. The vertical kernel is
+    evaluated by direct numerical integration (see ``kernelVertical``) rather than by the series expansion of
+    :cite:t:`kuijken_mass_1989`, the terms of which do not decay with order. The tabulation is built for a dimensionless disk.
     !!}
     use :: Bessel_Functions        , only : Bessel_Function_J0_Zero, Bessel_Function_J1_Zero, Bessel_Function_Jn_Zero
     use :: Display                 , only : displayCounter         , displayCounterClear    , displayIndent          , displayUnindent, &
@@ -1070,27 +1074,35 @@ contains
     use :: HDF5_Access             , only : hdf5Access
     use :: IO_HDF5                 , only : hdf5File
     use :: ISO_Varying_String      , only : char                   , operator(//)           , varying_string
-    use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
     use :: Numerical_Ranges        , only : Make_Range             , rangeTypeLogarithmic
+    use :: String_Handling         , only : operator(//)
     implicit none
     class           (massDistributionExponentialDisk), intent(inout)              :: self
     double precision                                 , parameter                  :: radiusMinimum                    = 1.0d-2, radiusMaximum    =5.0d1
     double precision                                 , parameter                  :: radiiPerDecade                   =30.0d+0
     double precision                                 , parameter                  :: wavenumberMaximumFactor          =10.0d+0
-    integer                                          , parameter                  :: xi                               = 2
+    integer                                          , parameter                  :: fileFormatVersionCurrent         = 2
+    double precision                                 , parameter                  :: wavenumberKernelMinimum          = 1.0d-3, wavenumberKernelMaximum=1.0d5
+    double precision                                 , parameter                  :: wavenumberKernelPerDecade        =32.0d+0
     type            (integrator                     ), save         , allocatable :: integratorAccelerationRadial             , integratorAccelerationVertical       , &
          &                                                                           integratorTidalTensorRadialRadial        , integratorTidalTensorVerticalVertical, &
-         &                                                                           integratorTidalTensorCross
+         &                                                                           integratorTidalTensorCross               , integratorKernel                     , &
+         &                                                                           integratorKernelGradient                 , integratorKernelGradient2
     logical                                          , save                       :: converged
-    integer                                          , save                       :: iBesselZero                              , besselOrder
+    integer                                          , save                       :: iBesselZero                              , besselOrder                          , &
+         &                                                                           indexHeight
     double precision                                 , save                       :: height                                   , accelerationDelta                    , &
          &                                                                           wavenumberLow                            , wavenumberHigh                       , &
-         &                                                                           tidalTensorDelta                         , tidalTensorRadialRadial
-    !$omp threadprivate(height,accelerationDelta,tidalTensorDelta,tidalTensorRadialRadial,wavenumberLow,wavenumberHigh,iBesselZero,besselOrder,converged,integratorAccelerationRadial,integratorAccelerationVertical,integratorTidalTensorRadialRadial,integratorTidalTensorVerticalVertical,integratorTidalTensorCross)
+         &                                                                           tidalTensorDelta                         , tidalTensorRadialRadial              , &
+         &                                                                           wavenumberScaled                         , heightScaled
+    !$omp threadprivate(height,indexHeight,accelerationDelta,tidalTensorDelta,tidalTensorRadialRadial,wavenumberLow,wavenumberHigh,wavenumberScaled,heightScaled,iBesselZero,besselOrder,converged,integratorAccelerationRadial,integratorAccelerationVertical,integratorTidalTensorRadialRadial,integratorTidalTensorVerticalVertical,integratorTidalTensorCross,integratorKernel,integratorKernelGradient,integratorKernelGradient2)
     integer                                                                       :: countRadii                               , iRadius                              , &
-         &                                                                           iHeight                                  , countWork
-    double precision                                                              :: radius                                   , beta
+         &                                                                           iHeight                                  , countWork                            , &
+         &                                                                           countWavenumbers                         , iWavenumber
+    double precision                                                              :: radius                                   , scaleHeight                          , &
+         &                                                                           wavenumberKernelLogarithmicMinimum       , wavenumberKernelLogarithmicInterval
+    double precision                                 , allocatable , dimension(:,:,:) :: kernelTable
 
     ! Return if acceleration is initialized.
     if (self%accelerationInitialized) return
@@ -1099,13 +1111,17 @@ contains
       character(len=8         ) :: label
       type     (lockDescriptor) :: fileLock
       
-      ! Construct a file name for the table.
+      ! Construct a file name for the table. The file format version is included in the name so that tables built by earlier
+      ! versions (which used an incorrect vertical kernel - see below) are never reused, while leaving those tables in place for
+      ! any older executables which share the same dynamic data path.
       write (label,'(f8.6)') self%scaleHeight/self%radiusScale
       fileName=inputPath(pathTypeDataDynamic)// &
            &   'galacticStructure/'          // &
            &   self%objectType()             // &
            &   '_h'                          // &
            &   trim(adjustl(label))          // &
+           &   '_v'                          // &
+           &   fileFormatVersionCurrent      // &
            &   '.hdf5'
       call Directory_Make(File_Path(fileName))
       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
@@ -1136,23 +1152,39 @@ contains
          allocate(self%tidalTensorCross           (countRadii,countRadii))
          self%accelerationRadii  =Make_Range(radiusMinimum,radiusMaximum,countRadii,rangeTypeLogarithmic)
          self%accelerationHeights=Make_Range(radiusMinimum,radiusMaximum,countRadii,rangeTypeLogarithmic)
-         ! Compute the vertical inverse scale-height. Note that our definition of β differs slightly from that of Kuijken & Gilmore
-         ! (1989). They assume a density profile in the vertical direction of the form:
-         !
-         !  ρ(z) = sech²(βz/ξ)
-         !
-         ! while we use:
-         !
-         !  ρ(z) = sech²(z/h)
-         !
-         ! where h is the scale-height. Therefore:
-         !
-         !  β=ξ/h
-         !
-         ! and we then make it dimensionless by multiplying by the radial scale length.
-         beta   =+dble(xi)         &
-              &  *self%radiusScale &
-              &  /self%scaleHeight
+         ! Compute the dimensionless scale height (in units of the radial scale length), as the tabulation is built for a
+         ! dimensionless disk.
+         scaleHeight=+self%scaleHeight &
+              &      /self%radiusScale
+         ! Tabulate the vertical kernel, and its derivatives, as a function of wavenumber at each height. The kernel depends only
+         ! on wavenumber and height, so tabulating it once here avoids recomputing it (each evaluation of which requires a
+         ! numerical integration) for every radius, and for every component of the acceleration and tidal tensor.
+         countWavenumbers                   =int(log10(wavenumberKernelMaximum/wavenumberKernelMinimum)*wavenumberKernelPerDecade)+1
+         wavenumberKernelLogarithmicMinimum =log(wavenumberKernelMinimum)
+         wavenumberKernelLogarithmicInterval=log(wavenumberKernelMaximum/wavenumberKernelMinimum)/dble(countWavenumbers-1)
+         allocate(kernelTable(countWavenumbers,countRadii,3))
+         !$omp parallel private(iWavenumber)
+         allocate(integratorKernel         )
+         allocate(integratorKernelGradient )
+         allocate(integratorKernelGradient2)
+         integratorKernel         =integrator(kernelIntegrand         ,toleranceAbsolute=1.0d-12,toleranceRelative=1.0d-6)
+         integratorKernelGradient =integrator(kernelGradientIntegrand ,toleranceAbsolute=1.0d-12,toleranceRelative=1.0d-6)
+         integratorKernelGradient2=integrator(kernelGradient2Integrand,toleranceAbsolute=1.0d-12,toleranceRelative=1.0d-6)
+         !$omp do schedule(dynamic)
+         do iHeight=1,countRadii
+            height=self%accelerationHeights(iHeight)
+            do iWavenumber=1,countWavenumbers
+               wavenumberLow=exp(wavenumberKernelLogarithmicMinimum+dble(iWavenumber-1)*wavenumberKernelLogarithmicInterval)
+               kernelTable(iWavenumber,iHeight,1)=kernelVerticalDirect         (wavenumberLow)
+               kernelTable(iWavenumber,iHeight,2)=kernelVerticalGradientDirect (wavenumberLow)
+               kernelTable(iWavenumber,iHeight,3)=kernelVerticalGradient2Direct(wavenumberLow)
+            end do
+         end do
+         !$omp end do
+         deallocate(integratorKernel         )
+         deallocate(integratorKernelGradient )
+         deallocate(integratorKernelGradient2)
+         !$omp end parallel
          ! Iterate over radii and heights.
          call displayIndent("tabulating gravitational accelerations for exponential disk",verbosityLevelWorking)
          countWork=0
@@ -1164,17 +1196,24 @@ contains
             allocate(integratorTidalTensorRadialRadial    )
             allocate(integratorTidalTensorVerticalVertical)
             allocate(integratorTidalTensorCross           )
-            integratorAccelerationRadial         =integrator(accelerationRadialIntegrand         ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
-            integratorAccelerationVertical       =integrator(accelerationVerticalIntegrand       ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
-            integratorTidalTensorRadialRadial    =integrator(tidalTensorRadialRadialIntegrand    ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
-            integratorTidalTensorVerticalVertical=integrator(tidalTensorVerticalVerticalIntegrand,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
-            integratorTidalTensorCross           =integrator(tidalTensorCrossIntegrand           ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
-            !$omp do
+            allocate(integratorKernel                     )
+            allocate(integratorKernelGradient             )
+            allocate(integratorKernelGradient2            )
+            integratorAccelerationRadial         =integrator(accelerationRadialIntegrand         ,toleranceAbsolute=1.0d-06,toleranceRelative=1.0d-3)
+            integratorAccelerationVertical       =integrator(accelerationVerticalIntegrand       ,toleranceAbsolute=1.0d-06,toleranceRelative=1.0d-3)
+            integratorTidalTensorRadialRadial    =integrator(tidalTensorRadialRadialIntegrand    ,toleranceAbsolute=1.0d-06,toleranceRelative=1.0d-3)
+            integratorTidalTensorVerticalVertical=integrator(tidalTensorVerticalVerticalIntegrand,toleranceAbsolute=1.0d-06,toleranceRelative=1.0d-3)
+            integratorTidalTensorCross           =integrator(tidalTensorCrossIntegrand           ,toleranceAbsolute=1.0d-06,toleranceRelative=1.0d-3)
+            integratorKernel                     =integrator(kernelIntegrand                     ,toleranceAbsolute=1.0d-12,toleranceRelative=1.0d-6)
+            integratorKernelGradient             =integrator(kernelGradientIntegrand             ,toleranceAbsolute=1.0d-12,toleranceRelative=1.0d-6)
+            integratorKernelGradient2            =integrator(kernelGradient2Integrand            ,toleranceAbsolute=1.0d-12,toleranceRelative=1.0d-6)
+            !$omp do schedule(dynamic)
             do iHeight=1,countRadii
                !$omp atomic
                countWork=countWork+1
                call displayCounter(int(100.0d0*dble(countWork)/dble(countRadii**2)),iRadius == 1 .and. iHeight == 1,verbosityLevelWorking)
-               height=self%accelerationHeights(iHeight)          
+               height     =self%accelerationHeights(iHeight)
+               indexHeight=                         iHeight
                ! Evaluate the integral for the radial component of acceleration.
                self%accelerationRadial(iRadius,iHeight)=0.0d0
                wavenumberHigh                          =0.0d0
@@ -1275,6 +1314,9 @@ contains
             deallocate(integratorTidalTensorRadialRadial    )
             deallocate(integratorTidalTensorVerticalVertical)
             deallocate(integratorTidalTensorCross           )
+            deallocate(integratorKernel                     )
+            deallocate(integratorKernelGradient             )
+            deallocate(integratorKernelGradient2            )
             !$omp end parallel
          end do
          call displayCounterClear(       verbosityLevelWorking)
@@ -1283,13 +1325,14 @@ contains
          hdf5WriteScope: block
            type(hdf5File  ) :: file
            file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
-           call file%writeDataset(self%accelerationRadii          ,'radii'                                                        )
-           call file%writeDataset(self%accelerationHeights        ,'heights'                                                      )
-           call file%writeDataset(self%accelerationRadial         ,'accelerationRadial'                                           )
-           call file%writeDataset(self%accelerationVertical       ,'accelerationVertical'                                         )
-           call file%writeDataset(self%tidalTensorRadialRadial    ,'tidalTensorRadialRadial'                                      )
-           call file%writeDataset(self%tidalTensorVerticalVertical,'tidalTensorVerticalVertical'                                  )
-           call file%writeDataset(self%tidalTensorCross           ,'tidalTensorCross'                                             )
+           call file%writeDataset  (self%accelerationRadii          ,'radii'                      )
+           call file%writeDataset  (self%accelerationHeights        ,'heights'                    )
+           call file%writeDataset  (self%accelerationRadial         ,'accelerationRadial'         )
+           call file%writeDataset  (self%accelerationVertical       ,'accelerationVertical'       )
+           call file%writeDataset  (self%tidalTensorRadialRadial    ,'tidalTensorRadialRadial'    )
+           call file%writeDataset  (self%tidalTensorVerticalVertical,'tidalTensorVerticalVertical')
+           call file%writeDataset  (self%tidalTensorCross           ,'tidalTensorCross'           )
+           call file%writeAttribute(     fileFormatVersionCurrent   ,'fileFormat'                 )
          end block hdf5WriteScope
          !$ call hdf5Access%unset()
       end if
@@ -1318,32 +1361,28 @@ contains
 
       accelerationRadialIntegrand=-                   wavenumber            &
            &                      *Bessel_Function_J1(wavenumber*radius)    &
-           &                      *Iz                (wavenumber       )    &
+           &                      *kernelVertical    (wavenumber       )    &
            &                      /(                                        &
            &                        +                 1.0d0                 &
            &                        +                 wavenumber        **2 &
-           &                       )**1.5d0                                 &
-           &                      /self%scaleHeight                         &
-           &                      /4.0d0
+           &                       )**1.5d0
       return
     end function accelerationRadialIntegrand
 
     double precision function accelerationVerticalIntegrand(wavenumber)
       !!{RST
-      Integrand for the radial component of the acceleration.
+      Integrand for the vertical component of the acceleration.
       !!}
       use :: Bessel_Functions, only : Bessel_Function_J0
       implicit none
       double precision, intent(in   ) :: wavenumber
 
-      accelerationVerticalIntegrand=+Bessel_Function_J0(wavenumber*radius)    &
-           &                        *dIzdz             (wavenumber       )    &
-           &                        /(                                        &
-           &                          +                 1.0d0                 &
-           &                          +                 wavenumber        **2 &
-           &                         )**1.5d0                                 &
-           &                        /self%scaleHeight                         &
-           &                        /4.0d0
+      accelerationVerticalIntegrand=+Bessel_Function_J0    (wavenumber*radius)    &
+           &                        *kernelVerticalGradient(wavenumber       )    &
+           &                        /(                                            &
+           &                          +                     1.0d0                 &
+           &                          +                     wavenumber        **2 &
+           &                         )**1.5d0
       return
     end function accelerationVerticalIntegrand
 
@@ -1366,16 +1405,14 @@ contains
          besselFunction=+0.0d0
          call Error_Report('incorrect Bessel function order'//{introspection:location})
       end select
-      tidalTensorRadialRadialIntegrand=-0.5d0             &
-           &                           *   wavenumber **2 &
-           &                           *besselFunction    &
-           &                           *Iz(wavenumber)    &
-           &                           /(                 &
-           &                             + 1.0d0          &
-           &                             + wavenumber **2 &
-           &                            )**1.5d0          &
-           &                           /self%scaleHeight  &
-           &                           /4.0d0
+      tidalTensorRadialRadialIntegrand=-0.5d0                         &
+           &                           *              wavenumber  **2 &
+           &                           *besselFunction                &
+           &                           *kernelVertical(wavenumber)    &
+           &                           /(                             &
+           &                             +            1.0d0           &
+           &                             +            wavenumber  **2 &
+           &                            )**1.5d0
       return
     end function tidalTensorRadialRadialIntegrand
 
@@ -1387,15 +1424,13 @@ contains
       implicit none
       double precision, intent(in   ) :: wavenumber
 
-      tidalTensorCrossIntegrand=-wavenumber                               &
-           &                    *Bessel_Function_J1(wavenumber*radius)    &
-           &                    *dIzdz             (wavenumber       )    &
-           &                    /(                                        &
-           &                      +                 1.0d0                 &
-           &                      +                 wavenumber        **2 &
-           &                     )**1.5d0                                 &
-           &                    /self%scaleHeight                         &
-           &                    /4.0d0
+      tidalTensorCrossIntegrand=-wavenumber                                   &
+           &                    *Bessel_Function_J1    (wavenumber*radius)    &
+           &                    *kernelVerticalGradient(wavenumber       )    &
+           &                    /(                                            &
+           &                      +                     1.0d0                 &
+           &                      +                     wavenumber        **2 &
+           &                     )**1.5d0
       return
     end function tidalTensorCrossIntegrand
 
@@ -1407,231 +1442,299 @@ contains
       implicit none
       double precision, intent(in   ) :: wavenumber
 
-      tidalTensorVerticalVerticalIntegrand=+Bessel_Function_J0(wavenumber*radius)    &
-           &                               *d2Izdz2           (wavenumber       )    &
-           &                               /(                                        &
-           &                                 +                 1.0d0                 &
-           &                                 +                 wavenumber        **2 &
-           &                                )**1.5d0                                 &
-           &                               /self%scaleHeight                         &
-           &                               /4.0d0
+      tidalTensorVerticalVerticalIntegrand=+Bessel_Function_J0     (wavenumber*radius)    &
+           &                               *kernelVerticalGradient2(wavenumber       )    &
+           &                               /(                                             &
+           &                                 +                      1.0d0                 &
+           &                                 +                      wavenumber        **2 &
+           &                                )**1.5d0
       return
     end function tidalTensorVerticalVerticalIntegrand
-    
-    double precision function Iz(wavenumber)
+
+    double precision function kernelVerticalDirect(wavenumber)
       !!{RST
-      :math:`z`-dependent term appearing in the expression for the potential of the disk.
+      The vertical kernel, :math:`K(k,z)`, appearing in the expression for the potential of the disk,
+      :math:`\Phi(R,z) = -2\pi G \int_0^\infty \mathrm{d}k \, J_0(kR) \tilde{\Sigma}(k) K(k,z)`, where :math:`\tilde{\Sigma}(k)`
+      is the Hankel transform of the surface density. :math:`K(k,z)` is the convolution of the normalized vertical density
+      profile, :math:`\rho_z(z)=\mathrm{sech}^2(z/h)/2h`, with the razor-thin kernel, :math:`\exp(-k|z|)`. Writing
+      :math:`u=z/h` and :math:`\kappa=kh` this can be expressed as a single Laplace-type integral:
+
+      .. math::
+
+         K(k,z) = {1 \over 2} \int_0^\infty \mathrm{d}x \, \mathrm{e}^{-\kappa x} \left[ \mathrm{sech}^2(u+x) + \mathrm{sech}^2(u-x) \right],
+
+      which is normalized such that :math:`K(0,z)=1`. This function evaluates the kernel directly, by numerical integration. During
+      tabulation the kernel is instead interpolated from a pre-computed table (see ``kernelVertical``).
       !!}
       implicit none
       double precision, intent(in   ) :: wavenumber
-      double precision                :: IzmOdd    , IzmEven, &
-           &                             IzDelta
-      integer                         :: m
-      logical                         :: converged
 
-      Iz       =+0.0d0
-      m        =-2
-      converged=.false.
-      do while (.not.converged)
-         m      =+m                   &
-              &  +2
-         IzmOdd =+Izm(wavenumber,m-1)
-         IzmEven=+Izm(wavenumber,m  )
-         IzDelta=+IzmOdd              &
-              &  +IzmEven
-         Iz     =+Iz                  &
-              &  +IzDelta
-         if (abs(IzDelta) < 1.0d-3*abs(Iz) .or. (m > 100 .and. (abs(Iz) == 0.0d0 .or. abs(IzDelta) == 0.0d0))) converged=.true.
-      end do
-      Iz=Iz*2.0d0**(1+xi)
+      kernelVerticalDirect=+0.5d0                                        &
+           &               *kernelIntegrate(wavenumber,integratorKernel)
       return
-    end function Iz
+    end function kernelVerticalDirect
 
-    double precision function Izm(wavenumber,m)
+    double precision function kernelVerticalGradientDirect(wavenumber)
       !!{RST
-      Evaluate the :math:`m`-dependent part of the :math:`I(z)` integral.
+      The :math:`z` derivative of the vertical kernel, :math:`K(k,z)`:
+
+      .. math::
+
+         {\partial K \over \partial z} = {k \over 2} \int_0^\infty \mathrm{d}x \, \mathrm{e}^{-\kappa x} \left[ \mathrm{sech}^2(u+x) - \mathrm{sech}^2(u-x) \right].
       !!}
-      use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
       double precision, intent(in   ) :: wavenumber
-      integer         , intent(in   ) :: m
-      double precision                :: mFactor   , divisor
 
-      if (m < 0) then
-         Izm=0.0d0
+      kernelVerticalGradientDirect=+0.5d0                                                &
+           &                       *wavenumber                                           &
+           &                       *kernelIntegrate(wavenumber,integratorKernelGradient)
+      return
+    end function kernelVerticalGradientDirect
+
+    double precision function kernelVerticalGradient2Direct(wavenumber)
+      !!{RST
+      The second :math:`z` derivative of the vertical kernel, :math:`K(k,z)`, found by differentiating the integrand of
+      :math:`\partial K/\partial z` with respect to :math:`u`:
+
+      .. math::
+
+         {\partial^2 K \over \partial z^2} = {k \over 2h} \int_0^\infty \mathrm{d}x \, \mathrm{e}^{-\kappa x} \left[ S^\prime(u+x) - S^\prime(u-x) \right],
+
+      where :math:`S(y)=\mathrm{sech}^2 y`. This is equivalent to :math:`k^2 K - 2 k \rho_z(z)` (which follows from
+      :math:`(\partial^2/\partial z^2 - k^2)K = -2k\rho_z`), but avoids the catastrophic cancellation between those two terms
+      which occurs for :math:`\kappa \gg 1`.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: wavenumber
+
+      kernelVerticalGradient2Direct=+0.5d0                                                 &
+           &                        *wavenumber                                            &
+           &                        /scaleHeight                                           &
+           &                        *kernelIntegrate(wavenumber,integratorKernelGradient2)
+      return
+    end function kernelVerticalGradient2Direct
+
+    double precision function kernelVertical(wavenumber)
+      !!{RST
+      The vertical kernel, :math:`K(k,z)`, at the current height (see ``kernelVerticalDirect``), interpolated from the table
+      computed at the start of the tabulation.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: wavenumber
+
+      kernelVertical=kernelInterpolate(wavenumber,1)
+      return
+    end function kernelVertical
+
+    double precision function kernelVerticalGradient(wavenumber)
+      !!{RST
+      The :math:`z` derivative of the vertical kernel, :math:`K(k,z)`, at the current height (see
+      ``kernelVerticalGradientDirect``), interpolated from the table computed at the start of the tabulation.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: wavenumber
+
+      kernelVerticalGradient=kernelInterpolate(wavenumber,2)
+      return
+    end function kernelVerticalGradient
+
+    double precision function kernelVerticalGradient2(wavenumber)
+      !!{RST
+      The second :math:`z` derivative of the vertical kernel, :math:`K(k,z)`, at the current height (see
+      ``kernelVerticalGradient2Direct``), interpolated from the table computed at the start of the tabulation.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: wavenumber
+
+      kernelVerticalGradient2=kernelInterpolate(wavenumber,3)
+      return
+    end function kernelVerticalGradient2
+
+    double precision function kernelInterpolate(wavenumber,indexKernel)
+      !!{RST
+      Interpolate the vertical kernel (``indexKernel=1``), or its first (``indexKernel=2``) or second (``indexKernel=3``)
+      :math:`z` derivative, at the current height in the table computed at the start of the tabulation. Four-point Lagrange
+      interpolation in :math:`\log k` is used, as this requires no state (and so is safe for concurrent use by multiple OpenMP
+      threads). Outside of the tabulated range of wavenumber the kernel is evaluated directly.
+      !!}
+      use :: Error, only : Error_Report
+      implicit none
+      double precision              , intent(in   ) :: wavenumber
+      integer                       , intent(in   ) :: indexKernel
+      double precision, dimension(4)                :: weight
+      double precision                              :: position
+      integer                                       :: i
+
+      if (wavenumber < wavenumberKernelMinimum .or. wavenumber > wavenumberKernelMaximum) then
+         select case (indexKernel)
+         case (1)
+            kernelInterpolate=kernelVerticalDirect         (wavenumber)
+         case (2)
+            kernelInterpolate=kernelVerticalGradientDirect (wavenumber)
+         case (3)
+            kernelInterpolate=kernelVerticalGradient2Direct(wavenumber)
+         case default
+            kernelInterpolate=0.0d0
+            call Error_Report('incorrect kernel index'//{introspection:location})
+         end select
       else
-         mFactor=+1.0d0         &
-              &  +2.0d0         &
-              &  *dble(m )      &
-              &  /dble(xi)
-         divisor=+mFactor   **2 &
-              &  *beta      **2 &
-              &  -wavenumber**2
-         if (divisor == 0.0d0) then
-            ! Divisor is zero, but the term is still regular - use l'Hopital's rule to derive the correct value.
-            Izm     =+Binomial_Coefficient(-xi,m)                         &
-                 &  *(                                                    &
-                 &    +beta*mFactor*height                                &
-                 &    +1.0d0                                              &
-                 &   )                                                    &
-                 &  *exp(-wavenumber*height)                              &
-                 &  /     wavenumber&
-                 &/2.0d0
-         else
-            Izm    =+Binomial_Coefficient(-xi,m)                          &
-                 &  *(                                                    &
-                 &    +beta      *mFactor*exp(-wavenumber        *height) &
-                 &    -wavenumber        *exp(-beta      *mFactor*height) &
-                 &   )                                                    &
-                 &  /divisor
-         end if
+         ! Find the position in the table, and the index of the second of the four points used in the interpolation.
+         position=+(                                         &
+              &     +log(wavenumber)                         &
+              &     -    wavenumberKernelLogarithmicMinimum  &
+              &    )                                         &
+              &   /      wavenumberKernelLogarithmicInterval
+         i       =min(max(int(position)+1,2),countWavenumbers-2)
+         position=position-dble(i-1)
+         ! Evaluate the Lagrange interpolation weights.
+         weight  =[                                                           &
+              &    -(position      )*(position-1.0d0)*(position-2.0d0)/6.0d0, &
+              &    +(position+1.0d0)*(position-1.0d0)*(position-2.0d0)/2.0d0, &
+              &    -(position+1.0d0)*(position      )*(position-2.0d0)/2.0d0, &
+              &    +(position+1.0d0)*(position      )*(position-1.0d0)/6.0d0  &
+              &   ]
+         kernelInterpolate=sum(weight*kernelTable(i-1:i+2,indexHeight,indexKernel))
       end if
       return
-    end function Izm
-    
-    double precision function dIzdz(wavenumber)
+    end function kernelInterpolate
+
+    double precision function kernelIntegrate(wavenumber,integrator_)
       !!{RST
-      :math:`z` derivative of the :math:`z`-dependent term appearing in the expression for the potential of the disk.
+      Evaluate the integral over :math:`x` appearing in the vertical kernel, :math:`K(k,z)`, or its derivatives, using the
+      provided integrator.
+
+      The integrand has structure on three scales: near :math:`x=0` (where it decays as :math:`\mathrm{e}^{-(\kappa+2)x}`), and
+      near :math:`x=u` (where :math:`\mathrm{sech}^2(u-x)` peaks, with width of order unity). For large :math:`\kappa` the
+      structure near :math:`x=0` (and the onset of the peak at :math:`x=u`) has width :math:`1/\kappa`. Since an adaptive
+      integrator can entirely miss a narrow feature lying between its initial sample points (and so report a confident, but
+      incorrect, result) the range of integration is broken at each of these scales, so that every feature lies close to the
+      boundary of some sub-interval.
       !!}
-      use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
-      double precision, intent(in   ) :: wavenumber
-      double precision                :: dIzdzmOdd , dIzdzmEven, &
-           &                             dIzdzDelta
-      integer                         :: m
-      logical                         :: converged
+      double precision            , intent(in   ) :: wavenumber
+      type            (integrator), intent(inout) :: integrator_
+      ! Range (in x) beyond which sech²(u±x) has decayed by a factor e⁻⁵⁰ from its peak.
+      double precision            , parameter     :: rangeSech       =25.0d0
+      ! Range (in κx) beyond which exp(-κx) has decayed by a factor e⁻⁵⁰.
+      double precision            , parameter     :: rangeExponential=50.0d0
+      double precision            , dimension(7)  :: limits
+      double precision                            :: rangeDecay
+      integer                                     :: i
 
-      dIzdz    =+0.0d0
-      m        =-2
-      converged=.false.
-      do while (.not.converged)
-         m         =+m                      &
-              &     +2
-         dIzdzmOdd =+dIzdzm(wavenumber,m-1)
-         dIzdzmEven=+dIzdzm(wavenumber,m  )
-         dIzdzDelta=+dIzdzmOdd              &
-              &     +dIzdzmEven
-         dIzdz     =+dIzdz                  &
-              &     +dIzdzDelta
-         if (abs(dIzdzDelta) < 1.0d-3*abs(dIzdz) .or. (m > 100 .and. (abs(dIzdz) == 0.0d0 .or. abs(dIzdzDelta) == 0.0d0))) converged=.true.
-      end do
-      dIzdz=dIzdz*2.0d0**(1+xi)
-      return
-    end function dIzdz
-
-    double precision function dIzdzm(wavenumber,m)
-      !!{RST
-      Evaluate the :math:`m`-dependent part of the :math:`\mathrm{d}I(z)/\mathrm{d}z` integral.
-      !!}
-      use :: Binomial_Coefficients, only : Binomial_Coefficient
-      implicit none
-      double precision, intent(in   ) :: wavenumber
-      integer         , intent(in   ) :: m
-      double precision                :: mFactor   , divisor
-
-      if (m < 0) then
-         dIzdzm=0.0d0
+      wavenumberScaled=+wavenumber  &
+           &           *scaleHeight
+      heightScaled    =+height      &
+           &           /scaleHeight
+      if (wavenumberScaled*rangeSech > rangeExponential) then
+         rangeDecay=+rangeExponential &
+              &     /wavenumberScaled
       else
-         mFactor=+1.0d0         &
-              &  +2.0d0         &
-              &  *dble(m )      &
-              &  /dble(xi)
-         divisor=+mFactor   **2 &
-              &  *beta      **2 &
-              &  -wavenumber**2
-         if (divisor == 0.0d0) then
-            ! Divisor is zero, but the term is still regular - use l'Hopital's rule to derive the correct value.
-            dIzdzm=-Binomial_Coefficient(-xi,m)       &
-                 & *beta                              &
-                 & *mFactor                           &
-                 & *                height            &
-                 & *exp(-wavenumber*height)           &
-                 & /2.0d0
-         else
-            dIzdzm=-Binomial_Coefficient(-xi,m)       &
-                 & *       beta                       &
-                 & *                 mFactor          &
-                 & *       wavenumber                 &
-                 & *(                                 &
-                 &   +exp(-wavenumber        *height) &
-                 &   -exp(-beta      *mFactor*height) &
-                 &  )                                 &
-                 & /divisor
-         end if
+         rangeDecay=+rangeSech
       end if
-      return
-    end function dIzdzm
-
-    double precision function d2Izdz2(wavenumber)
-      !!{RST
-      :math:`z` :math:`2^\mathrm{nd}` derivative of the :math:`z`-dependent term appearing in the expression for the potential of the disk.
-      !!}
-      use :: Binomial_Coefficients, only : Binomial_Coefficient
-      implicit none
-      double precision, intent(in   ) :: wavenumber
-      double precision                :: d2Izdz2mOdd , d2Izdz2mEven, &
-           &                             d2Izdz2Delta
-      integer                         :: m
-      logical                         :: converged
-
-      d2Izdz2  =+0.0d0
-      m        =-2
-      converged=.false.
-      do while (.not.converged)
-         m           =+m                        &
-              &       +2
-         d2Izdz2mOdd =+d2Izdz2m(wavenumber,m-1)
-         d2Izdz2mEven=+d2Izdz2m(wavenumber,m  )
-         d2Izdz2Delta=+d2Izdz2mOdd              &
-              &       +d2Izdz2mEven
-         d2Izdz2     =+d2Izdz2                  &
-              &       +d2Izdz2Delta
-         if (abs(d2Izdz2Delta) < 1.0d-4*abs(d2Izdz2) .or. (m > 100 .and. (abs(d2Izdz2) == 0.0d0 .or. abs(d2Izdz2Delta) == 0.0d0))) converged=.true.
+      limits=[                                                         &
+           &  0.0d0                                                  , &
+           &  min(heightScaled,rangeSech,rangeDecay)                 , &
+           &  min(heightScaled,rangeSech           )                 , &
+           &  max(min(heightScaled,rangeSech),heightScaled-rangeSech), &
+           &  heightScaled                                           , &
+           &  heightScaled+rangeDecay                                , &
+           &  heightScaled+rangeSech                                   &
+           & ]
+      kernelIntegrate=0.0d0
+      do i=1,size(limits)-1
+         if (limits(i+1) > limits(i)) kernelIntegrate=+kernelIntegrate                              &
+              &                                       +integrator_%integrate(limits(i),limits(i+1))
       end do
-      d2Izdz2=d2Izdz2*2.0d0**(1+xi)
       return
-    end function d2Izdz2
+    end function kernelIntegrate
 
-    double precision function d2Izdz2m(wavenumber,m)
+    double precision function kernelIntegrand(x)
       !!{RST
-      Evaluate the :math:`m`-dependent part of the :math:`\mathrm{d}^2I(z)/\mathrm{d}z^2` integral.
+      Integrand for the vertical kernel, :math:`K(k,z)`.
       !!}
-      use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
-      double precision, intent(in   ) :: wavenumber
-      integer         , intent(in   ) :: m
-      double precision                :: mFactor   , divisor
+      double precision, intent(in   ) :: x
 
-      if (m < 0) then
-         d2Izdz2m=0.0d0
-      else
-         mFactor=+1.0d0         &
-              &  +2.0d0         &
-              &  *dble(m )      &
-              &  /dble(xi)
-         divisor=+mFactor   **2 &
-              &  *beta      **2 &
-              &  -wavenumber**2
-         if (divisor == 0.0d0) then
-            ! Divisor is zero, but the term is still regular - use l'Hopital's rule to derive the correct value.
-            d2Izdz2m=+Binomial_Coefficient(-xi,m)                          &
-                 &   *  beta      *mFactor                                 &
-                 &   *  wavenumber**2                                      &
-                 &   *exp(-wavenumber*height)                              &
-                 &   /2.0d0
-         else
-            d2Izdz2m=+Binomial_Coefficient(-xi,m)                          &
-                 &   *  beta      *mFactor                                 &
-                 &   *  wavenumber                                         &
-                 &   *(                                                    &
-                 &     +wavenumber        *exp(-wavenumber        *height) &
-                 &     -beta      *mFactor*exp(-beta      *mFactor*height) &
-                 &    )                                                    &
-                 &   /divisor
-         end if
-      end if
+      kernelIntegrand=+exp(-wavenumberScaled*x)      &
+           &          *(                             &
+           &            +sechSquared(heightScaled+x) &
+           &            +sechSquared(heightScaled-x) &
+           &           )
       return
-    end function d2Izdz2m
+    end function kernelIntegrand
+
+    double precision function kernelGradientIntegrand(x)
+      !!{RST
+      Integrand for the :math:`z` derivative of the vertical kernel, :math:`K(k,z)`.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: x
+
+      kernelGradientIntegrand=+exp(-wavenumberScaled*x)      &
+           &                  *(                             &
+           &                    +sechSquared(heightScaled+x) &
+           &                    -sechSquared(heightScaled-x) &
+           &                   )
+      return
+    end function kernelGradientIntegrand
+
+    double precision function kernelGradient2Integrand(x)
+      !!{RST
+      Integrand for the second :math:`z` derivative of the vertical kernel, :math:`K(k,z)`.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: x
+
+      kernelGradient2Integrand=+exp(-wavenumberScaled*x)                &
+           &                   *(                                       &
+           &                     +sechSquaredDerivative(heightScaled+x) &
+           &                     -sechSquaredDerivative(heightScaled-x) &
+           &                    )
+      return
+    end function kernelGradient2Integrand
+
+    double precision function sechSquared(y)
+      !!{RST
+      Evaluate :math:`\mathrm{sech}^2 y`, written in terms of :math:`\mathrm{e}^{-2|y|}` so that it can not overflow at large
+      :math:`|y|`.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: y
+      double precision                :: expTerm
+
+      expTerm    =+exp(-2.0d0*abs(y))
+      sechSquared=+4.0d0           &
+           &      *expTerm         &
+           &      /(               &
+           &        +1.0d0         &
+           &        +expTerm       &
+           &       )**2
+      return
+    end function sechSquared
+
+    double precision function sechSquaredDerivative(y)
+      !!{RST
+      Evaluate :math:`\mathrm{d}\,\mathrm{sech}^2 y/\mathrm{d}y = -2\,\mathrm{sech}^2 y \tanh y`, written in terms of
+      :math:`\mathrm{e}^{-2|y|}` so that it can not overflow at large :math:`|y|`.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: y
+      double precision                :: expTerm
+
+      expTerm              =+exp(-2.0d0*abs(y))
+      sechSquaredDerivative=-2.0d0          &
+           &                *sechSquared(y) &
+           &                *sign(1.0d0,y)  &
+           &                *(              &
+           &                  +1.0d0        &
+           &                  -expTerm      &
+           &                 )              &
+           &                /(              &
+           &                  +1.0d0        &
+           &                  +expTerm      &
+           &                 )
+      return
+    end function sechSquaredDerivative
     
   end subroutine exponentialDiskAccelerationTabulate
   
