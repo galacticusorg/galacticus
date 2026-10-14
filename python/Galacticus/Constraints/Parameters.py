@@ -4,6 +4,7 @@ Andrew Benson (ported to Python 2026)
 """
 
 import os
+import re
 
 import numpy as np
 
@@ -14,6 +15,8 @@ __all__ = [
     'log_file_root',
     'maximum_posterior_parameter_vector',
     'maximum_likelihood_parameter_vector',
+    'maximum_parameter_dict',
+    'chain_parameter_names',
     'parameter_names',
     # camelCase compatibility aliases (defined further down in this module).
     'logFileRoot',
@@ -21,6 +24,9 @@ __all__ = [
     'maximumLikelihoodParameterVector',
     'parameterNames',
 ]
+
+# The 1-based column of the first parameter in a chain log (columns 1-6 are bookkeeping).
+_PARAMETER_COLUMN_FIRST = 7
 
 
 def log_file_root(config, options=None):
@@ -113,6 +119,85 @@ def parameter_names(config):
     """
     params = as_array(config['posteriorSampleSimulation']['modelParameter'])
     return [p['name']['value'] for p in params if p.get('value') == 'active']
+
+
+def chain_parameter_names(config, options=None):
+    """Return the parameter names recorded in the chain logs' own header, in column order.
+
+    Galacticus writes a header to each chain log naming every column, e.g.::
+
+        #    7 = Parameter `haloMassFunctionParameters/a`
+
+    These names are authoritative: they describe the chain that was actually run, whereas the
+    config may since have been regenerated with a different set of active parameters. The
+    returned list is indexed as the parameter vector is, so element *i* names the vector's
+    element *i*.
+
+    Returns an empty list for a chain log carrying no such header (an older log), leaving the
+    caller to fall back to matching by position.
+    """
+    options    = options or {}
+    chain_file = f'{log_file_root(config, options)}_0000.log'
+    if not os.path.exists(chain_file):
+        return []
+    columns = {}
+    with open(chain_file) as fh:
+        for line in fh:
+            if not line.startswith('#'):
+                break
+            match = re.match(r'#\s*(\d+)\s*=\s*Parameter\s+`([^`]+)`', line)
+            if match:
+                columns[int(match.group(1))] = match.group(2)
+    if not columns:
+        return []
+    expected = list(range(_PARAMETER_COLUMN_FIRST, _PARAMETER_COLUMN_FIRST + len(columns)))
+    if sorted(columns) != expected:
+        raise RuntimeError(f'chain log {chain_file} names a non-contiguous set of parameter columns')
+    return [columns[column] for column in expected]
+
+
+def maximum_parameter_dict(config, maximum='posterior', options=None):
+    """Return the {name: value} best-fit parameters of the config's active parameters.
+
+    *maximum* selects what is maximized over the chains: ``'posterior'`` (the default) or
+    ``'likelihood'``.
+
+    Values are matched to names through the chain logs' own column header rather than by
+    position, so a config whose active parameter list differs from the one the chains were run
+    with - for instance one regenerated for a narrower simulation selection - cannot silently
+    mislabel them. A config-active parameter the chains do not carry is an error rather than a
+    value taken from the wrong column.
+    """
+    if maximum == 'posterior':
+        values, _ = maximum_posterior_parameter_vector(config, options)
+    elif maximum == 'likelihood':
+        values, _ = maximum_likelihood_parameter_vector(config, options)
+    else:
+        raise ValueError(f"unknown maximum '{maximum}': expected 'posterior' or 'likelihood'")
+    names       = parameter_names(config)
+    names_chain = chain_parameter_names(config, options)
+    if not names_chain:
+        # An older chain log with no column header: fall back to matching by position, which is
+        # only meaningful if the chains and the config describe the same number of parameters.
+        if len(values) != len(names):
+            raise RuntimeError(
+                f'the chain logs hold {len(values)} parameters but the config declares '
+                f'{len(names)} active, and the logs carry no column header to match them by name'
+            )
+        return {name: float(values[i]) for i, name in enumerate(names)}
+    # Keep the first column of each name: a particleSwarm chain repeats the parameter names for
+    # its velocity columns, which `_maximum_parameter_vector` has already trimmed away.
+    indices = {}
+    for index, name in enumerate(names_chain):
+        if index < len(values):
+            indices.setdefault(name, index)
+    missing = [name for name in names if name not in indices]
+    if missing:
+        raise RuntimeError(
+            'the chain logs do not carry these parameters, which the config declares active: '
+            + ', '.join(missing)
+        )
+    return {name: float(values[indices[name]]) for name in names}
 
 
 # ---------------------------------------------------------------------------
