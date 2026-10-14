@@ -155,6 +155,41 @@ def test_collect_averages_realizations(tmp_path):
     np.testing.assert_allclose(training_set.root_variance, np.sqrt([[0.02, 0.08], [0.02, 0.08]]))
 
 
+def test_collect_counts(tmp_path):
+    """Target counts, and the factors converting values to counts, are collected for an analysis providing a counts-based
+    likelihood, with bins outside the range used in the likelihood excluded; they are written to, and read back from, an
+    emulator file; and they must agree between runs."""
+    quantiles = np.array([[0.2, 0.3], [0.7, 0.6]])
+    write_design(tmp_path / 'design.hdf5', quantiles, [0, 1], [0, 0])
+    (tmp_path / 'models').mkdir()
+    x = np.array([0.1, 0.2, 0.4, 0.8])
+    countTarget = np.array([12.0, 7.0, 0.0, 3.0])
+    countPerValue = 50.0 / x
+    for i in range(2):
+        with h5py.File(tmp_path / 'models' / f'run{i}.hdf5', 'w') as file:
+            write_analysis(file, 'progenitors', x, np.full(4, 1.0 + i), np.diag(np.full(4, 0.01)))
+            group = file['analyses']['progenitors']
+            group.attrs['xLikelihoodMinimum'] = 0.15
+            group.attrs['xLikelihoodMaximum'] = 1.0
+            group.create_dataset('countTarget', data=countTarget)
+            group.create_dataset('countPerValue', data=countPerValue)
+    design, training_sets, _ = collect(tmp_path / 'design.hdf5', [Observable('progenitors')], directory=tmp_path)
+    training_set = training_sets['progenitors']
+    np.testing.assert_array_equal(training_set.count_target, [np.nan, 7.0, 0.0, 3.0])
+    np.testing.assert_array_equal(training_set.count_per_value, countPerValue)
+    # Round trip through an emulator file (with no emulators).
+    content = ef.EmulatorFile(design=design, training_sets=training_sets, emulators={})
+    ef.write(tmp_path / 'emulator.hdf5', content)
+    roundTrip = ef.read(tmp_path / 'emulator.hdf5').training_sets['progenitors']
+    np.testing.assert_array_equal(roundTrip.count_target, training_set.count_target)
+    np.testing.assert_array_equal(roundTrip.count_per_value, countPerValue)
+    # Target counts which differ between runs are an error.
+    with h5py.File(tmp_path / 'models' / 'run1.hdf5', 'r+') as file:
+        file['analyses']['progenitors']['countTarget'][1] = 8.0
+    with pytest.raises(ValueError, match='target counts of run 1 differ'):
+        collect(tmp_path / 'design.hdf5', [Observable('progenitors')], directory=tmp_path)
+
+
 def test_fit_matches_scikit_learn():
     """The emulator file evaluates exactly what scikit-learn fitted: for a single bin (so that PCA is trivial), predictions
     by `emulatorFile.predict` must equal those of a scikit-learn regressor with the fitted hyperparameters."""
@@ -219,6 +254,70 @@ def test_cross_validation(campaign):
     assert np.all(validation.r2[:-1] > 0.9)
     assert np.all(validation.coverage_2_sigma[:-1] > 0.75)
     assert np.all(np.isfinite(validation.rms_standardized_residual))
+
+
+def test_train_parallel_matches_serial(campaign):
+    """Training in several processes gives the same emulators, and the same cross-validation, as training serially; and
+    the serial cross-validation within ``train`` matches ``cross_validate``."""
+    pytest.importorskip('sklearn')
+    path, quantiles, observables = campaign
+    design, training_sets, _ = collect(path / 'design.hdf5', observables, directory=path)
+    serial = train(design, training_sets, restarts=1, folds=3)
+    parallel = train(design, training_sets, restarts=1, folds=3, processes=2)
+    assert sorted(serial.emulators) == sorted(parallel.emulators) == sorted(training_sets)
+    for label in training_sets:
+        for componentSerial, componentParallel in zip(serial.emulators[label].components, parallel.emulators[label].components, strict=True):
+            np.testing.assert_array_equal(componentSerial.log_length_scales, componentParallel.log_length_scales)
+            np.testing.assert_array_equal(componentSerial.alpha, componentParallel.alpha)
+        np.testing.assert_array_equal(serial.validation[label].held_out_prediction, parallel.validation[label].held_out_prediction)
+        np.testing.assert_array_equal(serial.validation[label].held_out_variance, parallel.validation[label].held_out_variance)
+        training_set = training_sets[label]
+        direct = cross_validate(quantiles[training_set.point_index], design.names, training_set.y, training_set.root_variance,
+                                folds=3, restarts=1)
+        np.testing.assert_array_equal(serial.validation[label].held_out_prediction, direct.held_out_prediction)
+
+
+def test_collect_likelihood_range_only(tmp_path):
+    """With ``likelihood_range_only``, only the bins inside the range used in the likelihood are collected: values,
+    variances, target data and its covariance, and counts are all restricted to the same bins. An analysis which does not
+    record that range is an error."""
+    quantiles = np.array([[0.2, 0.3], [0.7, 0.6]])
+    write_design(tmp_path / 'design.hdf5', quantiles, [0, 1], [0, 0])
+    (tmp_path / 'models').mkdir()
+    x = np.array([0.1, 0.2, 0.4, 0.8, 1.6])
+    countTarget = np.array([12.0, 7.0, 0.0, 3.0, 1.0])
+    countPerValue = 50.0 / x
+    yTarget = np.array([2.0, 3.0, 4.0, 5.0, 6.0])
+    covarianceTarget = np.diag([0.1, 0.2, 0.3, 0.4, 0.5])
+    for i in range(2):
+        with h5py.File(tmp_path / 'models' / f'run{i}.hdf5', 'w') as file:
+            write_analysis(file, 'progenitors', x, (1.0 + i) * np.arange(1.0, 6.0), np.diag(0.01 * np.arange(1.0, 6.0)),
+                           y_target=yTarget, covariance_target=covarianceTarget)
+            group = file['analyses']['progenitors']
+            group.attrs['xLikelihoodMinimum'] = 0.15
+            group.attrs['xLikelihoodMaximum'] = 1.0
+            group.create_dataset('countTarget', data=countTarget)
+            group.create_dataset('countPerValue', data=countPerValue)
+            write_analysis(file, 'relation', x, np.arange(1.0, 6.0), np.diag(np.full(5, 0.01)))
+    _, training_sets, _ = collect(tmp_path / 'design.hdf5', [Observable('progenitors', likelihood_range_only=True)],
+                                  directory=tmp_path)
+    training_set = training_sets['progenitors']
+    inside = [1, 2, 3]
+    np.testing.assert_array_equal(training_set.x, x[inside])
+    np.testing.assert_allclose(training_set.y, [[2.0, 3.0, 4.0], [4.0, 6.0, 8.0]])
+    np.testing.assert_allclose(training_set.root_variance, np.sqrt([[0.02, 0.03, 0.04]] * 2))
+    np.testing.assert_array_equal(training_set.y_target, yTarget[inside])
+    np.testing.assert_array_equal(training_set.covariance_target, covarianceTarget[np.ix_(inside, inside)])
+    np.testing.assert_array_equal(training_set.count_target, countTarget[inside])
+    np.testing.assert_array_equal(training_set.count_per_value, countPerValue[inside])
+    assert training_set.attributes['likelihoodRangeOnly'] == 1
+    # Without the option, every bin is collected.
+    _, training_sets, _ = collect(tmp_path / 'design.hdf5', [Observable('progenitors')], directory=tmp_path)
+    assert training_sets['progenitors'].y.shape == (2, 5)
+    assert 'likelihoodRangeOnly' not in training_sets['progenitors'].attributes
+    # An analysis which does not record the range used in its likelihood is an error.
+    with pytest.raises(ValueError, match='does not record the range used in its likelihood'):
+        collect(tmp_path / 'design.hdf5', [Observable('relation', likelihood_range_only=True)], directory=tmp_path)
 
 
 def test_observable_validation():

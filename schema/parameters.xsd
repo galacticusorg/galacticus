@@ -1676,6 +1676,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="gnedin2000"/>
+          <xs:enumeration value="internal"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
@@ -4784,6 +4785,8 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="gaussianCovariance"/>
           <xs:enumeration value="gaussianDiagonal"/>
+          <xs:enumeration value="logNormalFloored"/>
+          <xs:enumeration value="poissonCounts"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>

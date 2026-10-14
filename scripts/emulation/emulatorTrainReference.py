@@ -14,6 +14,7 @@ The configuration is an XML file:
     <collectOnly          value="false"/>     <!-- optional; write the training sets only -->
     <observable label="massFunctionStellarTomczak2014ZFOURGEz0" transform="log10" floor="-6.64" rootVarianceFloored="0.5"/>
     <observable label="massMetallicityBlanc2019" transform="identity" undefined="median" rootVarianceUndefined="5.0"/>
+    <observable label="progenitorMassFunctionM1Z0" transform="log10" floor="-13.6" rootVarianceFloored="1.0" likelihoodRangeOnly="true"/>
   </emulatorTrain>
 
 Each observable may also give ``rootVarianceZero`` (the root variance given to values whose root variance is zero) and
@@ -81,6 +82,7 @@ def read_configuration(path):
             root_variance_undefined=number('rootVarianceUndefined'),
             root_variance_zero=number('rootVarianceZero'),
             root_variance_target_minimum=number('rootVarianceTargetMinimum'),
+            likelihood_range_only=element.get('likelihoodRangeOnly', 'false').strip().lower() in ('true', 't', '1', 'yes'),
         )
         observable.validate()
         observables.append(observable)
@@ -94,6 +96,8 @@ def main(argv=None):
     parser.add_argument('configuration', help='the training configuration (an XML file)')
     parser.add_argument('--directory', default='.', help='the directory relative to which the run outputs are resolved')
     parser.add_argument('--overwrite', action='store_true', help='replace an existing emulator file')
+    parser.add_argument('--processes', type=int, default=1,
+                        help='the number of processes in which to fit emulators (and cross-validation folds) in parallel')
     args = parser.parse_args(argv)
     options, observables = read_configuration(args.configuration)
     design, training_sets, reports = collect(options['designFileName'], observables, directory=args.directory)
@@ -108,7 +112,7 @@ def main(argv=None):
     else:
         content = train(design, training_sets, pca_variance_retained=options['pcaVarianceRetained'],
                         restarts=options['restartsOptimizer'], folds=options['foldsCrossValidation'], seed=options['seed'],
-                        store_cholesky=options['storeCholesky'])
+                        store_cholesky=options['storeCholesky'], processes=args.processes)
         for label, emulator in content.emulators.items():
             line = f'{label}: {len(emulator.components)} principal components'
             if label in content.validation:

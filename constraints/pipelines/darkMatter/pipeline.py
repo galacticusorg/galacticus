@@ -22,9 +22,7 @@ from List.ExtraUtils import as_array
 from XML.Utils import xml_to_dict
 from Galacticus.Constraints.Parameters import (
     log_file_root,
-    maximum_likelihood_parameter_vector,
-    maximum_posterior_parameter_vector,
-    parameter_names,
+    maximum_parameter_dict,
 )
 
 
@@ -464,13 +462,12 @@ def _postprocess_command(label, pipeline_path, output_dir, options):
 
 
 def _extract_parameters(config, options):
-    """Return the {name: value} best-fit parameter dict for a parsed stage config."""
-    if options['maximum'] == 'likelihood':
-        params_vec, _ = maximum_likelihood_parameter_vector(config)
-    else:
-        params_vec, _ = maximum_posterior_parameter_vector(config)
-    names = parameter_names(config)
-    return {name: float(params_vec[i]) for i, name in enumerate(names)}
+    """Return the {name: value} best-fit parameter dict for a parsed stage config.
+
+    Values are matched to names by the chain logs' own column header, so a config regenerated
+    with a narrower selection than the chains were run with raises rather than mislabelling.
+    """
+    return maximum_parameter_dict(config, maximum=options['maximum'])
 
 
 def _merge_results(results_file, params):
@@ -702,13 +699,7 @@ def main():
         results_file = output_dir + 'results.txt'
         if options['updateResults'] == 'yes':
             print(f"  Extracting maximum {options['maximum']} parameter vector...")
-            if options['maximum'] == 'likelihood':
-                params_vec, _ = maximum_likelihood_parameter_vector(config)
-            else:
-                params_vec, _ = maximum_posterior_parameter_vector(config)
-            names = parameter_names(config)
-            for i, name in enumerate(names):
-                params_determined[name] = float(params_vec[i])
+            params_determined.update(_extract_parameters(config, options))
             print('  ...done')
 
             print('  Outputting maximum likelihood parameters...')

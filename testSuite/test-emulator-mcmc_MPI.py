@@ -45,8 +45,7 @@ priors = {'outputAnalysis/intercept': (-0.5, 1.5), 'outputAnalysis/slope': (0.0,
 countDesign = 64
 countSteps = 2000
 # The number of chains (one per MPI process). Differential evolution builds its proposals from differences between chains,
-# and with few chains the population under-disperses: with 4 chains the posterior widths found here are only 0.6 of their
-# true values, with 8 chains 0.8, and with 16 chains 0.95. Each evaluation of the emulated likelihood is cheap, so the
+# so it needs several more chains than parameters to mix well. Each evaluation of the emulated likelihood is cheap, so the
 # processes are oversubscribed as needed.
 countChains = 16
 

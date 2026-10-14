@@ -51,23 +51,31 @@
      A Gaussian process emulator read from an emulator file.
      !!}
      private
-     type            (varying_string                  )                              :: fileName         , label
+     type            (varying_string                  )                              :: fileName            , label           , &
+          &                                                                             transform_
      type            (varying_string                  ), allocatable, dimension(:  ) :: inputNames_
-     double precision                                  , allocatable, dimension(:,:) :: inputs           , pcaComponents   , &
-          &                                                                             covarianceTarget_, values
-     double precision                                  , allocatable, dimension(:  ) :: binMean          , binScale        , &
-          &                                                                             coefficientMean  , coefficientScale, &
-          &                                                                             x_               , yTarget_
+     double precision                                  , allocatable, dimension(:,:) :: inputs              , pcaComponents   , &
+          &                                                                             covarianceTarget_   , values
+     double precision                                  , allocatable, dimension(:  ) :: binMean             , binScale        , &
+          &                                                                             coefficientMean     , coefficientScale, &
+          &                                                                             x_                  , yTarget_        , &
+          &                                                                             countTarget_        , countPerValue_
      type            (emulatorGaussianProcessComponent), allocatable, dimension(:  ) :: components
-     double precision                                                                :: jitter
+     double precision                                                                :: jitter              , floor_          , &
+          &                                                                             rootVarianceFloored_
+     logical                                                                         :: hasFloor
    contains
-     procedure :: countInputs    => gaussianProcessCountInputs
-     procedure :: inputNames     => gaussianProcessInputNames
-     procedure :: countOutputs   => gaussianProcessCountOutputs
-     procedure :: outputs        => gaussianProcessOutputs
-     procedure :: target         => gaussianProcessTarget
-     procedure :: trainingPoints => gaussianProcessTrainingPoints
-     procedure :: predict        => gaussianProcessPredict
+     procedure :: countInputs     => gaussianProcessCountInputs
+     procedure :: inputNames      => gaussianProcessInputNames
+     procedure :: countOutputs    => gaussianProcessCountOutputs
+     procedure :: outputs         => gaussianProcessOutputs
+     procedure :: target          => gaussianProcessTarget
+     procedure :: transform       => gaussianProcessTransform
+     procedure :: labelObservable => gaussianProcessLabelObservable
+     procedure :: floor           => gaussianProcessFloor
+     procedure :: counts          => gaussianProcessCounts
+     procedure :: trainingPoints  => gaussianProcessTrainingPoints
+     procedure :: predict         => gaussianProcessPredict
   end type emulatorGaussianProcess
 
   interface emulatorGaussianProcess
@@ -121,9 +129,9 @@ contains
     use            :: Error             , only : Error_Report
     use            :: HDF5_Access       , only : hdf5Access
     use            :: IO_HDF5           , only : hdf5File     , hdf5Group
-    use            :: ISO_Varying_String, only : char         , operator(//), operator(/=)  , operator(==), &
-         &                                       var_str
-    use            :: Linear_Algebra    , only : assignment(=), matrix      , matrixCholesky
+    use            :: ISO_Varying_String, only : char         , operator(//) , operator(/=)  , operator(==), &
+         &                                       var_str      , assignment(=)
+    use            :: Linear_Algebra    , only : assignment(=), matrix       , matrixCholesky
     use            :: String_Handling   , only : operator(//)
     implicit none
     type            (emulatorGaussianProcess)                              :: self
@@ -171,6 +179,27 @@ contains
       call trainingSetGroup%readDataset('yTarget'         ,self%yTarget_         )
       call trainingSetGroup%readDataset('covarianceTarget',self%covarianceTarget_)
       call trainingSetGroup%readDataset('pointIndex'      ,pointIndex            )
+      ! The transform is recorded as an attribute of the training set - if absent, no transform was applied.
+      if (trainingSetGroup%hasAttribute('transform')) then
+         call trainingSetGroup%readAttribute('transform',self%transform_)
+      else
+         self%transform_='identity'
+      end if
+      if (self%transform_ /= 'identity' .and. self%transform_ /= 'log10') call Error_Report("unsupported transform '"//self%transform_//"'"//{introspection:location})
+      ! A floor is recorded only for observables emulated in their logarithm with a floor.
+      self%hasFloor=trainingSetGroup%hasAttribute('floor') .and. trainingSetGroup%hasAttribute('rootVarianceFloored')
+      if (self%hasFloor) then
+         call trainingSetGroup%readAttribute('floor'              ,self%floor_              )
+         call trainingSetGroup%readAttribute('rootVarianceFloored',self%rootVarianceFloored_)
+      else
+         self%floor_              =0.0d0
+         self%rootVarianceFloored_=0.0d0
+      end if
+      ! Counts are present only for observables compared to counts.
+      if (trainingSetGroup%hasDataset('countTarget')) then
+         call trainingSetGroup%readDataset('countTarget'  ,self%countTarget_  )
+         call trainingSetGroup%readDataset('countPerValue',self%countPerValue_)
+      end if
       block
         type(hdf5Group) :: designGroup
         designGroup=file%openGroup('design')
@@ -333,6 +362,62 @@ contains
     covarianceTarget=self%covarianceTarget_
     return
   end subroutine gaussianProcessTarget
+
+  function gaussianProcessTransform(self) result(transform)
+    !!{RST
+    Return the transform applied to the observable before it was emulated.
+    !!}
+    implicit none
+    type (varying_string         )                :: transform
+    class(emulatorGaussianProcess), intent(inout) :: self
+
+    transform=self%transform_
+    return
+  end function gaussianProcessTransform
+
+  function gaussianProcessLabelObservable(self) result(label)
+    !!{RST
+    Return the label of the emulated observable within the emulator file.
+    !!}
+    implicit none
+    type (varying_string         )                :: label
+    class(emulatorGaussianProcess), intent(inout) :: self
+
+    label=self%label
+    return
+  end function gaussianProcessLabelObservable
+
+  subroutine gaussianProcessFloor(self,floor,rootVarianceFloored)
+    !!{RST
+    Return the floor of the emulated observable, and the root variance given to floored values in training.
+    !!}
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : operator(//)
+    implicit none
+    class           (emulatorGaussianProcess), intent(inout) :: self
+    double precision                         , intent(  out) :: floor, rootVarianceFloored
+
+    if (.not.self%hasFloor) call Error_Report("the training set of emulator '"//self%label//"' records no floor"//{introspection:location})
+    floor              =self%floor_
+    rootVarianceFloored=self%rootVarianceFloored_
+    return
+  end subroutine gaussianProcessFloor
+
+  subroutine gaussianProcessCounts(self,countTarget,countPerValue)
+    !!{RST
+    Return the target counts of the emulated observable, and the factors converting its values to counts.
+    !!}
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : operator(//)
+    implicit none
+    class           (emulatorGaussianProcess), intent(inout)                            :: self
+    double precision                         , intent(  out), allocatable, dimension(:) :: countTarget, countPerValue
+
+    if (.not.allocated(self%countTarget_)) call Error_Report("the training set of emulator '"//self%label//"' has no counts"//{introspection:location})
+    countTarget  =self%countTarget_
+    countPerValue=self%countPerValue_
+    return
+  end subroutine gaussianProcessCounts
 
   subroutine gaussianProcessTrainingPoints(self,quantiles,values)
     !!{RST

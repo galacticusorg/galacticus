@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which provides a class that implements physical processes.
 !!}
@@ -27,6 +29,32 @@ module Nodes_Operators
   !!}
   use :: Galacticus_Nodes, only : treeNode, interruptTask
   private
+
+  !![
+  <enumeration docformat="rst">
+   <name>nodeOperatorMethod</name>
+   <description>
+   Enumeration of the methods of the :galacticus-class:`nodeOperatorClass`, used to index the ``methodIsNull`` flags which record which methods fall through to the default (null) implementation for a given object.
+   </description>
+   <validator>yes</validator>
+   <indexing>1</indexing>
+   <entry label="nodeInitialize"                     />
+   <entry label="nodeTreeInitialize"                 />
+   <entry label="nodesMerge"                         />
+   <entry label="nodePromote"                        />
+   <entry label="galaxiesMerge"                      />
+   <entry label="differentialEvolutionPre"           />
+   <entry label="differentialEvolutionScales"        />
+   <entry label="differentialEvolutionAnalytics"     />
+   <entry label="differentialEvolutionInactives"     />
+   <entry label="differentialEvolution"              />
+   <entry label="differentialEvolutionSolveAnalytics"/>
+   <entry label="predeterminedSolveAnalytics"        />
+   <entry label="differentialEvolutionStepFinalState"/>
+   <entry label="differentialEvolutionPost"          />
+   <entry label="differentialEvolutionPostStep"      />
+  </enumeration>
+  !!]
 
   !![
   <functionClass docformat="rst">
@@ -45,7 +73,8 @@ module Nodes_Operators
       <selfTarget>yes</selfTarget>
       <argument>type(treeNode), intent(inout), target :: node</argument>
       <code>
-	!$GLC attributes unused :: self, node
+	!$GLC attributes unused :: node
+	self%methodIsNull(nodeOperatorMethodNodeInitialize%ID)=.true.
       </code>
     </method>
     <method name="nodeTreeInitialize" >
@@ -57,7 +86,8 @@ module Nodes_Operators
       <selfTarget>yes</selfTarget>
       <argument>type(treeNode), intent(inout), target :: node</argument>
       <code>
-	!$GLC attributes unused :: self, node
+	!$GLC attributes unused :: node
+	self%methodIsNull(nodeOperatorMethodNodeTreeInitialize%ID)=.true.
       </code>
     </method>
     <method name="nodesMerge" >
@@ -68,7 +98,8 @@ module Nodes_Operators
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
       <code>
-	!$GLC attributes unused :: self, node
+	!$GLC attributes unused :: node
+	self%methodIsNull(nodeOperatorMethodNodesMerge%ID)=.true.
       </code>
     </method>
     <method name="nodePromote" >
@@ -79,7 +110,8 @@ module Nodes_Operators
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
       <code>
-	!$GLC attributes unused :: self, node
+	!$GLC attributes unused :: node
+	self%methodIsNull(nodeOperatorMethodNodePromote%ID)=.true.
       </code>
     </method>
     <method name="galaxiesMerge" >
@@ -90,7 +122,8 @@ module Nodes_Operators
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
       <code>
-	!$GLC attributes unused :: self, node
+	!$GLC attributes unused :: node
+	self%methodIsNull(nodeOperatorMethodGalaxiesMerge%ID)=.true.
       </code>
     </method>
     <method name="differentialEvolutionPre" >
@@ -101,7 +134,8 @@ module Nodes_Operators
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
       <code>
-	!$GLC attributes unused :: self, node
+	!$GLC attributes unused :: node
+	self%methodIsNull(nodeOperatorMethodDifferentialEvolutionPre%ID)=.true.
       </code>
     </method>
     <method name="differentialEvolutionScales" >
@@ -112,7 +146,8 @@ module Nodes_Operators
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
       <code>
-	!$GLC attributes unused :: self, node
+	!$GLC attributes unused :: node
+	self%methodIsNull(nodeOperatorMethodDifferentialEvolutionScales%ID)=.true.
       </code>
     </method>
     <method name="differentialEvolutionAnalytics" >
@@ -123,7 +158,8 @@ module Nodes_Operators
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
       <code>
-	!$GLC attributes unused :: self, node
+	!$GLC attributes unused :: node
+	self%methodIsNull(nodeOperatorMethodDifferentialEvolutionAnalytics%ID)=.true.
       </code>
     </method>
     <method name="differentialEvolutionInactives" >
@@ -134,7 +170,8 @@ module Nodes_Operators
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
       <code>
-	!$GLC attributes unused :: self, node
+	!$GLC attributes unused :: node
+	self%methodIsNull(nodeOperatorMethodDifferentialEvolutionInactives%ID)=.true.
       </code>
     </method>
     <method name="differentialEvolution" >
@@ -149,7 +186,8 @@ module Nodes_Operators
       <argument>procedure(interruptTask), intent(inout), pointer :: functionInterrupt</argument>
       <argument>integer                 , intent(in   )          :: propertyType     </argument>
       <code>
-	!$GLC attributes unused :: self, node, interrupt, functionInterrupt, propertyType
+	!$GLC attributes unused :: node, interrupt, functionInterrupt, propertyType
+	self%methodIsNull(nodeOperatorMethodDifferentialEvolution%ID)=.true.
       </code>
     </method>
     <method name="differentialEvolutionSolveAnalytics" >
@@ -161,7 +199,8 @@ module Nodes_Operators
       <argument>type            (treeNode), intent(inout) :: node</argument>
       <argument>double precision          , intent(in   ) :: time</argument>
       <code>
-	!$GLC attributes unused :: self, node, time
+	!$GLC attributes unused :: node, time
+	self%methodIsNull(nodeOperatorMethodDifferentialEvolutionSolveAnalytics%ID)=.true.
       </code>
     </method>
     <method name="predeterminedSolveAnalytics" >
@@ -173,7 +212,8 @@ module Nodes_Operators
       <argument>type            (treeNode), intent(inout) :: node</argument>
       <argument>double precision          , intent(in   ) :: time</argument>
       <code>
-	!$GLC attributes unused :: self, node, time
+	!$GLC attributes unused :: node, time
+	self%methodIsNull(nodeOperatorMethodPredeterminedSolveAnalytics%ID)=.true.
       </code>
     </method>
     <method name="differentialEvolutionStepFinalState" >
@@ -184,7 +224,8 @@ module Nodes_Operators
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
       <code>
-	!$GLC attributes unused :: self, node
+	!$GLC attributes unused :: node
+	self%methodIsNull(nodeOperatorMethodDifferentialEvolutionStepFinalState%ID)=.true.
       </code>
     </method>
     <method name="differentialEvolutionPost" >
@@ -195,7 +236,8 @@ module Nodes_Operators
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
       <code>
-	!$GLC attributes unused :: self, node
+	!$GLC attributes unused :: node
+	self%methodIsNull(nodeOperatorMethodDifferentialEvolutionPost%ID)=.true.
       </code>
     </method>
     <method name="differentialEvolutionPostStep" >
@@ -207,9 +249,13 @@ module Nodes_Operators
       <argument>type   (treeNode), intent(inout) :: node</argument>
       <argument>integer          , intent(inout) :: status</argument>
       <code>
-	!$GLC attributes unused :: self, node, status
+	!$GLC attributes unused :: node, status
+	self%methodIsNull(nodeOperatorMethodDifferentialEvolutionPostStep%ID)=.true.
       </code>
     </method>
+    <!-- Flags which methods fall through to the default (null) implementation for this object. Each default implementation sets
+         its flag when called, allowing nodeOperatorMulti to skip calling it thereafter. -->
+    <data scope="self">logical, dimension(nodeOperatorMethodCount) :: methodIsNull=.false.</data>
   </functionClass>
   !!]
 

@@ -133,7 +133,10 @@ for a mean relation with no galaxies in a bin) may be replaced by the median of 
 (``undefined="median"``), with root variance ``rootVarianceUndefined``. Values which have been floored or replaced are
 flagged in the ``mask`` of the training set. Values whose root variance is zero (as for a mean relation measured from a
 single galaxy) may be given root variance ``rootVarianceZero``, and the root variance of the target data may be floored
-at ``rootVarianceTargetMinimum`` (both in the units of the transformed observable).
+at ``rootVarianceTargetMinimum`` (both in the units of the transformed observable). With ``likelihoodRangeOnly="true"``,
+only the bins inside the range used in the analysis's likelihood (recorded by the analysis as the ``xLikelihoodMinimum``
+and ``xLikelihoodMaximum`` attributes of its group, as for the ``progenitorMassFunction`` analysis) are collected. Bins which the likelihood never uses are then not
+emulated, which avoids spending principal components on them; for a mass function they are often empty, and so floored.
 
 The emulator of each observable standardizes its bins, compresses them by principal components analysis (retaining a
 fraction ``pcaVarianceRetained`` of the variance, by default 0.99), and fits a Gaussian process to each standardized
@@ -144,6 +147,11 @@ starts. With ``foldsCrossValidation`` greater than zero, each emulator is also c
 fold of the training set held out, and the held-out predictions are written to the ``validation`` group of the emulator
 file, along with per-bin statistics. A well-calibrated emulator has an RMS standardized residual near 1, and 1 and 2
 sigma coverage near 0.68 and 0.95. With ``collectOnly`` set to ``true``, only the training sets are written.
+
+The fit of each emulator, and of each fold of its cross-validation, is independent of the others, so with many observables
+training parallelizes well: ``--processes N`` makes the fits in :math:`N` processes (each using a single thread, since
+threading within a fit gains little), with results identical to those of a serial run. The cost of each fit grows steeply with the number of training points
+(about fourfold for each doubling, between 256 and 1024 points in ten dimensions).
 
 .. _manual-sec-EmulatorEvaluation:
 
@@ -191,6 +199,37 @@ The active parameters of the simulation must be those of the design: each emulat
 parameter of the same name, and their priors must be those under which the emulators were trained (this is checked when
 the likelihood is first evaluated). The emulators may also be checked by evaluating the emulated likelihood on a design
 with the ``grid`` simulation, and comparing with the likelihoods of direct runs of the model.
+
+An observable compared to counts, such as a progenitor mass function (the ``progenitorMassFunction`` analysis, with
+``likelihoodInCounts`` true), uses the ``poissonCounts`` likelihood form. The analysis writes its target counts, and the
+factors converting its values to counts, which are collected into the training set. The likelihood is then a negative
+binomial distribution, whose over-dispersion combines the fractional root variance of counts (``rootVarianceTargetFractional``)
+with the fractional variance of the emulator's prediction. If that root variance is itself a parameter of the calibration,
+it is given by an active parameter named by ``rootVarianceTargetFractionalParameter``, and is then a parameter of the
+likelihood rather than an input to the emulator:
+
+.. code-block:: xml
+
+   <posteriorSampleLikelihood value="emulated">
+     <emulator value="gaussianProcess">
+       <fileName value="emulator.hdf5"/>
+       <label    value="progenitorMassFunctionM0Z1"/>
+     </emulator>
+     <likelihoodForms                       value="poissonCounts"/>
+     <rootVarianceTargetFractionalParameter value="progenitorMassFunctionParameters/rootVarianceTargetFractional"/>
+   </posteriorSampleLikelihood>
+
+Only parameters which change the likelihood without changing the model prediction can be handled in this way. Parameters
+of the model of N-body halo mass errors (``nbodyHaloMassError``), for example, change the progenitor mass function itself
+(through its convolution with those errors), so must be parameters of the design, and inputs to the emulator.
+
+A number density emulated in its logarithm with a floor (``transform="log10"`` with a ``floor``) may use the
+``logNormalFloored`` form, which treats bins at or below the floor - in the target data, or in the model prediction - as in
+training: they are set to the floor, with the root variance of floored values. Empty bins then contribute to the likelihood
+softly, rather than being excluded (as in ``gaussianDiagonal``, for which the logarithm of an empty target bin is
+:math:`-\infty`). With ``pathSamples`` set, the predictions of each emulator at every evaluation are written to a file
+(``<pathSamples>/<label>_<process>.txt``), keyed by simulation step and chain index, for checking the emulators along the
+chains.
 
 .. _manual-sec-EmulatorGalacticEmu:
 
@@ -309,6 +348,11 @@ observable (normally the label of the ``outputAnalysis`` which produced it). Att
    The data to which the observable is compared, and its covariance.
 ``yRaw`` (:math:`N \times B`), ``covarianceRaw`` (:math:`N \times B \times B`)
    Optional. The model prediction and its covariance before any transform.
+``countTarget`` (:math:`B`), ``countPerValue`` (:math:`B`)
+   Optional, and present only for an observable compared to counts. The target count in each bin (not-a-number for bins
+   excluded from the likelihood), and the factor converting the untransformed model prediction in each bin to an expected
+   count. These are collected from the ``countTarget`` and ``countPerValue`` datasets of the analysis output, with bins
+   outside the range given by its ``xLikelihoodMinimum`` and ``xLikelihoodMaximum`` attributes excluded.
 
 ``emulators/{label}``
 ~~~~~~~~~~~~~~~~~~~~~

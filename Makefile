@@ -115,12 +115,27 @@ BUILDCONFIGURATIONSTAMP := $(BUILDPATH)/buildConfiguration.stamp
 # library-only logic (PIC flags, library interface generation, dependency prereqs).
 IS_LIB_BUILD := $(filter yes,$(LIBRARY))
 
+# Exported flags in recursive makes. This Makefile appends to CFLAGS and GALACTICUS_FCFLAGS, and exports them, because
+# recipes need them (the preprocessor's Constants hook compiles C code with CFLAGS; several code generators read
+# GALACTICUS_FCFLAGS). A recursive make - such as the `.mod` recovery recipes in Makefile_Module_Dependencies - inherits
+# their *final* values through its environment, and so would append to them again, doubling them. The build
+# configuration stamp records the flags, so it would be rewritten, and the next build would preprocess and recompile
+# everything. For CFLAGS, snapshot the value it had when the top-level make started (from the user's environment, or
+# empty), pass that down, and have every make, recursive or not, rebuild CFLAGS from it - see its first assignment, below.
+# (GALACTICUS_FCFLAGS is handled where `-DDEBUGGING` is appended to it.)
+ifeq ($(origin GALACTICUS_TOPLEVEL_CFLAGS),undefined)
+export GALACTICUS_TOPLEVEL_CFLAGS := $(CFLAGS)
+endif
+
 # Debugging builds. `-DDEBUGGING` is added to GALACTICUS_FCFLAGS (which is exported), rather than to FCFLAGS, because the
 # build's code generators (python/Galacticus/Build/Components/) and its dependency scanner (scripts/build/useDependencies.py)
 # read it from there. Adding `-DDEBUGGING` to GALACTICUS_FCFLAGS directly still works too, although without a separate build
 # directory.
+# Append it only if absent, as a recursive make inherits the value already appended to (see above).
 ifeq '$(DEBUGGING)' 'yes'
+ifeq ($(filter -DDEBUGGING,$(GALACTICUS_FCFLAGS)),)
 override GALACTICUS_FCFLAGS += -DDEBUGGING
+endif
 export GALACTICUS_FCFLAGS
 endif
 
@@ -190,8 +205,16 @@ FCFLAGS += -O3 -ffinite-math-only -fno-math-errno
 # C, C++ and Fortran 77 sources (vendored GSL ODE stepper, GSL interface wrappers, ANN, FFTlog, Genz) need their own
 # optimization level - without one they are compiled at -O0. The finite-math flags are deliberately not applied here, as
 # these sources test for infinities and NaNs. These precede ${GALACTICUS_CFLAGS} and ${GALACTICUS_CPPFLAGS} (added below),
-# so an optimization level set there takes precedence.
-CFLAGS   += -O3
+# so an optimization level set there takes precedence. This is the first assignment to CFLAGS, so it also rebuilds CFLAGS
+# from the snapshot of its initial value (see the start of this file), discarding the final value that a recursive make
+# inherits. It is written to give exactly what `CFLAGS += -O3` would at the top level, where CFLAGS is otherwise undefined
+# (the build configuration stamp records the text, so even an extra space would force a rebuild), and must stay recursively
+# expanded (`=`, not `:=`), as later additions refer to SOURCEDIRS, which is defined only further down.
+ifeq ($(GALACTICUS_TOPLEVEL_CFLAGS),)
+CFLAGS    = -O3
+else
+CFLAGS    = $(GALACTICUS_TOPLEVEL_CFLAGS) -O3
+endif
 CPPFLAGS += -O3
 F77FLAGS += -O2
 # For OpenMP compilation.

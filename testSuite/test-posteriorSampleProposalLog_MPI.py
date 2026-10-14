@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Test the proposed-state log and the step labeling of sampled model vectors.
 
-Differential evolution needs at least two chains, hence MPI.
+Differential evolution needs at least three chains, hence MPI.
 
 Two behaviors are checked, both concerning whether output recorded *during* a
 likelihood evaluation can be joined back to the parameters that produced it:

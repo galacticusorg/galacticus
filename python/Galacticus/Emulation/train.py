@@ -58,7 +58,9 @@ class Observable:
     at or below ``10**floor`` (including empty bins) are set to ``floor``, with root variance ``rootVarianceFloored``
     (in dex). If ``undefined`` is ``median``, a bin whose value is undefined in a run (non-finite, or zero with zero
     variance, as for a mean relation with no galaxies in that bin) is set to the median of the bin over the runs in which
-    it is defined, with root variance ``rootVarianceUndefined``.
+    it is defined, with root variance ``rootVarianceUndefined``. If ``likelihood_range_only`` is true, only the bins inside
+    the range used in the likelihood (between the ``xLikelihoodMinimum`` and ``xLikelihoodMaximum`` attributes of the
+    analysis, exclusive) are collected, so that bins which the likelihood never uses are not emulated.
 
     Optionally, values whose root variance is zero (as for a mean relation measured from a single galaxy) are given root
     variance ``rootVarianceZero``, and the root variance of the target data is floored at ``rootVarianceTargetMinimum``
@@ -73,6 +75,7 @@ class Observable:
     root_variance_undefined: float | None = None
     root_variance_zero: float | None = None
     root_variance_target_minimum: float | None = None
+    likelihood_range_only: bool = False
 
     def validate(self):
         if self.transform not in ('identity', 'log10'):
@@ -98,6 +101,8 @@ class Observable:
             attributes['rootVarianceZero'] = self.root_variance_zero
         if self.root_variance_target_minimum is not None:
             attributes['rootVarianceTargetMinimum'] = self.root_variance_target_minimum
+        if self.likelihood_range_only:
+            attributes['likelihoodRangeOnly'] = 1
         return attributes
 
 
@@ -116,8 +121,16 @@ class CollectionReport:
         return text
 
 
-def _read_analysis(path, label):
-    """Read the ``analyses/<label>`` group of a model output: (x, y, covariance, yTarget, covarianceTarget, attributes)."""
+class ObservableConfigurationError(ValueError):
+    """An observable's options cannot be applied to its analysis. Unlike a missing or failed run, this is an error in the
+    configuration, so it is not treated as a failure of the run."""
+
+
+def _read_analysis(path, label, likelihood_range_only=False):
+    """Read the ``analyses/<label>`` group of a model output: (x, y, covariance, yTarget, covarianceTarget, counts,
+    attributes). ``counts`` is ``None``, or (for an analysis providing a counts-based likelihood) a tuple of the target count
+    and the factor converting the model value to a count in each bin, with the count set to not-a-number for bins outside
+    the range used in the likelihood. If ``likelihood_range_only`` is true, only the bins inside that range are returned."""
     with h5py.File(path, 'r') as file:
         if 'analyses' not in file or label not in file['analyses']:
             raise KeyError(f"no analysis '{label}' in '{path}'")
@@ -130,8 +143,26 @@ def _read_analysis(path, label):
             key = attributes.get(name)
             return group[key][()] if key is not None and key in group else None
 
-        return (dataset('xDataset'), dataset('yDataset'), dataset('yCovariance'), dataset('yDatasetTarget'),
-                dataset('yCovarianceTarget'), attributes)
+        x = dataset('xDataset')
+        outside = (x <= attributes.get('xLikelihoodMinimum', -np.inf)) | (x >= attributes.get('xLikelihoodMaximum', np.inf))
+        counts = None
+        if 'countTarget' in group and 'countPerValue' in group:
+            countTarget = np.array(group['countTarget'][()], dtype=float)
+            countTarget[outside] = np.nan
+            counts = (countTarget, np.array(group['countPerValue'][()], dtype=float))
+        y, covariance, yTarget, covarianceTarget = (dataset(name) for name in ('yDataset', 'yCovariance', 'yDatasetTarget', 'yCovarianceTarget'))
+        if likelihood_range_only:
+            if 'xLikelihoodMinimum' not in attributes and 'xLikelihoodMaximum' not in attributes:
+                raise ObservableConfigurationError(f"analysis '{label}' in '{path}' does not record the range used in its likelihood"
+                                 " (`xLikelihoodMinimum`, `xLikelihoodMaximum`)")
+            inside = ~outside
+            if not inside.any():
+                raise ObservableConfigurationError(f"analysis '{label}' in '{path}' has no bins inside the range used in its likelihood")
+            x, y, yTarget = (None if array is None else array[inside] for array in (x, y, yTarget))
+            covariance, covarianceTarget = (None if array is None else array[np.ix_(inside, inside)] for array in (covariance, covarianceTarget))
+            if counts is not None:
+                counts = (counts[0][inside], counts[1][inside])
+        return x, y, covariance, yTarget, covarianceTarget, counts, attributes
 
 
 def _transform(observable, y, variance, mask):
@@ -189,20 +220,27 @@ def collect(design_file, observables, model_files=None, directory='.'):
     for observable in observables:
         sums = {}
         failed = {}
-        x = yTarget = covarianceTarget = None
+        x = yTarget = covarianceTarget = counts = None
         for index, path in enumerate(model_files):
             point = int(runs['pointIndex'][index])
             try:
-                xRun, y, covariance, yTargetRun, covarianceTargetRun, _ = _read_analysis(output_file_path(path), observable.label)
+                xRun, y, covariance, yTargetRun, covarianceTargetRun, countsRun, _ = _read_analysis(output_file_path(path), observable.label,
+                                                                                                  observable.likelihood_range_only)
+            except ObservableConfigurationError:
+                raise
             except (OSError, KeyError, ValueError) as error:
                 failed[index] = str(error)
                 continue
             if x is None:
-                x, yTarget, covarianceTarget = xRun, yTargetRun, covarianceTargetRun
+                x, yTarget, covarianceTarget, counts = xRun, yTargetRun, covarianceTargetRun, countsRun
             elif xRun.shape != x.shape or not np.allclose(xRun, x, rtol=1.0e-10, atol=0.0):
                 raise ValueError(f"observable '{observable.label}': bins of run {index} differ from those of other runs")
             elif yTargetRun is not None and not np.allclose(yTargetRun, yTarget, rtol=1.0e-10, atol=0.0):
                 raise ValueError(f"observable '{observable.label}': target data of run {index} differ from those of other runs")
+            elif (countsRun is None) != (counts is None) or (counts is not None and not (
+                    np.allclose(countsRun[0], counts[0], rtol=1.0e-10, atol=0.0, equal_nan=True)
+                    and np.allclose(countsRun[1], counts[1], rtol=1.0e-10, atol=0.0))):
+                raise ValueError(f"observable '{observable.label}': target counts of run {index} differ from those of other runs")
             variance = np.diag(covariance) if covariance is not None else np.zeros_like(y)
             entry = sums.setdefault(point, [np.zeros_like(y), np.zeros_like(y), 0, np.zeros_like(y, dtype=bool)])
             undefined = ~np.isfinite(y) | ((y == 0.0) & (variance == 0.0)) if observable.undefined is not None else np.zeros_like(y, dtype=bool)
@@ -251,6 +289,8 @@ def collect(design_file, observables, model_files=None, directory='.'):
             y_target=np.asarray(yTargetTransformed, dtype=float),
             covariance_target=np.asarray(covarianceTargetTransformed, dtype=float),
             y_raw=yRaw,
+            count_target=None if counts is None else counts[0],
+            count_per_value=None if counts is None else counts[1],
             attributes=observable.attributes(),
         )
         reports[observable.label] = CollectionReport(
@@ -333,19 +373,36 @@ def cross_validate(inputs, input_names, y, root_variance, folds=5, seed=0, **fit
     Returns a :class:`Galacticus.Emulation.emulatorFile.Validation`. Standardized residuals and coverage use the combined
     variance of the emulator and of the finite-sampling noise of the held-out runs.
     """
-    countPoints = inputs.shape[0]
+    foldOf = _assign_folds(inputs.shape[0], folds, seed)
+    predictions = [_predict_fold(inputs, input_names, y, root_variance, foldOf, fold, seed, fit_options) for fold in range(folds)]
+    return _validation(y, root_variance, foldOf, predictions)
+
+
+def _assign_folds(countPoints, folds, seed):
+    """Assign each training point to one of ``folds`` folds, at random."""
     if folds < 2 or folds > countPoints:
         raise ValueError(f'the number of folds must be between 2 and the number of training points ({countPoints})')
     order = np.random.default_rng(seed).permutation(countPoints)
     foldOf = np.empty(countPoints, dtype=np.int64)
     for fold, indices in enumerate(np.array_split(order, folds)):
         foldOf[indices] = fold
+    return foldOf
+
+
+def _predict_fold(inputs, input_names, y, root_variance, foldOf, fold, seed, fit_options):
+    """Refit an emulator with one fold held out, and predict the held-out points: (mean, variance)."""
+    heldOut = foldOf == fold
+    emulator = fit_emulator(inputs[~heldOut], input_names, y[~heldOut], root_variance[~heldOut], seed=seed, **fit_options)
+    return ef.predict(emulator, inputs[heldOut])
+
+
+def _validation(y, root_variance, foldOf, predictions):
+    """Assemble the held-out predictions of each fold into a :class:`Galacticus.Emulation.emulatorFile.Validation`."""
     prediction = np.empty_like(y)
     variance = np.empty_like(y)
-    for fold in range(folds):
+    for fold, (mean, varianceFold) in enumerate(predictions):
         heldOut = foldOf == fold
-        emulator = fit_emulator(inputs[~heldOut], input_names, y[~heldOut], root_variance[~heldOut], seed=seed, **fit_options)
-        prediction[heldOut], variance[heldOut] = ef.predict(emulator, inputs[heldOut])
+        prediction[heldOut], variance[heldOut] = mean, varianceFold
     residual = prediction - y
     varianceTotal = variance + root_variance ** 2
     standardized = residual / np.sqrt(varianceTotal)
@@ -364,25 +421,72 @@ def cross_validate(inputs, input_names, y, root_variance, folds=5, seed=0, **fit
     )
 
 
-def train(design, training_sets, pca_variance_retained=0.99, restarts=4, folds=0, seed=0, store_cholesky=True):
+# Environment variables limiting BLAS and OpenMP libraries to a single thread. They must be set before a library is loaded,
+# so they are set in the environment inherited by worker processes (a limit applied by `threadpoolctl` in a worker would
+# miss libraries loaded after it, such as those of SciPy).
+_SINGLE_THREAD = {name: '1' for name in ('OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS', 'BLIS_NUM_THREADS',
+                                         'VECLIB_MAXIMUM_THREADS', 'NUMEXPR_NUM_THREADS')}
+
+
+def _run_task(task):
+    """Run one independent piece of training: fit an emulator, or one fold of its cross-validation."""
+    kind, label, arguments = task
+    if kind == 'fit':
+        return fit_emulator(*arguments[:4], **arguments[4])
+    return _predict_fold(*arguments)
+
+
+def train(design, training_sets, pca_variance_retained=0.99, restarts=4, folds=0, seed=0, store_cholesky=True, processes=1):
     """Train an emulator for each training set, optionally cross-validating it.
 
     Returns an :class:`Galacticus.Emulation.emulatorFile.EmulatorFile`, ready to be written. ``folds`` of zero disables
     cross-validation. The Cholesky factors of the Gaussian processes (8N^2 bytes each) are stored only if
     ``store_cholesky`` is true; otherwise a reader recomputes them.
+
+    The fit of each emulator, and of each fold of its cross-validation, is independent of the others. With ``processes``
+    greater than one they are made in that many worker processes, each limited to a single thread (threading within a
+    fit gains little), and the results are identical to those of a serial run.
     """
-    emulators = {}
-    validation = {}
+    fitOptions = {'pca_variance_retained': pca_variance_retained, 'restarts': restarts, 'seed': seed}
+    tasks = []
+    foldsOf = {}
     for label, training_set in training_sets.items():
         inputs = design.quantiles[training_set.point_index]
-        emulator = fit_emulator(inputs, design.names, training_set.y, training_set.root_variance,
-                                pca_variance_retained=pca_variance_retained, restarts=restarts, seed=seed)
-        if not store_cholesky:
-            for component in emulator.components:
-                component.cholesky_factor = None
-        emulators[label] = emulator
+        tasks.append(('fit', label, (inputs, design.names, training_set.y, training_set.root_variance, fitOptions)))
         if folds:
-            validation[label] = cross_validate(inputs, design.names, training_set.y, training_set.root_variance, folds=folds,
-                                               seed=seed, pca_variance_retained=pca_variance_retained, restarts=restarts)
+            foldsOf[label] = _assign_folds(inputs.shape[0], folds, seed)
+            for fold in range(folds):
+                tasks.append(('fold', label, (inputs, design.names, training_set.y, training_set.root_variance, foldsOf[label],
+                                              fold, seed, {'pca_variance_retained': pca_variance_retained, 'restarts': restarts})))
+    if processes > 1:
+        import concurrent.futures
+        import multiprocessing
+        saved = {name: os.environ.get(name) for name in _SINGLE_THREAD}
+        os.environ.update(_SINGLE_THREAD)
+        try:
+            with concurrent.futures.ProcessPoolExecutor(max_workers=processes,
+                                                        mp_context=multiprocessing.get_context('spawn')) as executor:
+                futures = [executor.submit(_run_task, task) for task in tasks]
+                results = [future.result() for future in futures]
+        finally:
+            for name, value in saved.items():
+                if value is None:
+                    os.environ.pop(name, None)
+                else:
+                    os.environ[name] = value
+    else:
+        results = [_run_task(task) for task in tasks]
+    emulators = {}
+    predictions = {}
+    for (kind, label, _), result in zip(tasks, results):
+        if kind == 'fit':
+            if not store_cholesky:
+                for component in result.components:
+                    component.cholesky_factor = None
+            emulators[label] = result
+        else:
+            predictions.setdefault(label, []).append(result)
+    validation = {label: _validation(training_sets[label].y, training_sets[label].root_variance, foldsOf[label], predictions[label])
+                  for label in predictions}
     return ef.EmulatorFile(design=design, training_sets=training_sets, emulators=emulators, validation=validation,
                            attributes={'creator': 'Galacticus.Emulation.train'})

@@ -37,7 +37,7 @@
      An :term:`IGM` state class for an internally consistent model.
      !!}
      double precision              , allocatable, dimension(:) :: time            , temperatureIGM  , &
-          &                                                       massFiltering   , densityHydrogen1, &
+          &                                                       massFilteringIGM, densityHydrogen1, &
           &                                                       densityHydrogen2, densityHelium1  , &
           &                                                       densityHelium2  , densityHelium3
      type            (interpolator), allocatable               :: interpolator_
@@ -48,7 +48,15 @@
      procedure :: neutralHydrogenFraction     => internalNeutralHydrogenFraction
      procedure :: neutralHeliumFraction       => internalNeutralHeliumFraction
      procedure :: singlyIonizedHeliumFraction => internalSinglyIonizedHeliumFraction
-     procedure :: autoHook                    => internalAutoHook
+     !![
+     <methods docformat="rst">
+       <method description="Return the filtering mass at the given ``time``, as solved for along with the state of the :term:`IGM`." method="massFiltering" />
+       <method description="Return the rate of change of the filtering mass at the given ``time``, as solved for along with the state of the :term:`IGM`." method="massFilteringRateOfChange" />
+     </methods>
+     !!]
+     procedure :: autoHook                  => internalAutoHook
+     procedure :: massFiltering             => internalMassFiltering
+     procedure :: massFilteringRateOfChange => internalMassFilteringRateOfChange
   end type intergalacticMediumStateInternal
 
   interface intergalacticMediumStateInternal
@@ -345,6 +353,102 @@ contains
     return
   end function internalTemperature
 
+  double precision function internalMassFiltering(self,time)
+    !!{RST
+    Return the filtering mass at the given ``time`` in the internal model. The state is solved for one step at a time as the
+    universe evolves, while merger trees are evolved up to the time of the next step. The filtering mass may therefore be
+    requested up to one step beyond the last time solved for, and is extrapolated linearly over that step.
+    !!}
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    implicit none
+    class           (intergalacticMediumStateInternal), intent(inout)  :: self
+    double precision                                  , intent(in   )  :: time
+    double precision                                  , dimension(0:1) :: h
+    integer         (c_size_t                        )                 :: i   , j
+
+    call internalStateRequired       (self     ,'the filtering mass')
+    call internalExtrapolationLimited(self,time,'the filtering mass')
+    if (size(self%time) > 1) then
+       i=self%interpolator_%locate(time)
+    else
+       internalMassFiltering=self%massFilteringIGM(1)
+       return
+    end if
+    if (self%time(i+1)-self%time(i) > 0.0d0) then
+       call self%interpolator_%linearWeights(time,i,h)
+    else
+       h(0)=0.0d0
+       h(1)=1.0d0
+    end if
+    internalMassFiltering=0.0d0
+    do j=0,1
+       internalMassFiltering=internalMassFiltering+h(j)*self%massFilteringIGM(i+j)
+    end do
+    internalMassFiltering=max(internalMassFiltering,0.0d0)
+    return
+  end function internalMassFiltering
+
+  double precision function internalMassFilteringRateOfChange(self,time)
+    !!{RST
+    Return the rate of change of the filtering mass at the given ``time`` in the internal model. This is the gradient of the
+    linear interpolation (or extrapolation) used for the filtering mass itself.
+    !!}
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    implicit none
+    class           (intergalacticMediumStateInternal), intent(inout) :: self
+    double precision                                  , intent(in   ) :: time
+    integer         (c_size_t                        )                :: i
+
+    call internalStateRequired       (self     ,'the rate of change of the filtering mass')
+    call internalExtrapolationLimited(self,time,'the rate of change of the filtering mass')
+    internalMassFilteringRateOfChange=0.0d0
+    if (size(self%time) == 1 .or. self%massFiltering(time) <= 0.0d0) return
+    i=self%interpolator_%locate(time)
+    if (self%time(i+1)-self%time(i) > 0.0d0)                               &
+         & internalMassFilteringRateOfChange=+(                            &
+         &                                     +self%massFilteringIGM(i+1) &
+         &                                     -self%massFilteringIGM(i  ) &
+         &                                    )                            &
+         &                                   /(                            &
+         &                                     +self%time            (i+1) &
+         &                                     -self%time            (i  ) &
+         &                                    )
+    return
+  end function internalMassFilteringRateOfChange
+
+  subroutine internalExtrapolationLimited(self,time,requiredBy)
+    !!{RST
+    Report a fatal error if ``time`` lies more than one step beyond the last time to which the state of the :term:`IGM` has been
+    solved, so that the property named by ``requiredBy`` would be extrapolated further than the state can lag behind the evolution
+    of the universe. The step is that between the last two times solved for, scaled by their ratio since the steps are spaced
+    logarithmically in time.
+    !!}
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : varying_string, assignment(=), operator(//)
+    implicit none
+    class           (intergalacticMediumStateInternal), intent(in   ) :: self
+    double precision                                  , intent(in   ) :: time
+    character       (len=*                           ), intent(in   ) :: requiredBy
+    double precision                                  , parameter     :: toleranceRelative=1.0d-6
+    integer                                                           :: countTimes
+    double precision                                                  :: timeLimit
+    character       (len=12                          )                :: label
+    type            (varying_string                  )                :: message
+
+    countTimes=size(self%time)
+    if (countTimes < 2) return
+    timeLimit=+self%time(countTimes  )**2 &
+         &    /self%time(countTimes-1)
+    if (time <= timeLimit*(1.0d0+toleranceRelative)) return
+    message='the state of the IGM has been solved for only to t='
+    write (label,'(f12.6)') self%time(countTimes)
+    message=message//trim(adjustl(label))//' Gyr, but '//requiredBy//' was requested at t='
+    write (label,'(f12.6)') time
+    message=message//trim(adjustl(label))//' Gyr, more than one step beyond it'
+    call Error_Report(message//{introspection:location})
+    return
+  end subroutine internalExtrapolationLimited
+
   subroutine internalStateSet(self,time,densityHydrogen1,densityHydrogen2,densityHelium1,densityHelium2,densityHelium3,temperature,massFiltering)
     !!{RST
     Set state in the internal :term:`IGM` state class.
@@ -367,7 +471,7 @@ contains
        if (allocated(self%densityHelium1  )) deallocate(self%densityHelium1  )
        if (allocated(self%densityHelium2  )) deallocate(self%densityHelium2  )
        if (allocated(self%densityHelium3  )) deallocate(self%densityHelium3  )
-       if (allocated(self%massFiltering   )) deallocate(self%massFiltering   )
+       if (allocated(self%massFilteringIGM)) deallocate(self%massFilteringIGM)
        allocate(self%time            ,mold=time            )
        allocate(self%temperatureIGM  ,mold=temperature     )
        allocate(self%densityHydrogen1,mold=densityHydrogen1)
@@ -375,7 +479,7 @@ contains
        allocate(self%densityHelium1  ,mold=densityHelium1  )
        allocate(self%densityHelium2  ,mold=densityHelium2  )
        allocate(self%densityHelium3  ,mold=densityHelium3  )
-       allocate(self%massFiltering   ,mold=massFiltering   )
+       allocate(self%massFilteringIGM,mold=massFiltering   )
        self%time            =time
        self%temperatureIGM  =temperature
        self%densityHydrogen1=densityHydrogen1
@@ -383,7 +487,7 @@ contains
        self%densityHelium1  =densityHelium1
        self%densityHelium2  =densityHelium2
        self%densityHelium3  =densityHelium3
-       self%massFiltering   =massFiltering
+       self%massFilteringIGM=massFiltering
        ! Build interpolator.
        if (allocated(self%interpolator_)) deallocate(self%interpolator_)
        allocate(self%interpolator_)
