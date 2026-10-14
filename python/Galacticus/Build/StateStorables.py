@@ -75,10 +75,30 @@ def function_class_entries(state_storables: dict | None) -> list[dict]:
     return []
 
 
-def function_class_names(state_storables: dict | None) -> set[str]:
+# Lookup tables derived from the most recently queried ``stateStorables`` dict.  The preprocessor hooks query the same
+# (never-mutated) dict once per tree node — tens of thousands of times per file — so rebuilding these on every call
+# dominated their cost.  The dict itself is held so that the identity check cannot be fooled by `id()` reuse.
+_lookup_cache = (None, None, None)
+
+
+def _lookups(state_storables: dict | None) -> tuple[frozenset[str], dict[str, dict]]:
+    """Return ``(names, entries_by_name)`` for ``state_storables``, cached by identity."""
+    global _lookup_cache
+    cached, names, by_name = _lookup_cache
+    if cached is None or cached is not state_storables:
+        by_name = {}
+        for e in function_class_entries(state_storables):
+            # The first entry of a given name wins, matching a linear scan.
+            if e.get('name'):
+                by_name.setdefault(e['name'], e)
+        names         = frozenset(by_name)
+        _lookup_cache = (state_storables, names, by_name)
+    return names, by_name
+
+
+def function_class_names(state_storables: dict | None) -> frozenset[str]:
     """Set of `<name>Class` strings from ``stateStorables.xml``."""
-    return {e['name'] for e in function_class_entries(state_storables)
-            if e.get('name')}
+    return _lookups(state_storables)[0]
 
 
 def function_class_module_map(state_storables: dict | None) -> dict[str, str | None]:
@@ -92,10 +112,7 @@ def function_class_entry(state_storables: dict | None, class_name: str) -> dict 
     """Return the entry dict for ``class_name`` (e.g. ``'massDistributionClass'``)
     or ``None`` if no such entry exists.
     """
-    for e in function_class_entries(state_storables):
-        if e.get('name') == class_name:
-            return e
-    return None
+    return _lookups(state_storables)[1].get(class_name)
 
 
 def function_class_instances(state_storables: dict | None) -> list[str]:

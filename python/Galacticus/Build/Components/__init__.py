@@ -207,15 +207,18 @@ def generate_output(build):
                 logger.info(f"      --> {owner}{marker}")
                 fn(build)
 
-    derived_types_serialize(build)
-    interfaces_serialize   (build)
+    # Accumulate the output as a list of fragments and join once at the end —
+    # repeated string concatenation is quadratic on this (multi-MB) output.
+    content = [build['content']]
+    content.append(derived_types_serialize(build))
+    content.append(interfaces_serialize   (build))
 
     if build['variables']:
-        build['content'] += format_variable_definitions(build['variables']) + '\n'
+        content.append(format_variable_definitions(build['variables']) + '\n')
 
-    build['content'] += "contains\n\n"
+    content.append("contains\n\n")
 
-    functions_serialize(build)
+    content.append(functions_serialize(build))
 
     # Include statements for every per-component "functions" file.
     include_dependencies = [
@@ -223,9 +226,10 @@ def generate_output(build):
         for c in build.get('components', {}).values()
         if 'functions' in c
     ]
-    build['content'] += '\n'.join(
+    content.append('\n'.join(
         f'  include "{p}"\n' for p in include_dependencies
-    ) + '\n'
+    ) + '\n')
+    build['content'] = ''.join(content)
 
     # Per-build Makefile dependency snippet.
     build_path  = os.environ['BUILDPATH']
@@ -248,7 +252,7 @@ def generate_output(build):
 
 def derived_types_serialize(build):
     """Topo-sort `build['types']` by `extends` + non-pointer member types
-    and append each `type … end type` block to `build['content']`.
+    and return the concatenated `type … end type` blocks.
     """
     from Sort.Topo import sort as topo_sort
 
@@ -281,6 +285,7 @@ def derived_types_serialize(build):
 
     type_order = topo_sort(sorted(types.keys()), dependencies)
 
+    out = []
     for name in type_order:
         type_def = types[name]
         line     = "  type"
@@ -289,36 +294,38 @@ def derived_types_serialize(build):
         if type_def.get('extends'):
             line += f", extends({type_def['extends']})"
         line += f" :: {type_def['name']}\n"
-        build['content'] += line
+        out.append(line)
 
         comment = type_def.get('comment')
         if comment:
-            build['content'] += "  !!{RST\n"
-            build['content'] += f"  {comment}\n"
-            build['content'] += "  !!}\n"
+            out.append("  !!{RST\n")
+            out.append(f"  {comment}\n")
+            out.append("  !!}\n")
 
-        build['content'] += "    private\n"
+        out.append("    private\n")
 
         if 'dataContent' in type_def:
-            build['content'] += format_variable_definitions(type_def['dataContent'])
+            out.append(format_variable_definitions(type_def['dataContent']))
 
         if type_def.get('boundFunctions'):
-            build['content'] += "   contains\n"
-            build['content'] += bound_function_table(
+            out.append("   contains\n")
+            out.append(bound_function_table(
                 type_def['name'], type_def['boundFunctions']
-            )
+            ))
 
-        build['content'] += f"  end type {type_def['name']}\n\n"
+        out.append(f"  end type {type_def['name']}\n\n")
+    return ''.join(out)
 
 
 def interfaces_serialize(build):
-    """Append every abstract interface in `build['interfaces']` to
-    `build['content']`.
+    """Return every abstract interface in `build['interfaces']` as Fortran
+    source.
 
     We explicitly compute the parts we need (subroutine vs. function,
     return-name conventions, importables) and string-build the block.
     """
     logger.info("   --> Serialize interfaces...")
+    out = []
     for interface in (build.get('interfaces') or {}).values():
         logger.info(f"      ---> {interface['name']}")
         is_void    = interface['intrinsic'] == 'void'
@@ -344,14 +351,16 @@ def interfaces_serialize(build):
         )
         block += f"  end {end_kw} {interface['name']}\n"
         block += "end interface\n"
-        build['content'] += block + '\n'
+        out.append(block + '\n')
+    return ''.join(out)
 
 
 def functions_serialize(build):
     """Append every entry on `build['functions']` (and every bound function
-    descriptor referenced from `build['types']`) to `build['content']`.
+    descriptor referenced from `build['types']`) as Fortran source.
     """
     logger.info("   --> Serialize functions...")
+    out = []
 
     seen = []
     for fn in build.get('functions') or []:
@@ -418,25 +427,26 @@ def functions_serialize(build):
             f"{' '.join(function_attributes)} {type_text} {form} "
             f"{function['name']}({','.join(arguments)}) {result}\n"
         )
-        build['content'] += opener
-        build['content'] += "   !!{RST\n"
-        build['content'] += f"   {function.get('description', '')}\n"
-        build['content'] += "   !!}\n"
+        out.append(opener)
+        out.append("   !!{RST\n")
+        out.append(f"   {function.get('description', '')}\n")
+        out.append("   !!}\n")
 
         intrinsic_modules = ('iso_c_binding',)
         for module in function.get('modules') or []:
             intrinsic = ", intrinsic" if module.lower() in intrinsic_modules else ""
-            build['content'] += f"   use{intrinsic} :: {module}\n"
+            out.append(f"   use{intrinsic} :: {module}\n")
 
-        build['content'] += "   implicit none\n"
+        out.append("   implicit none\n")
         if function.get('variables'):
-            build['content'] += format_variable_definitions(function['variables'])
+            out.append(format_variable_definitions(function['variables']))
 
         if function.get('content'):
-            build['content'] += function['content']
+            out.append(function['content'])
 
-        build['content'] += "   return\n"
-        build['content'] += f"end {form} {function['name']}\n\n"
+        out.append("   return\n")
+        out.append(f"end {form} {function['name']}\n\n")
+    return ''.join(out)
 
 
 def bound_function_table(object_name, bindings):

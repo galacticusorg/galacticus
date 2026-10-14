@@ -2,6 +2,12 @@
 #
 # Andrew Benson (06-Feb-2010)
 
+# Disable make's built-in implicit rules. `.SUFFIXES:` (below) cancels only the suffix rules, not the built-in
+# pattern rules (`%: %,v`, `%: RCS/%,v`, `%: s.%`, ...), which make would otherwise try - across every `vpath`
+# directory - for each of the ~2000 prerequisites of the tree-scanning rules, on every invocation. Note that this adds
+# `r` to MAKEFLAGS, which LINK_METADATA's `-j` detection tolerates since it matches only space-delimited ` -j` words.
+MAKEFLAGS += --no-builtin-rules
+
 # Detect Operating System
 UNAME_S := $(shell uname -s)
 
