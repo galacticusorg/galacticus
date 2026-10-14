@@ -1056,7 +1056,7 @@ contains
 
   subroutine progenitorMassFunctionMetadataWrite(self,analysisGroup)
     !!{RST
-    Write progenitor-mass-function-specific metadata to the analysis output group, namely the ranges of mass ratio and parent mass considered, together with the parent and progenitor redshifts.
+    Write progenitor-mass-function-specific metadata to the analysis output group, namely the ranges of mass ratio and parent mass considered, together with the parent and progenitor redshifts. If target counts are available, also write those counts, and the factor converting the progenitor mass function in each bin to a count (``countPerValue``), so that the counts-based likelihood can be reconstructed from the output (for example, by an emulator of this analysis). The range of mass ratio used in the likelihood is also written as the generic ``xLikelihoodMinimum`` and ``xLikelihoodMaximum`` attributes for this purpose.
     !!}
     use :: IO_HDF5, only : hdf5File, hdf5Group
     implicit none
@@ -1069,6 +1069,12 @@ contains
     call analysisGroup%writeAttribute(self%massParentMaximum         ,'massParentMaximum'         )
     call analysisGroup%writeAttribute(self%redshiftParent            ,'redshiftParent'            )
     call analysisGroup%writeAttribute(self%redshiftProgenitor        ,'redshiftProgenitor'        )
+    if (allocated(self%functionCountTarget)) then
+       call analysisGroup%writeAttribute(self%massRatioLikelihoodMinimum,'xLikelihoodMinimum')
+       call analysisGroup%writeAttribute(self%massRatioLikelihoodMaximum,'xLikelihoodMaximum')
+       call analysisGroup%writeDataset  (dble(self%functionCountTarget)                     ,'countTarget'  ,'Target counts in each bin'                                  )
+       call analysisGroup%writeDataset  (     self%countConversionFactor/self%massRatios    ,'countPerValue','Factor converting the function value in each bin to a count')
+    end if
     return
   end subroutine progenitorMassFunctionMetadataWrite
 

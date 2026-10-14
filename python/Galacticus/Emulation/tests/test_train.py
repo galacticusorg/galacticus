@@ -155,6 +155,41 @@ def test_collect_averages_realizations(tmp_path):
     np.testing.assert_allclose(training_set.root_variance, np.sqrt([[0.02, 0.08], [0.02, 0.08]]))
 
 
+def test_collect_counts(tmp_path):
+    """Target counts, and the factors converting values to counts, are collected for an analysis providing a counts-based
+    likelihood, with bins outside the range used in the likelihood excluded; they are written to, and read back from, an
+    emulator file; and they must agree between runs."""
+    quantiles = np.array([[0.2, 0.3], [0.7, 0.6]])
+    write_design(tmp_path / 'design.hdf5', quantiles, [0, 1], [0, 0])
+    (tmp_path / 'models').mkdir()
+    x = np.array([0.1, 0.2, 0.4, 0.8])
+    countTarget = np.array([12.0, 7.0, 0.0, 3.0])
+    countPerValue = 50.0 / x
+    for i in range(2):
+        with h5py.File(tmp_path / 'models' / f'run{i}.hdf5', 'w') as file:
+            write_analysis(file, 'progenitors', x, np.full(4, 1.0 + i), np.diag(np.full(4, 0.01)))
+            group = file['analyses']['progenitors']
+            group.attrs['xLikelihoodMinimum'] = 0.15
+            group.attrs['xLikelihoodMaximum'] = 1.0
+            group.create_dataset('countTarget', data=countTarget)
+            group.create_dataset('countPerValue', data=countPerValue)
+    design, training_sets, _ = collect(tmp_path / 'design.hdf5', [Observable('progenitors')], directory=tmp_path)
+    training_set = training_sets['progenitors']
+    np.testing.assert_array_equal(training_set.count_target, [np.nan, 7.0, 0.0, 3.0])
+    np.testing.assert_array_equal(training_set.count_per_value, countPerValue)
+    # Round trip through an emulator file (with no emulators).
+    content = ef.EmulatorFile(design=design, training_sets=training_sets, emulators={})
+    ef.write(tmp_path / 'emulator.hdf5', content)
+    roundTrip = ef.read(tmp_path / 'emulator.hdf5').training_sets['progenitors']
+    np.testing.assert_array_equal(roundTrip.count_target, training_set.count_target)
+    np.testing.assert_array_equal(roundTrip.count_per_value, countPerValue)
+    # Target counts which differ between runs are an error.
+    with h5py.File(tmp_path / 'models' / 'run1.hdf5', 'r+') as file:
+        file['analyses']['progenitors']['countTarget'][1] = 8.0
+    with pytest.raises(ValueError, match='target counts of run 1 differ'):
+        collect(tmp_path / 'design.hdf5', [Observable('progenitors')], directory=tmp_path)
+
+
 def test_fit_matches_scikit_learn():
     """The emulator file evaluates exactly what scikit-learn fitted: for a single bin (so that PCA is trivial), predictions
     by `emulatorFile.predict` must equal those of a scikit-learn regressor with the fitted hyperparameters."""

@@ -81,6 +81,24 @@ module Statistics_Emulators
     <argument>double precision, intent(  out), allocatable, dimension(:  ) :: yTarget</argument>
     <argument>double precision, intent(  out), allocatable, dimension(:,:) :: covarianceTarget</argument>
    </method>
+   <method name="transform" >
+    <description>
+    Return the transform (``identity`` or ``log10``) applied to the observable before it was emulated, so that predictions
+    can be mapped back to the untransformed observable.
+    </description>
+    <type>type(varying_string)</type>
+    <pass>yes</pass>
+   </method>
+   <method name="counts" >
+    <description>
+    For an observable compared to counts, return the target count in each bin (not-a-number for bins excluded from the
+    likelihood), and the factor converting the untransformed value of the observable in each bin to a count. It is an error
+    to call this method for an emulator whose training set has no counts.
+    </description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(  out), allocatable, dimension(:) :: countTarget, countPerValue</argument>
+   </method>
    <method name="trainingPoints" >
     <description>
     Return the prior ``quantiles`` of the emulator's inputs (in the order of ``inputNames``) at each point on which the emulator
