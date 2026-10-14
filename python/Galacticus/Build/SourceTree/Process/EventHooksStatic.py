@@ -9,11 +9,10 @@ Andrew Benson (ported to Python 2026)
 
 import os
 import pickle
-import xml.etree.ElementTree as ET
 
 
 from List.ExtraUtils                              import as_array
-from XML.Utils                                    import xml_to_dict
+from Galacticus.Build                             import Catalogs
 from Galacticus.Build.StateStorables              import function_class_entry as _shared_function_class_entry
 from Galacticus.Build.Directives                  import extract_directives
 from Galacticus.Build.Dependencies                import dependency_sort
@@ -39,10 +38,10 @@ def _load_xml_once():
             "process_event_hooks_static: BUILDPATH is not set")
     if _DIRECTIVE_LOCATIONS is None:
         path = os.path.join(build_path, 'directiveLocations.xml')
-        _DIRECTIVE_LOCATIONS = xml_to_dict(ET.parse(path).getroot())
+        _DIRECTIVE_LOCATIONS = Catalogs.load(path)
     if _STATE_STORABLES is None:
         path = os.path.join(build_path, 'stateStorables.xml')
-        _STATE_STORABLES = xml_to_dict(ET.parse(path).getroot())
+        _STATE_STORABLES = Catalogs.load(path)
     return _DIRECTIVE_LOCATIONS, _STATE_STORABLES
 
 

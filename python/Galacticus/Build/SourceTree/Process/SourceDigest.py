@@ -172,12 +172,11 @@ def _component_digest_map():
         _COMPONENT_DIGEST_MAP = result
         return result
 
-    import xml.etree.ElementTree as ET
-    from XML.Utils                   import xml_to_dict
+    from Galacticus.Build            import Catalogs
     from List.ExtraUtils             import as_array
     from Galacticus.Build.Directives import extract_directives
 
-    locations     = xml_to_dict(ET.parse(locations_path).getroot())
+    locations     = Catalogs.load(locations_path)
     builder_files = list(as_array(
         (locations.get('componentBuilder') or {}).get('file')))
     if not builder_files:

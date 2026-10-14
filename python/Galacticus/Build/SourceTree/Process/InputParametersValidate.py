@@ -7,10 +7,9 @@ Andrew Benson (ported to Python 2026)
 
 import os
 import re
-import xml.etree.ElementTree as ET
 
 
-from XML.Utils                                      import xml_to_dict
+from Galacticus.Build                               import Catalogs
 from Galacticus.Build.StateStorables                import (
     function_class_names    as _shared_function_class_names,
 )
@@ -32,8 +31,7 @@ def _load_state_storables():
     if not os.path.exists(path):
         raise RuntimeError(
             f"process_input_parameters_validate: stateStorables.xml not found at {path}")
-    root = ET.parse(path).getroot()
-    return xml_to_dict(root)
+    return Catalogs.load(path)
 
 
 def _function_class_result_name(parent_function):
