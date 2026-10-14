@@ -190,10 +190,12 @@ jobs:
         # whole, so with `dynamic` alone the exclusions below would match nothing and FSPS would be cached anyway.
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
+          # Relative paths (resolved against the workspace inside the container), not `${{ github.workspace }}`, which in a
+          # container job can give the host's path.
           path: |
-            ${{ github.workspace }}/datasets/dynamic/*
-            !${{ github.workspace }}/datasets/dynamic/fsps*
-            !${{ github.workspace }}/datasets/dynamic/FSPS_*
+            datasets/dynamic/*
+            !datasets/dynamic/fsps*
+            !datasets/dynamic/FSPS_*
           key: pgo-dynamic-${{ hashFiles('testSuite/parameters/pgo/*.xml') }}-${{ github.run_id }}
           restore-keys: |
             pgo-dynamic-${{ hashFiles('testSuite/parameters/pgo/*.xml') }}-
@@ -269,6 +271,13 @@ jobs:
           echo "Profiles recorded: $(wc -l < profiles.list)"
           [ -s profiles.list ] || { echo "FAIL: no profiles were recorded"; exit 1; }
           tar cf profiles.tar -T profiles.list
+      - name: Report the dynamic data to be cached
+        if: ${{ always() }}
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          echo "datasets/dynamic: $(du -sh datasets/dynamic | cut -f1) in all; its entries, largest last:"
+          # A diagnostic only: never fail the job.
+          { du -sh datasets/dynamic/* datasets/dynamic/.[!.]* 2> /dev/null || true; } | sort -h
       - name: Upload the training logs
         if: ${{ always() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
