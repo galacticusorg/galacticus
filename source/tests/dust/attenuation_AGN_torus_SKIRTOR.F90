@@ -65,7 +65,7 @@ program Test_Dust_Attenuation_AGN_Torus_SKIRTOR
   use :: Node_Components                    , only : Node_Components_Initialize         , Node_Components_Thread_Initialize
   use :: Numerical_Constants_Math           , only : Pi
   use :: Numerical_Constants_Physical       , only : speedLight
-  use :: Numerical_Constants_Units          , only : metersToAngstroms
+  use :: Numerical_Constants_Units          , only : metersToAngstroms                  , micronsToAngstroms
   use :: Unit_Tests                         , only : Assert                             , Unit_Tests_Begin_Group           , Unit_Tests_End_Group , Unit_Tests_Finish
   implicit none
   ! The synthetic tabulation: wavelengths (in μm), inclinations and angles of the torus (in degrees).
@@ -172,9 +172,9 @@ program Test_Dust_Attenuation_AGN_Torus_SKIRTOR
   end do
   ! Parcels: accretion disk continuum at V, at 2 μm (tabulated), and at 1 μm (between tabulated wavelengths), AGN line
   ! emission, and stellar emission.
-  descriptors%wavelength   =[5.5d3                      ,2.0d4                      ,1.0d4                      ,5.5d3                 ,5.5d3                ]
-  descriptors%componentType=[componentTypeBlackHole     ,componentTypeBlackHole     ,componentTypeBlackHole     ,componentTypeBlackHole,componentTypeDisk    ]
-  descriptors%sourceType   =[emissionSourceAccretionDisk,emissionSourceAccretionDisk,emissionSourceAccretionDisk,emissionSourceNebular ,emissionSourceStellar]
+  descriptors%wavelength   =[wavelengthTable(indexV)    ,wavelengthTable(4)         ,1.0d0                      ,wavelengthTable(indexV),wavelengthTable(indexV)]*micronsToAngstroms
+  descriptors%componentType=[componentTypeBlackHole     ,componentTypeBlackHole     ,componentTypeBlackHole     ,componentTypeBlackHole ,componentTypeDisk      ]
+  descriptors%sourceType   =[emissionSourceAccretionDisk,emissionSourceAccretionDisk,emissionSourceAccretionDisk,emissionSourceNebular  ,emissionSourceStellar  ]
   allocate(galacticInclination_)
   !![
   <referenceConstruct object="galacticInclination_" constructor="galacticInclinationFixed(60.0d0)"/>
@@ -213,7 +213,7 @@ program Test_Dust_Attenuation_AGN_Torus_SKIRTOR
           &   +       weightModel *(transmissionDirect(4,6,m+1)+transmissionScattered(4,6,m+1))
      call Assert('transmission at a tabulated wavelength and inclination',transmission(2),expected,relTol=1.0d-9)
      transmission    =torus_%transmission(node,descriptors,inclination=45.0d0*Pi/180.0d0)
-     weightWavelength=log(1.0d0/0.55d0)/log(2.0d0/0.55d0)
+     weightWavelength=log(1.0d0/wavelengthTable(indexV))/log(wavelengthTable(4)/wavelengthTable(indexV))
      transmissionLower=+(1.0d0-weightWavelength)*(0.5d0*(transmissionDirect(3,5,m  )+transmissionDirect(3,6,m  ))+scatteredTable(3)) &
           &            +       weightWavelength *(0.5d0*(transmissionDirect(4,5,m  )+transmissionDirect(4,6,m  ))+scatteredTable(4))
      transmissionUpper=+(1.0d0-weightWavelength)*(0.5d0*(transmissionDirect(3,5,m+1)+transmissionDirect(3,6,m+1))+scatteredTable(3)) &
@@ -224,13 +224,13 @@ program Test_Dust_Attenuation_AGN_Torus_SKIRTOR
      call Assert('AGN line emission is not attenuated',transmission(4),1.0d0,absTol=0.0d0)
      call Assert('stellar emission is not attenuated' ,transmission(5),1.0d0,absTol=0.0d0)
      ! Scattered light is limited so that the transmission averaged over orientation does not exceed one.
-     descriptors(1)%wavelength=1.0d2
+     descriptors(1)%wavelength=wavelengthTable(1     )*micronsToAngstroms
      do i=1,countFine
         transmission=torus_%transmission(node,descriptors,inclination=inclinationFine(i))
         integrand(i)=transmission(1)*sin(inclinationFine(i))
      end do
      call Assert('transmission averaged over orientation is limited to one',simpson(inclinationFine,integrand),1.0d0,absTol=1.0d-9)
-     descriptors(1)%wavelength=5.5d3
+     descriptors(1)%wavelength=wavelengthTable(indexV)*micronsToAngstroms
      !![
      <objectDestructor name="torus_"                         />
      <objectDestructor name="blackHoleTorusCoveringFraction_"/>
@@ -260,21 +260,22 @@ program Test_Dust_Attenuation_AGN_Torus_SKIRTOR
   !![
   <referenceConstruct object="emission_" constructor="dustEmissionSpectrumAGNTorusSKIRTOR(fileName,var_str('none'),7.0d0,1.0d0,1.0d0,20.0d0,40.0d0)"/>
   !!]
-  ! Integrate L_ν over frequency on a fine grid spanning the range over which the model emits, as ∫ νL_ν dln λ.
+  ! Integrate L_ν over frequency on a fine grid spanning the range over which the model emits (the second to last
+  ! tabulated wavelengths), as ∫ νL_ν dln λ.
   do i=1,countWavelengthFine
-     wavelengthsFine(i)=1.0d3*exp(log(1.0d6/1.0d3)*dble(i-1)/dble(countWavelengthFine-1))
+     wavelengthsFine(i)=wavelengthTable(2)*micronsToAngstroms*exp(log(wavelengthTable(6)/wavelengthTable(2))*dble(i-1)/dble(countWavelengthFine-1))
   end do
   luminosity=emission_%luminosity(wavelengthsFine,luminosityAbsorbed,0.0d0,13.8d0)
   integral  =trapezoid(log(wavelengthsFine),luminosity*speedLight*metersToAngstroms/wavelengthsFine)
   call Assert('emission integrates to the luminosity absorbed',integral,luminosityAbsorbed,relTol=1.0d-6)
   ! The shape: νL_ν at the tabulated wavelengths is in the ratio of the tabulated values.
-  luminosityOne  =emission_%luminosity([1.0d5],luminosityAbsorbed,0.0d0,13.8d0)
-  luminosityRatio=luminosityOne(1)*speedLight*metersToAngstroms/1.0d5
-  luminosityOne  =emission_%luminosity([1.0d6],luminosityAbsorbed,0.0d0,13.8d0)
-  call Assert('emission has the tabulated shape',luminosityRatio/(luminosityOne(1)*speedLight*metersToAngstroms/1.0d6),emissionTable(5)/emissionTable(6),relTol=1.0d-9)
-  luminosityOne=emission_%luminosity([1.0d2],luminosityAbsorbed,0.0d0,13.8d0)
+  luminosityOne  =emission_%luminosity([wavelengthTable(5)*micronsToAngstroms],luminosityAbsorbed,0.0d0,13.8d0)
+  luminosityRatio=luminosityOne(1)*speedLight*metersToAngstroms/(wavelengthTable(5)*micronsToAngstroms)
+  luminosityOne  =emission_%luminosity([wavelengthTable(6)*micronsToAngstroms],luminosityAbsorbed,0.0d0,13.8d0)
+  call Assert('emission has the tabulated shape',luminosityRatio/(luminosityOne(1)*speedLight*metersToAngstroms/(wavelengthTable(6)*micronsToAngstroms)),emissionTable(5)/emissionTable(6),relTol=1.0d-9)
+  luminosityOne=emission_%luminosity([wavelengthTable(1)*micronsToAngstroms],luminosityAbsorbed,0.0d0,13.8d0)
   call Assert('no emission where the model does not emit'   ,luminosityOne(1),0.0d0,absTol=0.0d0)
-  luminosityOne=emission_%luminosity([1.0d7],luminosityAbsorbed,0.0d0,13.8d0)
+  luminosityOne=emission_%luminosity([10.0d0*wavelengthTable(6)*micronsToAngstroms],luminosityAbsorbed,0.0d0,13.8d0)
   call Assert('no emission beyond the tabulated wavelengths',luminosityOne(1),0.0d0,absTol=0.0d0)
   !![
   <objectDestructor name="emission_"/>
