@@ -283,7 +283,7 @@ contains
     use :: Error                            , only : Error_Report
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
     use :: Input_Parameters                 , only : inputParameter             , inputParameters
-    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_             , kinematicDistribution_
+    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_             , kinematicDistribution_, kinematicDistributionGas_
     use :: Mass_Distributions               , only : massDistributionCylindrical, kinematicsDistributionLocal
     use :: Galactic_Structure_Options       , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous
     implicit none
@@ -339,6 +339,11 @@ contains
        allocate(kinematicDistribution_)
        !![
        <referenceConstruct object="kinematicDistribution_" constructor="kinematicsDistributionLocal(alpha=1.0d0/sqrt(2.0d0))"/>
+       <objectBuilder class="kinematicsDistribution" parameterName="kinematicsDistributionInterstellarMedium" name="kinematicDistributionGas_" source="parameters" threadPrivate="yes">
+        <default>
+         <kinematicsDistributionInterstellarMedium value="effectiveSoundSpeed"/>
+        </default>
+       </objectBuilder>
        !!]
        ! Compute the specific angular momentum of the disk at this structure solver radius in units of the mean specific angular
        ! momentum of the disk assuming a flat rotation curve.
@@ -394,7 +399,7 @@ contains
     use :: Events_Hooks                     , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeOutputStateAdvanceEvent
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
     use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_, scalerStellarPool, &
-         &                                           scalerGasPool
+         &                                           scalerGasPool           , kinematicDistributionGas_
     implicit none
 
     if (defaultDiskComponent%standardIsActive()) then
@@ -412,6 +417,7 @@ contains
        <objectDestructor name="massDistributionStellar_"    />
        <objectDestructor name="massDistributionGas_"        />
        <objectDestructor name="kinematicDistribution_"      />
+       <objectDestructor name="kinematicDistributionGas_"   />
        !!]
     end if
     return
@@ -1202,7 +1208,7 @@ contains
     !!}
     use            :: Display                          , only : displayMessage          , verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding                    , only : c_ptr                   , c_size_t
-    use            :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_
+    use            :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_, kinematicDistributionGas_
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
@@ -1210,7 +1216,7 @@ contains
 
     call displayMessage('Storing state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="massDistributionStellar_ massDistributionGas_ kinematicDistribution_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
+    <stateStore variables="massDistributionStellar_ massDistributionGas_ kinematicDistribution_ kinematicDistributionGas_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
     !!]
     write (stateFile) ratioAngularMomentumSolverRadius,diskRadiusSolverFlatVsSphericalFactor
     return
@@ -1225,7 +1231,7 @@ contains
     !!}
     use            :: Display                          , only : displayMessage          , verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding                    , only : c_ptr                   , c_size_t
-    use            :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_
+    use            :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_, kinematicDistributionGas_
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
@@ -1233,7 +1239,7 @@ contains
 
     call displayMessage('Retrieving state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="massDistributionStellar_ massDistributionGas_ kinematicDistribution_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
+    <stateRestore variables="massDistributionStellar_ massDistributionGas_ kinematicDistribution_ kinematicDistributionGas_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
     !!]
     read (stateFile) ratioAngularMomentumSolverRadius,diskRadiusSolverFlatVsSphericalFactor
     return

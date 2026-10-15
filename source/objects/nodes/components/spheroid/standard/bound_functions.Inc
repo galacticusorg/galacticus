@@ -27,7 +27,7 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self,componentType,m
   !!}
   use :: Mass_Distributions                         , only : massDistributionClass                            , massDistributionMatches_
   use :: Node_Component_Spheroid_Standard_Data      , only : massDistributionStellar_                         , massDistributionGas_    , kinematicDistribution_      , scalerStellarPool      , &
-       &                                                     scalerGasPool
+       &                                                     scalerGasPool                                    , kinematicDistributionGas_
   use :: Node_Components_Galactic_Mass_Distributions, only : Node_Component_Mass_Distribution_Scaled_Spherical
   use :: Galactic_Structure_Options                 , only : componentTypeSpheroid                            , massTypeStellar         , massTypeGaseous             , enumerationWeightByType, &
        &                                                     weightByMass                                     , weightByLuminosity      , enumerationComponentTypeType, enumerationMassTypeType
@@ -64,7 +64,7 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self,componentType,m
   end if
   ! Build the spheroid mass distribution.
   radiusScale       =  self%radius()
-  massDistribution_ => Node_Component_Mass_Distribution_Scaled_Spherical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,scalerStellarPool,scalerGasPool)
+  massDistribution_ => Node_Component_Mass_Distribution_Scaled_Spherical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,kinematicDistributionGas_,scalerStellarPool,scalerGasPool)
   return
 end function Node_Component_Spheroid_Standard_Mass_Distribution
 

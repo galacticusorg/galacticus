@@ -27,7 +27,7 @@ module Node_Component_NSC_Standard_Data
   !!{RST
   Stores data for the standard nuclear star cluster node component.
   !!}
-  use :: Mass_Distributions, only : massDistributionClass, kinematicsDistributionLocal
+  use :: Mass_Distributions, only : massDistributionClass, kinematicsDistributionLocal, kinematicsDistributionClass
   use :: Object_Pools      , only : objectPool
   implicit none
   public
@@ -37,7 +37,8 @@ module Node_Component_NSC_Standard_Data
   ! The mass distribution objects.
   class(massDistributionClass      ), pointer :: massDistributionStellar_, massDistributionGas_
   type (kinematicsDistributionLocal), pointer :: kinematicDistribution_
-  !$omp threadprivate(massDistributionStellar_,massDistributionGas_,kinematicDistribution_)
+  class(kinematicsDistributionClass), pointer :: kinematicDistributionGas_
+  !$omp threadprivate(massDistributionStellar_,massDistributionGas_,kinematicDistribution_,kinematicDistributionGas_)
 
   ! Per-thread pools of the (lightweight) scaler mass distributions that wrap the dimensionless
   ! stellar and gas distributions above, re-used across nodes to avoid allocating and destroying a
