@@ -299,8 +299,9 @@
   </mergerTreeNodeEvolver>
 
   <mergerTreeEvolver value="standard">
-    <timestepHostAbsolute value="1.0"/>
-    <timestepHostRelative value="0.1"/>
+    <timestepHostAbsolute             value="1.00"/>
+    <timestepHostRelative             value="0.10"/>
+    <fractionTimestepSatelliteMinimum value="0.75"/>
   </mergerTreeEvolver>
 
   <!-- Output options -->
