@@ -1596,6 +1596,7 @@ jobs:
                 test-node-trajectory.py,
                 test-virial-orbit-loss-cone.py,
                 test-CGM-ram-pressure-outer-radius.py,
+                test-ram-pressure-history.py,
                 test-parameter-resolver.py,
                 test-prompt-cusps-unformed.py,
                 test-radius-specifiers-soliton.py,
