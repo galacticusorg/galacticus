@@ -45,9 +45,12 @@ def parametersWrite():
     tree       = ET.parse('parameters/quickTest.xml')
     parameters = tree.getroot()
     # Populate every bin of the analysis - an empty bin makes the log-likelihood impossible, and so leaves most of
-    # its calculation untested. The quick test model forms no galaxies above about 10¹⁰M☉, so sample more trees
-    # over a wider range of mass, and then stretch and shift the model stellar masses (as log₁₀M →
-    # log₁₀M+1.5+0.5(log₁₀M-11.3)) using the analysis' own systematic error polynomial to span all bins.
+    # its calculation untested. The quick test model forms galaxies with log₁₀M from about 6 to 10, while the bins
+    # span 8.0 to 11.6, so sample more trees over a wider range of mass, and then shift the model stellar masses up by
+    # 1.65 dex using the analysis' own systematic error polynomial. Each bin then contains model galaxies (the
+    # weakest bin receives over 20% of the weight of some galaxy), rather than receiving weight only from the far
+    # tail of the random error distribution - such tail weights are as small as 10⁻¹⁸, and so are lost to rounding
+    # by small changes in the model.
     masses     = parameters.find('mergerTreeBuildMasses')
     masses.find('massTreeMinimum').set('value', '1.0e10')
     masses.find('massTreeMaximum').set('value', '1.0e15')
@@ -60,7 +63,7 @@ def parametersWrite():
     outputTimes = ET.SubElement(parameters, 'outputTimes', value='list')
     ET.SubElement(outputTimes, 'redshifts', value='0.00 0.02 0.04 0.06 0.08')
     analysis    = ET.SubElement(parameters, 'outputAnalysis', value=analysisName)
-    ET.SubElement(analysis, 'systematicErrorPolynomialCoefficient', value='1.5 0.5')
+    ET.SubElement(analysis, 'systematicErrorPolynomialCoefficient', value='1.65')
     ET.SubElement(parameters, 'outputFileName', value=outputFile)
     tree.write(parameterFile)
 
