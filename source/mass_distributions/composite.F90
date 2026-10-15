@@ -1013,27 +1013,28 @@ contains
     return
   end function compositeEnergy
   
-  function compositeChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity)
+  function compositeChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity,logarithmCoulomb,dynamicalFrictionGaseous_)
     !!{RST
     Compute the Chandrasekhar integral at the specified ``coordinates`` in a composite mass distribution.
     !!}
     use :: Coordinates, only : coordinateCartesian, assignment(=)
     implicit none
-    type            (coordinateCartesian      )                :: compositeChandrasekharIntegral
-    class           (massDistributionComposite), intent(inout) :: self
-    class           (massDistributionClass    ), intent(inout) :: massDistributionEmbedding     , massDistributionPerturber
-    double precision                           , intent(in   ) :: massPerturber
-    class           (coordinate               ), intent(in   ) :: coordinates
-    type            (coordinateCartesian      ), intent(in   ) :: velocity
-    type            (massDistributionList     ), pointer       :: massDistribution_
-    double precision                           , dimension(3)  :: integralArray                 , integralComponent
+    type            (coordinateCartesian          )                :: compositeChandrasekharIntegral
+    class           (massDistributionComposite    ), intent(inout) :: self
+    class           (massDistributionClass        ), intent(inout) :: massDistributionEmbedding     , massDistributionPerturber
+    double precision                               , intent(in   ) :: massPerturber                 , logarithmCoulomb
+    class           (coordinate                   ), intent(in   ) :: coordinates
+    type            (coordinateCartesian          ), intent(in   ) :: velocity
+    class           (dynamicalFrictionGaseousClass), intent(inout) :: dynamicalFrictionGaseous_
+    type            (massDistributionList         ), pointer       :: massDistribution_
+    double precision                               , dimension(3)  :: integralArray                 , integralComponent
     !$GLC attributes unused :: massDistributionEmbedding
 
     integralArray=[0.0d0,0.0d0,0.0d0]
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
-          integralComponent =  massDistribution_%massDistribution_%chandrasekharIntegral(massDistribution_%massDistribution_,massDistributionPerturber,massPerturber,coordinates,velocity)
+          integralComponent =  massDistribution_%massDistribution_%chandrasekharIntegral(massDistribution_%massDistribution_,massDistributionPerturber,massPerturber,coordinates,velocity,logarithmCoulomb,dynamicalFrictionGaseous_)
           integralArray     = +integralArray+integralComponent
           massDistribution_ => massDistribution_%next
        end do

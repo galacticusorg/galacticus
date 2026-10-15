@@ -68,5 +68,12 @@ else:
         print("FAILED: atlasCompendium has no dustProperties object carrying its dust-to-metals ratio")
         failures += 1
 
+# Dynamical friction from the hot halo must retain the collisionless Chandrasekhar (1943) treatment that predates the
+# `dynamicalFrictionGaseous` class.
+gaseous = root.findall("dynamicalFrictionGaseous")
+if len(gaseous) != 1 or gaseous[0].get("value") != "chandrasekhar1943":
+    print("FAILED: missing 'dynamicalFrictionGaseous' set to 'chandrasekhar1943'")
+    failures += 1
+
 if failures == 0:
     print("SUCCESS: migrated parameter file has the expected content")

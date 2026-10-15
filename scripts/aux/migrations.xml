@@ -481,6 +481,12 @@
     <translation function="extended_schmidt_normalization_per_gigayear"/>
   </migration>
 
+  <migration commit="b3ff1596d63d4132d90031c9598249499eb60e51">
+    <!-- Dynamical friction from gaseous components now defaults to the Kim & Kim (2007) treatment; retain the -->
+    <!-- collisionless Chandrasekhar (1943) formula previously used for them.                                    -->
+    <translation function="dynamical_friction_gaseous"/>
+  </migration>
+
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
   <default parameter="componentDisk"                  value="standard"        />

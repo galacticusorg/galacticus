@@ -1209,6 +1209,7 @@ jobs:
                       tests.SIDM_parametric_maps.exe,
                       tests.SIDM_Kummer_deceleration.exe,
                       tests.SIDM_Kummer_satellites.exe,
+                      tests.dynamical_friction_gaseous.exe,
                       tests.spin_distribution_nbody_errors.exe,
                       tests.differentiation.exe,
                       tests.tables.exe,

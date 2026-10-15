@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of an abstract mass distribution class for cylindrically symmetric distributions.
   !!}
@@ -72,7 +74,7 @@ contains
     return
   end function cylindricalSymmetry
 
-  function cylindricalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity)
+  function cylindricalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity,logarithmCoulomb,dynamicalFrictionGaseous_)
     !!{RST
     Compute the Chandrasekhar integral at the specified ``coordinates`` in a spherical mass distribution.
     !!}
@@ -84,11 +86,12 @@ contains
     type            (coordinateCartesian              )                 :: cylindricalChandrasekharIntegral
     class           (massDistributionCylindrical      ), intent(inout)  :: self
     class           (massDistributionClass            ), intent(inout)  :: massDistributionEmbedding                           , massDistributionPerturber
-    double precision                                   , intent(in   )  :: massPerturber
+    double precision                                   , intent(in   )  :: massPerturber                                       , logarithmCoulomb
     class           (coordinate                       ), intent(in   )  :: coordinates
     type            (coordinateCartesian              ), intent(in   )  :: velocity
+    class           (dynamicalFrictionGaseousClass    ), intent(inout)  :: dynamicalFrictionGaseous_
     double precision                                   , dimension(3  ) :: velocityCartesian_                                  , integralVector                  , &
-         &                                                                  accelerationArray
+         &                                                                 accelerationArray
     double precision                                   , parameter      :: toomreQRadiusHalfMass                        =1.50d0  ! The Toomre Q-parameter at the disk half-mass radius (Benson et al.,
     ! 2004 , https://ui.adsabs.harvard.edu/abs/2004MNRAS.351.1215B, Appendix A).
     double precision                                   , parameter      :: toomreQFactor                                =3.36d0  ! The factor appearing in the definition of the Toomre Q-parameter for
@@ -113,6 +116,10 @@ contains
          &                                                                 velocityDispersionMaximum                            , velocityRelativeMagnitude       , &
          &                                                                 factorSuppressionExtendedMass
     double precision                                   , dimension(3,3) :: rotation
+    !$GLC attributes unused :: dynamicalFrictionGaseous_
+
+    ! Collisional (gaseous) cylindrical distributions are currently treated as collisionless, using the velocity ellipsoid
+    ! below. A gaseous treatment requires a sound speed for the interstellar medium, which is not yet available.
 
     ! Initialize the result to zero so that early returns below yield a well-defined (zero) integral.
     cylindricalChandrasekharIntegral              =  [0.0d0,0.0d0,0.0d0]
@@ -195,7 +202,8 @@ contains
     integralVector                  =+density                          &
          &                           *accelerationArray                &
          &                           /velocityDispersionMaximum    **2 &
-         &                           *factorSuppressionExtendedMass
+         &                           *factorSuppressionExtendedMass    &
+         &                           *logarithmCoulomb
     cylindricalChandrasekharIntegral=integralVector
     return
   end function cylindricalChandrasekharIntegral
