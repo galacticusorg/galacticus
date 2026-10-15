@@ -52,7 +52,7 @@
      type            (interpolator) :: interpolatorRadius
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="tabulate" description="Tabulate the truncation radius as a function of the degree of truncation."/>
      </methods>
      !!]
