@@ -177,6 +177,7 @@ contains
     else
        parameters_ => parameters
     end if
+    call standardSatelliteDeferralWarn(fractionTimestepSatelliteMinimum)
     self=mergerTreeEvolverThreaded(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,profileSteps,reportTiming,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,mergerTreeEvolveConcurrency_,metaTreeProcessingTime_,galacticStructureSolver_,mergerTreeEvolveProfiler_,parameters_)
     !![
     <inputParametersValidate source="parameters"/>

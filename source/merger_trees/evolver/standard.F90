@@ -149,8 +149,6 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`mergerTreeEvolverStandard` merger tree evolver class which takes a parameter set as input.
     !!}
-    use :: Display         , only : displayMagenta, displayReset
-    use :: Error           , only : Warn
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeEvolverStandard    )                :: self
@@ -166,7 +164,6 @@ contains
          &                                                            backtrackToSatellites                   , profileSteps
     double precision                                               :: timestepHostRelative                    , timestepHostAbsolute, &
          &                                                            fractionTimestepSatelliteMinimum
-    logical                                        , save          :: warnedSatelliteDeferral         =.false.
 
     !![
     <inputParameter docformat="rst">
@@ -235,14 +232,7 @@ contains
     <objectBuilder class="mergerTreeEvolveProfiler" name="mergerTreeEvolveProfiler_" source="parameters"/>
     <objectBuilder class="metaTreeProcessingTime"   name="metaTreeProcessingTime_"   source="parameters"/>
     !!]
-    if (fractionTimestepSatelliteMinimum <= 0.0d0 .and. .not.warnedSatelliteDeferral) then
-       !$omp critical(mergerTreeEvolverStandardSatelliteDeferralWarn)
-       if (.not.warnedSatelliteDeferral) then
-          call Warn(displayMagenta()//'WARNING:'//displayReset()//' [fractionTimestepSatelliteMinimum]=0 - satellite evolution will not be deferred, and satellites may take very many small timesteps; in high resolution models this can dominate run time - consider setting [fractionTimestepSatelliteMinimum]=0.75')
-          warnedSatelliteDeferral=.true.
-       end if
-       !$omp end critical(mergerTreeEvolverStandardSatelliteDeferralWarn)
-    end if
+    call standardSatelliteDeferralWarn(fractionTimestepSatelliteMinimum)
     self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,profileSteps,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,mergerTreeEvolveProfiler_,metaTreeProcessingTime_)
     !![
     <inputParametersValidate source="parameters"/>
@@ -256,6 +246,28 @@ contains
     !!]
     return
   end function standardConstructorParameters
+
+  subroutine standardSatelliteDeferralWarn(fractionTimestepSatelliteMinimum)
+    !!{RST
+    Warn (once per process) if satellite evolution will not be deferred. Used by both the
+    :galacticus-class:`mergerTreeEvolverStandard` and :galacticus-class:`mergerTreeEvolverThreaded` classes.
+    !!}
+    use :: Display, only : displayMagenta, displayReset
+    use :: Error  , only : Warn
+    implicit none
+    double precision, intent(in   ) :: fractionTimestepSatelliteMinimum
+    logical         , save          :: warnedSatelliteDeferral         =.false.
+
+    if (fractionTimestepSatelliteMinimum <= 0.0d0 .and. .not.warnedSatelliteDeferral) then
+       !$omp critical(mergerTreeEvolverStandardSatelliteDeferralWarn)
+       if (.not.warnedSatelliteDeferral) then
+          call Warn(displayMagenta()//'WARNING:'//displayReset()//' [fractionTimestepSatelliteMinimum]=0 - satellite evolution will not be deferred, and satellites may take very many small timesteps; in high resolution models this can dominate run time - consider setting [fractionTimestepSatelliteMinimum]=0.75')
+          warnedSatelliteDeferral=.true.
+       end if
+       !$omp end critical(mergerTreeEvolverStandardSatelliteDeferralWarn)
+    end if
+    return
+  end subroutine standardSatelliteDeferralWarn
 
   function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,profileSteps,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,mergerTreeEvolveProfiler_,metaTreeProcessingTime_) result(self)
     !!{RST
