@@ -1,0 +1,25 @@
+{
+  "model": "default",
+  "parameterFile": "test-model-integration-default.xml",
+  "gitRevision": "7e555538d35ffee9adaa4780836acb28325f0683",
+  "gitUncommittedChanges": true,
+  "date": "2026-10-15T19:24:18+00:00",
+  "host": "login1.obshpc.carnegiescience.edu",
+  "calibrateCount": 1000,
+  "calibratePercentile": 1.0,
+  "randomSeed": 817,
+  "realizationsCompleted": 1000,
+  "launchMethod": "slurm",
+  "threadCount": "1",
+  "ompThreads": "1",
+  "commandLine": [
+    "--calibrate",
+    "yes",
+    "--calibrateCount",
+    "1000",
+    "--calibratePercentile",
+    "1.0"
+  ],
+  "argumentsIgnored": [],
+  "repeatWith": "./test-model-integration.py --calibrate yes --instance 1:1 --calibrateCount 1000 --calibratePercentile 1.0 --launchMethod slurm --randomSeed 817 --ompThreads 1"
+}

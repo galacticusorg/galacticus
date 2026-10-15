@@ -43,7 +43,7 @@
      ! Tables used for rotation curves and potential.
      logical                                                                 :: scaleLengthFactorSet                     , rotationCurveInitialized         =.false., &
           &                                                                     rotationCurveGradientInitialized =.false., potentialInitialized             =.false., &
-          &                                                                     accelerationInitialized          =.false.
+          &                                                                     accelerationInitialized          =.false., rotationCurveMidplaneInitialized =.false.
      double precision                                                        :: scaleLengthFactor
      type            (table1DLogarithmicLinear)                              :: rotationCurveTable                       , rotationCurveGradientTable               , &
           &                                                                     potentialTable
@@ -65,7 +65,8 @@
        <method description="Compute the Bessel function factor appearing in the exponential disk rotation curve."                     method="besselFactorRotationCurve"        />
        <method description="Compute the Bessel function factor appearing in the exponential disk rotation curve gradient."            method="besselFactorRotationCurveGradient"/>
        <method description="Compute the Bessel function factor appearing in the exponential disk potential."                          method="besselFactorPotential"            />
-       <method description="Tabulate the gravitational acceleration and tidal tensor due to the disk."                                method="accelerationTabulate"             />
+       <method description="Tabulate the gravitational acceleration, tidal tensor, and potential due to the disk."                    method="accelerationTabulate"             />
+       <method description="Tabulate the mid-plane rotation curve of a thick disk."                                                   method="rotationCurveMidplaneTabulate"    />
        <method description="Interpolate in the tabulated gravitational acceleration, tidal tensor, and/or potential due to the disk." method="accelerationInterpolate"          />
        <method description="Interpolate in the tabulated mid-plane rotation curve (and its gradient) of a thick disk."                method="rotationCurveSquaredMidplane"     />
      </methods>
@@ -94,6 +95,7 @@
      procedure :: acceleration                            => exponentialDiskAcceleration
      procedure :: tidalTensor                             => exponentialDiskTidalTensor
      procedure :: accelerationTabulate                    => exponentialDiskAccelerationTabulate
+     procedure :: rotationCurveMidplaneTabulate           => exponentialDiskRotationCurveMidplaneTabulate
      procedure :: accelerationInterpolate                 => exponentialDiskAccelerationInterpolate
      procedure :: rotationCurveSquaredMidplane            => exponentialDiskRotationCurveSquaredMidplane
      procedure :: positionSample                          => exponentialDiskPositionSample
@@ -266,6 +268,7 @@ contains
     self%rotationCurveGradientInitialized=.false.
     self%potentialInitialized            =.false.
     self%accelerationInitialized         =.false.
+    self%rotationCurveMidplaneInitialized=.false.
     self%scaleLengthFactor               =0.0d0
     return
   end function exponentialDiskConstructorInternal
@@ -280,7 +283,7 @@ contains
     if (self%rotationCurveInitialized        ) call self%rotationCurveTable        %destroy()
     if (self%rotationCurveGradientInitialized) call self%rotationCurveGradientTable%destroy()
     if (self%potentialInitialized            ) call self%potentialTable            %destroy()
-    if (self%accelerationInitialized         ) call self%rotationCurveMidplaneTable%destroy()
+    if (self%rotationCurveMidplaneInitialized) call self%rotationCurveMidplaneTable%destroy()
     return
   end subroutine exponentialDiskDestructor
 
@@ -630,7 +633,7 @@ contains
     <optionalArgument name="gradient" defaultsTo=".false."/>
     !!]
 
-    call self%accelerationTabulate()
+    call self%rotationCurveMidplaneTabulate()
     if (radius < self%rotationCurveMidplaneRadiusMinimum) then
        if (gradient_) then
           rotationCurveSquared=+2.0d0                                         &
@@ -1139,8 +1142,33 @@ contains
 
   subroutine exponentialDiskAccelerationTabulate(self)
     !!{RST
-    Tabulate the acceleration, tidal tensor, and potential due to the exponential disk mass distribution, together with its
-    mid-plane rotation curve. Uses the approach of :cite:t:`kuijken_mass_1989`, expressing each quantity as a Hankel transform of
+    Tabulate the acceleration, tidal tensor, and potential due to the exponential disk mass distribution (see
+    ``exponentialDiskSolutionTabulate``).
+    !!}
+    implicit none
+    class(massDistributionExponentialDisk), intent(inout) :: self
+
+    if (.not.self%accelerationInitialized) call exponentialDiskSolutionTabulate(self,midplane=.false.)
+    return
+  end subroutine exponentialDiskAccelerationTabulate
+
+  subroutine exponentialDiskRotationCurveMidplaneTabulate(self)
+    !!{RST
+    Tabulate the mid-plane rotation curve of the exponential disk mass distribution (see ``exponentialDiskSolutionTabulate``).
+    This is tabulated separately from the acceleration, tidal tensor, and potential as it requires far fewer integrals to be
+    evaluated, and is required much more frequently.
+    !!}
+    implicit none
+    class(massDistributionExponentialDisk), intent(inout) :: self
+
+    if (.not.self%rotationCurveMidplaneInitialized) call exponentialDiskSolutionTabulate(self,midplane=.true. )
+    return
+  end subroutine exponentialDiskRotationCurveMidplaneTabulate
+
+  subroutine exponentialDiskSolutionTabulate(self,midplane)
+    !!{RST
+    Tabulate either the acceleration, tidal tensor, and potential due to the exponential disk mass distribution on a grid of
+    radius and height, or (if ``midplane`` is true) its mid-plane rotation curve. Uses the approach of :cite:t:`kuijken_mass_1989`, expressing each quantity as a Hankel transform of
     the surface density multiplied by a vertical kernel, :math:`K(k,z)`, which accounts for the :math:`\mathrm{sech}^2` vertical
     structure of the disk. For example, the potential is
 
@@ -1167,9 +1195,10 @@ contains
     use :: Table_Labels         , only : extrapolationTypeExtrapolate
     implicit none
     class           (massDistributionExponentialDisk), intent(inout)                   :: self
+    logical                                          , intent(in   )                   :: midplane
     double precision                                 , parameter                       :: radiusTableMinimum                 = 1.0d-2, radiusTableMaximum                   =5.0d1
     double precision                                 , parameter                       :: radiiPerDecade                     =30.0d+0
-    integer                                          , parameter                       :: fileFormatVersionCurrent           = 4
+    integer                                          , parameter                       :: fileFormatVersionCurrent           = 5
     double precision                                 , parameter                       :: wavenumberKernelMinimum            = 1.0d-3, wavenumberKernelMaximum              =1.0d7
     double precision                                 , parameter                       :: wavenumberKernelPerDecade          =32.0d+0
     type            (integrator                     ), save         , allocatable      :: integratorAccelerationRadial               , integratorAccelerationVertical             , &
@@ -1185,29 +1214,29 @@ contains
          &                                                                                iHeight                                    , countWork                                  , &
          &                                                                                countWavenumbers                           , iWavenumber                                , &
          &                                                                                countRotationCurve                         , iRotationCurve                             , &
-         &                                                                                countHeights
+         &                                                                                countHeights                               , countHeightsKernel
     double precision                                                                   :: scaleHeight                                , wavenumber                                 , &
          &                                                                                wavenumberKernelLogarithmicMinimum         , wavenumberKernelLogarithmicInterval
     double precision                                 , allocatable  , dimension(:,:,:) :: kernelTable
-    double precision                                 , allocatable  , dimension(:    ) :: rotationCurveRadii                         , rotationCurveSquared
+    double precision                                 , allocatable  , dimension(:    ) :: rotationCurveRadii                         , rotationCurveSquared                       , &
+         &                                                                                heightsKernel
 
-    ! Return if acceleration is initialized.
-    if (self%accelerationInitialized) return
-    accelerationTabulate: block
+    solutionTabulate: block
       type     (varying_string) :: fileName
       character(len=8         ) :: label
       type     (lockDescriptor) :: fileLock
       
       ! Construct a file name for the table. The file format version is included in the name so that tables built by earlier
-      ! versions (which used an incorrect vertical kernel, or lack the potential, mid-plane rotation curve, and mid-plane row of
-      ! the table) are never reused,
+      ! versions (which used an incorrect vertical kernel, or lack the potential and mid-plane row of the table) are never reused,
       ! while leaving those tables in place for any older executables which share the same dynamic data path.
       write (label,'(f8.6)') self%scaleHeight/self%radiusScale
       fileName=inputPath(pathTypeDataDynamic)// &
            &   'galacticStructure/'          // &
            &   self%objectType()             // &
            &   '_h'                          // &
-           &   trim(adjustl(label))          // &
+           &   trim(adjustl(label))
+      if (midplane) fileName=fileName//'_midplane'
+      fileName=fileName                      // &
            &   '_v'                          // &
            &   fileFormatVersionCurrent      // &
            &   '.hdf5'
@@ -1219,39 +1248,48 @@ contains
          hdf5ReadScope: block
            type(hdf5File) :: file
            file=hdf5File(fileName,readOnly=.true.)
-           call file%readDataset('radii'                      ,self%accelerationRadii          )
-           call file%readDataset('heights'                    ,self%accelerationHeights        )
-           call file%readDataset('accelerationRadial'         ,self%accelerationRadial         )
-           call file%readDataset('accelerationVertical'       ,self%accelerationVertical       )
-           call file%readDataset('tidalTensorRadialRadial'    ,self%tidalTensorRadialRadial    )
-           call file%readDataset('tidalTensorVerticalVertical',self%tidalTensorVerticalVertical)
-           call file%readDataset('tidalTensorCross'           ,self%tidalTensorCross           )
-           call file%readDataset('potential'                  ,self%potentialTabulated         )
-           call file%readDataset('rotationCurveRadii'         ,     rotationCurveRadii         )
-           call file%readDataset('rotationCurveSquared'       ,     rotationCurveSquared       )
+           if (midplane) then
+              call file%readDataset('rotationCurveRadii'         ,     rotationCurveRadii         )
+              call file%readDataset('rotationCurveSquared'       ,     rotationCurveSquared       )
+           else
+              call file%readDataset('radii'                      ,self%accelerationRadii          )
+              call file%readDataset('heights'                    ,self%accelerationHeights        )
+              call file%readDataset('accelerationRadial'         ,self%accelerationRadial         )
+              call file%readDataset('accelerationVertical'       ,self%accelerationVertical       )
+              call file%readDataset('tidalTensorRadialRadial'    ,self%tidalTensorRadialRadial    )
+              call file%readDataset('tidalTensorVerticalVertical',self%tidalTensorVerticalVertical)
+              call file%readDataset('tidalTensorCross'           ,self%tidalTensorCross           )
+              call file%readDataset('potential'                  ,self%potentialTabulated         )
+           end if
          end block hdf5ReadScope
          !$ call hdf5Access%unset()
       else
-         ! Generate grid in radius and height. The grid in height consists of the mid-plane, followed by logarithmically-spaced
-         ! heights.
-         countRadii  =int(log10(radiusTableMaximum/radiusTableMinimum)*radiiPerDecade)+1
-         countHeights=countRadii+1
-         allocate(self%accelerationRadii          (countRadii             ))
-         allocate(self%accelerationHeights        (countHeights           ))
-         allocate(self%accelerationRadial         (countRadii,countHeights))
-         allocate(self%accelerationVertical       (countRadii,countHeights))
-         allocate(self%tidalTensorRadialRadial    (countRadii,countHeights))
-         allocate(self%tidalTensorVerticalVertical(countRadii,countHeights))
-         allocate(self%tidalTensorCross           (countRadii,countHeights))
-         allocate(self%potentialTabulated         (countRadii,countHeights))
-         self%accelerationRadii                  =Make_Range(radiusTableMinimum,radiusTableMaximum,countRadii,rangeTypeLogarithmic)
-         self%accelerationHeights(1             )=0.0d0
-         self%accelerationHeights(2:countHeights)=Make_Range(radiusTableMinimum,radiusTableMaximum,countRadii,rangeTypeLogarithmic)
-         ! Generate grid in radius for the mid-plane rotation curve.
-         countRotationCurve=int(log10(radiusMaximum/radiusRotationCurveMidplaneMinimum)*dble(countRotationCurveMidplanePerDecade))+1
-         allocate(rotationCurveRadii  (countRotationCurve))
-         allocate(rotationCurveSquared(countRotationCurve))
-         rotationCurveRadii=Make_Range(radiusRotationCurveMidplaneMinimum,radiusMaximum,countRotationCurve,rangeTypeLogarithmic)
+         if (midplane) then
+            ! Generate grid in radius for the mid-plane rotation curve. The vertical kernel is needed in the mid-plane only.
+            countRotationCurve=int(log10(radiusMaximum/radiusRotationCurveMidplaneMinimum)*dble(countRotationCurveMidplanePerDecade))+1
+            allocate(rotationCurveRadii  (countRotationCurve))
+            allocate(rotationCurveSquared(countRotationCurve))
+            rotationCurveRadii=Make_Range(radiusRotationCurveMidplaneMinimum,radiusMaximum,countRotationCurve,rangeTypeLogarithmic)
+            heightsKernel     =[0.0d0]
+         else
+            ! Generate grid in radius and height. The grid in height consists of the mid-plane, followed by logarithmically-spaced
+            ! heights.
+            countRadii  =int(log10(radiusTableMaximum/radiusTableMinimum)*radiiPerDecade)+1
+            countHeights=countRadii+1
+            allocate(self%accelerationRadii          (countRadii             ))
+            allocate(self%accelerationHeights        (countHeights           ))
+            allocate(self%accelerationRadial         (countRadii,countHeights))
+            allocate(self%accelerationVertical       (countRadii,countHeights))
+            allocate(self%tidalTensorRadialRadial    (countRadii,countHeights))
+            allocate(self%tidalTensorVerticalVertical(countRadii,countHeights))
+            allocate(self%tidalTensorCross           (countRadii,countHeights))
+            allocate(self%potentialTabulated         (countRadii,countHeights))
+            self%accelerationRadii                  =Make_Range(radiusTableMinimum,radiusTableMaximum,countRadii,rangeTypeLogarithmic)
+            self%accelerationHeights(1             )=0.0d0
+            self%accelerationHeights(2:countHeights)=Make_Range(radiusTableMinimum,radiusTableMaximum,countRadii,rangeTypeLogarithmic)
+            heightsKernel                           =self%accelerationHeights
+         end if
+         countHeightsKernel=size(heightsKernel)
          ! Compute the dimensionless scale height (in units of the radial scale length), as the tabulation is built for a
          ! dimensionless disk.
          scaleHeight=+self%scaleHeight &
@@ -1262,7 +1300,7 @@ contains
          countWavenumbers                   =int(log10(wavenumberKernelMaximum/wavenumberKernelMinimum)*wavenumberKernelPerDecade)+1
          wavenumberKernelLogarithmicMinimum =log(wavenumberKernelMinimum)
          wavenumberKernelLogarithmicInterval=log(wavenumberKernelMaximum/wavenumberKernelMinimum)/dble(countWavenumbers-1)
-         allocate(kernelTable(countWavenumbers,countHeights,3))
+         allocate(kernelTable(countWavenumbers,countHeightsKernel,3))
          !$omp parallel private(iWavenumber,wavenumber)
          allocate(integratorKernel         )
          allocate(integratorKernelGradient )
@@ -1271,8 +1309,8 @@ contains
          integratorKernelGradient =integrator(kernelGradientIntegrand ,toleranceAbsolute=1.0d-12,toleranceRelative=1.0d-6)
          integratorKernelGradient2=integrator(kernelGradient2Integrand,toleranceAbsolute=1.0d-12,toleranceRelative=1.0d-6)
          !$omp do schedule(dynamic)
-         do iHeight=1,countHeights
-            height=self%accelerationHeights(iHeight)
+         do iHeight=1,countHeightsKernel
+            height=heightsKernel(iHeight)
             do iWavenumber=1,countWavenumbers
                wavenumber=exp(wavenumberKernelLogarithmicMinimum+dble(iWavenumber-1)*wavenumberKernelLogarithmicInterval)
                kernelTable(iWavenumber,iHeight,1)=kernelVerticalDirect         (wavenumber)
@@ -1285,104 +1323,115 @@ contains
          deallocate(integratorKernelGradient )
          deallocate(integratorKernelGradient2)
          !$omp end parallel
-         ! Iterate over radii and heights.
-         call displayIndent("tabulating gravitational accelerations for exponential disk",verbosityLevelWorking)
-         countWork=0
-         do iRadius=1,countRadii
+         if (midplane) then
+            ! Tabulate the mid-plane rotation curve, V_c²(R) = -R a_R(R,z=0).
             !$omp parallel
-            radius=self%accelerationRadii(iRadius)
             call integratorsAllocate()
+            height     =heightsKernel(1)
+            indexHeight=              1
             !$omp do schedule(dynamic)
-            do iHeight=1,countHeights
-               !$omp atomic
-               countWork=countWork+1
-               call displayCounter(int(100.0d0*dble(countWork)/dble(countRadii*countHeights)),iRadius == 1 .and. iHeight == 1,verbosityLevelWorking)
-               height     =self%accelerationHeights(iHeight)
-               indexHeight=                         iHeight
-               ! Evaluate the integrals for the components of the acceleration. In the mid-plane the vertical acceleration (and the
-               ! cross term of the tidal tensor) vanish by symmetry - their integrands are identically zero there, so are not
-               ! integrated.
-               self%accelerationRadial         (iRadius,iHeight)=hankelIntegrate(integratorAccelerationRadial         ,1)
-               if (height > 0.0d0) then
-                  self%accelerationVertical    (iRadius,iHeight)=hankelIntegrate(integratorAccelerationVertical       ,0)
-               else
-                  self%accelerationVertical    (iRadius,iHeight)=0.0d0
-               end if
-               ! Evaluate the integrals for the components of the tidal tensor. The radial component is the sum of terms involving
-               ! Bessel functions of order 0 and 2.
-               self%tidalTensorRadialRadial    (iRadius,iHeight)=0.0d0
-               do besselOrder=0,2,2
-                  self%tidalTensorRadialRadial (iRadius,iHeight)=+self%tidalTensorRadialRadial(iRadius,iHeight)                  &
-                       &                                         +hankelIntegrate(integratorTidalTensorRadialRadial,besselOrder)
-               end do
-               self%tidalTensorVerticalVertical(iRadius,iHeight)=hankelIntegrate(integratorTidalTensorVerticalVertical,0)
-               if (height > 0.0d0) then
-                  self%tidalTensorCross        (iRadius,iHeight)=hankelIntegrate(integratorTidalTensorCross           ,1)
-               else
-                  self%tidalTensorCross        (iRadius,iHeight)=0.0d0
-               end if
-               ! Evaluate the integral for the potential.
-               self%potentialTabulated         (iRadius,iHeight)=hankelIntegrate(integratorPotential                  ,0)
+            do iRotationCurve=1,countRotationCurve
+               radius                              =+rotationCurveRadii(iRotationCurve)
+               rotationCurveSquared(iRotationCurve)=-radius                                          &
+                    &                               *hankelIntegrate(integratorAccelerationRadial,1)
             end do
             !$omp end do
             call integratorsDeallocate()
             !$omp end parallel
-         end do
-         call displayCounterClear(       verbosityLevelWorking)
-         call displayUnindent     ("done",verbosityLevelWorking)
-         ! Tabulate the mid-plane rotation curve, V_c²(R) = -R a_R(R,z=0).
-         !$omp parallel
-         call integratorsAllocate()
-         height     =self%accelerationHeights(1)
-         indexHeight=                         1
-         !$omp do schedule(dynamic)
-         do iRotationCurve=1,countRotationCurve
-            radius                              =+rotationCurveRadii(iRotationCurve)
-            rotationCurveSquared(iRotationCurve)=-radius                                          &
-                 &                               *hankelIntegrate(integratorAccelerationRadial,1)
-         end do
-         !$omp end do
-         call integratorsDeallocate()
-         !$omp end parallel
+         else
+            ! Iterate over radii and heights.
+            call displayIndent("tabulating gravitational accelerations for exponential disk",verbosityLevelWorking)
+            countWork=0
+            do iRadius=1,countRadii
+               !$omp parallel
+               radius=self%accelerationRadii(iRadius)
+               call integratorsAllocate()
+               !$omp do schedule(dynamic)
+               do iHeight=1,countHeights
+                  !$omp atomic
+                  countWork=countWork+1
+                  call displayCounter(int(100.0d0*dble(countWork)/dble(countRadii*countHeights)),iRadius == 1 .and. iHeight == 1,verbosityLevelWorking)
+                  height     =self%accelerationHeights(iHeight)
+                  indexHeight=                         iHeight
+                  ! Evaluate the integrals for the components of the acceleration. In the mid-plane the vertical acceleration (and the
+                  ! cross term of the tidal tensor) vanish by symmetry - their integrands are identically zero there, so are not
+                  ! integrated.
+                  self%accelerationRadial         (iRadius,iHeight)=+hankelIntegrate(integratorAccelerationRadial         ,1          )
+                  if (height > 0.0d0) then
+                  self%accelerationVertical       (iRadius,iHeight)=+hankelIntegrate(integratorAccelerationVertical       ,0          )
+                  else
+                     self%accelerationVertical    (iRadius,iHeight)=+0.0d0
+                  end if
+                  ! Evaluate the integrals for the components of the tidal tensor. The radial component is the sum of terms involving
+                  ! Bessel functions of order 0 and 2.
+                  self%tidalTensorRadialRadial    (iRadius,iHeight)=+0.0d0
+                  do besselOrder=0,2,2
+                     self%tidalTensorRadialRadial (iRadius,iHeight)=+self%tidalTensorRadialRadial(iRadius,iHeight)                      &
+                          &                                         +hankelIntegrate(integratorTidalTensorRadialRadial    ,besselOrder)
+                  end do
+                  self%tidalTensorVerticalVertical(iRadius,iHeight)=+hankelIntegrate(integratorTidalTensorVerticalVertical,0          )
+                  if (height > 0.0d0) then
+                     self%tidalTensorCross        (iRadius,iHeight)=+hankelIntegrate(integratorTidalTensorCross           ,1          )
+                  else
+                     self%tidalTensorCross        (iRadius,iHeight)=+0.0d0
+                  end if
+                  ! Evaluate the integral for the potential.
+                  self%potentialTabulated         (iRadius,iHeight)=hankelIntegrate(integratorPotential                  ,0          )
+               end do
+               !$omp end do
+               call integratorsDeallocate()
+               !$omp end parallel
+            end do
+            call displayCounterClear(       verbosityLevelWorking)
+            call displayUnindent     ("done",verbosityLevelWorking)
+         end if
          !$ call hdf5Access%set()
          hdf5WriteScope: block
            type(hdf5File) :: file
            file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
-           call file%writeDataset  (self%accelerationRadii          ,'radii'                      )
-           call file%writeDataset  (self%accelerationHeights        ,'heights'                    )
-           call file%writeDataset  (self%accelerationRadial         ,'accelerationRadial'         )
-           call file%writeDataset  (self%accelerationVertical       ,'accelerationVertical'       )
-           call file%writeDataset  (self%tidalTensorRadialRadial    ,'tidalTensorRadialRadial'    )
-           call file%writeDataset  (self%tidalTensorVerticalVertical,'tidalTensorVerticalVertical')
-           call file%writeDataset  (self%tidalTensorCross           ,'tidalTensorCross'           )
-           call file%writeDataset  (self%potentialTabulated         ,'potential'                  )
-           call file%writeDataset  (     rotationCurveRadii         ,'rotationCurveRadii'         )
-           call file%writeDataset  (     rotationCurveSquared       ,'rotationCurveSquared'       )
-           call file%writeAttribute(     fileFormatVersionCurrent   ,'fileFormat'                 )
+           if (midplane) then
+              call file%writeDataset  (     rotationCurveRadii         ,'rotationCurveRadii'         )
+              call file%writeDataset  (     rotationCurveSquared       ,'rotationCurveSquared'       )
+           else
+              call file%writeDataset  (self%accelerationRadii          ,'radii'                      )
+              call file%writeDataset  (self%accelerationHeights        ,'heights'                    )
+              call file%writeDataset  (self%accelerationRadial         ,'accelerationRadial'         )
+              call file%writeDataset  (self%accelerationVertical       ,'accelerationVertical'       )
+              call file%writeDataset  (self%tidalTensorRadialRadial    ,'tidalTensorRadialRadial'    )
+              call file%writeDataset  (self%tidalTensorVerticalVertical,'tidalTensorVerticalVertical')
+              call file%writeDataset  (self%tidalTensorCross           ,'tidalTensorCross'           )
+              call file%writeDataset  (self%potentialTabulated         ,'potential'                  )
+           end if
+           call    file%writeAttribute(     fileFormatVersionCurrent   ,'fileFormat'                 )
          end block hdf5WriteScope
          !$ call hdf5Access%unset()
       end if
       call File_Unlock(fileLock)
-      ! Compute factors needed for interpolation.
-      self%accelerationRadiusMinimumLog     =      log(self%accelerationRadii  (                            1 ))
-      self%accelerationRadiusMaximumLog     =      log(self%accelerationRadii  (size(self%accelerationRadii  )))
-      self%accelerationHeightMinimumLog     =      log(self%accelerationHeights(                            2 ))
-      self%accelerationHeightMaximumLog     =      log(self%accelerationHeights(size(self%accelerationHeights)))
-      self%accelerationRadiusInverseInterval=1.0d0/log(self%accelerationRadii  (2)/self%accelerationRadii  (1))
-      self%accelerationHeightInverseInterval=1.0d0/log(self%accelerationHeights(3)/self%accelerationHeights(2))
-      ! Build the spline interpolation of the mid-plane rotation curve.
-      call self%rotationCurveMidplaneTable%create  (                                                            &
-           &                                        log(rotationCurveRadii(                      1 ))         , &
-           &                                        log(rotationCurveRadii(size(rotationCurveRadii)))         , &
-           &                                                              size(rotationCurveRadii)            , &
-           &                                        extrapolationType=spread(extrapolationTypeExtrapolate,1,2)  &
-           &                                       )
-      call self%rotationCurveMidplaneTable%populate(log(rotationCurveSquared))
-      self%rotationCurveMidplaneRadiusMinimum =rotationCurveRadii  (1)
-      self%rotationCurveMidplaneSquaredMinimum=rotationCurveSquared(1)
-      ! Record that the acceleration table is initialized.
-      self%accelerationInitialized=.true.
-    end block accelerationTabulate
+      if (midplane) then
+         ! Build the spline interpolation of the mid-plane rotation curve.
+         call self%rotationCurveMidplaneTable%create  (                                                            &
+              &                                        log(rotationCurveRadii(                      1 ))         , &
+              &                                        log(rotationCurveRadii(size(rotationCurveRadii)))         , &
+              &                                                              size(rotationCurveRadii)            , &
+              &                                        extrapolationType=spread(extrapolationTypeExtrapolate,1,2)  &
+              &                                       )
+         call self%rotationCurveMidplaneTable%populate(log(rotationCurveSquared))
+         self%rotationCurveMidplaneRadiusMinimum =rotationCurveRadii  (1)
+         self%rotationCurveMidplaneSquaredMinimum=rotationCurveSquared(1)
+         ! Record that the mid-plane rotation curve table is initialized.
+         self%rotationCurveMidplaneInitialized=.true.
+      else
+         ! Compute factors needed for interpolation.
+         self%accelerationRadiusMinimumLog     =      log(self%accelerationRadii  (                            1 ))
+         self%accelerationRadiusMaximumLog     =      log(self%accelerationRadii  (size(self%accelerationRadii  )))
+         self%accelerationHeightMinimumLog     =      log(self%accelerationHeights(                            2 ))
+         self%accelerationHeightMaximumLog     =      log(self%accelerationHeights(size(self%accelerationHeights)))
+         self%accelerationRadiusInverseInterval=1.0d0/log(self%accelerationRadii  (2)/self%accelerationRadii  (1))
+         self%accelerationHeightInverseInterval=1.0d0/log(self%accelerationHeights(3)/self%accelerationHeights(2))
+         ! Record that the acceleration table is initialized.
+         self%accelerationInitialized=.true.
+      end if
+    end block solutionTabulate
     return
 
   contains
@@ -1439,21 +1488,33 @@ contains
       !!{RST
       Evaluate the integral over wavenumber, from zero to infinity, of the integrand of the given integrator at the current
       radius. The integral is accumulated over the intervals between successive zeros of the Bessel function of the given
-      ``order`` (as a function of :math:`kR`), until the contribution from an interval is less than :math:`10^{-6}` of the total.
+      ``order`` (as a function of :math:`kR`). The partial sums so obtained form a (typically alternating) sequence which
+      converges slowly - for the components of the tidal tensor, whose integrands carry additional powers of :math:`k`, many
+      thousands of intervals would be needed for the contribution from an interval to fall below :math:`10^{-6}` of the total.
+      The limit of the sequence is therefore estimated using the :math:`\epsilon`-algorithm of :cite:t:`wynn_device_1956`
+      applied to the most recent partial sums, and accumulation stops once successive estimates agree to a relative precision
+      of :math:`10^{-8}`. Accumulation also stops (and the partial sum is returned) if the contribution from an interval falls
+      below :math:`10^{-6}` of the total, which occurs first if the integrand decays rapidly.
       !!}
       use :: Bessel_Functions, only : Bessel_Function_J0_Zero, Bessel_Function_J1_Zero, Bessel_Function_Jn_Zero
       use :: Error           , only : Error_Report
       implicit none
-      type            (integrator), intent(inout) :: integrator_
-      integer                     , intent(in   ) :: order
-      double precision                            :: wavenumberLow, wavenumberHigh, &
-           &                                         integralDelta
-      integer                                     :: iBesselZero
-      logical                                     :: converged
+      type            (integrator), intent(inout)               :: integrator_
+      integer                     , intent(in   )               :: order
+      integer                     , parameter                   :: countPartialSums=16     , countIntervalsMinimum=8
+      double precision            , parameter                   :: toleranceDirect = 1.0d-6, toleranceAccelerated =1.0d-8
+      double precision            , dimension(countPartialSums) :: partialSums
+      double precision            , dimension(3               ) :: estimates
+      double precision                                          :: wavenumberLow           , wavenumberHigh              , &
+           &                                                       integralDelta
+      integer                                                   :: iBesselZero             , countStored
+      logical                                                   :: converged
 
       integral      =0.0d0
       wavenumberHigh=0.0d0
       iBesselZero   =0
+      countStored   =0
+      estimates     =huge(0.0d0)
       converged     =.false.
       do while (.not.converged)
          iBesselZero  =+iBesselZero    &
@@ -1474,12 +1535,73 @@ contains
             call Error_Report('incorrect Bessel function order'//{introspection:location})
          end select
          integralDelta=+integrator_%integrate(wavenumberLow,wavenumberHigh)
-         converged    = abs(integralDelta) < 1.0d-6*abs(integral)
+         converged    = abs(integralDelta) < toleranceDirect*abs(integral)
          integral     =+integral      &
               &        +integralDelta
+         ! Store the partial sum, retaining only the most recent.
+         if (countStored < countPartialSums) then
+            countStored             =countStored+1
+         else
+            partialSums(1:countStored-1)=partialSums(2:countStored)
+         end if
+         partialSums(countStored)=integral
+         ! Estimate the limit of the sequence of partial sums, and test for convergence of successive estimates.
+         if (.not.converged .and. iBesselZero >= countIntervalsMinimum) then
+            estimates=[estimates(2:3),wynnEpsilon(partialSums(1:countStored))]
+            if     (                                                                         &
+                 &   abs(estimates(3)-estimates(2)) < toleranceAccelerated*abs(estimates(3)) &
+                 &  .and.                                                                    &
+                 &   abs(estimates(3)-estimates(1)) < toleranceAccelerated*abs(estimates(3)) &
+                 & ) then
+               integral =estimates(3)
+               converged=.true.
+            end if
+         end if
       end do
       return
     end function hankelIntegrate
+
+    double precision function wynnEpsilon(sequence) result(estimate)
+      !!{RST
+      Estimate the limit of the given sequence using the :math:`\epsilon`-algorithm of :cite:t:`wynn_device_1956`. The estimate is
+      the final element of the highest even-order column of the :math:`\epsilon` table which can be constructed. Construction
+      stops early if two successive elements of a column are equal (to within rounding), as the sequence has then converged.
+      !!}
+      implicit none
+      double precision, intent(in   ), dimension(:             ) :: sequence
+      double precision               , dimension(size(sequence)) :: columnPrevious            , columnCurrent, &
+           &                                                        columnNext
+      double precision, parameter                                :: differenceMinimum=1.0d-280
+      double precision                                           :: difference
+      integer                                                    :: countSequence             , iColumn      , &
+           &                                                        i
+      logical                                                    :: degenerate
+
+      countSequence =size(sequence)
+      estimate      =sequence(countSequence)
+      columnPrevious=0.0d0
+      columnCurrent =sequence
+      degenerate    =.false.
+      do iColumn=1,countSequence-1
+         do i=1,countSequence-iColumn
+            difference=columnCurrent(i+1)-columnCurrent(i)
+            if (abs(difference) <= max(epsilon(0.0d0)*max(abs(columnCurrent(i+1)),abs(columnCurrent(i))),differenceMinimum)) then
+               degenerate=.true.
+               exit
+            end if
+            columnNext(i)=columnPrevious(i+1)+1.0d0/difference
+         end do
+         if (degenerate) then
+            ! Two successive elements of this column are equal. If this is an even-order column, this is the limit.
+            if (mod(iColumn-1,2) == 0) estimate=columnCurrent(i+1)
+            exit
+         end if
+         if (mod(iColumn,2) == 0) estimate=columnNext(countSequence-iColumn)
+         columnPrevious(1:countSequence-iColumn+1)=columnCurrent(1:countSequence-iColumn+1)
+         columnCurrent (1:countSequence-iColumn  )=columnNext   (1:countSequence-iColumn  )
+      end do
+      return
+    end function wynnEpsilon
 
     double precision function potentialIntegrand(wavenumber)
       !!{RST
@@ -1883,7 +2005,7 @@ contains
       return
     end function sechSquaredDerivative
     
-  end subroutine exponentialDiskAccelerationTabulate
+  end subroutine exponentialDiskSolutionTabulate
   
   function exponentialDiskPositionSample(self,randomNumberGenerator_)
     !!{RST
