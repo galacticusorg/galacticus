@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements an abstract spherical mass distribution class for SIDM models.
   !!}
@@ -33,11 +35,16 @@
   type, abstract, extends(massDistributionSphericalDecorator) :: massDistributionSphericalSIDM
      !!{RST
      Implementation of a spherical mass distribution for SIDM models.
+
+     The interaction radius depends only on the dark matter distribution, the age and the mean relative velocity, none of which
+     change once the object is constructed, so it is computed once and stored in ``radiusInteraction_``.
      !!}
      private
-     class           (darkMatterParticleClass), pointer :: darkMatterParticle_  => null()
+     class           (darkMatterParticleClass), pointer :: darkMatterParticle_       => null()
      double precision                                   :: timeAge
      double precision                                   :: velocityRelativeMean
+     double precision                                   :: radiusInteraction_
+     logical                                            :: radiusInteractionComputed =  .false.
   contains
      !![
      <methods docformat="rst">
@@ -72,6 +79,11 @@ contains
     double precision                               , parameter             :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-3
     !$omp threadprivate(finder,finderInitialized)
 
+    ! Return the stored interaction radius if it has already been computed.
+    if (self%radiusInteractionComputed) then
+       radiusInteraction=self%radiusInteraction_
+       return
+    end if
     self_ => self
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleSelfInteractingDarkMatter)
@@ -103,6 +115,9 @@ contains
     !![
     <objectDestructor name="kinematicsDistribution_"/>
     !!]
+    ! Store the interaction radius.
+    self%radiusInteraction_       =radiusInteraction
+    self%radiusInteractionComputed=.true.
     return
   end function sidmRadiusInteraction
 

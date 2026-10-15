@@ -72,7 +72,9 @@ contains
     integer         (c_size_t                                     ), intent(in   )                                        :: outputIndex
     type            (treeNode                                     ), intent(inout)                                        :: node
     double precision                                                              , dimension(size(propertyValueMinimum)) :: randomErrorOperateScalar
-    double precision                                                                                                      :: rootVariance
+    double precision                                                                                                      :: rootVariance            , argumentMinimum     , &
+         &                                                                                                                   argumentMaximum
+    integer                                                                                                               :: i
     !$GLC attributes unused :: outputIndex, propertyType
 
     rootVariance=self%rootVariance(propertyValue,node)
@@ -84,11 +86,23 @@ contains
             & ) then
           randomErrorOperateScalar=+0.0d0
        else
-          randomErrorOperateScalar=+0.5d0                                                                &
-               &                   *(                                                                    &
-               &                     +erf((propertyValueMaximum-propertyValue)/rootVariance/sqrt(2.0d0)) &
-               &                     -erf((propertyValueMinimum-propertyValue)/rootVariance/sqrt(2.0d0)) &
-               &                    )
+          do i=1,size(propertyValueMinimum)
+             argumentMinimum=(propertyValueMinimum(i)-propertyValue)/rootVariance/sqrt(2.0d0)
+             argumentMaximum=(propertyValueMaximum(i)-propertyValue)/rootVariance/sqrt(2.0d0)
+             ! Choose the form which avoids taking the difference of two nearly equal values. For a bin far into either tail of
+             ! the distribution erf() is within rounding error of ±1 at both bin edges, so the difference of erf() values loses all
+             ! precision (and becomes exactly zero beyond about 8σ). The difference of erfc() values is accurate there.
+             if      (argumentMinimum >= 0.0d0) then
+                ! Bin lies entirely above the property value.
+                randomErrorOperateScalar(i)=+0.5d0*(+erfc(+argumentMinimum)-erfc(+argumentMaximum))
+             else if (argumentMaximum <= 0.0d0) then
+                ! Bin lies entirely below the property value.
+                randomErrorOperateScalar(i)=+0.5d0*(+erfc(-argumentMaximum)-erfc(-argumentMinimum))
+             else
+                ! Bin straddles the property value - the two erf() values have opposite signs, so no precision is lost.
+                randomErrorOperateScalar(i)=+0.5d0*(+erf (+argumentMaximum)-erf (+argumentMinimum))
+             end if
+          end do
        end if
     else
        ! Zero variance - treat as an identity operator.

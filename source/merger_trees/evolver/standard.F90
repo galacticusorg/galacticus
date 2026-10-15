@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements the standard class for evolving merger trees.
   !!}
@@ -147,6 +149,8 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`mergerTreeEvolverStandard` merger tree evolver class which takes a parameter set as input.
     !!}
+    use :: Display         , only : displayMagenta, displayReset
+    use :: Error           , only : Warn
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeEvolverStandard    )                :: self
@@ -158,10 +162,11 @@ contains
     class           (mergerTreeInitializorClass   ), pointer       :: mergerTreeInitializor_
     class           (mergerTreeEvolveProfilerClass), pointer       :: mergerTreeEvolveProfiler_
     class           (metaTreeProcessingTimeClass  ), pointer       :: metaTreeProcessingTime_
-    logical                                                        :: allTreesExistAtFinalTime        , dumpTreeStructure         , &
-         &                                                            backtrackToSatellites           , profileSteps
-    double precision                                               :: timestepHostRelative            , timestepHostAbsolute      , &
+    logical                                                        :: allTreesExistAtFinalTime                , dumpTreeStructure   , &
+         &                                                            backtrackToSatellites                   , profileSteps
+    double precision                                               :: timestepHostRelative                    , timestepHostAbsolute, &
          &                                                            fractionTimestepSatelliteMinimum
+    logical                                        , save          :: warnedSatelliteDeferral         =.false.
 
     !![
     <inputParameter docformat="rst">
@@ -201,6 +206,8 @@ contains
       <defaultValue>0.0d0</defaultValue>
       <description>
       The minimum fraction of the timestep imposed by the "satellite in host" criterion to evolve over. If the timestep allowed is smaller than this fraction, the actual timestep will be reduced to zero. This avoids forcing satellites to take a large number of very small timesteps, and instead defers evolving a satellite until a large timestep can be taken.
+
+      A value of ``0`` (the default) disables this deferral. Merger events force hosts to take small timesteps, and without deferral each of their satellites then takes a correspondingly small step, each costing a full :term:`ODE` solve. The number of such steps grows rapidly with resolution, so run time then scales much more steeply than linearly with the inverse of the mass resolution. For a :math:`10^{13}\mathrm{M}_\odot` host, models run around 8 times slower than with a value of ``0.75`` at a host-to-resolution mass ratio of :math:`10^5`, and around 15 times slower at :math:`3\times 10^5` (see `issue #1431 &lt;https://github.com/galacticusorg/galacticus/issues/1431&gt;`_). The reference parameter files use ``0.75``, which is recommended for any model which resolves substructure.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -228,6 +235,14 @@ contains
     <objectBuilder class="mergerTreeEvolveProfiler" name="mergerTreeEvolveProfiler_" source="parameters"/>
     <objectBuilder class="metaTreeProcessingTime"   name="metaTreeProcessingTime_"   source="parameters"/>
     !!]
+    if (fractionTimestepSatelliteMinimum <= 0.0d0 .and. .not.warnedSatelliteDeferral) then
+       !$omp critical(mergerTreeEvolverStandardSatelliteDeferralWarn)
+       if (.not.warnedSatelliteDeferral) then
+          call Warn(displayMagenta()//'WARNING:'//displayReset()//' [fractionTimestepSatelliteMinimum]=0 - satellite evolution will not be deferred, and satellites may take very many small timesteps; in high resolution models this can dominate run time - consider setting [fractionTimestepSatelliteMinimum]=0.75')
+          warnedSatelliteDeferral=.true.
+       end if
+       !$omp end critical(mergerTreeEvolverStandardSatelliteDeferralWarn)
+    end if
     self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,profileSteps,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,mergerTreeEvolveProfiler_,metaTreeProcessingTime_)
     !![
     <inputParametersValidate source="parameters"/>
