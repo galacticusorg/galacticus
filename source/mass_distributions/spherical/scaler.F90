@@ -351,7 +351,7 @@ contains
     !!]
     sphericalScalerDensityRadialMoment=+     sphericalScalerDensityRadialMoment  &
          &                             *self%factorScalingMass                   &
-         &                             /self%factorScalingLength**(3.0d0-moment)
+         &                             /self%factorScalingLength**(2.0d0-moment)
     return    
   end function sphericalScalerDensityRadialMoment
 

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements calculations related to satellite orbits.
 !!}
@@ -30,7 +32,7 @@ module Satellite_Orbits
   use :: Mass_Distributions, only : massDistributionClass
   implicit none
   private
-  public :: Satellite_Orbit_Equivalent_Circular_Orbit_Radius, Satellite_Orbit_Extremum_Phase_Space_Coordinates
+  public :: Satellite_Orbit_Equivalent_Circular_Orbit_Radius, Satellite_Orbit_Extremum_Phase_Space_Coordinates, Satellite_Orbit_Period
 
   ! Orbital energy and angular momentum - used for finding radius of equivalent circular orbit.
   double precision                                               :: orbitalAngularMomentumInternal        , orbitalEnergyInternal
@@ -65,6 +67,62 @@ module Satellite_Orbits
   !$omp threadprivate(lastUniqueID,pericenterCalculated,apocenterCalculated,timePrevious,orbitalEnergyPrevious,orbitalAngularMomentumPrevious,pericenterRadius,pericenterVelocity,apocenterRadius,apocenterVelocity)
 
 contains
+
+  double precision function Satellite_Orbit_Period(node,darkMatterHaloScale_) result(periodOrbital)
+    !!{RST
+    Return the orbital period (in Gyr) of the satellite ``node``, :math:`T_\mathrm{orb} = 2\pi/\hbox{max}(\omega,v_\mathrm{r}/r)`, where
+    :math:`\omega` is the angular velocity of the satellite, :math:`v_\mathrm{r}` is its radial velocity, and :math:`r` is its orbital
+    radius. The larger of the angular and radial frequencies is used to avoid numerical problems for purely radial or purely
+    circular orbits. For a degenerate orbit, for which both frequencies vanish, the dynamical timescale of the host halo is
+    returned instead.
+    !!}
+    use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite
+    use :: Numerical_Constants_Astronomical, only : gigaYear                , megaParsec
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Vectors                         , only : Vector_Magnitude        , Vector_Product
+    implicit none
+    type            (treeNode                ), intent(inout) :: node
+    class           (darkMatterHaloScaleClass), intent(inout) :: darkMatterHaloScale_
+    class           (nodeComponentSatellite  ), pointer       :: satellite
+    double precision                          , dimension(3)  :: position                      , velocity
+    double precision                          , parameter     :: frequencyFractionalTiny=1.0d-6
+    double precision                                          :: radius                        , frequencyAngular, &
+         &                                                       frequencyRadial               , frequencyOrbital, &
+         &                                                       timescaleDynamical
+
+    ! Get required quantities from the satellite node.
+    satellite => node     %satellite(        )
+    position  =  satellite%position (        )
+    velocity  =  satellite%velocity (        )
+    radius    =  Vector_Magnitude   (position)
+    ! Compute the angular and radial frequencies.
+    frequencyAngular  =+Vector_Magnitude(Vector_Product(position,velocity)) &
+         &             /radius**2                                           &
+         &             *kilo                                                &
+         &             *gigaYear                                            &
+         &             /megaParsec
+    frequencyRadial   =+abs             (   Dot_Product(position,velocity)) &
+         &             /radius**2                                           &
+         &             *kilo                                                &
+         &             *gigaYear                                            &
+         &             /megaParsec
+    frequencyOrbital  =max(                  &
+         &                 frequencyAngular, &
+         &                 frequencyRadial   &
+         &                )
+    ! Find the orbital period, falling back on the dynamical timescale of the host halo for a degenerate orbit.
+    timescaleDynamical=darkMatterHaloScale_%timescaleDynamical(node%parent)
+    if (frequencyOrbital > frequencyFractionalTiny/timescaleDynamical) then
+       periodOrbital=+2.0d0            &
+            &        *Pi               &
+            &        /frequencyOrbital
+    else
+       periodOrbital=+timescaleDynamical
+    end if
+    return
+  end function Satellite_Orbit_Period
 
   double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,darkMatterHaloScale_,errorCode)
     !!{RST
