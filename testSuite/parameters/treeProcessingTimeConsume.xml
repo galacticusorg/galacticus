@@ -296,6 +296,7 @@
   </mergerTreeNodeEvolver>
 
   <mergerTreeEvolver value="standard">
+    <fractionTimestepSatelliteMinimum value="0.75"/>
     <metaTreeProcessingTime value="file">
       <fileName value="testSuite/outputs/treeProcessingTime.hdf5"/>
     </metaTreeProcessingTime>

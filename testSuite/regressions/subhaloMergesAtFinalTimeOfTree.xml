@@ -137,6 +137,7 @@
   </mergerTreeMassResolution>
   <hotHaloMassDistribution value="betaProfile"/>
   <mergerTreeEvolver value="standard">
+    <fractionTimestepSatelliteMinimum value="0.75"/>
     <allTreesExistAtFinalTime value="false"/>
     <timestepHostRelative value="0.1"/>
     <timestepHostAbsolute value="1.0"/>

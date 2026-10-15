@@ -389,6 +389,7 @@
   
   <!-- Merger tree evolution -->
   <mergerTreeEvolver value="threaded">
+    <fractionTimestepSatelliteMinimum value="0.75"/>
     <!-- Standard merger tree evolver with parameters chosen to (somewhat) optimize the evolution. -->
     <timestepHostAbsolute value="1.00"/>
     <timestepHostRelative value="0.10"/>

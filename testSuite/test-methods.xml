@@ -479,6 +479,7 @@
       <presetSubhaloIndices value="false"/>
       <treeIndexToRootNodeIndex value="true"/>
       <mergerTreeEvolver value="standard" parameterLevel="top">
+	<fractionTimestepSatelliteMinimum value="0.75"/>
 	<allTreesExistAtFinalTime value="false"/>
       </mergerTreeEvolver>
       <presetMergerTimes value="true"/>
@@ -2903,6 +2904,7 @@
       <temperatureCMB value="2.72548"/>
     </cosmologyParameters>
     <mergerTreeEvolver value="standard">
+      <fractionTimestepSatelliteMinimum value="0.75"/>
       <allTreesExistAtFinalTime value="false"/>
     </mergerTreeEvolver>
     <mergerTreeOperator value="perturbMasses">
@@ -2969,6 +2971,7 @@
       <temperatureCMB value="2.72548"/>
     </cosmologyParameters>
     <mergerTreeEvolver value="standard">
+      <fractionTimestepSatelliteMinimum value="0.75"/>
       <allTreesExistAtFinalTime value="false"/>
     </mergerTreeEvolver>
     <mergerTreeOperator value="monotonizeMassGrowth"/>
@@ -3031,6 +3034,7 @@
       <presetOrbits value="false"/>
     </mergerTreeConstructor>
     <mergerTreeEvolver value="standard">
+      <fractionTimestepSatelliteMinimum value="0.75"/>
       <allTreesExistAtFinalTime value="false"/>
     </mergerTreeEvolver>
     <mergerTreeOperator value="outputRootMasses">
@@ -3214,6 +3218,7 @@
       <odeToleranceRelative value="0.01"/>
     </mergerTreeNodeEvolver>
     <mergerTreeEvolver value="standard">
+      <fractionTimestepSatelliteMinimum value="0.75"/>
       <timestepHostAbsolute value="1.00"/>
       <timestepHostRelative value="0.10"/>
     </mergerTreeEvolver>

@@ -28,6 +28,7 @@
   </mergerTreeConstructor>
 
   <mergerTreeEvolver value="standard">
+    <fractionTimestepSatelliteMinimum value="0.75"/>
     <allTreesExistAtFinalTime value="false"/>
   </mergerTreeEvolver>
 

@@ -143,6 +143,7 @@
     <starveSatellites value="true"/>
   </componentHotHalo>
   <mergerTreeEvolver value="standard">
+    <fractionTimestepSatelliteMinimum value="0.75"/>
     <timestepHostRelative value="0.1"/>
     <allTreesExistAtFinalTime value="false"/>
     <timestepHostAbsolute value="1.0"/>

@@ -86,6 +86,7 @@
     <presetNamedReals value="velocityMaximum velocityDispersion"/>
   </mergerTreeConstructor>
   <mergerTreeEvolver value="standard">
+    <fractionTimestepSatelliteMinimum value="0.75"/>
     <allTreesExistAtFinalTime value="false"/>
     <timestepHostAbsolute value="1.0"/>
     <timestepHostRelative value="0.1"/>
