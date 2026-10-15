@@ -1715,6 +1715,7 @@ jobs:
                 testSuite/parameters/test-nuclear-star-cluster.xml,
                 testSuite/parameters/tidalStrippingGalacticComponents.xml,
                 testSuite/parameters/tidalStrippingGalacticComponentsTruncated.xml,
+                parameters/examples/tidalStrippingBaryonicSubhalo.xml,
                 testSuite/parameters/zeroVelocityDispersionDisruptingHalo.xml,
                 testSuite/parameters/subhaloOrbitOnZAxis.xml ]
     uses: ./.github/workflows/testModel.yml

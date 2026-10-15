@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Tree initial conditions for a subhalo, containing a stellar disk and spheroid, orbiting in a fixed (isothermal) host potential. -->
+<!-- Used by parameters/examples/tidalStrippingBaryonicSubhalo.xml.                                                                    -->
+<tree>
+  <!-- The host halo, present at the start (t=1 Gyr) and end (t=21 Gyr) of the evolution. -->
+  <node>
+    <index>1</index>
+    <parent>2</parent>
+    <firstChild>-1</firstChild>
+    <firstSatellite>3</firstSatellite>
+    <sibling>-1</sibling>
+    <basic>
+      <time>1.0</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>21.25e-3</scale>
+    </darkMatterProfile>
+  </node>
+  <node>
+    <index>2</index>
+    <parent>-1</parent>
+    <firstChild>1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>21.0</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>21.25e-3</scale>
+    </darkMatterProfile>
+  </node>
+  <!-- The subhalo: a 10^10 Msun NFW halo (virial radius 45.8 kpc, concentration 10) hosting a stellar disk of 2x10^8 Msun and a stellar
+       spheroid of 1x10^8 Msun. The sizes of the disk and spheroid are found by the galactic structure solver from their angular
+       momenta. -->
+  <node>
+    <index>3</index>
+    <parent>1</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>1.0</time>
+      <mass>1.0e10</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>4.58e-3</scale>
+    </darkMatterProfile>
+    <disk>
+      <massStellar>2.0e8</massStellar>
+      <massGas>0.0</massGas>
+      <abundancesStellar>
+	<metals>0.0</metals>
+      </abundancesStellar>
+      <abundancesGas>
+	<metals>0.0</metals>
+      </abundancesGas>
+      <angularMomentum>1.6e7</angularMomentum>
+    </disk>
+    <spheroid>
+      <massStellar>1.0e8</massStellar>
+      <massGas>0.0</massGas>
+      <abundancesStellar>
+	<metals>0.0</metals>
+      </abundancesStellar>
+      <abundancesGas>
+	<metals>0.0</metals>
+      </abundancesGas>
+      <angularMomentum>3.0e6</angularMomentum>
+    </spheroid>
+    <satellite>
+      <!-- Start the satellite at apocenter, 100 kpc from the host center. For the isothermal host (circular velocity 142 km/s)
+           a tangential velocity of 42 km/s places the first pericenter at approximately 15 kpc. -->
+      <position>100.0e-3</position>
+      <position>0.0e-3</position>
+      <position>0.0e-3</position>
+      <velocity>0.0</velocity>
+      <velocity>42.0</velocity>
+      <velocity>0.0</velocity>
+      <mergeTime>-1.0</mergeTime>
+      <destructionTime>-1.0</destructionTime>
+      <boundMass>1.0e10</boundMass>
+      <virialOrbit>
+	<massHost>1.0e12</massHost>
+	<massSatellite>1.0e10</massSatellite>
+	<radius>100.0e-3</radius>
+	<velocityRadial>0.0</velocityRadial>
+	<velocityTangential>42.0</velocityTangential>
+      </virialOrbit>
+    </satellite>
+  </node>
+</tree>
