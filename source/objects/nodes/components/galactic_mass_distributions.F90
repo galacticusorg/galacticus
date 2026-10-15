@@ -55,24 +55,17 @@ contains
     use :: Object_Pools      , only : objectPool
     implicit none
     class           (massDistributionClass      ), pointer                :: massDistribution_
-    logical                                      , intent(in   )          :: includeStars                 , &
-         &                                                                   includeGas
-    double precision                             , intent(in   )          :: massStellar                  , &
-         &                                                                   massGas                      , &
+    logical                                      , intent(in   )          :: includeStars                 , includeGas
+    double precision                             , intent(in   )          :: massStellar                  , massGas                  , &
          &                                                                   radiusScale
-    class           (massDistributionClass      ), intent(in   ), pointer :: massDistributionStellar_     , &
-         &                                                                   massDistributionGas_
-    class           (kinematicsDistributionClass), intent(in   ), target  :: kinematicDistributionStellar_, &
-         &                                                                   kinematicDistributionGas_
-    type            (objectPool                 ), intent(inout)          :: scalerStellarPool            , &
-         &                                                                   scalerGasPool
-    type            ({geometry¦scaler}          ), pointer                :: massDistributionStellar   , massDistributionGas
+    class           (massDistributionClass      ), intent(in   ), pointer :: massDistributionStellar_     , massDistributionGas_
+    class           (kinematicsDistributionClass), intent(in   ), target  :: kinematicDistributionStellar_, kinematicDistributionGas_
+    type            (objectPool                 ), intent(inout)          :: scalerStellarPool            , scalerGasPool
+    type            ({geometry¦scaler}          ), pointer                :: massDistributionStellar      , massDistributionGas
     type            (massDistributionComposite  ), pointer                :: massDistributionTotal
     type            (massDistributionList       ), pointer                :: massDistributionComponents
-    logical                                                               :: reusedStellar                , &
-         &                                                                   reusedGas
-    integer                                                               :: iStellar                     , &
-         &                                                                   iGas
+    logical                                                               :: reusedStellar                , reusedGas
+    integer                                                               :: iStellar                     , iGas
 
     if (radiusScale <= 0.0d0 .or. .not.(includeGas .or. includeStars)) then
        ! The component has non-positive size, or no components matched. Return a null distribution.

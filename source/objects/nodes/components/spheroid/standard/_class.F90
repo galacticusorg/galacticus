@@ -386,9 +386,9 @@ contains
     !!{RST
     Uninitializes the standard spheroid module for each thread.
     !!}
-    use :: Events_Hooks                         , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeOutputStateAdvanceEvent
+    use :: Events_Hooks                         , only : postEvolveEvent         , satelliteMergerEvent     , mergerTreeOutputStateAdvanceEvent
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
-    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_           , scalerStellarPool, &
+    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_     , kinematicDistribution_           , scalerStellarPool, &
          &                                               scalerGasPool           , kinematicDistributionGas_
     implicit none
 

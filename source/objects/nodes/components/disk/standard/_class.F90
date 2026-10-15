@@ -278,12 +278,12 @@ contains
     !!{RST
     Initializes the standard disk component module for each thread.
     !!}
-    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx                  , openMPThreadBindingAtLevel, postEvolveEvent, &
+    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx                  , openMPThreadBindingAtLevel, postEvolveEvent          , &
           &                                          satelliteMergerEvent       , mergerTreeOutputStateAdvanceEvent
     use :: Error                            , only : Error_Report
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
     use :: Input_Parameters                 , only : inputParameter             , inputParameters
-    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_             , kinematicDistribution_, kinematicDistributionGas_
+    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_             , kinematicDistribution_    , kinematicDistributionGas_
     use :: Mass_Distributions               , only : massDistributionCylindrical, kinematicsDistributionLocal
     use :: Galactic_Structure_Options       , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous
     implicit none
@@ -396,9 +396,9 @@ contains
     !!{RST
     Uninitializes the standard disk component module for each thread.
     !!}
-    use :: Events_Hooks                     , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeOutputStateAdvanceEvent
+    use :: Events_Hooks                     , only : postEvolveEvent         , satelliteMergerEvent     , mergerTreeOutputStateAdvanceEvent
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
-    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_, scalerStellarPool, &
+    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_     , kinematicDistribution_           , scalerStellarPool, &
          &                                           scalerGasPool           , kinematicDistributionGas_
     implicit none
 

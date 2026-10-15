@@ -26,11 +26,11 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self,componentType,m
   Return the mass distribution for the standard spheroid component.
   !!}
   use :: Mass_Distributions                         , only : massDistributionClass                            , massDistributionMatches_
-  use :: Node_Component_Spheroid_Standard_Data      , only : massDistributionStellar_                         , massDistributionGas_    , kinematicDistribution_      , scalerStellarPool      , &
+  use :: Node_Component_Spheroid_Standard_Data      , only : massDistributionStellar_                         , massDistributionGas_     , kinematicDistribution_      , scalerStellarPool      , &
        &                                                     scalerGasPool                                    , kinematicDistributionGas_
   use :: Node_Components_Galactic_Mass_Distributions, only : Node_Component_Mass_Distribution_Scaled_Spherical
-  use :: Galactic_Structure_Options                 , only : componentTypeSpheroid                            , massTypeStellar         , massTypeGaseous             , enumerationWeightByType, &
-       &                                                     weightByMass                                     , weightByLuminosity      , enumerationComponentTypeType, enumerationMassTypeType
+  use :: Galactic_Structure_Options                 , only : componentTypeSpheroid                            , massTypeStellar          , massTypeGaseous             , enumerationWeightByType, &
+       &                                                     weightByMass                                     , weightByLuminosity       , enumerationComponentTypeType, enumerationMassTypeType
   implicit none
   class           (massDistributionClass          ), pointer                 :: massDistribution_
   class           (nodeComponentSpheroidStandard  ), intent(inout)           :: self

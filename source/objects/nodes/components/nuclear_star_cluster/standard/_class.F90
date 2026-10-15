@@ -341,9 +341,9 @@ contains
     !!{RST
     Uninitializes the standard nuclear star cluster component module for each thread.
     !!}
-    use :: Events_Hooks                    , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeOutputStateAdvanceEvent
+    use :: Events_Hooks                    , only : postEvolveEvent         , satelliteMergerEvent     , mergerTreeOutputStateAdvanceEvent
     use :: Galacticus_Nodes                , only : defaultNSCComponent
-    use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_           , scalerStellarPool, &
+    use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_, massDistributionGas_     , kinematicDistribution_           , scalerStellarPool, &
          &                                          scalerGasPool           , kinematicDistributionGas_
     implicit none
 

@@ -43,29 +43,29 @@ program Tests_Dynamical_Friction_Gaseous
   use :: Unit_Tests                          , only : Assert                                   , Unit_Tests_Begin_Group            , &
   &                                                   Unit_Tests_End_Group                     , Unit_Tests_Finish
   implicit none
-  type            (dynamicalFrictionGaseousKimKim2007       )               :: kimKim2007Exact                  , kimKim2007
+  type            (dynamicalFrictionGaseousKimKim2007       )               :: kimKim2007Exact                         , kimKim2007
   type            (dynamicalFrictionGaseousChandrasekhar1943)               :: chandrasekhar1943
-  type            (massDistributionIsothermal               )               :: massDistributionHost             , massDistributionPerturber                 , &
+  type            (massDistributionIsothermal               )               :: massDistributionHost                    , massDistributionPerturber                 , &
        &                                                                       massDistributionHostCollisionless
-  type            (kinematicsDistributionIsothermal         )               :: kinematicsDistributionGas        , kinematicsDistributionCollisionless
+  type            (kinematicsDistributionIsothermal         )               :: kinematicsDistributionGas               , kinematicsDistributionCollisionless
   type            (kinematicsDistributionEffectiveSoundSpeed)               :: kinematicsDistributionISM
   type            (kinematicsDistributionLocal              )               :: kinematicsDistributionStellar
-  type            (massDistributionExponentialDisk          )               :: massDistributionDiskGas          , massDistributionDiskStellar
-  type            (coordinateCartesian                      )               :: position                         , velocity                                  , &
+  type            (massDistributionExponentialDisk          )               :: massDistributionDiskGas                 , massDistributionDiskStellar
+  type            (coordinateCartesian                      )               :: position                                , velocity                                  , &
        &                                                                       integral
-  double precision                                           , dimension(3) :: integralVector                   , integralVectorChandrasekhar1943           , &
-       &                                                                       velocityDisk                     , velocityRelative
-  double precision                                                          :: forceFactorBelow                 , forceFactorAbove                          , &
-       &                                                                       soundSpeed                       , density                                   , &
-       &                                                                       speed                            , velocityCircular
-  double precision                                           , parameter    :: velocityDispersion       =2.0d+2 , offsetMachNumber                   =1.0d-9, &
-       &                                                                       logarithmCoulomb         =2.5d+0 , machNumber                         =1.5d+0, &
-       &                                                                       massPerturber            =1.0d+9 , soundSpeedISM                      =1.0d+1, &
-       &                                                                       massPerturberCompact     =1.0d+5
+  double precision                                           , dimension(3) :: integralVector                          , integralVectorChandrasekhar1943           , &
+       &                                                                       velocityDisk                            , velocityRelative
+  double precision                                                          :: forceFactorBelow                        , forceFactorAbove                          , &
+       &                                                                       soundSpeed                              , density                                   , &
+       &                                                                       speed                                   , velocityCircular
+  double precision                                           , parameter    :: velocityDispersion               =2.0d+2, offsetMachNumber                   =1.0d-9, &
+       &                                                                       logarithmCoulomb                 =2.5d+0, machNumber                         =1.5d+0, &
+       &                                                                       massPerturber                    =1.0d+9, soundSpeedISM                      =1.0d+1, &
+       &                                                                       massPerturberCompact             =1.0d+5
 
-  call displayVerbositySet  (verbosityLevelStandard)
-  call eventsHooksInitialize(                      )
-  call ioHDF5AccessInitialize(                     )
+  call displayVerbositySet   (verbosityLevelStandard)
+  call eventsHooksInitialize (                      )
+  call ioHDF5AccessInitialize(                      )
   call Unit_Tests_Begin_Group("Gaseous dynamical friction")
   kimKim2007Exact  =dynamicalFrictionGaseousKimKim2007       (widthTransition=0.00d0)
   kimKim2007       =dynamicalFrictionGaseousKimKim2007       (widthTransition=0.05d0)
@@ -136,10 +136,10 @@ program Tests_Dynamical_Friction_Gaseous
   call Assert("Chandrasekhar integral, collisionless, Chandrasekhar (1943)",integralVector,[0.0d0,-density*chandrasekhar1943%forceFactor(speed/velocityDispersion,logarithmCoulomb)/speed**2,0.0d0],relTol=1.0d-9)
   ! Effective sound speed kinematics, as used for the interstellar medium.
   kinematicsDistributionISM=kinematicsDistributionEffectiveSoundSpeed(soundSpeedEffective=soundSpeedISM)
-  call Assert("Effective sound speed: collisional"                     ,kinematicsDistributionISM%isCollisional       (                                                  ),.true.                                 )
-  call Assert("Effective sound speed: sound speed"                     ,kinematicsDistributionISM%soundSpeed          (position                                          ),soundSpeedISM            ,relTol=1.0d-12)
-  call Assert("Effective sound speed: velocity dispersion"             ,kinematicsDistributionISM%velocityDispersion1D(position,massDistributionHost,massDistributionHost),soundSpeedISM            ,relTol=1.0d-12)
-  call Assert("Effective sound speed: isothermal temperature"          ,Ideal_Gas_Sound_Speed(kinematicsDistributionISM%temperature(position))                            ,sqrt(5.0d0/3.0d0)*soundSpeedISM,relTol=1.0d-9)
+  call Assert("Effective sound speed: collisional"                     ,kinematicsDistributionISM%isCollisional       (                                                  ),.true.                                        )
+  call Assert("Effective sound speed: sound speed"                     ,kinematicsDistributionISM%soundSpeed          (position                                          ),soundSpeedISM                  ,relTol=1.0d-12)
+  call Assert("Effective sound speed: velocity dispersion"             ,kinematicsDistributionISM%velocityDispersion1D(position,massDistributionHost,massDistributionHost),soundSpeedISM                  ,relTol=1.0d-12)
+  call Assert("Effective sound speed: isothermal temperature"          ,Ideal_Gas_Sound_Speed(kinematicsDistributionISM%temperature(position))                            ,sqrt(5.0d0/3.0d0)*soundSpeedISM,relTol=1.0d-09)
   ! Chandrasekhar integral of a collisional (gaseous) cylindrical distribution. The perturber moves vertically through the disk
   ! plane with a speed relative to the rotating gas corresponding to a Mach number of 1.5. It is much more compact than its own
   ! enclosed mass within the scale height of the disk, so that no suppression due to its extent is applied. The integral must then

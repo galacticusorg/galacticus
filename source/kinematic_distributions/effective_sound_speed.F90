@@ -139,12 +139,12 @@ contains
     class(coordinate                               ), intent(in   ) :: coordinates
     !$GLC attributes unused :: coordinates
 
-    effectiveSoundSpeedTemperature=+meanAtomicMassPrimordial      &
-         &                         *atomicMassUnit                &
-         &                         *(                             &
-         &                           +self%soundSpeedEffective    &
-         &                           *kilo                        &
-         &                          )**2                          &
+    effectiveSoundSpeedTemperature=+meanAtomicMassPrimordial   &
+         &                         *atomicMassUnit             &
+         &                         *(                          &
+         &                           +self%soundSpeedEffective &
+         &                           *kilo                     &
+         &                          )**2                       &
          &                         /boltzmannsConstant
     return
   end function effectiveSoundSpeedTemperature
