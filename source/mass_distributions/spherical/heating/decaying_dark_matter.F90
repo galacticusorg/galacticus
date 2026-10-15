@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a decaying dark matter mass distribution heating class.
   !!}
@@ -193,14 +195,12 @@ contains
     class           (massDistributionClass                    ), intent(inout) :: massDistribution_
     logical                                                    , intent(in   ) :: gradientRequired
     class           (kinematicsDistributionClass              ), pointer       :: kinematicsDistribution_
-    double precision                                                           :: density                                  , densityLogGradient                , &
-         &                                                                        fractionDerivativeVelocityEscapeScaleFree, fractionDerivativeVelocityKick    , &
-         &                                                                        energyDerivativeVelocityEscapeScaleFree  , energyDerivativeVelocityKick      , &
+    double precision                                                           :: density                                  , massLossGradient                  , &
          &                                                                        fractionDerivativeVelocityEscapeScaleFree, fractionDerivativeVelocityKick    , &
          &                                                                        energyDerivativeVelocityEscapeScaleFree  , energyDerivativeVelocityKick      , &
          &                                                                        fractionDerivativeVelocityDispersion     , energyDerivativeVelocityDispersion, &
          &                                                                        velocityDispersionGradient               , velocityEscapeGradient            , &
-         &                                                                        potentialDifference                      , massLossGradient
+         &                                                                        potentialDifference
     type            (coordinateSpherical                      )                :: coordinates
     
     if (radius /= self%radius) then
@@ -301,9 +301,8 @@ contains
     end if
     if (.not.self%energySpecificGradientComputed.and.gradientRequired) then
        ! Compute properties of the dark matter density profile.
-       coordinates       = [radius,0.0d0,0.0d0]
-       density           =+massDistribution_%density              (coordinates                   )
-       densityLogGradient=+massDistribution_%densityGradientRadial(coordinates,logarithmic=.true.)
+       coordinates= [radius,0.0d0,0.0d0]
+       density    =+massDistribution_%density(coordinates)
        ! Compute the change in energy due to mass loss (assuming all decayed particles are lost).
        if (self%gamma > 0.0d0) then
           massLossGradient=+self%gamma                             &
@@ -329,16 +328,13 @@ contains
        energyDerivativeVelocityDispersion       =-      (       energyDerivativeVelocityEscapeScaleFree*self%velocityEscape+  energyDerivativeVelocityKick*self%velocityKick)/self%velocityDispersion &
             &                                    +2.0d0*   self%energyRetained                                                                                               /self%velocityDispersion
        ! Compute the gradient in velocity dispersion.
-       velocityDispersionGradient=+(                                        &
-            &                       -     gravitationalConstant_internal    &
-            &                       *self%massEnclosed                      &
-            &                       /     radius                        **2 &
-            &                       -self%velocityDispersion            **2 &
-            &                       *     densityLogGradient                &
-            &                       /     radius                            &
-            &                      )                                        &
-            &                     /2.0d0                                    &
-            &                     /self%velocityDispersion
+       kinematicsDistribution_    =>  massDistribution_      %kinematicsDistribution                 (                                               )
+       velocityDispersionGradient =  +kinematicsDistribution_%velocityDispersion1DGradientLogarithmic(coordinates,massDistribution_,massDistribution_) &
+            &                        *self                   %velocityDispersion                                                                       &
+            &                        /                        radius
+       !![
+       <objectDestructor name="kinematicsDistribution_"/>
+       !!]
        ! Compute the gradient in escape velocity.
        if (self%velocityEscape > 0.0d0) then
           velocityEscapeGradient=-     gravitationalConstant_internal &

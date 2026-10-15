@@ -901,6 +901,51 @@ module Mass_Distributions
       kinematicsDistributionVelocityDispersion1DNumerical=self%velocityDispersion1D__%interpolate(log(coordinates%rSpherical()))
     </code>
    </method>
+   <method name="velocityDispersion1DGradientLogarithmic" >
+    <description>
+    Return the logarithmic gradient, :math:`\mathrm{d}\log \sigma_\mathrm{r}/\mathrm{d}\log r`, of the 1D velocity dispersion at the given coordinate. The default implementation assumes that the velocity dispersion is the solution of the spherical Jeans equation with anisotropy parameter :math:`\beta=0` (see ``jeansEquationGradientLogarithmic()``). Classes whose velocity dispersion is not the solution of that equation must override this method.
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>class(coordinate           ), intent(in   )         :: coordinates                                 </argument>
+    <argument>class(massDistributionClass), intent(inout), target :: massDistribution_, massDistributionEmbedding</argument>
+    <code>
+      kinematicsDistributionVelocityDispersion1DGradientLogarithmic=self%jeansEquationGradientLogarithmic(coordinates,massDistribution_,massDistributionEmbedding,self%velocityDispersion1D(coordinates,massDistribution_,massDistributionEmbedding))
+    </code>
+   </method>
+   <method name="jeansEquationGradientLogarithmic" >
+    <description>
+    Return the logarithmic gradient, :math:`\mathrm{d}\log \sigma_\mathrm{r}/\mathrm{d}\log r`, of a 1D velocity dispersion, :math:`\sigma_\mathrm{r}=`\ ``velocityDispersion``, which is the solution of the spherical Jeans equation with anisotropy parameter :math:`\beta=0`, :math:`\mathrm{d}(\rho \sigma_\mathrm{r}^2)/\mathrm{d}r = -\rho \mathrm{G} M(r)/r^2`, at the given coordinate:
+
+    .. math::
+
+       \frac{\mathrm{d}\log \sigma_\mathrm{r}}{\mathrm{d}\log r} = -\frac{1}{2} \frac{\mathrm{d}\log \rho}{\mathrm{d}\log r} - \frac{1}{2} \frac{\mathrm{G} M(r)}{r \sigma_\mathrm{r}^2},
+
+    where :math:`\rho` is the density of ``massDistribution_``, and :math:`M(r)` is the mass enclosed by ``massDistributionEmbedding``. The velocity dispersion is passed in, rather than computed here, so that classes which override ``velocityDispersion1DGradientLogarithmic()`` can apply this result in regions where their velocity dispersion is the Jeans solution.
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <modules>Numerical_Constants_Astronomical</modules>
+    <argument>class           (coordinate           ), intent(in   ) :: coordinates                                 </argument>
+    <argument>class           (massDistributionClass), intent(inout) :: massDistribution_, massDistributionEmbedding</argument>
+    <argument>double precision                       , intent(in   ) :: velocityDispersion                          </argument>
+    <code>
+      double precision :: radius
+      !$GLC attributes unused :: self
+      radius=coordinates%rSpherical()
+      if (radius > 0.0d0 .and. velocityDispersion > 0.0d0) then
+         kinematicsDistributionJeansEquationGradientLogarithmic=-0.5d0                                                                           &amp;
+              &amp;                                             *massDistribution_        %densityGradientRadial(coordinates,logarithmic=.true.) &amp;
+              &amp;                                             -0.5d0                                                                           &amp;
+              &amp;                                             *gravitationalConstant_internal                                                  &amp;
+              &amp;                                             *massDistributionEmbedding%massEnclosedBySphere (radius                        ) &amp;
+              &amp;                                             /                                                radius                          &amp;
+              &amp;                                             /velocityDispersion**2
+      else
+         kinematicsDistributionJeansEquationGradientLogarithmic=+0.0d0
+      end if
+    </code>
+   </method>
    <method name="jeansEquationRadius" >
     <description>
     Return the radius variable used in solving the Jeans equation that corresponds to a given physical radius.

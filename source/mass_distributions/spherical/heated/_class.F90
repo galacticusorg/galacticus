@@ -52,15 +52,17 @@
    contains
      !![
      <methods docformat="rst">
-       <method method="radiusInitial"          description="Compute the initial radius corresponding to a given final radius in a heated mass distribution."/>
-       <method method="noShellCrossingIsValid" description="Return true if the no-shell crossing assumption is locally valid."                              />
-       <method method="reinitialize"           description="Re-point the decorated and heating sub-objects (e.g. when re-used from a pool) and clear stale memoized state."/>
+       <method method="radiusInitial"          description="Compute the initial radius corresponding to a given final radius in a heated mass distribution."                       />
+       <method method="noShellCrossingIsValid" description="Return true if the no-shell crossing assumption is locally valid."                                                     />
+       <method method="radiusFinalDerivative"  description="Return the derivative, :math:`\mathrm{d}r^\prime/\mathrm{d}r`, of the final radius with respect to the initial radius."/>
+       <method method="reinitialize"           description="Re-point the decorated and heating sub-objects (e.g. when re-used from a pool) and clear stale memoized state."        />
      </methods>
      !!]
      final     ::                             sphericalHeatedDestructor
      procedure :: reinitialize             => sphericalHeatedReinitialize
      procedure :: radiusInitial            => sphericalHeatedRadiusInitial
      procedure :: noShellCrossingIsValid   => sphericalHeatedNoShellCrossingIsValid
+     procedure :: radiusFinalDerivative    => sphericalHeatedRadiusFinalDerivative
      procedure :: potentialSolverIntegrand => heatedPotentialSolverIntegrand
      procedure :: potentialSolverRadius    => heatedPotentialSolverRadius
      procedure :: density                  => sphericalHeatedDensity
@@ -287,9 +289,7 @@ contains
     !!{RST
     Return the density at the specified ``coordinates`` in a scaled spherical mass distribution.
     !!}
-    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
-    use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
     class           (massDistributionSphericalHeated), intent(inout) :: self
     class           (coordinate                     ), intent(in   ) :: coordinates
@@ -321,29 +321,13 @@ contains
     else
        massEnclosed=+self%massDistribution_%massEnclosedBySphere(radiusInitial)
        if (massEnclosed > 0.0d0) then
-          jacobianInverse=+(                                                                                               &
-               &            +radius                                                                                        &
-               &            /radiusInitial                                                                                 &
-               &           )                                                                                           **2 &
-               &          +2.0d0                                                                                           &
-               &          *radius                                                                                      **2 &
-               &          /gravitationalConstant_internal                                                                  &
-               &          /massEnclosed                                                                                    &
-               &          *(                                                                                               &
-               &            +self%massDistributionHeating_%specificEnergyGradient(radiusInitial,self%massDistribution_)    &
-               &            -4.0d0                                                                                         &
-               &            *Pi                                                                                            &
-               &            *radiusInitial                                                                             **2 &
-               &            *densityInitial                                                                                &
-               &            *self%massDistributionHeating_%specificEnergy        (radiusInitial,self%massDistribution_)    &
-               &            /massEnclosed                                                                                  &
-               &           )
+          jacobianInverse=self%radiusFinalDerivative(radiusInitial,radius,densityInitial,massEnclosed)
           if (jacobianInverse > 0.0d0) then
-             density=+densityInitial                                                                                    &
-                  &  *(                                                                                                 &
-                  &    +radiusInitial                                                                                   &
-                  &    /radius                                                                                          &
-                  &   )                                                                                             **2 &
+             density=+densityInitial     &
+                  &  *(                  &
+                  &    +radiusInitial    &
+                  &    /radius           &
+                  &   )              **2 &
                   &  /jacobianInverse
           else
              ! Shell crossing assumption is broken - simply return the density unchanged.
@@ -468,6 +452,40 @@ contains
          &             )
     return
   end function radiusInitialRoot
+
+  double precision function sphericalHeatedRadiusFinalDerivative(self,radiusInitial,radiusFinal,densityInitial,massEnclosed) result(radiusFinalDerivative)
+    !!{RST
+    Return the derivative, :math:`\mathrm{d}r^\prime/\mathrm{d}r`, of the final radius, :math:`r^\prime`, with respect to the initial
+    radius, :math:`r`, found by differentiating the energy relation given in the class description. This is the inverse of the
+    Jacobian of the mapping from final to initial radii. The density, :math:`\rho(r)`, and enclosed mass, :math:`M(r)`, of the
+    unheated distribution at the initial radius are passed in, as callers have already computed them.
+    !!}
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    implicit none
+    class           (massDistributionSphericalHeated), intent(inout) :: self
+    double precision                                 , intent(in   ) :: radiusInitial , radiusFinal , &
+         &                                                              densityInitial, massEnclosed
+
+    radiusFinalDerivative=+(                                                                                               &
+         &                  +radiusFinal                                                                                   &
+         &                  /radiusInitial                                                                                 &
+         &                 )                                                                                           **2 &
+         &                +2.0d0                                                                                           &
+         &                *radiusFinal                                                                                 **2 &
+         &                /gravitationalConstant_internal                                                                  &
+         &                /massEnclosed                                                                                    &
+         &                *(                                                                                               &
+         &                  +self%massDistributionHeating_%specificEnergyGradient(radiusInitial,self%massDistribution_)    &
+         &                  -4.0d0                                                                                         &
+         &                  *Pi                                                                                            &
+         &                  *radiusInitial                                                                             **2 &
+         &                  *densityInitial                                                                                &
+         &                  *self%massDistributionHeating_%specificEnergy        (radiusInitial,self%massDistribution_)    &
+         &                  /massEnclosed                                                                                  &
+         &                 )
+    return
+  end function sphericalHeatedRadiusFinalDerivative
 
   logical function sphericalHeatedNoShellCrossingIsValid(self,radiusInitial,radiusFinal) result(isValid)
     !!{RST
