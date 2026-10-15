@@ -5,6 +5,10 @@
 
   <spheroidVerySimpleTrackLuminosities value="false"/>
 
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="1.0"/>
+  </mergerTreeEvolver>
+
   <nodeOperator value="multi">
     <nodeOperator value="satelliteDestructionMassThreshold" >
       <massDestruction           value="1.0"/>

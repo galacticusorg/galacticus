@@ -1517,6 +1517,31 @@ def dynamical_friction_gaseous(input_doc, parameters, is_grid):
     append_indented(parameters, gaseous)
 
 
+def satellite_deferral_default(input_doc, parameters, is_grid):
+    """Retain the absence of satellite deferral across the change of its default.
+
+    The default of `fractionTimestepSatelliteMinimum` in the `standard` and `threaded` merger tree evolvers changed from
+    0 (never defer the evolution of a satellite) to 0.75 (issue #1431). Parameter files predating that change expect the
+    prior behavior, so we explicitly set `fractionTimestepSatelliteMinimum=0` in any such evolver which does not set it.
+
+    Only explicitly-present `mergerTreeEvolver` elements are modified. A file which relies on the default evolver (and so
+    has no `mergerTreeEvolver` element) is left unchanged, and will use the new default: whether such a file actually
+    evolves merger trees, or is a fragment to be combined with others (through `xi:include` or on the command line)
+    which select an evolver themselves, cannot be determined from the file alone, and adding an evolver to a fragment
+    could duplicate one selected elsewhere.
+    """
+    for evolver in parameters.xpath(".//mergerTreeEvolver[@value='standard' or @value='threaded']"):
+        # A model that stated its choice explicitly already means what it says - leave it alone.
+        if len(evolver.findall("fractionTimestepSatelliteMinimum")) > 0:
+            continue
+        print("   insert fractionTimestepSatelliteMinimum 0 to retain the absence of satellite deferral")
+        fraction = etree.Element("fractionTimestepSatelliteMinimum")
+        fraction.set("value", "0")
+        if is_grid:
+            fraction.set("iterable", "no")
+        append_indented(evolver, fraction)
+
+
 def vitvitska_subresolution_method(input_doc, parameters, is_grid):
     """Special handling to preserve the sub-resolution angular momentum method across the default flip."""
     nodes = parameters.xpath(".//nodeOperator[@value='haloAngularMomentumVitvitska2002']")
@@ -1842,6 +1867,7 @@ SPECIAL_FUNCTIONS = {
     "johnson2021_correlated_branches": johnson2021_correlated_branches,
     "chandrasekhar_suppress_extended_mass": chandrasekhar_suppress_extended_mass,
     "dynamical_friction_gaseous": dynamical_friction_gaseous,
+    "satellite_deferral_default": satellite_deferral_default,
 }
 
 

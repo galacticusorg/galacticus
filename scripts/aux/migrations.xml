@@ -487,6 +487,12 @@
     <translation function="dynamical_friction_gaseous"/>
   </migration>
 
+  <migration commit="baae269b17f8fdc2c1b73be7816049e84a2f6cbc">
+    <!-- The default of `fractionTimestepSatelliteMinimum` in the standard and threaded merger tree evolvers changed -->
+    <!-- from 0 to 0.75 (issue #1431); retain the absence of satellite deferral in explicitly-selected evolvers.       -->
+    <translation function="satellite_deferral_default"/>
+  </migration>
+
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
   <default parameter="componentDisk"                  value="standard"        />
