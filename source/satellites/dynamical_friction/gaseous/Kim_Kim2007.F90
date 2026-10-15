@@ -40,7 +40,7 @@
       \end{array} \right.
 
    where :math:`\ln(R_\mathrm{p}/r_\mathrm{min})` is identified with the Coulomb logarithm, :math:`\ln\Lambda`. The drag force
-   is applied antiparallel to the velocity of the perturber. The radial component of the force found by
+   acts opposite to the velocity of the perturber. The radial component of the force found by
    :cite:t:`kim_dynamical_2007`, which contributes little to orbital decay, is not included.
 
    The fits are discontinuous at :math:`\mathcal{M}=1` (except for :math:`R_\mathrm{p}/r_\mathrm{min} \approx 10`, the value
