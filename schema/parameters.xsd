@@ -300,6 +300,22 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="blackHoleTorusCoveringFraction">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="fixed"/>
+          <xs:enumeration value="recedingTorus"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="blackHoleWind">
    <xs:complexType mixed="true">
     <xs:sequence>
@@ -987,6 +1003,7 @@
        <xs:attribute name="value" use="optional">
         <xs:simpleType>
          <xs:restriction base="xs:string">
+          <xs:enumeration value="AGNTorus"/>
           <xs:enumeration value="atlasCompendium"/>
           <xs:enumeration value="atlasFerrara2000"/>
           <xs:enumeration value="birthCloud"/>
@@ -1013,6 +1030,7 @@
        <xs:attribute name="value" use="optional">
         <xs:simpleType>
          <xs:restriction base="xs:string">
+          <xs:enumeration value="AGNTorus"/>
           <xs:enumeration value="blackBodyModified"/>
           <xs:enumeration value="daleHelou2002"/>
           <xs:enumeration value="draineLi2007"/>
