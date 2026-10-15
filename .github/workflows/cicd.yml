@@ -1222,6 +1222,7 @@ jobs:
                       tests.dust.extinction_curves.exe,
                       tests.dust.emission_spectra.exe,
                       tests.dust.attenuation_stellar_mass_redshift.exe,
+                      tests.dust.attenuation_AGN_torus.exe,
                       tests.output_analyses.attenuation_scatter.exe,
                       tests.make_ranges.exe,
                       tests.tabulations_inverse.exe,
@@ -1531,8 +1532,10 @@ jobs:
                 test-satellite-distance-minimum.py,
                 test-treeFilterLabels.py,
                 test-output.py,
+                test-output-references.py,
                 test-output-times.py,
                 test-output-tree-contiguousity.py,
+                test-output-variable-length-datasets.py,
                 test-outputSelector.py,
                 test-parameter-validation.py,
                 test-python-modules.py,
@@ -1710,6 +1713,7 @@ jobs:
         file: [ testSuite/parameters/mergerTreeEvolverThreaded.xml,
                 testSuite/parameters/constrainedMilkyWay.xml,
                 testSuite/parameters/test-nuclear-star-cluster.xml,
+                testSuite/parameters/tidalStrippingGalacticComponents.xml,
                 testSuite/parameters/zeroVelocityDispersionDisruptingHalo.xml,
                 testSuite/parameters/subhaloOrbitOnZAxis.xml ]
     uses: ./.github/workflows/testModel.yml

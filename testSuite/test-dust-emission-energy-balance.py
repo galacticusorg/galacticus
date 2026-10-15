@@ -5,7 +5,9 @@ Dust must re-emit exactly the luminosity it absorbs. For each of several attenua
 phase of dust is extracted by a `dustAttenuation` extractor (`outputAbsorbed`), and the thermal emission of the dust by
 a `SEDDustEmission` extractor heated by the same light. One attenuator is paired with two emission extractors: one using
 modified blackbodies, one using the template spectra of Dale & Helou (2002) and Draine & Li (2007), and one with
-PAH emission (Richie & Hensley 2026) heated by the spectrum of the absorbed light. The absorbed luminosity is integrated here, independently of
+PAH emission (Richie & Hensley 2026) heated by the spectrum of the absorbed light. A dusty AGN torus, followed by the
+diffuse dust of the galaxy, checks that the torus re-emits what it absorbs from the accretion disk, averaged over
+orientation. The absorbed luminosity is integrated here, independently of
 the emission extractor, and compared with the integral of the emitted spectrum, in total and phase by phase. Heating by
 the cosmic microwave background is switched off, since with it the dust also re-emits energy absorbed from the CMB.
 
@@ -43,7 +45,11 @@ CASES = (
     ("charlotFall2000"           , ":PAH"      , ("birthCloud", "screenSurfaceDensityMetals")),
     ("screenSurfaceDensityMetals", ""          , ("screenSurfaceDensityMetals",)              ),
     ("atlasFerrara2000"          , ""          , ("atlasFerrara2000",)                        ),
+    ("sequence"                  , ""          , ("AGNTorus", "screenSurfaceDensityMetals")   ),
 )
+# Phases which must absorb light in at least one galaxy, so that their energy balance is genuinely tested. Light from an
+# AGN is absorbed by its torus only if some galaxy has an accreting black hole.
+PHASES_REQUIRED = {"sequence": ("AGNTorus",)}
 # Every emission extractor is on the same grid of wavelengths, whose values are written only for the first.
 GRID_FIRST = "dustEmissionSED:charlotFall2000"
 
@@ -159,6 +165,9 @@ with h5py.File(outputPath, "r") as f:
             print(f"SUCCESS: {label}: dust emits the luminosity it absorbs, to {worst:.3e}, for {int(heated.sum())} galaxies")
             for phase in phases:
                 heatedPhase = absorbed[phase] > 0.0
+                if not heatedPhase.any() and phase in PHASES_REQUIRED.get(attenuator, ()):
+                    print(f"FAILED: {label}: the {phase} phase absorbs nothing in any galaxy, so its energy balance is not being tested")
+                    sys.exit(0)
                 if not heatedPhase.any():
                     print(f"SUCCESS: {label}: the {phase} phase absorbs nothing, and emits {float(np.max(np.abs(emittedPhases[phase]))):.3e}")
                     continue

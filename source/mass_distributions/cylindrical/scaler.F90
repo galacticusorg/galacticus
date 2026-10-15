@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of an scaling cylindrical mass distribution class.
   !!}
@@ -542,7 +544,7 @@ contains
     !!]
     cylindricalScalerSurfaceDensityRadialMoment=+     cylindricalScalerSurfaceDensityRadialMoment &
          &                                      *self%factorScalingMass                           &
-         &                                      /self%factorScalingLength**(2.0d0-moment)
+         &                                      /self%factorScalingLength**(1.0d0-moment)
     return
   end function cylindricalScalerSurfaceDensityRadialMoment
 

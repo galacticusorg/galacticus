@@ -27,11 +27,12 @@ module Mass_Distributions
   !!{RST
   Implements a class that provides mass distributions.
   !!}
-  use :: Coordinates                         , only : coordinate                    , coordinateCartesian
-  use :: Galactic_Structure_Options          , only : enumerationComponentTypeType  , enumerationMassTypeType, massTypeAll           , massTypeDark                     , &
-       &                                              massTypeBaryonic              , massTypeGalactic       , massTypeGaseous       , massTypeStellar                  , &
-       &                                              massTypeBlackHole             , componentTypeAll       , componentTypeUnknown  , massTypeUnknown                  , &
-       &                                              componentTypeDisk             , componentTypeSpheroid  , componentTypeBlackHole, enumerationStructureErrorCodeType
+  use :: Coordinates                         , only : coordinate                     , coordinateCartesian
+  use :: Galactic_Structure_Options          , only : enumerationComponentTypeType   , enumerationMassTypeType, massTypeAll           , massTypeDark                     , &
+       &                                              massTypeBaryonic               , massTypeGalactic       , massTypeGaseous       , massTypeStellar                  , &
+       &                                              massTypeBlackHole              , componentTypeAll       , componentTypeUnknown  , massTypeUnknown                  , &
+       &                                              componentTypeDisk              , componentTypeSpheroid  , componentTypeBlackHole, enumerationStructureErrorCodeType, &
+       &                                              componentTypeNuclearStarCluster
   use :: Numerical_Random_Numbers            , only : randomNumberGeneratorClass
   use :: Tensors                             , only : tensorRank2Dimension3Symmetric
   use :: Numerical_Interpolation             , only : interpolator
@@ -1238,42 +1239,44 @@ contains
     type(enumerationMassTypeType     ), intent(in   ), optional :: massType
     
     if (present(componentType)) then
-       massDistributionMatches_   = componentType == componentTypeAll                                                                                                                                                           &
-            &                      .or.                                                                                                                                                                                         &
+       massDistributionMatches_   = componentType == componentTypeAll                                                                                                                                                                     &
+            &                      .or.                                                                                                                                                                                                   &
             &                       componentType == componentTypeTarget
        if (massDistributionMatches_.and.present(massType)) then
-          massDistributionMatches_= (massType      == massTypeAll                                                                                                                                                             ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeDark       .and.  massTypeTarget      == massTypeDark                                                                                                           ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeGaseous    .and.  massTypeTarget      == massTypeGaseous                                                                                                        ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeStellar    .and.                                                massTypeTarget      == massTypeStellar                                                          ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeBlackHole  .and.                                                                                                  massTypeTarget      == massTypeBlackHole      ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeBaryonic   .and. (massTypeTarget      == massTypeGaseous   .or. massTypeTarget      == massTypeStellar                                                         )) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeGalactic   .and. (massTypeTarget      == massTypeGaseous   .or. massTypeTarget      == massTypeStellar       .or. massTypeTarget      == massTypeBlackHole      ) &
-               &                                                         .and. (componentTypeTarget == componentTypeDisk .or. componentTypeTarget == componentTypeSpheroid .or. componentTypeTarget == componentTypeBlackHole)) 
+          massDistributionMatches_= (massType      == massTypeAll                                                                                                                                                                       ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeDark       .and.       massTypeTarget      == massTypeDark                                                                                                                ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeGaseous    .and.       massTypeTarget      == massTypeGaseous                                                                                                             ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeStellar    .and.                                                          massTypeTarget      == massTypeStellar                                                          ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeBlackHole  .and.                                                                                                                     massTypeTarget  == massTypeBlackHole ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeBaryonic   .and. (     massTypeTarget      == massTypeGaseous        .or. massTypeTarget      == massTypeStellar                                                         )) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeGalactic   .and. (     massTypeTarget      == massTypeGaseous        .or. massTypeTarget      == massTypeStellar                 .or. massTypeTarget == massTypeBlackHole ) &
+               &                                                         .and. (     componentTypeTarget == componentTypeDisk      .or. componentTypeTarget == componentTypeSpheroid                                                      &
+               &                                                                .or. componentTypeTarget == componentTypeBlackHole .or. componentTypeTarget == componentTypeNuclearStarCluster)) 
        end if
     else
        if (present(massType)) then
           ! Match on mass distribution only.
-          massDistributionMatches_= (massType      == massTypeAll                                                                                                                                                             ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeDark       .and.  massTypeTarget      == massTypeDark                                                                                                           ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeGaseous    .and.  massTypeTarget      == massTypeGaseous                                                                                                        ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeStellar    .and.                                                massTypeTarget      == massTypeStellar                                                          ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeBlackHole  .and.                                                                                                  massTypeTarget      == massTypeBlackHole      ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeBaryonic   .and. (massTypeTarget      == massTypeGaseous   .or. massTypeTarget      == massTypeStellar                                                         )) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeGalactic   .and. (massTypeTarget      == massTypeGaseous   .or. massTypeTarget      == massTypeStellar       .or. massTypeTarget      == massTypeBlackHole      ) &
-               &                                                         .and. (componentTypeTarget == componentTypeDisk .or. componentTypeTarget == componentTypeSpheroid .or. componentTypeTarget == componentTypeBlackHole))
+          massDistributionMatches_= (massType      == massTypeAll                                                                                                                                                                       ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeDark       .and.       massTypeTarget      == massTypeDark                                                                                                                ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeGaseous    .and.       massTypeTarget      == massTypeGaseous                                                                                                             ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeStellar    .and.                                                          massTypeTarget      == massTypeStellar                                                          ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeBlackHole  .and.                                                                                                                      massTypeTarget == massTypeBlackHole ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeBaryonic   .and. (     massTypeTarget      == massTypeGaseous        .or. massTypeTarget      == massTypeStellar                                                         )) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeGalactic   .and. (     massTypeTarget      == massTypeGaseous        .or. massTypeTarget      == massTypeStellar                 .or. massTypeTarget == massTypeBlackHole ) &
+               &                                                         .and. (     componentTypeTarget == componentTypeDisk      .or. componentTypeTarget == componentTypeSpheroid&
+               &                                                                .or. componentTypeTarget == componentTypeBlackHole .or. componentTypeTarget == componentTypeNuclearStarCluster))
        else
           ! No selection was requested, so we always match.
           massDistributionMatches_=.true.

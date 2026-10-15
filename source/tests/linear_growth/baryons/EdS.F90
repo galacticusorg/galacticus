@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 program Tests_Linear_Growth_EdS_Baryons
   !!{RST
   Tests linear growth calculations.
@@ -30,6 +32,8 @@ program Tests_Linear_Growth_EdS_Baryons
   use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                                , dimension(5), parameter :: redshift                 =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0]
+  double precision                                , dimension(2), parameter :: redshiftEarly            =[200.0d0,400.0d0]
+  double precision                                , dimension(2)            :: linearGrowthFactorEarly                                   , expansionFactorEarly
   type            (cosmologyParametersSimple     )                          :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda)                          :: cosmologyFunctions_
   type            (linearGrowthBaryonsDarkMatter )                          :: linearGrowth_
@@ -115,6 +119,27 @@ program Tests_Linear_Growth_EdS_Baryons
      write (message,'(a,f6.1,a)') "dark matter linear growth factor [k ⟶ 0 ; z = ",redshift(i),"]"
      call Assert(trim(message),linearGrowthFactor,linearGrowthFactorExpected,relTol=1.0d-3)
   end do
+  ! Before the initial epoch (z = 100) the growth factor is continued from that epoch. In the small wavenumber limit the growing
+  ! mode in the dark matter grows as δ ∝ a, so the continuation must do likewise. The growth factor is not required to equal a
+  ! exactly there: at the initial epoch it still differs from a by about 0.4%, a transient of the initial conditions which decays
+  ! by z ≈ 10, and the continuation carries that difference to earlier times. Its growth is therefore checked through the ratio of
+  ! growth factors at two early epochs.
+  do i=1,size(redshiftEarly)
+     expansionFactor           =cosmologyFunctions_%expansionFactorFromRedshift         (                                  redshiftEarly  (i)                              )
+     linearGrowthFactorEarly(i)=linearGrowth_      %value                               (wavenumber=1.0d-3,expansionFactor=expansionFactor   ,component=componentDarkMatter)
+     expansionFactorEarly   (i)=                                                                                           expansionFactor
+     write (message,'(a,f6.1,a)') "dark matter linear growth factor [k ⟶ 0 ; z = ",redshiftEarly(i),"; before initial epoch]"
+     call Assert(trim(message),linearGrowthFactorEarly(i),expansionFactor,relTol=1.0d-2)
+     linearGrowthFactor        =linearGrowth_      %logarithmicDerivativeExpansionFactor(wavenumber=1.0d-3,expansionFactor=expansionFactor,component=componentDarkMatter)
+     write (message,'(a,f6.1,a)') "dark matter d log D / d log a [k ⟶ 0 ; z = "   ,redshiftEarly(i),"; before initial epoch]"
+     call Assert(trim(message),linearGrowthFactor,1.0d0,relTol=1.0d-3)
+  end do
+  call Assert(                                                                                               &
+       &             "dark matter linear growth factor ratio [k ⟶ 0 ; z = 400 / 200; before initial epoch]", &
+       &             linearGrowthFactorEarly(2)/linearGrowthFactorEarly(1)                                 , &
+       &             expansionFactorEarly   (2)/expansionFactorEarly   (1)                                 , &
+       &      relTol=1.0d-4                                                                                  &
+       &     )
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()

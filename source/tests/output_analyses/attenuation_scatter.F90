@@ -26,7 +26,8 @@ Contains a program which tests the attenuation scatter and random error output a
 program Test_Output_Analyses_Attenuation_Scatter
   !!{RST
   Tests the :galacticus-class:`outputAnalysisDistributionOperatorAttenuationScatter` distribution operator, and the
-  application of a random error distribution operator to a distribution, each against an independent calculation.
+  application of a random error distribution operator to a distribution and (far into its tails) to a single value, each
+  against an independent calculation.
   !!}
   use            :: Cosmology_Functions                  , only : cosmologyFunctionsClass
   use            :: Display                              , only : displayVerbositySet                                  , verbosityLevelStandard
@@ -148,6 +149,18 @@ program Test_Output_Analyses_Attenuation_Scatter
   end do
   call Assert('weight is conserved'                           ,sum(distribution),1.0d0               ,absTol=1.0d-9)
   call Assert('distribution matches averaged scalar operation',    distribution ,distributionExpected,absTol=1.0d-7)
+  call Unit_Tests_End_Group()
+
+  ! Random error applied to a single value, in bins far into the tails of the distribution. Expected values were computed with
+  ! mpmath at 60 digits of precision, as the difference of erfc() values. In bins beyond about 8σ the difference of erf() values
+  ! is lost to rounding, and was reported as exactly zero.
+  call Unit_Tests_Begin_Group("Random error applied to a value, in the tails")
+  distribution=randomError%operateScalar(42.01d0,outputAnalysisPropertyTypeLog10,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
+  call Assert('bin containing the value'   ,distribution(41),1.9524957888734210d-01,relTol=1.0d-10)
+  call Assert('bin 9.1σ below the value'   ,distribution(22),4.4766192793796223d-20,relTol=1.0d-10)
+  call Assert('bin 19.6σ below the value'  ,distribution( 1),7.7308268000441693d-86,relTol=1.0d-10)
+  call Assert('bin 9.4σ above the value'   ,distribution(60),2.7073398191499587d-21,relTol=1.0d-10)
+  call Assert('bin 20.4σ above the value'  ,distribution(82),8.3605108963798399d-93,relTol=1.0d-10)
   call Unit_Tests_End_Group()
 
   !![

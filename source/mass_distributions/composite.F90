@@ -67,6 +67,7 @@
      procedure :: densityGradientRadial                   => compositeDensityGradientRadial
      procedure :: densitySlopeLogarithmicCentral          => compositeDensitySlopeLogarithmicCentral
      procedure :: densityRadialMoment                     => compositeDensityRadialMoment
+     procedure :: surfaceDensityRadialMoment              => compositeSurfaceDensityRadialMoment
      procedure :: densitySphericalAverage                 => compositeDensitySphericalAverage
      procedure :: densitySquareIntegral                   => compositeDensitySquareIntegral
      procedure :: potentialIsAnalytic                     => compositePotentialIsAnalytic
@@ -700,6 +701,33 @@ contains
     end if
     return
   end function compositeDensityRadialMoment
+
+  double precision function compositeSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
+    !!{RST
+    Return the given radial surface density moment in a composite mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionComposite), intent(inout)           :: self
+    double precision                           , intent(in   )           :: moment
+    double precision                           , intent(in   ), optional :: radiusMinimum    , radiusMaximum
+    logical                                    , intent(  out), optional :: isInfinite
+    type            (massDistributionList     ), pointer                 :: massDistribution_
+
+    compositeSurfaceDensityRadialMoment=0.0d0
+    if (present(isInfinite)) isInfinite=.false.
+    if (associated(self%massDistributions)) then
+       massDistribution_ => self%massDistributions
+       do while (associated(massDistribution_))
+          compositeSurfaceDensityRadialMoment =  +compositeSurfaceDensityRadialMoment                                                                                             &
+               &                                 +massDistribution_                  %massDistribution_%surfaceDensityRadialMoment(moment,radiusMinimum,radiusMaximum,isInfinite)
+          if (present(isInfinite)) then
+             if (isInfinite) return
+          end if
+          massDistribution_                   =>  massDistribution_                  %next
+       end do
+    end if
+    return
+  end function compositeSurfaceDensityRadialMoment
 
   double precision function compositeMassEnclosedBySphere(self,radius)
     !!{RST

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a :cite:t:`hernquist_analytical_1990` mass distribution class.
   !!}
@@ -266,7 +268,9 @@ contains
   
   double precision function hernquistDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !!{RST
-    Returns a radial density moment for the Hernquist mass distribution.
+    Returns a radial density moment, :math:`\int_{r_\mathrm{min}}^{r_\mathrm{max}} \rho(r) r^m \mathrm{d}r`, for the Hernquist mass
+    distribution. Over the full range of radii the moment is computed analytically. Over a limited range the moment is computed
+    analytically for :math:`m=1`, 2, and 3, and numerically otherwise.
     !!}
     use :: Error                   , only : Error_Report
     use :: Numerical_Comparison    , only : Values_Agree
@@ -274,37 +278,84 @@ contains
     implicit none
     class           (massDistributionHernquist), intent(inout)           :: self
     double precision                           , intent(in   )           :: moment
-    double precision                           , intent(in   ), optional :: radiusMinimum, radiusMaximum
+    double precision                           , intent(in   ), optional :: radiusMinimum         , radiusMaximum
     logical                                    , intent(  out), optional :: isInfinite
+    double precision                                                     :: radiusMinimumScaleFree, radiusMaximumScaleFree
+    integer                                                              :: momentInteger
 
-    ! Abort on limited ranges.
-    if (present(radiusMinimum).or.present(radiusMaximum)) call Error_Report('ranges are not supported'//{introspection:location})
-    if (moment <= 0.0d0 .or. moment >= 3.0d0) then
-       ! Handle cases where the moment is infinite.
+    hernquistDensityRadialMoment=0.0d0
+    if (present(isInfinite)) isInfinite=.false.
+    ! Determine the limits of the range in units of the scale length.
+    radiusMinimumScaleFree=0.0d0
+    if (present(radiusMinimum)) radiusMinimumScaleFree=radiusMinimum/self%scaleLength
+    radiusMaximumScaleFree=huge(0.0d0)
+    if (present(radiusMaximum)) radiusMaximumScaleFree=radiusMaximum/self%scaleLength
+    ! Handle cases where the moment is infinite. The integrand diverges at small radii for m ≤ 0, and at large radii for m ≥ 3.
+    if     (                                                         &
+         &   (moment <= 0.0d0 .and. radiusMinimumScaleFree <= 0.0d0) &
+         &  .or.                                                     &
+         &   (moment >= 3.0d0 .and. .not.present(radiusMaximum)    ) &
+         & ) then
        if (present(isInfinite)) then
-          hernquistDensityRadialMoment=0.0d0
           isInfinite=.true.
           return
        else
-          hernquistDensityRadialMoment=0.0d0
           call Error_Report('requested radial density moment is infinite'//{introspection:location})
        end if
-    else if (                                              &
-         &   Values_Agree(moment,1.0d0,absTol=1.0d-3) .or. &
-         &   Values_Agree(moment,2.0d0,absTol=1.0d-3)      &
-         &  ) then
-       ! Handle special cases.
-       if (present(isInfinite)) isInfinite=.false.
-       hernquistDensityRadialMoment=0.5d0
-    else
-       ! Compute the general case.
-       if (present(isInfinite)) isInfinite=.false.
-       hernquistDensityRadialMoment=0.5d0*Pi*(moment-1.0d0)*(moment-2.0d0)/sin(Pi*moment)
     end if
-    hernquistDensityRadialMoment=+hernquistDensityRadialMoment         &
-         &                       *self%densityNormalization            &
-         &                       *self%scaleLength            **moment
+    ! Identify integer moments.
+    momentInteger=nint(moment)
+    if (.not.Values_Agree(moment,dble(momentInteger),absTol=1.0d-3)) momentInteger=-1
+    if (.not.(present(radiusMinimum).or.present(radiusMaximum))) then
+       ! Full range of radii.
+       if (momentInteger == 1 .or. momentInteger == 2) then
+          hernquistDensityRadialMoment=0.5d0
+       else
+          hernquistDensityRadialMoment=0.5d0*Pi*(moment-1.0d0)*(moment-2.0d0)/sin(Pi*moment)
+       end if
+    else if (momentInteger >= 1 .and. momentInteger <= 3) then
+       ! Limited range of radii, integer moment - use the analytic solution.
+       hernquistDensityRadialMoment=+momentIndefinite(radiusMaximumScaleFree) &
+            &                       -momentIndefinite(radiusMinimumScaleFree)
+    else
+       ! Limited range of radii, general moment - compute numerically.
+       if (.not.present(radiusMaximum)) call Error_Report('a maximum radius must be provided for non-integer moments over a limited range'//{introspection:location})
+       hernquistDensityRadialMoment=self%densityRadialMomentNumerical(moment,radiusMinimum,radiusMaximum)
+       return
+    end if
+    hernquistDensityRadialMoment=+hernquistDensityRadialMoment              &
+         &                       *self%densityNormalization                 &
+         &                       *self%scaleLength         **(moment+1.0d0)
     return
+
+  contains
+
+    double precision function momentIndefinite(x)
+      !!{RST
+      Indefinite integral, :math:`\int x^{m-1}/(1+x)^3 \mathrm{d}x`, of the scale-free Hernquist density moment, for integer
+      :math:`m=1`, 2, or 3. For :math:`m=1` and 2 the constant of integration is chosen such that the integral vanishes as
+      :math:`x \rightarrow \infty`, which is also used to evaluate the case of no upper limit.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: x
+
+      if (x >= huge(0.0d0)) then
+         momentIndefinite=0.0d0
+         return
+      end if
+      select case (momentInteger)
+      case (1)
+         momentIndefinite=-0.5d0/(1.0d0+x)**2
+      case (2)
+         momentIndefinite=-1.0d0/(1.0d0+x)+0.5d0/(1.0d0+x)**2
+      case (3)
+         momentIndefinite=+log(1.0d0+x)+2.0d0/(1.0d0+x)-0.5d0/(1.0d0+x)**2
+      case default
+         momentIndefinite=0.0d0
+      end select
+      return
+    end function momentIndefinite
+
   end function hernquistDensityRadialMoment
 
   double precision function hernquistMassEnclosedBySphere(self,radius)
