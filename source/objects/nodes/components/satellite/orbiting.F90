@@ -45,7 +45,7 @@ module Node_Component_Satellite_Orbiting
    <class>satellite</class>
    <name>orbiting</name>
    <description>
-   A satellite whose orbit within its host is integrated explicitly. Tracks the three-dimensional position and velocity relative to the host, the remaining bound mass, the virial orbit at infall, and the tidal quantities needed to model heating: the time integral of the tidal tensor along the orbit, the tidal heating energy per unit radius squared, and the ram pressure history (its time integral and its decaying running maximum along the orbit; see :galacticus-class:`nodeOperatorRamPressureHistory`). The equations of motion, dynamical friction, tidal heating and stripping, and the criteria for merging and destruction are all supplied by node operators (see :galacticus-class:`nodeOperatorSatelliteOrbit`).
+   A satellite whose orbit within its host is integrated explicitly. Tracks the three-dimensional position and velocity relative to the host, the remaining bound mass, the virial orbit at infall, and the tidal quantities needed to model heating: the time integral of the tidal tensor along the orbit, and the tidal heating energy per unit radius squared. The equations of motion, dynamical friction, tidal heating and stripping, and the criteria for merging and destruction are all supplied by node operators (see :galacticus-class:`nodeOperatorSatelliteOrbit`).
    </description>
    <isDefault>false</isDefault>
    <properties>
@@ -105,18 +105,6 @@ module Node_Component_Satellite_Orbiting
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
       <output unitsInSI="kilo**2/megaParsec**2" unitsDescription="(km/s/Mpc)²" unitsQuantity="km^2/(s^2 Mpc^2)" comment="Specific energy/radius² of satellite in units of (km/s)²/Mpc²."/>
-    </property>
-    <property>
-      <name>ramPressureTimeIntegrated</name>
-      <type>double</type>
-      <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-    </property>
-    <property>
-      <name>ramPressureMaximum</name>
-      <type>double</type>
-      <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
     </property>
    </properties>
   </component>
@@ -217,7 +205,6 @@ contains
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentSatellite, nodeComponentSatelliteOrbiting, nodeComponentBasic, treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear              , megaParsec
-    use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Tensors                         , only : tensorUnitR2D3Sym
     implicit none
@@ -228,11 +215,10 @@ contains
          &                                                                velocityScaleFractional                 =1.0d-2                              , &
          &                                                                boundMassScaleFractional                =1.0d-6                              , &
          &                                                                tidalTensorPathIntegratedScaleFractional=1.0d-2                              , &
-         &                                                                tidalHeatingNormalizedScaleFractional   =1.0d-2                              , &
-         &                                                                ramPressureScaleFractional              =1.0d-2
+         &                                                                tidalHeatingNormalizedScaleFractional   =1.0d-2
     double precision                                                   :: virialRadius                                   , virialVelocity              , &
          &                                                                virialIntegratedTidalTensor                    , virialTidalHeatingNormalized, &
-         &                                                                massSatellite                                  , virialRamPressure
+         &                                                                massSatellite
 
     ! Get the satellite component.
     satellite => node%satellite()
@@ -245,14 +231,6 @@ contains
        virialVelocity              =  darkMatterHaloScale_%velocityVirial(node)
        virialIntegratedTidalTensor =   virialVelocity/virialRadius*megaParsec/kilo/gigaYear
        virialTidalHeatingNormalized=  (virialVelocity/virialRadius)**2
-       ! The ram pressure scale is the mean density within the virial radius times the virial velocity squared. The time integral
-       ! of the ram pressure is scaled by the virial crossing time.
-       virialRamPressure           =  +3.0d0                        &
-            &                         *massSatellite                &
-            &                         /4.0d0                        &
-            &                         /Pi                           &
-            &                         /virialRadius**3              &
-            &                         *virialVelocity**2
        call satellite%positionScale                 (                                          &
             &                                        +[1.0d0,1.0d0,1.0d0]                      &
             &                                        *virialRadius                             &
@@ -275,19 +253,6 @@ contains
        call satellite%tidalHeatingNormalizedScale   (                                          &
             &                                        +virialTidalHeatingNormalized             &
             &                                        *   tidalHeatingNormalizedScaleFractional &
-            &                                       )
-       call satellite%ramPressureMaximumScale       (                                          &
-            &                                        +virialRamPressure                        &
-            &                                        *              ramPressureScaleFractional &
-            &                                       )
-       call satellite%ramPressureTimeIntegratedScale(                                          &
-            &                                        +virialRamPressure                        &
-            &                                        *virialRadius                             &
-            &                                        /virialVelocity                           &
-            &                                        *megaParsec                               &
-            &                                        /kilo                                     &
-            &                                        /gigaYear                                 &
-            &                                        *              ramPressureScaleFractional &
             &                                       )
     end select
     return
@@ -444,9 +409,7 @@ contains
        ! Set the merging/destruction time to -1 to indicate that we don't know when merging/destruction will occur.
        call self%destructionTimeSet          (           -1.0d0)
        call self%tidalTensorPathIntegratedSet(tensorNullR2D3Sym)
-       call self%tidalHeatingNormalizedSet   (            0.0d0)
-       call self%ramPressureTimeIntegratedSet(            0.0d0)
-       call self%ramPressureMaximumSet       (            0.0d0)
+       call self%tidalHeatingNormalizedSet   (            0.0d0)       
     end select
     return
   end subroutine Node_Component_Satellite_Orbiting_Virial_Orbit_Set

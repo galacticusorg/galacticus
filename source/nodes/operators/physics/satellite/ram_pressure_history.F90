@@ -31,8 +31,9 @@
    <description>
    A node operator class that accumulates the history of the ram pressure experienced by a satellite along its orbit, as needed
    by models of ram pressure stripping in which the outcome depends on the duration of the encounter as well as on its peak
-   strength :cite:`koppen_ram_2018`. Two quantities are tracked in the orbiting satellite component: the time integral of the ram
-   pressure, :math:`I`, and its running maximum, :math:`P`. These are evolved as
+   strength :cite:`koppen_ram_2018`. Two quantities are tracked, as meta-properties of the satellite component (so they exist only
+   in models which include this operator): the time integral of the ram pressure, :math:`I`, and its running maximum, :math:`P`.
+   These are evolved as
 
    .. math::
 
@@ -49,13 +50,14 @@
    period, and :math:`\epsilon_\mathrm{decay}=`\ ``[efficiencyDecay]``. The decay terms make both quantities refer, effectively, to
    the most recent pericentric passage rather than to the entire orbital history, so that a disk which regrows between passages
    can be stripped again. Setting ``[efficiencyDecay]`` to zero instead accumulates both quantities over the whole time since
-   infall. Both are reset to zero when the satellite's virial orbit is set at infall.
+   infall. Both are zero when the satellite component is created, and accumulate only while the node is a satellite, so they
+   start from zero at infall. They are not reset if a new virial orbit is later assigned to an existing satellite.
 
    The instantaneous ram pressure must be evaluated at the satellite's current position, so a
    :galacticus-class:`hotHaloRamPressureForceClass` such as :galacticus-class:`hotHaloRamPressureForceOrbitalPosition` should be
    used here. One which returns a value fixed along the orbit, such as :galacticus-class:`hotHaloRamPressureForceFont2008` (which
-   evaluates the ram pressure at pericenter), would give meaningless results. This operator requires the ``orbiting`` satellite
-   component.
+   evaluates the ram pressure at pericenter), would give meaningless results. This operator requires a satellite component which
+   tracks the satellite's position and velocity, such as the ``orbiting`` component.
    </description>
   </nodeOperator>
   !!]
@@ -67,8 +69,10 @@
      class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
      class           (darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_     => null()
      double precision                                        :: efficiencyDecay
+     integer                                                 :: ramPressureTimeIntegratedID         , ramPressureMaximumID
    contains
      final     ::                                  ramPressureHistoryDestructor
+     procedure :: differentialEvolutionScales   => ramPressureHistoryDifferentialEvolutionScales
      procedure :: differentialEvolution         => ramPressureHistoryDifferentialEvolution
      procedure :: differentialEvolutionPostStep => ramPressureHistoryDifferentialEvolutionPostStep
   end type nodeOperatorRamPressureHistory
@@ -120,8 +124,7 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`nodeOperatorRamPressureHistory` node operator class.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : defaultSatelliteComponent
+    use :: Error, only : Error_Report
     implicit none
     type            (nodeOperatorRamPressureHistory)                        :: self
     class           (hotHaloRamPressureForceClass  ), intent(in   ), target :: hotHaloRamPressureForce_
@@ -132,18 +135,11 @@ contains
     !!]
 
     if (efficiencyDecay < 0.0d0) call Error_Report('[efficiencyDecay] must be non-negative'//{introspection:location})
-    if     (                                                                                                                         &
-         &  .not.(                                                                                                                   &
-         &        defaultSatelliteComponent%ramPressureTimeIntegratedIsGettable()                                                    &
-         &   .and.                                                                                                                   &
-         &        defaultSatelliteComponent%ramPressureMaximumIsGettable       ()                                                    &
-         &  )                                                                                                                        &
-         & ) call Error_Report(                                                                                                      &
-         &                     'this node operator requires a satellite component that provides the gettable properties '//         &
-         &                     '"ramPressureTimeIntegrated" and "ramPressureMaximum"'                                    //char(10)// &
-         &                     '   (the "orbiting" satellite component provides these)'                                  //           &
-         &                     {introspection:location}                                                                              &
-         &                    )
+    !![
+    <componentPropertyAssert class="satellite" properties="position velocity" require="gettable"/>
+    <addMetaProperty component="satellite" name="ramPressureTimeIntegrated" id="self%ramPressureTimeIntegratedID" isEvolvable="yes" isCreator="yes"/>
+    <addMetaProperty component="satellite" name="ramPressureMaximum"        id="self%ramPressureMaximumID"        isEvolvable="yes" isCreator="yes"/>
+    !!]
     return
   end function ramPressureHistoryConstructorInternal
 
@@ -160,6 +156,43 @@ contains
     !!]
     return
   end subroutine ramPressureHistoryDestructor
+
+  subroutine ramPressureHistoryDifferentialEvolutionScales(self,node)
+    !!{RST
+    Set absolute ODE solver scales for the ram pressure history. The ram pressure scale is the mean density within the satellite's
+    virial radius times its virial velocity squared, and the scale for its time integral is that times the virial crossing time.
+    !!}
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite, nodeComponentBasic
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
+    use :: Numerical_Constants_Math        , only : Pi
+    implicit none
+    class           (nodeOperatorRamPressureHistory), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    class           (nodeComponentSatellite        ), pointer       :: satellite
+    class           (nodeComponentBasic            ), pointer       :: basic
+    double precision                                , parameter     :: scaleRelative =1.0d-2
+    double precision                                                :: radiusVirial         , velocityVirial, &
+         &                                                             ramPressureVirial
+
+    satellite => node%satellite()
+    select type (satellite)
+    type is (nodeComponentSatellite)
+       ! Satellite component does not yet exist - nothing to do here.
+    class default
+       basic             =>  node                     %basic         (    )
+       radiusVirial      =   self%darkMatterHaloScale_%radiusVirial  (node)
+       velocityVirial    =   self%darkMatterHaloScale_%velocityVirial(node)
+       ramPressureVirial =  +3.0d0             &
+            &               *basic%mass()      &
+            &               /4.0d0             &
+            &               /Pi                &
+            &               /radiusVirial  **3 &
+            &               *velocityVirial**2
+       call satellite%floatRank0MetaPropertyScale(self%ramPressureMaximumID       ,scaleRelative*ramPressureVirial                                            )
+       call satellite%floatRank0MetaPropertyScale(self%ramPressureTimeIntegratedID,scaleRelative*ramPressureVirial*radiusVirial/velocityVirial*MpcPerKmPerSToGyr)
+    end select
+    return
+  end subroutine ramPressureHistoryDifferentialEvolutionScales
 
   subroutine ramPressureHistoryDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{RST
@@ -182,19 +215,21 @@ contains
     satellite => node%satellite()
     ! Do not compute rates at zero radius, where the orbital period is undefined.
     if (Vector_Magnitude(satellite%position()) <= 0.0d0) return
-    call satellite%ramPressureTimeIntegratedRate(+self%hotHaloRamPressureForce_%force(node))
+    call satellite%floatRank0MetaPropertyRate(self%ramPressureTimeIntegratedID,+self%hotHaloRamPressureForce_%force(node))
     if (self%efficiencyDecay <= 0.0d0) return
     periodOrbital=Satellite_Orbit_Period(node,self%darkMatterHaloScale_)
-    call satellite%ramPressureTimeIntegratedRate(                                       &
-         &                                       -self     %efficiencyDecay             &
-         &                                       *satellite%ramPressureTimeIntegrated() &
-         &                                       /          periodOrbital               &
-         &                                      )
-    call satellite%ramPressureMaximumRate       (                                       &
-         &                                       -self     %efficiencyDecay             &
-         &                                       *satellite%ramPressureMaximum       () &
-         &                                       /          periodOrbital               &
-         &                                      )
+    call satellite%floatRank0MetaPropertyRate(                                                                     &
+         &                                                                          self%ramPressureTimeIntegratedID , &
+         &                                    -self     %efficiencyDecay                                             &
+         &                                    *satellite%floatRank0MetaPropertyGet (self%ramPressureTimeIntegratedID)  &
+         &                                    /          periodOrbital                                               &
+         &                                   )
+    call satellite%floatRank0MetaPropertyRate(                                                                     &
+         &                                                                          self%ramPressureMaximumID        , &
+         &                                    -self     %efficiencyDecay                                             &
+         &                                    *satellite%floatRank0MetaPropertyGet (self%ramPressureMaximumID       )  &
+         &                                    /          periodOrbital                                               &
+         &                                   )
     return
   end subroutine ramPressureHistoryDifferentialEvolution
 
@@ -214,8 +249,8 @@ contains
     if (.not.node%isSatellite()) return
     satellite   => node                         %satellite(    )
     ramPressure =  self%hotHaloRamPressureForce_%force    (node)
-    if (ramPressure > satellite%ramPressureMaximum()) then
-       call satellite%ramPressureMaximumSet(ramPressure)
+    if (ramPressure > satellite%floatRank0MetaPropertyGet(self%ramPressureMaximumID)) then
+       call satellite%floatRank0MetaPropertySet(self%ramPressureMaximumID,ramPressure)
        ! Signal that the node state was changed, without requiring the ODE evolution to be reset.
        if (status == GSL_Success) status=GSL_Continue
     end if

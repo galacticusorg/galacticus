@@ -32,7 +32,8 @@
    :galacticus-class:`nodeOperatorRamPressureHistory` node operator: the (decaying) running maximum of the ram pressure,
    ``satelliteRamPressureMaximum``, and its (decaying) time integral, ``satelliteRamPressureTimeIntegrated``. The instantaneous
    ram pressure, ``satelliteRamPressure``, computed using the :galacticus-class:`hotHaloRamPressureForceClass`, is also
-   extracted. All three are zero for non-satellite nodes. The ``orbiting`` satellite component is required.
+   extracted. All three are zero for non-satellite nodes. The :galacticus-class:`nodeOperatorRamPressureHistory` node operator
+   must be included in the model.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -41,7 +42,8 @@
      A property extractor class for the ram pressure history of satellites.
      !!}
      private
-     class(hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
+     class  (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_    => null()
+     integer                                        :: ramPressureTimeIntegratedID          , ramPressureMaximumID
    contains
      final     ::                 ramPressureHistoryDestructor
      procedure :: elementCount => ramPressureHistoryElementCount
@@ -87,27 +89,15 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorRamPressureHistory` property extractor class.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
     type (nodePropertyExtractorRamPressureHistory)                        :: self
     class(hotHaloRamPressureForceClass           ), intent(in   ), target :: hotHaloRamPressureForce_
     !![
     <constructorAssign variables="*hotHaloRamPressureForce_"/>
+    <addMetaProperty component="satellite" name="ramPressureTimeIntegrated" id="self%ramPressureTimeIntegratedID" isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="satellite" name="ramPressureMaximum"        id="self%ramPressureMaximumID"        isEvolvable="yes" isCreator="no"/>
     !!]
 
-    if     (                                                                                                                         &
-         &  .not.(                                                                                                                   &
-         &        defaultSatelliteComponent%ramPressureTimeIntegratedIsGettable()                                                    &
-         &   .and.                                                                                                                   &
-         &        defaultSatelliteComponent%ramPressureMaximumIsGettable       ()                                                    &
-         &  )                                                                                                                        &
-         & ) call Error_Report(                                                                                                      &
-         &                     'this property extractor requires a satellite component that provides the gettable properties '//    &
-         &                     '"ramPressureTimeIntegrated" and "ramPressureMaximum"'                                       //char(10)// &
-         &                     '   (the "orbiting" satellite component provides these)'                                     //           &
-         &                     {introspection:location}                                                                              &
-         &                    )
     return
   end function ramPressureHistoryConstructorInternal
 
@@ -154,10 +144,10 @@ contains
     allocate(ramPressureHistoryExtract(3))
     if (node%isSatellite()) then
        satellite                 => node%satellite()
-       ramPressureHistoryExtract =  [                                                &
-            &                        satellite                    %ramPressureMaximum       (    ), &
-            &                        satellite                    %ramPressureTimeIntegrated(    ), &
-            &                        self%hotHaloRamPressureForce_%force                    (node)  &
+       ramPressureHistoryExtract =  [                                                                                &
+            &                        satellite                    %floatRank0MetaPropertyGet(self%ramPressureMaximumID       ), &
+            &                        satellite                    %floatRank0MetaPropertyGet(self%ramPressureTimeIntegratedID), &
+            &                        self%hotHaloRamPressureForce_%force                    (node                            )  &
             &                       ]
     else
        ramPressureHistoryExtract =  0.0d0

@@ -69,8 +69,6 @@
     <satellite>
       <boundMass>1.0e10</boundMass>
       <tidalHeatingNormalized>0.0</tidalHeatingNormalized>
-      <ramPressureTimeIntegrated>0.0</ramPressureTimeIntegrated>
-      <ramPressureMaximum>0.0</ramPressureMaximum>
       <position>0.15</position>
       <position>0.0</position>
       <position>0.0</position>
