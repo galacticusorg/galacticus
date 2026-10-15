@@ -223,6 +223,9 @@ program Test_Mass_Distributions
      call Assert("Hernquist: m=1, r=[0.5,3]  ",massDistribution_%densityRadialMoment(1.0d0,radiusMinimum=0.5d0,radiusMaximum=3.0d0),0.03819718634205488d0                                            ,relTol=1.0d-6)
      call Assert("Hernquist: m=2, r=[0.5,3]  ",massDistribution_%densityRadialMoment(2.0d0,radiusMinimum=0.5d0,radiusMaximum=3.0d0),0.050929581789406514d0                                           ,relTol=1.0d-6)
      call Assert("Hernquist: m=3, r=[0.5,3]  ",massDistribution_%densityRadialMoment(3.0d0,radiusMinimum=0.5d0,radiusMaximum=3.0d0),0.08476412777945765d0                                            ,relTol=1.0d-6)
+     ! Small radii, where analytic solutions written as differences of terms of order unity would cancel catastrophically.
+     call Assert("Hernquist: m=2, r=[0,1e-6rₛ]",massDistribution_%densityRadialMoment(2.0d0,radiusMinimum=0.0d0,radiusMaximum=2.0d-6),4.999990000015000d-13/Pi                                       ,relTol=1.0d-9)
+     call Assert("Hernquist: m=3, r=[0,1e-6rₛ]",massDistribution_%densityRadialMoment(3.0d0,radiusMinimum=0.0d0,radiusMaximum=2.0d-6),2.0d0*3.3333258333453333d-19/Pi                                 ,relTol=1.0d-9)
      call Assert("Hernquist: m=1, r=[1,∞)    ",massDistribution_%densityRadialMoment(1.0d0,radiusMinimum=1.0d0                    ),0.0353677651315323d0                                             ,relTol=1.0d-6)
      call Assert("Hernquist: m=2.5, r=[0.5,3]",massDistribution_%densityRadialMoment(2.5d0,radiusMinimum=0.5d0,radiusMaximum=3.0d0),massDistribution_%densityRadialMomentNumerical(2.5d0,0.5d0,3.0d0),relTol=1.0d-3)
   end select
