@@ -185,9 +185,12 @@ jobs:
         # chiefly when runs are close together (test dispatches, or a release soon after a scheduled run), and costs
         # nothing when it misses. FSPS itself (its ~1 GB tarball, and the ~2.6 GB source tree holding its spectral and
         # isochrone libraries) is excluded: once the tables built from its output exist nothing needs FSPS, so caching it
-        # would only make each entry ~3 GB rather than ~0.1 GB. The path lists the directory's entries (`dynamic/*`), not
-        # the directory itself: actions/cache resolves paths without implicit descendants and archives each resolved path
-        # whole, so with `dynamic` alone the exclusions below would match nothing and FSPS would be cached anyway.
+        # would only make each entry ~3 GB rather than ~0.1 GB. Also excluded is the Gaussian ellipsoid acceleration table
+        # (~1.1 GB, used for dynamical friction from disks), which takes only ~10 minutes to rebuild. The path lists the
+        # directory's entries (`dynamic/*`), not the directory itself: actions/cache resolves paths without implicit
+        # descendants and archives each resolved path whole, so with `dynamic` alone the exclusions below would match
+        # nothing. For the same reason `galacticStructure` is excluded as a whole and its entries are listed in turn, so
+        # that the exclusion of the ellipsoid table within it applies.
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           # Relative paths (resolved against the workspace inside the container), not `${{ github.workspace }}`, which in a
@@ -196,6 +199,9 @@ jobs:
             datasets/dynamic/*
             !datasets/dynamic/fsps*
             !datasets/dynamic/FSPS_*
+            !datasets/dynamic/galacticStructure
+            datasets/dynamic/galacticStructure/*
+            !datasets/dynamic/galacticStructure/massDistributionGaussianEllipsoid_*
           key: pgo-dynamic-${{ hashFiles('testSuite/parameters/pgo/*.xml') }}-${{ github.run_id }}
           restore-keys: |
             pgo-dynamic-${{ hashFiles('testSuite/parameters/pgo/*.xml') }}-
