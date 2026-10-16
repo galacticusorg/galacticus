@@ -47,12 +47,13 @@ program Test_Output_Analyses_Attenuation_Scatter
   integer                                                               , parameter            :: countBins             =120     , countQuantiles     =200000, &
        &                                                                                          countSamples          =2000
   double precision                                                      , parameter            :: propertyMinimum       =40.0d0  , widthBin           =0.05d0, &
-       &                                                                                          rootVarianceScatter   =0.25d0  , rootVarianceError  =0.1d0
+       &                                                                                          rootVarianceScatter   =0.25d0  , rootVarianceError  =0.1d0 , &
+       &                                                                                          rootVarianceErrorNarrow=0.02d0
   type            (inputParameters                                     )                       :: parameters
   class           (dustAttenuationClass                                ), pointer              :: dustAttenuation_
   class           (cosmologyFunctionsClass                             ), pointer              :: cosmologyFunctions_
   type            (outputAnalysisDistributionOperatorAttenuationScatter)                       :: scatter                        , scatterNone
-  type            (outputAnalysisDistributionOperatorRandomErrorFixed  )                       :: randomError
+  type            (outputAnalysisDistributionOperatorRandomErrorFixed  )                       :: randomError                    , randomErrorNarrow
   type            (mergerTree                                          ), target               :: tree
   type            (treeNode                                            ), pointer              :: node
   double precision                                                      , dimension(countBins) :: propertyValueMinimum           , propertyValueMaximum     , &
@@ -161,6 +162,25 @@ program Test_Output_Analyses_Attenuation_Scatter
   call Assert('bin 19.6σ below the value'  ,distribution( 1),7.7308268000441693d-86,relTol=1.0d-10)
   call Assert('bin 9.4σ above the value'   ,distribution(60),2.7073398191499587d-21,relTol=1.0d-10)
   call Assert('bin 20.4σ above the value'  ,distribution(82),8.3605108963798399d-93,relTol=1.0d-10)
+  call Unit_Tests_End_Group()
+
+  ! Random error applied to a distribution, in bins far into the tails. Expected values were computed with mpmath at 400 digits
+  ! of precision, from the four-term difference of the integrated cumulative normal distribution. Above the source bin that
+  ! difference, evaluated directly, is lost to rounding beyond about 8σ, and was reported as exactly zero here.
+  call Unit_Tests_Begin_Group("Random error applied to a distribution, in the tails")
+  distributionSource    =0.0d0
+  distributionSource(41)=1.0d0
+  distribution          =randomError%operateDistribution(distributionSource,outputAnalysisPropertyTypeLog10,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
+  call Assert('source bin'                  ,distribution(41),1.9541710799948274d-01,relTol=1.0d-10)
+  call Assert('adjacent bin above'          ,distribution(42),1.7332927237302794d-01,relTol=1.0d-10)
+  call Assert('bin 9.0σ below the source'   ,distribution(22),2.4064494238103238d-20,relTol=1.0d-10)
+  call Assert('bin 19.5σ below the source'  ,distribution( 1),5.6000846344225840d-86,relTol=1.0d-10)
+  call Assert('bin 9.0σ above the source'   ,distribution(60),2.4064494238087348d-20,relTol=1.0d-10)
+  call Assert('bin 20.0σ above the source'  ,distribution(82),2.7398159380821561d-90,relTol=1.0d-10)
+  ! With a root variance smaller than the bin width, the rounding noise beyond 8σ was of order 10⁻¹⁵, and negative in some bins.
+  randomErrorNarrow     =outputAnalysisDistributionOperatorRandomErrorFixed(rootVarianceErrorNarrow)
+  distribution          =randomErrorNarrow%operateDistribution(distributionSource,outputAnalysisPropertyTypeLog10,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
+  call Assert('narrow error: no bin has negative weight',minval(distribution) >= 0.0d0,.true.)
   call Unit_Tests_End_Group()
 
   !![
