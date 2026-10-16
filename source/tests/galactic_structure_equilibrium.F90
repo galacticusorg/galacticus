@@ -74,29 +74,29 @@ program Test_Galactic_Structure_Equilibrium
   double precision, dimension(countModels)     , parameter :: massSpheroid           =[ 2.500000000000000d+09, 1.250000000000000d+10, 2.500000000000000d+09, 1.250000000000000d+10, 2.500000000000000d+09, 1.250000000000000d+10, 2.500000000000000d+09, 1.250000000000000d+10, 2.500000000000000d+09, 1.250000000000000d+10, 2.500000000000000d+09, 1.250000000000000d+10, 1.000000000000000d+09, 1.000000000000000d+11]
   double precision, dimension(countModels)     , parameter :: angularMomentumDisk    =[ 1.034385050495032d+10, 5.171925252475159d+10, 2.585962626237580d+10, 1.292981313118790d+11, 1.034385050495032d+10, 5.171925252475159d+10, 2.585962626237580d+10, 1.292981313118790d+11, 1.034385050495032d+10, 5.171925252475159d+10, 2.585962626237580d+10, 1.292981313118790d+11, 8.914060142547512d+08, 1.920476040013492d+12]
   double precision, dimension(countModels)     , parameter :: angularMomentumSpheroid=[ 6.464906565593948d+08, 3.232453282796975d+09, 1.616226641398487d+09, 8.081133206992437d+09, 6.464906565593948d+08, 3.232453282796975d+09, 1.616226641398487d+09, 8.081133206992437d+09, 6.464906565593948d+08, 3.232453282796975d+09, 1.616226641398487d+09, 8.081133206992437d+09, 5.571287589092195d+07, 1.200297525008433d+11]
-  double precision, dimension(countModels)     , parameter :: radiusDiskReference    =[ 5.722708324603595d-03, 2.249875686443800d-03, 1.448789024853587d-02, 9.065523769848861d-03, 4.715863781207704d-03, 2.097389645936857d-03, 1.146094768275026d-02, 7.827402922198780d-03, 3.729079372572252d-03, 1.897719856957710d-03, 8.840832145499192d-03, 6.529352026972797d-03, 1.134187960632437d-03, 5.264434173289563d-03]
-  double precision, dimension(countModels)     , parameter :: radiusSpheroidReference=[ 1.950213735459256d-03, 7.112390750122593d-04, 5.164556304050153d-03, 3.005577553793464d-03, 1.623010828022040d-03, 6.667408704051618d-04, 4.032736624498625d-03, 2.604216157573111d-03, 1.290105574755845d-03, 6.075901791636204d-04, 3.036686284409648d-03, 2.165248795921700d-03, 3.634672526447422d-04, 1.687065541259741d-03]
-  ! The assertion tolerance. `galacticStructureEquilibrium.py --tolerance` re-solves every model with the Bessel factor of the
-  ! disk rotation curve replaced by the tabulated-and-interpolated form Galacticus uses - 100 points per decade in a
-  ! `table1DLogarithmicLinear`, interpolated linearly - and reports a largest fractional shift of 1.7e-5. That tabulation is
-  ! the largest known difference between the two calculations, so the tolerance below is set a few times above it rather than
-  ! tuned to whatever the comparison happens to give. The two solver tolerances which would otherwise dominate it are tightened
-  ! in the parameter file; see the note there.
-  double precision                              , parameter :: toleranceRelative       =1.0d-4
-  class           (cosmologyFunctionsClass     ), pointer   :: cosmologyFunctions_
-  class           (darkMatterHaloScaleClass    ), pointer   :: darkMatterHaloScale_
-  class           (galacticStructureSolverClass), pointer   :: galacticStructureSolver_
-  type            (treeNode                    ), pointer   :: node
-  class           (nodeComponentBasic          ), pointer   :: basic
-  class           (nodeComponentDarkMatterProfile), pointer :: dmProfile
-  class           (nodeComponentDisk           ), pointer   :: disk
-  class           (nodeComponentSpheroid       ), pointer   :: spheroid
-  type            (inputParameters             )            :: parameters
-  character       (len=128                     )            :: message
-  integer                                                   :: iModel
-  double precision                                          :: radiusVirial                  , time              , &
-       &                                                       differenceDisk                , differenceSpheroid, &
-       &                                                       differenceMaximum
+  double precision, dimension(countModels)     , parameter :: radiusDiskReference    =[ 5.866076444012095d-03, 2.376271619863644d-03, 1.463563271584771d-02, 9.391846908615399d-03, 4.808213137308325d-03, 2.204504141405828d-03, 1.155191947632160d-02, 8.064051202100745d-03, 3.784058239341330d-03, 1.982335180512968d-03, 8.894749682392230d-03, 6.689961994158126d-03, 1.187397875626599d-03, 5.511412720563722d-03]
+  double precision, dimension(countModels)     , parameter :: radiusSpheroidReference=[ 2.010649877337007d-03, 7.505791935858934d-04, 5.235467947185564d-03, 3.125177265434999d-03, 1.664179501597806d-03, 7.012607684294530d-04, 4.075153800186249d-03, 2.693429437297989d-03, 1.315663495473915d-03, 6.361119265877454d-04, 3.060245598370788d-03, 2.226357100342361d-03, 3.812302710950055d-04, 1.769514169349703d-03]
+  ! The assertion tolerance. The disk has Galacticus' default scale height (0.137 scale lengths), so its rotation curve is that
+  ! of a thick disk, which Galacticus tabulates at 100 points per decade and interpolates with a cubic spline in ln V_c^2 vs
+  ! ln R. `galacticStructureEquilibrium.py --tolerance` re-solves every model with that tabulation in place of its own (which
+  ! is accurate to 1.4e-9) and reports a largest fractional shift of 3e-11, so the tabulation no longer limits the agreement.
+  ! What does is the contraction's `toleranceRelative` of 1.0e-6 (see the note in the parameter file): the radii agree with
+  ! the reference values to 5.5e-6. The tolerance below is set well above that, rather than tuned to it.
+  double precision                                , parameter :: toleranceRelative       =1.0d-4
+  class           (cosmologyFunctionsClass       ), pointer   :: cosmologyFunctions_
+  class           (darkMatterHaloScaleClass      ), pointer   :: darkMatterHaloScale_
+  class           (galacticStructureSolverClass  ), pointer   :: galacticStructureSolver_
+  type            (treeNode                      ), pointer   :: node
+  class           (nodeComponentBasic            ), pointer   :: basic
+  class           (nodeComponentDarkMatterProfile), pointer   :: dmProfile
+  class           (nodeComponentDisk             ), pointer   :: disk
+  class           (nodeComponentSpheroid         ), pointer   :: spheroid
+  type            (inputParameters               )            :: parameters
+  character       (len=128                       )            :: message
+  integer                                                     :: iModel
+  double precision                                            :: radiusVirial                  , time              , &
+       &                                                         differenceDisk                , differenceSpheroid, &
+       &                                                         differenceMaximum
 
   ! Set verbosity level, and register the error handler so that failures in the numerical libraries are reported rather than
   ! silently ignored.
