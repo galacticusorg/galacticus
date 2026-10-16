@@ -94,9 +94,18 @@ def _scan_one(file_name):
     # The link procedure itself lives in the main Makefile's LINK_EXECUTABLE canned recipe (which
     # has a single owner there); each generated rule contributes only the target's dependency line
     # and a $(call) to that recipe.
+    #
+    # The rule's target is the file the link actually writes, `<name>.exe$(SUFFIX)`. Were it the
+    # unsuffixed name, a build with a suffix (e.g. `MPI=yes`, writing `Galacticus.exe_MPI`) would
+    # never find its target up to date, and would relink on every `make`. With a suffix the
+    # unsuffixed name is kept as a phony alias, so `make <name>.exe` still builds that variant.
     rule = f"""\
-{exe_root}.exe: {work_dir}{obj_root}.o {work_dir}{obj_root}.d $(MAKE_DEPS)
+{exe_root}.exe$(SUFFIX): {work_dir}{obj_root}.o {work_dir}{obj_root}.d $(MAKE_DEPS)
 \t$(call LINK_EXECUTABLE,{exe_root},{obj_root})
+ifneq ($(SUFFIX),)
+.PHONY: {exe_root}.exe
+{exe_root}.exe: {exe_root}.exe$(SUFFIX)
+endif
 
 """
     return rule, exe_name
