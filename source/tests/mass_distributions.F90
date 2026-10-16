@@ -32,6 +32,7 @@ program Test_Mass_Distributions
   use :: Error_Functions           , only : Error_Function
   use :: Error                     , only : Error_Report
   use :: Events_Hooks              , only : eventsHooksInitialize
+  use :: Galactic_Component_Truncations, only : galacticComponentTruncationClass  , galacticComponentTruncationExponential
   use :: Galactic_Structure_Options, only : componentTypeSpheroid                , componentTypeDisk
   use :: IO_HDF5                   , only : ioHDF5AccessInitialize
   use :: Linear_Algebra            , only : assignment(=)                        , vector
@@ -57,6 +58,14 @@ program Test_Mass_Distributions
   class           (massDistributionClass                  )                                    , pointer     :: massDistributionDisk_                                                                                                   , massDistributionSpheroid_       , &
        &                                                                                                        massDistributionAll_                                                                                                    , massDistributionDiskAgain_
   class           (kinematicsDistributionClass            )                                    , pointer     :: kinematicsDistribution_
+  ! Objects for the galactic component truncation tests.
+  class           (galacticComponentTruncationClass       )                                    , allocatable :: galacticComponentTruncation_
+  class           (massDistributionSpherical              )                                    , pointer     :: massDistributionUntruncated_                                                                                            , massDistributionTruncated_
+  ! Reference values for exponential truncation of a dimensionless Hernquist profile (with r_decay/r_t=0.1), computed
+  ! independently by root-finding the truncation radius and direct numerical quadrature (scipy) of the truncated profile.
+  integer                                                  , parameter                                       :: truncationTableCount                 =4
+  double precision                                         , dimension(truncationTableCount  )              :: truncationTableFraction              =[0.90d0           ,0.50d0           ,0.10d0           ,0.01d0           ], &
+       &                                                                                                        truncationTableRadiusHalfMassTarget  =[2.0378552605d+00,1.0000000000d+00,2.8800715553d-01,7.6092056823d-02]
   type            (massDistributionList                   )                                    , pointer     :: massDistributions
   integer                                                  , parameter                                       :: sidmParametricTableCount              =7
   double precision                                         , dimension(sidmParametricTableCount)             :: sidmParametricTableRadius             =[+0.125000000000000d+0,+0.250000000000000d+0,+0.500000000000000d+0,+1.000000000000000d+0,+2.000000000000000d+0,+4.000000000000000d+0,+8.000000000000000d+0], &
@@ -209,6 +218,42 @@ program Test_Mass_Distributions
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
 
+  ! Exponential truncation of galactic components.
+  call Unit_Tests_Begin_Group("Galactic component truncation (exponential)")
+  allocate(massDistributionHernquist :: massDistributionUntruncated_)
+  select type (massDistributionUntruncated_)
+  type is (massDistributionHernquist)
+     massDistributionUntruncated_=massDistributionHernquist(dimensionless=.true.)
+  end select
+  ! Hold a reference to the untruncated distribution, so that it is not destroyed along with the truncated distributions which
+  ! wrap it.
+  !![
+  <referenceCountIncrement object="massDistributionUntruncated_"/>
+  !!]
+  allocate(galacticComponentTruncationExponential :: galacticComponentTruncation_)
+  select type (galacticComponentTruncation_)
+  type is (galacticComponentTruncationExponential)
+     galacticComponentTruncation_=galacticComponentTruncationExponential(radiusDecayOverRadiusTruncate=0.1d0)
+  end select
+  do i=1,truncationTableCount
+     write (label,'(f4.2)') truncationTableFraction(i)
+     massDistributionTruncated_ => galacticComponentTruncation_%massDistribution(massDistributionUntruncated_,truncationTableFraction(i))
+     call Assert("Mass retained           (f="//label//")",massDistributionTruncated_  %massTotal            (                                                         ),truncationTableFraction            (i),relTol=1.0d-3)
+     call Assert("Half-mass radius        (f="//label//")",massDistributionTruncated_  %radiusHalfMass       (                                                         ),truncationTableRadiusHalfMassTarget(i),relTol=1.0d-3)
+     !![
+     <objectDestructor name="massDistributionTruncated_"/>
+     !!]
+  end do
+  ! A negligible truncation should leave the distribution unchanged.
+  massDistributionTruncated_ => galacticComponentTruncation_%massDistribution(massDistributionUntruncated_,1.0d0-1.0d-6)
+  call Assert("Negligible truncation (mass retained)"          ,massDistributionTruncated_  %massTotal            (                                               ),1.0d0,absTol=1.0d-12)
+  !![
+  <objectDestructor name="massDistributionTruncated_"  />
+  <objectDestructor name="massDistributionUntruncated_"/>
+  !!]
+  deallocate(galacticComponentTruncation_)
+  call Unit_Tests_End_Group()
+
   ! Radial moments. Reference values were computed by direct numerical quadrature (scipy.integrate.quad) of ρ(r) rᵐ (or
   ! Σ(R) Rᵐ) for the dimensionful profiles. Over the full range, ∫ 4π ρ r² dr = M and ∫ 2π Σ R dR = M.
   call Unit_Tests_Begin_Group("Radial moments")
@@ -223,6 +268,9 @@ program Test_Mass_Distributions
      call Assert("Hernquist: m=1, r=[0.5,3]  ",massDistribution_%densityRadialMoment(1.0d0,radiusMinimum=0.5d0,radiusMaximum=3.0d0),0.03819718634205488d0                                            ,relTol=1.0d-6)
      call Assert("Hernquist: m=2, r=[0.5,3]  ",massDistribution_%densityRadialMoment(2.0d0,radiusMinimum=0.5d0,radiusMaximum=3.0d0),0.050929581789406514d0                                           ,relTol=1.0d-6)
      call Assert("Hernquist: m=3, r=[0.5,3]  ",massDistribution_%densityRadialMoment(3.0d0,radiusMinimum=0.5d0,radiusMaximum=3.0d0),0.08476412777945765d0                                            ,relTol=1.0d-6)
+     ! Small radii, where analytic solutions written as differences of terms of order unity would cancel catastrophically.
+     call Assert("Hernquist: m=2, r=[0,1e-6rₛ]",massDistribution_%densityRadialMoment(2.0d0,radiusMinimum=0.0d0,radiusMaximum=2.0d-6),4.999990000015000d-13/Pi                                       ,relTol=1.0d-9)
+     call Assert("Hernquist: m=3, r=[0,1e-6rₛ]",massDistribution_%densityRadialMoment(3.0d0,radiusMinimum=0.0d0,radiusMaximum=2.0d-6),2.0d0*3.3333258333453333d-19/Pi                                 ,relTol=1.0d-9)
      call Assert("Hernquist: m=1, r=[1,∞)    ",massDistribution_%densityRadialMoment(1.0d0,radiusMinimum=1.0d0                    ),0.0353677651315323d0                                             ,relTol=1.0d-6)
      call Assert("Hernquist: m=2.5, r=[0.5,3]",massDistribution_%densityRadialMoment(2.5d0,radiusMinimum=0.5d0,radiusMaximum=3.0d0),massDistribution_%densityRadialMomentNumerical(2.5d0,0.5d0,3.0d0),relTol=1.0d-3)
   end select

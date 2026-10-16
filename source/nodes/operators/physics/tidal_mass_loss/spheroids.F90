@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that performs tidal mass loss in spheroids.
   !!}
@@ -27,6 +29,7 @@
   <nodeOperator name="nodeOperatorTidalMassLossSpheroids" docformat="rst">
    <description>
    Computes and applies gravitational tidal stripping of stellar mass from satellite galaxy spheroids as they orbit within the host halo tidal field, progressively removing outer stars from the bulge component at each orbit.
+   The degree of tidal truncation of the spheroid, :math:`x=-\log f` where :math:`f` is the fraction of the mass of its untruncated mass distribution which it retains, is tracked in its ``tidalTruncation`` meta-property (see :galacticus-class:`galacticComponentTruncation`).
    </description>
   </nodeOperator>
   !!]
@@ -35,10 +38,12 @@
      A node operator class that performs tidal mass loss in spheroids.
      !!}
      private
-     class(tidalStrippingClass), pointer :: tidalStripping_ => null()
+     class  (tidalStrippingClass), pointer :: tidalStripping_   => null()
+     integer                             :: tidalTruncationID
    contains
-     final     ::                          tidalMassLossSpheroidsDestructor
-     procedure :: differentialEvolution => tidalMassLossSpheroidsDifferentialEvolution
+     final     ::                                tidalMassLossSpheroidsDestructor
+     procedure :: differentialEvolution       => tidalMassLossSpheroidsDifferentialEvolution
+     procedure :: differentialEvolutionScales => tidalMassLossSpheroidsDifferentialEvolutionScales
   end type nodeOperatorTidalMassLossSpheroids
   
   interface nodeOperatorTidalMassLossSpheroids
@@ -81,6 +86,7 @@ contains
     class(tidalStrippingClass               ), intent(in   ), target :: tidalStripping_
     !![
     <constructorAssign variables="*tidalStripping_"/>
+    <addMetaProperty component="spheroid" name="tidalTruncation" id="self%tidalTruncationID" isEvolvable="yes" isCreator="yes"/>
     !!]
 
     return
@@ -99,6 +105,27 @@ contains
     return
   end subroutine tidalMassLossSpheroidsDestructor
   
+  subroutine tidalMassLossSpheroidsDifferentialEvolutionScales(self,node)
+    !!{RST
+    Set absolute ODE solver scale for the degree of tidal truncation of the spheroid.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentSpheroid
+    implicit none
+    class           (nodeOperatorTidalMassLossSpheroids), intent(inout) :: self
+    type            (treeNode                          ), intent(inout) :: node
+    class           (nodeComponentSpheroid             ), pointer       :: component
+    double precision                                     , parameter     :: scaleTruncation=1.0d-2
+
+    component => node%spheroid()
+    select type (component)
+    type is (nodeComponentSpheroid)
+       ! Component does not yet exist - nothing to do here.
+    class default
+       call component%floatRank0MetaPropertyScale(self%tidalTruncationID,scaleTruncation)
+    end select
+    return
+  end subroutine tidalMassLossSpheroidsDifferentialEvolutionScales
+
   subroutine tidalMassLossSpheroidsDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{RST
     Apply tidal mass loss to the spheroid.
@@ -115,7 +142,7 @@ contains
 
     ! Do nothing during inactive property solving.
     if (propertyInactive(propertyType)) return
-    call Tidal_Mass_Loss_Apply_Spheroid(node,self%tidalStripping_)
+    call Tidal_Mass_Loss_Apply_Spheroid(node,self%tidalStripping_,self%tidalTruncationID)
     return
   end subroutine tidalMassLossSpheroidsDifferentialEvolution
 

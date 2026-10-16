@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that performs tidal mass loss in disks.
   !!}
@@ -27,6 +29,7 @@
   <nodeOperator name="nodeOperatorTidalMassLossDisks" docformat="rst">
    <description>
    Computes and applies gravitational tidal stripping of stellar and gaseous mass from satellite galaxy disks as they orbit within the host halo tidal field, removing material outside the satellite's tidal radius at each pericentric passage.
+   The degree of tidal truncation of the disk, :math:`x=-\log f` where :math:`f` is the fraction of the mass of its untruncated mass distribution which it retains, is tracked in its ``tidalTruncation`` meta-property (see :galacticus-class:`galacticComponentTruncation`).
    </description>
   </nodeOperator>
   !!]
@@ -35,10 +38,12 @@
      A node operator class that performs tidal mass loss in disks.
      !!}
      private
-     class(tidalStrippingClass), pointer :: tidalStripping_ => null()
+     class  (tidalStrippingClass), pointer :: tidalStripping_   => null()
+     integer                             :: tidalTruncationID
    contains
-     final     ::                          tidalMassLossDisksDestructor
-     procedure :: differentialEvolution => tidalMassLossDisksDifferentialEvolution
+     final     ::                                tidalMassLossDisksDestructor
+     procedure :: differentialEvolution       => tidalMassLossDisksDifferentialEvolution
+     procedure :: differentialEvolutionScales => tidalMassLossDisksDifferentialEvolutionScales
   end type nodeOperatorTidalMassLossDisks
   
   interface nodeOperatorTidalMassLossDisks
@@ -81,6 +86,7 @@ contains
     class(tidalStrippingClass           ), intent(in   ), target :: tidalStripping_
     !![
     <constructorAssign variables="*tidalStripping_"/>
+    <addMetaProperty component="disk" name="tidalTruncation" id="self%tidalTruncationID" isEvolvable="yes" isCreator="yes"/>
     !!]
 
     return
@@ -99,6 +105,27 @@ contains
     return
   end subroutine tidalMassLossDisksDestructor
   
+  subroutine tidalMassLossDisksDifferentialEvolutionScales(self,node)
+    !!{RST
+    Set absolute ODE solver scale for the degree of tidal truncation of the disk.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentDisk
+    implicit none
+    class           (nodeOperatorTidalMassLossDisks), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    class           (nodeComponentDisk             ), pointer       :: component
+    double precision                                 , parameter     :: scaleTruncation=1.0d-2
+
+    component => node%disk()
+    select type (component)
+    type is (nodeComponentDisk)
+       ! Component does not yet exist - nothing to do here.
+    class default
+       call component%floatRank0MetaPropertyScale(self%tidalTruncationID,scaleTruncation)
+    end select
+    return
+  end subroutine tidalMassLossDisksDifferentialEvolutionScales
+
   subroutine tidalMassLossDisksDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{RST
     Apply tidal mass loss to the disk.
@@ -115,7 +142,7 @@ contains
 
     ! Do nothing during inactive property solving.
     if (propertyInactive(propertyType)) return
-    call Tidal_Mass_Loss_Apply_Disk(node,self%tidalStripping_)
+    call Tidal_Mass_Loss_Apply_Disk(node,self%tidalStripping_,self%tidalTruncationID)
     return
   end subroutine tidalMassLossDisksDifferentialEvolution
 
