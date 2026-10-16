@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "4cfef566eeb3aeb6cffb3f920429dc41afff43cb",
-        "message": "Merge pull request #1575 from galacticusorg/perf/ode-flag-first-element\n\nperf(nodes): test ODE solver flags in O(1) instead of scanning slices\n",
-        "timestamp": "2026-10-11 15:30:07+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/4cfef566eeb3aeb6cffb3f920429dc41afff43cb"
+        "id": "64e1d6ca6b0fe9f3c0c28d4e76a379e15593968c",
+        "message": "Merge pull request #1617 from galacticusorg/feat/gaseous-dynamical-friction\n\nfeat(dynamical_friction): gaseous dynamical friction for the hot halo (Kim & Kim 2007)\n",
+        "timestamp": "2026-10-15 16:10:39+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/64e1d6ca6b0fe9f3c0c28d4e76a379e15593968c"
     },
     "results": [
         {
@@ -22,7 +22,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo bound mass cumulative distribution function",
                 "description": "Subhalo bound mass cumulative distribution function (τ=80.0 Gyr; vₖ=40.0 km/s)",
-                "logLikelihood": "-17.985589597189932",
+                "logLikelihood": "-16.28847738506606",
                 "type": "function1D"
             },
             "data": {
@@ -38,9 +38,9 @@ window.ANALYSES_DATA = {
                     7742636826.811277
                 ],
                 "yDataset": [
-                    47.24093992024766,
-                    44.90620341588269,
-                    34.31528174116289,
+                    45.70773384264165,
+                    44.19198586962394,
+                    33.60106419490413,
                     11.269191607040304,
                     9.21502797200363,
                     5.601737953040811,
@@ -82,7 +82,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo orbital radius cumulative distribution function",
                 "description": "Subhalo orbital radius cumulative distribution function (τ=80.0 Gyr; vₖ=40.0 km/s)",
-                "logLikelihood": "-69.0172645194458",
+                "logLikelihood": "-72.26307715155976",
                 "type": "function1D"
             },
             "data": {
@@ -98,15 +98,15 @@ window.ANALYSES_DATA = {
                     774.263682681127
                 ],
                 "yDataset": [
-                    0.23135020460403885,
-                    0.23135020460403885,
-                    0.9248325625457373,
-                    3.1289487831980467,
-                    27.344453158562402,
-                    43.55600928900063,
-                    47.911044659410926,
-                    47.911044659410926,
-                    47.911044659410926
+                    0.08469415950123864,
+                    0.08469415950123864,
+                    0.778176517442937,
+                    3.06562607142858,
+                    27.197797113459597,
+                    42.73702075765336,
+                    46.3778385818049,
+                    46.3778385818049,
+                    46.3778385818049
                 ],
                 "yDatasetTarget": [
                     2.0,
