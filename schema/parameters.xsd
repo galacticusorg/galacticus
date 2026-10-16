@@ -1004,6 +1004,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="AGNTorus"/>
+          <xs:enumeration value="AGNTorusSKIRTOR"/>
           <xs:enumeration value="atlasCompendium"/>
           <xs:enumeration value="atlasFerrara2000"/>
           <xs:enumeration value="birthCloud"/>
@@ -1031,6 +1032,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="AGNTorus"/>
+          <xs:enumeration value="AGNTorusSKIRTOR"/>
           <xs:enumeration value="blackBodyModified"/>
           <xs:enumeration value="daleHelou2002"/>
           <xs:enumeration value="draineLi2007"/>
