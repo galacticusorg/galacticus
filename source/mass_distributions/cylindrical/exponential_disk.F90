@@ -1181,18 +1181,19 @@ contains
     expansion of :cite:t:`kuijken_mass_1989`, the terms of which do not decay with order. The tabulation is built for a
     dimensionless disk.
     !!}
-    use :: Display              , only : displayCounter              , displayCounterClear , displayIndent , displayUnindent, &
-          &                              verbosityLevelWorking
-    use :: File_Utilities       , only : Directory_Make              , File_Exists         , File_Lock     , File_Path      , &
-          &                              File_Unlock                 , lockDescriptor
-    use :: Input_Paths          , only : inputPath                   , pathTypeDataDynamic
-    use :: HDF5_Access          , only : hdf5Access
-    use :: IO_HDF5              , only : hdf5File
-    use :: ISO_Varying_String   , only : char                        , operator(//)        , varying_string
-    use :: Numerical_Integration, only : integrator
-    use :: Numerical_Ranges     , only : Make_Range                  , rangeTypeLogarithmic
-    use :: String_Handling      , only : operator(//)
-    use :: Table_Labels         , only : extrapolationTypeExtrapolate
+    use    :: Display              , only : displayCounter              , displayCounterClear , displayIndent , displayUnindent, &
+          &                                 verbosityLevelWorking
+    use    :: File_Utilities       , only : Directory_Make              , File_Exists         , File_Lock     , File_Path      , &
+          &                                 File_Unlock                 , lockDescriptor
+    use    :: Input_Paths          , only : inputPath                   , pathTypeDataDynamic
+    use    :: HDF5_Access          , only : hdf5Access
+    use    :: IO_HDF5              , only : hdf5File
+    use    :: ISO_Varying_String   , only : char                        , operator(//)        , varying_string
+    use    :: Numerical_Integration, only : integrator
+    use    :: Numerical_Ranges     , only : Make_Range                  , rangeTypeLogarithmic
+    use    :: String_Handling      , only : operator(//)
+    use    :: Table_Labels         , only : extrapolationTypeExtrapolate
+    !$ use :: OMP_Lib              , only : OMP_In_Parallel
     implicit none
     class           (massDistributionExponentialDisk), intent(inout)                   :: self
     logical                                          , intent(in   )                   :: midplane
@@ -1220,6 +1221,7 @@ contains
     double precision                                 , allocatable  , dimension(:,:,:) :: kernelTable
     double precision                                 , allocatable  , dimension(:    ) :: rotationCurveRadii                         , rotationCurveSquared                       , &
          &                                                                                heightsKernel
+    logical                                                                            :: tableRead                                  , tabulateInParallel
 
     solutionTabulate: block
       type     (varying_string) :: fileName
@@ -1241,28 +1243,23 @@ contains
            &   fileFormatVersionCurrent      // &
            &   '.hdf5'
       call Directory_Make(File_Path(fileName))
-      ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-      call File_Lock(fileName,fileLock,lockIsShared=.true.)
+      ! Read the table from file if it exists, holding a shared lock while doing so. Otherwise, obtain an exclusive lock before
+      ! building and writing the table. Once that lock is obtained the file must be checked for again, as another process (e.g. a
+      ! different MPI process) may have built it in the meantime. (A shared lock must not be held while writing, as concurrent
+      ! writers then collide when creating the file.) Always obtain the file lock before the hdf5Access lock to avoid deadlocks
+      ! between OpenMP threads.
+      tableRead=.false.
       if (File_Exists(fileName)) then
-         !$ call hdf5Access%set()
-         hdf5ReadScope: block
-           type(hdf5File) :: file
-           file=hdf5File(fileName,readOnly=.true.)
-           if (midplane) then
-              call file%readDataset('rotationCurveRadii'         ,     rotationCurveRadii         )
-              call file%readDataset('rotationCurveSquared'       ,     rotationCurveSquared       )
-           else
-              call file%readDataset('radii'                      ,self%accelerationRadii          )
-              call file%readDataset('heights'                    ,self%accelerationHeights        )
-              call file%readDataset('accelerationRadial'         ,self%accelerationRadial         )
-              call file%readDataset('accelerationVertical'       ,self%accelerationVertical       )
-              call file%readDataset('tidalTensorRadialRadial'    ,self%tidalTensorRadialRadial    )
-              call file%readDataset('tidalTensorVerticalVertical',self%tidalTensorVerticalVertical)
-              call file%readDataset('tidalTensorCross'           ,self%tidalTensorCross           )
-              call file%readDataset('potential'                  ,self%potentialTabulated         )
-           end if
-         end block hdf5ReadScope
-         !$ call hdf5Access%unset()
+         call File_Lock  (fileName,fileLock,lockIsShared=.true.)
+         call tableReadFile(fileName)
+         call File_Unlock(         fileLock                    )
+         tableRead=.true.
+      end if
+      if (.not.tableRead) call File_Lock(fileName,fileLock,lockIsShared=.false.)
+      if (tableRead) then
+         ! Table was read from file - nothing more to do.
+      else if (File_Exists(fileName)) then
+         call tableReadFile(fileName)
       else
          if (midplane) then
             ! Generate grid in radius for the mid-plane rotation curve. The vertical kernel is needed in the mid-plane only.
@@ -1301,7 +1298,13 @@ contains
          wavenumberKernelLogarithmicMinimum =log(wavenumberKernelMinimum)
          wavenumberKernelLogarithmicInterval=log(wavenumberKernelMaximum/wavenumberKernelMinimum)/dble(countWavenumbers-1)
          allocate(kernelTable(countWavenumbers,countHeightsKernel,3))
-         !$omp parallel private(iWavenumber,wavenumber)
+         ! Parallelize the tabulation only if not already within a parallel region. The tables are usually first needed during
+         ! tree evolution, within the parallel region over trees, where all threads are already occupied. A nested parallel region
+         ! there would start new threads, whose threadprivate data (e.g. the copies of event hooks made on entry to each parallel
+         ! region) are never freed when those threads exit.
+         tabulateInParallel=.true.
+         !$ tabulateInParallel=.not.OMP_In_Parallel()
+         !$omp parallel private(iWavenumber,wavenumber) if (tabulateInParallel)
          allocate(integratorKernel         )
          allocate(integratorKernelGradient )
          allocate(integratorKernelGradient2)
@@ -1325,7 +1328,7 @@ contains
          !$omp end parallel
          if (midplane) then
             ! Tabulate the mid-plane rotation curve, V_c²(R) = -R a_R(R,z=0).
-            !$omp parallel
+            !$omp parallel if (tabulateInParallel)
             call integratorsAllocate()
             height     =heightsKernel(1)
             indexHeight=              1
@@ -1343,7 +1346,7 @@ contains
             call displayIndent("tabulating gravitational accelerations for exponential disk",verbosityLevelWorking)
             countWork=0
             do iRadius=1,countRadii
-               !$omp parallel
+               !$omp parallel if (tabulateInParallel)
                radius=self%accelerationRadii(iRadius)
                call integratorsAllocate()
                !$omp do schedule(dynamic)
@@ -1406,7 +1409,7 @@ contains
          end block hdf5WriteScope
          !$ call hdf5Access%unset()
       end if
-      call File_Unlock(fileLock)
+      if (.not.tableRead) call File_Unlock(fileLock)
       if (midplane) then
          ! Build the spline interpolation of the mid-plane rotation curve.
          call self%rotationCurveMidplaneTable%create  (                                                            &
@@ -1435,6 +1438,35 @@ contains
     return
 
   contains
+
+    subroutine tableReadFile(fileName)
+      !!{RST
+      Read the tabulated solution from file. The caller must hold a lock on the file.
+      !!}
+      implicit none
+      type(varying_string), intent(in   ) :: fileName
+
+      !$ call hdf5Access%set()
+      hdf5ReadScope: block
+        type(hdf5File) :: file
+        file=hdf5File(fileName,readOnly=.true.)
+        if (midplane) then
+           call file%readDataset('rotationCurveRadii'         ,     rotationCurveRadii         )
+           call file%readDataset('rotationCurveSquared'       ,     rotationCurveSquared       )
+        else
+           call file%readDataset('radii'                      ,self%accelerationRadii          )
+           call file%readDataset('heights'                    ,self%accelerationHeights        )
+           call file%readDataset('accelerationRadial'         ,self%accelerationRadial         )
+           call file%readDataset('accelerationVertical'       ,self%accelerationVertical       )
+           call file%readDataset('tidalTensorRadialRadial'    ,self%tidalTensorRadialRadial    )
+           call file%readDataset('tidalTensorVerticalVertical',self%tidalTensorVerticalVertical)
+           call file%readDataset('tidalTensorCross'           ,self%tidalTensorCross           )
+           call file%readDataset('potential'                  ,self%potentialTabulated         )
+        end if
+      end block hdf5ReadScope
+      !$ call hdf5Access%unset()
+      return
+    end subroutine tableReadFile
 
     subroutine integratorsAllocate()
       !!{RST
